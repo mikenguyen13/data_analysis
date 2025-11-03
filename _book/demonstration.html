@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>44.4 Demonstration | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="44.4 Demonstration | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1867,285 +1867,285 @@ div.csl-indent {
             <section class="normal" id="section-">
 <div id="demonstration" class="section level2 hasAnchor" number="44.4">
 <h2><span class="header-section-number">44.4</span> Demonstration<a href="demonstration.html#demonstration" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<div class="sourceCode" id="cb1288"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1288-1"><a href="demonstration.html#cb1288-1" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-2"><a href="demonstration.html#cb1288-2" tabindex="-1"></a><span class="co"># HPC Workflow Demo in R: Scaling Resources and Parallelism</span></span>
-<span id="cb1288-3"><a href="demonstration.html#cb1288-3" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-4"><a href="demonstration.html#cb1288-4" tabindex="-1"></a></span>
-<span id="cb1288-5"><a href="demonstration.html#cb1288-5" tabindex="-1"></a></span>
-<span id="cb1288-6"><a href="demonstration.html#cb1288-6" tabindex="-1"></a><span class="co"># -- 1. Libraries --</span></span>
-<span id="cb1288-7"><a href="demonstration.html#cb1288-7" tabindex="-1"></a><span class="fu">library</span>(parallel)       <span class="co"># base parallel</span></span>
-<span id="cb1288-8"><a href="demonstration.html#cb1288-8" tabindex="-1"></a><span class="fu">library</span>(doParallel)     <span class="co"># foreach backend</span></span>
-<span id="cb1288-9"><a href="demonstration.html#cb1288-9" tabindex="-1"></a><span class="fu">library</span>(foreach)        <span class="co"># parallel loops</span></span>
-<span id="cb1288-10"><a href="demonstration.html#cb1288-10" tabindex="-1"></a><span class="fu">library</span>(future)         <span class="co"># futures</span></span>
-<span id="cb1288-11"><a href="demonstration.html#cb1288-11" tabindex="-1"></a><span class="fu">library</span>(future.apply)   <span class="co"># apply with futures</span></span>
-<span id="cb1288-12"><a href="demonstration.html#cb1288-12" tabindex="-1"></a><span class="fu">library</span>(ggplot2)        <span class="co"># plotting results</span></span>
-<span id="cb1288-13"><a href="demonstration.html#cb1288-13" tabindex="-1"></a></span>
-<span id="cb1288-14"><a href="demonstration.html#cb1288-14" tabindex="-1"></a><span class="co"># Optional: install.packages(&quot;pryr&quot;) for memory usage (optional)</span></span>
-<span id="cb1288-15"><a href="demonstration.html#cb1288-15" tabindex="-1"></a><span class="co"># library(pryr)</span></span>
-<span id="cb1288-16"><a href="demonstration.html#cb1288-16" tabindex="-1"></a></span>
-<span id="cb1288-17"><a href="demonstration.html#cb1288-17" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-18"><a href="demonstration.html#cb1288-18" tabindex="-1"></a><span class="co"># -- 2. Generate or Load Data (Small and Large for Scaling) --</span></span>
-<span id="cb1288-19"><a href="demonstration.html#cb1288-19" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-20"><a href="demonstration.html#cb1288-20" tabindex="-1"></a></span>
-<span id="cb1288-21"><a href="demonstration.html#cb1288-21" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb1288-22"><a href="demonstration.html#cb1288-22" tabindex="-1"></a></span>
-<span id="cb1288-23"><a href="demonstration.html#cb1288-23" tabindex="-1"></a>n_small <span class="ot">&lt;-</span> <span class="fl">1e4</span>    <span class="co"># Small dataset (test)</span></span>
-<span id="cb1288-24"><a href="demonstration.html#cb1288-24" tabindex="-1"></a>n_large <span class="ot">&lt;-</span> <span class="fl">1e6</span>    <span class="co"># Large dataset (scale-up demo)</span></span>
-<span id="cb1288-25"><a href="demonstration.html#cb1288-25" tabindex="-1"></a></span>
-<span id="cb1288-26"><a href="demonstration.html#cb1288-26" tabindex="-1"></a>generate_data <span class="ot">&lt;-</span> <span class="cf">function</span>(n) {</span>
-<span id="cb1288-27"><a href="demonstration.html#cb1288-27" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
-<span id="cb1288-28"><a href="demonstration.html#cb1288-28" tabindex="-1"></a>        <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
-<span id="cb1288-29"><a href="demonstration.html#cb1288-29" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>),</span>
-<span id="cb1288-30"><a href="demonstration.html#cb1288-30" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">100</span>, <span class="at">sd =</span> <span class="dv">25</span>)</span>
-<span id="cb1288-31"><a href="demonstration.html#cb1288-31" tabindex="-1"></a>    )</span>
-<span id="cb1288-32"><a href="demonstration.html#cb1288-32" tabindex="-1"></a>}</span>
-<span id="cb1288-33"><a href="demonstration.html#cb1288-33" tabindex="-1"></a></span>
-<span id="cb1288-34"><a href="demonstration.html#cb1288-34" tabindex="-1"></a>data_small <span class="ot">&lt;-</span> <span class="fu">generate_data</span>(n_small)</span>
-<span id="cb1288-35"><a href="demonstration.html#cb1288-35" tabindex="-1"></a>data_large <span class="ot">&lt;-</span> <span class="fu">generate_data</span>(n_large)</span>
-<span id="cb1288-36"><a href="demonstration.html#cb1288-36" tabindex="-1"></a></span>
-<span id="cb1288-37"><a href="demonstration.html#cb1288-37" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-38"><a href="demonstration.html#cb1288-38" tabindex="-1"></a><span class="co"># -- 3. Preprocessing Function --</span></span>
-<span id="cb1288-39"><a href="demonstration.html#cb1288-39" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-40"><a href="demonstration.html#cb1288-40" tabindex="-1"></a></span>
-<span id="cb1288-41"><a href="demonstration.html#cb1288-41" tabindex="-1"></a>clean_and_transform <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
-<span id="cb1288-42"><a href="demonstration.html#cb1288-42" tabindex="-1"></a>    df<span class="sc">$</span>dist <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(df<span class="sc">$</span>x <span class="sc">^</span> <span class="dv">2</span> <span class="sc">+</span> df<span class="sc">$</span>y <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb1288-43"><a href="demonstration.html#cb1288-43" tabindex="-1"></a>    <span class="fu">return</span>(df)</span>
-<span id="cb1288-44"><a href="demonstration.html#cb1288-44" tabindex="-1"></a>}</span>
-<span id="cb1288-45"><a href="demonstration.html#cb1288-45" tabindex="-1"></a></span>
-<span id="cb1288-46"><a href="demonstration.html#cb1288-46" tabindex="-1"></a>data_small_clean <span class="ot">&lt;-</span> <span class="fu">clean_and_transform</span>(data_small)</span>
-<span id="cb1288-47"><a href="demonstration.html#cb1288-47" tabindex="-1"></a>data_large_clean <span class="ot">&lt;-</span> <span class="fu">clean_and_transform</span>(data_large)</span>
-<span id="cb1288-48"><a href="demonstration.html#cb1288-48" tabindex="-1"></a></span>
-<span id="cb1288-49"><a href="demonstration.html#cb1288-49" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-50"><a href="demonstration.html#cb1288-50" tabindex="-1"></a><span class="co"># -- 4. Heavy Computation (Simulated Workload) --</span></span>
-<span id="cb1288-51"><a href="demonstration.html#cb1288-51" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-52"><a href="demonstration.html#cb1288-52" tabindex="-1"></a></span>
-<span id="cb1288-53"><a href="demonstration.html#cb1288-53" tabindex="-1"></a>heavy_computation <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">reps =</span> <span class="dv">500</span>) {</span>
-<span id="cb1288-54"><a href="demonstration.html#cb1288-54" tabindex="-1"></a>    <span class="fu">replicate</span>(reps, <span class="fu">sum</span>(df<span class="sc">$</span>dist))</span>
-<span id="cb1288-55"><a href="demonstration.html#cb1288-55" tabindex="-1"></a>}</span>
-<span id="cb1288-56"><a href="demonstration.html#cb1288-56" tabindex="-1"></a></span>
-<span id="cb1288-57"><a href="demonstration.html#cb1288-57" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-58"><a href="demonstration.html#cb1288-58" tabindex="-1"></a><span class="co"># -- 5. Resource Measurement Helper Function --</span></span>
-<span id="cb1288-59"><a href="demonstration.html#cb1288-59" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-60"><a href="demonstration.html#cb1288-60" tabindex="-1"></a></span>
-<span id="cb1288-61"><a href="demonstration.html#cb1288-61" tabindex="-1"></a>measure_resources <span class="ot">&lt;-</span></span>
-<span id="cb1288-62"><a href="demonstration.html#cb1288-62" tabindex="-1"></a>    <span class="cf">function</span>(expr, approach_name, data_size, cores) {</span>
-<span id="cb1288-63"><a href="demonstration.html#cb1288-63" tabindex="-1"></a>        start_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb1288-64"><a href="demonstration.html#cb1288-64" tabindex="-1"></a>        </span>
-<span id="cb1288-65"><a href="demonstration.html#cb1288-65" tabindex="-1"></a>        <span class="co"># baseline_mem &lt;- pryr::mem_used()  # If pryr is available</span></span>
-<span id="cb1288-66"><a href="demonstration.html#cb1288-66" tabindex="-1"></a>        result <span class="ot">&lt;-</span> <span class="fu">eval</span>(expr)</span>
-<span id="cb1288-67"><a href="demonstration.html#cb1288-67" tabindex="-1"></a>        end_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb1288-68"><a href="demonstration.html#cb1288-68" tabindex="-1"></a>        </span>
-<span id="cb1288-69"><a href="demonstration.html#cb1288-69" tabindex="-1"></a>        time_elapsed <span class="ot">&lt;-</span></span>
-<span id="cb1288-70"><a href="demonstration.html#cb1288-70" tabindex="-1"></a>            <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(end_time, start_time, <span class="at">units =</span> <span class="st">&quot;secs&quot;</span>))</span>
-<span id="cb1288-71"><a href="demonstration.html#cb1288-71" tabindex="-1"></a>        <span class="co"># used_mem &lt;- as.numeric(pryr::mem_used() - baseline_mem) / 1e6  # MB</span></span>
-<span id="cb1288-72"><a href="demonstration.html#cb1288-72" tabindex="-1"></a>        </span>
-<span id="cb1288-73"><a href="demonstration.html#cb1288-73" tabindex="-1"></a>        <span class="co"># If pryr isn&#39;t available, approximate:</span></span>
-<span id="cb1288-74"><a href="demonstration.html#cb1288-74" tabindex="-1"></a>        used_mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(result)) <span class="sc">/</span> <span class="fl">1e6</span>  <span class="co"># MB</span></span>
-<span id="cb1288-75"><a href="demonstration.html#cb1288-75" tabindex="-1"></a>        </span>
-<span id="cb1288-76"><a href="demonstration.html#cb1288-76" tabindex="-1"></a>        <span class="fu">return</span>(</span>
-<span id="cb1288-77"><a href="demonstration.html#cb1288-77" tabindex="-1"></a>            <span class="fu">data.frame</span>(</span>
-<span id="cb1288-78"><a href="demonstration.html#cb1288-78" tabindex="-1"></a>                <span class="at">Approach =</span> approach_name,</span>
-<span id="cb1288-79"><a href="demonstration.html#cb1288-79" tabindex="-1"></a>                <span class="at">Data_Size =</span> data_size,</span>
-<span id="cb1288-80"><a href="demonstration.html#cb1288-80" tabindex="-1"></a>                <span class="at">Cores =</span> cores,</span>
-<span id="cb1288-81"><a href="demonstration.html#cb1288-81" tabindex="-1"></a>                <span class="at">Time_Sec =</span> time_elapsed,</span>
-<span id="cb1288-82"><a href="demonstration.html#cb1288-82" tabindex="-1"></a>                <span class="at">Memory_MB =</span> <span class="fu">round</span>(used_mem, <span class="dv">2</span>)</span>
-<span id="cb1288-83"><a href="demonstration.html#cb1288-83" tabindex="-1"></a>            )</span>
-<span id="cb1288-84"><a href="demonstration.html#cb1288-84" tabindex="-1"></a>        )</span>
-<span id="cb1288-85"><a href="demonstration.html#cb1288-85" tabindex="-1"></a>    }</span>
-<span id="cb1288-86"><a href="demonstration.html#cb1288-86" tabindex="-1"></a></span>
-<span id="cb1288-87"><a href="demonstration.html#cb1288-87" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-88"><a href="demonstration.html#cb1288-88" tabindex="-1"></a><span class="co"># -- 6. Define and Run Parallel Approaches --</span></span>
-<span id="cb1288-89"><a href="demonstration.html#cb1288-89" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-90"><a href="demonstration.html#cb1288-90" tabindex="-1"></a></span>
-<span id="cb1288-91"><a href="demonstration.html#cb1288-91" tabindex="-1"></a><span class="co"># Collect results in a dataframe</span></span>
-<span id="cb1288-92"><a href="demonstration.html#cb1288-92" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
-<span id="cb1288-93"><a href="demonstration.html#cb1288-93" tabindex="-1"></a></span>
-<span id="cb1288-94"><a href="demonstration.html#cb1288-94" tabindex="-1"></a><span class="do">### 6.1 Single Core (Baseline)</span></span>
-<span id="cb1288-95"><a href="demonstration.html#cb1288-95" tabindex="-1"></a>res_single_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-96"><a href="demonstration.html#cb1288-96" tabindex="-1"></a>    <span class="at">expr =</span> <span class="fu">quote</span>(<span class="fu">heavy_computation</span>(data_small_clean)),</span>
-<span id="cb1288-97"><a href="demonstration.html#cb1288-97" tabindex="-1"></a>    <span class="at">approach_name =</span> <span class="st">&quot;SingleCore&quot;</span>,</span>
-<span id="cb1288-98"><a href="demonstration.html#cb1288-98" tabindex="-1"></a>    <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
-<span id="cb1288-99"><a href="demonstration.html#cb1288-99" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">1</span></span>
-<span id="cb1288-100"><a href="demonstration.html#cb1288-100" tabindex="-1"></a>)</span>
-<span id="cb1288-101"><a href="demonstration.html#cb1288-101" tabindex="-1"></a></span>
-<span id="cb1288-102"><a href="demonstration.html#cb1288-102" tabindex="-1"></a>res_single_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-103"><a href="demonstration.html#cb1288-103" tabindex="-1"></a>    <span class="at">expr =</span> <span class="fu">quote</span>(<span class="fu">heavy_computation</span>(data_large_clean)),</span>
-<span id="cb1288-104"><a href="demonstration.html#cb1288-104" tabindex="-1"></a>    <span class="at">approach_name =</span> <span class="st">&quot;SingleCore&quot;</span>,</span>
-<span id="cb1288-105"><a href="demonstration.html#cb1288-105" tabindex="-1"></a>    <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
-<span id="cb1288-106"><a href="demonstration.html#cb1288-106" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">1</span></span>
-<span id="cb1288-107"><a href="demonstration.html#cb1288-107" tabindex="-1"></a>)</span>
-<span id="cb1288-108"><a href="demonstration.html#cb1288-108" tabindex="-1"></a></span>
-<span id="cb1288-109"><a href="demonstration.html#cb1288-109" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_single_small, res_single_large)</span>
-<span id="cb1288-110"><a href="demonstration.html#cb1288-110" tabindex="-1"></a></span>
-<span id="cb1288-111"><a href="demonstration.html#cb1288-111" tabindex="-1"></a><span class="co"># clusterExport(cl, varlist = c(&quot;heavy_computation&quot;))</span></span>
-<span id="cb1288-112"><a href="demonstration.html#cb1288-112" tabindex="-1"></a></span>
-<span id="cb1288-113"><a href="demonstration.html#cb1288-113" tabindex="-1"></a></span>
-<span id="cb1288-114"><a href="demonstration.html#cb1288-114" tabindex="-1"></a><span class="do">### 6.2 Base Parallel (Cross-Platform): parLapply (Cluster Based)</span></span>
-<span id="cb1288-115"><a href="demonstration.html#cb1288-115" tabindex="-1"></a>cores_to_test <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>)</span>
-<span id="cb1288-116"><a href="demonstration.html#cb1288-116" tabindex="-1"></a></span>
-<span id="cb1288-117"><a href="demonstration.html#cb1288-117" tabindex="-1"></a><span class="cf">for</span> (cores <span class="cf">in</span> cores_to_test) {</span>
-<span id="cb1288-118"><a href="demonstration.html#cb1288-118" tabindex="-1"></a>    cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(cores)</span>
-<span id="cb1288-119"><a href="demonstration.html#cb1288-119" tabindex="-1"></a>    </span>
-<span id="cb1288-120"><a href="demonstration.html#cb1288-120" tabindex="-1"></a>    <span class="co"># Export both the heavy function and the datasets</span></span>
-<span id="cb1288-121"><a href="demonstration.html#cb1288-121" tabindex="-1"></a>    <span class="fu">clusterExport</span>(cl,</span>
-<span id="cb1288-122"><a href="demonstration.html#cb1288-122" tabindex="-1"></a>                  <span class="at">varlist =</span> <span class="fu">c</span>(</span>
-<span id="cb1288-123"><a href="demonstration.html#cb1288-123" tabindex="-1"></a>                      <span class="st">&quot;heavy_computation&quot;</span>,</span>
-<span id="cb1288-124"><a href="demonstration.html#cb1288-124" tabindex="-1"></a>                      <span class="st">&quot;data_small_clean&quot;</span>,</span>
-<span id="cb1288-125"><a href="demonstration.html#cb1288-125" tabindex="-1"></a>                      <span class="st">&quot;data_large_clean&quot;</span></span>
-<span id="cb1288-126"><a href="demonstration.html#cb1288-126" tabindex="-1"></a>                  ))</span>
-<span id="cb1288-127"><a href="demonstration.html#cb1288-127" tabindex="-1"></a>    </span>
-<span id="cb1288-128"><a href="demonstration.html#cb1288-128" tabindex="-1"></a>    res_par_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-129"><a href="demonstration.html#cb1288-129" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
-<span id="cb1288-130"><a href="demonstration.html#cb1288-130" tabindex="-1"></a>            <span class="fu">parLapply</span>(</span>
-<span id="cb1288-131"><a href="demonstration.html#cb1288-131" tabindex="-1"></a>                <span class="at">cl =</span> cl,</span>
-<span id="cb1288-132"><a href="demonstration.html#cb1288-132" tabindex="-1"></a>                <span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span>cores,</span>
-<span id="cb1288-133"><a href="demonstration.html#cb1288-133" tabindex="-1"></a>                <span class="at">fun =</span> <span class="cf">function</span>(i)</span>
-<span id="cb1288-134"><a href="demonstration.html#cb1288-134" tabindex="-1"></a>                    <span class="fu">heavy_computation</span>(data_small_clean)</span>
-<span id="cb1288-135"><a href="demonstration.html#cb1288-135" tabindex="-1"></a>            )</span>
-<span id="cb1288-136"><a href="demonstration.html#cb1288-136" tabindex="-1"></a>        }),</span>
-<span id="cb1288-137"><a href="demonstration.html#cb1288-137" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;parLapply&quot;</span>,</span>
-<span id="cb1288-138"><a href="demonstration.html#cb1288-138" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
-<span id="cb1288-139"><a href="demonstration.html#cb1288-139" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
-<span id="cb1288-140"><a href="demonstration.html#cb1288-140" tabindex="-1"></a>    )</span>
-<span id="cb1288-141"><a href="demonstration.html#cb1288-141" tabindex="-1"></a>    </span>
-<span id="cb1288-142"><a href="demonstration.html#cb1288-142" tabindex="-1"></a>    res_par_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-143"><a href="demonstration.html#cb1288-143" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
-<span id="cb1288-144"><a href="demonstration.html#cb1288-144" tabindex="-1"></a>            <span class="fu">parLapply</span>(</span>
-<span id="cb1288-145"><a href="demonstration.html#cb1288-145" tabindex="-1"></a>                <span class="at">cl =</span> cl,</span>
-<span id="cb1288-146"><a href="demonstration.html#cb1288-146" tabindex="-1"></a>                <span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span>cores,</span>
-<span id="cb1288-147"><a href="demonstration.html#cb1288-147" tabindex="-1"></a>                <span class="at">fun =</span> <span class="cf">function</span>(i)</span>
-<span id="cb1288-148"><a href="demonstration.html#cb1288-148" tabindex="-1"></a>                    <span class="fu">heavy_computation</span>(data_large_clean)</span>
-<span id="cb1288-149"><a href="demonstration.html#cb1288-149" tabindex="-1"></a>            )</span>
-<span id="cb1288-150"><a href="demonstration.html#cb1288-150" tabindex="-1"></a>        }),</span>
-<span id="cb1288-151"><a href="demonstration.html#cb1288-151" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;parLapply&quot;</span>,</span>
-<span id="cb1288-152"><a href="demonstration.html#cb1288-152" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
-<span id="cb1288-153"><a href="demonstration.html#cb1288-153" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
-<span id="cb1288-154"><a href="demonstration.html#cb1288-154" tabindex="-1"></a>    )</span>
-<span id="cb1288-155"><a href="demonstration.html#cb1288-155" tabindex="-1"></a>    </span>
-<span id="cb1288-156"><a href="demonstration.html#cb1288-156" tabindex="-1"></a>    <span class="fu">stopCluster</span>(cl)</span>
-<span id="cb1288-157"><a href="demonstration.html#cb1288-157" tabindex="-1"></a>    </span>
-<span id="cb1288-158"><a href="demonstration.html#cb1288-158" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_par_small, res_par_large)</span>
-<span id="cb1288-159"><a href="demonstration.html#cb1288-159" tabindex="-1"></a>}</span>
-<span id="cb1288-160"><a href="demonstration.html#cb1288-160" tabindex="-1"></a></span>
-<span id="cb1288-161"><a href="demonstration.html#cb1288-161" tabindex="-1"></a></span>
-<span id="cb1288-162"><a href="demonstration.html#cb1288-162" tabindex="-1"></a></span>
-<span id="cb1288-163"><a href="demonstration.html#cb1288-163" tabindex="-1"></a><span class="do">### 6.3 foreach + doParallel</span></span>
-<span id="cb1288-164"><a href="demonstration.html#cb1288-164" tabindex="-1"></a><span class="cf">for</span> (cores <span class="cf">in</span> cores_to_test) {</span>
-<span id="cb1288-165"><a href="demonstration.html#cb1288-165" tabindex="-1"></a>    cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(cores)</span>
-<span id="cb1288-166"><a href="demonstration.html#cb1288-166" tabindex="-1"></a>    <span class="fu">registerDoParallel</span>(cl)</span>
-<span id="cb1288-167"><a href="demonstration.html#cb1288-167" tabindex="-1"></a>    </span>
-<span id="cb1288-168"><a href="demonstration.html#cb1288-168" tabindex="-1"></a>    <span class="fu">clusterExport</span>(cl,</span>
-<span id="cb1288-169"><a href="demonstration.html#cb1288-169" tabindex="-1"></a>                  <span class="at">varlist =</span> <span class="fu">c</span>(</span>
-<span id="cb1288-170"><a href="demonstration.html#cb1288-170" tabindex="-1"></a>                      <span class="st">&quot;heavy_computation&quot;</span>,</span>
-<span id="cb1288-171"><a href="demonstration.html#cb1288-171" tabindex="-1"></a>                      <span class="st">&quot;data_small_clean&quot;</span>,</span>
-<span id="cb1288-172"><a href="demonstration.html#cb1288-172" tabindex="-1"></a>                      <span class="st">&quot;data_large_clean&quot;</span></span>
-<span id="cb1288-173"><a href="demonstration.html#cb1288-173" tabindex="-1"></a>                  ))</span>
-<span id="cb1288-174"><a href="demonstration.html#cb1288-174" tabindex="-1"></a>    <span class="fu">registerDoParallel</span>(cl)</span>
-<span id="cb1288-175"><a href="demonstration.html#cb1288-175" tabindex="-1"></a>    </span>
-<span id="cb1288-176"><a href="demonstration.html#cb1288-176" tabindex="-1"></a>    <span class="co"># Small dataset</span></span>
-<span id="cb1288-177"><a href="demonstration.html#cb1288-177" tabindex="-1"></a>    res_foreach_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-178"><a href="demonstration.html#cb1288-178" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
-<span id="cb1288-179"><a href="demonstration.html#cb1288-179" tabindex="-1"></a>            <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>cores, <span class="at">.combine =</span> c) <span class="sc">%dopar%</span> {</span>
-<span id="cb1288-180"><a href="demonstration.html#cb1288-180" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_small_clean)</span>
-<span id="cb1288-181"><a href="demonstration.html#cb1288-181" tabindex="-1"></a>            }</span>
-<span id="cb1288-182"><a href="demonstration.html#cb1288-182" tabindex="-1"></a>        }),</span>
-<span id="cb1288-183"><a href="demonstration.html#cb1288-183" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;foreach_doParallel&quot;</span>,</span>
-<span id="cb1288-184"><a href="demonstration.html#cb1288-184" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
-<span id="cb1288-185"><a href="demonstration.html#cb1288-185" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
-<span id="cb1288-186"><a href="demonstration.html#cb1288-186" tabindex="-1"></a>    )</span>
-<span id="cb1288-187"><a href="demonstration.html#cb1288-187" tabindex="-1"></a>    </span>
-<span id="cb1288-188"><a href="demonstration.html#cb1288-188" tabindex="-1"></a>    <span class="co"># Large dataset</span></span>
-<span id="cb1288-189"><a href="demonstration.html#cb1288-189" tabindex="-1"></a>    res_foreach_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-190"><a href="demonstration.html#cb1288-190" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
-<span id="cb1288-191"><a href="demonstration.html#cb1288-191" tabindex="-1"></a>            <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>cores, <span class="at">.combine =</span> c) <span class="sc">%dopar%</span> {</span>
-<span id="cb1288-192"><a href="demonstration.html#cb1288-192" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_large_clean)</span>
-<span id="cb1288-193"><a href="demonstration.html#cb1288-193" tabindex="-1"></a>            }</span>
-<span id="cb1288-194"><a href="demonstration.html#cb1288-194" tabindex="-1"></a>        }),</span>
-<span id="cb1288-195"><a href="demonstration.html#cb1288-195" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;foreach_doParallel&quot;</span>,</span>
-<span id="cb1288-196"><a href="demonstration.html#cb1288-196" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
-<span id="cb1288-197"><a href="demonstration.html#cb1288-197" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
-<span id="cb1288-198"><a href="demonstration.html#cb1288-198" tabindex="-1"></a>    )</span>
-<span id="cb1288-199"><a href="demonstration.html#cb1288-199" tabindex="-1"></a>    </span>
-<span id="cb1288-200"><a href="demonstration.html#cb1288-200" tabindex="-1"></a>    <span class="fu">stopCluster</span>(cl)</span>
-<span id="cb1288-201"><a href="demonstration.html#cb1288-201" tabindex="-1"></a>    </span>
-<span id="cb1288-202"><a href="demonstration.html#cb1288-202" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_foreach_small, res_foreach_large)</span>
-<span id="cb1288-203"><a href="demonstration.html#cb1288-203" tabindex="-1"></a>}</span>
-<span id="cb1288-204"><a href="demonstration.html#cb1288-204" tabindex="-1"></a></span>
-<span id="cb1288-205"><a href="demonstration.html#cb1288-205" tabindex="-1"></a><span class="do">### 6.4 future + future.apply</span></span>
-<span id="cb1288-206"><a href="demonstration.html#cb1288-206" tabindex="-1"></a><span class="cf">for</span> (cores <span class="cf">in</span> cores_to_test) {</span>
-<span id="cb1288-207"><a href="demonstration.html#cb1288-207" tabindex="-1"></a>    <span class="fu">plan</span>(multicore, <span class="at">workers =</span> cores)  <span class="co"># multicore only works on Unix; use multisession on Windows</span></span>
-<span id="cb1288-208"><a href="demonstration.html#cb1288-208" tabindex="-1"></a>    </span>
-<span id="cb1288-209"><a href="demonstration.html#cb1288-209" tabindex="-1"></a>    <span class="co"># Small dataset</span></span>
-<span id="cb1288-210"><a href="demonstration.html#cb1288-210" tabindex="-1"></a>    res_future_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-211"><a href="demonstration.html#cb1288-211" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
-<span id="cb1288-212"><a href="demonstration.html#cb1288-212" tabindex="-1"></a>            <span class="fu">future_lapply</span>(<span class="dv">1</span><span class="sc">:</span>cores, <span class="cf">function</span>(i)</span>
-<span id="cb1288-213"><a href="demonstration.html#cb1288-213" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_small_clean))</span>
-<span id="cb1288-214"><a href="demonstration.html#cb1288-214" tabindex="-1"></a>        }),</span>
-<span id="cb1288-215"><a href="demonstration.html#cb1288-215" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;future_lapply&quot;</span>,</span>
-<span id="cb1288-216"><a href="demonstration.html#cb1288-216" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
-<span id="cb1288-217"><a href="demonstration.html#cb1288-217" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
-<span id="cb1288-218"><a href="demonstration.html#cb1288-218" tabindex="-1"></a>    )</span>
-<span id="cb1288-219"><a href="demonstration.html#cb1288-219" tabindex="-1"></a>    </span>
-<span id="cb1288-220"><a href="demonstration.html#cb1288-220" tabindex="-1"></a>    <span class="co"># Large dataset</span></span>
-<span id="cb1288-221"><a href="demonstration.html#cb1288-221" tabindex="-1"></a>    res_future_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
-<span id="cb1288-222"><a href="demonstration.html#cb1288-222" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
-<span id="cb1288-223"><a href="demonstration.html#cb1288-223" tabindex="-1"></a>            <span class="fu">future_lapply</span>(<span class="dv">1</span><span class="sc">:</span>cores, <span class="cf">function</span>(i)</span>
-<span id="cb1288-224"><a href="demonstration.html#cb1288-224" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_large_clean))</span>
-<span id="cb1288-225"><a href="demonstration.html#cb1288-225" tabindex="-1"></a>        }),</span>
-<span id="cb1288-226"><a href="demonstration.html#cb1288-226" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;future_lapply&quot;</span>,</span>
-<span id="cb1288-227"><a href="demonstration.html#cb1288-227" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
-<span id="cb1288-228"><a href="demonstration.html#cb1288-228" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
-<span id="cb1288-229"><a href="demonstration.html#cb1288-229" tabindex="-1"></a>    )</span>
-<span id="cb1288-230"><a href="demonstration.html#cb1288-230" tabindex="-1"></a>    </span>
-<span id="cb1288-231"><a href="demonstration.html#cb1288-231" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_future_small, res_future_large)</span>
-<span id="cb1288-232"><a href="demonstration.html#cb1288-232" tabindex="-1"></a>}</span>
-<span id="cb1288-233"><a href="demonstration.html#cb1288-233" tabindex="-1"></a></span>
-<span id="cb1288-234"><a href="demonstration.html#cb1288-234" tabindex="-1"></a><span class="co"># Reset plan to sequential</span></span>
-<span id="cb1288-235"><a href="demonstration.html#cb1288-235" tabindex="-1"></a><span class="fu">plan</span>(sequential)</span>
-<span id="cb1288-236"><a href="demonstration.html#cb1288-236" tabindex="-1"></a></span>
-<span id="cb1288-237"><a href="demonstration.html#cb1288-237" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-238"><a href="demonstration.html#cb1288-238" tabindex="-1"></a><span class="co"># -- 7. Summarize and Plot Results --</span></span>
-<span id="cb1288-239"><a href="demonstration.html#cb1288-239" tabindex="-1"></a><span class="do">###############################################################</span></span>
-<span id="cb1288-240"><a href="demonstration.html#cb1288-240" tabindex="-1"></a></span>
-<span id="cb1288-241"><a href="demonstration.html#cb1288-241" tabindex="-1"></a><span class="co"># Print table</span></span>
-<span id="cb1288-242"><a href="demonstration.html#cb1288-242" tabindex="-1"></a><span class="fu">print</span>(results)</span>
-<span id="cb1288-243"><a href="demonstration.html#cb1288-243" tabindex="-1"></a><span class="co">#&gt;              Approach Data_Size Cores   Time_Sec Memory_MB</span></span>
-<span id="cb1288-244"><a href="demonstration.html#cb1288-244" tabindex="-1"></a><span class="co">#&gt; 1          SingleCore     10000     1 0.01581287      0.00</span></span>
-<span id="cb1288-245"><a href="demonstration.html#cb1288-245" tabindex="-1"></a><span class="co">#&gt; 2          SingleCore   1000000     1 1.43626785      0.00</span></span>
-<span id="cb1288-246"><a href="demonstration.html#cb1288-246" tabindex="-1"></a><span class="co">#&gt; 3           parLapply     10000     2 0.01978612      0.01</span></span>
-<span id="cb1288-247"><a href="demonstration.html#cb1288-247" tabindex="-1"></a><span class="co">#&gt; 4           parLapply   1000000     2 1.42945695      0.01</span></span>
-<span id="cb1288-248"><a href="demonstration.html#cb1288-248" tabindex="-1"></a><span class="co">#&gt; 5           parLapply     10000     4 0.01906514      0.02</span></span>
-<span id="cb1288-249"><a href="demonstration.html#cb1288-249" tabindex="-1"></a><span class="co">#&gt; 6           parLapply   1000000     4 1.46021295      0.02</span></span>
-<span id="cb1288-250"><a href="demonstration.html#cb1288-250" tabindex="-1"></a><span class="co">#&gt; 7  foreach_doParallel     10000     2 0.06499314      0.01</span></span>
-<span id="cb1288-251"><a href="demonstration.html#cb1288-251" tabindex="-1"></a><span class="co">#&gt; 8  foreach_doParallel   1000000     2 1.42544699      0.01</span></span>
-<span id="cb1288-252"><a href="demonstration.html#cb1288-252" tabindex="-1"></a><span class="co">#&gt; 9  foreach_doParallel     10000     4 0.05926299      0.02</span></span>
-<span id="cb1288-253"><a href="demonstration.html#cb1288-253" tabindex="-1"></a><span class="co">#&gt; 10 foreach_doParallel   1000000     4 1.43057013      0.02</span></span>
-<span id="cb1288-254"><a href="demonstration.html#cb1288-254" tabindex="-1"></a><span class="co">#&gt; 11      future_lapply     10000     2 0.11854696      0.01</span></span>
-<span id="cb1288-255"><a href="demonstration.html#cb1288-255" tabindex="-1"></a><span class="co">#&gt; 12      future_lapply   1000000     2 2.88425088      0.01</span></span>
-<span id="cb1288-256"><a href="demonstration.html#cb1288-256" tabindex="-1"></a><span class="co">#&gt; 13      future_lapply     10000     4 0.22660494      0.02</span></span>
-<span id="cb1288-257"><a href="demonstration.html#cb1288-257" tabindex="-1"></a><span class="co">#&gt; 14      future_lapply   1000000     4 5.74241900      0.02</span></span>
-<span id="cb1288-258"><a href="demonstration.html#cb1288-258" tabindex="-1"></a></span>
-<span id="cb1288-259"><a href="demonstration.html#cb1288-259" tabindex="-1"></a><span class="co"># Save to CSV</span></span>
-<span id="cb1288-260"><a href="demonstration.html#cb1288-260" tabindex="-1"></a><span class="co"># write.csv(results, &quot;HPC_parallel_results.csv&quot;, row.names = FALSE)</span></span>
-<span id="cb1288-261"><a href="demonstration.html#cb1288-261" tabindex="-1"></a></span>
-<span id="cb1288-262"><a href="demonstration.html#cb1288-262" tabindex="-1"></a><span class="co"># Plot Time vs. Data Size / Cores</span></span>
-<span id="cb1288-263"><a href="demonstration.html#cb1288-263" tabindex="-1"></a><span class="fu">ggplot</span>(results, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(Cores), <span class="at">y =</span> Time_Sec, <span class="at">fill =</span> Approach)) <span class="sc">+</span></span>
-<span id="cb1288-264"><a href="demonstration.html#cb1288-264" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1288-265"><a href="demonstration.html#cb1288-265" tabindex="-1"></a>    <span class="fu">facet_wrap</span>( <span class="sc">~</span> Data_Size, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
-<span id="cb1288-266"><a href="demonstration.html#cb1288-266" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Runtime by Cores, Approach, and Data Size&quot;</span>,</span>
-<span id="cb1288-267"><a href="demonstration.html#cb1288-267" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Number of Cores&quot;</span>,</span>
-<span id="cb1288-268"><a href="demonstration.html#cb1288-268" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Time (Seconds)&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1288-269"><a href="demonstration.html#cb1288-269" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb1293"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1293-1"><a href="demonstration.html#cb1293-1" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-2"><a href="demonstration.html#cb1293-2" tabindex="-1"></a><span class="co"># HPC Workflow Demo in R: Scaling Resources and Parallelism</span></span>
+<span id="cb1293-3"><a href="demonstration.html#cb1293-3" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-4"><a href="demonstration.html#cb1293-4" tabindex="-1"></a></span>
+<span id="cb1293-5"><a href="demonstration.html#cb1293-5" tabindex="-1"></a></span>
+<span id="cb1293-6"><a href="demonstration.html#cb1293-6" tabindex="-1"></a><span class="co"># -- 1. Libraries --</span></span>
+<span id="cb1293-7"><a href="demonstration.html#cb1293-7" tabindex="-1"></a><span class="fu">library</span>(parallel)       <span class="co"># base parallel</span></span>
+<span id="cb1293-8"><a href="demonstration.html#cb1293-8" tabindex="-1"></a><span class="fu">library</span>(doParallel)     <span class="co"># foreach backend</span></span>
+<span id="cb1293-9"><a href="demonstration.html#cb1293-9" tabindex="-1"></a><span class="fu">library</span>(foreach)        <span class="co"># parallel loops</span></span>
+<span id="cb1293-10"><a href="demonstration.html#cb1293-10" tabindex="-1"></a><span class="fu">library</span>(future)         <span class="co"># futures</span></span>
+<span id="cb1293-11"><a href="demonstration.html#cb1293-11" tabindex="-1"></a><span class="fu">library</span>(future.apply)   <span class="co"># apply with futures</span></span>
+<span id="cb1293-12"><a href="demonstration.html#cb1293-12" tabindex="-1"></a><span class="fu">library</span>(ggplot2)        <span class="co"># plotting results</span></span>
+<span id="cb1293-13"><a href="demonstration.html#cb1293-13" tabindex="-1"></a></span>
+<span id="cb1293-14"><a href="demonstration.html#cb1293-14" tabindex="-1"></a><span class="co"># Optional: install.packages(&quot;pryr&quot;) for memory usage (optional)</span></span>
+<span id="cb1293-15"><a href="demonstration.html#cb1293-15" tabindex="-1"></a><span class="co"># library(pryr)</span></span>
+<span id="cb1293-16"><a href="demonstration.html#cb1293-16" tabindex="-1"></a></span>
+<span id="cb1293-17"><a href="demonstration.html#cb1293-17" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-18"><a href="demonstration.html#cb1293-18" tabindex="-1"></a><span class="co"># -- 2. Generate or Load Data (Small and Large for Scaling) --</span></span>
+<span id="cb1293-19"><a href="demonstration.html#cb1293-19" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-20"><a href="demonstration.html#cb1293-20" tabindex="-1"></a></span>
+<span id="cb1293-21"><a href="demonstration.html#cb1293-21" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb1293-22"><a href="demonstration.html#cb1293-22" tabindex="-1"></a></span>
+<span id="cb1293-23"><a href="demonstration.html#cb1293-23" tabindex="-1"></a>n_small <span class="ot">&lt;-</span> <span class="fl">1e4</span>    <span class="co"># Small dataset (test)</span></span>
+<span id="cb1293-24"><a href="demonstration.html#cb1293-24" tabindex="-1"></a>n_large <span class="ot">&lt;-</span> <span class="fl">1e6</span>    <span class="co"># Large dataset (scale-up demo)</span></span>
+<span id="cb1293-25"><a href="demonstration.html#cb1293-25" tabindex="-1"></a></span>
+<span id="cb1293-26"><a href="demonstration.html#cb1293-26" tabindex="-1"></a>generate_data <span class="ot">&lt;-</span> <span class="cf">function</span>(n) {</span>
+<span id="cb1293-27"><a href="demonstration.html#cb1293-27" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb1293-28"><a href="demonstration.html#cb1293-28" tabindex="-1"></a>        <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb1293-29"><a href="demonstration.html#cb1293-29" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>),</span>
+<span id="cb1293-30"><a href="demonstration.html#cb1293-30" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">100</span>, <span class="at">sd =</span> <span class="dv">25</span>)</span>
+<span id="cb1293-31"><a href="demonstration.html#cb1293-31" tabindex="-1"></a>    )</span>
+<span id="cb1293-32"><a href="demonstration.html#cb1293-32" tabindex="-1"></a>}</span>
+<span id="cb1293-33"><a href="demonstration.html#cb1293-33" tabindex="-1"></a></span>
+<span id="cb1293-34"><a href="demonstration.html#cb1293-34" tabindex="-1"></a>data_small <span class="ot">&lt;-</span> <span class="fu">generate_data</span>(n_small)</span>
+<span id="cb1293-35"><a href="demonstration.html#cb1293-35" tabindex="-1"></a>data_large <span class="ot">&lt;-</span> <span class="fu">generate_data</span>(n_large)</span>
+<span id="cb1293-36"><a href="demonstration.html#cb1293-36" tabindex="-1"></a></span>
+<span id="cb1293-37"><a href="demonstration.html#cb1293-37" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-38"><a href="demonstration.html#cb1293-38" tabindex="-1"></a><span class="co"># -- 3. Preprocessing Function --</span></span>
+<span id="cb1293-39"><a href="demonstration.html#cb1293-39" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-40"><a href="demonstration.html#cb1293-40" tabindex="-1"></a></span>
+<span id="cb1293-41"><a href="demonstration.html#cb1293-41" tabindex="-1"></a>clean_and_transform <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb1293-42"><a href="demonstration.html#cb1293-42" tabindex="-1"></a>    df<span class="sc">$</span>dist <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(df<span class="sc">$</span>x <span class="sc">^</span> <span class="dv">2</span> <span class="sc">+</span> df<span class="sc">$</span>y <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb1293-43"><a href="demonstration.html#cb1293-43" tabindex="-1"></a>    <span class="fu">return</span>(df)</span>
+<span id="cb1293-44"><a href="demonstration.html#cb1293-44" tabindex="-1"></a>}</span>
+<span id="cb1293-45"><a href="demonstration.html#cb1293-45" tabindex="-1"></a></span>
+<span id="cb1293-46"><a href="demonstration.html#cb1293-46" tabindex="-1"></a>data_small_clean <span class="ot">&lt;-</span> <span class="fu">clean_and_transform</span>(data_small)</span>
+<span id="cb1293-47"><a href="demonstration.html#cb1293-47" tabindex="-1"></a>data_large_clean <span class="ot">&lt;-</span> <span class="fu">clean_and_transform</span>(data_large)</span>
+<span id="cb1293-48"><a href="demonstration.html#cb1293-48" tabindex="-1"></a></span>
+<span id="cb1293-49"><a href="demonstration.html#cb1293-49" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-50"><a href="demonstration.html#cb1293-50" tabindex="-1"></a><span class="co"># -- 4. Heavy Computation (Simulated Workload) --</span></span>
+<span id="cb1293-51"><a href="demonstration.html#cb1293-51" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-52"><a href="demonstration.html#cb1293-52" tabindex="-1"></a></span>
+<span id="cb1293-53"><a href="demonstration.html#cb1293-53" tabindex="-1"></a>heavy_computation <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">reps =</span> <span class="dv">500</span>) {</span>
+<span id="cb1293-54"><a href="demonstration.html#cb1293-54" tabindex="-1"></a>    <span class="fu">replicate</span>(reps, <span class="fu">sum</span>(df<span class="sc">$</span>dist))</span>
+<span id="cb1293-55"><a href="demonstration.html#cb1293-55" tabindex="-1"></a>}</span>
+<span id="cb1293-56"><a href="demonstration.html#cb1293-56" tabindex="-1"></a></span>
+<span id="cb1293-57"><a href="demonstration.html#cb1293-57" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-58"><a href="demonstration.html#cb1293-58" tabindex="-1"></a><span class="co"># -- 5. Resource Measurement Helper Function --</span></span>
+<span id="cb1293-59"><a href="demonstration.html#cb1293-59" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-60"><a href="demonstration.html#cb1293-60" tabindex="-1"></a></span>
+<span id="cb1293-61"><a href="demonstration.html#cb1293-61" tabindex="-1"></a>measure_resources <span class="ot">&lt;-</span></span>
+<span id="cb1293-62"><a href="demonstration.html#cb1293-62" tabindex="-1"></a>    <span class="cf">function</span>(expr, approach_name, data_size, cores) {</span>
+<span id="cb1293-63"><a href="demonstration.html#cb1293-63" tabindex="-1"></a>        start_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb1293-64"><a href="demonstration.html#cb1293-64" tabindex="-1"></a>        </span>
+<span id="cb1293-65"><a href="demonstration.html#cb1293-65" tabindex="-1"></a>        <span class="co"># baseline_mem &lt;- pryr::mem_used()  # If pryr is available</span></span>
+<span id="cb1293-66"><a href="demonstration.html#cb1293-66" tabindex="-1"></a>        result <span class="ot">&lt;-</span> <span class="fu">eval</span>(expr)</span>
+<span id="cb1293-67"><a href="demonstration.html#cb1293-67" tabindex="-1"></a>        end_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb1293-68"><a href="demonstration.html#cb1293-68" tabindex="-1"></a>        </span>
+<span id="cb1293-69"><a href="demonstration.html#cb1293-69" tabindex="-1"></a>        time_elapsed <span class="ot">&lt;-</span></span>
+<span id="cb1293-70"><a href="demonstration.html#cb1293-70" tabindex="-1"></a>            <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(end_time, start_time, <span class="at">units =</span> <span class="st">&quot;secs&quot;</span>))</span>
+<span id="cb1293-71"><a href="demonstration.html#cb1293-71" tabindex="-1"></a>        <span class="co"># used_mem &lt;- as.numeric(pryr::mem_used() - baseline_mem) / 1e6  # MB</span></span>
+<span id="cb1293-72"><a href="demonstration.html#cb1293-72" tabindex="-1"></a>        </span>
+<span id="cb1293-73"><a href="demonstration.html#cb1293-73" tabindex="-1"></a>        <span class="co"># If pryr isn&#39;t available, approximate:</span></span>
+<span id="cb1293-74"><a href="demonstration.html#cb1293-74" tabindex="-1"></a>        used_mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(result)) <span class="sc">/</span> <span class="fl">1e6</span>  <span class="co"># MB</span></span>
+<span id="cb1293-75"><a href="demonstration.html#cb1293-75" tabindex="-1"></a>        </span>
+<span id="cb1293-76"><a href="demonstration.html#cb1293-76" tabindex="-1"></a>        <span class="fu">return</span>(</span>
+<span id="cb1293-77"><a href="demonstration.html#cb1293-77" tabindex="-1"></a>            <span class="fu">data.frame</span>(</span>
+<span id="cb1293-78"><a href="demonstration.html#cb1293-78" tabindex="-1"></a>                <span class="at">Approach =</span> approach_name,</span>
+<span id="cb1293-79"><a href="demonstration.html#cb1293-79" tabindex="-1"></a>                <span class="at">Data_Size =</span> data_size,</span>
+<span id="cb1293-80"><a href="demonstration.html#cb1293-80" tabindex="-1"></a>                <span class="at">Cores =</span> cores,</span>
+<span id="cb1293-81"><a href="demonstration.html#cb1293-81" tabindex="-1"></a>                <span class="at">Time_Sec =</span> time_elapsed,</span>
+<span id="cb1293-82"><a href="demonstration.html#cb1293-82" tabindex="-1"></a>                <span class="at">Memory_MB =</span> <span class="fu">round</span>(used_mem, <span class="dv">2</span>)</span>
+<span id="cb1293-83"><a href="demonstration.html#cb1293-83" tabindex="-1"></a>            )</span>
+<span id="cb1293-84"><a href="demonstration.html#cb1293-84" tabindex="-1"></a>        )</span>
+<span id="cb1293-85"><a href="demonstration.html#cb1293-85" tabindex="-1"></a>    }</span>
+<span id="cb1293-86"><a href="demonstration.html#cb1293-86" tabindex="-1"></a></span>
+<span id="cb1293-87"><a href="demonstration.html#cb1293-87" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-88"><a href="demonstration.html#cb1293-88" tabindex="-1"></a><span class="co"># -- 6. Define and Run Parallel Approaches --</span></span>
+<span id="cb1293-89"><a href="demonstration.html#cb1293-89" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-90"><a href="demonstration.html#cb1293-90" tabindex="-1"></a></span>
+<span id="cb1293-91"><a href="demonstration.html#cb1293-91" tabindex="-1"></a><span class="co"># Collect results in a dataframe</span></span>
+<span id="cb1293-92"><a href="demonstration.html#cb1293-92" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
+<span id="cb1293-93"><a href="demonstration.html#cb1293-93" tabindex="-1"></a></span>
+<span id="cb1293-94"><a href="demonstration.html#cb1293-94" tabindex="-1"></a><span class="do">### 6.1 Single Core (Baseline)</span></span>
+<span id="cb1293-95"><a href="demonstration.html#cb1293-95" tabindex="-1"></a>res_single_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-96"><a href="demonstration.html#cb1293-96" tabindex="-1"></a>    <span class="at">expr =</span> <span class="fu">quote</span>(<span class="fu">heavy_computation</span>(data_small_clean)),</span>
+<span id="cb1293-97"><a href="demonstration.html#cb1293-97" tabindex="-1"></a>    <span class="at">approach_name =</span> <span class="st">&quot;SingleCore&quot;</span>,</span>
+<span id="cb1293-98"><a href="demonstration.html#cb1293-98" tabindex="-1"></a>    <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
+<span id="cb1293-99"><a href="demonstration.html#cb1293-99" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">1</span></span>
+<span id="cb1293-100"><a href="demonstration.html#cb1293-100" tabindex="-1"></a>)</span>
+<span id="cb1293-101"><a href="demonstration.html#cb1293-101" tabindex="-1"></a></span>
+<span id="cb1293-102"><a href="demonstration.html#cb1293-102" tabindex="-1"></a>res_single_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-103"><a href="demonstration.html#cb1293-103" tabindex="-1"></a>    <span class="at">expr =</span> <span class="fu">quote</span>(<span class="fu">heavy_computation</span>(data_large_clean)),</span>
+<span id="cb1293-104"><a href="demonstration.html#cb1293-104" tabindex="-1"></a>    <span class="at">approach_name =</span> <span class="st">&quot;SingleCore&quot;</span>,</span>
+<span id="cb1293-105"><a href="demonstration.html#cb1293-105" tabindex="-1"></a>    <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
+<span id="cb1293-106"><a href="demonstration.html#cb1293-106" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">1</span></span>
+<span id="cb1293-107"><a href="demonstration.html#cb1293-107" tabindex="-1"></a>)</span>
+<span id="cb1293-108"><a href="demonstration.html#cb1293-108" tabindex="-1"></a></span>
+<span id="cb1293-109"><a href="demonstration.html#cb1293-109" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_single_small, res_single_large)</span>
+<span id="cb1293-110"><a href="demonstration.html#cb1293-110" tabindex="-1"></a></span>
+<span id="cb1293-111"><a href="demonstration.html#cb1293-111" tabindex="-1"></a><span class="co"># clusterExport(cl, varlist = c(&quot;heavy_computation&quot;))</span></span>
+<span id="cb1293-112"><a href="demonstration.html#cb1293-112" tabindex="-1"></a></span>
+<span id="cb1293-113"><a href="demonstration.html#cb1293-113" tabindex="-1"></a></span>
+<span id="cb1293-114"><a href="demonstration.html#cb1293-114" tabindex="-1"></a><span class="do">### 6.2 Base Parallel (Cross-Platform): parLapply (Cluster Based)</span></span>
+<span id="cb1293-115"><a href="demonstration.html#cb1293-115" tabindex="-1"></a>cores_to_test <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>)</span>
+<span id="cb1293-116"><a href="demonstration.html#cb1293-116" tabindex="-1"></a></span>
+<span id="cb1293-117"><a href="demonstration.html#cb1293-117" tabindex="-1"></a><span class="cf">for</span> (cores <span class="cf">in</span> cores_to_test) {</span>
+<span id="cb1293-118"><a href="demonstration.html#cb1293-118" tabindex="-1"></a>    cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(cores)</span>
+<span id="cb1293-119"><a href="demonstration.html#cb1293-119" tabindex="-1"></a>    </span>
+<span id="cb1293-120"><a href="demonstration.html#cb1293-120" tabindex="-1"></a>    <span class="co"># Export both the heavy function and the datasets</span></span>
+<span id="cb1293-121"><a href="demonstration.html#cb1293-121" tabindex="-1"></a>    <span class="fu">clusterExport</span>(cl,</span>
+<span id="cb1293-122"><a href="demonstration.html#cb1293-122" tabindex="-1"></a>                  <span class="at">varlist =</span> <span class="fu">c</span>(</span>
+<span id="cb1293-123"><a href="demonstration.html#cb1293-123" tabindex="-1"></a>                      <span class="st">&quot;heavy_computation&quot;</span>,</span>
+<span id="cb1293-124"><a href="demonstration.html#cb1293-124" tabindex="-1"></a>                      <span class="st">&quot;data_small_clean&quot;</span>,</span>
+<span id="cb1293-125"><a href="demonstration.html#cb1293-125" tabindex="-1"></a>                      <span class="st">&quot;data_large_clean&quot;</span></span>
+<span id="cb1293-126"><a href="demonstration.html#cb1293-126" tabindex="-1"></a>                  ))</span>
+<span id="cb1293-127"><a href="demonstration.html#cb1293-127" tabindex="-1"></a>    </span>
+<span id="cb1293-128"><a href="demonstration.html#cb1293-128" tabindex="-1"></a>    res_par_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-129"><a href="demonstration.html#cb1293-129" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
+<span id="cb1293-130"><a href="demonstration.html#cb1293-130" tabindex="-1"></a>            <span class="fu">parLapply</span>(</span>
+<span id="cb1293-131"><a href="demonstration.html#cb1293-131" tabindex="-1"></a>                <span class="at">cl =</span> cl,</span>
+<span id="cb1293-132"><a href="demonstration.html#cb1293-132" tabindex="-1"></a>                <span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span>cores,</span>
+<span id="cb1293-133"><a href="demonstration.html#cb1293-133" tabindex="-1"></a>                <span class="at">fun =</span> <span class="cf">function</span>(i)</span>
+<span id="cb1293-134"><a href="demonstration.html#cb1293-134" tabindex="-1"></a>                    <span class="fu">heavy_computation</span>(data_small_clean)</span>
+<span id="cb1293-135"><a href="demonstration.html#cb1293-135" tabindex="-1"></a>            )</span>
+<span id="cb1293-136"><a href="demonstration.html#cb1293-136" tabindex="-1"></a>        }),</span>
+<span id="cb1293-137"><a href="demonstration.html#cb1293-137" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;parLapply&quot;</span>,</span>
+<span id="cb1293-138"><a href="demonstration.html#cb1293-138" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
+<span id="cb1293-139"><a href="demonstration.html#cb1293-139" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
+<span id="cb1293-140"><a href="demonstration.html#cb1293-140" tabindex="-1"></a>    )</span>
+<span id="cb1293-141"><a href="demonstration.html#cb1293-141" tabindex="-1"></a>    </span>
+<span id="cb1293-142"><a href="demonstration.html#cb1293-142" tabindex="-1"></a>    res_par_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-143"><a href="demonstration.html#cb1293-143" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
+<span id="cb1293-144"><a href="demonstration.html#cb1293-144" tabindex="-1"></a>            <span class="fu">parLapply</span>(</span>
+<span id="cb1293-145"><a href="demonstration.html#cb1293-145" tabindex="-1"></a>                <span class="at">cl =</span> cl,</span>
+<span id="cb1293-146"><a href="demonstration.html#cb1293-146" tabindex="-1"></a>                <span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span>cores,</span>
+<span id="cb1293-147"><a href="demonstration.html#cb1293-147" tabindex="-1"></a>                <span class="at">fun =</span> <span class="cf">function</span>(i)</span>
+<span id="cb1293-148"><a href="demonstration.html#cb1293-148" tabindex="-1"></a>                    <span class="fu">heavy_computation</span>(data_large_clean)</span>
+<span id="cb1293-149"><a href="demonstration.html#cb1293-149" tabindex="-1"></a>            )</span>
+<span id="cb1293-150"><a href="demonstration.html#cb1293-150" tabindex="-1"></a>        }),</span>
+<span id="cb1293-151"><a href="demonstration.html#cb1293-151" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;parLapply&quot;</span>,</span>
+<span id="cb1293-152"><a href="demonstration.html#cb1293-152" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
+<span id="cb1293-153"><a href="demonstration.html#cb1293-153" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
+<span id="cb1293-154"><a href="demonstration.html#cb1293-154" tabindex="-1"></a>    )</span>
+<span id="cb1293-155"><a href="demonstration.html#cb1293-155" tabindex="-1"></a>    </span>
+<span id="cb1293-156"><a href="demonstration.html#cb1293-156" tabindex="-1"></a>    <span class="fu">stopCluster</span>(cl)</span>
+<span id="cb1293-157"><a href="demonstration.html#cb1293-157" tabindex="-1"></a>    </span>
+<span id="cb1293-158"><a href="demonstration.html#cb1293-158" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_par_small, res_par_large)</span>
+<span id="cb1293-159"><a href="demonstration.html#cb1293-159" tabindex="-1"></a>}</span>
+<span id="cb1293-160"><a href="demonstration.html#cb1293-160" tabindex="-1"></a></span>
+<span id="cb1293-161"><a href="demonstration.html#cb1293-161" tabindex="-1"></a></span>
+<span id="cb1293-162"><a href="demonstration.html#cb1293-162" tabindex="-1"></a></span>
+<span id="cb1293-163"><a href="demonstration.html#cb1293-163" tabindex="-1"></a><span class="do">### 6.3 foreach + doParallel</span></span>
+<span id="cb1293-164"><a href="demonstration.html#cb1293-164" tabindex="-1"></a><span class="cf">for</span> (cores <span class="cf">in</span> cores_to_test) {</span>
+<span id="cb1293-165"><a href="demonstration.html#cb1293-165" tabindex="-1"></a>    cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(cores)</span>
+<span id="cb1293-166"><a href="demonstration.html#cb1293-166" tabindex="-1"></a>    <span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb1293-167"><a href="demonstration.html#cb1293-167" tabindex="-1"></a>    </span>
+<span id="cb1293-168"><a href="demonstration.html#cb1293-168" tabindex="-1"></a>    <span class="fu">clusterExport</span>(cl,</span>
+<span id="cb1293-169"><a href="demonstration.html#cb1293-169" tabindex="-1"></a>                  <span class="at">varlist =</span> <span class="fu">c</span>(</span>
+<span id="cb1293-170"><a href="demonstration.html#cb1293-170" tabindex="-1"></a>                      <span class="st">&quot;heavy_computation&quot;</span>,</span>
+<span id="cb1293-171"><a href="demonstration.html#cb1293-171" tabindex="-1"></a>                      <span class="st">&quot;data_small_clean&quot;</span>,</span>
+<span id="cb1293-172"><a href="demonstration.html#cb1293-172" tabindex="-1"></a>                      <span class="st">&quot;data_large_clean&quot;</span></span>
+<span id="cb1293-173"><a href="demonstration.html#cb1293-173" tabindex="-1"></a>                  ))</span>
+<span id="cb1293-174"><a href="demonstration.html#cb1293-174" tabindex="-1"></a>    <span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb1293-175"><a href="demonstration.html#cb1293-175" tabindex="-1"></a>    </span>
+<span id="cb1293-176"><a href="demonstration.html#cb1293-176" tabindex="-1"></a>    <span class="co"># Small dataset</span></span>
+<span id="cb1293-177"><a href="demonstration.html#cb1293-177" tabindex="-1"></a>    res_foreach_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-178"><a href="demonstration.html#cb1293-178" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
+<span id="cb1293-179"><a href="demonstration.html#cb1293-179" tabindex="-1"></a>            <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>cores, <span class="at">.combine =</span> c) <span class="sc">%dopar%</span> {</span>
+<span id="cb1293-180"><a href="demonstration.html#cb1293-180" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_small_clean)</span>
+<span id="cb1293-181"><a href="demonstration.html#cb1293-181" tabindex="-1"></a>            }</span>
+<span id="cb1293-182"><a href="demonstration.html#cb1293-182" tabindex="-1"></a>        }),</span>
+<span id="cb1293-183"><a href="demonstration.html#cb1293-183" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;foreach_doParallel&quot;</span>,</span>
+<span id="cb1293-184"><a href="demonstration.html#cb1293-184" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
+<span id="cb1293-185"><a href="demonstration.html#cb1293-185" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
+<span id="cb1293-186"><a href="demonstration.html#cb1293-186" tabindex="-1"></a>    )</span>
+<span id="cb1293-187"><a href="demonstration.html#cb1293-187" tabindex="-1"></a>    </span>
+<span id="cb1293-188"><a href="demonstration.html#cb1293-188" tabindex="-1"></a>    <span class="co"># Large dataset</span></span>
+<span id="cb1293-189"><a href="demonstration.html#cb1293-189" tabindex="-1"></a>    res_foreach_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-190"><a href="demonstration.html#cb1293-190" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
+<span id="cb1293-191"><a href="demonstration.html#cb1293-191" tabindex="-1"></a>            <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>cores, <span class="at">.combine =</span> c) <span class="sc">%dopar%</span> {</span>
+<span id="cb1293-192"><a href="demonstration.html#cb1293-192" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_large_clean)</span>
+<span id="cb1293-193"><a href="demonstration.html#cb1293-193" tabindex="-1"></a>            }</span>
+<span id="cb1293-194"><a href="demonstration.html#cb1293-194" tabindex="-1"></a>        }),</span>
+<span id="cb1293-195"><a href="demonstration.html#cb1293-195" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;foreach_doParallel&quot;</span>,</span>
+<span id="cb1293-196"><a href="demonstration.html#cb1293-196" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
+<span id="cb1293-197"><a href="demonstration.html#cb1293-197" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
+<span id="cb1293-198"><a href="demonstration.html#cb1293-198" tabindex="-1"></a>    )</span>
+<span id="cb1293-199"><a href="demonstration.html#cb1293-199" tabindex="-1"></a>    </span>
+<span id="cb1293-200"><a href="demonstration.html#cb1293-200" tabindex="-1"></a>    <span class="fu">stopCluster</span>(cl)</span>
+<span id="cb1293-201"><a href="demonstration.html#cb1293-201" tabindex="-1"></a>    </span>
+<span id="cb1293-202"><a href="demonstration.html#cb1293-202" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_foreach_small, res_foreach_large)</span>
+<span id="cb1293-203"><a href="demonstration.html#cb1293-203" tabindex="-1"></a>}</span>
+<span id="cb1293-204"><a href="demonstration.html#cb1293-204" tabindex="-1"></a></span>
+<span id="cb1293-205"><a href="demonstration.html#cb1293-205" tabindex="-1"></a><span class="do">### 6.4 future + future.apply</span></span>
+<span id="cb1293-206"><a href="demonstration.html#cb1293-206" tabindex="-1"></a><span class="cf">for</span> (cores <span class="cf">in</span> cores_to_test) {</span>
+<span id="cb1293-207"><a href="demonstration.html#cb1293-207" tabindex="-1"></a>    <span class="fu">plan</span>(multicore, <span class="at">workers =</span> cores)  <span class="co"># multicore only works on Unix; use multisession on Windows</span></span>
+<span id="cb1293-208"><a href="demonstration.html#cb1293-208" tabindex="-1"></a>    </span>
+<span id="cb1293-209"><a href="demonstration.html#cb1293-209" tabindex="-1"></a>    <span class="co"># Small dataset</span></span>
+<span id="cb1293-210"><a href="demonstration.html#cb1293-210" tabindex="-1"></a>    res_future_small <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-211"><a href="demonstration.html#cb1293-211" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
+<span id="cb1293-212"><a href="demonstration.html#cb1293-212" tabindex="-1"></a>            <span class="fu">future_lapply</span>(<span class="dv">1</span><span class="sc">:</span>cores, <span class="cf">function</span>(i)</span>
+<span id="cb1293-213"><a href="demonstration.html#cb1293-213" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_small_clean))</span>
+<span id="cb1293-214"><a href="demonstration.html#cb1293-214" tabindex="-1"></a>        }),</span>
+<span id="cb1293-215"><a href="demonstration.html#cb1293-215" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;future_lapply&quot;</span>,</span>
+<span id="cb1293-216"><a href="demonstration.html#cb1293-216" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_small_clean),</span>
+<span id="cb1293-217"><a href="demonstration.html#cb1293-217" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
+<span id="cb1293-218"><a href="demonstration.html#cb1293-218" tabindex="-1"></a>    )</span>
+<span id="cb1293-219"><a href="demonstration.html#cb1293-219" tabindex="-1"></a>    </span>
+<span id="cb1293-220"><a href="demonstration.html#cb1293-220" tabindex="-1"></a>    <span class="co"># Large dataset</span></span>
+<span id="cb1293-221"><a href="demonstration.html#cb1293-221" tabindex="-1"></a>    res_future_large <span class="ot">&lt;-</span> <span class="fu">measure_resources</span>(</span>
+<span id="cb1293-222"><a href="demonstration.html#cb1293-222" tabindex="-1"></a>        <span class="at">expr =</span> <span class="fu">quote</span>({</span>
+<span id="cb1293-223"><a href="demonstration.html#cb1293-223" tabindex="-1"></a>            <span class="fu">future_lapply</span>(<span class="dv">1</span><span class="sc">:</span>cores, <span class="cf">function</span>(i)</span>
+<span id="cb1293-224"><a href="demonstration.html#cb1293-224" tabindex="-1"></a>                <span class="fu">heavy_computation</span>(data_large_clean))</span>
+<span id="cb1293-225"><a href="demonstration.html#cb1293-225" tabindex="-1"></a>        }),</span>
+<span id="cb1293-226"><a href="demonstration.html#cb1293-226" tabindex="-1"></a>        <span class="at">approach_name =</span> <span class="st">&quot;future_lapply&quot;</span>,</span>
+<span id="cb1293-227"><a href="demonstration.html#cb1293-227" tabindex="-1"></a>        <span class="at">data_size =</span> <span class="fu">nrow</span>(data_large_clean),</span>
+<span id="cb1293-228"><a href="demonstration.html#cb1293-228" tabindex="-1"></a>        <span class="at">cores =</span> cores</span>
+<span id="cb1293-229"><a href="demonstration.html#cb1293-229" tabindex="-1"></a>    )</span>
+<span id="cb1293-230"><a href="demonstration.html#cb1293-230" tabindex="-1"></a>    </span>
+<span id="cb1293-231"><a href="demonstration.html#cb1293-231" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, res_future_small, res_future_large)</span>
+<span id="cb1293-232"><a href="demonstration.html#cb1293-232" tabindex="-1"></a>}</span>
+<span id="cb1293-233"><a href="demonstration.html#cb1293-233" tabindex="-1"></a></span>
+<span id="cb1293-234"><a href="demonstration.html#cb1293-234" tabindex="-1"></a><span class="co"># Reset plan to sequential</span></span>
+<span id="cb1293-235"><a href="demonstration.html#cb1293-235" tabindex="-1"></a><span class="fu">plan</span>(sequential)</span>
+<span id="cb1293-236"><a href="demonstration.html#cb1293-236" tabindex="-1"></a></span>
+<span id="cb1293-237"><a href="demonstration.html#cb1293-237" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-238"><a href="demonstration.html#cb1293-238" tabindex="-1"></a><span class="co"># -- 7. Summarize and Plot Results --</span></span>
+<span id="cb1293-239"><a href="demonstration.html#cb1293-239" tabindex="-1"></a><span class="do">###############################################################</span></span>
+<span id="cb1293-240"><a href="demonstration.html#cb1293-240" tabindex="-1"></a></span>
+<span id="cb1293-241"><a href="demonstration.html#cb1293-241" tabindex="-1"></a><span class="co"># Print table</span></span>
+<span id="cb1293-242"><a href="demonstration.html#cb1293-242" tabindex="-1"></a><span class="fu">print</span>(results)</span>
+<span id="cb1293-243"><a href="demonstration.html#cb1293-243" tabindex="-1"></a><span class="co">#&gt;              Approach Data_Size Cores   Time_Sec Memory_MB</span></span>
+<span id="cb1293-244"><a href="demonstration.html#cb1293-244" tabindex="-1"></a><span class="co">#&gt; 1          SingleCore     10000     1 0.01586890      0.00</span></span>
+<span id="cb1293-245"><a href="demonstration.html#cb1293-245" tabindex="-1"></a><span class="co">#&gt; 2          SingleCore   1000000     1 1.34883380      0.00</span></span>
+<span id="cb1293-246"><a href="demonstration.html#cb1293-246" tabindex="-1"></a><span class="co">#&gt; 3           parLapply     10000     2 0.01907897      0.01</span></span>
+<span id="cb1293-247"><a href="demonstration.html#cb1293-247" tabindex="-1"></a><span class="co">#&gt; 4           parLapply   1000000     2 1.33863306      0.01</span></span>
+<span id="cb1293-248"><a href="demonstration.html#cb1293-248" tabindex="-1"></a><span class="co">#&gt; 5           parLapply     10000     4 0.01780701      0.02</span></span>
+<span id="cb1293-249"><a href="demonstration.html#cb1293-249" tabindex="-1"></a><span class="co">#&gt; 6           parLapply   1000000     4 1.32461405      0.02</span></span>
+<span id="cb1293-250"><a href="demonstration.html#cb1293-250" tabindex="-1"></a><span class="co">#&gt; 7  foreach_doParallel     10000     2 0.05314898      0.01</span></span>
+<span id="cb1293-251"><a href="demonstration.html#cb1293-251" tabindex="-1"></a><span class="co">#&gt; 8  foreach_doParallel   1000000     2 1.33675098      0.01</span></span>
+<span id="cb1293-252"><a href="demonstration.html#cb1293-252" tabindex="-1"></a><span class="co">#&gt; 9  foreach_doParallel     10000     4 0.06010795      0.02</span></span>
+<span id="cb1293-253"><a href="demonstration.html#cb1293-253" tabindex="-1"></a><span class="co">#&gt; 10 foreach_doParallel   1000000     4 1.34139991      0.02</span></span>
+<span id="cb1293-254"><a href="demonstration.html#cb1293-254" tabindex="-1"></a><span class="co">#&gt; 11      future_lapply     10000     2 0.09521294      0.01</span></span>
+<span id="cb1293-255"><a href="demonstration.html#cb1293-255" tabindex="-1"></a><span class="co">#&gt; 12      future_lapply   1000000     2 2.73076987      0.01</span></span>
+<span id="cb1293-256"><a href="demonstration.html#cb1293-256" tabindex="-1"></a><span class="co">#&gt; 13      future_lapply     10000     4 0.10914207      0.02</span></span>
+<span id="cb1293-257"><a href="demonstration.html#cb1293-257" tabindex="-1"></a><span class="co">#&gt; 14      future_lapply   1000000     4 5.50541496      0.02</span></span>
+<span id="cb1293-258"><a href="demonstration.html#cb1293-258" tabindex="-1"></a></span>
+<span id="cb1293-259"><a href="demonstration.html#cb1293-259" tabindex="-1"></a><span class="co"># Save to CSV</span></span>
+<span id="cb1293-260"><a href="demonstration.html#cb1293-260" tabindex="-1"></a><span class="co"># write.csv(results, &quot;HPC_parallel_results.csv&quot;, row.names = FALSE)</span></span>
+<span id="cb1293-261"><a href="demonstration.html#cb1293-261" tabindex="-1"></a></span>
+<span id="cb1293-262"><a href="demonstration.html#cb1293-262" tabindex="-1"></a><span class="co"># Plot Time vs. Data Size / Cores</span></span>
+<span id="cb1293-263"><a href="demonstration.html#cb1293-263" tabindex="-1"></a><span class="fu">ggplot</span>(results, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(Cores), <span class="at">y =</span> Time_Sec, <span class="at">fill =</span> Approach)) <span class="sc">+</span></span>
+<span id="cb1293-264"><a href="demonstration.html#cb1293-264" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1293-265"><a href="demonstration.html#cb1293-265" tabindex="-1"></a>    <span class="fu">facet_wrap</span>( <span class="sc">~</span> Data_Size, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb1293-266"><a href="demonstration.html#cb1293-266" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Runtime by Cores, Approach, and Data Size&quot;</span>,</span>
+<span id="cb1293-267"><a href="demonstration.html#cb1293-267" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Number of Cores&quot;</span>,</span>
+<span id="cb1293-268"><a href="demonstration.html#cb1293-268" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Time (Seconds)&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1293-269"><a href="demonstration.html#cb1293-269" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <p><img src="44-hpc_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb1289"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1289-1"><a href="demonstration.html#cb1289-1" tabindex="-1"></a></span>
-<span id="cb1289-2"><a href="demonstration.html#cb1289-2" tabindex="-1"></a><span class="co"># Plot Memory Usage</span></span>
-<span id="cb1289-3"><a href="demonstration.html#cb1289-3" tabindex="-1"></a><span class="fu">ggplot</span>(results, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(Cores), <span class="at">y =</span> Memory_MB, <span class="at">fill =</span> Approach)) <span class="sc">+</span></span>
-<span id="cb1289-4"><a href="demonstration.html#cb1289-4" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1289-5"><a href="demonstration.html#cb1289-5" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> Data_Size, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
-<span id="cb1289-6"><a href="demonstration.html#cb1289-6" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Memory Usage by Cores, Approach, and Data Size&quot;</span>,</span>
-<span id="cb1289-7"><a href="demonstration.html#cb1289-7" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Number of Cores&quot;</span>,</span>
-<span id="cb1289-8"><a href="demonstration.html#cb1289-8" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Memory (MB)&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1289-9"><a href="demonstration.html#cb1289-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb1294"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1294-1"><a href="demonstration.html#cb1294-1" tabindex="-1"></a></span>
+<span id="cb1294-2"><a href="demonstration.html#cb1294-2" tabindex="-1"></a><span class="co"># Plot Memory Usage</span></span>
+<span id="cb1294-3"><a href="demonstration.html#cb1294-3" tabindex="-1"></a><span class="fu">ggplot</span>(results, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(Cores), <span class="at">y =</span> Memory_MB, <span class="at">fill =</span> Approach)) <span class="sc">+</span></span>
+<span id="cb1294-4"><a href="demonstration.html#cb1294-4" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1294-5"><a href="demonstration.html#cb1294-5" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> Data_Size, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb1294-6"><a href="demonstration.html#cb1294-6" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Memory Usage by Cores, Approach, and Data Size&quot;</span>,</span>
+<span id="cb1294-7"><a href="demonstration.html#cb1294-7" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Number of Cores&quot;</span>,</span>
+<span id="cb1294-8"><a href="demonstration.html#cb1294-8" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Memory (MB)&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1294-9"><a href="demonstration.html#cb1294-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <p><img src="44-hpc_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" /></p>
 <ul>
 <li><p><strong>Runtime Plot</strong></p>

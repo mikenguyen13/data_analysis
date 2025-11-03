@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>14.2 Non-Nested Model Tests | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="14.2 Non-Nested Model Tests | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1922,7 +1922,7 @@ m_i = \ell_{A,i} - \ell_{B,i}
 \]</span></p>
 <p>The Vuong test statistic is:</p>
 <p><span class="math display">\[
-V = \frac{\sqrt{n} \, \bar{m}}{s_m}
+V = \frac{\sqrt{n}  \bar{m}}{s_m}
 \]</span></p>
 <p>Where:</p>
 <ul>
@@ -2197,109 +2197,109 @@ R^2_{\text{scaled}} = \left( \text{Corr}(y, \hat{y}) \right)^2
 \]</span></p>
 <p>Where <span class="math inline">\(\hat{S}\)</span> is the <strong>mean of the exponentiated residuals</strong> from the log model.</p></li>
 </ul>
-<div class="sourceCode" id="cb638"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb638-1"><a href="non-nested-model-tests.html#cb638-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
-<span id="cb638-2"><a href="non-nested-model-tests.html#cb638-2" tabindex="-1"></a><span class="co"># install.packages(&quot;nonnest2&quot;)  # Uncomment if not already installed</span></span>
-<span id="cb638-3"><a href="non-nested-model-tests.html#cb638-3" tabindex="-1"></a><span class="fu">library</span>(nonnest2)    <span class="co"># For Vuong Test</span></span>
-<span id="cb638-4"><a href="non-nested-model-tests.html#cb638-4" tabindex="-1"></a><span class="fu">library</span>(lmtest)      <span class="co"># For J-Test</span></span>
-<span id="cb638-5"><a href="non-nested-model-tests.html#cb638-5" tabindex="-1"></a></span>
-<span id="cb638-6"><a href="non-nested-model-tests.html#cb638-6" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
-<span id="cb638-7"><a href="non-nested-model-tests.html#cb638-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb638-8"><a href="non-nested-model-tests.html#cb638-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb638-9"><a href="non-nested-model-tests.html#cb638-9" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
-<span id="cb638-10"><a href="non-nested-model-tests.html#cb638-10" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">100</span>, <span class="at">sd =</span> <span class="dv">20</span>)</span>
-<span id="cb638-11"><a href="non-nested-model-tests.html#cb638-11" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb638-12"><a href="non-nested-model-tests.html#cb638-12" tabindex="-1"></a></span>
-<span id="cb638-13"><a href="non-nested-model-tests.html#cb638-13" tabindex="-1"></a><span class="co"># Competing models (non-nested)</span></span>
-<span id="cb638-14"><a href="non-nested-model-tests.html#cb638-14" tabindex="-1"></a><span class="co"># Model A: Linear relationship with x</span></span>
-<span id="cb638-15"><a href="non-nested-model-tests.html#cb638-15" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> x <span class="sc">+</span> epsilon</span>
-<span id="cb638-16"><a href="non-nested-model-tests.html#cb638-16" tabindex="-1"></a>model_A <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x)</span>
-<span id="cb638-17"><a href="non-nested-model-tests.html#cb638-17" tabindex="-1"></a></span>
-<span id="cb638-18"><a href="non-nested-model-tests.html#cb638-18" tabindex="-1"></a><span class="co"># Model B: Log-linear relationship with z</span></span>
-<span id="cb638-19"><a href="non-nested-model-tests.html#cb638-19" tabindex="-1"></a>model_B <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="fu">log</span>(z))</span>
-<span id="cb638-20"><a href="non-nested-model-tests.html#cb638-20" tabindex="-1"></a></span>
-<span id="cb638-21"><a href="non-nested-model-tests.html#cb638-21" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb638-22"><a href="non-nested-model-tests.html#cb638-22" tabindex="-1"></a><span class="co"># Vuong Test (Correct Function)</span></span>
-<span id="cb638-23"><a href="non-nested-model-tests.html#cb638-23" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb638-24"><a href="non-nested-model-tests.html#cb638-24" tabindex="-1"></a>vuong_test <span class="ot">&lt;-</span> <span class="fu">vuongtest</span>(model_A, model_B)</span>
-<span id="cb638-25"><a href="non-nested-model-tests.html#cb638-25" tabindex="-1"></a><span class="fu">print</span>(vuong_test)</span>
-<span id="cb638-26"><a href="non-nested-model-tests.html#cb638-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-27"><a href="non-nested-model-tests.html#cb638-27" tabindex="-1"></a><span class="co">#&gt; Model 1 </span></span>
-<span id="cb638-28"><a href="non-nested-model-tests.html#cb638-28" tabindex="-1"></a><span class="co">#&gt;  Class: lm </span></span>
-<span id="cb638-29"><a href="non-nested-model-tests.html#cb638-29" tabindex="-1"></a><span class="co">#&gt;  Call: lm(formula = y ~ x)</span></span>
-<span id="cb638-30"><a href="non-nested-model-tests.html#cb638-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-31"><a href="non-nested-model-tests.html#cb638-31" tabindex="-1"></a><span class="co">#&gt; Model 2 </span></span>
-<span id="cb638-32"><a href="non-nested-model-tests.html#cb638-32" tabindex="-1"></a><span class="co">#&gt;  Class: lm </span></span>
-<span id="cb638-33"><a href="non-nested-model-tests.html#cb638-33" tabindex="-1"></a><span class="co">#&gt;  Call: lm(formula = y ~ log(z))</span></span>
-<span id="cb638-34"><a href="non-nested-model-tests.html#cb638-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-35"><a href="non-nested-model-tests.html#cb638-35" tabindex="-1"></a><span class="co">#&gt; Variance test </span></span>
-<span id="cb638-36"><a href="non-nested-model-tests.html#cb638-36" tabindex="-1"></a><span class="co">#&gt;   H0: Model 1 and Model 2 are indistinguishable </span></span>
-<span id="cb638-37"><a href="non-nested-model-tests.html#cb638-37" tabindex="-1"></a><span class="co">#&gt;   H1: Model 1 and Model 2 are distinguishable </span></span>
-<span id="cb638-38"><a href="non-nested-model-tests.html#cb638-38" tabindex="-1"></a><span class="co">#&gt;     w2 = 0.681,   p = 2.35e-08</span></span>
-<span id="cb638-39"><a href="non-nested-model-tests.html#cb638-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-40"><a href="non-nested-model-tests.html#cb638-40" tabindex="-1"></a><span class="co">#&gt; Non-nested likelihood ratio test </span></span>
-<span id="cb638-41"><a href="non-nested-model-tests.html#cb638-41" tabindex="-1"></a><span class="co">#&gt;   H0: Model fits are equal for the focal population </span></span>
-<span id="cb638-42"><a href="non-nested-model-tests.html#cb638-42" tabindex="-1"></a><span class="co">#&gt;   H1A: Model 1 fits better than Model 2 </span></span>
-<span id="cb638-43"><a href="non-nested-model-tests.html#cb638-43" tabindex="-1"></a><span class="co">#&gt;     z = 13.108,   p = &lt;2e-16</span></span>
-<span id="cb638-44"><a href="non-nested-model-tests.html#cb638-44" tabindex="-1"></a><span class="co">#&gt;   H1B: Model 2 fits better than Model 1 </span></span>
-<span id="cb638-45"><a href="non-nested-model-tests.html#cb638-45" tabindex="-1"></a><span class="co">#&gt;     z = 13.108,   p = 1</span></span>
-<span id="cb638-46"><a href="non-nested-model-tests.html#cb638-46" tabindex="-1"></a></span>
-<span id="cb638-47"><a href="non-nested-model-tests.html#cb638-47" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb638-48"><a href="non-nested-model-tests.html#cb638-48" tabindex="-1"></a><span class="co"># Davidson–MacKinnon J-Test</span></span>
-<span id="cb638-49"><a href="non-nested-model-tests.html#cb638-49" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb638-50"><a href="non-nested-model-tests.html#cb638-50" tabindex="-1"></a></span>
-<span id="cb638-51"><a href="non-nested-model-tests.html#cb638-51" tabindex="-1"></a><span class="co"># Step 1: Testing Model A against Model B</span></span>
-<span id="cb638-52"><a href="non-nested-model-tests.html#cb638-52" tabindex="-1"></a><span class="co"># Obtain fitted values from Model B</span></span>
-<span id="cb638-53"><a href="non-nested-model-tests.html#cb638-53" tabindex="-1"></a>fitted_B <span class="ot">&lt;-</span> <span class="fu">fitted</span>(model_B)</span>
-<span id="cb638-54"><a href="non-nested-model-tests.html#cb638-54" tabindex="-1"></a></span>
-<span id="cb638-55"><a href="non-nested-model-tests.html#cb638-55" tabindex="-1"></a><span class="co"># Auxiliary regression: Add fitted_B to Model A</span></span>
-<span id="cb638-56"><a href="non-nested-model-tests.html#cb638-56" tabindex="-1"></a>j_test_A_vs_B <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> fitted_B)</span>
-<span id="cb638-57"><a href="non-nested-model-tests.html#cb638-57" tabindex="-1"></a><span class="fu">summary</span>(j_test_A_vs_B)</span>
-<span id="cb638-58"><a href="non-nested-model-tests.html#cb638-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-59"><a href="non-nested-model-tests.html#cb638-59" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb638-60"><a href="non-nested-model-tests.html#cb638-60" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ x + fitted_B)</span></span>
-<span id="cb638-61"><a href="non-nested-model-tests.html#cb638-61" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-62"><a href="non-nested-model-tests.html#cb638-62" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb638-63"><a href="non-nested-model-tests.html#cb638-63" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb638-64"><a href="non-nested-model-tests.html#cb638-64" tabindex="-1"></a><span class="co">#&gt; -1.8717 -0.6573 -0.1223  0.6154  2.0952 </span></span>
-<span id="cb638-65"><a href="non-nested-model-tests.html#cb638-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-66"><a href="non-nested-model-tests.html#cb638-66" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb638-67"><a href="non-nested-model-tests.html#cb638-67" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb638-68"><a href="non-nested-model-tests.html#cb638-68" tabindex="-1"></a><span class="co">#&gt; (Intercept) 14.70881   25.98307   0.566    0.573    </span></span>
-<span id="cb638-69"><a href="non-nested-model-tests.html#cb638-69" tabindex="-1"></a><span class="co">#&gt; x            0.28671    0.01048  27.358   &lt;2e-16 ***</span></span>
-<span id="cb638-70"><a href="non-nested-model-tests.html#cb638-70" tabindex="-1"></a><span class="co">#&gt; fitted_B    -0.43702    1.27500  -0.343    0.733    </span></span>
-<span id="cb638-71"><a href="non-nested-model-tests.html#cb638-71" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb638-72"><a href="non-nested-model-tests.html#cb638-72" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb638-73"><a href="non-nested-model-tests.html#cb638-73" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-74"><a href="non-nested-model-tests.html#cb638-74" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.951 on 97 degrees of freedom</span></span>
-<span id="cb638-75"><a href="non-nested-model-tests.html#cb638-75" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.8854, Adjusted R-squared:  0.883 </span></span>
-<span id="cb638-76"><a href="non-nested-model-tests.html#cb638-76" tabindex="-1"></a><span class="co">#&gt; F-statistic: 374.5 on 2 and 97 DF,  p-value: &lt; 2.2e-16</span></span>
-<span id="cb638-77"><a href="non-nested-model-tests.html#cb638-77" tabindex="-1"></a></span>
-<span id="cb638-78"><a href="non-nested-model-tests.html#cb638-78" tabindex="-1"></a><span class="co"># Step 2: Testing Model B against Model A</span></span>
-<span id="cb638-79"><a href="non-nested-model-tests.html#cb638-79" tabindex="-1"></a><span class="co"># Obtain fitted values from Model A</span></span>
-<span id="cb638-80"><a href="non-nested-model-tests.html#cb638-80" tabindex="-1"></a>fitted_A <span class="ot">&lt;-</span> <span class="fu">fitted</span>(model_A)</span>
-<span id="cb638-81"><a href="non-nested-model-tests.html#cb638-81" tabindex="-1"></a></span>
-<span id="cb638-82"><a href="non-nested-model-tests.html#cb638-82" tabindex="-1"></a><span class="co"># Auxiliary regression: Add fitted_A to Model B</span></span>
-<span id="cb638-83"><a href="non-nested-model-tests.html#cb638-83" tabindex="-1"></a>j_test_B_vs_A <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="fu">log</span>(z) <span class="sc">+</span> fitted_A)</span>
-<span id="cb638-84"><a href="non-nested-model-tests.html#cb638-84" tabindex="-1"></a><span class="fu">summary</span>(j_test_B_vs_A)</span>
-<span id="cb638-85"><a href="non-nested-model-tests.html#cb638-85" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-86"><a href="non-nested-model-tests.html#cb638-86" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb638-87"><a href="non-nested-model-tests.html#cb638-87" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ log(z) + fitted_A)</span></span>
-<span id="cb638-88"><a href="non-nested-model-tests.html#cb638-88" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-89"><a href="non-nested-model-tests.html#cb638-89" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb638-90"><a href="non-nested-model-tests.html#cb638-90" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb638-91"><a href="non-nested-model-tests.html#cb638-91" tabindex="-1"></a><span class="co">#&gt; -1.8717 -0.6573 -0.1223  0.6154  2.0952 </span></span>
-<span id="cb638-92"><a href="non-nested-model-tests.html#cb638-92" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-93"><a href="non-nested-model-tests.html#cb638-93" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb638-94"><a href="non-nested-model-tests.html#cb638-94" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb638-95"><a href="non-nested-model-tests.html#cb638-95" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.77868    2.39275  -0.325    0.746    </span></span>
-<span id="cb638-96"><a href="non-nested-model-tests.html#cb638-96" tabindex="-1"></a><span class="co">#&gt; log(z)       0.16829    0.49097   0.343    0.733    </span></span>
-<span id="cb638-97"><a href="non-nested-model-tests.html#cb638-97" tabindex="-1"></a><span class="co">#&gt; fitted_A     1.00052    0.03657  27.358   &lt;2e-16 ***</span></span>
-<span id="cb638-98"><a href="non-nested-model-tests.html#cb638-98" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb638-99"><a href="non-nested-model-tests.html#cb638-99" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb638-100"><a href="non-nested-model-tests.html#cb638-100" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb638-101"><a href="non-nested-model-tests.html#cb638-101" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.951 on 97 degrees of freedom</span></span>
-<span id="cb638-102"><a href="non-nested-model-tests.html#cb638-102" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.8854, Adjusted R-squared:  0.883 </span></span>
-<span id="cb638-103"><a href="non-nested-model-tests.html#cb638-103" tabindex="-1"></a><span class="co">#&gt; F-statistic: 374.5 on 2 and 97 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<div class="sourceCode" id="cb643"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb643-1"><a href="non-nested-model-tests.html#cb643-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
+<span id="cb643-2"><a href="non-nested-model-tests.html#cb643-2" tabindex="-1"></a><span class="co"># install.packages(&quot;nonnest2&quot;)  # Uncomment if not already installed</span></span>
+<span id="cb643-3"><a href="non-nested-model-tests.html#cb643-3" tabindex="-1"></a><span class="fu">library</span>(nonnest2)    <span class="co"># For Vuong Test</span></span>
+<span id="cb643-4"><a href="non-nested-model-tests.html#cb643-4" tabindex="-1"></a><span class="fu">library</span>(lmtest)      <span class="co"># For J-Test</span></span>
+<span id="cb643-5"><a href="non-nested-model-tests.html#cb643-5" tabindex="-1"></a></span>
+<span id="cb643-6"><a href="non-nested-model-tests.html#cb643-6" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
+<span id="cb643-7"><a href="non-nested-model-tests.html#cb643-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb643-8"><a href="non-nested-model-tests.html#cb643-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb643-9"><a href="non-nested-model-tests.html#cb643-9" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
+<span id="cb643-10"><a href="non-nested-model-tests.html#cb643-10" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">100</span>, <span class="at">sd =</span> <span class="dv">20</span>)</span>
+<span id="cb643-11"><a href="non-nested-model-tests.html#cb643-11" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb643-12"><a href="non-nested-model-tests.html#cb643-12" tabindex="-1"></a></span>
+<span id="cb643-13"><a href="non-nested-model-tests.html#cb643-13" tabindex="-1"></a><span class="co"># Competing models (non-nested)</span></span>
+<span id="cb643-14"><a href="non-nested-model-tests.html#cb643-14" tabindex="-1"></a><span class="co"># Model A: Linear relationship with x</span></span>
+<span id="cb643-15"><a href="non-nested-model-tests.html#cb643-15" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> x <span class="sc">+</span> epsilon</span>
+<span id="cb643-16"><a href="non-nested-model-tests.html#cb643-16" tabindex="-1"></a>model_A <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x)</span>
+<span id="cb643-17"><a href="non-nested-model-tests.html#cb643-17" tabindex="-1"></a></span>
+<span id="cb643-18"><a href="non-nested-model-tests.html#cb643-18" tabindex="-1"></a><span class="co"># Model B: Log-linear relationship with z</span></span>
+<span id="cb643-19"><a href="non-nested-model-tests.html#cb643-19" tabindex="-1"></a>model_B <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="fu">log</span>(z))</span>
+<span id="cb643-20"><a href="non-nested-model-tests.html#cb643-20" tabindex="-1"></a></span>
+<span id="cb643-21"><a href="non-nested-model-tests.html#cb643-21" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb643-22"><a href="non-nested-model-tests.html#cb643-22" tabindex="-1"></a><span class="co"># Vuong Test (Correct Function)</span></span>
+<span id="cb643-23"><a href="non-nested-model-tests.html#cb643-23" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb643-24"><a href="non-nested-model-tests.html#cb643-24" tabindex="-1"></a>vuong_test <span class="ot">&lt;-</span> <span class="fu">vuongtest</span>(model_A, model_B)</span>
+<span id="cb643-25"><a href="non-nested-model-tests.html#cb643-25" tabindex="-1"></a><span class="fu">print</span>(vuong_test)</span>
+<span id="cb643-26"><a href="non-nested-model-tests.html#cb643-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-27"><a href="non-nested-model-tests.html#cb643-27" tabindex="-1"></a><span class="co">#&gt; Model 1 </span></span>
+<span id="cb643-28"><a href="non-nested-model-tests.html#cb643-28" tabindex="-1"></a><span class="co">#&gt;  Class: lm </span></span>
+<span id="cb643-29"><a href="non-nested-model-tests.html#cb643-29" tabindex="-1"></a><span class="co">#&gt;  Call: lm(formula = y ~ x)</span></span>
+<span id="cb643-30"><a href="non-nested-model-tests.html#cb643-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-31"><a href="non-nested-model-tests.html#cb643-31" tabindex="-1"></a><span class="co">#&gt; Model 2 </span></span>
+<span id="cb643-32"><a href="non-nested-model-tests.html#cb643-32" tabindex="-1"></a><span class="co">#&gt;  Class: lm </span></span>
+<span id="cb643-33"><a href="non-nested-model-tests.html#cb643-33" tabindex="-1"></a><span class="co">#&gt;  Call: lm(formula = y ~ log(z))</span></span>
+<span id="cb643-34"><a href="non-nested-model-tests.html#cb643-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-35"><a href="non-nested-model-tests.html#cb643-35" tabindex="-1"></a><span class="co">#&gt; Variance test </span></span>
+<span id="cb643-36"><a href="non-nested-model-tests.html#cb643-36" tabindex="-1"></a><span class="co">#&gt;   H0: Model 1 and Model 2 are indistinguishable </span></span>
+<span id="cb643-37"><a href="non-nested-model-tests.html#cb643-37" tabindex="-1"></a><span class="co">#&gt;   H1: Model 1 and Model 2 are distinguishable </span></span>
+<span id="cb643-38"><a href="non-nested-model-tests.html#cb643-38" tabindex="-1"></a><span class="co">#&gt;     w2 = 0.681,   p = 2.35e-08</span></span>
+<span id="cb643-39"><a href="non-nested-model-tests.html#cb643-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-40"><a href="non-nested-model-tests.html#cb643-40" tabindex="-1"></a><span class="co">#&gt; Non-nested likelihood ratio test </span></span>
+<span id="cb643-41"><a href="non-nested-model-tests.html#cb643-41" tabindex="-1"></a><span class="co">#&gt;   H0: Model fits are equal for the focal population </span></span>
+<span id="cb643-42"><a href="non-nested-model-tests.html#cb643-42" tabindex="-1"></a><span class="co">#&gt;   H1A: Model 1 fits better than Model 2 </span></span>
+<span id="cb643-43"><a href="non-nested-model-tests.html#cb643-43" tabindex="-1"></a><span class="co">#&gt;     z = 13.108,   p = &lt;2e-16</span></span>
+<span id="cb643-44"><a href="non-nested-model-tests.html#cb643-44" tabindex="-1"></a><span class="co">#&gt;   H1B: Model 2 fits better than Model 1 </span></span>
+<span id="cb643-45"><a href="non-nested-model-tests.html#cb643-45" tabindex="-1"></a><span class="co">#&gt;     z = 13.108,   p = 1</span></span>
+<span id="cb643-46"><a href="non-nested-model-tests.html#cb643-46" tabindex="-1"></a></span>
+<span id="cb643-47"><a href="non-nested-model-tests.html#cb643-47" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb643-48"><a href="non-nested-model-tests.html#cb643-48" tabindex="-1"></a><span class="co"># Davidson–MacKinnon J-Test</span></span>
+<span id="cb643-49"><a href="non-nested-model-tests.html#cb643-49" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb643-50"><a href="non-nested-model-tests.html#cb643-50" tabindex="-1"></a></span>
+<span id="cb643-51"><a href="non-nested-model-tests.html#cb643-51" tabindex="-1"></a><span class="co"># Step 1: Testing Model A against Model B</span></span>
+<span id="cb643-52"><a href="non-nested-model-tests.html#cb643-52" tabindex="-1"></a><span class="co"># Obtain fitted values from Model B</span></span>
+<span id="cb643-53"><a href="non-nested-model-tests.html#cb643-53" tabindex="-1"></a>fitted_B <span class="ot">&lt;-</span> <span class="fu">fitted</span>(model_B)</span>
+<span id="cb643-54"><a href="non-nested-model-tests.html#cb643-54" tabindex="-1"></a></span>
+<span id="cb643-55"><a href="non-nested-model-tests.html#cb643-55" tabindex="-1"></a><span class="co"># Auxiliary regression: Add fitted_B to Model A</span></span>
+<span id="cb643-56"><a href="non-nested-model-tests.html#cb643-56" tabindex="-1"></a>j_test_A_vs_B <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> fitted_B)</span>
+<span id="cb643-57"><a href="non-nested-model-tests.html#cb643-57" tabindex="-1"></a><span class="fu">summary</span>(j_test_A_vs_B)</span>
+<span id="cb643-58"><a href="non-nested-model-tests.html#cb643-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-59"><a href="non-nested-model-tests.html#cb643-59" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb643-60"><a href="non-nested-model-tests.html#cb643-60" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ x + fitted_B)</span></span>
+<span id="cb643-61"><a href="non-nested-model-tests.html#cb643-61" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-62"><a href="non-nested-model-tests.html#cb643-62" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb643-63"><a href="non-nested-model-tests.html#cb643-63" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb643-64"><a href="non-nested-model-tests.html#cb643-64" tabindex="-1"></a><span class="co">#&gt; -1.8717 -0.6573 -0.1223  0.6154  2.0952 </span></span>
+<span id="cb643-65"><a href="non-nested-model-tests.html#cb643-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-66"><a href="non-nested-model-tests.html#cb643-66" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb643-67"><a href="non-nested-model-tests.html#cb643-67" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb643-68"><a href="non-nested-model-tests.html#cb643-68" tabindex="-1"></a><span class="co">#&gt; (Intercept) 14.70881   25.98307   0.566    0.573    </span></span>
+<span id="cb643-69"><a href="non-nested-model-tests.html#cb643-69" tabindex="-1"></a><span class="co">#&gt; x            0.28671    0.01048  27.358   &lt;2e-16 ***</span></span>
+<span id="cb643-70"><a href="non-nested-model-tests.html#cb643-70" tabindex="-1"></a><span class="co">#&gt; fitted_B    -0.43702    1.27500  -0.343    0.733    </span></span>
+<span id="cb643-71"><a href="non-nested-model-tests.html#cb643-71" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb643-72"><a href="non-nested-model-tests.html#cb643-72" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb643-73"><a href="non-nested-model-tests.html#cb643-73" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-74"><a href="non-nested-model-tests.html#cb643-74" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.951 on 97 degrees of freedom</span></span>
+<span id="cb643-75"><a href="non-nested-model-tests.html#cb643-75" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.8854, Adjusted R-squared:  0.883 </span></span>
+<span id="cb643-76"><a href="non-nested-model-tests.html#cb643-76" tabindex="-1"></a><span class="co">#&gt; F-statistic: 374.5 on 2 and 97 DF,  p-value: &lt; 2.2e-16</span></span>
+<span id="cb643-77"><a href="non-nested-model-tests.html#cb643-77" tabindex="-1"></a></span>
+<span id="cb643-78"><a href="non-nested-model-tests.html#cb643-78" tabindex="-1"></a><span class="co"># Step 2: Testing Model B against Model A</span></span>
+<span id="cb643-79"><a href="non-nested-model-tests.html#cb643-79" tabindex="-1"></a><span class="co"># Obtain fitted values from Model A</span></span>
+<span id="cb643-80"><a href="non-nested-model-tests.html#cb643-80" tabindex="-1"></a>fitted_A <span class="ot">&lt;-</span> <span class="fu">fitted</span>(model_A)</span>
+<span id="cb643-81"><a href="non-nested-model-tests.html#cb643-81" tabindex="-1"></a></span>
+<span id="cb643-82"><a href="non-nested-model-tests.html#cb643-82" tabindex="-1"></a><span class="co"># Auxiliary regression: Add fitted_A to Model B</span></span>
+<span id="cb643-83"><a href="non-nested-model-tests.html#cb643-83" tabindex="-1"></a>j_test_B_vs_A <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="fu">log</span>(z) <span class="sc">+</span> fitted_A)</span>
+<span id="cb643-84"><a href="non-nested-model-tests.html#cb643-84" tabindex="-1"></a><span class="fu">summary</span>(j_test_B_vs_A)</span>
+<span id="cb643-85"><a href="non-nested-model-tests.html#cb643-85" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-86"><a href="non-nested-model-tests.html#cb643-86" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb643-87"><a href="non-nested-model-tests.html#cb643-87" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ log(z) + fitted_A)</span></span>
+<span id="cb643-88"><a href="non-nested-model-tests.html#cb643-88" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-89"><a href="non-nested-model-tests.html#cb643-89" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb643-90"><a href="non-nested-model-tests.html#cb643-90" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb643-91"><a href="non-nested-model-tests.html#cb643-91" tabindex="-1"></a><span class="co">#&gt; -1.8717 -0.6573 -0.1223  0.6154  2.0952 </span></span>
+<span id="cb643-92"><a href="non-nested-model-tests.html#cb643-92" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-93"><a href="non-nested-model-tests.html#cb643-93" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb643-94"><a href="non-nested-model-tests.html#cb643-94" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb643-95"><a href="non-nested-model-tests.html#cb643-95" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.77868    2.39275  -0.325    0.746    </span></span>
+<span id="cb643-96"><a href="non-nested-model-tests.html#cb643-96" tabindex="-1"></a><span class="co">#&gt; log(z)       0.16829    0.49097   0.343    0.733    </span></span>
+<span id="cb643-97"><a href="non-nested-model-tests.html#cb643-97" tabindex="-1"></a><span class="co">#&gt; fitted_A     1.00052    0.03657  27.358   &lt;2e-16 ***</span></span>
+<span id="cb643-98"><a href="non-nested-model-tests.html#cb643-98" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb643-99"><a href="non-nested-model-tests.html#cb643-99" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb643-100"><a href="non-nested-model-tests.html#cb643-100" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb643-101"><a href="non-nested-model-tests.html#cb643-101" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.951 on 97 degrees of freedom</span></span>
+<span id="cb643-102"><a href="non-nested-model-tests.html#cb643-102" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.8854, Adjusted R-squared:  0.883 </span></span>
+<span id="cb643-103"><a href="non-nested-model-tests.html#cb643-103" tabindex="-1"></a><span class="co">#&gt; F-statistic: 374.5 on 2 and 97 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <hr />
 </div>
 </div>

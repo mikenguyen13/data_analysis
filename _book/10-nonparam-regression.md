@@ -1036,7 +1036,7 @@ $$ for the right-hand sides. The estimated coefficients $\hat{\beta}_0$ and $\ha
 
 $$
 \begin{pmatrix}
-S_0(x) & S_1(x)\\[6pt]
+S_0(x) & S_1(x)\\
 S_1(x) & S_2(x)
 \end{pmatrix}
 \begin{pmatrix}
@@ -1045,7 +1045,7 @@ S_1(x) & S_2(x)
 \end{pmatrix}
 =
 \begin{pmatrix}
-\sum_{i=1}^n y_i K\!\left(\tfrac{x_i - x}{h}\right)\\[6pt]
+\sum_{i=1}^n y_i K\!\left(\tfrac{x_i - x}{h}\right)\\
 \sum_{i=1}^n (x_i - x)y_i K\!\left(\tfrac{x_i - x}{h}\right)
 \end{pmatrix}.
 $$
@@ -3350,10 +3350,6 @@ Why GAMs Help:
 ``` r
 # Radial Basis Function Model
 rbf_model <- Tps(cbind(x1, x2, x3), y)  # Thin-plate spline RBF
-#> Warning: 
-#> Grid searches over lambda (nugget and sill variances) with  minima at the endpoints: 
-#>   (GCV) Generalized Cross-Validation 
-#>    minimum at  right endpoint  lambda  =  0.0002622876 (eff. df= 95.00001 )
 
 # Predictions
 grid_data$pred_rbf <-

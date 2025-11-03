@@ -935,11 +935,11 @@ summary(results)
 #> 
 #> Nonparametric Bootstrap Confidence Intervals with the Percentile Method
 #> 
-#>                Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME             0.3565       0.2119         0.51  <2e-16 ***
-#> ADE              0.0396      -0.1750         0.28   0.760    
-#> Total Effect     0.3961       0.1743         0.64   0.004 ** 
-#> Prop. Mediated   0.9000       0.5042         1.94   0.004 ** 
+#>                 Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME            0.356522     0.211871     0.507799  <2e-16 ***
+#> ADE             0.039604    -0.174982     0.278427   0.760    
+#> Total Effect    0.396126     0.174283     0.643540   0.004 ** 
+#> Prop. Mediated  0.900022     0.504160     1.937520   0.004 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1071,17 +1071,17 @@ summary(med.out)
 #> 
 #> Quasi-Bayesian Confidence Intervals
 #> 
-#>                          Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME (control)             0.0791       0.0351         0.15  <2e-16 ***
-#> ACME (treated)             0.0804       0.0367         0.16  <2e-16 ***
-#> ADE (control)              0.0206      -0.0976         0.12    0.70    
-#> ADE (treated)              0.0218      -0.1053         0.12    0.70    
-#> Total Effect               0.1009      -0.0497         0.23    0.14    
-#> Prop. Mediated (control)   0.6946      -6.3109         3.68    0.14    
-#> Prop. Mediated (treated)   0.7118      -5.7936         3.50    0.14    
-#> ACME (average)             0.0798       0.0359         0.15  <2e-16 ***
-#> ADE (average)              0.0212      -0.1014         0.12    0.70    
-#> Prop. Mediated (average)   0.7032      -6.0523         3.59    0.14    
+#>                           Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME (control)            0.079128     0.035058     0.150095  <2e-16 ***
+#> ACME (treated)            0.080385     0.036654     0.155707  <2e-16 ***
+#> ADE (control)             0.020551    -0.097597     0.115775    0.70    
+#> ADE (treated)             0.021808    -0.105256     0.122624    0.70    
+#> Total Effect              0.100936    -0.049706     0.233869    0.14    
+#> Prop. Mediated (control)  0.694620    -6.310861     3.679318    0.14    
+#> Prop. Mediated (treated)  0.711848    -5.793642     3.496550    0.14    
+#> ACME (average)            0.079756     0.035856     0.153702  <2e-16 ***
+#> ADE (average)             0.021180    -0.101427     0.119199    0.70    
+#> Prop. Mediated (average)  0.703234    -6.052251     3.587934    0.14    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1111,17 +1111,17 @@ summary(med.out)
 #> 
 #> Nonparametric Bootstrap Confidence Intervals with the BCa Method
 #> 
-#>                          Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME (control)             0.0848       0.0424         0.14  <2e-16 ***
-#> ACME (treated)             0.0858       0.0410         0.14  <2e-16 ***
-#> ADE (control)              0.0117      -0.0726         0.13    0.58    
-#> ADE (treated)              0.0127      -0.0784         0.14    0.58    
-#> Total Effect               0.0975       0.0122         0.25    0.06 .  
-#> Prop. Mediated (control)   0.8698       1.7460       151.20    0.06 .  
-#> Prop. Mediated (treated)   0.8804       1.6879       138.91    0.06 .  
-#> ACME (average)             0.0853       0.0434         0.14  <2e-16 ***
-#> ADE (average)              0.0122      -0.0756         0.14    0.58    
-#> Prop. Mediated (average)   0.8751       1.7170       145.05    0.06 .  
+#>                            Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME (control)             0.084786     0.042409     0.135927  <2e-16 ***
+#> ACME (treated)             0.085820     0.041012     0.136296  <2e-16 ***
+#> ADE (control)              0.011654    -0.072556     0.133438    0.58    
+#> ADE (treated)              0.012689    -0.078400     0.141850    0.58    
+#> Total Effect               0.097475     0.012219     0.249860    0.06 .  
+#> Prop. Mediated (control)   0.869822     1.746034   151.198626    0.06 .  
+#> Prop. Mediated (treated)   0.880437     1.687950   138.906093    0.06 .  
+#> ACME (average)             0.085303     0.043380     0.137194  <2e-16 ***
+#> ADE (average)              0.012172    -0.075578     0.137570    0.58    
+#> Prop. Mediated (average)   0.875130     1.716992   145.052358    0.06 .  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1161,17 +1161,17 @@ summary(med.out)
 #> 
 #> Quasi-Bayesian Confidence Intervals
 #> 
-#>                           Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME (control)             0.07417      0.02401         0.14  <2e-16 ***
-#> ACME (treated)             0.09496      0.02702         0.16  <2e-16 ***
-#> ADE (control)             -0.01353     -0.11855         0.11    0.76    
-#> ADE (treated)              0.00726     -0.11007         0.11    0.90    
-#> Total Effect               0.08143     -0.05646         0.19    0.26    
-#> Prop. Mediated (control)   0.64510    -14.31243         3.13    0.26    
-#> Prop. Mediated (treated)   0.98006    -17.83202         4.01    0.26    
-#> ACME (average)             0.08457      0.02738         0.15  <2e-16 ***
-#> ADE (average)             -0.00314     -0.11457         0.12    1.00    
-#> Prop. Mediated (average)   0.81258    -16.07223         3.55    0.26    
+#>                             Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME (control)             0.0741675    0.0240117    0.1364901  <2e-16 ***
+#> ACME (treated)             0.0949636    0.0270237    0.1630112  <2e-16 ***
+#> ADE (control)             -0.0135332   -0.1185510    0.1096060    0.76    
+#> ADE (treated)              0.0072629   -0.1100691    0.1145408    0.90    
+#> Total Effect               0.0814304   -0.0564589    0.1924589    0.26    
+#> Prop. Mediated (control)   0.6451040  -14.3124300    3.1336595    0.26    
+#> Prop. Mediated (treated)   0.9800632  -17.8320223    4.0060277    0.26    
+#> ACME (average)             0.0845655    0.0273792    0.1470397  <2e-16 ***
+#> ADE (average)             -0.0031352   -0.1145684    0.1172708    1.00    
+#> Prop. Mediated (average)   0.8125836  -16.0722261    3.5478494    0.26    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 

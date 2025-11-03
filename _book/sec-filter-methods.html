@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>15.1 Filter Methods (Statistical Criteria, Model-Agnostic) | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="15.1 Filter Methods (Statistical Criteria, Model-Agnostic) | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1913,42 +1913,42 @@ C_p = \frac{SSE_p}{\hat{\sigma}^2} - (n - 2p)
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb643"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb643-1"><a href="sec-filter-methods.html#cb643-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
-<span id="cb643-2"><a href="sec-filter-methods.html#cb643-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb643-3"><a href="sec-filter-methods.html#cb643-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb643-4"><a href="sec-filter-methods.html#cb643-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb643-5"><a href="sec-filter-methods.html#cb643-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb643-6"><a href="sec-filter-methods.html#cb643-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb643-7"><a href="sec-filter-methods.html#cb643-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
-<span id="cb643-8"><a href="sec-filter-methods.html#cb643-8" tabindex="-1"></a></span>
-<span id="cb643-9"><a href="sec-filter-methods.html#cb643-9" tabindex="-1"></a><span class="co"># Full model and candidate models</span></span>
-<span id="cb643-10"><a href="sec-filter-methods.html#cb643-10" tabindex="-1"></a>full_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
-<span id="cb643-11"><a href="sec-filter-methods.html#cb643-11" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1)</span>
-<span id="cb643-12"><a href="sec-filter-methods.html#cb643-12" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
-<span id="cb643-13"><a href="sec-filter-methods.html#cb643-13" tabindex="-1"></a></span>
-<span id="cb643-14"><a href="sec-filter-methods.html#cb643-14" tabindex="-1"></a><span class="co"># Extract SSE and calculate Cp</span></span>
-<span id="cb643-15"><a href="sec-filter-methods.html#cb643-15" tabindex="-1"></a>calculate_cp <span class="ot">&lt;-</span> <span class="cf">function</span>(model, full_model_sse, full_model_mse, n) {</span>
-<span id="cb643-16"><a href="sec-filter-methods.html#cb643-16" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb643-17"><a href="sec-filter-methods.html#cb643-17" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
-<span id="cb643-18"><a href="sec-filter-methods.html#cb643-18" tabindex="-1"></a>  cp <span class="ot">&lt;-</span> (sse <span class="sc">/</span> full_model_mse) <span class="sc">-</span> (n <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> p)</span>
-<span id="cb643-19"><a href="sec-filter-methods.html#cb643-19" tabindex="-1"></a>  <span class="fu">return</span>(cp)</span>
-<span id="cb643-20"><a href="sec-filter-methods.html#cb643-20" tabindex="-1"></a>}</span>
-<span id="cb643-21"><a href="sec-filter-methods.html#cb643-21" tabindex="-1"></a></span>
-<span id="cb643-22"><a href="sec-filter-methods.html#cb643-22" tabindex="-1"></a><span class="co"># Full model statistics</span></span>
-<span id="cb643-23"><a href="sec-filter-methods.html#cb643-23" tabindex="-1"></a>full_model_sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(full_model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb643-24"><a href="sec-filter-methods.html#cb643-24" tabindex="-1"></a>full_model_mse <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">residuals</span>(full_model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb643-25"><a href="sec-filter-methods.html#cb643-25" tabindex="-1"></a></span>
-<span id="cb643-26"><a href="sec-filter-methods.html#cb643-26" tabindex="-1"></a><span class="co"># Cp values for each model</span></span>
-<span id="cb643-27"><a href="sec-filter-methods.html#cb643-27" tabindex="-1"></a>cp_1 <span class="ot">&lt;-</span> <span class="fu">calculate_cp</span>(model_1, full_model_sse, full_model_mse, n)</span>
-<span id="cb643-28"><a href="sec-filter-methods.html#cb643-28" tabindex="-1"></a>cp_2 <span class="ot">&lt;-</span> <span class="fu">calculate_cp</span>(model_2, full_model_sse, full_model_mse, n)</span>
-<span id="cb643-29"><a href="sec-filter-methods.html#cb643-29" tabindex="-1"></a></span>
-<span id="cb643-30"><a href="sec-filter-methods.html#cb643-30" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb643-31"><a href="sec-filter-methods.html#cb643-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;C_p values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb643-32"><a href="sec-filter-methods.html#cb643-32" tabindex="-1"></a><span class="co">#&gt; C_p values:</span></span>
-<span id="cb643-33"><a href="sec-filter-methods.html#cb643-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(cp_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb643-34"><a href="sec-filter-methods.html#cb643-34" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 83.64</span></span>
-<span id="cb643-35"><a href="sec-filter-methods.html#cb643-35" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(cp_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb643-36"><a href="sec-filter-methods.html#cb643-36" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 6.27</span></span></code></pre></div>
+<div class="sourceCode" id="cb648"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb648-1"><a href="sec-filter-methods.html#cb648-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
+<span id="cb648-2"><a href="sec-filter-methods.html#cb648-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb648-3"><a href="sec-filter-methods.html#cb648-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb648-4"><a href="sec-filter-methods.html#cb648-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb648-5"><a href="sec-filter-methods.html#cb648-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb648-6"><a href="sec-filter-methods.html#cb648-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb648-7"><a href="sec-filter-methods.html#cb648-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
+<span id="cb648-8"><a href="sec-filter-methods.html#cb648-8" tabindex="-1"></a></span>
+<span id="cb648-9"><a href="sec-filter-methods.html#cb648-9" tabindex="-1"></a><span class="co"># Full model and candidate models</span></span>
+<span id="cb648-10"><a href="sec-filter-methods.html#cb648-10" tabindex="-1"></a>full_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
+<span id="cb648-11"><a href="sec-filter-methods.html#cb648-11" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1)</span>
+<span id="cb648-12"><a href="sec-filter-methods.html#cb648-12" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
+<span id="cb648-13"><a href="sec-filter-methods.html#cb648-13" tabindex="-1"></a></span>
+<span id="cb648-14"><a href="sec-filter-methods.html#cb648-14" tabindex="-1"></a><span class="co"># Extract SSE and calculate Cp</span></span>
+<span id="cb648-15"><a href="sec-filter-methods.html#cb648-15" tabindex="-1"></a>calculate_cp <span class="ot">&lt;-</span> <span class="cf">function</span>(model, full_model_sse, full_model_mse, n) {</span>
+<span id="cb648-16"><a href="sec-filter-methods.html#cb648-16" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb648-17"><a href="sec-filter-methods.html#cb648-17" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
+<span id="cb648-18"><a href="sec-filter-methods.html#cb648-18" tabindex="-1"></a>  cp <span class="ot">&lt;-</span> (sse <span class="sc">/</span> full_model_mse) <span class="sc">-</span> (n <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> p)</span>
+<span id="cb648-19"><a href="sec-filter-methods.html#cb648-19" tabindex="-1"></a>  <span class="fu">return</span>(cp)</span>
+<span id="cb648-20"><a href="sec-filter-methods.html#cb648-20" tabindex="-1"></a>}</span>
+<span id="cb648-21"><a href="sec-filter-methods.html#cb648-21" tabindex="-1"></a></span>
+<span id="cb648-22"><a href="sec-filter-methods.html#cb648-22" tabindex="-1"></a><span class="co"># Full model statistics</span></span>
+<span id="cb648-23"><a href="sec-filter-methods.html#cb648-23" tabindex="-1"></a>full_model_sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(full_model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb648-24"><a href="sec-filter-methods.html#cb648-24" tabindex="-1"></a>full_model_mse <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">residuals</span>(full_model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb648-25"><a href="sec-filter-methods.html#cb648-25" tabindex="-1"></a></span>
+<span id="cb648-26"><a href="sec-filter-methods.html#cb648-26" tabindex="-1"></a><span class="co"># Cp values for each model</span></span>
+<span id="cb648-27"><a href="sec-filter-methods.html#cb648-27" tabindex="-1"></a>cp_1 <span class="ot">&lt;-</span> <span class="fu">calculate_cp</span>(model_1, full_model_sse, full_model_mse, n)</span>
+<span id="cb648-28"><a href="sec-filter-methods.html#cb648-28" tabindex="-1"></a>cp_2 <span class="ot">&lt;-</span> <span class="fu">calculate_cp</span>(model_2, full_model_sse, full_model_mse, n)</span>
+<span id="cb648-29"><a href="sec-filter-methods.html#cb648-29" tabindex="-1"></a></span>
+<span id="cb648-30"><a href="sec-filter-methods.html#cb648-30" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb648-31"><a href="sec-filter-methods.html#cb648-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;C_p values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb648-32"><a href="sec-filter-methods.html#cb648-32" tabindex="-1"></a><span class="co">#&gt; C_p values:</span></span>
+<span id="cb648-33"><a href="sec-filter-methods.html#cb648-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(cp_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb648-34"><a href="sec-filter-methods.html#cb648-34" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 83.64</span></span>
+<span id="cb648-35"><a href="sec-filter-methods.html#cb648-35" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(cp_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb648-36"><a href="sec-filter-methods.html#cb648-36" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 6.27</span></span></code></pre></div>
 <p>For Mallows’s <span class="math inline">\(C_p\)</span> criterion, <strong>lower values</strong> are preferred. Specifically:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Ideal Value</strong>: When the model is a good fit and has the correct number of predictors, <span class="math inline">\(C_p\)</span> should be close to the number of predictors <span class="math inline">\(p\)</span> plus 1 (i.e., <span class="math inline">\(p + 1\)</span>).</p></li>
@@ -1995,41 +1995,41 @@ AIC = n \ln\left(\frac{SSE_p}{n}\right) + 2p
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb644"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb644-1"><a href="sec-filter-methods.html#cb644-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
-<span id="cb644-2"><a href="sec-filter-methods.html#cb644-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb644-3"><a href="sec-filter-methods.html#cb644-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb644-4"><a href="sec-filter-methods.html#cb644-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb644-5"><a href="sec-filter-methods.html#cb644-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb644-6"><a href="sec-filter-methods.html#cb644-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb644-7"><a href="sec-filter-methods.html#cb644-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
-<span id="cb644-8"><a href="sec-filter-methods.html#cb644-8" tabindex="-1"></a></span>
-<span id="cb644-9"><a href="sec-filter-methods.html#cb644-9" tabindex="-1"></a><span class="co"># Candidate models</span></span>
-<span id="cb644-10"><a href="sec-filter-methods.html#cb644-10" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1)</span>
-<span id="cb644-11"><a href="sec-filter-methods.html#cb644-11" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
-<span id="cb644-12"><a href="sec-filter-methods.html#cb644-12" tabindex="-1"></a>model_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
-<span id="cb644-13"><a href="sec-filter-methods.html#cb644-13" tabindex="-1"></a></span>
-<span id="cb644-14"><a href="sec-filter-methods.html#cb644-14" tabindex="-1"></a><span class="co"># Function to manually compute AIC</span></span>
-<span id="cb644-15"><a href="sec-filter-methods.html#cb644-15" tabindex="-1"></a>calculate_aic <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
-<span id="cb644-16"><a href="sec-filter-methods.html#cb644-16" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb644-17"><a href="sec-filter-methods.html#cb644-17" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
-<span id="cb644-18"><a href="sec-filter-methods.html#cb644-18" tabindex="-1"></a>  aic <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n) <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> p</span>
-<span id="cb644-19"><a href="sec-filter-methods.html#cb644-19" tabindex="-1"></a>  <span class="fu">return</span>(aic)</span>
-<span id="cb644-20"><a href="sec-filter-methods.html#cb644-20" tabindex="-1"></a>}</span>
-<span id="cb644-21"><a href="sec-filter-methods.html#cb644-21" tabindex="-1"></a></span>
-<span id="cb644-22"><a href="sec-filter-methods.html#cb644-22" tabindex="-1"></a><span class="co"># Calculate AIC for each model</span></span>
-<span id="cb644-23"><a href="sec-filter-methods.html#cb644-23" tabindex="-1"></a>aic_1 <span class="ot">&lt;-</span> <span class="fu">calculate_aic</span>(model_1, n)</span>
-<span id="cb644-24"><a href="sec-filter-methods.html#cb644-24" tabindex="-1"></a>aic_2 <span class="ot">&lt;-</span> <span class="fu">calculate_aic</span>(model_2, n)</span>
-<span id="cb644-25"><a href="sec-filter-methods.html#cb644-25" tabindex="-1"></a>aic_3 <span class="ot">&lt;-</span> <span class="fu">calculate_aic</span>(model_3, n)</span>
-<span id="cb644-26"><a href="sec-filter-methods.html#cb644-26" tabindex="-1"></a></span>
-<span id="cb644-27"><a href="sec-filter-methods.html#cb644-27" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb644-28"><a href="sec-filter-methods.html#cb644-28" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;AIC values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb644-29"><a href="sec-filter-methods.html#cb644-29" tabindex="-1"></a><span class="co">#&gt; AIC values:</span></span>
-<span id="cb644-30"><a href="sec-filter-methods.html#cb644-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(aic_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb644-31"><a href="sec-filter-methods.html#cb644-31" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 207.17</span></span>
-<span id="cb644-32"><a href="sec-filter-methods.html#cb644-32" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(aic_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb644-33"><a href="sec-filter-methods.html#cb644-33" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 150.87</span></span>
-<span id="cb644-34"><a href="sec-filter-methods.html#cb644-34" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(aic_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb644-35"><a href="sec-filter-methods.html#cb644-35" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 152.59</span></span></code></pre></div>
+<div class="sourceCode" id="cb649"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb649-1"><a href="sec-filter-methods.html#cb649-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
+<span id="cb649-2"><a href="sec-filter-methods.html#cb649-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb649-3"><a href="sec-filter-methods.html#cb649-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb649-4"><a href="sec-filter-methods.html#cb649-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb649-5"><a href="sec-filter-methods.html#cb649-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb649-6"><a href="sec-filter-methods.html#cb649-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb649-7"><a href="sec-filter-methods.html#cb649-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
+<span id="cb649-8"><a href="sec-filter-methods.html#cb649-8" tabindex="-1"></a></span>
+<span id="cb649-9"><a href="sec-filter-methods.html#cb649-9" tabindex="-1"></a><span class="co"># Candidate models</span></span>
+<span id="cb649-10"><a href="sec-filter-methods.html#cb649-10" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1)</span>
+<span id="cb649-11"><a href="sec-filter-methods.html#cb649-11" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
+<span id="cb649-12"><a href="sec-filter-methods.html#cb649-12" tabindex="-1"></a>model_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
+<span id="cb649-13"><a href="sec-filter-methods.html#cb649-13" tabindex="-1"></a></span>
+<span id="cb649-14"><a href="sec-filter-methods.html#cb649-14" tabindex="-1"></a><span class="co"># Function to manually compute AIC</span></span>
+<span id="cb649-15"><a href="sec-filter-methods.html#cb649-15" tabindex="-1"></a>calculate_aic <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
+<span id="cb649-16"><a href="sec-filter-methods.html#cb649-16" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb649-17"><a href="sec-filter-methods.html#cb649-17" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
+<span id="cb649-18"><a href="sec-filter-methods.html#cb649-18" tabindex="-1"></a>  aic <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n) <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> p</span>
+<span id="cb649-19"><a href="sec-filter-methods.html#cb649-19" tabindex="-1"></a>  <span class="fu">return</span>(aic)</span>
+<span id="cb649-20"><a href="sec-filter-methods.html#cb649-20" tabindex="-1"></a>}</span>
+<span id="cb649-21"><a href="sec-filter-methods.html#cb649-21" tabindex="-1"></a></span>
+<span id="cb649-22"><a href="sec-filter-methods.html#cb649-22" tabindex="-1"></a><span class="co"># Calculate AIC for each model</span></span>
+<span id="cb649-23"><a href="sec-filter-methods.html#cb649-23" tabindex="-1"></a>aic_1 <span class="ot">&lt;-</span> <span class="fu">calculate_aic</span>(model_1, n)</span>
+<span id="cb649-24"><a href="sec-filter-methods.html#cb649-24" tabindex="-1"></a>aic_2 <span class="ot">&lt;-</span> <span class="fu">calculate_aic</span>(model_2, n)</span>
+<span id="cb649-25"><a href="sec-filter-methods.html#cb649-25" tabindex="-1"></a>aic_3 <span class="ot">&lt;-</span> <span class="fu">calculate_aic</span>(model_3, n)</span>
+<span id="cb649-26"><a href="sec-filter-methods.html#cb649-26" tabindex="-1"></a></span>
+<span id="cb649-27"><a href="sec-filter-methods.html#cb649-27" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb649-28"><a href="sec-filter-methods.html#cb649-28" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;AIC values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb649-29"><a href="sec-filter-methods.html#cb649-29" tabindex="-1"></a><span class="co">#&gt; AIC values:</span></span>
+<span id="cb649-30"><a href="sec-filter-methods.html#cb649-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(aic_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb649-31"><a href="sec-filter-methods.html#cb649-31" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 207.17</span></span>
+<span id="cb649-32"><a href="sec-filter-methods.html#cb649-32" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(aic_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb649-33"><a href="sec-filter-methods.html#cb649-33" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 150.87</span></span>
+<span id="cb649-34"><a href="sec-filter-methods.html#cb649-34" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(aic_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb649-35"><a href="sec-filter-methods.html#cb649-35" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 152.59</span></span></code></pre></div>
 <p>Interpretation</p>
 <ul>
 <li><p>Compare the AIC values across models:</p>
@@ -2096,28 +2096,28 @@ BIC = n \ln\left(\frac{SSE_p}{n}\right) + p \ln(n)
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb645"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb645-1"><a href="sec-filter-methods.html#cb645-1" tabindex="-1"></a><span class="co"># Function to manually compute BIC</span></span>
-<span id="cb645-2"><a href="sec-filter-methods.html#cb645-2" tabindex="-1"></a>calculate_bic <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
-<span id="cb645-3"><a href="sec-filter-methods.html#cb645-3" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb645-4"><a href="sec-filter-methods.html#cb645-4" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
-<span id="cb645-5"><a href="sec-filter-methods.html#cb645-5" tabindex="-1"></a>  bic <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n) <span class="sc">+</span> p <span class="sc">*</span> <span class="fu">log</span>(n)</span>
-<span id="cb645-6"><a href="sec-filter-methods.html#cb645-6" tabindex="-1"></a>  <span class="fu">return</span>(bic)</span>
-<span id="cb645-7"><a href="sec-filter-methods.html#cb645-7" tabindex="-1"></a>}</span>
-<span id="cb645-8"><a href="sec-filter-methods.html#cb645-8" tabindex="-1"></a></span>
-<span id="cb645-9"><a href="sec-filter-methods.html#cb645-9" tabindex="-1"></a><span class="co"># Calculate BIC for each model</span></span>
-<span id="cb645-10"><a href="sec-filter-methods.html#cb645-10" tabindex="-1"></a>bic_1 <span class="ot">&lt;-</span> <span class="fu">calculate_bic</span>(model_1, n)</span>
-<span id="cb645-11"><a href="sec-filter-methods.html#cb645-11" tabindex="-1"></a>bic_2 <span class="ot">&lt;-</span> <span class="fu">calculate_bic</span>(model_2, n)</span>
-<span id="cb645-12"><a href="sec-filter-methods.html#cb645-12" tabindex="-1"></a>bic_3 <span class="ot">&lt;-</span> <span class="fu">calculate_bic</span>(model_3, n)</span>
-<span id="cb645-13"><a href="sec-filter-methods.html#cb645-13" tabindex="-1"></a></span>
-<span id="cb645-14"><a href="sec-filter-methods.html#cb645-14" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb645-15"><a href="sec-filter-methods.html#cb645-15" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;BIC values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb645-16"><a href="sec-filter-methods.html#cb645-16" tabindex="-1"></a><span class="co">#&gt; BIC values:</span></span>
-<span id="cb645-17"><a href="sec-filter-methods.html#cb645-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(bic_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb645-18"><a href="sec-filter-methods.html#cb645-18" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 212.38</span></span>
-<span id="cb645-19"><a href="sec-filter-methods.html#cb645-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(bic_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb645-20"><a href="sec-filter-methods.html#cb645-20" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 158.68</span></span>
-<span id="cb645-21"><a href="sec-filter-methods.html#cb645-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(bic_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb645-22"><a href="sec-filter-methods.html#cb645-22" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 163.01</span></span></code></pre></div>
+<div class="sourceCode" id="cb650"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb650-1"><a href="sec-filter-methods.html#cb650-1" tabindex="-1"></a><span class="co"># Function to manually compute BIC</span></span>
+<span id="cb650-2"><a href="sec-filter-methods.html#cb650-2" tabindex="-1"></a>calculate_bic <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
+<span id="cb650-3"><a href="sec-filter-methods.html#cb650-3" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb650-4"><a href="sec-filter-methods.html#cb650-4" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
+<span id="cb650-5"><a href="sec-filter-methods.html#cb650-5" tabindex="-1"></a>  bic <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n) <span class="sc">+</span> p <span class="sc">*</span> <span class="fu">log</span>(n)</span>
+<span id="cb650-6"><a href="sec-filter-methods.html#cb650-6" tabindex="-1"></a>  <span class="fu">return</span>(bic)</span>
+<span id="cb650-7"><a href="sec-filter-methods.html#cb650-7" tabindex="-1"></a>}</span>
+<span id="cb650-8"><a href="sec-filter-methods.html#cb650-8" tabindex="-1"></a></span>
+<span id="cb650-9"><a href="sec-filter-methods.html#cb650-9" tabindex="-1"></a><span class="co"># Calculate BIC for each model</span></span>
+<span id="cb650-10"><a href="sec-filter-methods.html#cb650-10" tabindex="-1"></a>bic_1 <span class="ot">&lt;-</span> <span class="fu">calculate_bic</span>(model_1, n)</span>
+<span id="cb650-11"><a href="sec-filter-methods.html#cb650-11" tabindex="-1"></a>bic_2 <span class="ot">&lt;-</span> <span class="fu">calculate_bic</span>(model_2, n)</span>
+<span id="cb650-12"><a href="sec-filter-methods.html#cb650-12" tabindex="-1"></a>bic_3 <span class="ot">&lt;-</span> <span class="fu">calculate_bic</span>(model_3, n)</span>
+<span id="cb650-13"><a href="sec-filter-methods.html#cb650-13" tabindex="-1"></a></span>
+<span id="cb650-14"><a href="sec-filter-methods.html#cb650-14" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb650-15"><a href="sec-filter-methods.html#cb650-15" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;BIC values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb650-16"><a href="sec-filter-methods.html#cb650-16" tabindex="-1"></a><span class="co">#&gt; BIC values:</span></span>
+<span id="cb650-17"><a href="sec-filter-methods.html#cb650-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(bic_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb650-18"><a href="sec-filter-methods.html#cb650-18" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 212.38</span></span>
+<span id="cb650-19"><a href="sec-filter-methods.html#cb650-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(bic_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb650-20"><a href="sec-filter-methods.html#cb650-20" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 158.68</span></span>
+<span id="cb650-21"><a href="sec-filter-methods.html#cb650-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(bic_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb650-22"><a href="sec-filter-methods.html#cb650-22" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 163.01</span></span></code></pre></div>
 <p>Interpretation</p>
 <ul>
 <li><p>Compare the BIC values across models:</p>
@@ -2215,43 +2215,43 @@ HQC = n \ln\left(\frac{SSE_p}{n}\right) + 2p \ln(\ln(n))
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb646"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb646-1"><a href="sec-filter-methods.html#cb646-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
-<span id="cb646-2"><a href="sec-filter-methods.html#cb646-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb646-3"><a href="sec-filter-methods.html#cb646-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb646-4"><a href="sec-filter-methods.html#cb646-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb646-5"><a href="sec-filter-methods.html#cb646-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb646-6"><a href="sec-filter-methods.html#cb646-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb646-7"><a href="sec-filter-methods.html#cb646-7" tabindex="-1"></a>x4 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb646-8"><a href="sec-filter-methods.html#cb646-8" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
-<span id="cb646-9"><a href="sec-filter-methods.html#cb646-9" tabindex="-1"></a></span>
-<span id="cb646-10"><a href="sec-filter-methods.html#cb646-10" tabindex="-1"></a><span class="co"># Prepare models</span></span>
-<span id="cb646-11"><a href="sec-filter-methods.html#cb646-11" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3, x4)</span>
-<span id="cb646-12"><a href="sec-filter-methods.html#cb646-12" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> data)</span>
-<span id="cb646-13"><a href="sec-filter-methods.html#cb646-13" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> data)</span>
-<span id="cb646-14"><a href="sec-filter-methods.html#cb646-14" tabindex="-1"></a>model_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data)</span>
-<span id="cb646-15"><a href="sec-filter-methods.html#cb646-15" tabindex="-1"></a></span>
-<span id="cb646-16"><a href="sec-filter-methods.html#cb646-16" tabindex="-1"></a><span class="co"># Function to calculate HQC</span></span>
-<span id="cb646-17"><a href="sec-filter-methods.html#cb646-17" tabindex="-1"></a>calculate_hqc <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
-<span id="cb646-18"><a href="sec-filter-methods.html#cb646-18" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb646-19"><a href="sec-filter-methods.html#cb646-19" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
-<span id="cb646-20"><a href="sec-filter-methods.html#cb646-20" tabindex="-1"></a>  hqc <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n) <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> p <span class="sc">*</span> <span class="fu">log</span>(<span class="fu">log</span>(n))</span>
-<span id="cb646-21"><a href="sec-filter-methods.html#cb646-21" tabindex="-1"></a>  <span class="fu">return</span>(hqc)</span>
-<span id="cb646-22"><a href="sec-filter-methods.html#cb646-22" tabindex="-1"></a>}</span>
-<span id="cb646-23"><a href="sec-filter-methods.html#cb646-23" tabindex="-1"></a></span>
-<span id="cb646-24"><a href="sec-filter-methods.html#cb646-24" tabindex="-1"></a><span class="co"># Calculate HQC for each model</span></span>
-<span id="cb646-25"><a href="sec-filter-methods.html#cb646-25" tabindex="-1"></a>hqc_1 <span class="ot">&lt;-</span> <span class="fu">calculate_hqc</span>(model_1, n)</span>
-<span id="cb646-26"><a href="sec-filter-methods.html#cb646-26" tabindex="-1"></a>hqc_2 <span class="ot">&lt;-</span> <span class="fu">calculate_hqc</span>(model_2, n)</span>
-<span id="cb646-27"><a href="sec-filter-methods.html#cb646-27" tabindex="-1"></a>hqc_3 <span class="ot">&lt;-</span> <span class="fu">calculate_hqc</span>(model_3, n)</span>
-<span id="cb646-28"><a href="sec-filter-methods.html#cb646-28" tabindex="-1"></a></span>
-<span id="cb646-29"><a href="sec-filter-methods.html#cb646-29" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb646-30"><a href="sec-filter-methods.html#cb646-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;HQC values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb646-31"><a href="sec-filter-methods.html#cb646-31" tabindex="-1"></a><span class="co">#&gt; HQC values:</span></span>
-<span id="cb646-32"><a href="sec-filter-methods.html#cb646-32" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(hqc_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb646-33"><a href="sec-filter-methods.html#cb646-33" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 226.86</span></span>
-<span id="cb646-34"><a href="sec-filter-methods.html#cb646-34" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(hqc_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb646-35"><a href="sec-filter-methods.html#cb646-35" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 156.44</span></span>
-<span id="cb646-36"><a href="sec-filter-methods.html#cb646-36" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(hqc_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb646-37"><a href="sec-filter-methods.html#cb646-37" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 141.62</span></span></code></pre></div>
+<div class="sourceCode" id="cb651"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb651-1"><a href="sec-filter-methods.html#cb651-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
+<span id="cb651-2"><a href="sec-filter-methods.html#cb651-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb651-3"><a href="sec-filter-methods.html#cb651-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb651-4"><a href="sec-filter-methods.html#cb651-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb651-5"><a href="sec-filter-methods.html#cb651-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb651-6"><a href="sec-filter-methods.html#cb651-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb651-7"><a href="sec-filter-methods.html#cb651-7" tabindex="-1"></a>x4 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb651-8"><a href="sec-filter-methods.html#cb651-8" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
+<span id="cb651-9"><a href="sec-filter-methods.html#cb651-9" tabindex="-1"></a></span>
+<span id="cb651-10"><a href="sec-filter-methods.html#cb651-10" tabindex="-1"></a><span class="co"># Prepare models</span></span>
+<span id="cb651-11"><a href="sec-filter-methods.html#cb651-11" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3, x4)</span>
+<span id="cb651-12"><a href="sec-filter-methods.html#cb651-12" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> data)</span>
+<span id="cb651-13"><a href="sec-filter-methods.html#cb651-13" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> data)</span>
+<span id="cb651-14"><a href="sec-filter-methods.html#cb651-14" tabindex="-1"></a>model_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data)</span>
+<span id="cb651-15"><a href="sec-filter-methods.html#cb651-15" tabindex="-1"></a></span>
+<span id="cb651-16"><a href="sec-filter-methods.html#cb651-16" tabindex="-1"></a><span class="co"># Function to calculate HQC</span></span>
+<span id="cb651-17"><a href="sec-filter-methods.html#cb651-17" tabindex="-1"></a>calculate_hqc <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
+<span id="cb651-18"><a href="sec-filter-methods.html#cb651-18" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb651-19"><a href="sec-filter-methods.html#cb651-19" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
+<span id="cb651-20"><a href="sec-filter-methods.html#cb651-20" tabindex="-1"></a>  hqc <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n) <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> p <span class="sc">*</span> <span class="fu">log</span>(<span class="fu">log</span>(n))</span>
+<span id="cb651-21"><a href="sec-filter-methods.html#cb651-21" tabindex="-1"></a>  <span class="fu">return</span>(hqc)</span>
+<span id="cb651-22"><a href="sec-filter-methods.html#cb651-22" tabindex="-1"></a>}</span>
+<span id="cb651-23"><a href="sec-filter-methods.html#cb651-23" tabindex="-1"></a></span>
+<span id="cb651-24"><a href="sec-filter-methods.html#cb651-24" tabindex="-1"></a><span class="co"># Calculate HQC for each model</span></span>
+<span id="cb651-25"><a href="sec-filter-methods.html#cb651-25" tabindex="-1"></a>hqc_1 <span class="ot">&lt;-</span> <span class="fu">calculate_hqc</span>(model_1, n)</span>
+<span id="cb651-26"><a href="sec-filter-methods.html#cb651-26" tabindex="-1"></a>hqc_2 <span class="ot">&lt;-</span> <span class="fu">calculate_hqc</span>(model_2, n)</span>
+<span id="cb651-27"><a href="sec-filter-methods.html#cb651-27" tabindex="-1"></a>hqc_3 <span class="ot">&lt;-</span> <span class="fu">calculate_hqc</span>(model_3, n)</span>
+<span id="cb651-28"><a href="sec-filter-methods.html#cb651-28" tabindex="-1"></a></span>
+<span id="cb651-29"><a href="sec-filter-methods.html#cb651-29" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb651-30"><a href="sec-filter-methods.html#cb651-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;HQC values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb651-31"><a href="sec-filter-methods.html#cb651-31" tabindex="-1"></a><span class="co">#&gt; HQC values:</span></span>
+<span id="cb651-32"><a href="sec-filter-methods.html#cb651-32" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(hqc_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb651-33"><a href="sec-filter-methods.html#cb651-33" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 226.86</span></span>
+<span id="cb651-34"><a href="sec-filter-methods.html#cb651-34" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(hqc_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb651-35"><a href="sec-filter-methods.html#cb651-35" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 156.44</span></span>
+<span id="cb651-36"><a href="sec-filter-methods.html#cb651-36" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(hqc_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb651-37"><a href="sec-filter-methods.html#cb651-37" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 141.62</span></span></code></pre></div>
 <p>Interpretation</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Comparing HQC Values</strong>:</p>
@@ -2380,42 +2380,42 @@ BIC = n \ln(SSE_p / n) + p \ln(n)
 <li><p><strong>Signal Processing</strong>: In applications such as compression and coding, MDL directly guides optimal model selection.</p></li>
 </ul>
 <hr />
-<div class="sourceCode" id="cb647"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb647-1"><a href="sec-filter-methods.html#cb647-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
-<span id="cb647-2"><a href="sec-filter-methods.html#cb647-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb647-3"><a href="sec-filter-methods.html#cb647-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb647-4"><a href="sec-filter-methods.html#cb647-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb647-5"><a href="sec-filter-methods.html#cb647-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb647-6"><a href="sec-filter-methods.html#cb647-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb647-7"><a href="sec-filter-methods.html#cb647-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
-<span id="cb647-8"><a href="sec-filter-methods.html#cb647-8" tabindex="-1"></a></span>
-<span id="cb647-9"><a href="sec-filter-methods.html#cb647-9" tabindex="-1"></a><span class="co"># Prepare models</span></span>
-<span id="cb647-10"><a href="sec-filter-methods.html#cb647-10" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
-<span id="cb647-11"><a href="sec-filter-methods.html#cb647-11" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> data)</span>
-<span id="cb647-12"><a href="sec-filter-methods.html#cb647-12" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> data)</span>
-<span id="cb647-13"><a href="sec-filter-methods.html#cb647-13" tabindex="-1"></a>model_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data)</span>
-<span id="cb647-14"><a href="sec-filter-methods.html#cb647-14" tabindex="-1"></a></span>
-<span id="cb647-15"><a href="sec-filter-methods.html#cb647-15" tabindex="-1"></a><span class="co"># Function to calculate MDL</span></span>
-<span id="cb647-16"><a href="sec-filter-methods.html#cb647-16" tabindex="-1"></a>calculate_mdl <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
-<span id="cb647-17"><a href="sec-filter-methods.html#cb647-17" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb647-18"><a href="sec-filter-methods.html#cb647-18" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
-<span id="cb647-19"><a href="sec-filter-methods.html#cb647-19" tabindex="-1"></a>  mdl <span class="ot">&lt;-</span> p <span class="sc">*</span> <span class="fu">log</span>(n) <span class="sc">+</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n)</span>
-<span id="cb647-20"><a href="sec-filter-methods.html#cb647-20" tabindex="-1"></a>  <span class="fu">return</span>(mdl)</span>
-<span id="cb647-21"><a href="sec-filter-methods.html#cb647-21" tabindex="-1"></a>}</span>
-<span id="cb647-22"><a href="sec-filter-methods.html#cb647-22" tabindex="-1"></a></span>
-<span id="cb647-23"><a href="sec-filter-methods.html#cb647-23" tabindex="-1"></a><span class="co"># Calculate MDL for each model</span></span>
-<span id="cb647-24"><a href="sec-filter-methods.html#cb647-24" tabindex="-1"></a>mdl_1 <span class="ot">&lt;-</span> <span class="fu">calculate_mdl</span>(model_1, n)</span>
-<span id="cb647-25"><a href="sec-filter-methods.html#cb647-25" tabindex="-1"></a>mdl_2 <span class="ot">&lt;-</span> <span class="fu">calculate_mdl</span>(model_2, n)</span>
-<span id="cb647-26"><a href="sec-filter-methods.html#cb647-26" tabindex="-1"></a>mdl_3 <span class="ot">&lt;-</span> <span class="fu">calculate_mdl</span>(model_3, n)</span>
-<span id="cb647-27"><a href="sec-filter-methods.html#cb647-27" tabindex="-1"></a></span>
-<span id="cb647-28"><a href="sec-filter-methods.html#cb647-28" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb647-29"><a href="sec-filter-methods.html#cb647-29" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;MDL values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb647-30"><a href="sec-filter-methods.html#cb647-30" tabindex="-1"></a><span class="co">#&gt; MDL values:</span></span>
-<span id="cb647-31"><a href="sec-filter-methods.html#cb647-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(mdl_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb647-32"><a href="sec-filter-methods.html#cb647-32" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 219.87</span></span>
-<span id="cb647-33"><a href="sec-filter-methods.html#cb647-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(mdl_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb647-34"><a href="sec-filter-methods.html#cb647-34" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 173.42</span></span>
-<span id="cb647-35"><a href="sec-filter-methods.html#cb647-35" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(mdl_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb647-36"><a href="sec-filter-methods.html#cb647-36" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 163.01</span></span></code></pre></div>
+<div class="sourceCode" id="cb652"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb652-1"><a href="sec-filter-methods.html#cb652-1" tabindex="-1"></a><span class="co"># Simulated data</span></span>
+<span id="cb652-2"><a href="sec-filter-methods.html#cb652-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb652-3"><a href="sec-filter-methods.html#cb652-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb652-4"><a href="sec-filter-methods.html#cb652-4" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb652-5"><a href="sec-filter-methods.html#cb652-5" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb652-6"><a href="sec-filter-methods.html#cb652-6" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb652-7"><a href="sec-filter-methods.html#cb652-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)</span>
+<span id="cb652-8"><a href="sec-filter-methods.html#cb652-8" tabindex="-1"></a></span>
+<span id="cb652-9"><a href="sec-filter-methods.html#cb652-9" tabindex="-1"></a><span class="co"># Prepare models</span></span>
+<span id="cb652-10"><a href="sec-filter-methods.html#cb652-10" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
+<span id="cb652-11"><a href="sec-filter-methods.html#cb652-11" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> data)</span>
+<span id="cb652-12"><a href="sec-filter-methods.html#cb652-12" tabindex="-1"></a>model_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> data)</span>
+<span id="cb652-13"><a href="sec-filter-methods.html#cb652-13" tabindex="-1"></a>model_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data)</span>
+<span id="cb652-14"><a href="sec-filter-methods.html#cb652-14" tabindex="-1"></a></span>
+<span id="cb652-15"><a href="sec-filter-methods.html#cb652-15" tabindex="-1"></a><span class="co"># Function to calculate MDL</span></span>
+<span id="cb652-16"><a href="sec-filter-methods.html#cb652-16" tabindex="-1"></a>calculate_mdl <span class="ot">&lt;-</span> <span class="cf">function</span>(model, n) {</span>
+<span id="cb652-17"><a href="sec-filter-methods.html#cb652-17" tabindex="-1"></a>  sse <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb652-18"><a href="sec-filter-methods.html#cb652-18" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coefficients</span>(model))</span>
+<span id="cb652-19"><a href="sec-filter-methods.html#cb652-19" tabindex="-1"></a>  mdl <span class="ot">&lt;-</span> p <span class="sc">*</span> <span class="fu">log</span>(n) <span class="sc">+</span> n <span class="sc">*</span> <span class="fu">log</span>(sse <span class="sc">/</span> n)</span>
+<span id="cb652-20"><a href="sec-filter-methods.html#cb652-20" tabindex="-1"></a>  <span class="fu">return</span>(mdl)</span>
+<span id="cb652-21"><a href="sec-filter-methods.html#cb652-21" tabindex="-1"></a>}</span>
+<span id="cb652-22"><a href="sec-filter-methods.html#cb652-22" tabindex="-1"></a></span>
+<span id="cb652-23"><a href="sec-filter-methods.html#cb652-23" tabindex="-1"></a><span class="co"># Calculate MDL for each model</span></span>
+<span id="cb652-24"><a href="sec-filter-methods.html#cb652-24" tabindex="-1"></a>mdl_1 <span class="ot">&lt;-</span> <span class="fu">calculate_mdl</span>(model_1, n)</span>
+<span id="cb652-25"><a href="sec-filter-methods.html#cb652-25" tabindex="-1"></a>mdl_2 <span class="ot">&lt;-</span> <span class="fu">calculate_mdl</span>(model_2, n)</span>
+<span id="cb652-26"><a href="sec-filter-methods.html#cb652-26" tabindex="-1"></a>mdl_3 <span class="ot">&lt;-</span> <span class="fu">calculate_mdl</span>(model_3, n)</span>
+<span id="cb652-27"><a href="sec-filter-methods.html#cb652-27" tabindex="-1"></a></span>
+<span id="cb652-28"><a href="sec-filter-methods.html#cb652-28" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb652-29"><a href="sec-filter-methods.html#cb652-29" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;MDL values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb652-30"><a href="sec-filter-methods.html#cb652-30" tabindex="-1"></a><span class="co">#&gt; MDL values:</span></span>
+<span id="cb652-31"><a href="sec-filter-methods.html#cb652-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(mdl_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb652-32"><a href="sec-filter-methods.html#cb652-32" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 219.87</span></span>
+<span id="cb652-33"><a href="sec-filter-methods.html#cb652-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(mdl_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb652-34"><a href="sec-filter-methods.html#cb652-34" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 173.42</span></span>
+<span id="cb652-35"><a href="sec-filter-methods.html#cb652-35" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(mdl_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb652-36"><a href="sec-filter-methods.html#cb652-36" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 163.01</span></span></code></pre></div>
 <p>Interpretation</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Choosing the Best Model</strong>:</p>
@@ -2472,28 +2472,28 @@ PRESS_p = \sum_{i=1}^{n} (Y_i - \hat{Y}_{i(i)})^2
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb648"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb648-1"><a href="sec-filter-methods.html#cb648-1" tabindex="-1"></a><span class="co"># Function to compute PRESS</span></span>
-<span id="cb648-2"><a href="sec-filter-methods.html#cb648-2" tabindex="-1"></a>calculate_press <span class="ot">&lt;-</span> <span class="cf">function</span>(model) {</span>
-<span id="cb648-3"><a href="sec-filter-methods.html#cb648-3" tabindex="-1"></a>  residuals <span class="ot">&lt;-</span> <span class="fu">residuals</span>(model)</span>
-<span id="cb648-4"><a href="sec-filter-methods.html#cb648-4" tabindex="-1"></a>  h <span class="ot">&lt;-</span> <span class="fu">lm.influence</span>(model)<span class="sc">$</span>hat <span class="co"># leverage values</span></span>
-<span id="cb648-5"><a href="sec-filter-methods.html#cb648-5" tabindex="-1"></a>  press <span class="ot">&lt;-</span> <span class="fu">sum</span>((residuals <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> h))<span class="sc">^</span><span class="dv">2</span>) <span class="co"># PRESS formula using leverage</span></span>
-<span id="cb648-6"><a href="sec-filter-methods.html#cb648-6" tabindex="-1"></a>  <span class="fu">return</span>(press)</span>
-<span id="cb648-7"><a href="sec-filter-methods.html#cb648-7" tabindex="-1"></a>}</span>
-<span id="cb648-8"><a href="sec-filter-methods.html#cb648-8" tabindex="-1"></a></span>
-<span id="cb648-9"><a href="sec-filter-methods.html#cb648-9" tabindex="-1"></a><span class="co"># Calculate PRESS for each model</span></span>
-<span id="cb648-10"><a href="sec-filter-methods.html#cb648-10" tabindex="-1"></a>press_1 <span class="ot">&lt;-</span> <span class="fu">calculate_press</span>(model_1)</span>
-<span id="cb648-11"><a href="sec-filter-methods.html#cb648-11" tabindex="-1"></a>press_2 <span class="ot">&lt;-</span> <span class="fu">calculate_press</span>(model_2)</span>
-<span id="cb648-12"><a href="sec-filter-methods.html#cb648-12" tabindex="-1"></a>press_3 <span class="ot">&lt;-</span> <span class="fu">calculate_press</span>(model_3)</span>
-<span id="cb648-13"><a href="sec-filter-methods.html#cb648-13" tabindex="-1"></a></span>
-<span id="cb648-14"><a href="sec-filter-methods.html#cb648-14" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb648-15"><a href="sec-filter-methods.html#cb648-15" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;PRESS values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb648-16"><a href="sec-filter-methods.html#cb648-16" tabindex="-1"></a><span class="co">#&gt; PRESS values:</span></span>
-<span id="cb648-17"><a href="sec-filter-methods.html#cb648-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(press_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb648-18"><a href="sec-filter-methods.html#cb648-18" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 854.36</span></span>
-<span id="cb648-19"><a href="sec-filter-methods.html#cb648-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(press_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb648-20"><a href="sec-filter-methods.html#cb648-20" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 524.56</span></span>
-<span id="cb648-21"><a href="sec-filter-methods.html#cb648-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(press_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb648-22"><a href="sec-filter-methods.html#cb648-22" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 460</span></span></code></pre></div>
+<div class="sourceCode" id="cb653"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb653-1"><a href="sec-filter-methods.html#cb653-1" tabindex="-1"></a><span class="co"># Function to compute PRESS</span></span>
+<span id="cb653-2"><a href="sec-filter-methods.html#cb653-2" tabindex="-1"></a>calculate_press <span class="ot">&lt;-</span> <span class="cf">function</span>(model) {</span>
+<span id="cb653-3"><a href="sec-filter-methods.html#cb653-3" tabindex="-1"></a>  residuals <span class="ot">&lt;-</span> <span class="fu">residuals</span>(model)</span>
+<span id="cb653-4"><a href="sec-filter-methods.html#cb653-4" tabindex="-1"></a>  h <span class="ot">&lt;-</span> <span class="fu">lm.influence</span>(model)<span class="sc">$</span>hat <span class="co"># leverage values</span></span>
+<span id="cb653-5"><a href="sec-filter-methods.html#cb653-5" tabindex="-1"></a>  press <span class="ot">&lt;-</span> <span class="fu">sum</span>((residuals <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> h))<span class="sc">^</span><span class="dv">2</span>) <span class="co"># PRESS formula using leverage</span></span>
+<span id="cb653-6"><a href="sec-filter-methods.html#cb653-6" tabindex="-1"></a>  <span class="fu">return</span>(press)</span>
+<span id="cb653-7"><a href="sec-filter-methods.html#cb653-7" tabindex="-1"></a>}</span>
+<span id="cb653-8"><a href="sec-filter-methods.html#cb653-8" tabindex="-1"></a></span>
+<span id="cb653-9"><a href="sec-filter-methods.html#cb653-9" tabindex="-1"></a><span class="co"># Calculate PRESS for each model</span></span>
+<span id="cb653-10"><a href="sec-filter-methods.html#cb653-10" tabindex="-1"></a>press_1 <span class="ot">&lt;-</span> <span class="fu">calculate_press</span>(model_1)</span>
+<span id="cb653-11"><a href="sec-filter-methods.html#cb653-11" tabindex="-1"></a>press_2 <span class="ot">&lt;-</span> <span class="fu">calculate_press</span>(model_2)</span>
+<span id="cb653-12"><a href="sec-filter-methods.html#cb653-12" tabindex="-1"></a>press_3 <span class="ot">&lt;-</span> <span class="fu">calculate_press</span>(model_3)</span>
+<span id="cb653-13"><a href="sec-filter-methods.html#cb653-13" tabindex="-1"></a></span>
+<span id="cb653-14"><a href="sec-filter-methods.html#cb653-14" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb653-15"><a href="sec-filter-methods.html#cb653-15" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;PRESS values:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb653-16"><a href="sec-filter-methods.html#cb653-16" tabindex="-1"></a><span class="co">#&gt; PRESS values:</span></span>
+<span id="cb653-17"><a href="sec-filter-methods.html#cb653-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 1 (y ~ x1):&quot;</span>, <span class="fu">round</span>(press_1, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb653-18"><a href="sec-filter-methods.html#cb653-18" tabindex="-1"></a><span class="co">#&gt; Model 1 (y ~ x1): 854.36</span></span>
+<span id="cb653-19"><a href="sec-filter-methods.html#cb653-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 2 (y ~ x1 + x2):&quot;</span>, <span class="fu">round</span>(press_2, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb653-20"><a href="sec-filter-methods.html#cb653-20" tabindex="-1"></a><span class="co">#&gt; Model 2 (y ~ x1 + x2): 524.56</span></span>
+<span id="cb653-21"><a href="sec-filter-methods.html#cb653-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Model 3 (y ~ x1 + x2 + x3):&quot;</span>, <span class="fu">round</span>(press_3, <span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb653-22"><a href="sec-filter-methods.html#cb653-22" tabindex="-1"></a><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 460</span></span></code></pre></div>
 <p>Interpretation</p>
 <ul>
 <li><p>Compare the PRESS values across models:</p>
@@ -2586,17 +2586,17 @@ IG = H(Y) - H(Y | X)
 <li><p><span class="math inline">\(H(Y | X)\)</span> = Conditional entropy of target given predictor</p></li>
 </ul>
 <p>A higher IG indicates a more informative variable.</p>
-<div class="sourceCode" id="cb649"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb649-1"><a href="sec-filter-methods.html#cb649-1" tabindex="-1"></a><span class="co"># Load Library</span></span>
-<span id="cb649-2"><a href="sec-filter-methods.html#cb649-2" tabindex="-1"></a><span class="fu">library</span>(FSelector)</span>
-<span id="cb649-3"><a href="sec-filter-methods.html#cb649-3" tabindex="-1"></a></span>
-<span id="cb649-4"><a href="sec-filter-methods.html#cb649-4" tabindex="-1"></a><span class="co"># Example: Computing Information Gain</span></span>
-<span id="cb649-5"><a href="sec-filter-methods.html#cb649-5" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
-<span id="cb649-6"><a href="sec-filter-methods.html#cb649-6" tabindex="-1"></a><span class="fu">information.gain</span>(Species <span class="sc">~</span> ., iris)</span>
-<span id="cb649-7"><a href="sec-filter-methods.html#cb649-7" tabindex="-1"></a><span class="co">#&gt;              attr_importance</span></span>
-<span id="cb649-8"><a href="sec-filter-methods.html#cb649-8" tabindex="-1"></a><span class="co">#&gt; Sepal.Length       0.4521286</span></span>
-<span id="cb649-9"><a href="sec-filter-methods.html#cb649-9" tabindex="-1"></a><span class="co">#&gt; Sepal.Width        0.2672750</span></span>
-<span id="cb649-10"><a href="sec-filter-methods.html#cb649-10" tabindex="-1"></a><span class="co">#&gt; Petal.Length       0.9402853</span></span>
-<span id="cb649-11"><a href="sec-filter-methods.html#cb649-11" tabindex="-1"></a><span class="co">#&gt; Petal.Width        0.9554360</span></span></code></pre></div>
+<div class="sourceCode" id="cb654"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb654-1"><a href="sec-filter-methods.html#cb654-1" tabindex="-1"></a><span class="co"># Load Library</span></span>
+<span id="cb654-2"><a href="sec-filter-methods.html#cb654-2" tabindex="-1"></a><span class="fu">library</span>(FSelector)</span>
+<span id="cb654-3"><a href="sec-filter-methods.html#cb654-3" tabindex="-1"></a></span>
+<span id="cb654-4"><a href="sec-filter-methods.html#cb654-4" tabindex="-1"></a><span class="co"># Example: Computing Information Gain</span></span>
+<span id="cb654-5"><a href="sec-filter-methods.html#cb654-5" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
+<span id="cb654-6"><a href="sec-filter-methods.html#cb654-6" tabindex="-1"></a><span class="fu">information.gain</span>(Species <span class="sc">~</span> ., iris)</span>
+<span id="cb654-7"><a href="sec-filter-methods.html#cb654-7" tabindex="-1"></a><span class="co">#&gt;              attr_importance</span></span>
+<span id="cb654-8"><a href="sec-filter-methods.html#cb654-8" tabindex="-1"></a><span class="co">#&gt; Sepal.Length       0.4521286</span></span>
+<span id="cb654-9"><a href="sec-filter-methods.html#cb654-9" tabindex="-1"></a><span class="co">#&gt; Sepal.Width        0.2672750</span></span>
+<span id="cb654-10"><a href="sec-filter-methods.html#cb654-10" tabindex="-1"></a><span class="co">#&gt; Petal.Length       0.9402853</span></span>
+<span id="cb654-11"><a href="sec-filter-methods.html#cb654-11" tabindex="-1"></a><span class="co">#&gt; Petal.Width        0.9554360</span></span></code></pre></div>
 </div>
 <div id="mutual-information" class="section level5 hasAnchor" number="15.1.2.2.2">
 <h5><span class="header-section-number">15.1.2.2.2</span> Mutual Information<a href="sec-filter-methods.html#mutual-information" class="anchor-section" aria-label="Anchor link to header"></a></h5>
@@ -2612,16 +2612,16 @@ MI(X, Y) = \sum_{x,y} P(x, y) \log \frac{P(x, y)}{P(x) P(y)}
 <li><p><span class="math inline">\(P(x,y)\)</span> = Joint probability distribution of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</p></li>
 <li><p><span class="math inline">\(P(x)\)</span>, <span class="math inline">\(P(y)\)</span> = Marginal probability distributions.</p></li>
 </ul>
-<div class="sourceCode" id="cb650"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb650-1"><a href="sec-filter-methods.html#cb650-1" tabindex="-1"></a><span class="co"># Load Library</span></span>
-<span id="cb650-2"><a href="sec-filter-methods.html#cb650-2" tabindex="-1"></a><span class="fu">library</span>(infotheo)</span>
-<span id="cb650-3"><a href="sec-filter-methods.html#cb650-3" tabindex="-1"></a></span>
-<span id="cb650-4"><a href="sec-filter-methods.html#cb650-4" tabindex="-1"></a><span class="co"># Compute Mutual Information Between Two Features</span></span>
-<span id="cb650-5"><a href="sec-filter-methods.html#cb650-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb650-6"><a href="sec-filter-methods.html#cb650-6" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">100</span>, <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
-<span id="cb650-7"><a href="sec-filter-methods.html#cb650-7" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">100</span>, <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
-<span id="cb650-8"><a href="sec-filter-methods.html#cb650-8" tabindex="-1"></a></span>
-<span id="cb650-9"><a href="sec-filter-methods.html#cb650-9" tabindex="-1"></a><span class="fu">mutinformation</span>(X, Y)</span>
-<span id="cb650-10"><a href="sec-filter-methods.html#cb650-10" tabindex="-1"></a><span class="co">#&gt; [1] 0.06852247</span></span></code></pre></div>
+<div class="sourceCode" id="cb655"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb655-1"><a href="sec-filter-methods.html#cb655-1" tabindex="-1"></a><span class="co"># Load Library</span></span>
+<span id="cb655-2"><a href="sec-filter-methods.html#cb655-2" tabindex="-1"></a><span class="fu">library</span>(infotheo)</span>
+<span id="cb655-3"><a href="sec-filter-methods.html#cb655-3" tabindex="-1"></a></span>
+<span id="cb655-4"><a href="sec-filter-methods.html#cb655-4" tabindex="-1"></a><span class="co"># Compute Mutual Information Between Two Features</span></span>
+<span id="cb655-5"><a href="sec-filter-methods.html#cb655-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb655-6"><a href="sec-filter-methods.html#cb655-6" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">100</span>, <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
+<span id="cb655-7"><a href="sec-filter-methods.html#cb655-7" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">100</span>, <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
+<span id="cb655-8"><a href="sec-filter-methods.html#cb655-8" tabindex="-1"></a></span>
+<span id="cb655-9"><a href="sec-filter-methods.html#cb655-9" tabindex="-1"></a><span class="fu">mutinformation</span>(X, Y)</span>
+<span id="cb655-10"><a href="sec-filter-methods.html#cb655-10" tabindex="-1"></a><span class="co">#&gt; [1] 0.06852247</span></span></code></pre></div>
 <ul>
 <li><p>Since <code>X</code> and <code>Y</code> are independently sampled, we expect them to have no mutual dependence.</p></li>
 <li><p>The MI value should be close to 0, indicating that knowing <code>X</code> provides almost no information about <code>Y</code>, and vice versa.</p></li>
@@ -2736,32 +2736,32 @@ Var(X) = \frac{1}{n} \sum_{i=1}^{n} (X_i - \bar{X})^2
 <div id="identifying-low-variance-features" class="section level4 hasAnchor" number="15.1.4.1">
 <h4><span class="header-section-number">15.1.4.1</span> Identifying Low-Variance Features<a href="sec-filter-methods.html#identifying-low-variance-features" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>A <strong>variance threshold</strong> is set to remove features below a certain variance level. The default threshold is <strong>0</strong>, which removes features with a single constant value across all samples.</p>
-<div class="sourceCode" id="cb651"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb651-1"><a href="sec-filter-methods.html#cb651-1" tabindex="-1"></a><span class="co"># Load necessary library</span></span>
-<span id="cb651-2"><a href="sec-filter-methods.html#cb651-2" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
-<span id="cb651-3"><a href="sec-filter-methods.html#cb651-3" tabindex="-1"></a></span>
-<span id="cb651-4"><a href="sec-filter-methods.html#cb651-4" tabindex="-1"></a><span class="co"># Generate synthetic dataset</span></span>
-<span id="cb651-5"><a href="sec-filter-methods.html#cb651-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb651-6"><a href="sec-filter-methods.html#cb651-6" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb651-7"><a href="sec-filter-methods.html#cb651-7" tabindex="-1"></a>  <span class="at">Feature1 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">50</span>)), <span class="co"># Low variance</span></span>
-<span id="cb651-8"><a href="sec-filter-methods.html#cb651-8" tabindex="-1"></a>  <span class="at">Feature2 =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">mean=</span><span class="dv">10</span>, <span class="at">sd=</span><span class="dv">1</span>), <span class="co"># High variance</span></span>
-<span id="cb651-9"><a href="sec-filter-methods.html#cb651-9" tabindex="-1"></a>  <span class="at">Feature3 =</span> <span class="fu">runif</span>(<span class="dv">100</span>, <span class="at">min=</span><span class="dv">5</span>, <span class="at">max=</span><span class="dv">15</span>), <span class="co"># Moderate variance</span></span>
-<span id="cb651-10"><a href="sec-filter-methods.html#cb651-10" tabindex="-1"></a>  <span class="at">Feature4 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">3</span>, <span class="dv">95</span>), <span class="fu">rep</span>(<span class="dv">4</span>, <span class="dv">5</span>))  <span class="co"># Almost constant</span></span>
-<span id="cb651-11"><a href="sec-filter-methods.html#cb651-11" tabindex="-1"></a>)</span>
-<span id="cb651-12"><a href="sec-filter-methods.html#cb651-12" tabindex="-1"></a></span>
-<span id="cb651-13"><a href="sec-filter-methods.html#cb651-13" tabindex="-1"></a></span>
-<span id="cb651-14"><a href="sec-filter-methods.html#cb651-14" tabindex="-1"></a><span class="co"># Compute Variance of Features</span></span>
-<span id="cb651-15"><a href="sec-filter-methods.html#cb651-15" tabindex="-1"></a>variances <span class="ot">&lt;-</span> <span class="fu">apply</span>(data, <span class="dv">2</span>, stats<span class="sc">::</span>var)</span>
-<span id="cb651-16"><a href="sec-filter-methods.html#cb651-16" tabindex="-1"></a><span class="fu">print</span>(variances)</span>
-<span id="cb651-17"><a href="sec-filter-methods.html#cb651-17" tabindex="-1"></a><span class="co">#&gt;  Feature1  Feature2  Feature3  Feature4 </span></span>
-<span id="cb651-18"><a href="sec-filter-methods.html#cb651-18" tabindex="-1"></a><span class="co">#&gt; 0.2525253 0.8332328 8.6631461 0.0479798</span></span>
-<span id="cb651-19"><a href="sec-filter-methods.html#cb651-19" tabindex="-1"></a></span>
-<span id="cb651-20"><a href="sec-filter-methods.html#cb651-20" tabindex="-1"></a><span class="co"># Set threshold and remove low-variance features</span></span>
-<span id="cb651-21"><a href="sec-filter-methods.html#cb651-21" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
-<span id="cb651-22"><a href="sec-filter-methods.html#cb651-22" tabindex="-1"></a>selected_features <span class="ot">&lt;-</span> <span class="fu">names</span>(variances[variances <span class="sc">&gt;</span> threshold])</span>
-<span id="cb651-23"><a href="sec-filter-methods.html#cb651-23" tabindex="-1"></a>filtered_data <span class="ot">&lt;-</span> data[, selected_features]</span>
-<span id="cb651-24"><a href="sec-filter-methods.html#cb651-24" tabindex="-1"></a></span>
-<span id="cb651-25"><a href="sec-filter-methods.html#cb651-25" tabindex="-1"></a><span class="fu">print</span>(selected_features)  <span class="co"># Remaining features after filtering</span></span>
-<span id="cb651-26"><a href="sec-filter-methods.html#cb651-26" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Feature1&quot; &quot;Feature2&quot; &quot;Feature3&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb656"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb656-1"><a href="sec-filter-methods.html#cb656-1" tabindex="-1"></a><span class="co"># Load necessary library</span></span>
+<span id="cb656-2"><a href="sec-filter-methods.html#cb656-2" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb656-3"><a href="sec-filter-methods.html#cb656-3" tabindex="-1"></a></span>
+<span id="cb656-4"><a href="sec-filter-methods.html#cb656-4" tabindex="-1"></a><span class="co"># Generate synthetic dataset</span></span>
+<span id="cb656-5"><a href="sec-filter-methods.html#cb656-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb656-6"><a href="sec-filter-methods.html#cb656-6" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb656-7"><a href="sec-filter-methods.html#cb656-7" tabindex="-1"></a>  <span class="at">Feature1 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">50</span>)), <span class="co"># Low variance</span></span>
+<span id="cb656-8"><a href="sec-filter-methods.html#cb656-8" tabindex="-1"></a>  <span class="at">Feature2 =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">mean=</span><span class="dv">10</span>, <span class="at">sd=</span><span class="dv">1</span>), <span class="co"># High variance</span></span>
+<span id="cb656-9"><a href="sec-filter-methods.html#cb656-9" tabindex="-1"></a>  <span class="at">Feature3 =</span> <span class="fu">runif</span>(<span class="dv">100</span>, <span class="at">min=</span><span class="dv">5</span>, <span class="at">max=</span><span class="dv">15</span>), <span class="co"># Moderate variance</span></span>
+<span id="cb656-10"><a href="sec-filter-methods.html#cb656-10" tabindex="-1"></a>  <span class="at">Feature4 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">3</span>, <span class="dv">95</span>), <span class="fu">rep</span>(<span class="dv">4</span>, <span class="dv">5</span>))  <span class="co"># Almost constant</span></span>
+<span id="cb656-11"><a href="sec-filter-methods.html#cb656-11" tabindex="-1"></a>)</span>
+<span id="cb656-12"><a href="sec-filter-methods.html#cb656-12" tabindex="-1"></a></span>
+<span id="cb656-13"><a href="sec-filter-methods.html#cb656-13" tabindex="-1"></a></span>
+<span id="cb656-14"><a href="sec-filter-methods.html#cb656-14" tabindex="-1"></a><span class="co"># Compute Variance of Features</span></span>
+<span id="cb656-15"><a href="sec-filter-methods.html#cb656-15" tabindex="-1"></a>variances <span class="ot">&lt;-</span> <span class="fu">apply</span>(data, <span class="dv">2</span>, stats<span class="sc">::</span>var)</span>
+<span id="cb656-16"><a href="sec-filter-methods.html#cb656-16" tabindex="-1"></a><span class="fu">print</span>(variances)</span>
+<span id="cb656-17"><a href="sec-filter-methods.html#cb656-17" tabindex="-1"></a><span class="co">#&gt;  Feature1  Feature2  Feature3  Feature4 </span></span>
+<span id="cb656-18"><a href="sec-filter-methods.html#cb656-18" tabindex="-1"></a><span class="co">#&gt; 0.2525253 0.8332328 8.6631461 0.0479798</span></span>
+<span id="cb656-19"><a href="sec-filter-methods.html#cb656-19" tabindex="-1"></a></span>
+<span id="cb656-20"><a href="sec-filter-methods.html#cb656-20" tabindex="-1"></a><span class="co"># Set threshold and remove low-variance features</span></span>
+<span id="cb656-21"><a href="sec-filter-methods.html#cb656-21" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb656-22"><a href="sec-filter-methods.html#cb656-22" tabindex="-1"></a>selected_features <span class="ot">&lt;-</span> <span class="fu">names</span>(variances[variances <span class="sc">&gt;</span> threshold])</span>
+<span id="cb656-23"><a href="sec-filter-methods.html#cb656-23" tabindex="-1"></a>filtered_data <span class="ot">&lt;-</span> data[, selected_features]</span>
+<span id="cb656-24"><a href="sec-filter-methods.html#cb656-24" tabindex="-1"></a></span>
+<span id="cb656-25"><a href="sec-filter-methods.html#cb656-25" tabindex="-1"></a><span class="fu">print</span>(selected_features)  <span class="co"># Remaining features after filtering</span></span>
+<span id="cb656-26"><a href="sec-filter-methods.html#cb656-26" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Feature1&quot; &quot;Feature2&quot; &quot;Feature3&quot;</span></span></code></pre></div>
 </div>
 <div id="handling-binary-categorical-features" class="section level4 hasAnchor" number="15.1.4.2">
 <h4><span class="header-section-number">15.1.4.2</span> Handling Binary Categorical Features<a href="sec-filter-methods.html#handling-binary-categorical-features" class="anchor-section" aria-label="Anchor link to header"></a></h4>
@@ -2772,23 +2772,23 @@ Var(X) = p(1 - p)
 <li><p>If <span class="math inline">\(p \approx 0\)</span> or <span class="math inline">\(p \approx 1\)</span>, variance is <strong>low</strong>, meaning the feature is almost constant.</p></li>
 <li><p>If <span class="math inline">\(p = 0.5\)</span>, variance is <strong>highest</strong>, meaning equal distribution of 0s and 1s.</p></li>
 </ul>
-<div class="sourceCode" id="cb652"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb652-1"><a href="sec-filter-methods.html#cb652-1" tabindex="-1"></a><span class="co"># Binary feature dataset</span></span>
-<span id="cb652-2"><a href="sec-filter-methods.html#cb652-2" tabindex="-1"></a>binary_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb652-3"><a href="sec-filter-methods.html#cb652-3" tabindex="-1"></a>  <span class="at">Feature_A =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">98</span>), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">2</span>)), <span class="co"># Low variance (almost all 0s)</span></span>
-<span id="cb652-4"><a href="sec-filter-methods.html#cb652-4" tabindex="-1"></a>  <span class="at">Feature_B =</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">100</span>, <span class="at">replace=</span><span class="cn">TRUE</span>) <span class="co"># Higher variance</span></span>
-<span id="cb652-5"><a href="sec-filter-methods.html#cb652-5" tabindex="-1"></a>)</span>
-<span id="cb652-6"><a href="sec-filter-methods.html#cb652-6" tabindex="-1"></a></span>
-<span id="cb652-7"><a href="sec-filter-methods.html#cb652-7" tabindex="-1"></a><span class="co"># Compute variance for binary features</span></span>
-<span id="cb652-8"><a href="sec-filter-methods.html#cb652-8" tabindex="-1"></a>binary_variances <span class="ot">&lt;-</span> <span class="fu">apply</span>(binary_data, <span class="dv">2</span>, stats<span class="sc">::</span>var)</span>
-<span id="cb652-9"><a href="sec-filter-methods.html#cb652-9" tabindex="-1"></a><span class="fu">print</span>(binary_variances)</span>
-<span id="cb652-10"><a href="sec-filter-methods.html#cb652-10" tabindex="-1"></a><span class="co">#&gt;  Feature_A  Feature_B </span></span>
-<span id="cb652-11"><a href="sec-filter-methods.html#cb652-11" tabindex="-1"></a><span class="co">#&gt; 0.01979798 0.24757576</span></span>
-<span id="cb652-12"><a href="sec-filter-methods.html#cb652-12" tabindex="-1"></a></span>
-<span id="cb652-13"><a href="sec-filter-methods.html#cb652-13" tabindex="-1"></a><span class="co"># Apply threshold (removing features with variance &lt; 0.01)</span></span>
-<span id="cb652-14"><a href="sec-filter-methods.html#cb652-14" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
-<span id="cb652-15"><a href="sec-filter-methods.html#cb652-15" tabindex="-1"></a>filtered_binary <span class="ot">&lt;-</span> binary_data[, binary_variances <span class="sc">&gt;</span> threshold]</span>
-<span id="cb652-16"><a href="sec-filter-methods.html#cb652-16" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">colnames</span>(filtered_binary))</span>
-<span id="cb652-17"><a href="sec-filter-methods.html#cb652-17" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Feature_A&quot; &quot;Feature_B&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb657"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb657-1"><a href="sec-filter-methods.html#cb657-1" tabindex="-1"></a><span class="co"># Binary feature dataset</span></span>
+<span id="cb657-2"><a href="sec-filter-methods.html#cb657-2" tabindex="-1"></a>binary_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb657-3"><a href="sec-filter-methods.html#cb657-3" tabindex="-1"></a>  <span class="at">Feature_A =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">98</span>), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">2</span>)), <span class="co"># Low variance (almost all 0s)</span></span>
+<span id="cb657-4"><a href="sec-filter-methods.html#cb657-4" tabindex="-1"></a>  <span class="at">Feature_B =</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="dv">100</span>, <span class="at">replace=</span><span class="cn">TRUE</span>) <span class="co"># Higher variance</span></span>
+<span id="cb657-5"><a href="sec-filter-methods.html#cb657-5" tabindex="-1"></a>)</span>
+<span id="cb657-6"><a href="sec-filter-methods.html#cb657-6" tabindex="-1"></a></span>
+<span id="cb657-7"><a href="sec-filter-methods.html#cb657-7" tabindex="-1"></a><span class="co"># Compute variance for binary features</span></span>
+<span id="cb657-8"><a href="sec-filter-methods.html#cb657-8" tabindex="-1"></a>binary_variances <span class="ot">&lt;-</span> <span class="fu">apply</span>(binary_data, <span class="dv">2</span>, stats<span class="sc">::</span>var)</span>
+<span id="cb657-9"><a href="sec-filter-methods.html#cb657-9" tabindex="-1"></a><span class="fu">print</span>(binary_variances)</span>
+<span id="cb657-10"><a href="sec-filter-methods.html#cb657-10" tabindex="-1"></a><span class="co">#&gt;  Feature_A  Feature_B </span></span>
+<span id="cb657-11"><a href="sec-filter-methods.html#cb657-11" tabindex="-1"></a><span class="co">#&gt; 0.01979798 0.24757576</span></span>
+<span id="cb657-12"><a href="sec-filter-methods.html#cb657-12" tabindex="-1"></a></span>
+<span id="cb657-13"><a href="sec-filter-methods.html#cb657-13" tabindex="-1"></a><span class="co"># Apply threshold (removing features with variance &lt; 0.01)</span></span>
+<span id="cb657-14"><a href="sec-filter-methods.html#cb657-14" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb657-15"><a href="sec-filter-methods.html#cb657-15" tabindex="-1"></a>filtered_binary <span class="ot">&lt;-</span> binary_data[, binary_variances <span class="sc">&gt;</span> threshold]</span>
+<span id="cb657-16"><a href="sec-filter-methods.html#cb657-16" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">colnames</span>(filtered_binary))</span>
+<span id="cb657-17"><a href="sec-filter-methods.html#cb657-17" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Feature_A&quot; &quot;Feature_B&quot;</span></span></code></pre></div>
 <table>
 <colgroup>
 <col width="25%" />

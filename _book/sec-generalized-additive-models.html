@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10.7 Generalized Additive Models | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10.7 Generalized Additive Models | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1999,180 +1999,180 @@ Y = \beta_0 + f_1(Z) \cdot X + \varepsilon
 \]</span></p></li>
 </ul>
 <hr />
-<div class="sourceCode" id="cb448"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb448-1"><a href="sec-generalized-additive-models.html#cb448-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb448-2"><a href="sec-generalized-additive-models.html#cb448-2" tabindex="-1"></a><span class="fu">library</span>(mgcv)    <span class="co"># For fitting GAMs</span></span>
-<span id="cb448-3"><a href="sec-generalized-additive-models.html#cb448-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb448-4"><a href="sec-generalized-additive-models.html#cb448-4" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
-<span id="cb448-5"><a href="sec-generalized-additive-models.html#cb448-5" tabindex="-1"></a></span>
-<span id="cb448-6"><a href="sec-generalized-additive-models.html#cb448-6" tabindex="-1"></a><span class="co"># Simulate Data</span></span>
-<span id="cb448-7"><a href="sec-generalized-additive-models.html#cb448-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb448-8"><a href="sec-generalized-additive-models.html#cb448-8" tabindex="-1"></a></span>
-<span id="cb448-9"><a href="sec-generalized-additive-models.html#cb448-9" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb448-10"><a href="sec-generalized-additive-models.html#cb448-10" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>)</span>
-<span id="cb448-11"><a href="sec-generalized-additive-models.html#cb448-11" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
-<span id="cb448-12"><a href="sec-generalized-additive-models.html#cb448-12" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">5</span>, <span class="dv">2</span>)</span>
-<span id="cb448-13"><a href="sec-generalized-additive-models.html#cb448-13" tabindex="-1"></a></span>
-<span id="cb448-14"><a href="sec-generalized-additive-models.html#cb448-14" tabindex="-1"></a><span class="co"># True nonlinear functions</span></span>
-<span id="cb448-15"><a href="sec-generalized-additive-models.html#cb448-15" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
-<span id="cb448-16"><a href="sec-generalized-additive-models.html#cb448-16" tabindex="-1"></a>    <span class="fu">sin</span>(x)                 <span class="co"># Nonlinear effect of x1</span></span>
-<span id="cb448-17"><a href="sec-generalized-additive-models.html#cb448-17" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
-<span id="cb448-18"><a href="sec-generalized-additive-models.html#cb448-18" tabindex="-1"></a>    <span class="fu">log</span>(x <span class="sc">+</span> <span class="dv">1</span>)             <span class="co"># Nonlinear effect of x2</span></span>
-<span id="cb448-19"><a href="sec-generalized-additive-models.html#cb448-19" tabindex="-1"></a>f3 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
-<span id="cb448-20"><a href="sec-generalized-additive-models.html#cb448-20" tabindex="-1"></a>    <span class="fl">0.5</span> <span class="sc">*</span> (x <span class="sc">-</span> <span class="dv">5</span>) <span class="sc">^</span> <span class="dv">2</span>        <span class="co"># Quadratic effect for x3</span></span>
-<span id="cb448-21"><a href="sec-generalized-additive-models.html#cb448-21" tabindex="-1"></a></span>
-<span id="cb448-22"><a href="sec-generalized-additive-models.html#cb448-22" tabindex="-1"></a><span class="co"># Generate response variable with noise</span></span>
-<span id="cb448-23"><a href="sec-generalized-additive-models.html#cb448-23" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> <span class="fu">f1</span>(x1) <span class="sc">+</span> <span class="fu">f2</span>(x2) <span class="sc">-</span> <span class="fu">f3</span>(x3) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb448-24"><a href="sec-generalized-additive-models.html#cb448-24" tabindex="-1"></a></span>
-<span id="cb448-25"><a href="sec-generalized-additive-models.html#cb448-25" tabindex="-1"></a><span class="co"># Data frame for analysis</span></span>
-<span id="cb448-26"><a href="sec-generalized-additive-models.html#cb448-26" tabindex="-1"></a>data_gam <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
-<span id="cb448-27"><a href="sec-generalized-additive-models.html#cb448-27" tabindex="-1"></a></span>
-<span id="cb448-28"><a href="sec-generalized-additive-models.html#cb448-28" tabindex="-1"></a><span class="co"># Plotting the true functions with simulated data</span></span>
-<span id="cb448-29"><a href="sec-generalized-additive-models.html#cb448-29" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
-<span id="cb448-30"><a href="sec-generalized-additive-models.html#cb448-30" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_gam, <span class="fu">aes</span>(x1, y)) <span class="sc">+</span> </span>
-<span id="cb448-31"><a href="sec-generalized-additive-models.html#cb448-31" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb448-32"><a href="sec-generalized-additive-models.html#cb448-32" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x1 (sin(x1))&quot;</span>)</span>
-<span id="cb448-33"><a href="sec-generalized-additive-models.html#cb448-33" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
-<span id="cb448-34"><a href="sec-generalized-additive-models.html#cb448-34" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_gam, <span class="fu">aes</span>(x2, y)) <span class="sc">+</span> </span>
-<span id="cb448-35"><a href="sec-generalized-additive-models.html#cb448-35" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb448-36"><a href="sec-generalized-additive-models.html#cb448-36" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x2 (log(x2+1))&quot;</span>)</span>
-<span id="cb448-37"><a href="sec-generalized-additive-models.html#cb448-37" tabindex="-1"></a>p3 <span class="ot">&lt;-</span></span>
-<span id="cb448-38"><a href="sec-generalized-additive-models.html#cb448-38" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_gam, <span class="fu">aes</span>(x3, y)) <span class="sc">+</span> </span>
-<span id="cb448-39"><a href="sec-generalized-additive-models.html#cb448-39" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb448-40"><a href="sec-generalized-additive-models.html#cb448-40" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x3 (quadratic)&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb449"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb449-1"><a href="sec-generalized-additive-models.html#cb449-1" tabindex="-1"></a><span class="co"># Display plots side by side</span></span>
-<span id="cb449-2"><a href="sec-generalized-additive-models.html#cb449-2" tabindex="-1"></a><span class="fu">grid.arrange</span>(p1, p2, p3, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb453"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb453-1"><a href="sec-generalized-additive-models.html#cb453-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb453-2"><a href="sec-generalized-additive-models.html#cb453-2" tabindex="-1"></a><span class="fu">library</span>(mgcv)    <span class="co"># For fitting GAMs</span></span>
+<span id="cb453-3"><a href="sec-generalized-additive-models.html#cb453-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb453-4"><a href="sec-generalized-additive-models.html#cb453-4" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb453-5"><a href="sec-generalized-additive-models.html#cb453-5" tabindex="-1"></a></span>
+<span id="cb453-6"><a href="sec-generalized-additive-models.html#cb453-6" tabindex="-1"></a><span class="co"># Simulate Data</span></span>
+<span id="cb453-7"><a href="sec-generalized-additive-models.html#cb453-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb453-8"><a href="sec-generalized-additive-models.html#cb453-8" tabindex="-1"></a></span>
+<span id="cb453-9"><a href="sec-generalized-additive-models.html#cb453-9" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb453-10"><a href="sec-generalized-additive-models.html#cb453-10" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>)</span>
+<span id="cb453-11"><a href="sec-generalized-additive-models.html#cb453-11" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
+<span id="cb453-12"><a href="sec-generalized-additive-models.html#cb453-12" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">5</span>, <span class="dv">2</span>)</span>
+<span id="cb453-13"><a href="sec-generalized-additive-models.html#cb453-13" tabindex="-1"></a></span>
+<span id="cb453-14"><a href="sec-generalized-additive-models.html#cb453-14" tabindex="-1"></a><span class="co"># True nonlinear functions</span></span>
+<span id="cb453-15"><a href="sec-generalized-additive-models.html#cb453-15" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
+<span id="cb453-16"><a href="sec-generalized-additive-models.html#cb453-16" tabindex="-1"></a>    <span class="fu">sin</span>(x)                 <span class="co"># Nonlinear effect of x1</span></span>
+<span id="cb453-17"><a href="sec-generalized-additive-models.html#cb453-17" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
+<span id="cb453-18"><a href="sec-generalized-additive-models.html#cb453-18" tabindex="-1"></a>    <span class="fu">log</span>(x <span class="sc">+</span> <span class="dv">1</span>)             <span class="co"># Nonlinear effect of x2</span></span>
+<span id="cb453-19"><a href="sec-generalized-additive-models.html#cb453-19" tabindex="-1"></a>f3 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
+<span id="cb453-20"><a href="sec-generalized-additive-models.html#cb453-20" tabindex="-1"></a>    <span class="fl">0.5</span> <span class="sc">*</span> (x <span class="sc">-</span> <span class="dv">5</span>) <span class="sc">^</span> <span class="dv">2</span>        <span class="co"># Quadratic effect for x3</span></span>
+<span id="cb453-21"><a href="sec-generalized-additive-models.html#cb453-21" tabindex="-1"></a></span>
+<span id="cb453-22"><a href="sec-generalized-additive-models.html#cb453-22" tabindex="-1"></a><span class="co"># Generate response variable with noise</span></span>
+<span id="cb453-23"><a href="sec-generalized-additive-models.html#cb453-23" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> <span class="fu">f1</span>(x1) <span class="sc">+</span> <span class="fu">f2</span>(x2) <span class="sc">-</span> <span class="fu">f3</span>(x3) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb453-24"><a href="sec-generalized-additive-models.html#cb453-24" tabindex="-1"></a></span>
+<span id="cb453-25"><a href="sec-generalized-additive-models.html#cb453-25" tabindex="-1"></a><span class="co"># Data frame for analysis</span></span>
+<span id="cb453-26"><a href="sec-generalized-additive-models.html#cb453-26" tabindex="-1"></a>data_gam <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
+<span id="cb453-27"><a href="sec-generalized-additive-models.html#cb453-27" tabindex="-1"></a></span>
+<span id="cb453-28"><a href="sec-generalized-additive-models.html#cb453-28" tabindex="-1"></a><span class="co"># Plotting the true functions with simulated data</span></span>
+<span id="cb453-29"><a href="sec-generalized-additive-models.html#cb453-29" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
+<span id="cb453-30"><a href="sec-generalized-additive-models.html#cb453-30" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_gam, <span class="fu">aes</span>(x1, y)) <span class="sc">+</span> </span>
+<span id="cb453-31"><a href="sec-generalized-additive-models.html#cb453-31" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb453-32"><a href="sec-generalized-additive-models.html#cb453-32" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x1 (sin(x1))&quot;</span>)</span>
+<span id="cb453-33"><a href="sec-generalized-additive-models.html#cb453-33" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
+<span id="cb453-34"><a href="sec-generalized-additive-models.html#cb453-34" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_gam, <span class="fu">aes</span>(x2, y)) <span class="sc">+</span> </span>
+<span id="cb453-35"><a href="sec-generalized-additive-models.html#cb453-35" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb453-36"><a href="sec-generalized-additive-models.html#cb453-36" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x2 (log(x2+1))&quot;</span>)</span>
+<span id="cb453-37"><a href="sec-generalized-additive-models.html#cb453-37" tabindex="-1"></a>p3 <span class="ot">&lt;-</span></span>
+<span id="cb453-38"><a href="sec-generalized-additive-models.html#cb453-38" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_gam, <span class="fu">aes</span>(x3, y)) <span class="sc">+</span> </span>
+<span id="cb453-39"><a href="sec-generalized-additive-models.html#cb453-39" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb453-40"><a href="sec-generalized-additive-models.html#cb453-40" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x3 (quadratic)&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb454"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb454-1"><a href="sec-generalized-additive-models.html#cb454-1" tabindex="-1"></a><span class="co"># Display plots side by side</span></span>
+<span id="cb454-2"><a href="sec-generalized-additive-models.html#cb454-2" tabindex="-1"></a><span class="fu">grid.arrange</span>(p1, p2, p3, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-scatter-effect-x"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-scatter-effect-x-1.png" alt="Three-panel scatter plots showing effects of x1, x2, and x3 on y with sine, log, and quadratic patterns respectively" width="100%" />
 <p class="caption">
 Figure 10.15: Scatter Plot Effect of X
 </p>
 </div>
-<div class="sourceCode" id="cb450"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb450-1"><a href="sec-generalized-additive-models.html#cb450-1" tabindex="-1"></a><span class="co"># Fit a GAM using mgcv</span></span>
-<span id="cb450-2"><a href="sec-generalized-additive-models.html#cb450-2" tabindex="-1"></a>gam_model <span class="ot">&lt;-</span></span>
-<span id="cb450-3"><a href="sec-generalized-additive-models.html#cb450-3" tabindex="-1"></a>    <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1) <span class="sc">+</span> <span class="fu">s</span>(x2) <span class="sc">+</span> <span class="fu">s</span>(x3),</span>
-<span id="cb450-4"><a href="sec-generalized-additive-models.html#cb450-4" tabindex="-1"></a>        <span class="at">data =</span> data_gam, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb450-5"><a href="sec-generalized-additive-models.html#cb450-5" tabindex="-1"></a></span>
-<span id="cb450-6"><a href="sec-generalized-additive-models.html#cb450-6" tabindex="-1"></a><span class="co"># Summary of the model</span></span>
-<span id="cb450-7"><a href="sec-generalized-additive-models.html#cb450-7" tabindex="-1"></a><span class="fu">summary</span>(gam_model)</span>
-<span id="cb450-8"><a href="sec-generalized-additive-models.html#cb450-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb450-9"><a href="sec-generalized-additive-models.html#cb450-9" tabindex="-1"></a><span class="co">#&gt; Family: gaussian </span></span>
-<span id="cb450-10"><a href="sec-generalized-additive-models.html#cb450-10" tabindex="-1"></a><span class="co">#&gt; Link function: identity </span></span>
-<span id="cb450-11"><a href="sec-generalized-additive-models.html#cb450-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb450-12"><a href="sec-generalized-additive-models.html#cb450-12" tabindex="-1"></a><span class="co">#&gt; Formula:</span></span>
-<span id="cb450-13"><a href="sec-generalized-additive-models.html#cb450-13" tabindex="-1"></a><span class="co">#&gt; y ~ s(x1) + s(x2) + s(x3)</span></span>
-<span id="cb450-14"><a href="sec-generalized-additive-models.html#cb450-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb450-15"><a href="sec-generalized-additive-models.html#cb450-15" tabindex="-1"></a><span class="co">#&gt; Parametric coefficients:</span></span>
-<span id="cb450-16"><a href="sec-generalized-additive-models.html#cb450-16" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb450-17"><a href="sec-generalized-additive-models.html#cb450-17" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.63937    0.09511   27.75   &lt;2e-16 ***</span></span>
-<span id="cb450-18"><a href="sec-generalized-additive-models.html#cb450-18" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb450-19"><a href="sec-generalized-additive-models.html#cb450-19" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb450-20"><a href="sec-generalized-additive-models.html#cb450-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb450-21"><a href="sec-generalized-additive-models.html#cb450-21" tabindex="-1"></a><span class="co">#&gt; Approximate significance of smooth terms:</span></span>
-<span id="cb450-22"><a href="sec-generalized-additive-models.html#cb450-22" tabindex="-1"></a><span class="co">#&gt;         edf Ref.df       F p-value    </span></span>
-<span id="cb450-23"><a href="sec-generalized-additive-models.html#cb450-23" tabindex="-1"></a><span class="co">#&gt; s(x1) 5.997  7.165   7.966   5e-07 ***</span></span>
-<span id="cb450-24"><a href="sec-generalized-additive-models.html#cb450-24" tabindex="-1"></a><span class="co">#&gt; s(x2) 1.000  1.000  10.249 0.00192 ** </span></span>
-<span id="cb450-25"><a href="sec-generalized-additive-models.html#cb450-25" tabindex="-1"></a><span class="co">#&gt; s(x3) 6.239  7.343 105.551 &lt; 2e-16 ***</span></span>
-<span id="cb450-26"><a href="sec-generalized-additive-models.html#cb450-26" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb450-27"><a href="sec-generalized-additive-models.html#cb450-27" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb450-28"><a href="sec-generalized-additive-models.html#cb450-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb450-29"><a href="sec-generalized-additive-models.html#cb450-29" tabindex="-1"></a><span class="co">#&gt; R-sq.(adj) =   0.91   Deviance explained = 92.2%</span></span>
-<span id="cb450-30"><a href="sec-generalized-additive-models.html#cb450-30" tabindex="-1"></a><span class="co">#&gt; -REML = 155.23  Scale est. = 0.90463   n = 100</span></span></code></pre></div>
-<div class="sourceCode" id="cb451"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb451-1"><a href="sec-generalized-additive-models.html#cb451-1" tabindex="-1"></a><span class="co"># Plot smooth terms</span></span>
-<span id="cb451-2"><a href="sec-generalized-additive-models.html#cb451-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))  <span class="co"># Arrange plots in one row</span></span>
-<span id="cb451-3"><a href="sec-generalized-additive-models.html#cb451-3" tabindex="-1"></a><span class="fu">plot</span>(gam_model, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">seWithMean =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb455"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb455-1"><a href="sec-generalized-additive-models.html#cb455-1" tabindex="-1"></a><span class="co"># Fit a GAM using mgcv</span></span>
+<span id="cb455-2"><a href="sec-generalized-additive-models.html#cb455-2" tabindex="-1"></a>gam_model <span class="ot">&lt;-</span></span>
+<span id="cb455-3"><a href="sec-generalized-additive-models.html#cb455-3" tabindex="-1"></a>    <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1) <span class="sc">+</span> <span class="fu">s</span>(x2) <span class="sc">+</span> <span class="fu">s</span>(x3),</span>
+<span id="cb455-4"><a href="sec-generalized-additive-models.html#cb455-4" tabindex="-1"></a>        <span class="at">data =</span> data_gam, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb455-5"><a href="sec-generalized-additive-models.html#cb455-5" tabindex="-1"></a></span>
+<span id="cb455-6"><a href="sec-generalized-additive-models.html#cb455-6" tabindex="-1"></a><span class="co"># Summary of the model</span></span>
+<span id="cb455-7"><a href="sec-generalized-additive-models.html#cb455-7" tabindex="-1"></a><span class="fu">summary</span>(gam_model)</span>
+<span id="cb455-8"><a href="sec-generalized-additive-models.html#cb455-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb455-9"><a href="sec-generalized-additive-models.html#cb455-9" tabindex="-1"></a><span class="co">#&gt; Family: gaussian </span></span>
+<span id="cb455-10"><a href="sec-generalized-additive-models.html#cb455-10" tabindex="-1"></a><span class="co">#&gt; Link function: identity </span></span>
+<span id="cb455-11"><a href="sec-generalized-additive-models.html#cb455-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb455-12"><a href="sec-generalized-additive-models.html#cb455-12" tabindex="-1"></a><span class="co">#&gt; Formula:</span></span>
+<span id="cb455-13"><a href="sec-generalized-additive-models.html#cb455-13" tabindex="-1"></a><span class="co">#&gt; y ~ s(x1) + s(x2) + s(x3)</span></span>
+<span id="cb455-14"><a href="sec-generalized-additive-models.html#cb455-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb455-15"><a href="sec-generalized-additive-models.html#cb455-15" tabindex="-1"></a><span class="co">#&gt; Parametric coefficients:</span></span>
+<span id="cb455-16"><a href="sec-generalized-additive-models.html#cb455-16" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb455-17"><a href="sec-generalized-additive-models.html#cb455-17" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.63937    0.09511   27.75   &lt;2e-16 ***</span></span>
+<span id="cb455-18"><a href="sec-generalized-additive-models.html#cb455-18" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb455-19"><a href="sec-generalized-additive-models.html#cb455-19" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb455-20"><a href="sec-generalized-additive-models.html#cb455-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb455-21"><a href="sec-generalized-additive-models.html#cb455-21" tabindex="-1"></a><span class="co">#&gt; Approximate significance of smooth terms:</span></span>
+<span id="cb455-22"><a href="sec-generalized-additive-models.html#cb455-22" tabindex="-1"></a><span class="co">#&gt;         edf Ref.df       F p-value    </span></span>
+<span id="cb455-23"><a href="sec-generalized-additive-models.html#cb455-23" tabindex="-1"></a><span class="co">#&gt; s(x1) 5.997  7.165   7.966   5e-07 ***</span></span>
+<span id="cb455-24"><a href="sec-generalized-additive-models.html#cb455-24" tabindex="-1"></a><span class="co">#&gt; s(x2) 1.000  1.000  10.249 0.00192 ** </span></span>
+<span id="cb455-25"><a href="sec-generalized-additive-models.html#cb455-25" tabindex="-1"></a><span class="co">#&gt; s(x3) 6.239  7.343 105.551 &lt; 2e-16 ***</span></span>
+<span id="cb455-26"><a href="sec-generalized-additive-models.html#cb455-26" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb455-27"><a href="sec-generalized-additive-models.html#cb455-27" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb455-28"><a href="sec-generalized-additive-models.html#cb455-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb455-29"><a href="sec-generalized-additive-models.html#cb455-29" tabindex="-1"></a><span class="co">#&gt; R-sq.(adj) =   0.91   Deviance explained = 92.2%</span></span>
+<span id="cb455-30"><a href="sec-generalized-additive-models.html#cb455-30" tabindex="-1"></a><span class="co">#&gt; -REML = 155.23  Scale est. = 0.90463   n = 100</span></span></code></pre></div>
+<div class="sourceCode" id="cb456"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb456-1"><a href="sec-generalized-additive-models.html#cb456-1" tabindex="-1"></a><span class="co"># Plot smooth terms</span></span>
+<span id="cb456-2"><a href="sec-generalized-additive-models.html#cb456-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))  <span class="co"># Arrange plots in one row</span></span>
+<span id="cb456-3"><a href="sec-generalized-additive-models.html#cb456-3" tabindex="-1"></a><span class="fu">plot</span>(gam_model, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">seWithMean =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center">
 <img src="10-nonparam-regression_files/figure-html/Visualizing%20Smooth%20Functions%20(Partial%20Dependence%20Plots)-1.png" alt="Three-panel X-Y chart displaying functions of variables x1, x2, and x3. The left panel shows a wavy line with confidence intervals for s(x1,6) against x1 ranging from 0 to 10. The middle panel depicts a slightly increasing line with confidence intervals for s(x2,1) against x2 ranging from 0 to 5. The right panel illustrates a parabolic curve with confidence intervals for s(x3,6.24) against x3 ranging from 0 to 10. Each panel includes a vertical axis labeled with values from -20 to 0." width="90%" />
 <p class="caption">
 (#fig:Visualizing Smooth Functions (Partial Dependence Plots))Smooth Functions
 </p>
 </div>
-<div class="sourceCode" id="cb452"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb452-1"><a href="sec-generalized-additive-models.html#cb452-1" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))  <span class="co"># Reset plotting layout</span></span></code></pre></div>
-<div class="sourceCode" id="cb453"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb453-1"><a href="sec-generalized-additive-models.html#cb453-1" tabindex="-1"></a><span class="co"># Using ggplot2 with mgcv&#39;s predict function</span></span>
-<span id="cb453-2"><a href="sec-generalized-additive-models.html#cb453-2" tabindex="-1"></a>pred_data <span class="ot">&lt;-</span> <span class="fu">with</span>(data_gam, <span class="fu">expand.grid</span>(</span>
-<span id="cb453-3"><a href="sec-generalized-additive-models.html#cb453-3" tabindex="-1"></a>    <span class="at">x1 =</span> <span class="fu">seq</span>(<span class="fu">min</span>(x1), <span class="fu">max</span>(x1), <span class="at">length.out =</span> <span class="dv">100</span>),</span>
-<span id="cb453-4"><a href="sec-generalized-additive-models.html#cb453-4" tabindex="-1"></a>    <span class="at">x2 =</span> <span class="fu">mean</span>(x2),</span>
-<span id="cb453-5"><a href="sec-generalized-additive-models.html#cb453-5" tabindex="-1"></a>    <span class="at">x3 =</span> <span class="fu">mean</span>(x3)</span>
-<span id="cb453-6"><a href="sec-generalized-additive-models.html#cb453-6" tabindex="-1"></a>))</span>
-<span id="cb453-7"><a href="sec-generalized-additive-models.html#cb453-7" tabindex="-1"></a></span>
-<span id="cb453-8"><a href="sec-generalized-additive-models.html#cb453-8" tabindex="-1"></a><span class="co"># Predictions for x1 effect</span></span>
-<span id="cb453-9"><a href="sec-generalized-additive-models.html#cb453-9" tabindex="-1"></a>pred_data<span class="sc">$</span>pred_x1 <span class="ot">&lt;-</span></span>
-<span id="cb453-10"><a href="sec-generalized-additive-models.html#cb453-10" tabindex="-1"></a>    <span class="fu">predict</span>(gam_model, <span class="at">newdata =</span> pred_data, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb454"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb454-1"><a href="sec-generalized-additive-models.html#cb454-1" tabindex="-1"></a><span class="fu">ggplot</span>(pred_data, <span class="fu">aes</span>(x1, pred_x1)) <span class="sc">+</span></span>
-<span id="cb454-2"><a href="sec-generalized-additive-models.html#cb454-2" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb454-3"><a href="sec-generalized-additive-models.html#cb454-3" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Partial Effect of x1&quot;</span>,</span>
-<span id="cb454-4"><a href="sec-generalized-additive-models.html#cb454-4" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>,</span>
-<span id="cb454-5"><a href="sec-generalized-additive-models.html#cb454-5" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Effect on y&quot;</span>) <span class="sc">+</span></span>
-<span id="cb454-6"><a href="sec-generalized-additive-models.html#cb454-6" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb457"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb457-1"><a href="sec-generalized-additive-models.html#cb457-1" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))  <span class="co"># Reset plotting layout</span></span></code></pre></div>
+<div class="sourceCode" id="cb458"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb458-1"><a href="sec-generalized-additive-models.html#cb458-1" tabindex="-1"></a><span class="co"># Using ggplot2 with mgcv&#39;s predict function</span></span>
+<span id="cb458-2"><a href="sec-generalized-additive-models.html#cb458-2" tabindex="-1"></a>pred_data <span class="ot">&lt;-</span> <span class="fu">with</span>(data_gam, <span class="fu">expand.grid</span>(</span>
+<span id="cb458-3"><a href="sec-generalized-additive-models.html#cb458-3" tabindex="-1"></a>    <span class="at">x1 =</span> <span class="fu">seq</span>(<span class="fu">min</span>(x1), <span class="fu">max</span>(x1), <span class="at">length.out =</span> <span class="dv">100</span>),</span>
+<span id="cb458-4"><a href="sec-generalized-additive-models.html#cb458-4" tabindex="-1"></a>    <span class="at">x2 =</span> <span class="fu">mean</span>(x2),</span>
+<span id="cb458-5"><a href="sec-generalized-additive-models.html#cb458-5" tabindex="-1"></a>    <span class="at">x3 =</span> <span class="fu">mean</span>(x3)</span>
+<span id="cb458-6"><a href="sec-generalized-additive-models.html#cb458-6" tabindex="-1"></a>))</span>
+<span id="cb458-7"><a href="sec-generalized-additive-models.html#cb458-7" tabindex="-1"></a></span>
+<span id="cb458-8"><a href="sec-generalized-additive-models.html#cb458-8" tabindex="-1"></a><span class="co"># Predictions for x1 effect</span></span>
+<span id="cb458-9"><a href="sec-generalized-additive-models.html#cb458-9" tabindex="-1"></a>pred_data<span class="sc">$</span>pred_x1 <span class="ot">&lt;-</span></span>
+<span id="cb458-10"><a href="sec-generalized-additive-models.html#cb458-10" tabindex="-1"></a>    <span class="fu">predict</span>(gam_model, <span class="at">newdata =</span> pred_data, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb459"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb459-1"><a href="sec-generalized-additive-models.html#cb459-1" tabindex="-1"></a><span class="fu">ggplot</span>(pred_data, <span class="fu">aes</span>(x1, pred_x1)) <span class="sc">+</span></span>
+<span id="cb459-2"><a href="sec-generalized-additive-models.html#cb459-2" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb459-3"><a href="sec-generalized-additive-models.html#cb459-3" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Partial Effect of x1&quot;</span>,</span>
+<span id="cb459-4"><a href="sec-generalized-additive-models.html#cb459-4" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>,</span>
+<span id="cb459-5"><a href="sec-generalized-additive-models.html#cb459-5" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Effect on y&quot;</span>) <span class="sc">+</span></span>
+<span id="cb459-6"><a href="sec-generalized-additive-models.html#cb459-6" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-partial-effect-x1"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-partial-effect-x1-1.png" alt="Line chart titled Partial Effect of x1 showing the effect on y as a function of x1. The curve is sinusoidal, starting at a moderate level, peaking around x1 equal to 2.5, dipping near x1 equal to 5, and rising again around x1 equal to 7.5 before slightly declining. The y-axis is labeled Effect on y and ranges from 3.5 to 5.5. The x-axis is labeled x1 and ranges from 0 to 10. The line is blue and smooth" width="100%" />
 <p class="caption">
 Figure 10.16: Partial Effect of x1
 </p>
 </div>
-<div class="sourceCode" id="cb455"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb455-1"><a href="sec-generalized-additive-models.html#cb455-1" tabindex="-1"></a><span class="co"># Check AIC and GCV score</span></span>
-<span id="cb455-2"><a href="sec-generalized-additive-models.html#cb455-2" tabindex="-1"></a><span class="fu">AIC</span>(gam_model)</span>
-<span id="cb455-3"><a href="sec-generalized-additive-models.html#cb455-3" tabindex="-1"></a><span class="co">#&gt; [1] 289.8201</span></span>
-<span id="cb455-4"><a href="sec-generalized-additive-models.html#cb455-4" tabindex="-1"></a>gam_model<span class="sc">$</span>gcv.ubre  <span class="co"># GCV/UBRE score</span></span>
-<span id="cb455-5"><a href="sec-generalized-additive-models.html#cb455-5" tabindex="-1"></a><span class="co">#&gt;     REML </span></span>
-<span id="cb455-6"><a href="sec-generalized-additive-models.html#cb455-6" tabindex="-1"></a><span class="co">#&gt; 155.2314 </span></span>
-<span id="cb455-7"><a href="sec-generalized-additive-models.html#cb455-7" tabindex="-1"></a><span class="co">#&gt; attr(,&quot;Dp&quot;)</span></span>
-<span id="cb455-8"><a href="sec-generalized-additive-models.html#cb455-8" tabindex="-1"></a><span class="co">#&gt; [1] 47.99998</span></span>
-<span id="cb455-9"><a href="sec-generalized-additive-models.html#cb455-9" tabindex="-1"></a></span>
-<span id="cb455-10"><a href="sec-generalized-additive-models.html#cb455-10" tabindex="-1"></a></span>
-<span id="cb455-11"><a href="sec-generalized-additive-models.html#cb455-11" tabindex="-1"></a><span class="co"># Compare models with different smoothness</span></span>
-<span id="cb455-12"><a href="sec-generalized-additive-models.html#cb455-12" tabindex="-1"></a>gam_model_simple <span class="ot">&lt;-</span></span>
-<span id="cb455-13"><a href="sec-generalized-additive-models.html#cb455-13" tabindex="-1"></a>    <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1, <span class="at">k =</span> <span class="dv">4</span>) <span class="sc">+</span> <span class="fu">s</span>(x2, <span class="at">k =</span> <span class="dv">4</span>) <span class="sc">+</span> <span class="fu">s</span>(x3, <span class="at">k =</span> <span class="dv">4</span>),</span>
-<span id="cb455-14"><a href="sec-generalized-additive-models.html#cb455-14" tabindex="-1"></a>        <span class="at">data =</span> data_gam)</span>
-<span id="cb455-15"><a href="sec-generalized-additive-models.html#cb455-15" tabindex="-1"></a>gam_model_complex <span class="ot">&lt;-</span></span>
-<span id="cb455-16"><a href="sec-generalized-additive-models.html#cb455-16" tabindex="-1"></a>    <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1, <span class="at">k =</span> <span class="dv">20</span>) <span class="sc">+</span> <span class="fu">s</span>(x2, <span class="at">k =</span> <span class="dv">20</span>) <span class="sc">+</span> <span class="fu">s</span>(x3, <span class="at">k =</span> <span class="dv">20</span>),</span>
-<span id="cb455-17"><a href="sec-generalized-additive-models.html#cb455-17" tabindex="-1"></a>        <span class="at">data =</span> data_gam)</span>
-<span id="cb455-18"><a href="sec-generalized-additive-models.html#cb455-18" tabindex="-1"></a></span>
-<span id="cb455-19"><a href="sec-generalized-additive-models.html#cb455-19" tabindex="-1"></a><span class="co"># Compare models using AIC</span></span>
-<span id="cb455-20"><a href="sec-generalized-additive-models.html#cb455-20" tabindex="-1"></a><span class="fu">AIC</span>(gam_model, gam_model_simple, gam_model_complex)</span>
-<span id="cb455-21"><a href="sec-generalized-additive-models.html#cb455-21" tabindex="-1"></a><span class="co">#&gt;                          df      AIC</span></span>
-<span id="cb455-22"><a href="sec-generalized-additive-models.html#cb455-22" tabindex="-1"></a><span class="co">#&gt; gam_model         15.706428 289.8201</span></span>
-<span id="cb455-23"><a href="sec-generalized-additive-models.html#cb455-23" tabindex="-1"></a><span class="co">#&gt; gam_model_simple   8.429889 322.1502</span></span>
-<span id="cb455-24"><a href="sec-generalized-additive-models.html#cb455-24" tabindex="-1"></a><span class="co">#&gt; gam_model_complex 13.571165 287.4171</span></span></code></pre></div>
+<div class="sourceCode" id="cb460"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb460-1"><a href="sec-generalized-additive-models.html#cb460-1" tabindex="-1"></a><span class="co"># Check AIC and GCV score</span></span>
+<span id="cb460-2"><a href="sec-generalized-additive-models.html#cb460-2" tabindex="-1"></a><span class="fu">AIC</span>(gam_model)</span>
+<span id="cb460-3"><a href="sec-generalized-additive-models.html#cb460-3" tabindex="-1"></a><span class="co">#&gt; [1] 289.8201</span></span>
+<span id="cb460-4"><a href="sec-generalized-additive-models.html#cb460-4" tabindex="-1"></a>gam_model<span class="sc">$</span>gcv.ubre  <span class="co"># GCV/UBRE score</span></span>
+<span id="cb460-5"><a href="sec-generalized-additive-models.html#cb460-5" tabindex="-1"></a><span class="co">#&gt;     REML </span></span>
+<span id="cb460-6"><a href="sec-generalized-additive-models.html#cb460-6" tabindex="-1"></a><span class="co">#&gt; 155.2314 </span></span>
+<span id="cb460-7"><a href="sec-generalized-additive-models.html#cb460-7" tabindex="-1"></a><span class="co">#&gt; attr(,&quot;Dp&quot;)</span></span>
+<span id="cb460-8"><a href="sec-generalized-additive-models.html#cb460-8" tabindex="-1"></a><span class="co">#&gt; [1] 47.99998</span></span>
+<span id="cb460-9"><a href="sec-generalized-additive-models.html#cb460-9" tabindex="-1"></a></span>
+<span id="cb460-10"><a href="sec-generalized-additive-models.html#cb460-10" tabindex="-1"></a></span>
+<span id="cb460-11"><a href="sec-generalized-additive-models.html#cb460-11" tabindex="-1"></a><span class="co"># Compare models with different smoothness</span></span>
+<span id="cb460-12"><a href="sec-generalized-additive-models.html#cb460-12" tabindex="-1"></a>gam_model_simple <span class="ot">&lt;-</span></span>
+<span id="cb460-13"><a href="sec-generalized-additive-models.html#cb460-13" tabindex="-1"></a>    <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1, <span class="at">k =</span> <span class="dv">4</span>) <span class="sc">+</span> <span class="fu">s</span>(x2, <span class="at">k =</span> <span class="dv">4</span>) <span class="sc">+</span> <span class="fu">s</span>(x3, <span class="at">k =</span> <span class="dv">4</span>),</span>
+<span id="cb460-14"><a href="sec-generalized-additive-models.html#cb460-14" tabindex="-1"></a>        <span class="at">data =</span> data_gam)</span>
+<span id="cb460-15"><a href="sec-generalized-additive-models.html#cb460-15" tabindex="-1"></a>gam_model_complex <span class="ot">&lt;-</span></span>
+<span id="cb460-16"><a href="sec-generalized-additive-models.html#cb460-16" tabindex="-1"></a>    <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1, <span class="at">k =</span> <span class="dv">20</span>) <span class="sc">+</span> <span class="fu">s</span>(x2, <span class="at">k =</span> <span class="dv">20</span>) <span class="sc">+</span> <span class="fu">s</span>(x3, <span class="at">k =</span> <span class="dv">20</span>),</span>
+<span id="cb460-17"><a href="sec-generalized-additive-models.html#cb460-17" tabindex="-1"></a>        <span class="at">data =</span> data_gam)</span>
+<span id="cb460-18"><a href="sec-generalized-additive-models.html#cb460-18" tabindex="-1"></a></span>
+<span id="cb460-19"><a href="sec-generalized-additive-models.html#cb460-19" tabindex="-1"></a><span class="co"># Compare models using AIC</span></span>
+<span id="cb460-20"><a href="sec-generalized-additive-models.html#cb460-20" tabindex="-1"></a><span class="fu">AIC</span>(gam_model, gam_model_simple, gam_model_complex)</span>
+<span id="cb460-21"><a href="sec-generalized-additive-models.html#cb460-21" tabindex="-1"></a><span class="co">#&gt;                          df      AIC</span></span>
+<span id="cb460-22"><a href="sec-generalized-additive-models.html#cb460-22" tabindex="-1"></a><span class="co">#&gt; gam_model         15.706428 289.8201</span></span>
+<span id="cb460-23"><a href="sec-generalized-additive-models.html#cb460-23" tabindex="-1"></a><span class="co">#&gt; gam_model_simple   8.429889 322.1502</span></span>
+<span id="cb460-24"><a href="sec-generalized-additive-models.html#cb460-24" tabindex="-1"></a><span class="co">#&gt; gam_model_complex 13.571165 287.4171</span></span></code></pre></div>
 <ul>
 <li>Lower AIC indicates a better model balancing fit and complexity.</li>
 <li>GCV score helps select the optimal level of smoothness.</li>
 <li>Compare models to prevent overfitting (too flexible) or underfitting (too simple).</li>
 </ul>
-<div class="sourceCode" id="cb456"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb456-1"><a href="sec-generalized-additive-models.html#cb456-1" tabindex="-1"></a><span class="co"># GAM with interaction using tensor product smooths</span></span>
-<span id="cb456-2"><a href="sec-generalized-additive-models.html#cb456-2" tabindex="-1"></a>gam_interaction <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">te</span>(x1, x2) <span class="sc">+</span> <span class="fu">s</span>(x3),</span>
-<span id="cb456-3"><a href="sec-generalized-additive-models.html#cb456-3" tabindex="-1"></a>                       <span class="at">data =</span> data_gam)</span>
-<span id="cb456-4"><a href="sec-generalized-additive-models.html#cb456-4" tabindex="-1"></a></span>
-<span id="cb456-5"><a href="sec-generalized-additive-models.html#cb456-5" tabindex="-1"></a><span class="co"># Summary of the interaction model</span></span>
-<span id="cb456-6"><a href="sec-generalized-additive-models.html#cb456-6" tabindex="-1"></a><span class="fu">summary</span>(gam_interaction)</span>
-<span id="cb456-7"><a href="sec-generalized-additive-models.html#cb456-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb456-8"><a href="sec-generalized-additive-models.html#cb456-8" tabindex="-1"></a><span class="co">#&gt; Family: gaussian </span></span>
-<span id="cb456-9"><a href="sec-generalized-additive-models.html#cb456-9" tabindex="-1"></a><span class="co">#&gt; Link function: identity </span></span>
-<span id="cb456-10"><a href="sec-generalized-additive-models.html#cb456-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb456-11"><a href="sec-generalized-additive-models.html#cb456-11" tabindex="-1"></a><span class="co">#&gt; Formula:</span></span>
-<span id="cb456-12"><a href="sec-generalized-additive-models.html#cb456-12" tabindex="-1"></a><span class="co">#&gt; y ~ te(x1, x2) + s(x3)</span></span>
-<span id="cb456-13"><a href="sec-generalized-additive-models.html#cb456-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb456-14"><a href="sec-generalized-additive-models.html#cb456-14" tabindex="-1"></a><span class="co">#&gt; Parametric coefficients:</span></span>
-<span id="cb456-15"><a href="sec-generalized-additive-models.html#cb456-15" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb456-16"><a href="sec-generalized-additive-models.html#cb456-16" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.63937    0.09364   28.19   &lt;2e-16 ***</span></span>
-<span id="cb456-17"><a href="sec-generalized-additive-models.html#cb456-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb456-18"><a href="sec-generalized-additive-models.html#cb456-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb456-19"><a href="sec-generalized-additive-models.html#cb456-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb456-20"><a href="sec-generalized-additive-models.html#cb456-20" tabindex="-1"></a><span class="co">#&gt; Approximate significance of smooth terms:</span></span>
-<span id="cb456-21"><a href="sec-generalized-additive-models.html#cb456-21" tabindex="-1"></a><span class="co">#&gt;             edf Ref.df       F p-value    </span></span>
-<span id="cb456-22"><a href="sec-generalized-additive-models.html#cb456-22" tabindex="-1"></a><span class="co">#&gt; te(x1,x2) 8.545  8.923   9.218  &lt;2e-16 ***</span></span>
-<span id="cb456-23"><a href="sec-generalized-additive-models.html#cb456-23" tabindex="-1"></a><span class="co">#&gt; s(x3)     4.766  5.834 147.595  &lt;2e-16 ***</span></span>
-<span id="cb456-24"><a href="sec-generalized-additive-models.html#cb456-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb456-25"><a href="sec-generalized-additive-models.html#cb456-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb456-26"><a href="sec-generalized-additive-models.html#cb456-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb456-27"><a href="sec-generalized-additive-models.html#cb456-27" tabindex="-1"></a><span class="co">#&gt; R-sq.(adj) =  0.912   Deviance explained = 92.4%</span></span>
-<span id="cb456-28"><a href="sec-generalized-additive-models.html#cb456-28" tabindex="-1"></a><span class="co">#&gt; GCV = 1.0233  Scale est. = 0.87688   n = 100</span></span></code></pre></div>
-<div class="sourceCode" id="cb457"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb457-1"><a href="sec-generalized-additive-models.html#cb457-1" tabindex="-1"></a><span class="co"># Visualization of interaction effect</span></span>
-<span id="cb457-2"><a href="sec-generalized-additive-models.html#cb457-2" tabindex="-1"></a><span class="fu">vis.gam</span>(</span>
-<span id="cb457-3"><a href="sec-generalized-additive-models.html#cb457-3" tabindex="-1"></a>    gam_interaction,</span>
-<span id="cb457-4"><a href="sec-generalized-additive-models.html#cb457-4" tabindex="-1"></a>    <span class="at">view =</span> <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>),</span>
-<span id="cb457-5"><a href="sec-generalized-additive-models.html#cb457-5" tabindex="-1"></a>    <span class="at">plot.type =</span> <span class="st">&quot;contour&quot;</span>,</span>
-<span id="cb457-6"><a href="sec-generalized-additive-models.html#cb457-6" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;terrain&quot;</span></span>
-<span id="cb457-7"><a href="sec-generalized-additive-models.html#cb457-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb461"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb461-1"><a href="sec-generalized-additive-models.html#cb461-1" tabindex="-1"></a><span class="co"># GAM with interaction using tensor product smooths</span></span>
+<span id="cb461-2"><a href="sec-generalized-additive-models.html#cb461-2" tabindex="-1"></a>gam_interaction <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">te</span>(x1, x2) <span class="sc">+</span> <span class="fu">s</span>(x3),</span>
+<span id="cb461-3"><a href="sec-generalized-additive-models.html#cb461-3" tabindex="-1"></a>                       <span class="at">data =</span> data_gam)</span>
+<span id="cb461-4"><a href="sec-generalized-additive-models.html#cb461-4" tabindex="-1"></a></span>
+<span id="cb461-5"><a href="sec-generalized-additive-models.html#cb461-5" tabindex="-1"></a><span class="co"># Summary of the interaction model</span></span>
+<span id="cb461-6"><a href="sec-generalized-additive-models.html#cb461-6" tabindex="-1"></a><span class="fu">summary</span>(gam_interaction)</span>
+<span id="cb461-7"><a href="sec-generalized-additive-models.html#cb461-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb461-8"><a href="sec-generalized-additive-models.html#cb461-8" tabindex="-1"></a><span class="co">#&gt; Family: gaussian </span></span>
+<span id="cb461-9"><a href="sec-generalized-additive-models.html#cb461-9" tabindex="-1"></a><span class="co">#&gt; Link function: identity </span></span>
+<span id="cb461-10"><a href="sec-generalized-additive-models.html#cb461-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb461-11"><a href="sec-generalized-additive-models.html#cb461-11" tabindex="-1"></a><span class="co">#&gt; Formula:</span></span>
+<span id="cb461-12"><a href="sec-generalized-additive-models.html#cb461-12" tabindex="-1"></a><span class="co">#&gt; y ~ te(x1, x2) + s(x3)</span></span>
+<span id="cb461-13"><a href="sec-generalized-additive-models.html#cb461-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb461-14"><a href="sec-generalized-additive-models.html#cb461-14" tabindex="-1"></a><span class="co">#&gt; Parametric coefficients:</span></span>
+<span id="cb461-15"><a href="sec-generalized-additive-models.html#cb461-15" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb461-16"><a href="sec-generalized-additive-models.html#cb461-16" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.63937    0.09364   28.19   &lt;2e-16 ***</span></span>
+<span id="cb461-17"><a href="sec-generalized-additive-models.html#cb461-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb461-18"><a href="sec-generalized-additive-models.html#cb461-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb461-19"><a href="sec-generalized-additive-models.html#cb461-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb461-20"><a href="sec-generalized-additive-models.html#cb461-20" tabindex="-1"></a><span class="co">#&gt; Approximate significance of smooth terms:</span></span>
+<span id="cb461-21"><a href="sec-generalized-additive-models.html#cb461-21" tabindex="-1"></a><span class="co">#&gt;             edf Ref.df       F p-value    </span></span>
+<span id="cb461-22"><a href="sec-generalized-additive-models.html#cb461-22" tabindex="-1"></a><span class="co">#&gt; te(x1,x2) 8.545  8.923   9.218  &lt;2e-16 ***</span></span>
+<span id="cb461-23"><a href="sec-generalized-additive-models.html#cb461-23" tabindex="-1"></a><span class="co">#&gt; s(x3)     4.766  5.834 147.595  &lt;2e-16 ***</span></span>
+<span id="cb461-24"><a href="sec-generalized-additive-models.html#cb461-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb461-25"><a href="sec-generalized-additive-models.html#cb461-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb461-26"><a href="sec-generalized-additive-models.html#cb461-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb461-27"><a href="sec-generalized-additive-models.html#cb461-27" tabindex="-1"></a><span class="co">#&gt; R-sq.(adj) =  0.912   Deviance explained = 92.4%</span></span>
+<span id="cb461-28"><a href="sec-generalized-additive-models.html#cb461-28" tabindex="-1"></a><span class="co">#&gt; GCV = 1.0233  Scale est. = 0.87688   n = 100</span></span></code></pre></div>
+<div class="sourceCode" id="cb462"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb462-1"><a href="sec-generalized-additive-models.html#cb462-1" tabindex="-1"></a><span class="co"># Visualization of interaction effect</span></span>
+<span id="cb462-2"><a href="sec-generalized-additive-models.html#cb462-2" tabindex="-1"></a><span class="fu">vis.gam</span>(</span>
+<span id="cb462-3"><a href="sec-generalized-additive-models.html#cb462-3" tabindex="-1"></a>    gam_interaction,</span>
+<span id="cb462-4"><a href="sec-generalized-additive-models.html#cb462-4" tabindex="-1"></a>    <span class="at">view =</span> <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>),</span>
+<span id="cb462-5"><a href="sec-generalized-additive-models.html#cb462-5" tabindex="-1"></a>    <span class="at">plot.type =</span> <span class="st">&quot;contour&quot;</span>,</span>
+<span id="cb462-6"><a href="sec-generalized-additive-models.html#cb462-6" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;terrain&quot;</span></span>
+<span id="cb462-7"><a href="sec-generalized-additive-models.html#cb462-7" tabindex="-1"></a>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-linear-predictor"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-linear-predictor-1.png" alt="Contour map titled Linear Predictor displaying color gradients from green to red representing varying values. Contour lines are labeled with values ranging from 2.5 to 5.5. The x-axis is labeled x1 and ranges from 0 to 10. The y-axis is labeled x2 and ranges from 0 to 5" width="100%" />
 <p class="caption">
@@ -2183,54 +2183,54 @@ Figure 10.17: Linear Predictor
 <li>The tensor product smooth <code>te(x1, x2)</code> captures nonlinear interactions between <code>x1</code> and <code>x2</code>.</li>
 <li>The contour plot visualizes how their joint effect influences the response.</li>
 </ul>
-<div class="sourceCode" id="cb458"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb458-1"><a href="sec-generalized-additive-models.html#cb458-1" tabindex="-1"></a><span class="co"># Simulate binary response</span></span>
-<span id="cb458-2"><a href="sec-generalized-additive-models.html#cb458-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb458-3"><a href="sec-generalized-additive-models.html#cb458-3" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">f1</span>(x1) <span class="sc">-</span> <span class="fu">f2</span>(x2) <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> x3)  <span class="co"># Logistic function</span></span>
-<span id="cb458-4"><a href="sec-generalized-additive-models.html#cb458-4" tabindex="-1"></a>y_bin <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, prob)                     <span class="co"># Binary outcome</span></span>
-<span id="cb458-5"><a href="sec-generalized-additive-models.html#cb458-5" tabindex="-1"></a></span>
-<span id="cb458-6"><a href="sec-generalized-additive-models.html#cb458-6" tabindex="-1"></a><span class="co"># Fit GAM for binary classification</span></span>
-<span id="cb458-7"><a href="sec-generalized-additive-models.html#cb458-7" tabindex="-1"></a>gam_logistic <span class="ot">&lt;-</span></span>
-<span id="cb458-8"><a href="sec-generalized-additive-models.html#cb458-8" tabindex="-1"></a>    <span class="fu">gam</span>(y_bin <span class="sc">~</span> <span class="fu">s</span>(x1) <span class="sc">+</span> <span class="fu">s</span>(x2) <span class="sc">+</span> <span class="fu">s</span>(x3),</span>
-<span id="cb458-9"><a href="sec-generalized-additive-models.html#cb458-9" tabindex="-1"></a>        <span class="at">family =</span> binomial,</span>
-<span id="cb458-10"><a href="sec-generalized-additive-models.html#cb458-10" tabindex="-1"></a>        <span class="at">data =</span> data_gam)</span>
-<span id="cb458-11"><a href="sec-generalized-additive-models.html#cb458-11" tabindex="-1"></a></span>
-<span id="cb458-12"><a href="sec-generalized-additive-models.html#cb458-12" tabindex="-1"></a><span class="co"># Summary and visualization</span></span>
-<span id="cb458-13"><a href="sec-generalized-additive-models.html#cb458-13" tabindex="-1"></a><span class="fu">summary</span>(gam_logistic)</span>
-<span id="cb458-14"><a href="sec-generalized-additive-models.html#cb458-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb458-15"><a href="sec-generalized-additive-models.html#cb458-15" tabindex="-1"></a><span class="co">#&gt; Family: binomial </span></span>
-<span id="cb458-16"><a href="sec-generalized-additive-models.html#cb458-16" tabindex="-1"></a><span class="co">#&gt; Link function: logit </span></span>
-<span id="cb458-17"><a href="sec-generalized-additive-models.html#cb458-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb458-18"><a href="sec-generalized-additive-models.html#cb458-18" tabindex="-1"></a><span class="co">#&gt; Formula:</span></span>
-<span id="cb458-19"><a href="sec-generalized-additive-models.html#cb458-19" tabindex="-1"></a><span class="co">#&gt; y_bin ~ s(x1) + s(x2) + s(x3)</span></span>
-<span id="cb458-20"><a href="sec-generalized-additive-models.html#cb458-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb458-21"><a href="sec-generalized-additive-models.html#cb458-21" tabindex="-1"></a><span class="co">#&gt; Parametric coefficients:</span></span>
-<span id="cb458-22"><a href="sec-generalized-additive-models.html#cb458-22" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)</span></span>
-<span id="cb458-23"><a href="sec-generalized-additive-models.html#cb458-23" tabindex="-1"></a><span class="co">#&gt; (Intercept)    22.30      32.18   0.693    0.488</span></span>
-<span id="cb458-24"><a href="sec-generalized-additive-models.html#cb458-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb458-25"><a href="sec-generalized-additive-models.html#cb458-25" tabindex="-1"></a><span class="co">#&gt; Approximate significance of smooth terms:</span></span>
-<span id="cb458-26"><a href="sec-generalized-additive-models.html#cb458-26" tabindex="-1"></a><span class="co">#&gt;         edf Ref.df Chi.sq p-value</span></span>
-<span id="cb458-27"><a href="sec-generalized-additive-models.html#cb458-27" tabindex="-1"></a><span class="co">#&gt; s(x1) 4.472  5.313  2.645   0.775</span></span>
-<span id="cb458-28"><a href="sec-generalized-additive-models.html#cb458-28" tabindex="-1"></a><span class="co">#&gt; s(x2) 1.000  1.000  1.925   0.165</span></span>
-<span id="cb458-29"><a href="sec-generalized-additive-models.html#cb458-29" tabindex="-1"></a><span class="co">#&gt; s(x3) 1.000  1.000  1.390   0.238</span></span>
-<span id="cb458-30"><a href="sec-generalized-additive-models.html#cb458-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb458-31"><a href="sec-generalized-additive-models.html#cb458-31" tabindex="-1"></a><span class="co">#&gt; R-sq.(adj) =      1   Deviance explained = 99.8%</span></span>
-<span id="cb458-32"><a href="sec-generalized-additive-models.html#cb458-32" tabindex="-1"></a><span class="co">#&gt; UBRE = -0.84802  Scale est. = 1         n = 100</span></span></code></pre></div>
-<div class="sourceCode" id="cb459"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb459-1"><a href="sec-generalized-additive-models.html#cb459-1" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
-<span id="cb459-2"><a href="sec-generalized-additive-models.html#cb459-2" tabindex="-1"></a><span class="fu">plot</span>(gam_logistic, <span class="at">shade =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb463"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb463-1"><a href="sec-generalized-additive-models.html#cb463-1" tabindex="-1"></a><span class="co"># Simulate binary response</span></span>
+<span id="cb463-2"><a href="sec-generalized-additive-models.html#cb463-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb463-3"><a href="sec-generalized-additive-models.html#cb463-3" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">f1</span>(x1) <span class="sc">-</span> <span class="fu">f2</span>(x2) <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> x3)  <span class="co"># Logistic function</span></span>
+<span id="cb463-4"><a href="sec-generalized-additive-models.html#cb463-4" tabindex="-1"></a>y_bin <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, prob)                     <span class="co"># Binary outcome</span></span>
+<span id="cb463-5"><a href="sec-generalized-additive-models.html#cb463-5" tabindex="-1"></a></span>
+<span id="cb463-6"><a href="sec-generalized-additive-models.html#cb463-6" tabindex="-1"></a><span class="co"># Fit GAM for binary classification</span></span>
+<span id="cb463-7"><a href="sec-generalized-additive-models.html#cb463-7" tabindex="-1"></a>gam_logistic <span class="ot">&lt;-</span></span>
+<span id="cb463-8"><a href="sec-generalized-additive-models.html#cb463-8" tabindex="-1"></a>    <span class="fu">gam</span>(y_bin <span class="sc">~</span> <span class="fu">s</span>(x1) <span class="sc">+</span> <span class="fu">s</span>(x2) <span class="sc">+</span> <span class="fu">s</span>(x3),</span>
+<span id="cb463-9"><a href="sec-generalized-additive-models.html#cb463-9" tabindex="-1"></a>        <span class="at">family =</span> binomial,</span>
+<span id="cb463-10"><a href="sec-generalized-additive-models.html#cb463-10" tabindex="-1"></a>        <span class="at">data =</span> data_gam)</span>
+<span id="cb463-11"><a href="sec-generalized-additive-models.html#cb463-11" tabindex="-1"></a></span>
+<span id="cb463-12"><a href="sec-generalized-additive-models.html#cb463-12" tabindex="-1"></a><span class="co"># Summary and visualization</span></span>
+<span id="cb463-13"><a href="sec-generalized-additive-models.html#cb463-13" tabindex="-1"></a><span class="fu">summary</span>(gam_logistic)</span>
+<span id="cb463-14"><a href="sec-generalized-additive-models.html#cb463-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb463-15"><a href="sec-generalized-additive-models.html#cb463-15" tabindex="-1"></a><span class="co">#&gt; Family: binomial </span></span>
+<span id="cb463-16"><a href="sec-generalized-additive-models.html#cb463-16" tabindex="-1"></a><span class="co">#&gt; Link function: logit </span></span>
+<span id="cb463-17"><a href="sec-generalized-additive-models.html#cb463-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb463-18"><a href="sec-generalized-additive-models.html#cb463-18" tabindex="-1"></a><span class="co">#&gt; Formula:</span></span>
+<span id="cb463-19"><a href="sec-generalized-additive-models.html#cb463-19" tabindex="-1"></a><span class="co">#&gt; y_bin ~ s(x1) + s(x2) + s(x3)</span></span>
+<span id="cb463-20"><a href="sec-generalized-additive-models.html#cb463-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb463-21"><a href="sec-generalized-additive-models.html#cb463-21" tabindex="-1"></a><span class="co">#&gt; Parametric coefficients:</span></span>
+<span id="cb463-22"><a href="sec-generalized-additive-models.html#cb463-22" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)</span></span>
+<span id="cb463-23"><a href="sec-generalized-additive-models.html#cb463-23" tabindex="-1"></a><span class="co">#&gt; (Intercept)    22.30      32.18   0.693    0.488</span></span>
+<span id="cb463-24"><a href="sec-generalized-additive-models.html#cb463-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb463-25"><a href="sec-generalized-additive-models.html#cb463-25" tabindex="-1"></a><span class="co">#&gt; Approximate significance of smooth terms:</span></span>
+<span id="cb463-26"><a href="sec-generalized-additive-models.html#cb463-26" tabindex="-1"></a><span class="co">#&gt;         edf Ref.df Chi.sq p-value</span></span>
+<span id="cb463-27"><a href="sec-generalized-additive-models.html#cb463-27" tabindex="-1"></a><span class="co">#&gt; s(x1) 4.472  5.313  2.645   0.775</span></span>
+<span id="cb463-28"><a href="sec-generalized-additive-models.html#cb463-28" tabindex="-1"></a><span class="co">#&gt; s(x2) 1.000  1.000  1.925   0.165</span></span>
+<span id="cb463-29"><a href="sec-generalized-additive-models.html#cb463-29" tabindex="-1"></a><span class="co">#&gt; s(x3) 1.000  1.000  1.390   0.238</span></span>
+<span id="cb463-30"><a href="sec-generalized-additive-models.html#cb463-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb463-31"><a href="sec-generalized-additive-models.html#cb463-31" tabindex="-1"></a><span class="co">#&gt; R-sq.(adj) =      1   Deviance explained = 99.8%</span></span>
+<span id="cb463-32"><a href="sec-generalized-additive-models.html#cb463-32" tabindex="-1"></a><span class="co">#&gt; UBRE = -0.84802  Scale est. = 1         n = 100</span></span></code></pre></div>
+<div class="sourceCode" id="cb464"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb464-1"><a href="sec-generalized-additive-models.html#cb464-1" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb464-2"><a href="sec-generalized-additive-models.html#cb464-2" tabindex="-1"></a><span class="fu">plot</span>(gam_logistic, <span class="at">shade =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-5"></span>
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-5-1.png" alt="Three-panel X-Y chart displaying smooth functions of variables x1, x2, and x3. Each panel shows a solid line representing the estimated smooth function and dashed lines indicating confidence intervals. The y-axes are labeled as s(x1, 4.47), s(x2, 1), and s(x3, 1) respectively, with values ranging from -200 to 400. The x-axes are labeled x1, x2, and x3, with varying scales. The chart visualizes the relationship between these variables and their respective smooth functions." width="90%" />
 <p class="caption">
 Figure 2.5: Smooth Functions of Variables
 </p>
 </div>
-<div class="sourceCode" id="cb460"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb460-1"><a href="sec-generalized-additive-models.html#cb460-1" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb465"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb465-1"><a href="sec-generalized-additive-models.html#cb465-1" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div>
 <ul>
 <li>The logistic GAM models nonlinear effects on the log-odds of the binary outcome.</li>
 <li>Smooth plots indicate predictors’ influence on probability of success.</li>
 </ul>
-<div class="sourceCode" id="cb461"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb461-1"><a href="sec-generalized-additive-models.html#cb461-1" tabindex="-1"></a><span class="co"># Diagnostic plots</span></span>
-<span id="cb461-2"><a href="sec-generalized-additive-models.html#cb461-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
-<span id="cb461-3"><a href="sec-generalized-additive-models.html#cb461-3" tabindex="-1"></a><span class="fu">gam.check</span>(gam_model)</span></code></pre></div>
+<div class="sourceCode" id="cb466"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb466-1"><a href="sec-generalized-additive-models.html#cb466-1" tabindex="-1"></a><span class="co"># Diagnostic plots</span></span>
+<span id="cb466-2"><a href="sec-generalized-additive-models.html#cb466-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb466-3"><a href="sec-generalized-additive-models.html#cb466-3" tabindex="-1"></a><span class="fu">gam.check</span>(gam_model)</span></code></pre></div>
 <div class="figure" style="text-align: center">
 <img src="10-nonparam-regression_files/figure-html/Model%20Diagnostics-1.png" alt="Four-panel figure showing residual analysis for a statistical model. Top left: Q-Q plot of deviance residuals against theoretical quantiles, with points following a diagonal line. Top right: Scatter plot of residuals versus linear predictor, showing a random distribution. Bottom left: Histogram of residuals, centered around zero, indicating normal distribution. Bottom right: Scatter plot of response versus fitted values, showing a linear relationship." width="90%" />
 <p class="caption">

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>28.1 Regression Discontinuity in Time | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="28.1 Regression Discontinuity in Time | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2246,203 +2246,203 @@ Y_t = \delta_0 + \sum_{j} \delta_j X_{jt} + \nu_t
 <li>Demonstrating an augmented approach with a confounder</li>
 <li>Plotting the local data and fitted RDiT regression lines</li>
 </ol>
-<div class="sourceCode" id="cb878"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb878-1"><a href="sec-regression-discontinuity-in-time.html#cb878-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb878-2"><a href="sec-regression-discontinuity-in-time.html#cb878-2" tabindex="-1"></a><span class="co"># 0. Libraries</span></span>
-<span id="cb878-3"><a href="sec-regression-discontinuity-in-time.html#cb878-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb878-4"><a href="sec-regression-discontinuity-in-time.html#cb878-4" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;sandwich&quot;</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;sandwich&quot;</span>, <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
-<span id="cb878-5"><a href="sec-regression-discontinuity-in-time.html#cb878-5" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;lmtest&quot;</span>))   <span class="fu">install.packages</span>(<span class="st">&quot;lmtest&quot;</span>,   <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
-<span id="cb878-6"><a href="sec-regression-discontinuity-in-time.html#cb878-6" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb878-7"><a href="sec-regression-discontinuity-in-time.html#cb878-7" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb878-8"><a href="sec-regression-discontinuity-in-time.html#cb878-8" tabindex="-1"></a></span>
-<span id="cb878-9"><a href="sec-regression-discontinuity-in-time.html#cb878-9" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb878-10"><a href="sec-regression-discontinuity-in-time.html#cb878-10" tabindex="-1"></a><span class="co"># 1. Generate Synthetic Data</span></span>
-<span id="cb878-11"><a href="sec-regression-discontinuity-in-time.html#cb878-11" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb878-12"><a href="sec-regression-discontinuity-in-time.html#cb878-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb878-13"><a href="sec-regression-discontinuity-in-time.html#cb878-13" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="dv">200</span>                <span class="co"># total number of time points</span></span>
-<span id="cb878-14"><a href="sec-regression-discontinuity-in-time.html#cb878-14" tabindex="-1"></a>T_star <span class="ot">&lt;-</span> <span class="dv">100</span>                <span class="co"># cutoff (policy/intervention) time</span></span>
-<span id="cb878-15"><a href="sec-regression-discontinuity-in-time.html#cb878-15" tabindex="-1"></a>t_vals <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(n)         <span class="co"># time index: 1, 2, ..., n</span></span>
-<span id="cb878-16"><a href="sec-regression-discontinuity-in-time.html#cb878-16" tabindex="-1"></a></span>
-<span id="cb878-17"><a href="sec-regression-discontinuity-in-time.html#cb878-17" tabindex="-1"></a><span class="co"># Outcome Y has a linear pre-trend, a mild quadratic component, </span></span>
-<span id="cb878-18"><a href="sec-regression-discontinuity-in-time.html#cb878-18" tabindex="-1"></a><span class="co"># and a jump of +5 at T_star</span></span>
-<span id="cb878-19"><a href="sec-regression-discontinuity-in-time.html#cb878-19" tabindex="-1"></a><span class="co"># plus a small sinusoidal seasonality and random noise.</span></span>
-<span id="cb878-20"><a href="sec-regression-discontinuity-in-time.html#cb878-20" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fl">0.4</span> <span class="sc">*</span> t_vals <span class="sc">+</span>          <span class="co"># baseline slope</span></span>
-<span id="cb878-21"><a href="sec-regression-discontinuity-in-time.html#cb878-21" tabindex="-1"></a>     <span class="fl">0.002</span> <span class="sc">*</span> (t_vals<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span>    <span class="co"># mild curvature</span></span>
-<span id="cb878-22"><a href="sec-regression-discontinuity-in-time.html#cb878-22" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="dv">5</span>, <span class="dv">0</span>) <span class="sc">+</span>  <span class="co"># jump at T_star</span></span>
-<span id="cb878-23"><a href="sec-regression-discontinuity-in-time.html#cb878-23" tabindex="-1"></a>     <span class="dv">2</span><span class="sc">*</span><span class="fu">sin</span>(t_vals <span class="sc">/</span> <span class="dv">8</span>) <span class="sc">+</span>              <span class="co"># mild seasonal pattern</span></span>
-<span id="cb878-24"><a href="sec-regression-discontinuity-in-time.html#cb878-24" tabindex="-1"></a>     <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">2</span>)                 <span class="co"># random noise</span></span>
-<span id="cb878-25"><a href="sec-regression-discontinuity-in-time.html#cb878-25" tabindex="-1"></a></span>
-<span id="cb878-26"><a href="sec-regression-discontinuity-in-time.html#cb878-26" tabindex="-1"></a><span class="co"># Optional confounder X that also increases with time</span></span>
-<span id="cb878-27"><a href="sec-regression-discontinuity-in-time.html#cb878-27" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fl">1.5</span> <span class="sc">*</span> t_vals <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">5</span>)</span>
-<span id="cb878-28"><a href="sec-regression-discontinuity-in-time.html#cb878-28" tabindex="-1"></a></span>
-<span id="cb878-29"><a href="sec-regression-discontinuity-in-time.html#cb878-29" tabindex="-1"></a><span class="co"># Store everything in a single data frame</span></span>
-<span id="cb878-30"><a href="sec-regression-discontinuity-in-time.html#cb878-30" tabindex="-1"></a>df_full <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> t_vals, <span class="at">Y =</span> Y, <span class="at">X =</span> X)</span></code></pre></div>
-<div class="sourceCode" id="cb879"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb879-1"><a href="sec-regression-discontinuity-in-time.html#cb879-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb879-2"><a href="sec-regression-discontinuity-in-time.html#cb879-2" tabindex="-1"></a><span class="co"># 2. Plot the Entire Dataset &amp; Highlight the Cutoff</span></span>
-<span id="cb879-3"><a href="sec-regression-discontinuity-in-time.html#cb879-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb879-4"><a href="sec-regression-discontinuity-in-time.html#cb879-4" tabindex="-1"></a><span class="co"># par(mfrow=c(1,2))  # We&#39;ll produce two plots side by side</span></span>
-<span id="cb879-5"><a href="sec-regression-discontinuity-in-time.html#cb879-5" tabindex="-1"></a></span>
-<span id="cb879-6"><a href="sec-regression-discontinuity-in-time.html#cb879-6" tabindex="-1"></a><span class="co"># Plot 1: Full data</span></span>
-<span id="cb879-7"><a href="sec-regression-discontinuity-in-time.html#cb879-7" tabindex="-1"></a><span class="fu">plot</span>(df_full<span class="sc">$</span>t, df_full<span class="sc">$</span>Y, <span class="at">pch=</span><span class="dv">16</span>,</span>
-<span id="cb879-8"><a href="sec-regression-discontinuity-in-time.html#cb879-8" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">&quot;Time (t)&quot;</span>, <span class="at">ylab=</span><span class="st">&quot;Outcome (Y)&quot;</span>,</span>
-<span id="cb879-9"><a href="sec-regression-discontinuity-in-time.html#cb879-9" tabindex="-1"></a>     <span class="at">main=</span><span class="st">&quot;Full Time Series with True Jump at T_star&quot;</span>)</span>
-<span id="cb879-10"><a href="sec-regression-discontinuity-in-time.html#cb879-10" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>T_star, <span class="at">lwd=</span><span class="dv">2</span>)  <span class="co"># vertical line at the cutoff</span></span></code></pre></div>
+<div class="sourceCode" id="cb883"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb883-1"><a href="sec-regression-discontinuity-in-time.html#cb883-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb883-2"><a href="sec-regression-discontinuity-in-time.html#cb883-2" tabindex="-1"></a><span class="co"># 0. Libraries</span></span>
+<span id="cb883-3"><a href="sec-regression-discontinuity-in-time.html#cb883-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb883-4"><a href="sec-regression-discontinuity-in-time.html#cb883-4" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;sandwich&quot;</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;sandwich&quot;</span>, <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
+<span id="cb883-5"><a href="sec-regression-discontinuity-in-time.html#cb883-5" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;lmtest&quot;</span>))   <span class="fu">install.packages</span>(<span class="st">&quot;lmtest&quot;</span>,   <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
+<span id="cb883-6"><a href="sec-regression-discontinuity-in-time.html#cb883-6" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb883-7"><a href="sec-regression-discontinuity-in-time.html#cb883-7" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb883-8"><a href="sec-regression-discontinuity-in-time.html#cb883-8" tabindex="-1"></a></span>
+<span id="cb883-9"><a href="sec-regression-discontinuity-in-time.html#cb883-9" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb883-10"><a href="sec-regression-discontinuity-in-time.html#cb883-10" tabindex="-1"></a><span class="co"># 1. Generate Synthetic Data</span></span>
+<span id="cb883-11"><a href="sec-regression-discontinuity-in-time.html#cb883-11" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb883-12"><a href="sec-regression-discontinuity-in-time.html#cb883-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb883-13"><a href="sec-regression-discontinuity-in-time.html#cb883-13" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="dv">200</span>                <span class="co"># total number of time points</span></span>
+<span id="cb883-14"><a href="sec-regression-discontinuity-in-time.html#cb883-14" tabindex="-1"></a>T_star <span class="ot">&lt;-</span> <span class="dv">100</span>                <span class="co"># cutoff (policy/intervention) time</span></span>
+<span id="cb883-15"><a href="sec-regression-discontinuity-in-time.html#cb883-15" tabindex="-1"></a>t_vals <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(n)         <span class="co"># time index: 1, 2, ..., n</span></span>
+<span id="cb883-16"><a href="sec-regression-discontinuity-in-time.html#cb883-16" tabindex="-1"></a></span>
+<span id="cb883-17"><a href="sec-regression-discontinuity-in-time.html#cb883-17" tabindex="-1"></a><span class="co"># Outcome Y has a linear pre-trend, a mild quadratic component, </span></span>
+<span id="cb883-18"><a href="sec-regression-discontinuity-in-time.html#cb883-18" tabindex="-1"></a><span class="co"># and a jump of +5 at T_star</span></span>
+<span id="cb883-19"><a href="sec-regression-discontinuity-in-time.html#cb883-19" tabindex="-1"></a><span class="co"># plus a small sinusoidal seasonality and random noise.</span></span>
+<span id="cb883-20"><a href="sec-regression-discontinuity-in-time.html#cb883-20" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fl">0.4</span> <span class="sc">*</span> t_vals <span class="sc">+</span>          <span class="co"># baseline slope</span></span>
+<span id="cb883-21"><a href="sec-regression-discontinuity-in-time.html#cb883-21" tabindex="-1"></a>     <span class="fl">0.002</span> <span class="sc">*</span> (t_vals<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span>    <span class="co"># mild curvature</span></span>
+<span id="cb883-22"><a href="sec-regression-discontinuity-in-time.html#cb883-22" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="dv">5</span>, <span class="dv">0</span>) <span class="sc">+</span>  <span class="co"># jump at T_star</span></span>
+<span id="cb883-23"><a href="sec-regression-discontinuity-in-time.html#cb883-23" tabindex="-1"></a>     <span class="dv">2</span><span class="sc">*</span><span class="fu">sin</span>(t_vals <span class="sc">/</span> <span class="dv">8</span>) <span class="sc">+</span>              <span class="co"># mild seasonal pattern</span></span>
+<span id="cb883-24"><a href="sec-regression-discontinuity-in-time.html#cb883-24" tabindex="-1"></a>     <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">2</span>)                 <span class="co"># random noise</span></span>
+<span id="cb883-25"><a href="sec-regression-discontinuity-in-time.html#cb883-25" tabindex="-1"></a></span>
+<span id="cb883-26"><a href="sec-regression-discontinuity-in-time.html#cb883-26" tabindex="-1"></a><span class="co"># Optional confounder X that also increases with time</span></span>
+<span id="cb883-27"><a href="sec-regression-discontinuity-in-time.html#cb883-27" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fl">1.5</span> <span class="sc">*</span> t_vals <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">5</span>)</span>
+<span id="cb883-28"><a href="sec-regression-discontinuity-in-time.html#cb883-28" tabindex="-1"></a></span>
+<span id="cb883-29"><a href="sec-regression-discontinuity-in-time.html#cb883-29" tabindex="-1"></a><span class="co"># Store everything in a single data frame</span></span>
+<span id="cb883-30"><a href="sec-regression-discontinuity-in-time.html#cb883-30" tabindex="-1"></a>df_full <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> t_vals, <span class="at">Y =</span> Y, <span class="at">X =</span> X)</span></code></pre></div>
+<div class="sourceCode" id="cb884"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb884-1"><a href="sec-regression-discontinuity-in-time.html#cb884-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb884-2"><a href="sec-regression-discontinuity-in-time.html#cb884-2" tabindex="-1"></a><span class="co"># 2. Plot the Entire Dataset &amp; Highlight the Cutoff</span></span>
+<span id="cb884-3"><a href="sec-regression-discontinuity-in-time.html#cb884-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb884-4"><a href="sec-regression-discontinuity-in-time.html#cb884-4" tabindex="-1"></a><span class="co"># par(mfrow=c(1,2))  # We&#39;ll produce two plots side by side</span></span>
+<span id="cb884-5"><a href="sec-regression-discontinuity-in-time.html#cb884-5" tabindex="-1"></a></span>
+<span id="cb884-6"><a href="sec-regression-discontinuity-in-time.html#cb884-6" tabindex="-1"></a><span class="co"># Plot 1: Full data</span></span>
+<span id="cb884-7"><a href="sec-regression-discontinuity-in-time.html#cb884-7" tabindex="-1"></a><span class="fu">plot</span>(df_full<span class="sc">$</span>t, df_full<span class="sc">$</span>Y, <span class="at">pch=</span><span class="dv">16</span>,</span>
+<span id="cb884-8"><a href="sec-regression-discontinuity-in-time.html#cb884-8" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">&quot;Time (t)&quot;</span>, <span class="at">ylab=</span><span class="st">&quot;Outcome (Y)&quot;</span>,</span>
+<span id="cb884-9"><a href="sec-regression-discontinuity-in-time.html#cb884-9" tabindex="-1"></a>     <span class="at">main=</span><span class="st">&quot;Full Time Series with True Jump at T_star&quot;</span>)</span>
+<span id="cb884-10"><a href="sec-regression-discontinuity-in-time.html#cb884-10" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>T_star, <span class="at">lwd=</span><span class="dv">2</span>)  <span class="co"># vertical line at the cutoff</span></span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-1"></span>
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-1-1.png" alt="Scatter plot of outcome Y against time  t, with data points forming an upward trajectory. A vertical black line at = 100 marks the location of a true jump in the outcome variable. Before and after the break, the trend remains positive, but there is a clear increase in level at the cutoff." width="90%" />
 <p class="caption">
 Figure 2.1: Full Time Series with Structural Break at T*
 </p>
 </div>
-<div class="sourceCode" id="cb880"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb880-1"><a href="sec-regression-discontinuity-in-time.html#cb880-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-2"><a href="sec-regression-discontinuity-in-time.html#cb880-2" tabindex="-1"></a><span class="co"># 3. Restrict to a Local Bandwidth (h) Around T_star</span></span>
-<span id="cb880-3"><a href="sec-regression-discontinuity-in-time.html#cb880-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-4"><a href="sec-regression-discontinuity-in-time.html#cb880-4" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="dv">10</span></span>
-<span id="cb880-5"><a href="sec-regression-discontinuity-in-time.html#cb880-5" tabindex="-1"></a>df_local <span class="ot">&lt;-</span> <span class="fu">subset</span>(df_full, <span class="fu">abs</span>(t <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h)</span>
-<span id="cb880-6"><a href="sec-regression-discontinuity-in-time.html#cb880-6" tabindex="-1"></a></span>
-<span id="cb880-7"><a href="sec-regression-discontinuity-in-time.html#cb880-7" tabindex="-1"></a><span class="co"># Create variables for local regression</span></span>
-<span id="cb880-8"><a href="sec-regression-discontinuity-in-time.html#cb880-8" tabindex="-1"></a>df_local<span class="sc">$</span>D           <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df_local<span class="sc">$</span>t <span class="sc">&gt;=</span> T_star, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb880-9"><a href="sec-regression-discontinuity-in-time.html#cb880-9" tabindex="-1"></a>df_local<span class="sc">$</span>t_centered  <span class="ot">&lt;-</span> df_local<span class="sc">$</span>t <span class="sc">-</span> T_star</span>
-<span id="cb880-10"><a href="sec-regression-discontinuity-in-time.html#cb880-10" tabindex="-1"></a></span>
-<span id="cb880-11"><a href="sec-regression-discontinuity-in-time.html#cb880-11" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-12"><a href="sec-regression-discontinuity-in-time.html#cb880-12" tabindex="-1"></a><span class="co"># 4. Baseline Local Linear RDiT Model</span></span>
-<span id="cb880-13"><a href="sec-regression-discontinuity-in-time.html#cb880-13" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-14"><a href="sec-regression-discontinuity-in-time.html#cb880-14" tabindex="-1"></a><span class="co"># Model:</span></span>
-<span id="cb880-15"><a href="sec-regression-discontinuity-in-time.html#cb880-15" tabindex="-1"></a><span class="co">#   Y = alpha_0 + alpha_1*(t - T_star) + tau*D + alpha_2*(t - T_star)*D + error</span></span>
-<span id="cb880-16"><a href="sec-regression-discontinuity-in-time.html#cb880-16" tabindex="-1"></a>mod_rdit_linear <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D, <span class="at">data =</span> df_local)</span>
-<span id="cb880-17"><a href="sec-regression-discontinuity-in-time.html#cb880-17" tabindex="-1"></a><span class="co"># Robust (HC) standard errors for potential serial correlation</span></span>
-<span id="cb880-18"><a href="sec-regression-discontinuity-in-time.html#cb880-18" tabindex="-1"></a>res_rdit_linear <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_linear, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_linear, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
-<span id="cb880-19"><a href="sec-regression-discontinuity-in-time.html#cb880-19" tabindex="-1"></a></span>
-<span id="cb880-20"><a href="sec-regression-discontinuity-in-time.html#cb880-20" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-21"><a href="sec-regression-discontinuity-in-time.html#cb880-21" tabindex="-1"></a><span class="co"># 5. Local Polynomial (Quadratic) RDiT Model</span></span>
-<span id="cb880-22"><a href="sec-regression-discontinuity-in-time.html#cb880-22" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-23"><a href="sec-regression-discontinuity-in-time.html#cb880-23" tabindex="-1"></a>df_local<span class="sc">$</span>t_centered2 <span class="ot">&lt;-</span> df_local<span class="sc">$</span>t_centered<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb880-24"><a href="sec-regression-discontinuity-in-time.html#cb880-24" tabindex="-1"></a>mod_rdit_quad <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered <span class="sc">+</span> t_centered2 <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D <span class="sc">+</span> t_centered2<span class="sc">:</span>D,</span>
-<span id="cb880-25"><a href="sec-regression-discontinuity-in-time.html#cb880-25" tabindex="-1"></a>                    <span class="at">data =</span> df_local)</span>
-<span id="cb880-26"><a href="sec-regression-discontinuity-in-time.html#cb880-26" tabindex="-1"></a>res_rdit_quad <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_quad, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_quad, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
-<span id="cb880-27"><a href="sec-regression-discontinuity-in-time.html#cb880-27" tabindex="-1"></a></span>
-<span id="cb880-28"><a href="sec-regression-discontinuity-in-time.html#cb880-28" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-29"><a href="sec-regression-discontinuity-in-time.html#cb880-29" tabindex="-1"></a><span class="co"># 6. Donut Approach: Excluding Observations Near the Cutoff</span></span>
-<span id="cb880-30"><a href="sec-regression-discontinuity-in-time.html#cb880-30" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-31"><a href="sec-regression-discontinuity-in-time.html#cb880-31" tabindex="-1"></a>df_donut <span class="ot">&lt;-</span> <span class="fu">subset</span>(df_local, <span class="fu">abs</span>(t <span class="sc">-</span> T_star) <span class="sc">&gt;</span> <span class="dv">1</span>)  <span class="co"># remove t_star +/- 1 unit</span></span>
-<span id="cb880-32"><a href="sec-regression-discontinuity-in-time.html#cb880-32" tabindex="-1"></a>mod_rdit_donut <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D, <span class="at">data =</span> df_donut)</span>
-<span id="cb880-33"><a href="sec-regression-discontinuity-in-time.html#cb880-33" tabindex="-1"></a>res_rdit_donut <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_donut, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_donut, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
-<span id="cb880-34"><a href="sec-regression-discontinuity-in-time.html#cb880-34" tabindex="-1"></a></span>
-<span id="cb880-35"><a href="sec-regression-discontinuity-in-time.html#cb880-35" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-36"><a href="sec-regression-discontinuity-in-time.html#cb880-36" tabindex="-1"></a><span class="co"># 7. Placebo Test: Fake Cutoff</span></span>
-<span id="cb880-37"><a href="sec-regression-discontinuity-in-time.html#cb880-37" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-38"><a href="sec-regression-discontinuity-in-time.html#cb880-38" tabindex="-1"></a>T_fake <span class="ot">&lt;-</span> <span class="dv">120</span></span>
-<span id="cb880-39"><a href="sec-regression-discontinuity-in-time.html#cb880-39" tabindex="-1"></a>df_placebo <span class="ot">&lt;-</span> <span class="fu">subset</span>(df_full, <span class="fu">abs</span>(t <span class="sc">-</span> T_fake) <span class="sc">&lt;</span> h)</span>
-<span id="cb880-40"><a href="sec-regression-discontinuity-in-time.html#cb880-40" tabindex="-1"></a>df_placebo<span class="sc">$</span>D_placebo          <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df_placebo<span class="sc">$</span>t <span class="sc">&gt;=</span> T_fake, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb880-41"><a href="sec-regression-discontinuity-in-time.html#cb880-41" tabindex="-1"></a>df_placebo<span class="sc">$</span>t_centered_placebo <span class="ot">&lt;-</span> df_placebo<span class="sc">$</span>t <span class="sc">-</span> T_fake</span>
-<span id="cb880-42"><a href="sec-regression-discontinuity-in-time.html#cb880-42" tabindex="-1"></a></span>
-<span id="cb880-43"><a href="sec-regression-discontinuity-in-time.html#cb880-43" tabindex="-1"></a>mod_rdit_placebo <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered_placebo <span class="sc">+</span> D_placebo <span class="sc">+</span> t_centered_placebo<span class="sc">:</span>D_placebo,</span>
-<span id="cb880-44"><a href="sec-regression-discontinuity-in-time.html#cb880-44" tabindex="-1"></a>                       <span class="at">data =</span> df_placebo)</span>
-<span id="cb880-45"><a href="sec-regression-discontinuity-in-time.html#cb880-45" tabindex="-1"></a>res_rdit_placebo <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_placebo, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_placebo, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
-<span id="cb880-46"><a href="sec-regression-discontinuity-in-time.html#cb880-46" tabindex="-1"></a></span>
-<span id="cb880-47"><a href="sec-regression-discontinuity-in-time.html#cb880-47" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-48"><a href="sec-regression-discontinuity-in-time.html#cb880-48" tabindex="-1"></a><span class="co"># 8. Augmented RDiT Model (Controlling for X)</span></span>
-<span id="cb880-49"><a href="sec-regression-discontinuity-in-time.html#cb880-49" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb880-50"><a href="sec-regression-discontinuity-in-time.html#cb880-50" tabindex="-1"></a>mod_rdit_aug <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> X <span class="sc">+</span> t_centered <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D, <span class="at">data =</span> df_local)</span>
-<span id="cb880-51"><a href="sec-regression-discontinuity-in-time.html#cb880-51" tabindex="-1"></a>res_rdit_aug <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_aug, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_aug, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb881"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb881-1"><a href="sec-regression-discontinuity-in-time.html#cb881-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb881-2"><a href="sec-regression-discontinuity-in-time.html#cb881-2" tabindex="-1"></a><span class="co"># 9. Plot the Local Data and Fitted RDiT Lines</span></span>
-<span id="cb881-3"><a href="sec-regression-discontinuity-in-time.html#cb881-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb881-4"><a href="sec-regression-discontinuity-in-time.html#cb881-4" tabindex="-1"></a><span class="fu">plot</span>(df_local<span class="sc">$</span>t, df_local<span class="sc">$</span>Y, <span class="at">pch=</span><span class="dv">16</span>,</span>
-<span id="cb881-5"><a href="sec-regression-discontinuity-in-time.html#cb881-5" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">&quot;Time (t)&quot;</span>, <span class="at">ylab=</span><span class="st">&quot;Outcome (Y)&quot;</span>,</span>
-<span id="cb881-6"><a href="sec-regression-discontinuity-in-time.html#cb881-6" tabindex="-1"></a>     <span class="at">main=</span><span class="st">&quot;Local Window Around T_star&quot;</span>)</span>
-<span id="cb881-7"><a href="sec-regression-discontinuity-in-time.html#cb881-7" tabindex="-1"></a></span>
-<span id="cb881-8"><a href="sec-regression-discontinuity-in-time.html#cb881-8" tabindex="-1"></a><span class="co"># Sort data by centered time for a smooth line</span></span>
-<span id="cb881-9"><a href="sec-regression-discontinuity-in-time.html#cb881-9" tabindex="-1"></a>df_local_sorted <span class="ot">&lt;-</span> df_local[<span class="fu">order</span>(df_local<span class="sc">$</span>t_centered), ]</span>
-<span id="cb881-10"><a href="sec-regression-discontinuity-in-time.html#cb881-10" tabindex="-1"></a>pred_linear     <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod_rdit_linear, <span class="at">newdata=</span>df_local_sorted)</span>
-<span id="cb881-11"><a href="sec-regression-discontinuity-in-time.html#cb881-11" tabindex="-1"></a><span class="fu">lines</span>(df_local_sorted<span class="sc">$</span>t, pred_linear, <span class="at">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb881-12"><a href="sec-regression-discontinuity-in-time.html#cb881-12" tabindex="-1"></a></span>
-<span id="cb881-13"><a href="sec-regression-discontinuity-in-time.html#cb881-13" tabindex="-1"></a><span class="co"># Add a vertical line at T_star for reference</span></span>
-<span id="cb881-14"><a href="sec-regression-discontinuity-in-time.html#cb881-14" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>T_star, <span class="at">lwd=</span><span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb885"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb885-1"><a href="sec-regression-discontinuity-in-time.html#cb885-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-2"><a href="sec-regression-discontinuity-in-time.html#cb885-2" tabindex="-1"></a><span class="co"># 3. Restrict to a Local Bandwidth (h) Around T_star</span></span>
+<span id="cb885-3"><a href="sec-regression-discontinuity-in-time.html#cb885-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-4"><a href="sec-regression-discontinuity-in-time.html#cb885-4" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb885-5"><a href="sec-regression-discontinuity-in-time.html#cb885-5" tabindex="-1"></a>df_local <span class="ot">&lt;-</span> <span class="fu">subset</span>(df_full, <span class="fu">abs</span>(t <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h)</span>
+<span id="cb885-6"><a href="sec-regression-discontinuity-in-time.html#cb885-6" tabindex="-1"></a></span>
+<span id="cb885-7"><a href="sec-regression-discontinuity-in-time.html#cb885-7" tabindex="-1"></a><span class="co"># Create variables for local regression</span></span>
+<span id="cb885-8"><a href="sec-regression-discontinuity-in-time.html#cb885-8" tabindex="-1"></a>df_local<span class="sc">$</span>D           <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df_local<span class="sc">$</span>t <span class="sc">&gt;=</span> T_star, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb885-9"><a href="sec-regression-discontinuity-in-time.html#cb885-9" tabindex="-1"></a>df_local<span class="sc">$</span>t_centered  <span class="ot">&lt;-</span> df_local<span class="sc">$</span>t <span class="sc">-</span> T_star</span>
+<span id="cb885-10"><a href="sec-regression-discontinuity-in-time.html#cb885-10" tabindex="-1"></a></span>
+<span id="cb885-11"><a href="sec-regression-discontinuity-in-time.html#cb885-11" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-12"><a href="sec-regression-discontinuity-in-time.html#cb885-12" tabindex="-1"></a><span class="co"># 4. Baseline Local Linear RDiT Model</span></span>
+<span id="cb885-13"><a href="sec-regression-discontinuity-in-time.html#cb885-13" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-14"><a href="sec-regression-discontinuity-in-time.html#cb885-14" tabindex="-1"></a><span class="co"># Model:</span></span>
+<span id="cb885-15"><a href="sec-regression-discontinuity-in-time.html#cb885-15" tabindex="-1"></a><span class="co">#   Y = alpha_0 + alpha_1*(t - T_star) + tau*D + alpha_2*(t - T_star)*D + error</span></span>
+<span id="cb885-16"><a href="sec-regression-discontinuity-in-time.html#cb885-16" tabindex="-1"></a>mod_rdit_linear <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D, <span class="at">data =</span> df_local)</span>
+<span id="cb885-17"><a href="sec-regression-discontinuity-in-time.html#cb885-17" tabindex="-1"></a><span class="co"># Robust (HC) standard errors for potential serial correlation</span></span>
+<span id="cb885-18"><a href="sec-regression-discontinuity-in-time.html#cb885-18" tabindex="-1"></a>res_rdit_linear <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_linear, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_linear, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
+<span id="cb885-19"><a href="sec-regression-discontinuity-in-time.html#cb885-19" tabindex="-1"></a></span>
+<span id="cb885-20"><a href="sec-regression-discontinuity-in-time.html#cb885-20" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-21"><a href="sec-regression-discontinuity-in-time.html#cb885-21" tabindex="-1"></a><span class="co"># 5. Local Polynomial (Quadratic) RDiT Model</span></span>
+<span id="cb885-22"><a href="sec-regression-discontinuity-in-time.html#cb885-22" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-23"><a href="sec-regression-discontinuity-in-time.html#cb885-23" tabindex="-1"></a>df_local<span class="sc">$</span>t_centered2 <span class="ot">&lt;-</span> df_local<span class="sc">$</span>t_centered<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb885-24"><a href="sec-regression-discontinuity-in-time.html#cb885-24" tabindex="-1"></a>mod_rdit_quad <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered <span class="sc">+</span> t_centered2 <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D <span class="sc">+</span> t_centered2<span class="sc">:</span>D,</span>
+<span id="cb885-25"><a href="sec-regression-discontinuity-in-time.html#cb885-25" tabindex="-1"></a>                    <span class="at">data =</span> df_local)</span>
+<span id="cb885-26"><a href="sec-regression-discontinuity-in-time.html#cb885-26" tabindex="-1"></a>res_rdit_quad <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_quad, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_quad, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
+<span id="cb885-27"><a href="sec-regression-discontinuity-in-time.html#cb885-27" tabindex="-1"></a></span>
+<span id="cb885-28"><a href="sec-regression-discontinuity-in-time.html#cb885-28" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-29"><a href="sec-regression-discontinuity-in-time.html#cb885-29" tabindex="-1"></a><span class="co"># 6. Donut Approach: Excluding Observations Near the Cutoff</span></span>
+<span id="cb885-30"><a href="sec-regression-discontinuity-in-time.html#cb885-30" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-31"><a href="sec-regression-discontinuity-in-time.html#cb885-31" tabindex="-1"></a>df_donut <span class="ot">&lt;-</span> <span class="fu">subset</span>(df_local, <span class="fu">abs</span>(t <span class="sc">-</span> T_star) <span class="sc">&gt;</span> <span class="dv">1</span>)  <span class="co"># remove t_star +/- 1 unit</span></span>
+<span id="cb885-32"><a href="sec-regression-discontinuity-in-time.html#cb885-32" tabindex="-1"></a>mod_rdit_donut <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D, <span class="at">data =</span> df_donut)</span>
+<span id="cb885-33"><a href="sec-regression-discontinuity-in-time.html#cb885-33" tabindex="-1"></a>res_rdit_donut <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_donut, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_donut, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
+<span id="cb885-34"><a href="sec-regression-discontinuity-in-time.html#cb885-34" tabindex="-1"></a></span>
+<span id="cb885-35"><a href="sec-regression-discontinuity-in-time.html#cb885-35" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-36"><a href="sec-regression-discontinuity-in-time.html#cb885-36" tabindex="-1"></a><span class="co"># 7. Placebo Test: Fake Cutoff</span></span>
+<span id="cb885-37"><a href="sec-regression-discontinuity-in-time.html#cb885-37" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-38"><a href="sec-regression-discontinuity-in-time.html#cb885-38" tabindex="-1"></a>T_fake <span class="ot">&lt;-</span> <span class="dv">120</span></span>
+<span id="cb885-39"><a href="sec-regression-discontinuity-in-time.html#cb885-39" tabindex="-1"></a>df_placebo <span class="ot">&lt;-</span> <span class="fu">subset</span>(df_full, <span class="fu">abs</span>(t <span class="sc">-</span> T_fake) <span class="sc">&lt;</span> h)</span>
+<span id="cb885-40"><a href="sec-regression-discontinuity-in-time.html#cb885-40" tabindex="-1"></a>df_placebo<span class="sc">$</span>D_placebo          <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df_placebo<span class="sc">$</span>t <span class="sc">&gt;=</span> T_fake, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb885-41"><a href="sec-regression-discontinuity-in-time.html#cb885-41" tabindex="-1"></a>df_placebo<span class="sc">$</span>t_centered_placebo <span class="ot">&lt;-</span> df_placebo<span class="sc">$</span>t <span class="sc">-</span> T_fake</span>
+<span id="cb885-42"><a href="sec-regression-discontinuity-in-time.html#cb885-42" tabindex="-1"></a></span>
+<span id="cb885-43"><a href="sec-regression-discontinuity-in-time.html#cb885-43" tabindex="-1"></a>mod_rdit_placebo <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered_placebo <span class="sc">+</span> D_placebo <span class="sc">+</span> t_centered_placebo<span class="sc">:</span>D_placebo,</span>
+<span id="cb885-44"><a href="sec-regression-discontinuity-in-time.html#cb885-44" tabindex="-1"></a>                       <span class="at">data =</span> df_placebo)</span>
+<span id="cb885-45"><a href="sec-regression-discontinuity-in-time.html#cb885-45" tabindex="-1"></a>res_rdit_placebo <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_placebo, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_placebo, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span>
+<span id="cb885-46"><a href="sec-regression-discontinuity-in-time.html#cb885-46" tabindex="-1"></a></span>
+<span id="cb885-47"><a href="sec-regression-discontinuity-in-time.html#cb885-47" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-48"><a href="sec-regression-discontinuity-in-time.html#cb885-48" tabindex="-1"></a><span class="co"># 8. Augmented RDiT Model (Controlling for X)</span></span>
+<span id="cb885-49"><a href="sec-regression-discontinuity-in-time.html#cb885-49" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb885-50"><a href="sec-regression-discontinuity-in-time.html#cb885-50" tabindex="-1"></a>mod_rdit_aug <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> X <span class="sc">+</span> t_centered <span class="sc">+</span> D <span class="sc">+</span> t_centered<span class="sc">:</span>D, <span class="at">data =</span> df_local)</span>
+<span id="cb885-51"><a href="sec-regression-discontinuity-in-time.html#cb885-51" tabindex="-1"></a>res_rdit_aug <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_rdit_aug, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_rdit_aug, <span class="at">type=</span><span class="st">&quot;HC1&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb886"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb886-1"><a href="sec-regression-discontinuity-in-time.html#cb886-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb886-2"><a href="sec-regression-discontinuity-in-time.html#cb886-2" tabindex="-1"></a><span class="co"># 9. Plot the Local Data and Fitted RDiT Lines</span></span>
+<span id="cb886-3"><a href="sec-regression-discontinuity-in-time.html#cb886-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb886-4"><a href="sec-regression-discontinuity-in-time.html#cb886-4" tabindex="-1"></a><span class="fu">plot</span>(df_local<span class="sc">$</span>t, df_local<span class="sc">$</span>Y, <span class="at">pch=</span><span class="dv">16</span>,</span>
+<span id="cb886-5"><a href="sec-regression-discontinuity-in-time.html#cb886-5" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">&quot;Time (t)&quot;</span>, <span class="at">ylab=</span><span class="st">&quot;Outcome (Y)&quot;</span>,</span>
+<span id="cb886-6"><a href="sec-regression-discontinuity-in-time.html#cb886-6" tabindex="-1"></a>     <span class="at">main=</span><span class="st">&quot;Local Window Around T_star&quot;</span>)</span>
+<span id="cb886-7"><a href="sec-regression-discontinuity-in-time.html#cb886-7" tabindex="-1"></a></span>
+<span id="cb886-8"><a href="sec-regression-discontinuity-in-time.html#cb886-8" tabindex="-1"></a><span class="co"># Sort data by centered time for a smooth line</span></span>
+<span id="cb886-9"><a href="sec-regression-discontinuity-in-time.html#cb886-9" tabindex="-1"></a>df_local_sorted <span class="ot">&lt;-</span> df_local[<span class="fu">order</span>(df_local<span class="sc">$</span>t_centered), ]</span>
+<span id="cb886-10"><a href="sec-regression-discontinuity-in-time.html#cb886-10" tabindex="-1"></a>pred_linear     <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod_rdit_linear, <span class="at">newdata=</span>df_local_sorted)</span>
+<span id="cb886-11"><a href="sec-regression-discontinuity-in-time.html#cb886-11" tabindex="-1"></a><span class="fu">lines</span>(df_local_sorted<span class="sc">$</span>t, pred_linear, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb886-12"><a href="sec-regression-discontinuity-in-time.html#cb886-12" tabindex="-1"></a></span>
+<span id="cb886-13"><a href="sec-regression-discontinuity-in-time.html#cb886-13" tabindex="-1"></a><span class="co"># Add a vertical line at T_star for reference</span></span>
+<span id="cb886-14"><a href="sec-regression-discontinuity-in-time.html#cb886-14" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>T_star, <span class="at">lwd=</span><span class="dv">2</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-3"></span>
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-3-1.png" alt="Scatter plot of outcome Y versus time t, focused around = 80. Data points are fitted with two separate linear trends, one before and one after the vertical line at the cutoff T*. The outcome increases over time on both sides, with a visible jump at the cutoff." width="90%" />
 <p class="caption">
 Figure 2.3: Local Linear Regression Around the Cutoff T*
 </p>
 </div>
-<div class="sourceCode" id="cb882"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb882-1"><a href="sec-regression-discontinuity-in-time.html#cb882-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb882-2"><a href="sec-regression-discontinuity-in-time.html#cb882-2" tabindex="-1"></a><span class="co"># Print Summaries &amp; Brief Interpretation</span></span>
-<span id="cb882-3"><a href="sec-regression-discontinuity-in-time.html#cb882-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb882-4"><a href="sec-regression-discontinuity-in-time.html#cb882-4" tabindex="-1"></a></span>
-<span id="cb882-5"><a href="sec-regression-discontinuity-in-time.html#cb882-5" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot; Local Linear RDiT (Baseline):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb882-6"><a href="sec-regression-discontinuity-in-time.html#cb882-6" tabindex="-1"></a><span class="co">#&gt;  Local Linear RDiT (Baseline):</span></span>
-<span id="cb882-7"><a href="sec-regression-discontinuity-in-time.html#cb882-7" tabindex="-1"></a><span class="fu">print</span>(res_rdit_linear)</span>
-<span id="cb882-8"><a href="sec-regression-discontinuity-in-time.html#cb882-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-9"><a href="sec-regression-discontinuity-in-time.html#cb882-9" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb882-10"><a href="sec-regression-discontinuity-in-time.html#cb882-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-11"><a href="sec-regression-discontinuity-in-time.html#cb882-11" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
-<span id="cb882-12"><a href="sec-regression-discontinuity-in-time.html#cb882-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)  61.213434   1.625008 37.6696 2.853e-16 ***</span></span>
-<span id="cb882-13"><a href="sec-regression-discontinuity-in-time.html#cb882-13" tabindex="-1"></a><span class="co">#&gt; t_centered    1.032094   0.231380  4.4606 0.0004579 ***</span></span>
-<span id="cb882-14"><a href="sec-regression-discontinuity-in-time.html#cb882-14" tabindex="-1"></a><span class="co">#&gt; D             2.853971   1.772639  1.6100 0.1282338    </span></span>
-<span id="cb882-15"><a href="sec-regression-discontinuity-in-time.html#cb882-15" tabindex="-1"></a><span class="co">#&gt; t_centered:D -0.076391   0.271405 -0.2815 0.7821991    </span></span>
-<span id="cb882-16"><a href="sec-regression-discontinuity-in-time.html#cb882-16" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb882-17"><a href="sec-regression-discontinuity-in-time.html#cb882-17" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb882-18"><a href="sec-regression-discontinuity-in-time.html#cb882-18" tabindex="-1"></a></span>
-<span id="cb882-19"><a href="sec-regression-discontinuity-in-time.html#cb882-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Local Quadratic RDiT:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb882-20"><a href="sec-regression-discontinuity-in-time.html#cb882-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-21"><a href="sec-regression-discontinuity-in-time.html#cb882-21" tabindex="-1"></a><span class="co">#&gt;  Local Quadratic RDiT:</span></span>
-<span id="cb882-22"><a href="sec-regression-discontinuity-in-time.html#cb882-22" tabindex="-1"></a><span class="fu">print</span>(res_rdit_quad)</span>
-<span id="cb882-23"><a href="sec-regression-discontinuity-in-time.html#cb882-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-24"><a href="sec-regression-discontinuity-in-time.html#cb882-24" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb882-25"><a href="sec-regression-discontinuity-in-time.html#cb882-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-26"><a href="sec-regression-discontinuity-in-time.html#cb882-26" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
-<span id="cb882-27"><a href="sec-regression-discontinuity-in-time.html#cb882-27" tabindex="-1"></a><span class="co">#&gt; (Intercept)   61.827393   3.038967 20.3449 3.061e-11 ***</span></span>
-<span id="cb882-28"><a href="sec-regression-discontinuity-in-time.html#cb882-28" tabindex="-1"></a><span class="co">#&gt; t_centered     1.366981   1.342431  1.0183    0.3271    </span></span>
-<span id="cb882-29"><a href="sec-regression-discontinuity-in-time.html#cb882-29" tabindex="-1"></a><span class="co">#&gt; t_centered2    0.033489   0.124970  0.2680    0.7929    </span></span>
-<span id="cb882-30"><a href="sec-regression-discontinuity-in-time.html#cb882-30" tabindex="-1"></a><span class="co">#&gt; D              1.577410   3.103945  0.5082    0.6198    </span></span>
-<span id="cb882-31"><a href="sec-regression-discontinuity-in-time.html#cb882-31" tabindex="-1"></a><span class="co">#&gt; t_centered:D   0.085673   1.397606  0.0613    0.9521    </span></span>
-<span id="cb882-32"><a href="sec-regression-discontinuity-in-time.html#cb882-32" tabindex="-1"></a><span class="co">#&gt; t_centered2:D -0.088706   0.134490 -0.6596    0.5210    </span></span>
-<span id="cb882-33"><a href="sec-regression-discontinuity-in-time.html#cb882-33" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb882-34"><a href="sec-regression-discontinuity-in-time.html#cb882-34" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb882-35"><a href="sec-regression-discontinuity-in-time.html#cb882-35" tabindex="-1"></a></span>
-<span id="cb882-36"><a href="sec-regression-discontinuity-in-time.html#cb882-36" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Donut RDiT (Excluding Observations Near T_star):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb882-37"><a href="sec-regression-discontinuity-in-time.html#cb882-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-38"><a href="sec-regression-discontinuity-in-time.html#cb882-38" tabindex="-1"></a><span class="co">#&gt;  Donut RDiT (Excluding Observations Near T_star):</span></span>
-<span id="cb882-39"><a href="sec-regression-discontinuity-in-time.html#cb882-39" tabindex="-1"></a><span class="fu">print</span>(res_rdit_donut)</span>
-<span id="cb882-40"><a href="sec-regression-discontinuity-in-time.html#cb882-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-41"><a href="sec-regression-discontinuity-in-time.html#cb882-41" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb882-42"><a href="sec-regression-discontinuity-in-time.html#cb882-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-43"><a href="sec-regression-discontinuity-in-time.html#cb882-43" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
-<span id="cb882-44"><a href="sec-regression-discontinuity-in-time.html#cb882-44" tabindex="-1"></a><span class="co">#&gt; (Intercept)  62.52140    1.87095 33.4169 3.273e-13 ***</span></span>
-<span id="cb882-45"><a href="sec-regression-discontinuity-in-time.html#cb882-45" tabindex="-1"></a><span class="co">#&gt; t_centered    1.22829    0.27153  4.5235 0.0006975 ***</span></span>
-<span id="cb882-46"><a href="sec-regression-discontinuity-in-time.html#cb882-46" tabindex="-1"></a><span class="co">#&gt; D             2.97980    2.01021  1.4823 0.1640306    </span></span>
-<span id="cb882-47"><a href="sec-regression-discontinuity-in-time.html#cb882-47" tabindex="-1"></a><span class="co">#&gt; t_centered:D -0.49288    0.32020 -1.5393 0.1496810    </span></span>
-<span id="cb882-48"><a href="sec-regression-discontinuity-in-time.html#cb882-48" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb882-49"><a href="sec-regression-discontinuity-in-time.html#cb882-49" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb882-50"><a href="sec-regression-discontinuity-in-time.html#cb882-50" tabindex="-1"></a></span>
-<span id="cb882-51"><a href="sec-regression-discontinuity-in-time.html#cb882-51" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Placebo Test (Fake Cutoff at T_fake=120):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb882-52"><a href="sec-regression-discontinuity-in-time.html#cb882-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-53"><a href="sec-regression-discontinuity-in-time.html#cb882-53" tabindex="-1"></a><span class="co">#&gt;  Placebo Test (Fake Cutoff at T_fake=120):</span></span>
-<span id="cb882-54"><a href="sec-regression-discontinuity-in-time.html#cb882-54" tabindex="-1"></a><span class="fu">print</span>(res_rdit_placebo)</span>
-<span id="cb882-55"><a href="sec-regression-discontinuity-in-time.html#cb882-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-56"><a href="sec-regression-discontinuity-in-time.html#cb882-56" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb882-57"><a href="sec-regression-discontinuity-in-time.html#cb882-57" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-58"><a href="sec-regression-discontinuity-in-time.html#cb882-58" tabindex="-1"></a><span class="co">#&gt;                               Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
-<span id="cb882-59"><a href="sec-regression-discontinuity-in-time.html#cb882-59" tabindex="-1"></a><span class="co">#&gt; (Intercept)                  82.658533   0.868852 95.1354 &lt; 2.2e-16 ***</span></span>
-<span id="cb882-60"><a href="sec-regression-discontinuity-in-time.html#cb882-60" tabindex="-1"></a><span class="co">#&gt; t_centered_placebo            0.768238   0.185830  4.1341 0.0008831 ***</span></span>
-<span id="cb882-61"><a href="sec-regression-discontinuity-in-time.html#cb882-61" tabindex="-1"></a><span class="co">#&gt; D_placebo                    -0.377333   1.188411 -0.3175 0.7552328    </span></span>
-<span id="cb882-62"><a href="sec-regression-discontinuity-in-time.html#cb882-62" tabindex="-1"></a><span class="co">#&gt; t_centered_placebo:D_placebo -0.013586   0.245019 -0.0555 0.9565112    </span></span>
-<span id="cb882-63"><a href="sec-regression-discontinuity-in-time.html#cb882-63" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb882-64"><a href="sec-regression-discontinuity-in-time.html#cb882-64" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb882-65"><a href="sec-regression-discontinuity-in-time.html#cb882-65" tabindex="-1"></a></span>
-<span id="cb882-66"><a href="sec-regression-discontinuity-in-time.html#cb882-66" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Augmented RDiT (Controlling for X):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb882-67"><a href="sec-regression-discontinuity-in-time.html#cb882-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-68"><a href="sec-regression-discontinuity-in-time.html#cb882-68" tabindex="-1"></a><span class="co">#&gt;  Augmented RDiT (Controlling for X):</span></span>
-<span id="cb882-69"><a href="sec-regression-discontinuity-in-time.html#cb882-69" tabindex="-1"></a><span class="fu">print</span>(res_rdit_aug)</span>
-<span id="cb882-70"><a href="sec-regression-discontinuity-in-time.html#cb882-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-71"><a href="sec-regression-discontinuity-in-time.html#cb882-71" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb882-72"><a href="sec-regression-discontinuity-in-time.html#cb882-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb882-73"><a href="sec-regression-discontinuity-in-time.html#cb882-73" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)   </span></span>
-<span id="cb882-74"><a href="sec-regression-discontinuity-in-time.html#cb882-74" tabindex="-1"></a><span class="co">#&gt; (Intercept)  50.960390  13.226193  3.8530 0.001757 **</span></span>
-<span id="cb882-75"><a href="sec-regression-discontinuity-in-time.html#cb882-75" tabindex="-1"></a><span class="co">#&gt; X             0.068836   0.087887  0.7832 0.446540   </span></span>
-<span id="cb882-76"><a href="sec-regression-discontinuity-in-time.html#cb882-76" tabindex="-1"></a><span class="co">#&gt; t_centered    0.984583   0.249801  3.9415 0.001476 **</span></span>
-<span id="cb882-77"><a href="sec-regression-discontinuity-in-time.html#cb882-77" tabindex="-1"></a><span class="co">#&gt; D             2.922905   1.935753  1.5100 0.153291   </span></span>
-<span id="cb882-78"><a href="sec-regression-discontinuity-in-time.html#cb882-78" tabindex="-1"></a><span class="co">#&gt; t_centered:D -0.141496   0.318509 -0.4442 0.663655   </span></span>
-<span id="cb882-79"><a href="sec-regression-discontinuity-in-time.html#cb882-79" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb882-80"><a href="sec-regression-discontinuity-in-time.html#cb882-80" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb887"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb887-1"><a href="sec-regression-discontinuity-in-time.html#cb887-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb887-2"><a href="sec-regression-discontinuity-in-time.html#cb887-2" tabindex="-1"></a><span class="co"># Print Summaries &amp; Brief Interpretation</span></span>
+<span id="cb887-3"><a href="sec-regression-discontinuity-in-time.html#cb887-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb887-4"><a href="sec-regression-discontinuity-in-time.html#cb887-4" tabindex="-1"></a></span>
+<span id="cb887-5"><a href="sec-regression-discontinuity-in-time.html#cb887-5" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot; Local Linear RDiT (Baseline):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb887-6"><a href="sec-regression-discontinuity-in-time.html#cb887-6" tabindex="-1"></a><span class="co">#&gt;  Local Linear RDiT (Baseline):</span></span>
+<span id="cb887-7"><a href="sec-regression-discontinuity-in-time.html#cb887-7" tabindex="-1"></a><span class="fu">print</span>(res_rdit_linear)</span>
+<span id="cb887-8"><a href="sec-regression-discontinuity-in-time.html#cb887-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-9"><a href="sec-regression-discontinuity-in-time.html#cb887-9" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb887-10"><a href="sec-regression-discontinuity-in-time.html#cb887-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-11"><a href="sec-regression-discontinuity-in-time.html#cb887-11" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
+<span id="cb887-12"><a href="sec-regression-discontinuity-in-time.html#cb887-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)  61.213434   1.625008 37.6696 2.853e-16 ***</span></span>
+<span id="cb887-13"><a href="sec-regression-discontinuity-in-time.html#cb887-13" tabindex="-1"></a><span class="co">#&gt; t_centered    1.032094   0.231380  4.4606 0.0004579 ***</span></span>
+<span id="cb887-14"><a href="sec-regression-discontinuity-in-time.html#cb887-14" tabindex="-1"></a><span class="co">#&gt; D             2.853971   1.772639  1.6100 0.1282338    </span></span>
+<span id="cb887-15"><a href="sec-regression-discontinuity-in-time.html#cb887-15" tabindex="-1"></a><span class="co">#&gt; t_centered:D -0.076391   0.271405 -0.2815 0.7821991    </span></span>
+<span id="cb887-16"><a href="sec-regression-discontinuity-in-time.html#cb887-16" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb887-17"><a href="sec-regression-discontinuity-in-time.html#cb887-17" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb887-18"><a href="sec-regression-discontinuity-in-time.html#cb887-18" tabindex="-1"></a></span>
+<span id="cb887-19"><a href="sec-regression-discontinuity-in-time.html#cb887-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Local Quadratic RDiT:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb887-20"><a href="sec-regression-discontinuity-in-time.html#cb887-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-21"><a href="sec-regression-discontinuity-in-time.html#cb887-21" tabindex="-1"></a><span class="co">#&gt;  Local Quadratic RDiT:</span></span>
+<span id="cb887-22"><a href="sec-regression-discontinuity-in-time.html#cb887-22" tabindex="-1"></a><span class="fu">print</span>(res_rdit_quad)</span>
+<span id="cb887-23"><a href="sec-regression-discontinuity-in-time.html#cb887-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-24"><a href="sec-regression-discontinuity-in-time.html#cb887-24" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb887-25"><a href="sec-regression-discontinuity-in-time.html#cb887-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-26"><a href="sec-regression-discontinuity-in-time.html#cb887-26" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
+<span id="cb887-27"><a href="sec-regression-discontinuity-in-time.html#cb887-27" tabindex="-1"></a><span class="co">#&gt; (Intercept)   61.827393   3.038967 20.3449 3.061e-11 ***</span></span>
+<span id="cb887-28"><a href="sec-regression-discontinuity-in-time.html#cb887-28" tabindex="-1"></a><span class="co">#&gt; t_centered     1.366981   1.342431  1.0183    0.3271    </span></span>
+<span id="cb887-29"><a href="sec-regression-discontinuity-in-time.html#cb887-29" tabindex="-1"></a><span class="co">#&gt; t_centered2    0.033489   0.124970  0.2680    0.7929    </span></span>
+<span id="cb887-30"><a href="sec-regression-discontinuity-in-time.html#cb887-30" tabindex="-1"></a><span class="co">#&gt; D              1.577410   3.103945  0.5082    0.6198    </span></span>
+<span id="cb887-31"><a href="sec-regression-discontinuity-in-time.html#cb887-31" tabindex="-1"></a><span class="co">#&gt; t_centered:D   0.085673   1.397606  0.0613    0.9521    </span></span>
+<span id="cb887-32"><a href="sec-regression-discontinuity-in-time.html#cb887-32" tabindex="-1"></a><span class="co">#&gt; t_centered2:D -0.088706   0.134490 -0.6596    0.5210    </span></span>
+<span id="cb887-33"><a href="sec-regression-discontinuity-in-time.html#cb887-33" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb887-34"><a href="sec-regression-discontinuity-in-time.html#cb887-34" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb887-35"><a href="sec-regression-discontinuity-in-time.html#cb887-35" tabindex="-1"></a></span>
+<span id="cb887-36"><a href="sec-regression-discontinuity-in-time.html#cb887-36" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Donut RDiT (Excluding Observations Near T_star):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb887-37"><a href="sec-regression-discontinuity-in-time.html#cb887-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-38"><a href="sec-regression-discontinuity-in-time.html#cb887-38" tabindex="-1"></a><span class="co">#&gt;  Donut RDiT (Excluding Observations Near T_star):</span></span>
+<span id="cb887-39"><a href="sec-regression-discontinuity-in-time.html#cb887-39" tabindex="-1"></a><span class="fu">print</span>(res_rdit_donut)</span>
+<span id="cb887-40"><a href="sec-regression-discontinuity-in-time.html#cb887-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-41"><a href="sec-regression-discontinuity-in-time.html#cb887-41" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb887-42"><a href="sec-regression-discontinuity-in-time.html#cb887-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-43"><a href="sec-regression-discontinuity-in-time.html#cb887-43" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
+<span id="cb887-44"><a href="sec-regression-discontinuity-in-time.html#cb887-44" tabindex="-1"></a><span class="co">#&gt; (Intercept)  62.52140    1.87095 33.4169 3.273e-13 ***</span></span>
+<span id="cb887-45"><a href="sec-regression-discontinuity-in-time.html#cb887-45" tabindex="-1"></a><span class="co">#&gt; t_centered    1.22829    0.27153  4.5235 0.0006975 ***</span></span>
+<span id="cb887-46"><a href="sec-regression-discontinuity-in-time.html#cb887-46" tabindex="-1"></a><span class="co">#&gt; D             2.97980    2.01021  1.4823 0.1640306    </span></span>
+<span id="cb887-47"><a href="sec-regression-discontinuity-in-time.html#cb887-47" tabindex="-1"></a><span class="co">#&gt; t_centered:D -0.49288    0.32020 -1.5393 0.1496810    </span></span>
+<span id="cb887-48"><a href="sec-regression-discontinuity-in-time.html#cb887-48" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb887-49"><a href="sec-regression-discontinuity-in-time.html#cb887-49" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb887-50"><a href="sec-regression-discontinuity-in-time.html#cb887-50" tabindex="-1"></a></span>
+<span id="cb887-51"><a href="sec-regression-discontinuity-in-time.html#cb887-51" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Placebo Test (Fake Cutoff at T_fake=120):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb887-52"><a href="sec-regression-discontinuity-in-time.html#cb887-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-53"><a href="sec-regression-discontinuity-in-time.html#cb887-53" tabindex="-1"></a><span class="co">#&gt;  Placebo Test (Fake Cutoff at T_fake=120):</span></span>
+<span id="cb887-54"><a href="sec-regression-discontinuity-in-time.html#cb887-54" tabindex="-1"></a><span class="fu">print</span>(res_rdit_placebo)</span>
+<span id="cb887-55"><a href="sec-regression-discontinuity-in-time.html#cb887-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-56"><a href="sec-regression-discontinuity-in-time.html#cb887-56" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb887-57"><a href="sec-regression-discontinuity-in-time.html#cb887-57" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-58"><a href="sec-regression-discontinuity-in-time.html#cb887-58" tabindex="-1"></a><span class="co">#&gt;                               Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
+<span id="cb887-59"><a href="sec-regression-discontinuity-in-time.html#cb887-59" tabindex="-1"></a><span class="co">#&gt; (Intercept)                  82.658533   0.868852 95.1354 &lt; 2.2e-16 ***</span></span>
+<span id="cb887-60"><a href="sec-regression-discontinuity-in-time.html#cb887-60" tabindex="-1"></a><span class="co">#&gt; t_centered_placebo            0.768238   0.185830  4.1341 0.0008831 ***</span></span>
+<span id="cb887-61"><a href="sec-regression-discontinuity-in-time.html#cb887-61" tabindex="-1"></a><span class="co">#&gt; D_placebo                    -0.377333   1.188411 -0.3175 0.7552328    </span></span>
+<span id="cb887-62"><a href="sec-regression-discontinuity-in-time.html#cb887-62" tabindex="-1"></a><span class="co">#&gt; t_centered_placebo:D_placebo -0.013586   0.245019 -0.0555 0.9565112    </span></span>
+<span id="cb887-63"><a href="sec-regression-discontinuity-in-time.html#cb887-63" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb887-64"><a href="sec-regression-discontinuity-in-time.html#cb887-64" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb887-65"><a href="sec-regression-discontinuity-in-time.html#cb887-65" tabindex="-1"></a></span>
+<span id="cb887-66"><a href="sec-regression-discontinuity-in-time.html#cb887-66" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Augmented RDiT (Controlling for X):</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb887-67"><a href="sec-regression-discontinuity-in-time.html#cb887-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-68"><a href="sec-regression-discontinuity-in-time.html#cb887-68" tabindex="-1"></a><span class="co">#&gt;  Augmented RDiT (Controlling for X):</span></span>
+<span id="cb887-69"><a href="sec-regression-discontinuity-in-time.html#cb887-69" tabindex="-1"></a><span class="fu">print</span>(res_rdit_aug)</span>
+<span id="cb887-70"><a href="sec-regression-discontinuity-in-time.html#cb887-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-71"><a href="sec-regression-discontinuity-in-time.html#cb887-71" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb887-72"><a href="sec-regression-discontinuity-in-time.html#cb887-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb887-73"><a href="sec-regression-discontinuity-in-time.html#cb887-73" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)   </span></span>
+<span id="cb887-74"><a href="sec-regression-discontinuity-in-time.html#cb887-74" tabindex="-1"></a><span class="co">#&gt; (Intercept)  50.960390  13.226193  3.8530 0.001757 **</span></span>
+<span id="cb887-75"><a href="sec-regression-discontinuity-in-time.html#cb887-75" tabindex="-1"></a><span class="co">#&gt; X             0.068836   0.087887  0.7832 0.446540   </span></span>
+<span id="cb887-76"><a href="sec-regression-discontinuity-in-time.html#cb887-76" tabindex="-1"></a><span class="co">#&gt; t_centered    0.984583   0.249801  3.9415 0.001476 **</span></span>
+<span id="cb887-77"><a href="sec-regression-discontinuity-in-time.html#cb887-77" tabindex="-1"></a><span class="co">#&gt; D             2.922905   1.935753  1.5100 0.153291   </span></span>
+<span id="cb887-78"><a href="sec-regression-discontinuity-in-time.html#cb887-78" tabindex="-1"></a><span class="co">#&gt; t_centered:D -0.141496   0.318509 -0.4442 0.663655   </span></span>
+<span id="cb887-79"><a href="sec-regression-discontinuity-in-time.html#cb887-79" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb887-80"><a href="sec-regression-discontinuity-in-time.html#cb887-80" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <ul>
 <li>‘D’ is the local jump at T_star (i.e., the treatment effect, tau).</li>
 <li>‘t_centered:D’ indicates how the slope differs post-cutoff.</li>

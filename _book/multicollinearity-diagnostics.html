@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>14.6 Multicollinearity Diagnostics | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="14.6 Multicollinearity Diagnostics | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2105,85 +2105,85 @@ div.csl-indent {
 </ol>
 <hr />
 <p>Multicollinearity can significantly distort regression estimates, leading to misleading interpretations. While <a href="multicollinearity-diagnostics.html#sec-variance-inflation-factor">VIF</a> and <a href="multicollinearity-diagnostics.html#sec-tolerance-statistic">Tolerance</a> are commonly used diagnostics, advanced techniques like the <a href="multicollinearity-diagnostics.html#sec-condition-index-and-eigenvalue-decomposition">Condition Index</a> and Eigenvalue Decomposition provide deeper insights, especially when dealing with complex datasets.</p>
-<div class="sourceCode" id="cb642"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb642-1"><a href="multicollinearity-diagnostics.html#cb642-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
-<span id="cb642-2"><a href="multicollinearity-diagnostics.html#cb642-2" tabindex="-1"></a><span class="co"># install.packages(&quot;car&quot;)        # For VIF calculation</span></span>
-<span id="cb642-3"><a href="multicollinearity-diagnostics.html#cb642-3" tabindex="-1"></a><span class="co"># install.packages(&quot;corpcor&quot;)    # For determinant of correlation matrix</span></span>
-<span id="cb642-4"><a href="multicollinearity-diagnostics.html#cb642-4" tabindex="-1"></a></span>
-<span id="cb642-5"><a href="multicollinearity-diagnostics.html#cb642-5" tabindex="-1"></a></span>
-<span id="cb642-6"><a href="multicollinearity-diagnostics.html#cb642-6" tabindex="-1"></a><span class="fu">library</span>(car)</span>
-<span id="cb642-7"><a href="multicollinearity-diagnostics.html#cb642-7" tabindex="-1"></a><span class="fu">library</span>(corpcor)</span>
-<span id="cb642-8"><a href="multicollinearity-diagnostics.html#cb642-8" tabindex="-1"></a></span>
-<span id="cb642-9"><a href="multicollinearity-diagnostics.html#cb642-9" tabindex="-1"></a><span class="co"># Simulated dataset with multicollinearity</span></span>
-<span id="cb642-10"><a href="multicollinearity-diagnostics.html#cb642-10" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb642-11"><a href="multicollinearity-diagnostics.html#cb642-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb642-12"><a href="multicollinearity-diagnostics.html#cb642-12" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
-<span id="cb642-13"><a href="multicollinearity-diagnostics.html#cb642-13" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fl">0.8</span> <span class="sc">*</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">2</span>)   <span class="co"># Highly correlated with x1</span></span>
-<span id="cb642-14"><a href="multicollinearity-diagnostics.html#cb642-14" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
-<span id="cb642-15"><a href="multicollinearity-diagnostics.html#cb642-15" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> x3 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb642-16"><a href="multicollinearity-diagnostics.html#cb642-16" tabindex="-1"></a></span>
-<span id="cb642-17"><a href="multicollinearity-diagnostics.html#cb642-17" tabindex="-1"></a><span class="co"># Original regression model</span></span>
-<span id="cb642-18"><a href="multicollinearity-diagnostics.html#cb642-18" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
-<span id="cb642-19"><a href="multicollinearity-diagnostics.html#cb642-19" tabindex="-1"></a></span>
-<span id="cb642-20"><a href="multicollinearity-diagnostics.html#cb642-20" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-21"><a href="multicollinearity-diagnostics.html#cb642-21" tabindex="-1"></a><span class="co"># 1. Variance Inflation Factor (VIF)</span></span>
-<span id="cb642-22"><a href="multicollinearity-diagnostics.html#cb642-22" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-23"><a href="multicollinearity-diagnostics.html#cb642-23" tabindex="-1"></a><span class="co"># Null Hypothesis: No multicollinearity (VIF = 1)</span></span>
-<span id="cb642-24"><a href="multicollinearity-diagnostics.html#cb642-24" tabindex="-1"></a>vif_values <span class="ot">&lt;-</span> <span class="fu">vif</span>(model)</span>
-<span id="cb642-25"><a href="multicollinearity-diagnostics.html#cb642-25" tabindex="-1"></a><span class="fu">print</span>(vif_values)</span>
-<span id="cb642-26"><a href="multicollinearity-diagnostics.html#cb642-26" tabindex="-1"></a><span class="co">#&gt;        x1        x2        x3 </span></span>
-<span id="cb642-27"><a href="multicollinearity-diagnostics.html#cb642-27" tabindex="-1"></a><span class="co">#&gt; 14.969143 14.929013  1.017576</span></span>
-<span id="cb642-28"><a href="multicollinearity-diagnostics.html#cb642-28" tabindex="-1"></a></span>
-<span id="cb642-29"><a href="multicollinearity-diagnostics.html#cb642-29" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-30"><a href="multicollinearity-diagnostics.html#cb642-30" tabindex="-1"></a><span class="co"># 2. Tolerance Statistic (Reciprocal of VIF)</span></span>
-<span id="cb642-31"><a href="multicollinearity-diagnostics.html#cb642-31" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-32"><a href="multicollinearity-diagnostics.html#cb642-32" tabindex="-1"></a>tolerance_values <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> vif_values</span>
-<span id="cb642-33"><a href="multicollinearity-diagnostics.html#cb642-33" tabindex="-1"></a><span class="fu">print</span>(tolerance_values)</span>
-<span id="cb642-34"><a href="multicollinearity-diagnostics.html#cb642-34" tabindex="-1"></a><span class="co">#&gt;         x1         x2         x3 </span></span>
-<span id="cb642-35"><a href="multicollinearity-diagnostics.html#cb642-35" tabindex="-1"></a><span class="co">#&gt; 0.06680409 0.06698366 0.98272742</span></span>
-<span id="cb642-36"><a href="multicollinearity-diagnostics.html#cb642-36" tabindex="-1"></a></span>
-<span id="cb642-37"><a href="multicollinearity-diagnostics.html#cb642-37" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-38"><a href="multicollinearity-diagnostics.html#cb642-38" tabindex="-1"></a><span class="co"># 3. Condition Index and Eigenvalue Decomposition</span></span>
-<span id="cb642-39"><a href="multicollinearity-diagnostics.html#cb642-39" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-40"><a href="multicollinearity-diagnostics.html#cb642-40" tabindex="-1"></a><span class="co"># Scaling the independent variables</span></span>
-<span id="cb642-41"><a href="multicollinearity-diagnostics.html#cb642-41" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(model)[,<span class="sc">-</span><span class="dv">1</span>]  <span class="co"># Removing intercept</span></span>
-<span id="cb642-42"><a href="multicollinearity-diagnostics.html#cb642-42" tabindex="-1"></a>eigen_decomp <span class="ot">&lt;-</span></span>
-<span id="cb642-43"><a href="multicollinearity-diagnostics.html#cb642-43" tabindex="-1"></a>    <span class="fu">eigen</span>(<span class="fu">cor</span>(X))   <span class="co"># Eigenvalue decomposition of the correlation matrix</span></span>
-<span id="cb642-44"><a href="multicollinearity-diagnostics.html#cb642-44" tabindex="-1"></a></span>
-<span id="cb642-45"><a href="multicollinearity-diagnostics.html#cb642-45" tabindex="-1"></a><span class="co"># Condition Index</span></span>
-<span id="cb642-46"><a href="multicollinearity-diagnostics.html#cb642-46" tabindex="-1"></a>condition_index <span class="ot">&lt;-</span></span>
-<span id="cb642-47"><a href="multicollinearity-diagnostics.html#cb642-47" tabindex="-1"></a>    <span class="fu">sqrt</span>(<span class="fu">max</span>(eigen_decomp<span class="sc">$</span>values) <span class="sc">/</span> eigen_decomp<span class="sc">$</span>values)</span>
-<span id="cb642-48"><a href="multicollinearity-diagnostics.html#cb642-48" tabindex="-1"></a><span class="fu">print</span>(condition_index)</span>
-<span id="cb642-49"><a href="multicollinearity-diagnostics.html#cb642-49" tabindex="-1"></a><span class="co">#&gt; [1] 1.000000 1.435255 7.659566</span></span>
-<span id="cb642-50"><a href="multicollinearity-diagnostics.html#cb642-50" tabindex="-1"></a></span>
-<span id="cb642-51"><a href="multicollinearity-diagnostics.html#cb642-51" tabindex="-1"></a><span class="co"># Variance Decomposition Proportions (VDP)</span></span>
-<span id="cb642-52"><a href="multicollinearity-diagnostics.html#cb642-52" tabindex="-1"></a><span class="co"># Proportions calculated based on the squared coefficients</span></span>
-<span id="cb642-53"><a href="multicollinearity-diagnostics.html#cb642-53" tabindex="-1"></a>loadings <span class="ot">&lt;-</span> eigen_decomp<span class="sc">$</span>vectors</span>
-<span id="cb642-54"><a href="multicollinearity-diagnostics.html#cb642-54" tabindex="-1"></a>vdp <span class="ot">&lt;-</span> <span class="fu">apply</span>(loadings <span class="sc">^</span> <span class="dv">2</span>, <span class="dv">2</span>, <span class="cf">function</span>(x)</span>
-<span id="cb642-55"><a href="multicollinearity-diagnostics.html#cb642-55" tabindex="-1"></a>    x <span class="sc">/</span> <span class="fu">sum</span>(x))</span>
-<span id="cb642-56"><a href="multicollinearity-diagnostics.html#cb642-56" tabindex="-1"></a><span class="fu">print</span>(vdp)</span>
-<span id="cb642-57"><a href="multicollinearity-diagnostics.html#cb642-57" tabindex="-1"></a><span class="co">#&gt;            [,1]       [,2]         [,3]</span></span>
-<span id="cb642-58"><a href="multicollinearity-diagnostics.html#cb642-58" tabindex="-1"></a><span class="co">#&gt; [1,] 0.48567837 0.01363318 5.006885e-01</span></span>
-<span id="cb642-59"><a href="multicollinearity-diagnostics.html#cb642-59" tabindex="-1"></a><span class="co">#&gt; [2,] 0.48436754 0.01638399 4.992485e-01</span></span>
-<span id="cb642-60"><a href="multicollinearity-diagnostics.html#cb642-60" tabindex="-1"></a><span class="co">#&gt; [3,] 0.02995409 0.96998283 6.307954e-05</span></span>
-<span id="cb642-61"><a href="multicollinearity-diagnostics.html#cb642-61" tabindex="-1"></a></span>
-<span id="cb642-62"><a href="multicollinearity-diagnostics.html#cb642-62" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-63"><a href="multicollinearity-diagnostics.html#cb642-63" tabindex="-1"></a><span class="co"># 4. Pairwise Correlation Matrix</span></span>
-<span id="cb642-64"><a href="multicollinearity-diagnostics.html#cb642-64" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-65"><a href="multicollinearity-diagnostics.html#cb642-65" tabindex="-1"></a>correlation_matrix <span class="ot">&lt;-</span> <span class="fu">cor</span>(X)</span>
-<span id="cb642-66"><a href="multicollinearity-diagnostics.html#cb642-66" tabindex="-1"></a><span class="fu">print</span>(correlation_matrix)</span>
-<span id="cb642-67"><a href="multicollinearity-diagnostics.html#cb642-67" tabindex="-1"></a><span class="co">#&gt;           x1         x2         x3</span></span>
-<span id="cb642-68"><a href="multicollinearity-diagnostics.html#cb642-68" tabindex="-1"></a><span class="co">#&gt; x1  1.000000  0.9659070 -0.1291760</span></span>
-<span id="cb642-69"><a href="multicollinearity-diagnostics.html#cb642-69" tabindex="-1"></a><span class="co">#&gt; x2  0.965907  1.0000000 -0.1185042</span></span>
-<span id="cb642-70"><a href="multicollinearity-diagnostics.html#cb642-70" tabindex="-1"></a><span class="co">#&gt; x3 -0.129176 -0.1185042  1.0000000</span></span>
-<span id="cb642-71"><a href="multicollinearity-diagnostics.html#cb642-71" tabindex="-1"></a></span>
-<span id="cb642-72"><a href="multicollinearity-diagnostics.html#cb642-72" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-73"><a href="multicollinearity-diagnostics.html#cb642-73" tabindex="-1"></a><span class="co"># 5. Determinant of the Correlation Matrix</span></span>
-<span id="cb642-74"><a href="multicollinearity-diagnostics.html#cb642-74" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb642-75"><a href="multicollinearity-diagnostics.html#cb642-75" tabindex="-1"></a>determinant_corr_matrix <span class="ot">&lt;-</span> <span class="fu">det</span>(correlation_matrix)</span>
-<span id="cb642-76"><a href="multicollinearity-diagnostics.html#cb642-76" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Determinant of the Correlation Matrix:&quot;</span>,</span>
-<span id="cb642-77"><a href="multicollinearity-diagnostics.html#cb642-77" tabindex="-1"></a>    determinant_corr_matrix,</span>
-<span id="cb642-78"><a href="multicollinearity-diagnostics.html#cb642-78" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb642-79"><a href="multicollinearity-diagnostics.html#cb642-79" tabindex="-1"></a><span class="co">#&gt; Determinant of the Correlation Matrix: 0.06586594</span></span></code></pre></div>
+<div class="sourceCode" id="cb647"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb647-1"><a href="multicollinearity-diagnostics.html#cb647-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
+<span id="cb647-2"><a href="multicollinearity-diagnostics.html#cb647-2" tabindex="-1"></a><span class="co"># install.packages(&quot;car&quot;)        # For VIF calculation</span></span>
+<span id="cb647-3"><a href="multicollinearity-diagnostics.html#cb647-3" tabindex="-1"></a><span class="co"># install.packages(&quot;corpcor&quot;)    # For determinant of correlation matrix</span></span>
+<span id="cb647-4"><a href="multicollinearity-diagnostics.html#cb647-4" tabindex="-1"></a></span>
+<span id="cb647-5"><a href="multicollinearity-diagnostics.html#cb647-5" tabindex="-1"></a></span>
+<span id="cb647-6"><a href="multicollinearity-diagnostics.html#cb647-6" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb647-7"><a href="multicollinearity-diagnostics.html#cb647-7" tabindex="-1"></a><span class="fu">library</span>(corpcor)</span>
+<span id="cb647-8"><a href="multicollinearity-diagnostics.html#cb647-8" tabindex="-1"></a></span>
+<span id="cb647-9"><a href="multicollinearity-diagnostics.html#cb647-9" tabindex="-1"></a><span class="co"># Simulated dataset with multicollinearity</span></span>
+<span id="cb647-10"><a href="multicollinearity-diagnostics.html#cb647-10" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb647-11"><a href="multicollinearity-diagnostics.html#cb647-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb647-12"><a href="multicollinearity-diagnostics.html#cb647-12" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
+<span id="cb647-13"><a href="multicollinearity-diagnostics.html#cb647-13" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fl">0.8</span> <span class="sc">*</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">2</span>)   <span class="co"># Highly correlated with x1</span></span>
+<span id="cb647-14"><a href="multicollinearity-diagnostics.html#cb647-14" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb647-15"><a href="multicollinearity-diagnostics.html#cb647-15" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> x3 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb647-16"><a href="multicollinearity-diagnostics.html#cb647-16" tabindex="-1"></a></span>
+<span id="cb647-17"><a href="multicollinearity-diagnostics.html#cb647-17" tabindex="-1"></a><span class="co"># Original regression model</span></span>
+<span id="cb647-18"><a href="multicollinearity-diagnostics.html#cb647-18" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
+<span id="cb647-19"><a href="multicollinearity-diagnostics.html#cb647-19" tabindex="-1"></a></span>
+<span id="cb647-20"><a href="multicollinearity-diagnostics.html#cb647-20" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-21"><a href="multicollinearity-diagnostics.html#cb647-21" tabindex="-1"></a><span class="co"># 1. Variance Inflation Factor (VIF)</span></span>
+<span id="cb647-22"><a href="multicollinearity-diagnostics.html#cb647-22" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-23"><a href="multicollinearity-diagnostics.html#cb647-23" tabindex="-1"></a><span class="co"># Null Hypothesis: No multicollinearity (VIF = 1)</span></span>
+<span id="cb647-24"><a href="multicollinearity-diagnostics.html#cb647-24" tabindex="-1"></a>vif_values <span class="ot">&lt;-</span> <span class="fu">vif</span>(model)</span>
+<span id="cb647-25"><a href="multicollinearity-diagnostics.html#cb647-25" tabindex="-1"></a><span class="fu">print</span>(vif_values)</span>
+<span id="cb647-26"><a href="multicollinearity-diagnostics.html#cb647-26" tabindex="-1"></a><span class="co">#&gt;        x1        x2        x3 </span></span>
+<span id="cb647-27"><a href="multicollinearity-diagnostics.html#cb647-27" tabindex="-1"></a><span class="co">#&gt; 14.969143 14.929013  1.017576</span></span>
+<span id="cb647-28"><a href="multicollinearity-diagnostics.html#cb647-28" tabindex="-1"></a></span>
+<span id="cb647-29"><a href="multicollinearity-diagnostics.html#cb647-29" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-30"><a href="multicollinearity-diagnostics.html#cb647-30" tabindex="-1"></a><span class="co"># 2. Tolerance Statistic (Reciprocal of VIF)</span></span>
+<span id="cb647-31"><a href="multicollinearity-diagnostics.html#cb647-31" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-32"><a href="multicollinearity-diagnostics.html#cb647-32" tabindex="-1"></a>tolerance_values <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> vif_values</span>
+<span id="cb647-33"><a href="multicollinearity-diagnostics.html#cb647-33" tabindex="-1"></a><span class="fu">print</span>(tolerance_values)</span>
+<span id="cb647-34"><a href="multicollinearity-diagnostics.html#cb647-34" tabindex="-1"></a><span class="co">#&gt;         x1         x2         x3 </span></span>
+<span id="cb647-35"><a href="multicollinearity-diagnostics.html#cb647-35" tabindex="-1"></a><span class="co">#&gt; 0.06680409 0.06698366 0.98272742</span></span>
+<span id="cb647-36"><a href="multicollinearity-diagnostics.html#cb647-36" tabindex="-1"></a></span>
+<span id="cb647-37"><a href="multicollinearity-diagnostics.html#cb647-37" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-38"><a href="multicollinearity-diagnostics.html#cb647-38" tabindex="-1"></a><span class="co"># 3. Condition Index and Eigenvalue Decomposition</span></span>
+<span id="cb647-39"><a href="multicollinearity-diagnostics.html#cb647-39" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-40"><a href="multicollinearity-diagnostics.html#cb647-40" tabindex="-1"></a><span class="co"># Scaling the independent variables</span></span>
+<span id="cb647-41"><a href="multicollinearity-diagnostics.html#cb647-41" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(model)[,<span class="sc">-</span><span class="dv">1</span>]  <span class="co"># Removing intercept</span></span>
+<span id="cb647-42"><a href="multicollinearity-diagnostics.html#cb647-42" tabindex="-1"></a>eigen_decomp <span class="ot">&lt;-</span></span>
+<span id="cb647-43"><a href="multicollinearity-diagnostics.html#cb647-43" tabindex="-1"></a>    <span class="fu">eigen</span>(<span class="fu">cor</span>(X))   <span class="co"># Eigenvalue decomposition of the correlation matrix</span></span>
+<span id="cb647-44"><a href="multicollinearity-diagnostics.html#cb647-44" tabindex="-1"></a></span>
+<span id="cb647-45"><a href="multicollinearity-diagnostics.html#cb647-45" tabindex="-1"></a><span class="co"># Condition Index</span></span>
+<span id="cb647-46"><a href="multicollinearity-diagnostics.html#cb647-46" tabindex="-1"></a>condition_index <span class="ot">&lt;-</span></span>
+<span id="cb647-47"><a href="multicollinearity-diagnostics.html#cb647-47" tabindex="-1"></a>    <span class="fu">sqrt</span>(<span class="fu">max</span>(eigen_decomp<span class="sc">$</span>values) <span class="sc">/</span> eigen_decomp<span class="sc">$</span>values)</span>
+<span id="cb647-48"><a href="multicollinearity-diagnostics.html#cb647-48" tabindex="-1"></a><span class="fu">print</span>(condition_index)</span>
+<span id="cb647-49"><a href="multicollinearity-diagnostics.html#cb647-49" tabindex="-1"></a><span class="co">#&gt; [1] 1.000000 1.435255 7.659566</span></span>
+<span id="cb647-50"><a href="multicollinearity-diagnostics.html#cb647-50" tabindex="-1"></a></span>
+<span id="cb647-51"><a href="multicollinearity-diagnostics.html#cb647-51" tabindex="-1"></a><span class="co"># Variance Decomposition Proportions (VDP)</span></span>
+<span id="cb647-52"><a href="multicollinearity-diagnostics.html#cb647-52" tabindex="-1"></a><span class="co"># Proportions calculated based on the squared coefficients</span></span>
+<span id="cb647-53"><a href="multicollinearity-diagnostics.html#cb647-53" tabindex="-1"></a>loadings <span class="ot">&lt;-</span> eigen_decomp<span class="sc">$</span>vectors</span>
+<span id="cb647-54"><a href="multicollinearity-diagnostics.html#cb647-54" tabindex="-1"></a>vdp <span class="ot">&lt;-</span> <span class="fu">apply</span>(loadings <span class="sc">^</span> <span class="dv">2</span>, <span class="dv">2</span>, <span class="cf">function</span>(x)</span>
+<span id="cb647-55"><a href="multicollinearity-diagnostics.html#cb647-55" tabindex="-1"></a>    x <span class="sc">/</span> <span class="fu">sum</span>(x))</span>
+<span id="cb647-56"><a href="multicollinearity-diagnostics.html#cb647-56" tabindex="-1"></a><span class="fu">print</span>(vdp)</span>
+<span id="cb647-57"><a href="multicollinearity-diagnostics.html#cb647-57" tabindex="-1"></a><span class="co">#&gt;            [,1]       [,2]         [,3]</span></span>
+<span id="cb647-58"><a href="multicollinearity-diagnostics.html#cb647-58" tabindex="-1"></a><span class="co">#&gt; [1,] 0.48567837 0.01363318 5.006885e-01</span></span>
+<span id="cb647-59"><a href="multicollinearity-diagnostics.html#cb647-59" tabindex="-1"></a><span class="co">#&gt; [2,] 0.48436754 0.01638399 4.992485e-01</span></span>
+<span id="cb647-60"><a href="multicollinearity-diagnostics.html#cb647-60" tabindex="-1"></a><span class="co">#&gt; [3,] 0.02995409 0.96998283 6.307954e-05</span></span>
+<span id="cb647-61"><a href="multicollinearity-diagnostics.html#cb647-61" tabindex="-1"></a></span>
+<span id="cb647-62"><a href="multicollinearity-diagnostics.html#cb647-62" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-63"><a href="multicollinearity-diagnostics.html#cb647-63" tabindex="-1"></a><span class="co"># 4. Pairwise Correlation Matrix</span></span>
+<span id="cb647-64"><a href="multicollinearity-diagnostics.html#cb647-64" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-65"><a href="multicollinearity-diagnostics.html#cb647-65" tabindex="-1"></a>correlation_matrix <span class="ot">&lt;-</span> <span class="fu">cor</span>(X)</span>
+<span id="cb647-66"><a href="multicollinearity-diagnostics.html#cb647-66" tabindex="-1"></a><span class="fu">print</span>(correlation_matrix)</span>
+<span id="cb647-67"><a href="multicollinearity-diagnostics.html#cb647-67" tabindex="-1"></a><span class="co">#&gt;           x1         x2         x3</span></span>
+<span id="cb647-68"><a href="multicollinearity-diagnostics.html#cb647-68" tabindex="-1"></a><span class="co">#&gt; x1  1.000000  0.9659070 -0.1291760</span></span>
+<span id="cb647-69"><a href="multicollinearity-diagnostics.html#cb647-69" tabindex="-1"></a><span class="co">#&gt; x2  0.965907  1.0000000 -0.1185042</span></span>
+<span id="cb647-70"><a href="multicollinearity-diagnostics.html#cb647-70" tabindex="-1"></a><span class="co">#&gt; x3 -0.129176 -0.1185042  1.0000000</span></span>
+<span id="cb647-71"><a href="multicollinearity-diagnostics.html#cb647-71" tabindex="-1"></a></span>
+<span id="cb647-72"><a href="multicollinearity-diagnostics.html#cb647-72" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-73"><a href="multicollinearity-diagnostics.html#cb647-73" tabindex="-1"></a><span class="co"># 5. Determinant of the Correlation Matrix</span></span>
+<span id="cb647-74"><a href="multicollinearity-diagnostics.html#cb647-74" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb647-75"><a href="multicollinearity-diagnostics.html#cb647-75" tabindex="-1"></a>determinant_corr_matrix <span class="ot">&lt;-</span> <span class="fu">det</span>(correlation_matrix)</span>
+<span id="cb647-76"><a href="multicollinearity-diagnostics.html#cb647-76" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Determinant of the Correlation Matrix:&quot;</span>,</span>
+<span id="cb647-77"><a href="multicollinearity-diagnostics.html#cb647-77" tabindex="-1"></a>    determinant_corr_matrix,</span>
+<span id="cb647-78"><a href="multicollinearity-diagnostics.html#cb647-78" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb647-79"><a href="multicollinearity-diagnostics.html#cb647-79" tabindex="-1"></a><span class="co">#&gt; Determinant of the Correlation Matrix: 0.06586594</span></span></code></pre></div>
 <p><strong>Interpretation of the Results</strong></p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Variance Inflation Factor (VIF)</strong></p>

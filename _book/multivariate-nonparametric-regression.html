@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10.10 Multivariate Nonparametric Regression | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10.10 Multivariate Nonparametric Regression | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1969,104 +1969,104 @@ m(\mathbf{x}) = \beta_0 + \sum_{j=1}^p f_j(x_j) + \sum_{j &lt; k} f_{jk}(x_j, x_
 <li><span class="math inline">\(\alpha_i\)</span> are coefficients estimated from the data.</li>
 </ul>
 <hr />
-<div class="sourceCode" id="cb487"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb487-1"><a href="multivariate-nonparametric-regression.html#cb487-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb487-2"><a href="multivariate-nonparametric-regression.html#cb487-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb487-3"><a href="multivariate-nonparametric-regression.html#cb487-3" tabindex="-1"></a><span class="fu">library</span>(np)       <span class="co"># For multivariate kernel regression</span></span>
-<span id="cb487-4"><a href="multivariate-nonparametric-regression.html#cb487-4" tabindex="-1"></a><span class="fu">library</span>(mgcv)     <span class="co"># For thin-plate and tensor product splines</span></span>
-<span id="cb487-5"><a href="multivariate-nonparametric-regression.html#cb487-5" tabindex="-1"></a><span class="fu">library</span>(fields)   <span class="co"># For radial basis functions (RBF)</span></span>
-<span id="cb487-6"><a href="multivariate-nonparametric-regression.html#cb487-6" tabindex="-1"></a><span class="fu">library</span>(reshape2) <span class="co"># For data manipulation</span></span>
-<span id="cb487-7"><a href="multivariate-nonparametric-regression.html#cb487-7" tabindex="-1"></a></span>
-<span id="cb487-8"><a href="multivariate-nonparametric-regression.html#cb487-8" tabindex="-1"></a></span>
-<span id="cb487-9"><a href="multivariate-nonparametric-regression.html#cb487-9" tabindex="-1"></a><span class="co"># Simulate Multivariate Data</span></span>
-<span id="cb487-10"><a href="multivariate-nonparametric-regression.html#cb487-10" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb487-11"><a href="multivariate-nonparametric-regression.html#cb487-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb487-12"><a href="multivariate-nonparametric-regression.html#cb487-12" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
-<span id="cb487-13"><a href="multivariate-nonparametric-regression.html#cb487-13" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
-<span id="cb487-14"><a href="multivariate-nonparametric-regression.html#cb487-14" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
-<span id="cb487-15"><a href="multivariate-nonparametric-regression.html#cb487-15" tabindex="-1"></a></span>
-<span id="cb487-16"><a href="multivariate-nonparametric-regression.html#cb487-16" tabindex="-1"></a><span class="co"># True nonlinear multivariate function with interaction effects</span></span>
-<span id="cb487-17"><a href="multivariate-nonparametric-regression.html#cb487-17" tabindex="-1"></a>true_function <span class="ot">&lt;-</span> <span class="cf">function</span>(x1, x2, x3) {</span>
-<span id="cb487-18"><a href="multivariate-nonparametric-regression.html#cb487-18" tabindex="-1"></a>    <span class="fu">sin</span>(pi <span class="sc">*</span> x1) <span class="sc">*</span> <span class="fu">cos</span>(pi <span class="sc">*</span> x2) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>((x3 <span class="sc">-</span> <span class="fl">2.5</span>) <span class="sc">^</span> <span class="dv">2</span>)) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> x1 <span class="sc">*</span> x3</span>
-<span id="cb487-19"><a href="multivariate-nonparametric-regression.html#cb487-19" tabindex="-1"></a>}</span>
-<span id="cb487-20"><a href="multivariate-nonparametric-regression.html#cb487-20" tabindex="-1"></a></span>
-<span id="cb487-21"><a href="multivariate-nonparametric-regression.html#cb487-21" tabindex="-1"></a><span class="co"># Response with noise</span></span>
-<span id="cb487-22"><a href="multivariate-nonparametric-regression.html#cb487-22" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">true_function</span>(x1, x2, x3) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)</span>
-<span id="cb487-23"><a href="multivariate-nonparametric-regression.html#cb487-23" tabindex="-1"></a></span>
-<span id="cb487-24"><a href="multivariate-nonparametric-regression.html#cb487-24" tabindex="-1"></a><span class="co"># Data frame</span></span>
-<span id="cb487-25"><a href="multivariate-nonparametric-regression.html#cb487-25" tabindex="-1"></a>data_multi <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
-<span id="cb487-26"><a href="multivariate-nonparametric-regression.html#cb487-26" tabindex="-1"></a></span>
-<span id="cb487-27"><a href="multivariate-nonparametric-regression.html#cb487-27" tabindex="-1"></a><span class="co"># Visualization of marginal relationships</span></span>
-<span id="cb487-28"><a href="multivariate-nonparametric-regression.html#cb487-28" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
-<span id="cb487-29"><a href="multivariate-nonparametric-regression.html#cb487-29" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_multi, <span class="fu">aes</span>(x1, y)) <span class="sc">+</span></span>
-<span id="cb487-30"><a href="multivariate-nonparametric-regression.html#cb487-30" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb487-31"><a href="multivariate-nonparametric-regression.html#cb487-31" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x1&quot;</span>)</span>
-<span id="cb487-32"><a href="multivariate-nonparametric-regression.html#cb487-32" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
-<span id="cb487-33"><a href="multivariate-nonparametric-regression.html#cb487-33" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_multi, <span class="fu">aes</span>(x2, y)) <span class="sc">+</span></span>
-<span id="cb487-34"><a href="multivariate-nonparametric-regression.html#cb487-34" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb487-35"><a href="multivariate-nonparametric-regression.html#cb487-35" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x2&quot;</span>)</span>
-<span id="cb487-36"><a href="multivariate-nonparametric-regression.html#cb487-36" tabindex="-1"></a>p3 <span class="ot">&lt;-</span></span>
-<span id="cb487-37"><a href="multivariate-nonparametric-regression.html#cb487-37" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_multi, <span class="fu">aes</span>(x3, y)) <span class="sc">+</span></span>
-<span id="cb487-38"><a href="multivariate-nonparametric-regression.html#cb487-38" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb487-39"><a href="multivariate-nonparametric-regression.html#cb487-39" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x3&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb488"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb488-1"><a href="multivariate-nonparametric-regression.html#cb488-1" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(p1, p2, p3, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb492"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb492-1"><a href="multivariate-nonparametric-regression.html#cb492-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb492-2"><a href="multivariate-nonparametric-regression.html#cb492-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb492-3"><a href="multivariate-nonparametric-regression.html#cb492-3" tabindex="-1"></a><span class="fu">library</span>(np)       <span class="co"># For multivariate kernel regression</span></span>
+<span id="cb492-4"><a href="multivariate-nonparametric-regression.html#cb492-4" tabindex="-1"></a><span class="fu">library</span>(mgcv)     <span class="co"># For thin-plate and tensor product splines</span></span>
+<span id="cb492-5"><a href="multivariate-nonparametric-regression.html#cb492-5" tabindex="-1"></a><span class="fu">library</span>(fields)   <span class="co"># For radial basis functions (RBF)</span></span>
+<span id="cb492-6"><a href="multivariate-nonparametric-regression.html#cb492-6" tabindex="-1"></a><span class="fu">library</span>(reshape2) <span class="co"># For data manipulation</span></span>
+<span id="cb492-7"><a href="multivariate-nonparametric-regression.html#cb492-7" tabindex="-1"></a></span>
+<span id="cb492-8"><a href="multivariate-nonparametric-regression.html#cb492-8" tabindex="-1"></a></span>
+<span id="cb492-9"><a href="multivariate-nonparametric-regression.html#cb492-9" tabindex="-1"></a><span class="co"># Simulate Multivariate Data</span></span>
+<span id="cb492-10"><a href="multivariate-nonparametric-regression.html#cb492-10" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb492-11"><a href="multivariate-nonparametric-regression.html#cb492-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb492-12"><a href="multivariate-nonparametric-regression.html#cb492-12" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
+<span id="cb492-13"><a href="multivariate-nonparametric-regression.html#cb492-13" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
+<span id="cb492-14"><a href="multivariate-nonparametric-regression.html#cb492-14" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
+<span id="cb492-15"><a href="multivariate-nonparametric-regression.html#cb492-15" tabindex="-1"></a></span>
+<span id="cb492-16"><a href="multivariate-nonparametric-regression.html#cb492-16" tabindex="-1"></a><span class="co"># True nonlinear multivariate function with interaction effects</span></span>
+<span id="cb492-17"><a href="multivariate-nonparametric-regression.html#cb492-17" tabindex="-1"></a>true_function <span class="ot">&lt;-</span> <span class="cf">function</span>(x1, x2, x3) {</span>
+<span id="cb492-18"><a href="multivariate-nonparametric-regression.html#cb492-18" tabindex="-1"></a>    <span class="fu">sin</span>(pi <span class="sc">*</span> x1) <span class="sc">*</span> <span class="fu">cos</span>(pi <span class="sc">*</span> x2) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>((x3 <span class="sc">-</span> <span class="fl">2.5</span>) <span class="sc">^</span> <span class="dv">2</span>)) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> x1 <span class="sc">*</span> x3</span>
+<span id="cb492-19"><a href="multivariate-nonparametric-regression.html#cb492-19" tabindex="-1"></a>}</span>
+<span id="cb492-20"><a href="multivariate-nonparametric-regression.html#cb492-20" tabindex="-1"></a></span>
+<span id="cb492-21"><a href="multivariate-nonparametric-regression.html#cb492-21" tabindex="-1"></a><span class="co"># Response with noise</span></span>
+<span id="cb492-22"><a href="multivariate-nonparametric-regression.html#cb492-22" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">true_function</span>(x1, x2, x3) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)</span>
+<span id="cb492-23"><a href="multivariate-nonparametric-regression.html#cb492-23" tabindex="-1"></a></span>
+<span id="cb492-24"><a href="multivariate-nonparametric-regression.html#cb492-24" tabindex="-1"></a><span class="co"># Data frame</span></span>
+<span id="cb492-25"><a href="multivariate-nonparametric-regression.html#cb492-25" tabindex="-1"></a>data_multi <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
+<span id="cb492-26"><a href="multivariate-nonparametric-regression.html#cb492-26" tabindex="-1"></a></span>
+<span id="cb492-27"><a href="multivariate-nonparametric-regression.html#cb492-27" tabindex="-1"></a><span class="co"># Visualization of marginal relationships</span></span>
+<span id="cb492-28"><a href="multivariate-nonparametric-regression.html#cb492-28" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
+<span id="cb492-29"><a href="multivariate-nonparametric-regression.html#cb492-29" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_multi, <span class="fu">aes</span>(x1, y)) <span class="sc">+</span></span>
+<span id="cb492-30"><a href="multivariate-nonparametric-regression.html#cb492-30" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb492-31"><a href="multivariate-nonparametric-regression.html#cb492-31" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x1&quot;</span>)</span>
+<span id="cb492-32"><a href="multivariate-nonparametric-regression.html#cb492-32" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
+<span id="cb492-33"><a href="multivariate-nonparametric-regression.html#cb492-33" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_multi, <span class="fu">aes</span>(x2, y)) <span class="sc">+</span></span>
+<span id="cb492-34"><a href="multivariate-nonparametric-regression.html#cb492-34" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb492-35"><a href="multivariate-nonparametric-regression.html#cb492-35" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x2&quot;</span>)</span>
+<span id="cb492-36"><a href="multivariate-nonparametric-regression.html#cb492-36" tabindex="-1"></a>p3 <span class="ot">&lt;-</span></span>
+<span id="cb492-37"><a href="multivariate-nonparametric-regression.html#cb492-37" tabindex="-1"></a>    <span class="fu">ggplot</span>(data_multi, <span class="fu">aes</span>(x3, y)) <span class="sc">+</span></span>
+<span id="cb492-38"><a href="multivariate-nonparametric-regression.html#cb492-38" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb492-39"><a href="multivariate-nonparametric-regression.html#cb492-39" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x3&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb493"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb493-1"><a href="multivariate-nonparametric-regression.html#cb493-1" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(p1, p2, p3, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-scatter-panel-effects"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-scatter-panel-effects-1.png" alt="Three panel XY chart showing the effects of variables x1, x2, and x3 on y. Each panel displays a scatter plot with the x-axis labeled as x1, x2, and x3 respectively, and the y-axis labeled as y. The data points are scattered, showing varying relationships between each x variable and y. The charts are titled Effect of x1, Effect of x2, and Effect of x3" width="100%" />
 <p class="caption">
 Figure 10.25: Scatter Plot
 </p>
 </div>
-<div class="sourceCode" id="cb489"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb489-1"><a href="multivariate-nonparametric-regression.html#cb489-1" tabindex="-1"></a><span class="co"># Multivariate Kernel Regression using np package</span></span>
-<span id="cb489-2"><a href="multivariate-nonparametric-regression.html#cb489-2" tabindex="-1"></a>bw <span class="ot">&lt;-</span></span>
-<span id="cb489-3"><a href="multivariate-nonparametric-regression.html#cb489-3" tabindex="-1"></a>    <span class="fu">npregbw</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data_multi)  <span class="co"># Bandwidth selection</span></span>
-<span id="cb489-4"><a href="multivariate-nonparametric-regression.html#cb489-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb489-5"><a href="multivariate-nonparametric-regression.html#cb489-5" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-6"><a href="multivariate-nonparametric-regression.html#cb489-6" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-7"><a href="multivariate-nonparametric-regression.html#cb489-7" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-8"><a href="multivariate-nonparametric-regression.html#cb489-8" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">/</span></span>
-<span id="cb489-9"><a href="multivariate-nonparametric-regression.html#cb489-9" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">-</span></span>
-<span id="cb489-10"><a href="multivariate-nonparametric-regression.html#cb489-10" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-11"><a href="multivariate-nonparametric-regression.html#cb489-11" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-12"><a href="multivariate-nonparametric-regression.html#cb489-12" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">/</span></span>
-<span id="cb489-13"><a href="multivariate-nonparametric-regression.html#cb489-13" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">-</span></span>
-<span id="cb489-14"><a href="multivariate-nonparametric-regression.html#cb489-14" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> \</span>
-<span id="cb489-15"><a href="multivariate-nonparametric-regression.html#cb489-15" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-16"><a href="multivariate-nonparametric-regression.html#cb489-16" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-17"><a href="multivariate-nonparametric-regression.html#cb489-17" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">/</span></span>
-<span id="cb489-18"><a href="multivariate-nonparametric-regression.html#cb489-18" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">-</span></span>
-<span id="cb489-19"><a href="multivariate-nonparametric-regression.html#cb489-19" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> \</span>
-<span id="cb489-20"><a href="multivariate-nonparametric-regression.html#cb489-20" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-21"><a href="multivariate-nonparametric-regression.html#cb489-21" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-22"><a href="multivariate-nonparametric-regression.html#cb489-22" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-23"><a href="multivariate-nonparametric-regression.html#cb489-23" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">/</span></span>
-<span id="cb489-24"><a href="multivariate-nonparametric-regression.html#cb489-24" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-25"><a href="multivariate-nonparametric-regression.html#cb489-25" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-26"><a href="multivariate-nonparametric-regression.html#cb489-26" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">/</span></span>
-<span id="cb489-27"><a href="multivariate-nonparametric-regression.html#cb489-27" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">-</span></span>
-<span id="cb489-28"><a href="multivariate-nonparametric-regression.html#cb489-28" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> \</span>
-<span id="cb489-29"><a href="multivariate-nonparametric-regression.html#cb489-29" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-30"><a href="multivariate-nonparametric-regression.html#cb489-30" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-31"><a href="multivariate-nonparametric-regression.html#cb489-31" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
-<span id="cb489-32"><a href="multivariate-nonparametric-regression.html#cb489-32" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">/</span></span>
-<span id="cb489-33"><a href="multivariate-nonparametric-regression.html#cb489-33" tabindex="-1"></a>                   </span>
-<span id="cb489-34"><a href="multivariate-nonparametric-regression.html#cb489-34" tabindex="-1"></a>kernel_model <span class="ot">&lt;-</span> <span class="fu">npreg</span>(<span class="at">bws =</span> bw)</span>
-<span id="cb489-35"><a href="multivariate-nonparametric-regression.html#cb489-35" tabindex="-1"></a></span>
-<span id="cb489-36"><a href="multivariate-nonparametric-regression.html#cb489-36" tabindex="-1"></a><span class="co"># Predict on a grid for visualization</span></span>
-<span id="cb489-37"><a href="multivariate-nonparametric-regression.html#cb489-37" tabindex="-1"></a>grid_data <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
-<span id="cb489-38"><a href="multivariate-nonparametric-regression.html#cb489-38" tabindex="-1"></a>    <span class="at">x1 =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">50</span>),</span>
-<span id="cb489-39"><a href="multivariate-nonparametric-regression.html#cb489-39" tabindex="-1"></a>    <span class="at">x2 =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">50</span>),</span>
-<span id="cb489-40"><a href="multivariate-nonparametric-regression.html#cb489-40" tabindex="-1"></a>    <span class="at">x3 =</span> <span class="fu">mean</span>(data_multi<span class="sc">$</span>x3)</span>
-<span id="cb489-41"><a href="multivariate-nonparametric-regression.html#cb489-41" tabindex="-1"></a>)</span>
-<span id="cb489-42"><a href="multivariate-nonparametric-regression.html#cb489-42" tabindex="-1"></a>pred_kernel <span class="ot">&lt;-</span> <span class="fu">predict</span>(kernel_model, <span class="at">newdata =</span> grid_data)</span>
-<span id="cb489-43"><a href="multivariate-nonparametric-regression.html#cb489-43" tabindex="-1"></a></span>
-<span id="cb489-44"><a href="multivariate-nonparametric-regression.html#cb489-44" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb489-45"><a href="multivariate-nonparametric-regression.html#cb489-45" tabindex="-1"></a>grid_data<span class="sc">$</span>pred <span class="ot">&lt;-</span> pred_kernel</span></code></pre></div>
-<div class="sourceCode" id="cb490"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb490-1"><a href="multivariate-nonparametric-regression.html#cb490-1" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred)) <span class="sc">+</span></span>
-<span id="cb490-2"><a href="multivariate-nonparametric-regression.html#cb490-2" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb490-3"><a href="multivariate-nonparametric-regression.html#cb490-3" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb490-4"><a href="multivariate-nonparametric-regression.html#cb490-4" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Multivariate Kernel Regression (x3 fixed)&quot;</span>,</span>
-<span id="cb490-5"><a href="multivariate-nonparametric-regression.html#cb490-5" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>,</span>
-<span id="cb490-6"><a href="multivariate-nonparametric-regression.html#cb490-6" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
-<span id="cb490-7"><a href="multivariate-nonparametric-regression.html#cb490-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb494"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb494-1"><a href="multivariate-nonparametric-regression.html#cb494-1" tabindex="-1"></a><span class="co"># Multivariate Kernel Regression using np package</span></span>
+<span id="cb494-2"><a href="multivariate-nonparametric-regression.html#cb494-2" tabindex="-1"></a>bw <span class="ot">&lt;-</span></span>
+<span id="cb494-3"><a href="multivariate-nonparametric-regression.html#cb494-3" tabindex="-1"></a>    <span class="fu">npregbw</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data_multi)  <span class="co"># Bandwidth selection</span></span>
+<span id="cb494-4"><a href="multivariate-nonparametric-regression.html#cb494-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb494-5"><a href="multivariate-nonparametric-regression.html#cb494-5" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-6"><a href="multivariate-nonparametric-regression.html#cb494-6" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-7"><a href="multivariate-nonparametric-regression.html#cb494-7" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-8"><a href="multivariate-nonparametric-regression.html#cb494-8" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">/</span></span>
+<span id="cb494-9"><a href="multivariate-nonparametric-regression.html#cb494-9" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">-</span></span>
+<span id="cb494-10"><a href="multivariate-nonparametric-regression.html#cb494-10" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-11"><a href="multivariate-nonparametric-regression.html#cb494-11" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-12"><a href="multivariate-nonparametric-regression.html#cb494-12" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">/</span></span>
+<span id="cb494-13"><a href="multivariate-nonparametric-regression.html#cb494-13" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> <span class="sc">-</span></span>
+<span id="cb494-14"><a href="multivariate-nonparametric-regression.html#cb494-14" tabindex="-1"></a>Multistart <span class="dv">1</span> of <span class="dv">3</span> \</span>
+<span id="cb494-15"><a href="multivariate-nonparametric-regression.html#cb494-15" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-16"><a href="multivariate-nonparametric-regression.html#cb494-16" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-17"><a href="multivariate-nonparametric-regression.html#cb494-17" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">/</span></span>
+<span id="cb494-18"><a href="multivariate-nonparametric-regression.html#cb494-18" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">-</span></span>
+<span id="cb494-19"><a href="multivariate-nonparametric-regression.html#cb494-19" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> \</span>
+<span id="cb494-20"><a href="multivariate-nonparametric-regression.html#cb494-20" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-21"><a href="multivariate-nonparametric-regression.html#cb494-21" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-22"><a href="multivariate-nonparametric-regression.html#cb494-22" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-23"><a href="multivariate-nonparametric-regression.html#cb494-23" tabindex="-1"></a>Multistart <span class="dv">2</span> of <span class="dv">3</span> <span class="sc">/</span></span>
+<span id="cb494-24"><a href="multivariate-nonparametric-regression.html#cb494-24" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-25"><a href="multivariate-nonparametric-regression.html#cb494-25" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-26"><a href="multivariate-nonparametric-regression.html#cb494-26" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">/</span></span>
+<span id="cb494-27"><a href="multivariate-nonparametric-regression.html#cb494-27" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">-</span></span>
+<span id="cb494-28"><a href="multivariate-nonparametric-regression.html#cb494-28" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> \</span>
+<span id="cb494-29"><a href="multivariate-nonparametric-regression.html#cb494-29" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-30"><a href="multivariate-nonparametric-regression.html#cb494-30" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-31"><a href="multivariate-nonparametric-regression.html#cb494-31" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">|</span></span>
+<span id="cb494-32"><a href="multivariate-nonparametric-regression.html#cb494-32" tabindex="-1"></a>Multistart <span class="dv">3</span> of <span class="dv">3</span> <span class="sc">/</span></span>
+<span id="cb494-33"><a href="multivariate-nonparametric-regression.html#cb494-33" tabindex="-1"></a>                   </span>
+<span id="cb494-34"><a href="multivariate-nonparametric-regression.html#cb494-34" tabindex="-1"></a>kernel_model <span class="ot">&lt;-</span> <span class="fu">npreg</span>(<span class="at">bws =</span> bw)</span>
+<span id="cb494-35"><a href="multivariate-nonparametric-regression.html#cb494-35" tabindex="-1"></a></span>
+<span id="cb494-36"><a href="multivariate-nonparametric-regression.html#cb494-36" tabindex="-1"></a><span class="co"># Predict on a grid for visualization</span></span>
+<span id="cb494-37"><a href="multivariate-nonparametric-regression.html#cb494-37" tabindex="-1"></a>grid_data <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb494-38"><a href="multivariate-nonparametric-regression.html#cb494-38" tabindex="-1"></a>    <span class="at">x1 =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">50</span>),</span>
+<span id="cb494-39"><a href="multivariate-nonparametric-regression.html#cb494-39" tabindex="-1"></a>    <span class="at">x2 =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">50</span>),</span>
+<span id="cb494-40"><a href="multivariate-nonparametric-regression.html#cb494-40" tabindex="-1"></a>    <span class="at">x3 =</span> <span class="fu">mean</span>(data_multi<span class="sc">$</span>x3)</span>
+<span id="cb494-41"><a href="multivariate-nonparametric-regression.html#cb494-41" tabindex="-1"></a>)</span>
+<span id="cb494-42"><a href="multivariate-nonparametric-regression.html#cb494-42" tabindex="-1"></a>pred_kernel <span class="ot">&lt;-</span> <span class="fu">predict</span>(kernel_model, <span class="at">newdata =</span> grid_data)</span>
+<span id="cb494-43"><a href="multivariate-nonparametric-regression.html#cb494-43" tabindex="-1"></a></span>
+<span id="cb494-44"><a href="multivariate-nonparametric-regression.html#cb494-44" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb494-45"><a href="multivariate-nonparametric-regression.html#cb494-45" tabindex="-1"></a>grid_data<span class="sc">$</span>pred <span class="ot">&lt;-</span> pred_kernel</span></code></pre></div>
+<div class="sourceCode" id="cb495"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb495-1"><a href="multivariate-nonparametric-regression.html#cb495-1" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred)) <span class="sc">+</span></span>
+<span id="cb495-2"><a href="multivariate-nonparametric-regression.html#cb495-2" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb495-3"><a href="multivariate-nonparametric-regression.html#cb495-3" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb495-4"><a href="multivariate-nonparametric-regression.html#cb495-4" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Multivariate Kernel Regression (x3 fixed)&quot;</span>,</span>
+<span id="cb495-5"><a href="multivariate-nonparametric-regression.html#cb495-5" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>,</span>
+<span id="cb495-6"><a href="multivariate-nonparametric-regression.html#cb495-6" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
+<span id="cb495-7"><a href="multivariate-nonparametric-regression.html#cb495-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-12"></span>
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-12-1.png" alt="Heatmap illustrating multivariate kernel regression with x3 fixed. The x-axis represents x1, and the y-axis represents x2, both ranging from 0 to 5. The color gradient transitions from purple to yellow, indicating prediction values from 2 to 6, as shown in the legend on the right." width="90%" />
 <p class="caption">
@@ -2077,18 +2077,18 @@ Figure 2.13: Multivariate Kernel Regression (x3 fixed)
 <li>Kernel regression captures nonlinear interactions but suffers from data sparsity in high dimensions (curse of dimensionality).</li>
 <li>Bandwidth selection is critical for performance.</li>
 </ul>
-<div class="sourceCode" id="cb491"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb491-1"><a href="multivariate-nonparametric-regression.html#cb491-1" tabindex="-1"></a><span class="co"># Fit Thin-Plate Spline</span></span>
-<span id="cb491-2"><a href="multivariate-nonparametric-regression.html#cb491-2" tabindex="-1"></a>tps_model <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1, x2, x3, <span class="at">bs =</span> <span class="st">&quot;tp&quot;</span>, <span class="at">k =</span> <span class="dv">5</span>), <span class="at">data =</span> data_multi)</span>
-<span id="cb491-3"><a href="multivariate-nonparametric-regression.html#cb491-3" tabindex="-1"></a></span>
-<span id="cb491-4"><a href="multivariate-nonparametric-regression.html#cb491-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
-<span id="cb491-5"><a href="multivariate-nonparametric-regression.html#cb491-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_tps <span class="ot">&lt;-</span> <span class="fu">predict</span>(tps_model, <span class="at">newdata =</span> grid_data)</span></code></pre></div>
-<div class="sourceCode" id="cb492"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb492-1"><a href="multivariate-nonparametric-regression.html#cb492-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb492-2"><a href="multivariate-nonparametric-regression.html#cb492-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_tps)) <span class="sc">+</span></span>
-<span id="cb492-3"><a href="multivariate-nonparametric-regression.html#cb492-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb492-4"><a href="multivariate-nonparametric-regression.html#cb492-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb492-5"><a href="multivariate-nonparametric-regression.html#cb492-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Thin-Plate Spline (x3 fixed)&quot;</span>,</span>
-<span id="cb492-6"><a href="multivariate-nonparametric-regression.html#cb492-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
-<span id="cb492-7"><a href="multivariate-nonparametric-regression.html#cb492-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb496"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb496-1"><a href="multivariate-nonparametric-regression.html#cb496-1" tabindex="-1"></a><span class="co"># Fit Thin-Plate Spline</span></span>
+<span id="cb496-2"><a href="multivariate-nonparametric-regression.html#cb496-2" tabindex="-1"></a>tps_model <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1, x2, x3, <span class="at">bs =</span> <span class="st">&quot;tp&quot;</span>, <span class="at">k =</span> <span class="dv">5</span>), <span class="at">data =</span> data_multi)</span>
+<span id="cb496-3"><a href="multivariate-nonparametric-regression.html#cb496-3" tabindex="-1"></a></span>
+<span id="cb496-4"><a href="multivariate-nonparametric-regression.html#cb496-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
+<span id="cb496-5"><a href="multivariate-nonparametric-regression.html#cb496-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_tps <span class="ot">&lt;-</span> <span class="fu">predict</span>(tps_model, <span class="at">newdata =</span> grid_data)</span></code></pre></div>
+<div class="sourceCode" id="cb497"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb497-1"><a href="multivariate-nonparametric-regression.html#cb497-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb497-2"><a href="multivariate-nonparametric-regression.html#cb497-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_tps)) <span class="sc">+</span></span>
+<span id="cb497-3"><a href="multivariate-nonparametric-regression.html#cb497-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb497-4"><a href="multivariate-nonparametric-regression.html#cb497-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb497-5"><a href="multivariate-nonparametric-regression.html#cb497-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Thin-Plate Spline (x3 fixed)&quot;</span>,</span>
+<span id="cb497-6"><a href="multivariate-nonparametric-regression.html#cb497-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
+<span id="cb497-7"><a href="multivariate-nonparametric-regression.html#cb497-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-thin-plate-spline-x3"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-thin-plate-spline-x3-1.png" alt="Heatmap titled Thin-Plate Spline x3 fixed displaying a gradient of colors from dark purple to yellow. The x-axis is labeled x1 and ranges from 0 to 5. The y-axis is labeled x2 and ranges from 0 to 5. A color scale on the right labeled pred_tps indicates values from 2 to 6. The heatmap visualizes data variation across the x1 and x2 axes" width="100%" />
 <p class="caption">
@@ -2099,18 +2099,18 @@ Figure 10.26: Thin-Plate Spline (x3 fixed)
 <li>Thin-plate splines handle smooth surfaces well and are rotation-invariant.</li>
 <li>Computational cost increases with higher dimensions due to matrix operations.</li>
 </ul>
-<div class="sourceCode" id="cb493"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb493-1"><a href="multivariate-nonparametric-regression.html#cb493-1" tabindex="-1"></a><span class="co"># Fit Tensor Product Spline</span></span>
-<span id="cb493-2"><a href="multivariate-nonparametric-regression.html#cb493-2" tabindex="-1"></a>tensor_model <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">te</span>(x1, x2, x3), <span class="at">data =</span> data_multi)</span>
-<span id="cb493-3"><a href="multivariate-nonparametric-regression.html#cb493-3" tabindex="-1"></a></span>
-<span id="cb493-4"><a href="multivariate-nonparametric-regression.html#cb493-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
-<span id="cb493-5"><a href="multivariate-nonparametric-regression.html#cb493-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_tensor <span class="ot">&lt;-</span> <span class="fu">predict</span>(tensor_model, <span class="at">newdata =</span> grid_data)</span></code></pre></div>
-<div class="sourceCode" id="cb494"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb494-1"><a href="multivariate-nonparametric-regression.html#cb494-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb494-2"><a href="multivariate-nonparametric-regression.html#cb494-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_tensor)) <span class="sc">+</span></span>
-<span id="cb494-3"><a href="multivariate-nonparametric-regression.html#cb494-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb494-4"><a href="multivariate-nonparametric-regression.html#cb494-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb494-5"><a href="multivariate-nonparametric-regression.html#cb494-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Tensor Product Spline (x3 fixed)&quot;</span>,</span>
-<span id="cb494-6"><a href="multivariate-nonparametric-regression.html#cb494-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
-<span id="cb494-7"><a href="multivariate-nonparametric-regression.html#cb494-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb498"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb498-1"><a href="multivariate-nonparametric-regression.html#cb498-1" tabindex="-1"></a><span class="co"># Fit Tensor Product Spline</span></span>
+<span id="cb498-2"><a href="multivariate-nonparametric-regression.html#cb498-2" tabindex="-1"></a>tensor_model <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">te</span>(x1, x2, x3), <span class="at">data =</span> data_multi)</span>
+<span id="cb498-3"><a href="multivariate-nonparametric-regression.html#cb498-3" tabindex="-1"></a></span>
+<span id="cb498-4"><a href="multivariate-nonparametric-regression.html#cb498-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
+<span id="cb498-5"><a href="multivariate-nonparametric-regression.html#cb498-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_tensor <span class="ot">&lt;-</span> <span class="fu">predict</span>(tensor_model, <span class="at">newdata =</span> grid_data)</span></code></pre></div>
+<div class="sourceCode" id="cb499"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb499-1"><a href="multivariate-nonparametric-regression.html#cb499-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb499-2"><a href="multivariate-nonparametric-regression.html#cb499-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_tensor)) <span class="sc">+</span></span>
+<span id="cb499-3"><a href="multivariate-nonparametric-regression.html#cb499-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb499-4"><a href="multivariate-nonparametric-regression.html#cb499-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb499-5"><a href="multivariate-nonparametric-regression.html#cb499-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Tensor Product Spline (x3 fixed)&quot;</span>,</span>
+<span id="cb499-6"><a href="multivariate-nonparametric-regression.html#cb499-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
+<span id="cb499-7"><a href="multivariate-nonparametric-regression.html#cb499-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-tensor-product-spline-x3"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-tensor-product-spline-x3-1.png" alt="Heatmap titled Tensor Product Spline x3 fixed displaying a gradient of colors from purple to yellow. The x-axis is labeled x1 and ranges from 0 to 5. The y-axis is labeled x2 and also ranges from 0 to 5. A color scale on the right labeled pred_tensor indicates values from 0 to 6, with darker colors representing lower values and lighter colors representing higher values" width="100%" />
 <p class="caption">
@@ -2121,18 +2121,18 @@ Figure 10.27: Tensor Product Spline (x3 fixed)
 <li>Tensor product splines model interactions explicitly between variables.</li>
 <li>Suitable when data have structured dependencies but can lead to many parameters in higher dimensions.</li>
 </ul>
-<div class="sourceCode" id="cb495"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb495-1"><a href="multivariate-nonparametric-regression.html#cb495-1" tabindex="-1"></a><span class="co"># Additive Model (GAM)</span></span>
-<span id="cb495-2"><a href="multivariate-nonparametric-regression.html#cb495-2" tabindex="-1"></a>gam_model <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1) <span class="sc">+</span> <span class="fu">s</span>(x2) <span class="sc">+</span> <span class="fu">s</span>(x3), <span class="at">data =</span> data_multi)</span>
-<span id="cb495-3"><a href="multivariate-nonparametric-regression.html#cb495-3" tabindex="-1"></a></span>
-<span id="cb495-4"><a href="multivariate-nonparametric-regression.html#cb495-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
-<span id="cb495-5"><a href="multivariate-nonparametric-regression.html#cb495-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_gam <span class="ot">&lt;-</span> <span class="fu">predict</span>(gam_model, <span class="at">newdata =</span> grid_data)</span></code></pre></div>
-<div class="sourceCode" id="cb496"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb496-1"><a href="multivariate-nonparametric-regression.html#cb496-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb496-2"><a href="multivariate-nonparametric-regression.html#cb496-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_gam)) <span class="sc">+</span></span>
-<span id="cb496-3"><a href="multivariate-nonparametric-regression.html#cb496-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb496-4"><a href="multivariate-nonparametric-regression.html#cb496-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb496-5"><a href="multivariate-nonparametric-regression.html#cb496-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Additive Model (GAM, x3 fixed)&quot;</span>, </span>
-<span id="cb496-6"><a href="multivariate-nonparametric-regression.html#cb496-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
-<span id="cb496-7"><a href="multivariate-nonparametric-regression.html#cb496-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb500"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb500-1"><a href="multivariate-nonparametric-regression.html#cb500-1" tabindex="-1"></a><span class="co"># Additive Model (GAM)</span></span>
+<span id="cb500-2"><a href="multivariate-nonparametric-regression.html#cb500-2" tabindex="-1"></a>gam_model <span class="ot">&lt;-</span> <span class="fu">gam</span>(y <span class="sc">~</span> <span class="fu">s</span>(x1) <span class="sc">+</span> <span class="fu">s</span>(x2) <span class="sc">+</span> <span class="fu">s</span>(x3), <span class="at">data =</span> data_multi)</span>
+<span id="cb500-3"><a href="multivariate-nonparametric-regression.html#cb500-3" tabindex="-1"></a></span>
+<span id="cb500-4"><a href="multivariate-nonparametric-regression.html#cb500-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
+<span id="cb500-5"><a href="multivariate-nonparametric-regression.html#cb500-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_gam <span class="ot">&lt;-</span> <span class="fu">predict</span>(gam_model, <span class="at">newdata =</span> grid_data)</span></code></pre></div>
+<div class="sourceCode" id="cb501"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb501-1"><a href="multivariate-nonparametric-regression.html#cb501-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb501-2"><a href="multivariate-nonparametric-regression.html#cb501-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_gam)) <span class="sc">+</span></span>
+<span id="cb501-3"><a href="multivariate-nonparametric-regression.html#cb501-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb501-4"><a href="multivariate-nonparametric-regression.html#cb501-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb501-5"><a href="multivariate-nonparametric-regression.html#cb501-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Additive Model (GAM, x3 fixed)&quot;</span>, </span>
+<span id="cb501-6"><a href="multivariate-nonparametric-regression.html#cb501-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
+<span id="cb501-7"><a href="multivariate-nonparametric-regression.html#cb501-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-gam-x3-fixed"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-gam-x3-fixed-1.png" alt="Heatmap illustrating an additive model GAM with x3 fixed. The x-axis represents variable x1 and the y-axis represents variable x2, both ranging from 0 to 5. The color gradient transitions from purple to yellow, indicating values of the predicted GAM labeled as pred_gam, with a scale from 1 to 6" width="100%" />
 <p class="caption">
@@ -2145,23 +2145,19 @@ Figure 10.28: Additive Model (GAM, x3 fixed)
 <li>Interpretability: Easy to understand individual effects.</li>
 <li>Limitations: Cannot capture complex interactions unless explicitly added.</li>
 </ul>
-<div class="sourceCode" id="cb497"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb497-1"><a href="multivariate-nonparametric-regression.html#cb497-1" tabindex="-1"></a><span class="co"># Radial Basis Function Model</span></span>
-<span id="cb497-2"><a href="multivariate-nonparametric-regression.html#cb497-2" tabindex="-1"></a>rbf_model <span class="ot">&lt;-</span> <span class="fu">Tps</span>(<span class="fu">cbind</span>(x1, x2, x3), y)  <span class="co"># Thin-plate spline RBF</span></span>
-<span id="cb497-3"><a href="multivariate-nonparametric-regression.html#cb497-3" tabindex="-1"></a><span class="co">#&gt; Warning: </span></span>
-<span id="cb497-4"><a href="multivariate-nonparametric-regression.html#cb497-4" tabindex="-1"></a><span class="co">#&gt; Grid searches over lambda (nugget and sill variances) with  minima at the endpoints: </span></span>
-<span id="cb497-5"><a href="multivariate-nonparametric-regression.html#cb497-5" tabindex="-1"></a><span class="co">#&gt;   (GCV) Generalized Cross-Validation </span></span>
-<span id="cb497-6"><a href="multivariate-nonparametric-regression.html#cb497-6" tabindex="-1"></a><span class="co">#&gt;    minimum at  right endpoint  lambda  =  0.0002622876 (eff. df= 95.00001 )</span></span>
-<span id="cb497-7"><a href="multivariate-nonparametric-regression.html#cb497-7" tabindex="-1"></a></span>
-<span id="cb497-8"><a href="multivariate-nonparametric-regression.html#cb497-8" tabindex="-1"></a><span class="co"># Predictions</span></span>
-<span id="cb497-9"><a href="multivariate-nonparametric-regression.html#cb497-9" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_rbf <span class="ot">&lt;-</span></span>
-<span id="cb497-10"><a href="multivariate-nonparametric-regression.html#cb497-10" tabindex="-1"></a>    <span class="fu">predict</span>(rbf_model, <span class="fu">cbind</span>(grid_data<span class="sc">$</span>x1, grid_data<span class="sc">$</span>x2, grid_data<span class="sc">$</span>x3))</span></code></pre></div>
-<div class="sourceCode" id="cb498"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb498-1"><a href="multivariate-nonparametric-regression.html#cb498-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb498-2"><a href="multivariate-nonparametric-regression.html#cb498-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_rbf)) <span class="sc">+</span></span>
-<span id="cb498-3"><a href="multivariate-nonparametric-regression.html#cb498-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb498-4"><a href="multivariate-nonparametric-regression.html#cb498-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb498-5"><a href="multivariate-nonparametric-regression.html#cb498-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Radial Basis Function Regression (x3 fixed)&quot;</span>, </span>
-<span id="cb498-6"><a href="multivariate-nonparametric-regression.html#cb498-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
-<span id="cb498-7"><a href="multivariate-nonparametric-regression.html#cb498-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb502"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb502-1"><a href="multivariate-nonparametric-regression.html#cb502-1" tabindex="-1"></a><span class="co"># Radial Basis Function Model</span></span>
+<span id="cb502-2"><a href="multivariate-nonparametric-regression.html#cb502-2" tabindex="-1"></a>rbf_model <span class="ot">&lt;-</span> <span class="fu">Tps</span>(<span class="fu">cbind</span>(x1, x2, x3), y)  <span class="co"># Thin-plate spline RBF</span></span>
+<span id="cb502-3"><a href="multivariate-nonparametric-regression.html#cb502-3" tabindex="-1"></a></span>
+<span id="cb502-4"><a href="multivariate-nonparametric-regression.html#cb502-4" tabindex="-1"></a><span class="co"># Predictions</span></span>
+<span id="cb502-5"><a href="multivariate-nonparametric-regression.html#cb502-5" tabindex="-1"></a>grid_data<span class="sc">$</span>pred_rbf <span class="ot">&lt;-</span></span>
+<span id="cb502-6"><a href="multivariate-nonparametric-regression.html#cb502-6" tabindex="-1"></a>    <span class="fu">predict</span>(rbf_model, <span class="fu">cbind</span>(grid_data<span class="sc">$</span>x1, grid_data<span class="sc">$</span>x2, grid_data<span class="sc">$</span>x3))</span></code></pre></div>
+<div class="sourceCode" id="cb503"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb503-1"><a href="multivariate-nonparametric-regression.html#cb503-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb503-2"><a href="multivariate-nonparametric-regression.html#cb503-2" tabindex="-1"></a><span class="fu">ggplot</span>(grid_data, <span class="fu">aes</span>(x1, x2, <span class="at">fill =</span> pred_rbf)) <span class="sc">+</span></span>
+<span id="cb503-3"><a href="multivariate-nonparametric-regression.html#cb503-3" tabindex="-1"></a>    <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb503-4"><a href="multivariate-nonparametric-regression.html#cb503-4" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb503-5"><a href="multivariate-nonparametric-regression.html#cb503-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Radial Basis Function Regression (x3 fixed)&quot;</span>, </span>
+<span id="cb503-6"><a href="multivariate-nonparametric-regression.html#cb503-6" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>, <span class="at">y =</span> <span class="st">&quot;x2&quot;</span>) <span class="sc">+</span></span>
+<span id="cb503-7"><a href="multivariate-nonparametric-regression.html#cb503-7" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-13"></span>
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-13-1.png" alt="Heatmap illustrating Radial Basis Function Regression with x3 fixed. The x-axis represents x1, and the y-axis represents x2. The color gradient ranges from purple to yellow, indicating varying levels of the predicted RBF values, labeled as pred_rbf, with a scale from 2 to 6." width="90%" />
 <p class="caption">
@@ -2172,31 +2168,31 @@ Figure 2.14: Radial Basis Function Regression (x3 fixed)
 <li>RBFs capture complex, smooth surfaces and interactions based on distance.</li>
 <li>Perform well for scattered data but can be computationally expensive for large datasets.</li>
 </ul>
-<div class="sourceCode" id="cb499"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb499-1"><a href="multivariate-nonparametric-regression.html#cb499-1" tabindex="-1"></a><span class="co"># Compute Mean Squared Error for each model</span></span>
-<span id="cb499-2"><a href="multivariate-nonparametric-regression.html#cb499-2" tabindex="-1"></a>mse_kernel <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(kernel_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb499-3"><a href="multivariate-nonparametric-regression.html#cb499-3" tabindex="-1"></a>mse_tps <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(tps_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb499-4"><a href="multivariate-nonparametric-regression.html#cb499-4" tabindex="-1"></a>mse_tensor <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(tensor_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb499-5"><a href="multivariate-nonparametric-regression.html#cb499-5" tabindex="-1"></a>mse_gam <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(gam_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb499-6"><a href="multivariate-nonparametric-regression.html#cb499-6" tabindex="-1"></a>mse_rbf <span class="ot">&lt;-</span></span>
-<span id="cb499-7"><a href="multivariate-nonparametric-regression.html#cb499-7" tabindex="-1"></a>    <span class="fu">mean</span>((<span class="fu">predict</span>(rbf_model, <span class="fu">cbind</span>(x1, x2, x3)) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb499-8"><a href="multivariate-nonparametric-regression.html#cb499-8" tabindex="-1"></a></span>
-<span id="cb499-9"><a href="multivariate-nonparametric-regression.html#cb499-9" tabindex="-1"></a><span class="co"># Display MSE comparison</span></span>
-<span id="cb499-10"><a href="multivariate-nonparametric-regression.html#cb499-10" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
-<span id="cb499-11"><a href="multivariate-nonparametric-regression.html#cb499-11" tabindex="-1"></a>    <span class="at">Model =</span> <span class="fu">c</span>(</span>
-<span id="cb499-12"><a href="multivariate-nonparametric-regression.html#cb499-12" tabindex="-1"></a>        <span class="st">&quot;Kernel Regression&quot;</span>,</span>
-<span id="cb499-13"><a href="multivariate-nonparametric-regression.html#cb499-13" tabindex="-1"></a>        <span class="st">&quot;Thin-Plate Spline&quot;</span>,</span>
-<span id="cb499-14"><a href="multivariate-nonparametric-regression.html#cb499-14" tabindex="-1"></a>        <span class="st">&quot;Tensor Product Spline&quot;</span>,</span>
-<span id="cb499-15"><a href="multivariate-nonparametric-regression.html#cb499-15" tabindex="-1"></a>        <span class="st">&quot;Additive Model (GAM)&quot;</span>,</span>
-<span id="cb499-16"><a href="multivariate-nonparametric-regression.html#cb499-16" tabindex="-1"></a>        <span class="st">&quot;Radial Basis Functions&quot;</span></span>
-<span id="cb499-17"><a href="multivariate-nonparametric-regression.html#cb499-17" tabindex="-1"></a>    ),</span>
-<span id="cb499-18"><a href="multivariate-nonparametric-regression.html#cb499-18" tabindex="-1"></a>    <span class="at">MSE =</span> <span class="fu">c</span>(mse_kernel, mse_tps, mse_tensor, mse_gam, mse_rbf)</span>
-<span id="cb499-19"><a href="multivariate-nonparametric-regression.html#cb499-19" tabindex="-1"></a>)</span>
-<span id="cb499-20"><a href="multivariate-nonparametric-regression.html#cb499-20" tabindex="-1"></a><span class="co">#&gt;                    Model         MSE</span></span>
-<span id="cb499-21"><a href="multivariate-nonparametric-regression.html#cb499-21" tabindex="-1"></a><span class="co">#&gt; 1      Kernel Regression 0.253019836</span></span>
-<span id="cb499-22"><a href="multivariate-nonparametric-regression.html#cb499-22" tabindex="-1"></a><span class="co">#&gt; 2      Thin-Plate Spline 0.449096723</span></span>
-<span id="cb499-23"><a href="multivariate-nonparametric-regression.html#cb499-23" tabindex="-1"></a><span class="co">#&gt; 3  Tensor Product Spline 0.304680406</span></span>
-<span id="cb499-24"><a href="multivariate-nonparametric-regression.html#cb499-24" tabindex="-1"></a><span class="co">#&gt; 4   Additive Model (GAM) 1.595616092</span></span>
-<span id="cb499-25"><a href="multivariate-nonparametric-regression.html#cb499-25" tabindex="-1"></a><span class="co">#&gt; 5 Radial Basis Functions 0.001361915</span></span></code></pre></div>
+<div class="sourceCode" id="cb504"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb504-1"><a href="multivariate-nonparametric-regression.html#cb504-1" tabindex="-1"></a><span class="co"># Compute Mean Squared Error for each model</span></span>
+<span id="cb504-2"><a href="multivariate-nonparametric-regression.html#cb504-2" tabindex="-1"></a>mse_kernel <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(kernel_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb504-3"><a href="multivariate-nonparametric-regression.html#cb504-3" tabindex="-1"></a>mse_tps <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(tps_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb504-4"><a href="multivariate-nonparametric-regression.html#cb504-4" tabindex="-1"></a>mse_tensor <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(tensor_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb504-5"><a href="multivariate-nonparametric-regression.html#cb504-5" tabindex="-1"></a>mse_gam <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="fu">predict</span>(gam_model) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb504-6"><a href="multivariate-nonparametric-regression.html#cb504-6" tabindex="-1"></a>mse_rbf <span class="ot">&lt;-</span></span>
+<span id="cb504-7"><a href="multivariate-nonparametric-regression.html#cb504-7" tabindex="-1"></a>    <span class="fu">mean</span>((<span class="fu">predict</span>(rbf_model, <span class="fu">cbind</span>(x1, x2, x3)) <span class="sc">-</span> data_multi<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb504-8"><a href="multivariate-nonparametric-regression.html#cb504-8" tabindex="-1"></a></span>
+<span id="cb504-9"><a href="multivariate-nonparametric-regression.html#cb504-9" tabindex="-1"></a><span class="co"># Display MSE comparison</span></span>
+<span id="cb504-10"><a href="multivariate-nonparametric-regression.html#cb504-10" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb504-11"><a href="multivariate-nonparametric-regression.html#cb504-11" tabindex="-1"></a>    <span class="at">Model =</span> <span class="fu">c</span>(</span>
+<span id="cb504-12"><a href="multivariate-nonparametric-regression.html#cb504-12" tabindex="-1"></a>        <span class="st">&quot;Kernel Regression&quot;</span>,</span>
+<span id="cb504-13"><a href="multivariate-nonparametric-regression.html#cb504-13" tabindex="-1"></a>        <span class="st">&quot;Thin-Plate Spline&quot;</span>,</span>
+<span id="cb504-14"><a href="multivariate-nonparametric-regression.html#cb504-14" tabindex="-1"></a>        <span class="st">&quot;Tensor Product Spline&quot;</span>,</span>
+<span id="cb504-15"><a href="multivariate-nonparametric-regression.html#cb504-15" tabindex="-1"></a>        <span class="st">&quot;Additive Model (GAM)&quot;</span>,</span>
+<span id="cb504-16"><a href="multivariate-nonparametric-regression.html#cb504-16" tabindex="-1"></a>        <span class="st">&quot;Radial Basis Functions&quot;</span></span>
+<span id="cb504-17"><a href="multivariate-nonparametric-regression.html#cb504-17" tabindex="-1"></a>    ),</span>
+<span id="cb504-18"><a href="multivariate-nonparametric-regression.html#cb504-18" tabindex="-1"></a>    <span class="at">MSE =</span> <span class="fu">c</span>(mse_kernel, mse_tps, mse_tensor, mse_gam, mse_rbf)</span>
+<span id="cb504-19"><a href="multivariate-nonparametric-regression.html#cb504-19" tabindex="-1"></a>)</span>
+<span id="cb504-20"><a href="multivariate-nonparametric-regression.html#cb504-20" tabindex="-1"></a><span class="co">#&gt;                    Model         MSE</span></span>
+<span id="cb504-21"><a href="multivariate-nonparametric-regression.html#cb504-21" tabindex="-1"></a><span class="co">#&gt; 1      Kernel Regression 0.253019836</span></span>
+<span id="cb504-22"><a href="multivariate-nonparametric-regression.html#cb504-22" tabindex="-1"></a><span class="co">#&gt; 2      Thin-Plate Spline 0.449096723</span></span>
+<span id="cb504-23"><a href="multivariate-nonparametric-regression.html#cb504-23" tabindex="-1"></a><span class="co">#&gt; 3  Tensor Product Spline 0.304680406</span></span>
+<span id="cb504-24"><a href="multivariate-nonparametric-regression.html#cb504-24" tabindex="-1"></a><span class="co">#&gt; 4   Additive Model (GAM) 1.595616092</span></span>
+<span id="cb504-25"><a href="multivariate-nonparametric-regression.html#cb504-25" tabindex="-1"></a><span class="co">#&gt; 5 Radial Basis Functions 0.001361915</span></span></code></pre></div>
 <hr />
 </div>
 </div>

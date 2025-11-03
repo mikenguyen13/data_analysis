@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>37.5 p-Hacking | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="37.5 p-Hacking | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2016,133 +2016,133 @@ f_{\text{hack}}(p) = m [1 - F(p)]^{m-1} f(p),
 <li><p><strong>Key signature</strong>: not just truncation, but a smooth inflation near <span class="math inline">\(\alpha\)</span>, sometimes with a local mode or “bump” just below it.</p></li>
 </ul>
 <hr />
-<div class="sourceCode" id="cb1140"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1140-1"><a href="p-hacking.html#cb1140-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1140-2"><a href="p-hacking.html#cb1140-2" tabindex="-1"></a><span class="co"># True effect small: mu = 1 (z ~ N(1,1))</span></span>
-<span id="cb1140-3"><a href="p-hacking.html#cb1140-3" tabindex="-1"></a>simulate_p <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">mu =</span> <span class="dv">1</span>,</span>
-<span id="cb1140-4"><a href="p-hacking.html#cb1140-4" tabindex="-1"></a>                       <span class="at">m =</span> <span class="dv">1</span>,</span>
-<span id="cb1140-5"><a href="p-hacking.html#cb1140-5" tabindex="-1"></a>                       <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
-<span id="cb1140-6"><a href="p-hacking.html#cb1140-6" tabindex="-1"></a>                       <span class="at">n =</span> <span class="dv">10000</span>) {</span>
-<span id="cb1140-7"><a href="p-hacking.html#cb1140-7" tabindex="-1"></a>    z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n <span class="sc">*</span> m, mu, <span class="dv">1</span>)</span>
-<span id="cb1140-8"><a href="p-hacking.html#cb1140-8" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z)))</span>
-<span id="cb1140-9"><a href="p-hacking.html#cb1140-9" tabindex="-1"></a>    <span class="cf">if</span> (m <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb1140-10"><a href="p-hacking.html#cb1140-10" tabindex="-1"></a>        p <span class="ot">&lt;-</span> <span class="fu">matrix</span>(p, n, m)</span>
-<span id="cb1140-11"><a href="p-hacking.html#cb1140-11" tabindex="-1"></a>        p <span class="ot">&lt;-</span> <span class="fu">apply</span>(p, <span class="dv">1</span>, min)  <span class="co"># pick the smallest = p-hacking</span></span>
-<span id="cb1140-12"><a href="p-hacking.html#cb1140-12" tabindex="-1"></a>    }</span>
-<span id="cb1140-13"><a href="p-hacking.html#cb1140-13" tabindex="-1"></a>    <span class="fu">return</span>(p)</span>
-<span id="cb1140-14"><a href="p-hacking.html#cb1140-14" tabindex="-1"></a>}</span>
-<span id="cb1140-15"><a href="p-hacking.html#cb1140-15" tabindex="-1"></a></span>
-<span id="cb1140-16"><a href="p-hacking.html#cb1140-16" tabindex="-1"></a><span class="co"># Generate full distributions (don&#39;t truncate yet)</span></span>
-<span id="cb1140-17"><a href="p-hacking.html#cb1140-17" tabindex="-1"></a>p_orig <span class="ot">&lt;-</span></span>
-<span id="cb1140-18"><a href="p-hacking.html#cb1140-18" tabindex="-1"></a>    <span class="fu">simulate_p</span>(<span class="at">mu =</span> <span class="dv">1</span>, <span class="at">m =</span> <span class="dv">1</span>)               <span class="co"># original distribution</span></span>
-<span id="cb1140-19"><a href="p-hacking.html#cb1140-19" tabindex="-1"></a>p_pub <span class="ot">&lt;-</span></span>
-<span id="cb1140-20"><a href="p-hacking.html#cb1140-20" tabindex="-1"></a>    p_orig[p_orig <span class="sc">&lt;=</span> <span class="fl">0.05</span>]               <span class="co"># truncate to sigs (publication bias)</span></span>
-<span id="cb1140-21"><a href="p-hacking.html#cb1140-21" tabindex="-1"></a>p_hack <span class="ot">&lt;-</span></span>
-<span id="cb1140-22"><a href="p-hacking.html#cb1140-22" tabindex="-1"></a>    <span class="fu">simulate_p</span>(<span class="at">mu =</span> <span class="dv">1</span>, <span class="at">m =</span> <span class="dv">10</span>)              <span class="co"># p-hacking: 10 tries, keep min</span></span>
-<span id="cb1140-23"><a href="p-hacking.html#cb1140-23" tabindex="-1"></a></span>
-<span id="cb1140-24"><a href="p-hacking.html#cb1140-24" tabindex="-1"></a><span class="co"># Create a more interpretative comparison</span></span>
-<span id="cb1140-25"><a href="p-hacking.html#cb1140-25" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1140-26"><a href="p-hacking.html#cb1140-26" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1140-27"><a href="p-hacking.html#cb1140-27" tabindex="-1"></a></span>
-<span id="cb1140-28"><a href="p-hacking.html#cb1140-28" tabindex="-1"></a><span class="co"># Compare three scenarios</span></span>
-<span id="cb1140-29"><a href="p-hacking.html#cb1140-29" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb1140-30"><a href="p-hacking.html#cb1140-30" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_orig, <span class="at">type =</span> <span class="st">&quot;1. Original (no bias)&quot;</span>),</span>
-<span id="cb1140-31"><a href="p-hacking.html#cb1140-31" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> <span class="fu">c</span>(p_pub, <span class="fu">rep</span>(</span>
-<span id="cb1140-32"><a href="p-hacking.html#cb1140-32" tabindex="-1"></a>        <span class="cn">NA</span>, <span class="fu">length</span>(p_orig) <span class="sc">-</span> <span class="fu">length</span>(p_pub)</span>
-<span id="cb1140-33"><a href="p-hacking.html#cb1140-33" tabindex="-1"></a>    )),</span>
-<span id="cb1140-34"><a href="p-hacking.html#cb1140-34" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;2. Publication bias (truncated at p&lt;0.05)&quot;</span>),</span>
-<span id="cb1140-35"><a href="p-hacking.html#cb1140-35" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_hack, <span class="at">type =</span> <span class="st">&quot;3. P-hacking (min of 10)&quot;</span>)</span>
-<span id="cb1140-36"><a href="p-hacking.html#cb1140-36" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb1140-37"><a href="p-hacking.html#cb1140-37" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(p))</span></code></pre></div>
-<div class="sourceCode" id="cb1141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1141-1"><a href="p-hacking.html#cb1141-1" tabindex="-1"></a><span class="co"># Focus on the critical region (0 to 0.2)</span></span>
-<span id="cb1141-2"><a href="p-hacking.html#cb1141-2" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(p, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb1141-3"><a href="p-hacking.html#cb1141-3" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(</span>
-<span id="cb1141-4"><a href="p-hacking.html#cb1141-4" tabindex="-1"></a>        <span class="at">binwidth =</span> <span class="fl">0.002</span>,</span>
-<span id="cb1141-5"><a href="p-hacking.html#cb1141-5" tabindex="-1"></a>        <span class="at">position =</span> <span class="st">&quot;identity&quot;</span>,</span>
-<span id="cb1141-6"><a href="p-hacking.html#cb1141-6" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
-<span id="cb1141-7"><a href="p-hacking.html#cb1141-7" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;white&quot;</span></span>
-<span id="cb1141-8"><a href="p-hacking.html#cb1141-8" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1141-9"><a href="p-hacking.html#cb1141-9" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
-<span id="cb1141-10"><a href="p-hacking.html#cb1141-10" tabindex="-1"></a>        <span class="at">xintercept =</span> <span class="fl">0.05</span>,</span>
-<span id="cb1141-11"><a href="p-hacking.html#cb1141-11" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb1141-12"><a href="p-hacking.html#cb1141-12" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="dv">1</span>,</span>
-<span id="cb1141-13"><a href="p-hacking.html#cb1141-13" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span></span>
-<span id="cb1141-14"><a href="p-hacking.html#cb1141-14" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1141-15"><a href="p-hacking.html#cb1141-15" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.2</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.2</span>, <span class="fl">0.02</span>)) <span class="sc">+</span></span>
-<span id="cb1141-16"><a href="p-hacking.html#cb1141-16" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;gray50&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;orange&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb1141-17"><a href="p-hacking.html#cb1141-17" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb1141-18"><a href="p-hacking.html#cb1141-18" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;p-value&quot;</span>,</span>
-<span id="cb1141-19"><a href="p-hacking.html#cb1141-19" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Frequency&quot;</span>,</span>
-<span id="cb1141-20"><a href="p-hacking.html#cb1141-20" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;P-value distributions under different research practices&quot;</span>,</span>
-<span id="cb1141-21"><a href="p-hacking.html#cb1141-21" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Effect size: d=1 (moderate); Alpha=0.05 (red line)&quot;</span>,</span>
-<span id="cb1141-22"><a href="p-hacking.html#cb1141-22" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;Scenario&quot;</span></span>
-<span id="cb1141-23"><a href="p-hacking.html#cb1141-23" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1141-24"><a href="p-hacking.html#cb1141-24" tabindex="-1"></a>    <span class="co"># causalverse::ama_theme() + </span></span>
-<span id="cb1141-25"><a href="p-hacking.html#cb1141-25" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb1141-26"><a href="p-hacking.html#cb1141-26" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
-<span id="cb1141-27"><a href="p-hacking.html#cb1141-27" tabindex="-1"></a>      <span class="at">legend.direction =</span> <span class="st">&quot;vertical&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1141-28"><a href="p-hacking.html#cb1141-28" tabindex="-1"></a>    <span class="fu">facet_wrap</span>( <span class="sc">~</span> type, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">&quot;free_y&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1145"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1145-1"><a href="p-hacking.html#cb1145-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1145-2"><a href="p-hacking.html#cb1145-2" tabindex="-1"></a><span class="co"># True effect small: mu = 1 (z ~ N(1,1))</span></span>
+<span id="cb1145-3"><a href="p-hacking.html#cb1145-3" tabindex="-1"></a>simulate_p <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">mu =</span> <span class="dv">1</span>,</span>
+<span id="cb1145-4"><a href="p-hacking.html#cb1145-4" tabindex="-1"></a>                       <span class="at">m =</span> <span class="dv">1</span>,</span>
+<span id="cb1145-5"><a href="p-hacking.html#cb1145-5" tabindex="-1"></a>                       <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb1145-6"><a href="p-hacking.html#cb1145-6" tabindex="-1"></a>                       <span class="at">n =</span> <span class="dv">10000</span>) {</span>
+<span id="cb1145-7"><a href="p-hacking.html#cb1145-7" tabindex="-1"></a>    z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n <span class="sc">*</span> m, mu, <span class="dv">1</span>)</span>
+<span id="cb1145-8"><a href="p-hacking.html#cb1145-8" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(z)))</span>
+<span id="cb1145-9"><a href="p-hacking.html#cb1145-9" tabindex="-1"></a>    <span class="cf">if</span> (m <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb1145-10"><a href="p-hacking.html#cb1145-10" tabindex="-1"></a>        p <span class="ot">&lt;-</span> <span class="fu">matrix</span>(p, n, m)</span>
+<span id="cb1145-11"><a href="p-hacking.html#cb1145-11" tabindex="-1"></a>        p <span class="ot">&lt;-</span> <span class="fu">apply</span>(p, <span class="dv">1</span>, min)  <span class="co"># pick the smallest = p-hacking</span></span>
+<span id="cb1145-12"><a href="p-hacking.html#cb1145-12" tabindex="-1"></a>    }</span>
+<span id="cb1145-13"><a href="p-hacking.html#cb1145-13" tabindex="-1"></a>    <span class="fu">return</span>(p)</span>
+<span id="cb1145-14"><a href="p-hacking.html#cb1145-14" tabindex="-1"></a>}</span>
+<span id="cb1145-15"><a href="p-hacking.html#cb1145-15" tabindex="-1"></a></span>
+<span id="cb1145-16"><a href="p-hacking.html#cb1145-16" tabindex="-1"></a><span class="co"># Generate full distributions (don&#39;t truncate yet)</span></span>
+<span id="cb1145-17"><a href="p-hacking.html#cb1145-17" tabindex="-1"></a>p_orig <span class="ot">&lt;-</span></span>
+<span id="cb1145-18"><a href="p-hacking.html#cb1145-18" tabindex="-1"></a>    <span class="fu">simulate_p</span>(<span class="at">mu =</span> <span class="dv">1</span>, <span class="at">m =</span> <span class="dv">1</span>)               <span class="co"># original distribution</span></span>
+<span id="cb1145-19"><a href="p-hacking.html#cb1145-19" tabindex="-1"></a>p_pub <span class="ot">&lt;-</span></span>
+<span id="cb1145-20"><a href="p-hacking.html#cb1145-20" tabindex="-1"></a>    p_orig[p_orig <span class="sc">&lt;=</span> <span class="fl">0.05</span>]               <span class="co"># truncate to sigs (publication bias)</span></span>
+<span id="cb1145-21"><a href="p-hacking.html#cb1145-21" tabindex="-1"></a>p_hack <span class="ot">&lt;-</span></span>
+<span id="cb1145-22"><a href="p-hacking.html#cb1145-22" tabindex="-1"></a>    <span class="fu">simulate_p</span>(<span class="at">mu =</span> <span class="dv">1</span>, <span class="at">m =</span> <span class="dv">10</span>)              <span class="co"># p-hacking: 10 tries, keep min</span></span>
+<span id="cb1145-23"><a href="p-hacking.html#cb1145-23" tabindex="-1"></a></span>
+<span id="cb1145-24"><a href="p-hacking.html#cb1145-24" tabindex="-1"></a><span class="co"># Create a more interpretative comparison</span></span>
+<span id="cb1145-25"><a href="p-hacking.html#cb1145-25" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1145-26"><a href="p-hacking.html#cb1145-26" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1145-27"><a href="p-hacking.html#cb1145-27" tabindex="-1"></a></span>
+<span id="cb1145-28"><a href="p-hacking.html#cb1145-28" tabindex="-1"></a><span class="co"># Compare three scenarios</span></span>
+<span id="cb1145-29"><a href="p-hacking.html#cb1145-29" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb1145-30"><a href="p-hacking.html#cb1145-30" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_orig, <span class="at">type =</span> <span class="st">&quot;1. Original (no bias)&quot;</span>),</span>
+<span id="cb1145-31"><a href="p-hacking.html#cb1145-31" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> <span class="fu">c</span>(p_pub, <span class="fu">rep</span>(</span>
+<span id="cb1145-32"><a href="p-hacking.html#cb1145-32" tabindex="-1"></a>        <span class="cn">NA</span>, <span class="fu">length</span>(p_orig) <span class="sc">-</span> <span class="fu">length</span>(p_pub)</span>
+<span id="cb1145-33"><a href="p-hacking.html#cb1145-33" tabindex="-1"></a>    )),</span>
+<span id="cb1145-34"><a href="p-hacking.html#cb1145-34" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;2. Publication bias (truncated at p&lt;0.05)&quot;</span>),</span>
+<span id="cb1145-35"><a href="p-hacking.html#cb1145-35" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_hack, <span class="at">type =</span> <span class="st">&quot;3. P-hacking (min of 10)&quot;</span>)</span>
+<span id="cb1145-36"><a href="p-hacking.html#cb1145-36" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb1145-37"><a href="p-hacking.html#cb1145-37" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(p))</span></code></pre></div>
+<div class="sourceCode" id="cb1146"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1146-1"><a href="p-hacking.html#cb1146-1" tabindex="-1"></a><span class="co"># Focus on the critical region (0 to 0.2)</span></span>
+<span id="cb1146-2"><a href="p-hacking.html#cb1146-2" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(p, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
+<span id="cb1146-3"><a href="p-hacking.html#cb1146-3" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(</span>
+<span id="cb1146-4"><a href="p-hacking.html#cb1146-4" tabindex="-1"></a>        <span class="at">binwidth =</span> <span class="fl">0.002</span>,</span>
+<span id="cb1146-5"><a href="p-hacking.html#cb1146-5" tabindex="-1"></a>        <span class="at">position =</span> <span class="st">&quot;identity&quot;</span>,</span>
+<span id="cb1146-6"><a href="p-hacking.html#cb1146-6" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
+<span id="cb1146-7"><a href="p-hacking.html#cb1146-7" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;white&quot;</span></span>
+<span id="cb1146-8"><a href="p-hacking.html#cb1146-8" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1146-9"><a href="p-hacking.html#cb1146-9" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
+<span id="cb1146-10"><a href="p-hacking.html#cb1146-10" tabindex="-1"></a>        <span class="at">xintercept =</span> <span class="fl">0.05</span>,</span>
+<span id="cb1146-11"><a href="p-hacking.html#cb1146-11" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb1146-12"><a href="p-hacking.html#cb1146-12" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="dv">1</span>,</span>
+<span id="cb1146-13"><a href="p-hacking.html#cb1146-13" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span></span>
+<span id="cb1146-14"><a href="p-hacking.html#cb1146-14" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1146-15"><a href="p-hacking.html#cb1146-15" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.2</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.2</span>, <span class="fl">0.02</span>)) <span class="sc">+</span></span>
+<span id="cb1146-16"><a href="p-hacking.html#cb1146-16" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;gray50&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;orange&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb1146-17"><a href="p-hacking.html#cb1146-17" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb1146-18"><a href="p-hacking.html#cb1146-18" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;p-value&quot;</span>,</span>
+<span id="cb1146-19"><a href="p-hacking.html#cb1146-19" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Frequency&quot;</span>,</span>
+<span id="cb1146-20"><a href="p-hacking.html#cb1146-20" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;P-value distributions under different research practices&quot;</span>,</span>
+<span id="cb1146-21"><a href="p-hacking.html#cb1146-21" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Effect size: d=1 (moderate); Alpha=0.05 (red line)&quot;</span>,</span>
+<span id="cb1146-22"><a href="p-hacking.html#cb1146-22" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;Scenario&quot;</span></span>
+<span id="cb1146-23"><a href="p-hacking.html#cb1146-23" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1146-24"><a href="p-hacking.html#cb1146-24" tabindex="-1"></a>    <span class="co"># causalverse::ama_theme() + </span></span>
+<span id="cb1146-25"><a href="p-hacking.html#cb1146-25" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb1146-26"><a href="p-hacking.html#cb1146-26" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb1146-27"><a href="p-hacking.html#cb1146-27" tabindex="-1"></a>      <span class="at">legend.direction =</span> <span class="st">&quot;vertical&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1146-28"><a href="p-hacking.html#cb1146-28" tabindex="-1"></a>    <span class="fu">facet_wrap</span>( <span class="sc">~</span> type, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">&quot;free_y&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:p-value-distribution-comparison"></span>
 <img src="37-biases_files/figure-html/p-value-distribution-comparison-1.png" alt="Histogram showing two overlapping distributions of p-values with different colors for truncation and p-hacking methods. The distributions are semi-transparent to show overlap, with a vertical dashed line at p=0.05 marking the significance threshold. The x-axis shows p-values from 0 to 1, and the y-axis shows frequency counts." width="90%" />
 <p class="caption">
 Figure 37.1: Comparison of p-value Distributions
 </p>
 </div>
-<div class="sourceCode" id="cb1142"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1142-1"><a href="p-hacking.html#cb1142-1" tabindex="-1"></a><span class="co"># Alternative: Show the pile-up more clearly</span></span>
-<span id="cb1142-2"><a href="p-hacking.html#cb1142-2" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb1142-3"><a href="p-hacking.html#cb1142-3" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_orig, <span class="at">type =</span> <span class="st">&quot;No selection&quot;</span>),</span>
-<span id="cb1142-4"><a href="p-hacking.html#cb1142-4" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_hack, <span class="at">type =</span> <span class="st">&quot;P-hacking (min of 10)&quot;</span>)</span>
-<span id="cb1142-5"><a href="p-hacking.html#cb1142-5" tabindex="-1"></a>)</span>
-<span id="cb1142-6"><a href="p-hacking.html#cb1142-6" tabindex="-1"></a></span>
-<span id="cb1142-7"><a href="p-hacking.html#cb1142-7" tabindex="-1"></a><span class="fu">ggplot</span>(df2, <span class="fu">aes</span>(p, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb1142-8"><a href="p-hacking.html#cb1142-8" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(</span>
-<span id="cb1142-9"><a href="p-hacking.html#cb1142-9" tabindex="-1"></a>        <span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density)),</span>
-<span id="cb1142-10"><a href="p-hacking.html#cb1142-10" tabindex="-1"></a>        <span class="at">binwidth =</span> <span class="fl">0.005</span>,</span>
-<span id="cb1142-11"><a href="p-hacking.html#cb1142-11" tabindex="-1"></a>        <span class="at">position =</span> <span class="st">&quot;identity&quot;</span>,</span>
-<span id="cb1142-12"><a href="p-hacking.html#cb1142-12" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.6</span>,</span>
-<span id="cb1142-13"><a href="p-hacking.html#cb1142-13" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;white&quot;</span></span>
-<span id="cb1142-14"><a href="p-hacking.html#cb1142-14" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1142-15"><a href="p-hacking.html#cb1142-15" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
-<span id="cb1142-16"><a href="p-hacking.html#cb1142-16" tabindex="-1"></a>        <span class="at">xintercept =</span> <span class="fl">0.05</span>,</span>
-<span id="cb1142-17"><a href="p-hacking.html#cb1142-17" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb1142-18"><a href="p-hacking.html#cb1142-18" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="dv">1</span>,</span>
-<span id="cb1142-19"><a href="p-hacking.html#cb1142-19" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span></span>
-<span id="cb1142-20"><a href="p-hacking.html#cb1142-20" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1142-21"><a href="p-hacking.html#cb1142-21" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
-<span id="cb1142-22"><a href="p-hacking.html#cb1142-22" tabindex="-1"></a>        <span class="at">xintercept =</span> <span class="fl">0.01</span>,</span>
-<span id="cb1142-23"><a href="p-hacking.html#cb1142-23" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>,</span>
-<span id="cb1142-24"><a href="p-hacking.html#cb1142-24" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">0.5</span>,</span>
-<span id="cb1142-25"><a href="p-hacking.html#cb1142-25" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span></span>
-<span id="cb1142-26"><a href="p-hacking.html#cb1142-26" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1142-27"><a href="p-hacking.html#cb1142-27" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.15</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.15</span>, <span class="fl">0.01</span>)) <span class="sc">+</span></span>
-<span id="cb1142-28"><a href="p-hacking.html#cb1142-28" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;gray60&quot;</span>, <span class="st">&quot;darkred&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb1142-29"><a href="p-hacking.html#cb1142-29" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
-<span id="cb1142-30"><a href="p-hacking.html#cb1142-30" tabindex="-1"></a>        <span class="st">&quot;text&quot;</span>,</span>
-<span id="cb1142-31"><a href="p-hacking.html#cb1142-31" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">0.05</span>,</span>
-<span id="cb1142-32"><a href="p-hacking.html#cb1142-32" tabindex="-1"></a>        <span class="at">y =</span> <span class="cn">Inf</span>,</span>
-<span id="cb1142-33"><a href="p-hacking.html#cb1142-33" tabindex="-1"></a>        <span class="at">label =</span> <span class="st">&quot;α = 0.05&quot;</span>,</span>
-<span id="cb1142-34"><a href="p-hacking.html#cb1142-34" tabindex="-1"></a>        <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>,</span>
-<span id="cb1142-35"><a href="p-hacking.html#cb1142-35" tabindex="-1"></a>        <span class="at">vjust =</span> <span class="dv">2</span>,</span>
-<span id="cb1142-36"><a href="p-hacking.html#cb1142-36" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb1142-37"><a href="p-hacking.html#cb1142-37" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">3</span></span>
-<span id="cb1142-38"><a href="p-hacking.html#cb1142-38" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1142-39"><a href="p-hacking.html#cb1142-39" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
-<span id="cb1142-40"><a href="p-hacking.html#cb1142-40" tabindex="-1"></a>        <span class="st">&quot;rect&quot;</span>,</span>
-<span id="cb1142-41"><a href="p-hacking.html#cb1142-41" tabindex="-1"></a>        <span class="at">xmin =</span> <span class="dv">0</span>,</span>
-<span id="cb1142-42"><a href="p-hacking.html#cb1142-42" tabindex="-1"></a>        <span class="at">xmax =</span> <span class="fl">0.05</span>,</span>
-<span id="cb1142-43"><a href="p-hacking.html#cb1142-43" tabindex="-1"></a>        <span class="at">ymin =</span> <span class="dv">0</span>,</span>
-<span id="cb1142-44"><a href="p-hacking.html#cb1142-44" tabindex="-1"></a>        <span class="at">ymax =</span> <span class="cn">Inf</span>,</span>
-<span id="cb1142-45"><a href="p-hacking.html#cb1142-45" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.1</span>,</span>
-<span id="cb1142-46"><a href="p-hacking.html#cb1142-46" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;red&quot;</span></span>
-<span id="cb1142-47"><a href="p-hacking.html#cb1142-47" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1142-48"><a href="p-hacking.html#cb1142-48" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb1142-49"><a href="p-hacking.html#cb1142-49" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;p-value&quot;</span>,</span>
-<span id="cb1142-50"><a href="p-hacking.html#cb1142-50" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Density&quot;</span>,</span>
-<span id="cb1142-51"><a href="p-hacking.html#cb1142-51" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;P-hacking creates an excess of &#39;barely significant&#39; results&quot;</span>,</span>
-<span id="cb1142-52"><a href="p-hacking.html#cb1142-52" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;Method&quot;</span></span>
-<span id="cb1142-53"><a href="p-hacking.html#cb1142-53" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb1142-54"><a href="p-hacking.html#cb1142-54" tabindex="-1"></a>    <span class="co"># theme_minimal() +</span></span>
-<span id="cb1142-55"><a href="p-hacking.html#cb1142-55" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>() <span class="sc">+</span> </span>
-<span id="cb1142-56"><a href="p-hacking.html#cb1142-56" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1147-1"><a href="p-hacking.html#cb1147-1" tabindex="-1"></a><span class="co"># Alternative: Show the pile-up more clearly</span></span>
+<span id="cb1147-2"><a href="p-hacking.html#cb1147-2" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb1147-3"><a href="p-hacking.html#cb1147-3" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_orig, <span class="at">type =</span> <span class="st">&quot;No selection&quot;</span>),</span>
+<span id="cb1147-4"><a href="p-hacking.html#cb1147-4" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">p =</span> p_hack, <span class="at">type =</span> <span class="st">&quot;P-hacking (min of 10)&quot;</span>)</span>
+<span id="cb1147-5"><a href="p-hacking.html#cb1147-5" tabindex="-1"></a>)</span>
+<span id="cb1147-6"><a href="p-hacking.html#cb1147-6" tabindex="-1"></a></span>
+<span id="cb1147-7"><a href="p-hacking.html#cb1147-7" tabindex="-1"></a><span class="fu">ggplot</span>(df2, <span class="fu">aes</span>(p, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
+<span id="cb1147-8"><a href="p-hacking.html#cb1147-8" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(</span>
+<span id="cb1147-9"><a href="p-hacking.html#cb1147-9" tabindex="-1"></a>        <span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density)),</span>
+<span id="cb1147-10"><a href="p-hacking.html#cb1147-10" tabindex="-1"></a>        <span class="at">binwidth =</span> <span class="fl">0.005</span>,</span>
+<span id="cb1147-11"><a href="p-hacking.html#cb1147-11" tabindex="-1"></a>        <span class="at">position =</span> <span class="st">&quot;identity&quot;</span>,</span>
+<span id="cb1147-12"><a href="p-hacking.html#cb1147-12" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.6</span>,</span>
+<span id="cb1147-13"><a href="p-hacking.html#cb1147-13" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;white&quot;</span></span>
+<span id="cb1147-14"><a href="p-hacking.html#cb1147-14" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1147-15"><a href="p-hacking.html#cb1147-15" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
+<span id="cb1147-16"><a href="p-hacking.html#cb1147-16" tabindex="-1"></a>        <span class="at">xintercept =</span> <span class="fl">0.05</span>,</span>
+<span id="cb1147-17"><a href="p-hacking.html#cb1147-17" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb1147-18"><a href="p-hacking.html#cb1147-18" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="dv">1</span>,</span>
+<span id="cb1147-19"><a href="p-hacking.html#cb1147-19" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span></span>
+<span id="cb1147-20"><a href="p-hacking.html#cb1147-20" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1147-21"><a href="p-hacking.html#cb1147-21" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
+<span id="cb1147-22"><a href="p-hacking.html#cb1147-22" tabindex="-1"></a>        <span class="at">xintercept =</span> <span class="fl">0.01</span>,</span>
+<span id="cb1147-23"><a href="p-hacking.html#cb1147-23" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>,</span>
+<span id="cb1147-24"><a href="p-hacking.html#cb1147-24" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">0.5</span>,</span>
+<span id="cb1147-25"><a href="p-hacking.html#cb1147-25" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span></span>
+<span id="cb1147-26"><a href="p-hacking.html#cb1147-26" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1147-27"><a href="p-hacking.html#cb1147-27" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.15</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.15</span>, <span class="fl">0.01</span>)) <span class="sc">+</span></span>
+<span id="cb1147-28"><a href="p-hacking.html#cb1147-28" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;gray60&quot;</span>, <span class="st">&quot;darkred&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb1147-29"><a href="p-hacking.html#cb1147-29" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb1147-30"><a href="p-hacking.html#cb1147-30" tabindex="-1"></a>        <span class="st">&quot;text&quot;</span>,</span>
+<span id="cb1147-31"><a href="p-hacking.html#cb1147-31" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">0.05</span>,</span>
+<span id="cb1147-32"><a href="p-hacking.html#cb1147-32" tabindex="-1"></a>        <span class="at">y =</span> <span class="cn">Inf</span>,</span>
+<span id="cb1147-33"><a href="p-hacking.html#cb1147-33" tabindex="-1"></a>        <span class="at">label =</span> <span class="st">&quot;α = 0.05&quot;</span>,</span>
+<span id="cb1147-34"><a href="p-hacking.html#cb1147-34" tabindex="-1"></a>        <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>,</span>
+<span id="cb1147-35"><a href="p-hacking.html#cb1147-35" tabindex="-1"></a>        <span class="at">vjust =</span> <span class="dv">2</span>,</span>
+<span id="cb1147-36"><a href="p-hacking.html#cb1147-36" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb1147-37"><a href="p-hacking.html#cb1147-37" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">3</span></span>
+<span id="cb1147-38"><a href="p-hacking.html#cb1147-38" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1147-39"><a href="p-hacking.html#cb1147-39" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb1147-40"><a href="p-hacking.html#cb1147-40" tabindex="-1"></a>        <span class="st">&quot;rect&quot;</span>,</span>
+<span id="cb1147-41"><a href="p-hacking.html#cb1147-41" tabindex="-1"></a>        <span class="at">xmin =</span> <span class="dv">0</span>,</span>
+<span id="cb1147-42"><a href="p-hacking.html#cb1147-42" tabindex="-1"></a>        <span class="at">xmax =</span> <span class="fl">0.05</span>,</span>
+<span id="cb1147-43"><a href="p-hacking.html#cb1147-43" tabindex="-1"></a>        <span class="at">ymin =</span> <span class="dv">0</span>,</span>
+<span id="cb1147-44"><a href="p-hacking.html#cb1147-44" tabindex="-1"></a>        <span class="at">ymax =</span> <span class="cn">Inf</span>,</span>
+<span id="cb1147-45"><a href="p-hacking.html#cb1147-45" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.1</span>,</span>
+<span id="cb1147-46"><a href="p-hacking.html#cb1147-46" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;red&quot;</span></span>
+<span id="cb1147-47"><a href="p-hacking.html#cb1147-47" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1147-48"><a href="p-hacking.html#cb1147-48" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb1147-49"><a href="p-hacking.html#cb1147-49" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;p-value&quot;</span>,</span>
+<span id="cb1147-50"><a href="p-hacking.html#cb1147-50" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Density&quot;</span>,</span>
+<span id="cb1147-51"><a href="p-hacking.html#cb1147-51" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;P-hacking creates an excess of &#39;barely significant&#39; results&quot;</span>,</span>
+<span id="cb1147-52"><a href="p-hacking.html#cb1147-52" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;Method&quot;</span></span>
+<span id="cb1147-53"><a href="p-hacking.html#cb1147-53" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb1147-54"><a href="p-hacking.html#cb1147-54" tabindex="-1"></a>    <span class="co"># theme_minimal() +</span></span>
+<span id="cb1147-55"><a href="p-hacking.html#cb1147-55" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>() <span class="sc">+</span> </span>
+<span id="cb1147-56"><a href="p-hacking.html#cb1147-56" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:p-hacking-pile-up-effect"></span>
 <img src="37-biases_files/figure-html/p-hacking-pile-up-effect-1.png" alt="Density histogram comparing p-value distributions between no selection (gray) and p-hacking using minimum of 10 tests (dark red). The plot shows semi-transparent overlapping distributions from p=0 to p=0.15, with a vertical dashed red line at p=0.05 marking the significance threshold and a red shaded region from 0 to 0.05 indicating the statistically significant zone. The p-hacking distribution shows a notable spike just below p=0.05, demonstrating the pile-up effect." width="90%" />
 <p class="caption">
@@ -2529,176 +2529,176 @@ f_{\mathrm{obs}}(z) = \frac{s(z) \int \varphi(z-\mu)  dG(\mu)}{\int s(u) \int \v
 <blockquote>
 <p>The following code is illustrative (toy implementations). For production work, use vetted packages (e.g., <code>metafor</code>, <code>weightr</code>, <code>robumeta</code>, <code>RoBMA</code>, <code>puniform</code>, <code>zcurve</code>).</p>
 </blockquote>
-<div class="sourceCode" id="cb1143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1143-1"><a href="p-hacking.html#cb1143-1" tabindex="-1"></a><span class="co"># Toy dataset: reported p-values and study-level results</span></span>
-<span id="cb1143-2"><a href="p-hacking.html#cb1143-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb1143-3"><a href="p-hacking.html#cb1143-3" tabindex="-1"></a></span>
-<span id="cb1143-4"><a href="p-hacking.html#cb1143-4" tabindex="-1"></a><span class="co"># suspicious bump?</span></span>
-<span id="cb1143-5"><a href="p-hacking.html#cb1143-5" tabindex="-1"></a>p_sig <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.001</span>, <span class="fl">0.004</span>, <span class="fl">0.017</span>, <span class="fl">0.021</span>, <span class="fl">0.032</span>, <span class="fl">0.041</span>, <span class="fl">0.048</span>, <span class="fl">0.049</span>)  </span>
-<span id="cb1143-6"><a href="p-hacking.html#cb1143-6" tabindex="-1"></a>n_sig <span class="ot">&lt;-</span> <span class="fu">length</span>(p_sig)</span>
-<span id="cb1143-7"><a href="p-hacking.html#cb1143-7" tabindex="-1"></a></span>
-<span id="cb1143-8"><a href="p-hacking.html#cb1143-8" tabindex="-1"></a><span class="co"># --- p-curve right-skew test (binomial below alpha/2) ---</span></span>
-<span id="cb1143-9"><a href="p-hacking.html#cb1143-9" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
-<span id="cb1143-10"><a href="p-hacking.html#cb1143-10" tabindex="-1"></a>below <span class="ot">&lt;-</span> <span class="fu">sum</span>(p_sig <span class="sc">&lt;</span> alpha<span class="sc">/</span><span class="dv">2</span>)</span>
-<span id="cb1143-11"><a href="p-hacking.html#cb1143-11" tabindex="-1"></a>p_binom <span class="ot">&lt;-</span> <span class="fu">binom.test</span>(below, n_sig, <span class="fl">0.5</span>, <span class="at">alternative =</span> <span class="st">&quot;greater&quot;</span>)<span class="sc">$</span>p.value</span>
-<span id="cb1143-12"><a href="p-hacking.html#cb1143-12" tabindex="-1"></a></span>
-<span id="cb1143-13"><a href="p-hacking.html#cb1143-13" tabindex="-1"></a><span class="fu">list</span>(</span>
-<span id="cb1143-14"><a href="p-hacking.html#cb1143-14" tabindex="-1"></a>  <span class="at">n_sig =</span> n_sig,</span>
-<span id="cb1143-15"><a href="p-hacking.html#cb1143-15" tabindex="-1"></a>  <span class="at">count_below_alpha_over_2 =</span> below,</span>
-<span id="cb1143-16"><a href="p-hacking.html#cb1143-16" tabindex="-1"></a>  <span class="at">right_skew_pvalue =</span> p_binom</span>
-<span id="cb1143-17"><a href="p-hacking.html#cb1143-17" tabindex="-1"></a>)</span>
-<span id="cb1143-18"><a href="p-hacking.html#cb1143-18" tabindex="-1"></a><span class="co">#&gt; $n_sig</span></span>
-<span id="cb1143-19"><a href="p-hacking.html#cb1143-19" tabindex="-1"></a><span class="co">#&gt; [1] 8</span></span>
-<span id="cb1143-20"><a href="p-hacking.html#cb1143-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1143-21"><a href="p-hacking.html#cb1143-21" tabindex="-1"></a><span class="co">#&gt; $count_below_alpha_over_2</span></span>
-<span id="cb1143-22"><a href="p-hacking.html#cb1143-22" tabindex="-1"></a><span class="co">#&gt; [1] 4</span></span>
-<span id="cb1143-23"><a href="p-hacking.html#cb1143-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1143-24"><a href="p-hacking.html#cb1143-24" tabindex="-1"></a><span class="co">#&gt; $right_skew_pvalue</span></span>
-<span id="cb1143-25"><a href="p-hacking.html#cb1143-25" tabindex="-1"></a><span class="co">#&gt; [1] 0.6367187</span></span></code></pre></div>
-<div class="sourceCode" id="cb1144"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1144-1"><a href="p-hacking.html#cb1144-1" tabindex="-1"></a><span class="co"># --- p-uniform-style MLE for one-sided z-test (toy) ---</span></span>
-<span id="cb1144-2"><a href="p-hacking.html#cb1144-2" tabindex="-1"></a><span class="co"># Conditional log-likelihood: l(mu) = sum( mu z_i - 0.5 mu^2 - log(pi(mu, alpha)) )</span></span>
-<span id="cb1144-3"><a href="p-hacking.html#cb1144-3" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> p_sig)                    <span class="co"># one-sided z from p-values</span></span>
-<span id="cb1144-4"><a href="p-hacking.html#cb1144-4" tabindex="-1"></a>pi_mu <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, alpha) { <span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha) <span class="sc">-</span> mu) }</span>
-<span id="cb1144-5"><a href="p-hacking.html#cb1144-5" tabindex="-1"></a>loglik_mu <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, z, alpha) {</span>
-<span id="cb1144-6"><a href="p-hacking.html#cb1144-6" tabindex="-1"></a>  <span class="fu">sum</span>(mu <span class="sc">*</span> z <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> mu<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="fu">log</span>(<span class="fu">pi_mu</span>(mu, alpha)))</span>
-<span id="cb1144-7"><a href="p-hacking.html#cb1144-7" tabindex="-1"></a>}</span>
-<span id="cb1144-8"><a href="p-hacking.html#cb1144-8" tabindex="-1"></a>opt <span class="ot">&lt;-</span> <span class="fu">optimize</span>(<span class="cf">function</span>(m) <span class="sc">-</span><span class="fu">loglik_mu</span>(m, z, alpha), <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>))</span>
-<span id="cb1144-9"><a href="p-hacking.html#cb1144-9" tabindex="-1"></a>mu_hat <span class="ot">&lt;-</span> opt<span class="sc">$</span>minimum</span>
-<span id="cb1144-10"><a href="p-hacking.html#cb1144-10" tabindex="-1"></a><span class="fu">list</span>(<span class="at">mu_hat =</span> mu_hat, <span class="at">se_mu_naive =</span> <span class="cn">NA_real_</span>)  <span class="co"># (CI via profile LL or bootstrap)</span></span>
-<span id="cb1144-11"><a href="p-hacking.html#cb1144-11" tabindex="-1"></a><span class="co">#&gt; $mu_hat</span></span>
-<span id="cb1144-12"><a href="p-hacking.html#cb1144-12" tabindex="-1"></a><span class="co">#&gt; [1] 0.2568013</span></span>
-<span id="cb1144-13"><a href="p-hacking.html#cb1144-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1144-14"><a href="p-hacking.html#cb1144-14" tabindex="-1"></a><span class="co">#&gt; $se_mu_naive</span></span>
-<span id="cb1144-15"><a href="p-hacking.html#cb1144-15" tabindex="-1"></a><span class="co">#&gt; [1] NA</span></span></code></pre></div>
-<div class="sourceCode" id="cb1145"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1145-1"><a href="p-hacking.html#cb1145-1" tabindex="-1"></a><span class="co"># --- Egger and PET-PEESE on synthetic effect sizes ---</span></span>
-<span id="cb1145-2"><a href="p-hacking.html#cb1145-2" tabindex="-1"></a><span class="fu">library</span>(metafor)</span>
-<span id="cb1145-3"><a href="p-hacking.html#cb1145-3" tabindex="-1"></a></span>
-<span id="cb1145-4"><a href="p-hacking.html#cb1145-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
-<span id="cb1145-5"><a href="p-hacking.html#cb1145-5" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb1145-6"><a href="p-hacking.html#cb1145-6" tabindex="-1"></a>true_theta <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
-<span id="cb1145-7"><a href="p-hacking.html#cb1145-7" tabindex="-1"></a>s_i <span class="ot">&lt;-</span> <span class="fu">runif</span>(k, <span class="fl">0.05</span>, <span class="fl">0.3</span>)</span>
-<span id="cb1145-8"><a href="p-hacking.html#cb1145-8" tabindex="-1"></a>y_i <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(k, <span class="at">mean =</span> true_theta, <span class="at">sd =</span> s_i) <span class="sc">+</span> <span class="fu">rnorm</span>(k, <span class="at">sd =</span> <span class="fl">0.05</span>)  <span class="co"># add small-study bias</span></span>
-<span id="cb1145-9"><a href="p-hacking.html#cb1145-9" tabindex="-1"></a></span>
-<span id="cb1145-10"><a href="p-hacking.html#cb1145-10" tabindex="-1"></a><span class="co"># Egger test</span></span>
-<span id="cb1145-11"><a href="p-hacking.html#cb1145-11" tabindex="-1"></a>z_i <span class="ot">&lt;-</span> y_i <span class="sc">/</span> s_i</span>
-<span id="cb1145-12"><a href="p-hacking.html#cb1145-12" tabindex="-1"></a>egger_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(z_i <span class="sc">~</span> <span class="fu">I</span>(<span class="dv">1</span><span class="sc">/</span>s_i))</span>
-<span id="cb1145-13"><a href="p-hacking.html#cb1145-13" tabindex="-1"></a>egger_intercept_p <span class="ot">&lt;-</span> <span class="fu">summary</span>(egger_fit)<span class="sc">$</span>coef[<span class="dv">1</span>,<span class="dv">4</span>]</span>
-<span id="cb1145-14"><a href="p-hacking.html#cb1145-14" tabindex="-1"></a></span>
-<span id="cb1145-15"><a href="p-hacking.html#cb1145-15" tabindex="-1"></a><span class="co"># PET</span></span>
-<span id="cb1145-16"><a href="p-hacking.html#cb1145-16" tabindex="-1"></a>pet_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(y_i <span class="sc">~</span> s_i, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>s_i<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb1145-17"><a href="p-hacking.html#cb1145-17" tabindex="-1"></a>pet_est <span class="ot">&lt;-</span> <span class="fu">coef</span>(pet_fit)[<span class="dv">1</span>]</span>
-<span id="cb1145-18"><a href="p-hacking.html#cb1145-18" tabindex="-1"></a></span>
-<span id="cb1145-19"><a href="p-hacking.html#cb1145-19" tabindex="-1"></a><span class="co"># PEESE</span></span>
-<span id="cb1145-20"><a href="p-hacking.html#cb1145-20" tabindex="-1"></a>peese_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(y_i <span class="sc">~</span> <span class="fu">I</span>(s_i<span class="sc">^</span><span class="dv">2</span>), <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>s_i<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb1145-21"><a href="p-hacking.html#cb1145-21" tabindex="-1"></a>peese_est <span class="ot">&lt;-</span> <span class="fu">coef</span>(peese_fit)[<span class="dv">1</span>]</span>
-<span id="cb1145-22"><a href="p-hacking.html#cb1145-22" tabindex="-1"></a></span>
-<span id="cb1145-23"><a href="p-hacking.html#cb1145-23" tabindex="-1"></a><span class="fu">list</span>(<span class="at">egger_intercept_p =</span> egger_intercept_p, <span class="at">PET =</span> pet_est, <span class="at">PEESE =</span> peese_est)</span>
-<span id="cb1145-24"><a href="p-hacking.html#cb1145-24" tabindex="-1"></a><span class="co">#&gt; $egger_intercept_p</span></span>
-<span id="cb1145-25"><a href="p-hacking.html#cb1145-25" tabindex="-1"></a><span class="co">#&gt; [1] 0.1895973</span></span>
-<span id="cb1145-26"><a href="p-hacking.html#cb1145-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1145-27"><a href="p-hacking.html#cb1145-27" tabindex="-1"></a><span class="co">#&gt; $PET</span></span>
-<span id="cb1145-28"><a href="p-hacking.html#cb1145-28" tabindex="-1"></a><span class="co">#&gt; (Intercept) </span></span>
-<span id="cb1145-29"><a href="p-hacking.html#cb1145-29" tabindex="-1"></a><span class="co">#&gt;    0.196547 </span></span>
-<span id="cb1145-30"><a href="p-hacking.html#cb1145-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1145-31"><a href="p-hacking.html#cb1145-31" tabindex="-1"></a><span class="co">#&gt; $PEESE</span></span>
-<span id="cb1145-32"><a href="p-hacking.html#cb1145-32" tabindex="-1"></a><span class="co">#&gt; (Intercept) </span></span>
-<span id="cb1145-33"><a href="p-hacking.html#cb1145-33" tabindex="-1"></a><span class="co">#&gt;   0.2022462</span></span></code></pre></div>
-<div class="sourceCode" id="cb1146"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1146-1"><a href="p-hacking.html#cb1146-1" tabindex="-1"></a><span class="co"># --- Caliper test (binomial near z = 1.96) ---</span></span>
-<span id="cb1146-2"><a href="p-hacking.html#cb1146-2" tabindex="-1"></a><span class="co"># Construct z from y/s and test mass just above vs. below 1.96</span></span>
-<span id="cb1146-3"><a href="p-hacking.html#cb1146-3" tabindex="-1"></a>zvals <span class="ot">&lt;-</span> y_i <span class="sc">/</span> s_i</span>
-<span id="cb1146-4"><a href="p-hacking.html#cb1146-4" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="fl">1.96</span></span>
-<span id="cb1146-5"><a href="p-hacking.html#cb1146-5" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
-<span id="cb1146-6"><a href="p-hacking.html#cb1146-6" tabindex="-1"></a>N_plus <span class="ot">&lt;-</span> <span class="fu">sum</span>(zvals <span class="sc">&gt;</span> c <span class="sc">&amp;</span> zvals <span class="sc">&lt;=</span> c <span class="sc">+</span> h)</span>
-<span id="cb1146-7"><a href="p-hacking.html#cb1146-7" tabindex="-1"></a>N_minus <span class="ot">&lt;-</span> <span class="fu">sum</span>(zvals <span class="sc">&gt;</span> c <span class="sc">-</span> h <span class="sc">&amp;</span> zvals <span class="sc">&lt;=</span> c)</span>
-<span id="cb1146-8"><a href="p-hacking.html#cb1146-8" tabindex="-1"></a>p_caliper <span class="ot">&lt;-</span> <span class="fu">binom.test</span>(N_plus, N_plus <span class="sc">+</span> N_minus, <span class="fl">0.5</span>, <span class="at">alternative =</span> <span class="st">&quot;greater&quot;</span>)<span class="sc">$</span>p.value</span>
-<span id="cb1146-9"><a href="p-hacking.html#cb1146-9" tabindex="-1"></a><span class="fu">list</span>(<span class="at">N_plus =</span> N_plus, <span class="at">N_minus =</span> N_minus, <span class="at">caliper_p =</span> p_caliper)</span>
-<span id="cb1146-10"><a href="p-hacking.html#cb1146-10" tabindex="-1"></a><span class="co">#&gt; $N_plus</span></span>
-<span id="cb1146-11"><a href="p-hacking.html#cb1146-11" tabindex="-1"></a><span class="co">#&gt; [1] 23</span></span>
-<span id="cb1146-12"><a href="p-hacking.html#cb1146-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1146-13"><a href="p-hacking.html#cb1146-13" tabindex="-1"></a><span class="co">#&gt; $N_minus</span></span>
-<span id="cb1146-14"><a href="p-hacking.html#cb1146-14" tabindex="-1"></a><span class="co">#&gt; [1] 33</span></span>
-<span id="cb1146-15"><a href="p-hacking.html#cb1146-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1146-16"><a href="p-hacking.html#cb1146-16" tabindex="-1"></a><span class="co">#&gt; $caliper_p</span></span>
-<span id="cb1146-17"><a href="p-hacking.html#cb1146-17" tabindex="-1"></a><span class="co">#&gt; [1] 0.9295523</span></span></code></pre></div>
-<div class="sourceCode" id="cb1147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1147-1"><a href="p-hacking.html#cb1147-1" tabindex="-1"></a><span class="co"># --- Minimal weight-function selection model via profile likelihood (toy) ---</span></span>
-<span id="cb1147-2"><a href="p-hacking.html#cb1147-2" tabindex="-1"></a><span class="co"># Two-bin weights: w1 for p &lt;= .05, w2 = 1 for p &gt; .05</span></span>
-<span id="cb1147-3"><a href="p-hacking.html#cb1147-3" tabindex="-1"></a><span class="co"># Fixed-effect theta; optimize over (theta, w1).</span></span>
-<span id="cb1147-4"><a href="p-hacking.html#cb1147-4" tabindex="-1"></a>y <span class="ot">&lt;-</span> y_i; s <span class="ot">&lt;-</span> s_i</span>
-<span id="cb1147-5"><a href="p-hacking.html#cb1147-5" tabindex="-1"></a>pval_two_sided <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(y<span class="sc">/</span>s)))</span>
-<span id="cb1147-6"><a href="p-hacking.html#cb1147-6" tabindex="-1"></a></span>
-<span id="cb1147-7"><a href="p-hacking.html#cb1147-7" tabindex="-1"></a>negloglik_sel <span class="ot">&lt;-</span> <span class="cf">function</span>(par) {</span>
-<span id="cb1147-8"><a href="p-hacking.html#cb1147-8" tabindex="-1"></a>  theta <span class="ot">&lt;-</span> par[<span class="dv">1</span>]; w1 <span class="ot">&lt;-</span> <span class="fu">exp</span>(par[<span class="dv">2</span>])  <span class="co"># enforce positivity</span></span>
-<span id="cb1147-9"><a href="p-hacking.html#cb1147-9" tabindex="-1"></a>  <span class="co"># Numerator w.r.t. each study</span></span>
-<span id="cb1147-10"><a href="p-hacking.html#cb1147-10" tabindex="-1"></a>  w_i <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(pval_two_sided <span class="sc">&lt;=</span> <span class="fl">0.05</span>, w1, <span class="dv">1</span>)</span>
-<span id="cb1147-11"><a href="p-hacking.html#cb1147-11" tabindex="-1"></a>  num <span class="ot">&lt;-</span> <span class="fu">dnorm</span>((y <span class="sc">-</span> theta)<span class="sc">/</span>s) <span class="sc">/</span> s <span class="sc">*</span> w_i</span>
-<span id="cb1147-12"><a href="p-hacking.html#cb1147-12" tabindex="-1"></a></span>
-<span id="cb1147-13"><a href="p-hacking.html#cb1147-13" tabindex="-1"></a>  <span class="co"># Denominator: integrate over all y for each study (approx via normal CDF on p-threshold)</span></span>
-<span id="cb1147-14"><a href="p-hacking.html#cb1147-14" tabindex="-1"></a>  <span class="co"># For two-sided z, the region p&lt;=.05 is |z|&gt;=1.96. We can integrate in z-space:</span></span>
-<span id="cb1147-15"><a href="p-hacking.html#cb1147-15" tabindex="-1"></a>  mu_i <span class="ot">&lt;-</span> (theta)<span class="sc">/</span>s</span>
-<span id="cb1147-16"><a href="p-hacking.html#cb1147-16" tabindex="-1"></a>  prob_sig <span class="ot">&lt;-</span> <span class="fu">pnorm</span>(<span class="sc">-</span><span class="fl">1.96</span> <span class="sc">-</span> mu_i) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fl">1.96</span> <span class="sc">-</span> mu_i))  <span class="co"># two tails</span></span>
-<span id="cb1147-17"><a href="p-hacking.html#cb1147-17" tabindex="-1"></a>  denom <span class="ot">&lt;-</span> w1 <span class="sc">*</span> prob_sig <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> prob_sig) <span class="sc">*</span> <span class="dv">1</span></span>
-<span id="cb1147-18"><a href="p-hacking.html#cb1147-18" tabindex="-1"></a></span>
-<span id="cb1147-19"><a href="p-hacking.html#cb1147-19" tabindex="-1"></a>  <span class="sc">-</span><span class="fu">sum</span>(<span class="fu">log</span>(num) <span class="sc">-</span> <span class="fu">log</span>(denom))</span>
-<span id="cb1147-20"><a href="p-hacking.html#cb1147-20" tabindex="-1"></a>}</span>
-<span id="cb1147-21"><a href="p-hacking.html#cb1147-21" tabindex="-1"></a></span>
-<span id="cb1147-22"><a href="p-hacking.html#cb1147-22" tabindex="-1"></a>fit <span class="ot">&lt;-</span></span>
-<span id="cb1147-23"><a href="p-hacking.html#cb1147-23" tabindex="-1"></a>    <span class="fu">optim</span>(<span class="fu">c</span>(<span class="fu">mean</span>(y), <span class="dv">0</span>),</span>
-<span id="cb1147-24"><a href="p-hacking.html#cb1147-24" tabindex="-1"></a>          negloglik_sel,</span>
-<span id="cb1147-25"><a href="p-hacking.html#cb1147-25" tabindex="-1"></a>          <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>,</span>
-<span id="cb1147-26"><a href="p-hacking.html#cb1147-26" tabindex="-1"></a>          <span class="at">control =</span> <span class="fu">list</span>(<span class="at">reltol =</span> <span class="fl">1e-9</span>))</span>
-<span id="cb1147-27"><a href="p-hacking.html#cb1147-27" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> fit<span class="sc">$</span>par[<span class="dv">1</span>]</span>
-<span id="cb1147-28"><a href="p-hacking.html#cb1147-28" tabindex="-1"></a>w1_hat <span class="ot">&lt;-</span> <span class="fu">exp</span>(fit<span class="sc">$</span>par[<span class="dv">2</span>])</span>
-<span id="cb1147-29"><a href="p-hacking.html#cb1147-29" tabindex="-1"></a><span class="fu">list</span>(</span>
-<span id="cb1147-30"><a href="p-hacking.html#cb1147-30" tabindex="-1"></a>    <span class="at">theta_hat =</span> theta_hat,</span>
-<span id="cb1147-31"><a href="p-hacking.html#cb1147-31" tabindex="-1"></a>    <span class="at">weight_sig_vs_nonsig =</span> w1_hat,</span>
-<span id="cb1147-32"><a href="p-hacking.html#cb1147-32" tabindex="-1"></a>    <span class="at">converged =</span> fit<span class="sc">$</span>convergence <span class="sc">==</span> <span class="dv">0</span></span>
-<span id="cb1147-33"><a href="p-hacking.html#cb1147-33" tabindex="-1"></a>)</span>
-<span id="cb1147-34"><a href="p-hacking.html#cb1147-34" tabindex="-1"></a><span class="co">#&gt; $theta_hat</span></span>
-<span id="cb1147-35"><a href="p-hacking.html#cb1147-35" tabindex="-1"></a><span class="co">#&gt; [1] 0.2077403</span></span>
-<span id="cb1147-36"><a href="p-hacking.html#cb1147-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1147-37"><a href="p-hacking.html#cb1147-37" tabindex="-1"></a><span class="co">#&gt; $weight_sig_vs_nonsig</span></span>
-<span id="cb1147-38"><a href="p-hacking.html#cb1147-38" tabindex="-1"></a><span class="co">#&gt; [1] 0.9457644</span></span>
-<span id="cb1147-39"><a href="p-hacking.html#cb1147-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1147-40"><a href="p-hacking.html#cb1147-40" tabindex="-1"></a><span class="co">#&gt; $converged</span></span>
-<span id="cb1147-41"><a href="p-hacking.html#cb1147-41" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<div class="sourceCode" id="cb1148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1148-1"><a href="p-hacking.html#cb1148-1" tabindex="-1"></a><span class="co"># --- Specification curve ---</span></span>
-<span id="cb1148-2"><a href="p-hacking.html#cb1148-2" tabindex="-1"></a><span class="co"># Fit many reasonable models and plot effect vs. specification rank</span></span>
-<span id="cb1148-3"><a href="p-hacking.html#cb1148-3" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1148-4"><a href="p-hacking.html#cb1148-4" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1148-5"><a href="p-hacking.html#cb1148-5" tabindex="-1"></a></span>
-<span id="cb1148-6"><a href="p-hacking.html#cb1148-6" tabindex="-1"></a><span class="co"># Fake data and specifications</span></span>
-<span id="cb1148-7"><a href="p-hacking.html#cb1148-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
-<span id="cb1148-8"><a href="p-hacking.html#cb1148-8" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> <span class="dv">3</span>), n, <span class="dv">3</span>)</span>
-<span id="cb1148-9"><a href="p-hacking.html#cb1148-9" tabindex="-1"></a><span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>, <span class="st">&quot;x3&quot;</span>)</span>
-<span id="cb1148-10"><a href="p-hacking.html#cb1148-10" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.5</span>)</span>
-<span id="cb1148-11"><a href="p-hacking.html#cb1148-11" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fl">0.3</span> <span class="sc">*</span> D <span class="sc">+</span> X <span class="sc">%*%</span> <span class="fu">c</span>(<span class="fl">0.2</span>,<span class="sc">-</span><span class="fl">0.1</span>, <span class="dv">0</span>) <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<div class="sourceCode" id="cb1148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1148-1"><a href="p-hacking.html#cb1148-1" tabindex="-1"></a><span class="co"># Toy dataset: reported p-values and study-level results</span></span>
+<span id="cb1148-2"><a href="p-hacking.html#cb1148-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1148-3"><a href="p-hacking.html#cb1148-3" tabindex="-1"></a></span>
+<span id="cb1148-4"><a href="p-hacking.html#cb1148-4" tabindex="-1"></a><span class="co"># suspicious bump?</span></span>
+<span id="cb1148-5"><a href="p-hacking.html#cb1148-5" tabindex="-1"></a>p_sig <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.001</span>, <span class="fl">0.004</span>, <span class="fl">0.017</span>, <span class="fl">0.021</span>, <span class="fl">0.032</span>, <span class="fl">0.041</span>, <span class="fl">0.048</span>, <span class="fl">0.049</span>)  </span>
+<span id="cb1148-6"><a href="p-hacking.html#cb1148-6" tabindex="-1"></a>n_sig <span class="ot">&lt;-</span> <span class="fu">length</span>(p_sig)</span>
+<span id="cb1148-7"><a href="p-hacking.html#cb1148-7" tabindex="-1"></a></span>
+<span id="cb1148-8"><a href="p-hacking.html#cb1148-8" tabindex="-1"></a><span class="co"># --- p-curve right-skew test (binomial below alpha/2) ---</span></span>
+<span id="cb1148-9"><a href="p-hacking.html#cb1148-9" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb1148-10"><a href="p-hacking.html#cb1148-10" tabindex="-1"></a>below <span class="ot">&lt;-</span> <span class="fu">sum</span>(p_sig <span class="sc">&lt;</span> alpha<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb1148-11"><a href="p-hacking.html#cb1148-11" tabindex="-1"></a>p_binom <span class="ot">&lt;-</span> <span class="fu">binom.test</span>(below, n_sig, <span class="fl">0.5</span>, <span class="at">alternative =</span> <span class="st">&quot;greater&quot;</span>)<span class="sc">$</span>p.value</span>
 <span id="cb1148-12"><a href="p-hacking.html#cb1148-12" tabindex="-1"></a></span>
-<span id="cb1148-13"><a href="p-hacking.html#cb1148-13" tabindex="-1"></a>specs <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb1148-14"><a href="p-hacking.html#cb1148-14" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>),</span>
-<span id="cb1148-15"><a href="p-hacking.html#cb1148-15" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x2&quot;</span>),</span>
-<span id="cb1148-16"><a href="p-hacking.html#cb1148-16" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x3&quot;</span>),</span>
-<span id="cb1148-17"><a href="p-hacking.html#cb1148-17" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>),</span>
-<span id="cb1148-18"><a href="p-hacking.html#cb1148-18" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x3&quot;</span>),</span>
-<span id="cb1148-19"><a href="p-hacking.html#cb1148-19" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x2&quot;</span>, <span class="st">&quot;x3&quot;</span>),</span>
-<span id="cb1148-20"><a href="p-hacking.html#cb1148-20" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>, <span class="st">&quot;x3&quot;</span>)</span>
-<span id="cb1148-21"><a href="p-hacking.html#cb1148-21" tabindex="-1"></a>)</span>
-<span id="cb1148-22"><a href="p-hacking.html#cb1148-22" tabindex="-1"></a></span>
-<span id="cb1148-23"><a href="p-hacking.html#cb1148-23" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="fu">lapply</span>(specs, <span class="cf">function</span>(ctrls) {</span>
-<span id="cb1148-24"><a href="p-hacking.html#cb1148-24" tabindex="-1"></a>    f <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste0</span>(<span class="st">&quot;Y ~ D + &quot;</span>, <span class="fu">paste</span>(ctrls, <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>)))</span>
-<span id="cb1148-25"><a href="p-hacking.html#cb1148-25" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">lm</span>(f, <span class="at">data =</span> <span class="fu">data.frame</span>(Y, D, X))</span>
-<span id="cb1148-26"><a href="p-hacking.html#cb1148-26" tabindex="-1"></a>    co <span class="ot">&lt;-</span> <span class="fu">summary</span>(m)<span class="sc">$</span>coef[<span class="st">&quot;D&quot;</span>, ]</span>
-<span id="cb1148-27"><a href="p-hacking.html#cb1148-27" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
-<span id="cb1148-28"><a href="p-hacking.html#cb1148-28" tabindex="-1"></a>        <span class="at">spec =</span> <span class="fu">paste</span>(ctrls, <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>),</span>
-<span id="cb1148-29"><a href="p-hacking.html#cb1148-29" tabindex="-1"></a>        <span class="at">beta =</span> co[<span class="st">&quot;Estimate&quot;</span>],</span>
-<span id="cb1148-30"><a href="p-hacking.html#cb1148-30" tabindex="-1"></a>        <span class="at">se =</span> co[<span class="st">&quot;Std. Error&quot;</span>]</span>
-<span id="cb1148-31"><a href="p-hacking.html#cb1148-31" tabindex="-1"></a>    )</span>
-<span id="cb1148-32"><a href="p-hacking.html#cb1148-32" tabindex="-1"></a>}) <span class="sc">|&gt;</span> <span class="fu">bind_rows</span>()</span></code></pre></div>
+<span id="cb1148-13"><a href="p-hacking.html#cb1148-13" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb1148-14"><a href="p-hacking.html#cb1148-14" tabindex="-1"></a>  <span class="at">n_sig =</span> n_sig,</span>
+<span id="cb1148-15"><a href="p-hacking.html#cb1148-15" tabindex="-1"></a>  <span class="at">count_below_alpha_over_2 =</span> below,</span>
+<span id="cb1148-16"><a href="p-hacking.html#cb1148-16" tabindex="-1"></a>  <span class="at">right_skew_pvalue =</span> p_binom</span>
+<span id="cb1148-17"><a href="p-hacking.html#cb1148-17" tabindex="-1"></a>)</span>
+<span id="cb1148-18"><a href="p-hacking.html#cb1148-18" tabindex="-1"></a><span class="co">#&gt; $n_sig</span></span>
+<span id="cb1148-19"><a href="p-hacking.html#cb1148-19" tabindex="-1"></a><span class="co">#&gt; [1] 8</span></span>
+<span id="cb1148-20"><a href="p-hacking.html#cb1148-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1148-21"><a href="p-hacking.html#cb1148-21" tabindex="-1"></a><span class="co">#&gt; $count_below_alpha_over_2</span></span>
+<span id="cb1148-22"><a href="p-hacking.html#cb1148-22" tabindex="-1"></a><span class="co">#&gt; [1] 4</span></span>
+<span id="cb1148-23"><a href="p-hacking.html#cb1148-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1148-24"><a href="p-hacking.html#cb1148-24" tabindex="-1"></a><span class="co">#&gt; $right_skew_pvalue</span></span>
+<span id="cb1148-25"><a href="p-hacking.html#cb1148-25" tabindex="-1"></a><span class="co">#&gt; [1] 0.6367187</span></span></code></pre></div>
+<div class="sourceCode" id="cb1149"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1149-1"><a href="p-hacking.html#cb1149-1" tabindex="-1"></a><span class="co"># --- p-uniform-style MLE for one-sided z-test (toy) ---</span></span>
+<span id="cb1149-2"><a href="p-hacking.html#cb1149-2" tabindex="-1"></a><span class="co"># Conditional log-likelihood: l(mu) = sum( mu z_i - 0.5 mu^2 - log(pi(mu, alpha)) )</span></span>
+<span id="cb1149-3"><a href="p-hacking.html#cb1149-3" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> p_sig)                    <span class="co"># one-sided z from p-values</span></span>
+<span id="cb1149-4"><a href="p-hacking.html#cb1149-4" tabindex="-1"></a>pi_mu <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, alpha) { <span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha) <span class="sc">-</span> mu) }</span>
+<span id="cb1149-5"><a href="p-hacking.html#cb1149-5" tabindex="-1"></a>loglik_mu <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, z, alpha) {</span>
+<span id="cb1149-6"><a href="p-hacking.html#cb1149-6" tabindex="-1"></a>  <span class="fu">sum</span>(mu <span class="sc">*</span> z <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> mu<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="fu">log</span>(<span class="fu">pi_mu</span>(mu, alpha)))</span>
+<span id="cb1149-7"><a href="p-hacking.html#cb1149-7" tabindex="-1"></a>}</span>
+<span id="cb1149-8"><a href="p-hacking.html#cb1149-8" tabindex="-1"></a>opt <span class="ot">&lt;-</span> <span class="fu">optimize</span>(<span class="cf">function</span>(m) <span class="sc">-</span><span class="fu">loglik_mu</span>(m, z, alpha), <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>))</span>
+<span id="cb1149-9"><a href="p-hacking.html#cb1149-9" tabindex="-1"></a>mu_hat <span class="ot">&lt;-</span> opt<span class="sc">$</span>minimum</span>
+<span id="cb1149-10"><a href="p-hacking.html#cb1149-10" tabindex="-1"></a><span class="fu">list</span>(<span class="at">mu_hat =</span> mu_hat, <span class="at">se_mu_naive =</span> <span class="cn">NA_real_</span>)  <span class="co"># (CI via profile LL or bootstrap)</span></span>
+<span id="cb1149-11"><a href="p-hacking.html#cb1149-11" tabindex="-1"></a><span class="co">#&gt; $mu_hat</span></span>
+<span id="cb1149-12"><a href="p-hacking.html#cb1149-12" tabindex="-1"></a><span class="co">#&gt; [1] 0.2568013</span></span>
+<span id="cb1149-13"><a href="p-hacking.html#cb1149-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1149-14"><a href="p-hacking.html#cb1149-14" tabindex="-1"></a><span class="co">#&gt; $se_mu_naive</span></span>
+<span id="cb1149-15"><a href="p-hacking.html#cb1149-15" tabindex="-1"></a><span class="co">#&gt; [1] NA</span></span></code></pre></div>
+<div class="sourceCode" id="cb1150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1150-1"><a href="p-hacking.html#cb1150-1" tabindex="-1"></a><span class="co"># --- Egger and PET-PEESE on synthetic effect sizes ---</span></span>
+<span id="cb1150-2"><a href="p-hacking.html#cb1150-2" tabindex="-1"></a><span class="fu">library</span>(metafor)</span>
+<span id="cb1150-3"><a href="p-hacking.html#cb1150-3" tabindex="-1"></a></span>
+<span id="cb1150-4"><a href="p-hacking.html#cb1150-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
+<span id="cb1150-5"><a href="p-hacking.html#cb1150-5" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb1150-6"><a href="p-hacking.html#cb1150-6" tabindex="-1"></a>true_theta <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb1150-7"><a href="p-hacking.html#cb1150-7" tabindex="-1"></a>s_i <span class="ot">&lt;-</span> <span class="fu">runif</span>(k, <span class="fl">0.05</span>, <span class="fl">0.3</span>)</span>
+<span id="cb1150-8"><a href="p-hacking.html#cb1150-8" tabindex="-1"></a>y_i <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(k, <span class="at">mean =</span> true_theta, <span class="at">sd =</span> s_i) <span class="sc">+</span> <span class="fu">rnorm</span>(k, <span class="at">sd =</span> <span class="fl">0.05</span>)  <span class="co"># add small-study bias</span></span>
+<span id="cb1150-9"><a href="p-hacking.html#cb1150-9" tabindex="-1"></a></span>
+<span id="cb1150-10"><a href="p-hacking.html#cb1150-10" tabindex="-1"></a><span class="co"># Egger test</span></span>
+<span id="cb1150-11"><a href="p-hacking.html#cb1150-11" tabindex="-1"></a>z_i <span class="ot">&lt;-</span> y_i <span class="sc">/</span> s_i</span>
+<span id="cb1150-12"><a href="p-hacking.html#cb1150-12" tabindex="-1"></a>egger_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(z_i <span class="sc">~</span> <span class="fu">I</span>(<span class="dv">1</span><span class="sc">/</span>s_i))</span>
+<span id="cb1150-13"><a href="p-hacking.html#cb1150-13" tabindex="-1"></a>egger_intercept_p <span class="ot">&lt;-</span> <span class="fu">summary</span>(egger_fit)<span class="sc">$</span>coef[<span class="dv">1</span>,<span class="dv">4</span>]</span>
+<span id="cb1150-14"><a href="p-hacking.html#cb1150-14" tabindex="-1"></a></span>
+<span id="cb1150-15"><a href="p-hacking.html#cb1150-15" tabindex="-1"></a><span class="co"># PET</span></span>
+<span id="cb1150-16"><a href="p-hacking.html#cb1150-16" tabindex="-1"></a>pet_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(y_i <span class="sc">~</span> s_i, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>s_i<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb1150-17"><a href="p-hacking.html#cb1150-17" tabindex="-1"></a>pet_est <span class="ot">&lt;-</span> <span class="fu">coef</span>(pet_fit)[<span class="dv">1</span>]</span>
+<span id="cb1150-18"><a href="p-hacking.html#cb1150-18" tabindex="-1"></a></span>
+<span id="cb1150-19"><a href="p-hacking.html#cb1150-19" tabindex="-1"></a><span class="co"># PEESE</span></span>
+<span id="cb1150-20"><a href="p-hacking.html#cb1150-20" tabindex="-1"></a>peese_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(y_i <span class="sc">~</span> <span class="fu">I</span>(s_i<span class="sc">^</span><span class="dv">2</span>), <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>s_i<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb1150-21"><a href="p-hacking.html#cb1150-21" tabindex="-1"></a>peese_est <span class="ot">&lt;-</span> <span class="fu">coef</span>(peese_fit)[<span class="dv">1</span>]</span>
+<span id="cb1150-22"><a href="p-hacking.html#cb1150-22" tabindex="-1"></a></span>
+<span id="cb1150-23"><a href="p-hacking.html#cb1150-23" tabindex="-1"></a><span class="fu">list</span>(<span class="at">egger_intercept_p =</span> egger_intercept_p, <span class="at">PET =</span> pet_est, <span class="at">PEESE =</span> peese_est)</span>
+<span id="cb1150-24"><a href="p-hacking.html#cb1150-24" tabindex="-1"></a><span class="co">#&gt; $egger_intercept_p</span></span>
+<span id="cb1150-25"><a href="p-hacking.html#cb1150-25" tabindex="-1"></a><span class="co">#&gt; [1] 0.1895973</span></span>
+<span id="cb1150-26"><a href="p-hacking.html#cb1150-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1150-27"><a href="p-hacking.html#cb1150-27" tabindex="-1"></a><span class="co">#&gt; $PET</span></span>
+<span id="cb1150-28"><a href="p-hacking.html#cb1150-28" tabindex="-1"></a><span class="co">#&gt; (Intercept) </span></span>
+<span id="cb1150-29"><a href="p-hacking.html#cb1150-29" tabindex="-1"></a><span class="co">#&gt;    0.196547 </span></span>
+<span id="cb1150-30"><a href="p-hacking.html#cb1150-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1150-31"><a href="p-hacking.html#cb1150-31" tabindex="-1"></a><span class="co">#&gt; $PEESE</span></span>
+<span id="cb1150-32"><a href="p-hacking.html#cb1150-32" tabindex="-1"></a><span class="co">#&gt; (Intercept) </span></span>
+<span id="cb1150-33"><a href="p-hacking.html#cb1150-33" tabindex="-1"></a><span class="co">#&gt;   0.2022462</span></span></code></pre></div>
+<div class="sourceCode" id="cb1151"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1151-1"><a href="p-hacking.html#cb1151-1" tabindex="-1"></a><span class="co"># --- Caliper test (binomial near z = 1.96) ---</span></span>
+<span id="cb1151-2"><a href="p-hacking.html#cb1151-2" tabindex="-1"></a><span class="co"># Construct z from y/s and test mass just above vs. below 1.96</span></span>
+<span id="cb1151-3"><a href="p-hacking.html#cb1151-3" tabindex="-1"></a>zvals <span class="ot">&lt;-</span> y_i <span class="sc">/</span> s_i</span>
+<span id="cb1151-4"><a href="p-hacking.html#cb1151-4" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="fl">1.96</span></span>
+<span id="cb1151-5"><a href="p-hacking.html#cb1151-5" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb1151-6"><a href="p-hacking.html#cb1151-6" tabindex="-1"></a>N_plus <span class="ot">&lt;-</span> <span class="fu">sum</span>(zvals <span class="sc">&gt;</span> c <span class="sc">&amp;</span> zvals <span class="sc">&lt;=</span> c <span class="sc">+</span> h)</span>
+<span id="cb1151-7"><a href="p-hacking.html#cb1151-7" tabindex="-1"></a>N_minus <span class="ot">&lt;-</span> <span class="fu">sum</span>(zvals <span class="sc">&gt;</span> c <span class="sc">-</span> h <span class="sc">&amp;</span> zvals <span class="sc">&lt;=</span> c)</span>
+<span id="cb1151-8"><a href="p-hacking.html#cb1151-8" tabindex="-1"></a>p_caliper <span class="ot">&lt;-</span> <span class="fu">binom.test</span>(N_plus, N_plus <span class="sc">+</span> N_minus, <span class="fl">0.5</span>, <span class="at">alternative =</span> <span class="st">&quot;greater&quot;</span>)<span class="sc">$</span>p.value</span>
+<span id="cb1151-9"><a href="p-hacking.html#cb1151-9" tabindex="-1"></a><span class="fu">list</span>(<span class="at">N_plus =</span> N_plus, <span class="at">N_minus =</span> N_minus, <span class="at">caliper_p =</span> p_caliper)</span>
+<span id="cb1151-10"><a href="p-hacking.html#cb1151-10" tabindex="-1"></a><span class="co">#&gt; $N_plus</span></span>
+<span id="cb1151-11"><a href="p-hacking.html#cb1151-11" tabindex="-1"></a><span class="co">#&gt; [1] 23</span></span>
+<span id="cb1151-12"><a href="p-hacking.html#cb1151-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1151-13"><a href="p-hacking.html#cb1151-13" tabindex="-1"></a><span class="co">#&gt; $N_minus</span></span>
+<span id="cb1151-14"><a href="p-hacking.html#cb1151-14" tabindex="-1"></a><span class="co">#&gt; [1] 33</span></span>
+<span id="cb1151-15"><a href="p-hacking.html#cb1151-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1151-16"><a href="p-hacking.html#cb1151-16" tabindex="-1"></a><span class="co">#&gt; $caliper_p</span></span>
+<span id="cb1151-17"><a href="p-hacking.html#cb1151-17" tabindex="-1"></a><span class="co">#&gt; [1] 0.9295523</span></span></code></pre></div>
+<div class="sourceCode" id="cb1152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1152-1"><a href="p-hacking.html#cb1152-1" tabindex="-1"></a><span class="co"># --- Minimal weight-function selection model via profile likelihood (toy) ---</span></span>
+<span id="cb1152-2"><a href="p-hacking.html#cb1152-2" tabindex="-1"></a><span class="co"># Two-bin weights: w1 for p &lt;= .05, w2 = 1 for p &gt; .05</span></span>
+<span id="cb1152-3"><a href="p-hacking.html#cb1152-3" tabindex="-1"></a><span class="co"># Fixed-effect theta; optimize over (theta, w1).</span></span>
+<span id="cb1152-4"><a href="p-hacking.html#cb1152-4" tabindex="-1"></a>y <span class="ot">&lt;-</span> y_i; s <span class="ot">&lt;-</span> s_i</span>
+<span id="cb1152-5"><a href="p-hacking.html#cb1152-5" tabindex="-1"></a>pval_two_sided <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">abs</span>(y<span class="sc">/</span>s)))</span>
+<span id="cb1152-6"><a href="p-hacking.html#cb1152-6" tabindex="-1"></a></span>
+<span id="cb1152-7"><a href="p-hacking.html#cb1152-7" tabindex="-1"></a>negloglik_sel <span class="ot">&lt;-</span> <span class="cf">function</span>(par) {</span>
+<span id="cb1152-8"><a href="p-hacking.html#cb1152-8" tabindex="-1"></a>  theta <span class="ot">&lt;-</span> par[<span class="dv">1</span>]; w1 <span class="ot">&lt;-</span> <span class="fu">exp</span>(par[<span class="dv">2</span>])  <span class="co"># enforce positivity</span></span>
+<span id="cb1152-9"><a href="p-hacking.html#cb1152-9" tabindex="-1"></a>  <span class="co"># Numerator w.r.t. each study</span></span>
+<span id="cb1152-10"><a href="p-hacking.html#cb1152-10" tabindex="-1"></a>  w_i <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(pval_two_sided <span class="sc">&lt;=</span> <span class="fl">0.05</span>, w1, <span class="dv">1</span>)</span>
+<span id="cb1152-11"><a href="p-hacking.html#cb1152-11" tabindex="-1"></a>  num <span class="ot">&lt;-</span> <span class="fu">dnorm</span>((y <span class="sc">-</span> theta)<span class="sc">/</span>s) <span class="sc">/</span> s <span class="sc">*</span> w_i</span>
+<span id="cb1152-12"><a href="p-hacking.html#cb1152-12" tabindex="-1"></a></span>
+<span id="cb1152-13"><a href="p-hacking.html#cb1152-13" tabindex="-1"></a>  <span class="co"># Denominator: integrate over all y for each study (approx via normal CDF on p-threshold)</span></span>
+<span id="cb1152-14"><a href="p-hacking.html#cb1152-14" tabindex="-1"></a>  <span class="co"># For two-sided z, the region p&lt;=.05 is |z|&gt;=1.96. We can integrate in z-space:</span></span>
+<span id="cb1152-15"><a href="p-hacking.html#cb1152-15" tabindex="-1"></a>  mu_i <span class="ot">&lt;-</span> (theta)<span class="sc">/</span>s</span>
+<span id="cb1152-16"><a href="p-hacking.html#cb1152-16" tabindex="-1"></a>  prob_sig <span class="ot">&lt;-</span> <span class="fu">pnorm</span>(<span class="sc">-</span><span class="fl">1.96</span> <span class="sc">-</span> mu_i) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fl">1.96</span> <span class="sc">-</span> mu_i))  <span class="co"># two tails</span></span>
+<span id="cb1152-17"><a href="p-hacking.html#cb1152-17" tabindex="-1"></a>  denom <span class="ot">&lt;-</span> w1 <span class="sc">*</span> prob_sig <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> prob_sig) <span class="sc">*</span> <span class="dv">1</span></span>
+<span id="cb1152-18"><a href="p-hacking.html#cb1152-18" tabindex="-1"></a></span>
+<span id="cb1152-19"><a href="p-hacking.html#cb1152-19" tabindex="-1"></a>  <span class="sc">-</span><span class="fu">sum</span>(<span class="fu">log</span>(num) <span class="sc">-</span> <span class="fu">log</span>(denom))</span>
+<span id="cb1152-20"><a href="p-hacking.html#cb1152-20" tabindex="-1"></a>}</span>
+<span id="cb1152-21"><a href="p-hacking.html#cb1152-21" tabindex="-1"></a></span>
+<span id="cb1152-22"><a href="p-hacking.html#cb1152-22" tabindex="-1"></a>fit <span class="ot">&lt;-</span></span>
+<span id="cb1152-23"><a href="p-hacking.html#cb1152-23" tabindex="-1"></a>    <span class="fu">optim</span>(<span class="fu">c</span>(<span class="fu">mean</span>(y), <span class="dv">0</span>),</span>
+<span id="cb1152-24"><a href="p-hacking.html#cb1152-24" tabindex="-1"></a>          negloglik_sel,</span>
+<span id="cb1152-25"><a href="p-hacking.html#cb1152-25" tabindex="-1"></a>          <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>,</span>
+<span id="cb1152-26"><a href="p-hacking.html#cb1152-26" tabindex="-1"></a>          <span class="at">control =</span> <span class="fu">list</span>(<span class="at">reltol =</span> <span class="fl">1e-9</span>))</span>
+<span id="cb1152-27"><a href="p-hacking.html#cb1152-27" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> fit<span class="sc">$</span>par[<span class="dv">1</span>]</span>
+<span id="cb1152-28"><a href="p-hacking.html#cb1152-28" tabindex="-1"></a>w1_hat <span class="ot">&lt;-</span> <span class="fu">exp</span>(fit<span class="sc">$</span>par[<span class="dv">2</span>])</span>
+<span id="cb1152-29"><a href="p-hacking.html#cb1152-29" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb1152-30"><a href="p-hacking.html#cb1152-30" tabindex="-1"></a>    <span class="at">theta_hat =</span> theta_hat,</span>
+<span id="cb1152-31"><a href="p-hacking.html#cb1152-31" tabindex="-1"></a>    <span class="at">weight_sig_vs_nonsig =</span> w1_hat,</span>
+<span id="cb1152-32"><a href="p-hacking.html#cb1152-32" tabindex="-1"></a>    <span class="at">converged =</span> fit<span class="sc">$</span>convergence <span class="sc">==</span> <span class="dv">0</span></span>
+<span id="cb1152-33"><a href="p-hacking.html#cb1152-33" tabindex="-1"></a>)</span>
+<span id="cb1152-34"><a href="p-hacking.html#cb1152-34" tabindex="-1"></a><span class="co">#&gt; $theta_hat</span></span>
+<span id="cb1152-35"><a href="p-hacking.html#cb1152-35" tabindex="-1"></a><span class="co">#&gt; [1] 0.2077403</span></span>
+<span id="cb1152-36"><a href="p-hacking.html#cb1152-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1152-37"><a href="p-hacking.html#cb1152-37" tabindex="-1"></a><span class="co">#&gt; $weight_sig_vs_nonsig</span></span>
+<span id="cb1152-38"><a href="p-hacking.html#cb1152-38" tabindex="-1"></a><span class="co">#&gt; [1] 0.9457644</span></span>
+<span id="cb1152-39"><a href="p-hacking.html#cb1152-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1152-40"><a href="p-hacking.html#cb1152-40" tabindex="-1"></a><span class="co">#&gt; $converged</span></span>
+<span id="cb1152-41"><a href="p-hacking.html#cb1152-41" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb1153"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1153-1"><a href="p-hacking.html#cb1153-1" tabindex="-1"></a><span class="co"># --- Specification curve ---</span></span>
+<span id="cb1153-2"><a href="p-hacking.html#cb1153-2" tabindex="-1"></a><span class="co"># Fit many reasonable models and plot effect vs. specification rank</span></span>
+<span id="cb1153-3"><a href="p-hacking.html#cb1153-3" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1153-4"><a href="p-hacking.html#cb1153-4" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1153-5"><a href="p-hacking.html#cb1153-5" tabindex="-1"></a></span>
+<span id="cb1153-6"><a href="p-hacking.html#cb1153-6" tabindex="-1"></a><span class="co"># Fake data and specifications</span></span>
+<span id="cb1153-7"><a href="p-hacking.html#cb1153-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb1153-8"><a href="p-hacking.html#cb1153-8" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> <span class="dv">3</span>), n, <span class="dv">3</span>)</span>
+<span id="cb1153-9"><a href="p-hacking.html#cb1153-9" tabindex="-1"></a><span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>, <span class="st">&quot;x3&quot;</span>)</span>
+<span id="cb1153-10"><a href="p-hacking.html#cb1153-10" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.5</span>)</span>
+<span id="cb1153-11"><a href="p-hacking.html#cb1153-11" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fl">0.3</span> <span class="sc">*</span> D <span class="sc">+</span> X <span class="sc">%*%</span> <span class="fu">c</span>(<span class="fl">0.2</span>,<span class="sc">-</span><span class="fl">0.1</span>, <span class="dv">0</span>) <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb1153-12"><a href="p-hacking.html#cb1153-12" tabindex="-1"></a></span>
+<span id="cb1153-13"><a href="p-hacking.html#cb1153-13" tabindex="-1"></a>specs <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb1153-14"><a href="p-hacking.html#cb1153-14" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>),</span>
+<span id="cb1153-15"><a href="p-hacking.html#cb1153-15" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x2&quot;</span>),</span>
+<span id="cb1153-16"><a href="p-hacking.html#cb1153-16" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x3&quot;</span>),</span>
+<span id="cb1153-17"><a href="p-hacking.html#cb1153-17" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>),</span>
+<span id="cb1153-18"><a href="p-hacking.html#cb1153-18" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x3&quot;</span>),</span>
+<span id="cb1153-19"><a href="p-hacking.html#cb1153-19" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x2&quot;</span>, <span class="st">&quot;x3&quot;</span>),</span>
+<span id="cb1153-20"><a href="p-hacking.html#cb1153-20" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;x1&quot;</span>, <span class="st">&quot;x2&quot;</span>, <span class="st">&quot;x3&quot;</span>)</span>
+<span id="cb1153-21"><a href="p-hacking.html#cb1153-21" tabindex="-1"></a>)</span>
+<span id="cb1153-22"><a href="p-hacking.html#cb1153-22" tabindex="-1"></a></span>
+<span id="cb1153-23"><a href="p-hacking.html#cb1153-23" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="fu">lapply</span>(specs, <span class="cf">function</span>(ctrls) {</span>
+<span id="cb1153-24"><a href="p-hacking.html#cb1153-24" tabindex="-1"></a>    f <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste0</span>(<span class="st">&quot;Y ~ D + &quot;</span>, <span class="fu">paste</span>(ctrls, <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>)))</span>
+<span id="cb1153-25"><a href="p-hacking.html#cb1153-25" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">lm</span>(f, <span class="at">data =</span> <span class="fu">data.frame</span>(Y, D, X))</span>
+<span id="cb1153-26"><a href="p-hacking.html#cb1153-26" tabindex="-1"></a>    co <span class="ot">&lt;-</span> <span class="fu">summary</span>(m)<span class="sc">$</span>coef[<span class="st">&quot;D&quot;</span>, ]</span>
+<span id="cb1153-27"><a href="p-hacking.html#cb1153-27" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb1153-28"><a href="p-hacking.html#cb1153-28" tabindex="-1"></a>        <span class="at">spec =</span> <span class="fu">paste</span>(ctrls, <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>),</span>
+<span id="cb1153-29"><a href="p-hacking.html#cb1153-29" tabindex="-1"></a>        <span class="at">beta =</span> co[<span class="st">&quot;Estimate&quot;</span>],</span>
+<span id="cb1153-30"><a href="p-hacking.html#cb1153-30" tabindex="-1"></a>        <span class="at">se =</span> co[<span class="st">&quot;Std. Error&quot;</span>]</span>
+<span id="cb1153-31"><a href="p-hacking.html#cb1153-31" tabindex="-1"></a>    )</span>
+<span id="cb1153-32"><a href="p-hacking.html#cb1153-32" tabindex="-1"></a>}) <span class="sc">|&gt;</span> <span class="fu">bind_rows</span>()</span></code></pre></div>
 <p>Refer to Figures <a href="p-hacking.html#fig:spec-curve-toy">37.3</a> for an example of the specification curve.</p>
-<div class="sourceCode" id="cb1149"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1149-1"><a href="p-hacking.html#cb1149-1" tabindex="-1"></a><span class="fu">ggplot</span>(est, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(spec, beta), <span class="at">y =</span> beta)) <span class="sc">+</span></span>
-<span id="cb1149-2"><a href="p-hacking.html#cb1149-2" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb1149-3"><a href="p-hacking.html#cb1149-3" tabindex="-1"></a>    <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> beta <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> se, <span class="at">ymax =</span> beta <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> se), <span class="at">width =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb1149-4"><a href="p-hacking.html#cb1149-4" tabindex="-1"></a>    <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
-<span id="cb1149-5"><a href="p-hacking.html#cb1149-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Specification&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Effect of D&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Specification Curve (Toy)&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1149-6"><a href="p-hacking.html#cb1149-6" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb1154"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1154-1"><a href="p-hacking.html#cb1154-1" tabindex="-1"></a><span class="fu">ggplot</span>(est, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(spec, beta), <span class="at">y =</span> beta)) <span class="sc">+</span></span>
+<span id="cb1154-2"><a href="p-hacking.html#cb1154-2" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb1154-3"><a href="p-hacking.html#cb1154-3" tabindex="-1"></a>    <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> beta <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> se, <span class="at">ymax =</span> beta <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> se), <span class="at">width =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb1154-4"><a href="p-hacking.html#cb1154-4" tabindex="-1"></a>    <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb1154-5"><a href="p-hacking.html#cb1154-5" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Specification&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Effect of D&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Specification Curve (Toy)&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1154-6"><a href="p-hacking.html#cb1154-6" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:spec-curve-toy"></span>
 <img src="37-biases_files/figure-html/spec-curve-toy-1.png" alt="Specification Curve (Toy)" width="90%" />
 <p class="caption">

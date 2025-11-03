@@ -1493,9 +1493,7 @@ $$
 From bivariate normal properties:
 
 $$
-\varepsilon_i \bigl\lvert u_i=a
-\sim 
-N\!\Bigl(\rho\sigma_{\varepsilon}\cdot a, (1-\rho^2)\sigma_{\varepsilon}^2\Bigr).
+\varepsilon_i | u_i=a \sim N\left(\rho\sigma_{\varepsilon}\cdot a, (1-\rho^2)\sigma_{\varepsilon}^2\right)
 $$
 
 Thus,
@@ -1550,10 +1548,9 @@ This extra term is the so‐called **Heckman correction**.
 The IMR appears in the two‐step procedure as a regressor for bias correction. It has useful derivatives:
 
 $$
-\frac{d}{dx}\Bigl[\text{IMR}(x)\Bigr]
-= \frac{d}{dx}\Bigl[\frac{\phi(x)}{\Phi(x)}\Bigr]
-= -x\text{IMR}(x)-\bigl[\text{IMR}(x)\bigr]^2.
+\frac{d}{dx}[\text{IMR}(x)] = \frac{d}{dx}\left[\frac{\phi(x)}{\Phi(x)}\right] = -x\text{IMR}(x)-[\text{IMR}(x)]^2
 $$
+
 
 This arises from the quotient rule and the fact that $\phi'(x)=-x\phi(x)$, $\Phi'(x)=\phi(x)$. The derivative property also helps in interpreting marginal effects in selection models.
 
@@ -1566,7 +1563,11 @@ While the sample selection model is used when outcome is only observed for one g
 Treatment Effect Model Equations:
 
 -   Outcome: $$ y_i = x_i' \beta + D_i \delta + \varepsilon_i $$
--   Selection: $$ D_i^* = z_i' \gamma + u_i \\ D_i = 1 \text{ if } D_i^* > 0 $$
+-   Selection: $$\begin{aligned}
+D_i^* &= z_i' \gamma + u_i \\
+D_i &= 1 \text{ if } D_i^* > 0
+\end{aligned}$$
+
 
 Where:
 

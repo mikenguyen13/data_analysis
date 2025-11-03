@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>14.4 Functional Form Tests | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="14.4 Functional Form Tests | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2052,62 +2052,62 @@ F = \frac{(SSR_{\text{full}} - SSR_{\text{subsample}}) / q}{SSR_{\text{subsample
 </tbody>
 </table>
 <p>Functional form misspecification can severely distort regression results, leading to biased estimates and invalid inferences. While no single test can detect all types of misspecification, using a combination of tests provides a robust framework for model diagnostics.</p>
-<div class="sourceCode" id="cb640"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb640-1"><a href="functional-form-tests.html#cb640-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
-<span id="cb640-2"><a href="functional-form-tests.html#cb640-2" tabindex="-1"></a><span class="co"># install.packages(&quot;lmtest&quot;)      # For RESET and Harvey–Collier Test</span></span>
-<span id="cb640-3"><a href="functional-form-tests.html#cb640-3" tabindex="-1"></a><span class="co"># install.packages(&quot;car&quot;)         # For diagnostic tests</span></span>
-<span id="cb640-4"><a href="functional-form-tests.html#cb640-4" tabindex="-1"></a><span class="co"># install.packages(&quot;strucchange&quot;) # For Rainbow Test</span></span>
-<span id="cb640-5"><a href="functional-form-tests.html#cb640-5" tabindex="-1"></a></span>
-<span id="cb640-6"><a href="functional-form-tests.html#cb640-6" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb640-7"><a href="functional-form-tests.html#cb640-7" tabindex="-1"></a><span class="fu">library</span>(car)</span>
-<span id="cb640-8"><a href="functional-form-tests.html#cb640-8" tabindex="-1"></a><span class="fu">library</span>(strucchange)</span>
-<span id="cb640-9"><a href="functional-form-tests.html#cb640-9" tabindex="-1"></a></span>
-<span id="cb640-10"><a href="functional-form-tests.html#cb640-10" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
-<span id="cb640-11"><a href="functional-form-tests.html#cb640-11" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb640-12"><a href="functional-form-tests.html#cb640-12" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb640-13"><a href="functional-form-tests.html#cb640-13" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
-<span id="cb640-14"><a href="functional-form-tests.html#cb640-14" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
-<span id="cb640-15"><a href="functional-form-tests.html#cb640-15" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb640-16"><a href="functional-form-tests.html#cb640-16" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> epsilon</span>
-<span id="cb640-17"><a href="functional-form-tests.html#cb640-17" tabindex="-1"></a></span>
-<span id="cb640-18"><a href="functional-form-tests.html#cb640-18" tabindex="-1"></a><span class="co"># Original regression model</span></span>
-<span id="cb640-19"><a href="functional-form-tests.html#cb640-19" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
-<span id="cb640-20"><a href="functional-form-tests.html#cb640-20" tabindex="-1"></a></span>
-<span id="cb640-21"><a href="functional-form-tests.html#cb640-21" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb640-22"><a href="functional-form-tests.html#cb640-22" tabindex="-1"></a><span class="co"># 1. Ramsey RESET Test</span></span>
-<span id="cb640-23"><a href="functional-form-tests.html#cb640-23" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb640-24"><a href="functional-form-tests.html#cb640-24" tabindex="-1"></a><span class="co"># Null Hypothesis: The model is correctly specified</span></span>
-<span id="cb640-25"><a href="functional-form-tests.html#cb640-25" tabindex="-1"></a>reset_test <span class="ot">&lt;-</span></span>
-<span id="cb640-26"><a href="functional-form-tests.html#cb640-26" tabindex="-1"></a>    <span class="fu">resettest</span>(model, <span class="at">power =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">type =</span> <span class="st">&quot;fitted&quot;</span>)  <span class="co"># Adds ŷ² and ŷ³</span></span>
-<span id="cb640-27"><a href="functional-form-tests.html#cb640-27" tabindex="-1"></a><span class="fu">print</span>(reset_test)</span>
-<span id="cb640-28"><a href="functional-form-tests.html#cb640-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb640-29"><a href="functional-form-tests.html#cb640-29" tabindex="-1"></a><span class="co">#&gt;  RESET test</span></span>
-<span id="cb640-30"><a href="functional-form-tests.html#cb640-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb640-31"><a href="functional-form-tests.html#cb640-31" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb640-32"><a href="functional-form-tests.html#cb640-32" tabindex="-1"></a><span class="co">#&gt; RESET = 0.1921, df1 = 2, df2 = 95, p-value = 0.8255</span></span>
-<span id="cb640-33"><a href="functional-form-tests.html#cb640-33" tabindex="-1"></a></span>
-<span id="cb640-34"><a href="functional-form-tests.html#cb640-34" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb640-35"><a href="functional-form-tests.html#cb640-35" tabindex="-1"></a><span class="co"># 2. Harvey–Collier Test</span></span>
-<span id="cb640-36"><a href="functional-form-tests.html#cb640-36" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb640-37"><a href="functional-form-tests.html#cb640-37" tabindex="-1"></a><span class="co"># Null Hypothesis: The model is correctly specified (residuals have zero mean)</span></span>
-<span id="cb640-38"><a href="functional-form-tests.html#cb640-38" tabindex="-1"></a>hc_test <span class="ot">&lt;-</span> <span class="fu">harvtest</span>(model)</span>
-<span id="cb640-39"><a href="functional-form-tests.html#cb640-39" tabindex="-1"></a><span class="fu">print</span>(hc_test)</span>
-<span id="cb640-40"><a href="functional-form-tests.html#cb640-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb640-41"><a href="functional-form-tests.html#cb640-41" tabindex="-1"></a><span class="co">#&gt;  Harvey-Collier test</span></span>
-<span id="cb640-42"><a href="functional-form-tests.html#cb640-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb640-43"><a href="functional-form-tests.html#cb640-43" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb640-44"><a href="functional-form-tests.html#cb640-44" tabindex="-1"></a><span class="co">#&gt; HC = 0.041264, df = 96, p-value = 0.9672</span></span>
-<span id="cb640-45"><a href="functional-form-tests.html#cb640-45" tabindex="-1"></a></span>
-<span id="cb640-46"><a href="functional-form-tests.html#cb640-46" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb640-47"><a href="functional-form-tests.html#cb640-47" tabindex="-1"></a><span class="co"># 3. Rainbow Test</span></span>
-<span id="cb640-48"><a href="functional-form-tests.html#cb640-48" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb640-49"><a href="functional-form-tests.html#cb640-49" tabindex="-1"></a><span class="co"># Null Hypothesis: The model is correctly specified</span></span>
-<span id="cb640-50"><a href="functional-form-tests.html#cb640-50" tabindex="-1"></a>rainbow_test <span class="ot">&lt;-</span> lmtest<span class="sc">::</span><span class="fu">raintest</span> (model)</span>
-<span id="cb640-51"><a href="functional-form-tests.html#cb640-51" tabindex="-1"></a><span class="fu">print</span>(rainbow_test)</span>
-<span id="cb640-52"><a href="functional-form-tests.html#cb640-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb640-53"><a href="functional-form-tests.html#cb640-53" tabindex="-1"></a><span class="co">#&gt;  Rainbow test</span></span>
-<span id="cb640-54"><a href="functional-form-tests.html#cb640-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb640-55"><a href="functional-form-tests.html#cb640-55" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb640-56"><a href="functional-form-tests.html#cb640-56" tabindex="-1"></a><span class="co">#&gt; Rain = 1.1857, df1 = 50, df2 = 47, p-value = 0.279</span></span></code></pre></div>
+<div class="sourceCode" id="cb645"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb645-1"><a href="functional-form-tests.html#cb645-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
+<span id="cb645-2"><a href="functional-form-tests.html#cb645-2" tabindex="-1"></a><span class="co"># install.packages(&quot;lmtest&quot;)      # For RESET and Harvey–Collier Test</span></span>
+<span id="cb645-3"><a href="functional-form-tests.html#cb645-3" tabindex="-1"></a><span class="co"># install.packages(&quot;car&quot;)         # For diagnostic tests</span></span>
+<span id="cb645-4"><a href="functional-form-tests.html#cb645-4" tabindex="-1"></a><span class="co"># install.packages(&quot;strucchange&quot;) # For Rainbow Test</span></span>
+<span id="cb645-5"><a href="functional-form-tests.html#cb645-5" tabindex="-1"></a></span>
+<span id="cb645-6"><a href="functional-form-tests.html#cb645-6" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb645-7"><a href="functional-form-tests.html#cb645-7" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb645-8"><a href="functional-form-tests.html#cb645-8" tabindex="-1"></a><span class="fu">library</span>(strucchange)</span>
+<span id="cb645-9"><a href="functional-form-tests.html#cb645-9" tabindex="-1"></a></span>
+<span id="cb645-10"><a href="functional-form-tests.html#cb645-10" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
+<span id="cb645-11"><a href="functional-form-tests.html#cb645-11" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb645-12"><a href="functional-form-tests.html#cb645-12" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb645-13"><a href="functional-form-tests.html#cb645-13" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
+<span id="cb645-14"><a href="functional-form-tests.html#cb645-14" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb645-15"><a href="functional-form-tests.html#cb645-15" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb645-16"><a href="functional-form-tests.html#cb645-16" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> epsilon</span>
+<span id="cb645-17"><a href="functional-form-tests.html#cb645-17" tabindex="-1"></a></span>
+<span id="cb645-18"><a href="functional-form-tests.html#cb645-18" tabindex="-1"></a><span class="co"># Original regression model</span></span>
+<span id="cb645-19"><a href="functional-form-tests.html#cb645-19" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
+<span id="cb645-20"><a href="functional-form-tests.html#cb645-20" tabindex="-1"></a></span>
+<span id="cb645-21"><a href="functional-form-tests.html#cb645-21" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb645-22"><a href="functional-form-tests.html#cb645-22" tabindex="-1"></a><span class="co"># 1. Ramsey RESET Test</span></span>
+<span id="cb645-23"><a href="functional-form-tests.html#cb645-23" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb645-24"><a href="functional-form-tests.html#cb645-24" tabindex="-1"></a><span class="co"># Null Hypothesis: The model is correctly specified</span></span>
+<span id="cb645-25"><a href="functional-form-tests.html#cb645-25" tabindex="-1"></a>reset_test <span class="ot">&lt;-</span></span>
+<span id="cb645-26"><a href="functional-form-tests.html#cb645-26" tabindex="-1"></a>    <span class="fu">resettest</span>(model, <span class="at">power =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">type =</span> <span class="st">&quot;fitted&quot;</span>)  <span class="co"># Adds ŷ² and ŷ³</span></span>
+<span id="cb645-27"><a href="functional-form-tests.html#cb645-27" tabindex="-1"></a><span class="fu">print</span>(reset_test)</span>
+<span id="cb645-28"><a href="functional-form-tests.html#cb645-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb645-29"><a href="functional-form-tests.html#cb645-29" tabindex="-1"></a><span class="co">#&gt;  RESET test</span></span>
+<span id="cb645-30"><a href="functional-form-tests.html#cb645-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb645-31"><a href="functional-form-tests.html#cb645-31" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb645-32"><a href="functional-form-tests.html#cb645-32" tabindex="-1"></a><span class="co">#&gt; RESET = 0.1921, df1 = 2, df2 = 95, p-value = 0.8255</span></span>
+<span id="cb645-33"><a href="functional-form-tests.html#cb645-33" tabindex="-1"></a></span>
+<span id="cb645-34"><a href="functional-form-tests.html#cb645-34" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb645-35"><a href="functional-form-tests.html#cb645-35" tabindex="-1"></a><span class="co"># 2. Harvey–Collier Test</span></span>
+<span id="cb645-36"><a href="functional-form-tests.html#cb645-36" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb645-37"><a href="functional-form-tests.html#cb645-37" tabindex="-1"></a><span class="co"># Null Hypothesis: The model is correctly specified (residuals have zero mean)</span></span>
+<span id="cb645-38"><a href="functional-form-tests.html#cb645-38" tabindex="-1"></a>hc_test <span class="ot">&lt;-</span> <span class="fu">harvtest</span>(model)</span>
+<span id="cb645-39"><a href="functional-form-tests.html#cb645-39" tabindex="-1"></a><span class="fu">print</span>(hc_test)</span>
+<span id="cb645-40"><a href="functional-form-tests.html#cb645-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb645-41"><a href="functional-form-tests.html#cb645-41" tabindex="-1"></a><span class="co">#&gt;  Harvey-Collier test</span></span>
+<span id="cb645-42"><a href="functional-form-tests.html#cb645-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb645-43"><a href="functional-form-tests.html#cb645-43" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb645-44"><a href="functional-form-tests.html#cb645-44" tabindex="-1"></a><span class="co">#&gt; HC = 0.041264, df = 96, p-value = 0.9672</span></span>
+<span id="cb645-45"><a href="functional-form-tests.html#cb645-45" tabindex="-1"></a></span>
+<span id="cb645-46"><a href="functional-form-tests.html#cb645-46" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb645-47"><a href="functional-form-tests.html#cb645-47" tabindex="-1"></a><span class="co"># 3. Rainbow Test</span></span>
+<span id="cb645-48"><a href="functional-form-tests.html#cb645-48" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb645-49"><a href="functional-form-tests.html#cb645-49" tabindex="-1"></a><span class="co"># Null Hypothesis: The model is correctly specified</span></span>
+<span id="cb645-50"><a href="functional-form-tests.html#cb645-50" tabindex="-1"></a>rainbow_test <span class="ot">&lt;-</span> lmtest<span class="sc">::</span><span class="fu">raintest</span> (model)</span>
+<span id="cb645-51"><a href="functional-form-tests.html#cb645-51" tabindex="-1"></a><span class="fu">print</span>(rainbow_test)</span>
+<span id="cb645-52"><a href="functional-form-tests.html#cb645-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb645-53"><a href="functional-form-tests.html#cb645-53" tabindex="-1"></a><span class="co">#&gt;  Rainbow test</span></span>
+<span id="cb645-54"><a href="functional-form-tests.html#cb645-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb645-55"><a href="functional-form-tests.html#cb645-55" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb645-56"><a href="functional-form-tests.html#cb645-56" tabindex="-1"></a><span class="co">#&gt; Rain = 1.1857, df1 = 50, df2 = 47, p-value = 0.279</span></span></code></pre></div>
 <p><strong>Interpretation of the Results</strong></p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Ramsey RESET Test (Regression Equation Specification Error Test)</strong></p>

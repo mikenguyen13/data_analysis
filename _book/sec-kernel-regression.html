@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10.3 Kernel Regression | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10.3 Kernel Regression | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2265,86 +2265,86 @@ m(x) = \mathbb{E}[Y \mid X = x] = \frac{\int y  f_{X,Y}(x, y)  dy}{f_X(x)},
 \]</span> which is exactly the <a href="sec-kernel-regression.html#sec-nadaraya-watson-kernel-estimator">Nadaraya-Watson estimator</a>.</p></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb418"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb418-1"><a href="sec-kernel-regression.html#cb418-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb418-2"><a href="sec-kernel-regression.html#cb418-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb418-3"><a href="sec-kernel-regression.html#cb418-3" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
-<span id="cb418-4"><a href="sec-kernel-regression.html#cb418-4" tabindex="-1"></a></span>
-<span id="cb418-5"><a href="sec-kernel-regression.html#cb418-5" tabindex="-1"></a></span>
-<span id="cb418-6"><a href="sec-kernel-regression.html#cb418-6" tabindex="-1"></a><span class="co"># 1. Simulate Data </span></span>
-<span id="cb418-7"><a href="sec-kernel-regression.html#cb418-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb418-8"><a href="sec-kernel-regression.html#cb418-8" tabindex="-1"></a></span>
-<span id="cb418-9"><a href="sec-kernel-regression.html#cb418-9" tabindex="-1"></a></span>
-<span id="cb418-10"><a href="sec-kernel-regression.html#cb418-10" tabindex="-1"></a><span class="co"># Generate predictor x and response y</span></span>
-<span id="cb418-11"><a href="sec-kernel-regression.html#cb418-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb418-12"><a href="sec-kernel-regression.html#cb418-12" tabindex="-1"></a>x <span class="ot">&lt;-</span></span>
-<span id="cb418-13"><a href="sec-kernel-regression.html#cb418-13" tabindex="-1"></a>    <span class="fu">sort</span>(<span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>))  <span class="co"># Sorted for Priestley–Chao and Gasser–Müller</span></span>
-<span id="cb418-14"><a href="sec-kernel-regression.html#cb418-14" tabindex="-1"></a>true_function <span class="ot">&lt;-</span></span>
-<span id="cb418-15"><a href="sec-kernel-regression.html#cb418-15" tabindex="-1"></a>    <span class="cf">function</span>(x)</span>
-<span id="cb418-16"><a href="sec-kernel-regression.html#cb418-16" tabindex="-1"></a>        <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> x)  <span class="co"># True regression function</span></span>
-<span id="cb418-17"><a href="sec-kernel-regression.html#cb418-17" tabindex="-1"></a></span>
-<span id="cb418-18"><a href="sec-kernel-regression.html#cb418-18" tabindex="-1"></a><span class="co"># Add Gaussian noise</span></span>
-<span id="cb418-19"><a href="sec-kernel-regression.html#cb418-19" tabindex="-1"></a>y <span class="ot">&lt;-</span></span>
-<span id="cb418-20"><a href="sec-kernel-regression.html#cb418-20" tabindex="-1"></a>    <span class="fu">true_function</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.3</span>)              </span></code></pre></div>
-<div class="sourceCode" id="cb419"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb419-1"><a href="sec-kernel-regression.html#cb419-1" tabindex="-1"></a><span class="co"># Visualization of the data</span></span>
-<span id="cb419-2"><a href="sec-kernel-regression.html#cb419-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(x, y), <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
-<span id="cb419-3"><a href="sec-kernel-regression.html#cb419-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>) <span class="sc">+</span></span>
-<span id="cb419-4"><a href="sec-kernel-regression.html#cb419-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">true_function</span>(x)),</span>
-<span id="cb419-5"><a href="sec-kernel-regression.html#cb419-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb419-6"><a href="sec-kernel-regression.html#cb419-6" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
-<span id="cb419-7"><a href="sec-kernel-regression.html#cb419-7" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Simulated Data with True Regression Function&quot;</span>,</span>
-<span id="cb419-8"><a href="sec-kernel-regression.html#cb419-8" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x&quot;</span>, <span class="at">y =</span> <span class="st">&quot;y&quot;</span>) <span class="sc">+</span></span>
-<span id="cb419-9"><a href="sec-kernel-regression.html#cb419-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb423"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb423-1"><a href="sec-kernel-regression.html#cb423-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb423-2"><a href="sec-kernel-regression.html#cb423-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb423-3"><a href="sec-kernel-regression.html#cb423-3" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb423-4"><a href="sec-kernel-regression.html#cb423-4" tabindex="-1"></a></span>
+<span id="cb423-5"><a href="sec-kernel-regression.html#cb423-5" tabindex="-1"></a></span>
+<span id="cb423-6"><a href="sec-kernel-regression.html#cb423-6" tabindex="-1"></a><span class="co"># 1. Simulate Data </span></span>
+<span id="cb423-7"><a href="sec-kernel-regression.html#cb423-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb423-8"><a href="sec-kernel-regression.html#cb423-8" tabindex="-1"></a></span>
+<span id="cb423-9"><a href="sec-kernel-regression.html#cb423-9" tabindex="-1"></a></span>
+<span id="cb423-10"><a href="sec-kernel-regression.html#cb423-10" tabindex="-1"></a><span class="co"># Generate predictor x and response y</span></span>
+<span id="cb423-11"><a href="sec-kernel-regression.html#cb423-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb423-12"><a href="sec-kernel-regression.html#cb423-12" tabindex="-1"></a>x <span class="ot">&lt;-</span></span>
+<span id="cb423-13"><a href="sec-kernel-regression.html#cb423-13" tabindex="-1"></a>    <span class="fu">sort</span>(<span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>))  <span class="co"># Sorted for Priestley–Chao and Gasser–Müller</span></span>
+<span id="cb423-14"><a href="sec-kernel-regression.html#cb423-14" tabindex="-1"></a>true_function <span class="ot">&lt;-</span></span>
+<span id="cb423-15"><a href="sec-kernel-regression.html#cb423-15" tabindex="-1"></a>    <span class="cf">function</span>(x)</span>
+<span id="cb423-16"><a href="sec-kernel-regression.html#cb423-16" tabindex="-1"></a>        <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> x)  <span class="co"># True regression function</span></span>
+<span id="cb423-17"><a href="sec-kernel-regression.html#cb423-17" tabindex="-1"></a></span>
+<span id="cb423-18"><a href="sec-kernel-regression.html#cb423-18" tabindex="-1"></a><span class="co"># Add Gaussian noise</span></span>
+<span id="cb423-19"><a href="sec-kernel-regression.html#cb423-19" tabindex="-1"></a>y <span class="ot">&lt;-</span></span>
+<span id="cb423-20"><a href="sec-kernel-regression.html#cb423-20" tabindex="-1"></a>    <span class="fu">true_function</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.3</span>)              </span></code></pre></div>
+<div class="sourceCode" id="cb424"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb424-1"><a href="sec-kernel-regression.html#cb424-1" tabindex="-1"></a><span class="co"># Visualization of the data</span></span>
+<span id="cb424-2"><a href="sec-kernel-regression.html#cb424-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(x, y), <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb424-3"><a href="sec-kernel-regression.html#cb424-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>) <span class="sc">+</span></span>
+<span id="cb424-4"><a href="sec-kernel-regression.html#cb424-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">true_function</span>(x)),</span>
+<span id="cb424-5"><a href="sec-kernel-regression.html#cb424-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb424-6"><a href="sec-kernel-regression.html#cb424-6" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
+<span id="cb424-7"><a href="sec-kernel-regression.html#cb424-7" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Simulated Data with True Regression Function&quot;</span>,</span>
+<span id="cb424-8"><a href="sec-kernel-regression.html#cb424-8" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x&quot;</span>, <span class="at">y =</span> <span class="st">&quot;y&quot;</span>) <span class="sc">+</span></span>
+<span id="cb424-9"><a href="sec-kernel-regression.html#cb424-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-sim-function"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-sim-function-1.png" alt="Scatter plot with blue data points and red dashed line showing wavy true regression function" width="100%" />
 <p class="caption">
 Figure 10.1: Simulated Data with True Regression Function
 </p>
 </div>
-<div class="sourceCode" id="cb420"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb420-1"><a href="sec-kernel-regression.html#cb420-1" tabindex="-1"></a><span class="co"># Gaussian Kernel Function</span></span>
-<span id="cb420-2"><a href="sec-kernel-regression.html#cb420-2" tabindex="-1"></a>gaussian_kernel <span class="ot">&lt;-</span> <span class="cf">function</span>(u) {</span>
-<span id="cb420-3"><a href="sec-kernel-regression.html#cb420-3" tabindex="-1"></a>    (<span class="dv">1</span> <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="dv">2</span> <span class="sc">*</span> pi)) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">*</span> u <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb420-4"><a href="sec-kernel-regression.html#cb420-4" tabindex="-1"></a>}</span>
-<span id="cb420-5"><a href="sec-kernel-regression.html#cb420-5" tabindex="-1"></a></span>
-<span id="cb420-6"><a href="sec-kernel-regression.html#cb420-6" tabindex="-1"></a><span class="co"># Epanechnikov Kernel Function</span></span>
-<span id="cb420-7"><a href="sec-kernel-regression.html#cb420-7" tabindex="-1"></a>epanechnikov_kernel <span class="ot">&lt;-</span> <span class="cf">function</span>(u) {</span>
-<span id="cb420-8"><a href="sec-kernel-regression.html#cb420-8" tabindex="-1"></a>    <span class="fu">ifelse</span>(<span class="fu">abs</span>(u) <span class="sc">&lt;=</span> <span class="dv">1</span>, <span class="fl">0.75</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> u <span class="sc">^</span> <span class="dv">2</span>), <span class="dv">0</span>)</span>
-<span id="cb420-9"><a href="sec-kernel-regression.html#cb420-9" tabindex="-1"></a>}</span>
-<span id="cb420-10"><a href="sec-kernel-regression.html#cb420-10" tabindex="-1"></a></span>
-<span id="cb420-11"><a href="sec-kernel-regression.html#cb420-11" tabindex="-1"></a><span class="co"># Cumulative Kernel for Gasser–Müller (CDF of Gaussian Kernel)</span></span>
-<span id="cb420-12"><a href="sec-kernel-regression.html#cb420-12" tabindex="-1"></a>gaussian_cdf_kernel <span class="ot">&lt;-</span> <span class="cf">function</span>(u) {</span>
-<span id="cb420-13"><a href="sec-kernel-regression.html#cb420-13" tabindex="-1"></a>    <span class="fu">pnorm</span>(u, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb420-14"><a href="sec-kernel-regression.html#cb420-14" tabindex="-1"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb421"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb421-1"><a href="sec-kernel-regression.html#cb421-1" tabindex="-1"></a><span class="co"># Nadaraya-Watson Estimator</span></span>
-<span id="cb421-2"><a href="sec-kernel-regression.html#cb421-2" tabindex="-1"></a>nadaraya_watson <span class="ot">&lt;-</span></span>
-<span id="cb421-3"><a href="sec-kernel-regression.html#cb421-3" tabindex="-1"></a>    <span class="cf">function</span>(x_eval, x, y, h, <span class="at">kernel =</span> gaussian_kernel) {</span>
-<span id="cb421-4"><a href="sec-kernel-regression.html#cb421-4" tabindex="-1"></a>        <span class="fu">sapply</span>(x_eval, <span class="cf">function</span>(x0) {</span>
-<span id="cb421-5"><a href="sec-kernel-regression.html#cb421-5" tabindex="-1"></a>            weights <span class="ot">&lt;-</span> <span class="fu">kernel</span>((x0 <span class="sc">-</span> x) <span class="sc">/</span> h)</span>
-<span id="cb421-6"><a href="sec-kernel-regression.html#cb421-6" tabindex="-1"></a>            <span class="fu">sum</span>(weights <span class="sc">*</span> y) <span class="sc">/</span> <span class="fu">sum</span>(weights)</span>
-<span id="cb421-7"><a href="sec-kernel-regression.html#cb421-7" tabindex="-1"></a>        })</span>
-<span id="cb421-8"><a href="sec-kernel-regression.html#cb421-8" tabindex="-1"></a>    }</span>
-<span id="cb421-9"><a href="sec-kernel-regression.html#cb421-9" tabindex="-1"></a></span>
-<span id="cb421-10"><a href="sec-kernel-regression.html#cb421-10" tabindex="-1"></a><span class="co"># Bandwidth Selection (fixed for simplicity)</span></span>
-<span id="cb421-11"><a href="sec-kernel-regression.html#cb421-11" tabindex="-1"></a>h_nw <span class="ot">&lt;-</span> <span class="fl">0.5</span>  <span class="co"># Bandwidth for Nadaraya–Watson</span></span>
-<span id="cb421-12"><a href="sec-kernel-regression.html#cb421-12" tabindex="-1"></a></span>
-<span id="cb421-13"><a href="sec-kernel-regression.html#cb421-13" tabindex="-1"></a><span class="co"># Apply Nadaraya–Watson Estimator</span></span>
-<span id="cb421-14"><a href="sec-kernel-regression.html#cb421-14" tabindex="-1"></a>x_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
-<span id="cb421-15"><a href="sec-kernel-regression.html#cb421-15" tabindex="-1"></a>nw_estimate <span class="ot">&lt;-</span> <span class="fu">nadaraya_watson</span>(x_grid, x, y, h_nw)</span></code></pre></div>
-<div class="sourceCode" id="cb422"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb422-1"><a href="sec-kernel-regression.html#cb422-1" tabindex="-1"></a><span class="co"># Plot Nadaraya–Watson Estimate</span></span>
-<span id="cb422-2"><a href="sec-kernel-regression.html#cb422-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb422-3"><a href="sec-kernel-regression.html#cb422-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb422-4"><a href="sec-kernel-regression.html#cb422-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, nw_estimate),</span>
-<span id="cb422-5"><a href="sec-kernel-regression.html#cb422-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;green&quot;</span>,</span>
-<span id="cb422-6"><a href="sec-kernel-regression.html#cb422-6" tabindex="-1"></a>              <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb422-7"><a href="sec-kernel-regression.html#cb422-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
-<span id="cb422-8"><a href="sec-kernel-regression.html#cb422-8" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb422-9"><a href="sec-kernel-regression.html#cb422-9" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
-<span id="cb422-10"><a href="sec-kernel-regression.html#cb422-10" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb422-11"><a href="sec-kernel-regression.html#cb422-11" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Nadaraya–Watson Kernel Estimator&quot;</span>,</span>
-<span id="cb422-12"><a href="sec-kernel-regression.html#cb422-12" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Bandwidth (h) =&quot;</span>, h_nw),</span>
-<span id="cb422-13"><a href="sec-kernel-regression.html#cb422-13" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb422-14"><a href="sec-kernel-regression.html#cb422-14" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
-<span id="cb422-15"><a href="sec-kernel-regression.html#cb422-15" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb422-16"><a href="sec-kernel-regression.html#cb422-16" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb425"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb425-1"><a href="sec-kernel-regression.html#cb425-1" tabindex="-1"></a><span class="co"># Gaussian Kernel Function</span></span>
+<span id="cb425-2"><a href="sec-kernel-regression.html#cb425-2" tabindex="-1"></a>gaussian_kernel <span class="ot">&lt;-</span> <span class="cf">function</span>(u) {</span>
+<span id="cb425-3"><a href="sec-kernel-regression.html#cb425-3" tabindex="-1"></a>    (<span class="dv">1</span> <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="dv">2</span> <span class="sc">*</span> pi)) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">*</span> u <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb425-4"><a href="sec-kernel-regression.html#cb425-4" tabindex="-1"></a>}</span>
+<span id="cb425-5"><a href="sec-kernel-regression.html#cb425-5" tabindex="-1"></a></span>
+<span id="cb425-6"><a href="sec-kernel-regression.html#cb425-6" tabindex="-1"></a><span class="co"># Epanechnikov Kernel Function</span></span>
+<span id="cb425-7"><a href="sec-kernel-regression.html#cb425-7" tabindex="-1"></a>epanechnikov_kernel <span class="ot">&lt;-</span> <span class="cf">function</span>(u) {</span>
+<span id="cb425-8"><a href="sec-kernel-regression.html#cb425-8" tabindex="-1"></a>    <span class="fu">ifelse</span>(<span class="fu">abs</span>(u) <span class="sc">&lt;=</span> <span class="dv">1</span>, <span class="fl">0.75</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> u <span class="sc">^</span> <span class="dv">2</span>), <span class="dv">0</span>)</span>
+<span id="cb425-9"><a href="sec-kernel-regression.html#cb425-9" tabindex="-1"></a>}</span>
+<span id="cb425-10"><a href="sec-kernel-regression.html#cb425-10" tabindex="-1"></a></span>
+<span id="cb425-11"><a href="sec-kernel-regression.html#cb425-11" tabindex="-1"></a><span class="co"># Cumulative Kernel for Gasser–Müller (CDF of Gaussian Kernel)</span></span>
+<span id="cb425-12"><a href="sec-kernel-regression.html#cb425-12" tabindex="-1"></a>gaussian_cdf_kernel <span class="ot">&lt;-</span> <span class="cf">function</span>(u) {</span>
+<span id="cb425-13"><a href="sec-kernel-regression.html#cb425-13" tabindex="-1"></a>    <span class="fu">pnorm</span>(u, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb425-14"><a href="sec-kernel-regression.html#cb425-14" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb426"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb426-1"><a href="sec-kernel-regression.html#cb426-1" tabindex="-1"></a><span class="co"># Nadaraya-Watson Estimator</span></span>
+<span id="cb426-2"><a href="sec-kernel-regression.html#cb426-2" tabindex="-1"></a>nadaraya_watson <span class="ot">&lt;-</span></span>
+<span id="cb426-3"><a href="sec-kernel-regression.html#cb426-3" tabindex="-1"></a>    <span class="cf">function</span>(x_eval, x, y, h, <span class="at">kernel =</span> gaussian_kernel) {</span>
+<span id="cb426-4"><a href="sec-kernel-regression.html#cb426-4" tabindex="-1"></a>        <span class="fu">sapply</span>(x_eval, <span class="cf">function</span>(x0) {</span>
+<span id="cb426-5"><a href="sec-kernel-regression.html#cb426-5" tabindex="-1"></a>            weights <span class="ot">&lt;-</span> <span class="fu">kernel</span>((x0 <span class="sc">-</span> x) <span class="sc">/</span> h)</span>
+<span id="cb426-6"><a href="sec-kernel-regression.html#cb426-6" tabindex="-1"></a>            <span class="fu">sum</span>(weights <span class="sc">*</span> y) <span class="sc">/</span> <span class="fu">sum</span>(weights)</span>
+<span id="cb426-7"><a href="sec-kernel-regression.html#cb426-7" tabindex="-1"></a>        })</span>
+<span id="cb426-8"><a href="sec-kernel-regression.html#cb426-8" tabindex="-1"></a>    }</span>
+<span id="cb426-9"><a href="sec-kernel-regression.html#cb426-9" tabindex="-1"></a></span>
+<span id="cb426-10"><a href="sec-kernel-regression.html#cb426-10" tabindex="-1"></a><span class="co"># Bandwidth Selection (fixed for simplicity)</span></span>
+<span id="cb426-11"><a href="sec-kernel-regression.html#cb426-11" tabindex="-1"></a>h_nw <span class="ot">&lt;-</span> <span class="fl">0.5</span>  <span class="co"># Bandwidth for Nadaraya–Watson</span></span>
+<span id="cb426-12"><a href="sec-kernel-regression.html#cb426-12" tabindex="-1"></a></span>
+<span id="cb426-13"><a href="sec-kernel-regression.html#cb426-13" tabindex="-1"></a><span class="co"># Apply Nadaraya–Watson Estimator</span></span>
+<span id="cb426-14"><a href="sec-kernel-regression.html#cb426-14" tabindex="-1"></a>x_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
+<span id="cb426-15"><a href="sec-kernel-regression.html#cb426-15" tabindex="-1"></a>nw_estimate <span class="ot">&lt;-</span> <span class="fu">nadaraya_watson</span>(x_grid, x, y, h_nw)</span></code></pre></div>
+<div class="sourceCode" id="cb427"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb427-1"><a href="sec-kernel-regression.html#cb427-1" tabindex="-1"></a><span class="co"># Plot Nadaraya–Watson Estimate</span></span>
+<span id="cb427-2"><a href="sec-kernel-regression.html#cb427-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb427-3"><a href="sec-kernel-regression.html#cb427-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb427-4"><a href="sec-kernel-regression.html#cb427-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, nw_estimate),</span>
+<span id="cb427-5"><a href="sec-kernel-regression.html#cb427-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;green&quot;</span>,</span>
+<span id="cb427-6"><a href="sec-kernel-regression.html#cb427-6" tabindex="-1"></a>              <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb427-7"><a href="sec-kernel-regression.html#cb427-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
+<span id="cb427-8"><a href="sec-kernel-regression.html#cb427-8" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb427-9"><a href="sec-kernel-regression.html#cb427-9" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
+<span id="cb427-10"><a href="sec-kernel-regression.html#cb427-10" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb427-11"><a href="sec-kernel-regression.html#cb427-11" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Nadaraya–Watson Kernel Estimator&quot;</span>,</span>
+<span id="cb427-12"><a href="sec-kernel-regression.html#cb427-12" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Bandwidth (h) =&quot;</span>, h_nw),</span>
+<span id="cb427-13"><a href="sec-kernel-regression.html#cb427-13" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb427-14"><a href="sec-kernel-regression.html#cb427-14" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
+<span id="cb427-15"><a href="sec-kernel-regression.html#cb427-15" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb427-16"><a href="sec-kernel-regression.html#cb427-16" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-nw-kernel-est"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-nw-kernel-est-1.png" alt="Scatter plot illustrating the Nadaraya-Watson Kernel Estimator with a bandwidth of 0.5. The x-axis represents values from 0 to 10, while the y-axis shows estimated m(x) values. Blue dots indicate data points, a green line represents the kernel estimate, and a red dashed line shows the confidence interval." width="90%" />
 <p class="caption">
@@ -2357,34 +2357,34 @@ Figure 10.2: Nadaraya–Watson Kernel Estimator
 <li><p>The <strong>blue dots</strong> are the observed noisy data.</p></li>
 <li><p>The estimator <strong>smooths the data</strong>, assigning more weight to points close to each evaluation point based on the Gaussian kernel.</p></li>
 </ul>
-<div class="sourceCode" id="cb423"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb423-1"><a href="sec-kernel-regression.html#cb423-1" tabindex="-1"></a><span class="co"># Priestley–Chao Estimator</span></span>
-<span id="cb423-2"><a href="sec-kernel-regression.html#cb423-2" tabindex="-1"></a>priestley_chao <span class="ot">&lt;-</span></span>
-<span id="cb423-3"><a href="sec-kernel-regression.html#cb423-3" tabindex="-1"></a>    <span class="cf">function</span>(x_eval, x, y, h, <span class="at">kernel =</span> gaussian_kernel) {</span>
-<span id="cb423-4"><a href="sec-kernel-regression.html#cb423-4" tabindex="-1"></a>        <span class="fu">sapply</span>(x_eval, <span class="cf">function</span>(x0) {</span>
-<span id="cb423-5"><a href="sec-kernel-regression.html#cb423-5" tabindex="-1"></a>            weights <span class="ot">&lt;-</span> <span class="fu">kernel</span>((x0 <span class="sc">-</span> x[<span class="sc">-</span><span class="fu">length</span>(x)]) <span class="sc">/</span> h) <span class="sc">*</span> <span class="fu">diff</span>(x)</span>
-<span id="cb423-6"><a href="sec-kernel-regression.html#cb423-6" tabindex="-1"></a>            <span class="fu">sum</span>(weights <span class="sc">*</span> y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">/</span> h</span>
-<span id="cb423-7"><a href="sec-kernel-regression.html#cb423-7" tabindex="-1"></a>        })</span>
-<span id="cb423-8"><a href="sec-kernel-regression.html#cb423-8" tabindex="-1"></a>    }</span>
-<span id="cb423-9"><a href="sec-kernel-regression.html#cb423-9" tabindex="-1"></a></span>
-<span id="cb423-10"><a href="sec-kernel-regression.html#cb423-10" tabindex="-1"></a><span class="co"># Apply Priestley–Chao Estimator</span></span>
-<span id="cb423-11"><a href="sec-kernel-regression.html#cb423-11" tabindex="-1"></a>h_pc <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb423-12"><a href="sec-kernel-regression.html#cb423-12" tabindex="-1"></a>pc_estimate <span class="ot">&lt;-</span> <span class="fu">priestley_chao</span>(x_grid, x, y, h_pc)</span></code></pre></div>
-<div class="sourceCode" id="cb424"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb424-1"><a href="sec-kernel-regression.html#cb424-1" tabindex="-1"></a><span class="co"># Plot Priestley–Chao Estimate</span></span>
-<span id="cb424-2"><a href="sec-kernel-regression.html#cb424-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb424-3"><a href="sec-kernel-regression.html#cb424-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb424-4"><a href="sec-kernel-regression.html#cb424-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, pc_estimate),</span>
-<span id="cb424-5"><a href="sec-kernel-regression.html#cb424-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;orange&quot;</span>,</span>
-<span id="cb424-6"><a href="sec-kernel-regression.html#cb424-6" tabindex="-1"></a>              <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb424-7"><a href="sec-kernel-regression.html#cb424-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
-<span id="cb424-8"><a href="sec-kernel-regression.html#cb424-8" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb424-9"><a href="sec-kernel-regression.html#cb424-9" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
-<span id="cb424-10"><a href="sec-kernel-regression.html#cb424-10" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb424-11"><a href="sec-kernel-regression.html#cb424-11" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Priestley–Chao Kernel Estimator&quot;</span>,</span>
-<span id="cb424-12"><a href="sec-kernel-regression.html#cb424-12" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Bandwidth (h) =&quot;</span>, h_pc),</span>
-<span id="cb424-13"><a href="sec-kernel-regression.html#cb424-13" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb424-14"><a href="sec-kernel-regression.html#cb424-14" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
-<span id="cb424-15"><a href="sec-kernel-regression.html#cb424-15" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb424-16"><a href="sec-kernel-regression.html#cb424-16" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb428"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb428-1"><a href="sec-kernel-regression.html#cb428-1" tabindex="-1"></a><span class="co"># Priestley–Chao Estimator</span></span>
+<span id="cb428-2"><a href="sec-kernel-regression.html#cb428-2" tabindex="-1"></a>priestley_chao <span class="ot">&lt;-</span></span>
+<span id="cb428-3"><a href="sec-kernel-regression.html#cb428-3" tabindex="-1"></a>    <span class="cf">function</span>(x_eval, x, y, h, <span class="at">kernel =</span> gaussian_kernel) {</span>
+<span id="cb428-4"><a href="sec-kernel-regression.html#cb428-4" tabindex="-1"></a>        <span class="fu">sapply</span>(x_eval, <span class="cf">function</span>(x0) {</span>
+<span id="cb428-5"><a href="sec-kernel-regression.html#cb428-5" tabindex="-1"></a>            weights <span class="ot">&lt;-</span> <span class="fu">kernel</span>((x0 <span class="sc">-</span> x[<span class="sc">-</span><span class="fu">length</span>(x)]) <span class="sc">/</span> h) <span class="sc">*</span> <span class="fu">diff</span>(x)</span>
+<span id="cb428-6"><a href="sec-kernel-regression.html#cb428-6" tabindex="-1"></a>            <span class="fu">sum</span>(weights <span class="sc">*</span> y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">/</span> h</span>
+<span id="cb428-7"><a href="sec-kernel-regression.html#cb428-7" tabindex="-1"></a>        })</span>
+<span id="cb428-8"><a href="sec-kernel-regression.html#cb428-8" tabindex="-1"></a>    }</span>
+<span id="cb428-9"><a href="sec-kernel-regression.html#cb428-9" tabindex="-1"></a></span>
+<span id="cb428-10"><a href="sec-kernel-regression.html#cb428-10" tabindex="-1"></a><span class="co"># Apply Priestley–Chao Estimator</span></span>
+<span id="cb428-11"><a href="sec-kernel-regression.html#cb428-11" tabindex="-1"></a>h_pc <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb428-12"><a href="sec-kernel-regression.html#cb428-12" tabindex="-1"></a>pc_estimate <span class="ot">&lt;-</span> <span class="fu">priestley_chao</span>(x_grid, x, y, h_pc)</span></code></pre></div>
+<div class="sourceCode" id="cb429"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb429-1"><a href="sec-kernel-regression.html#cb429-1" tabindex="-1"></a><span class="co"># Plot Priestley–Chao Estimate</span></span>
+<span id="cb429-2"><a href="sec-kernel-regression.html#cb429-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb429-3"><a href="sec-kernel-regression.html#cb429-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb429-4"><a href="sec-kernel-regression.html#cb429-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, pc_estimate),</span>
+<span id="cb429-5"><a href="sec-kernel-regression.html#cb429-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;orange&quot;</span>,</span>
+<span id="cb429-6"><a href="sec-kernel-regression.html#cb429-6" tabindex="-1"></a>              <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb429-7"><a href="sec-kernel-regression.html#cb429-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
+<span id="cb429-8"><a href="sec-kernel-regression.html#cb429-8" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb429-9"><a href="sec-kernel-regression.html#cb429-9" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
+<span id="cb429-10"><a href="sec-kernel-regression.html#cb429-10" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb429-11"><a href="sec-kernel-regression.html#cb429-11" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Priestley–Chao Kernel Estimator&quot;</span>,</span>
+<span id="cb429-12"><a href="sec-kernel-regression.html#cb429-12" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Bandwidth (h) =&quot;</span>, h_pc),</span>
+<span id="cb429-13"><a href="sec-kernel-regression.html#cb429-13" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb429-14"><a href="sec-kernel-regression.html#cb429-14" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
+<span id="cb429-15"><a href="sec-kernel-regression.html#cb429-15" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb429-16"><a href="sec-kernel-regression.html#cb429-16" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-pc-kernel-est"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-pc-kernel-est-1.png" alt="Scatter plot illustrating the Priestley–Chao Kernel Estimator with a bandwidth of 0.5. The x-axis represents values from 0 to 10, and the y-axis shows estimated m(x) values. Blue dots indicate data points, while an orange line represents the kernel estimate. A red dashed line shows a comparison or confidence interval. " width="90%" />
 <p class="caption">
@@ -2396,35 +2396,35 @@ Figure 10.3: Priestley–Chao Kernel Estimator
 <li><p>This estimator incorporates the <strong>spacing between consecutive data points</strong> (<code>diff(x)</code>), making it more sensitive to <strong>non-uniform data spacing</strong>.</p></li>
 <li><p>It performs similarly to <a href="sec-kernel-regression.html#sec-nadaraya-watson-kernel-estimator">Nadaraya–Watson</a> when data are evenly spaced.</p></li>
 </ul>
-<div class="sourceCode" id="cb425"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb425-1"><a href="sec-kernel-regression.html#cb425-1" tabindex="-1"></a><span class="co"># Gasser–Müller Estimator</span></span>
-<span id="cb425-2"><a href="sec-kernel-regression.html#cb425-2" tabindex="-1"></a>gasser_mueller <span class="ot">&lt;-</span></span>
-<span id="cb425-3"><a href="sec-kernel-regression.html#cb425-3" tabindex="-1"></a>    <span class="cf">function</span>(x_eval, x, y, h, <span class="at">cdf_kernel =</span> gaussian_cdf_kernel) {</span>
-<span id="cb425-4"><a href="sec-kernel-regression.html#cb425-4" tabindex="-1"></a>        <span class="fu">sapply</span>(x_eval, <span class="cf">function</span>(x0) {</span>
-<span id="cb425-5"><a href="sec-kernel-regression.html#cb425-5" tabindex="-1"></a>            weights <span class="ot">&lt;-</span></span>
-<span id="cb425-6"><a href="sec-kernel-regression.html#cb425-6" tabindex="-1"></a>                (<span class="fu">cdf_kernel</span>((x0 <span class="sc">-</span> x[<span class="sc">-</span><span class="fu">length</span>(x)]) <span class="sc">/</span> h) <span class="sc">-</span> <span class="fu">cdf_kernel</span>((x0 <span class="sc">-</span> x[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">/</span> h))</span>
-<span id="cb425-7"><a href="sec-kernel-regression.html#cb425-7" tabindex="-1"></a>            <span class="fu">sum</span>(weights <span class="sc">*</span> y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">/</span> h</span>
-<span id="cb425-8"><a href="sec-kernel-regression.html#cb425-8" tabindex="-1"></a>        })</span>
-<span id="cb425-9"><a href="sec-kernel-regression.html#cb425-9" tabindex="-1"></a>    }</span>
-<span id="cb425-10"><a href="sec-kernel-regression.html#cb425-10" tabindex="-1"></a></span>
-<span id="cb425-11"><a href="sec-kernel-regression.html#cb425-11" tabindex="-1"></a><span class="co"># Apply Gasser–Müller Estimator</span></span>
-<span id="cb425-12"><a href="sec-kernel-regression.html#cb425-12" tabindex="-1"></a>h_gm <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb425-13"><a href="sec-kernel-regression.html#cb425-13" tabindex="-1"></a>gm_estimate <span class="ot">&lt;-</span> <span class="fu">gasser_mueller</span>(x_grid, x, y, h_gm)</span></code></pre></div>
-<div class="sourceCode" id="cb426"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb426-1"><a href="sec-kernel-regression.html#cb426-1" tabindex="-1"></a><span class="co"># Plot Gasser–Müller Estimate</span></span>
-<span id="cb426-2"><a href="sec-kernel-regression.html#cb426-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb426-3"><a href="sec-kernel-regression.html#cb426-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb426-4"><a href="sec-kernel-regression.html#cb426-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, gm_estimate),</span>
-<span id="cb426-5"><a href="sec-kernel-regression.html#cb426-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;purple&quot;</span>,</span>
-<span id="cb426-6"><a href="sec-kernel-regression.html#cb426-6" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb426-7"><a href="sec-kernel-regression.html#cb426-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
-<span id="cb426-8"><a href="sec-kernel-regression.html#cb426-8" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb426-9"><a href="sec-kernel-regression.html#cb426-9" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
-<span id="cb426-10"><a href="sec-kernel-regression.html#cb426-10" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb426-11"><a href="sec-kernel-regression.html#cb426-11" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Gasser–Müller Kernel Estimator&quot;</span>,</span>
-<span id="cb426-12"><a href="sec-kernel-regression.html#cb426-12" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Bandwidth (h) =&quot;</span>, h_gm),</span>
-<span id="cb426-13"><a href="sec-kernel-regression.html#cb426-13" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb426-14"><a href="sec-kernel-regression.html#cb426-14" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
-<span id="cb426-15"><a href="sec-kernel-regression.html#cb426-15" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb426-16"><a href="sec-kernel-regression.html#cb426-16" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb430"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb430-1"><a href="sec-kernel-regression.html#cb430-1" tabindex="-1"></a><span class="co"># Gasser–Müller Estimator</span></span>
+<span id="cb430-2"><a href="sec-kernel-regression.html#cb430-2" tabindex="-1"></a>gasser_mueller <span class="ot">&lt;-</span></span>
+<span id="cb430-3"><a href="sec-kernel-regression.html#cb430-3" tabindex="-1"></a>    <span class="cf">function</span>(x_eval, x, y, h, <span class="at">cdf_kernel =</span> gaussian_cdf_kernel) {</span>
+<span id="cb430-4"><a href="sec-kernel-regression.html#cb430-4" tabindex="-1"></a>        <span class="fu">sapply</span>(x_eval, <span class="cf">function</span>(x0) {</span>
+<span id="cb430-5"><a href="sec-kernel-regression.html#cb430-5" tabindex="-1"></a>            weights <span class="ot">&lt;-</span></span>
+<span id="cb430-6"><a href="sec-kernel-regression.html#cb430-6" tabindex="-1"></a>                (<span class="fu">cdf_kernel</span>((x0 <span class="sc">-</span> x[<span class="sc">-</span><span class="fu">length</span>(x)]) <span class="sc">/</span> h) <span class="sc">-</span> <span class="fu">cdf_kernel</span>((x0 <span class="sc">-</span> x[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">/</span> h))</span>
+<span id="cb430-7"><a href="sec-kernel-regression.html#cb430-7" tabindex="-1"></a>            <span class="fu">sum</span>(weights <span class="sc">*</span> y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">/</span> h</span>
+<span id="cb430-8"><a href="sec-kernel-regression.html#cb430-8" tabindex="-1"></a>        })</span>
+<span id="cb430-9"><a href="sec-kernel-regression.html#cb430-9" tabindex="-1"></a>    }</span>
+<span id="cb430-10"><a href="sec-kernel-regression.html#cb430-10" tabindex="-1"></a></span>
+<span id="cb430-11"><a href="sec-kernel-regression.html#cb430-11" tabindex="-1"></a><span class="co"># Apply Gasser–Müller Estimator</span></span>
+<span id="cb430-12"><a href="sec-kernel-regression.html#cb430-12" tabindex="-1"></a>h_gm <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb430-13"><a href="sec-kernel-regression.html#cb430-13" tabindex="-1"></a>gm_estimate <span class="ot">&lt;-</span> <span class="fu">gasser_mueller</span>(x_grid, x, y, h_gm)</span></code></pre></div>
+<div class="sourceCode" id="cb431"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb431-1"><a href="sec-kernel-regression.html#cb431-1" tabindex="-1"></a><span class="co"># Plot Gasser–Müller Estimate</span></span>
+<span id="cb431-2"><a href="sec-kernel-regression.html#cb431-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb431-3"><a href="sec-kernel-regression.html#cb431-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb431-4"><a href="sec-kernel-regression.html#cb431-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, gm_estimate),</span>
+<span id="cb431-5"><a href="sec-kernel-regression.html#cb431-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;purple&quot;</span>,</span>
+<span id="cb431-6"><a href="sec-kernel-regression.html#cb431-6" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb431-7"><a href="sec-kernel-regression.html#cb431-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
+<span id="cb431-8"><a href="sec-kernel-regression.html#cb431-8" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb431-9"><a href="sec-kernel-regression.html#cb431-9" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
+<span id="cb431-10"><a href="sec-kernel-regression.html#cb431-10" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb431-11"><a href="sec-kernel-regression.html#cb431-11" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Gasser–Müller Kernel Estimator&quot;</span>,</span>
+<span id="cb431-12"><a href="sec-kernel-regression.html#cb431-12" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Bandwidth (h) =&quot;</span>, h_gm),</span>
+<span id="cb431-13"><a href="sec-kernel-regression.html#cb431-13" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb431-14"><a href="sec-kernel-regression.html#cb431-14" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
+<span id="cb431-15"><a href="sec-kernel-regression.html#cb431-15" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb431-16"><a href="sec-kernel-regression.html#cb431-16" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-gm-kernel-est"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-gm-kernel-est-1.png" alt="Scatter plot showing the Gasser-Müller Kernel Estimator with a bandwidth of 0.5. The x-axis represents values from 0 to 10, and the y-axis shows estimated m(x) values ranging from -3 to 2. Blue dots represent data points, a red dashed line indicates a smoothed estimate, and a thick purple line shows the kernel estimator curve." width="90%" />
 <p class="caption">
@@ -2436,38 +2436,38 @@ Figure 10.4: Gasser–Müller Kernel Estimator
 <li><p>This estimator uses <strong>cumulative kernel functions</strong> to handle <strong>irregular data spacing</strong> and <strong>reduce boundary bias</strong>.</p></li>
 <li><p>It performs well when data are unevenly distributed.</p></li>
 </ul>
-<div class="sourceCode" id="cb427"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb427-1"><a href="sec-kernel-regression.html#cb427-1" tabindex="-1"></a><span class="co"># Combine all estimates for comparison</span></span>
-<span id="cb427-2"><a href="sec-kernel-regression.html#cb427-2" tabindex="-1"></a>estimates_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb427-3"><a href="sec-kernel-regression.html#cb427-3" tabindex="-1"></a>    <span class="at">x =</span> x_grid,</span>
-<span id="cb427-4"><a href="sec-kernel-regression.html#cb427-4" tabindex="-1"></a>    <span class="at">Nadaraya_Watson =</span> nw_estimate,</span>
-<span id="cb427-5"><a href="sec-kernel-regression.html#cb427-5" tabindex="-1"></a>    <span class="at">Priestley_Chao =</span> pc_estimate,</span>
-<span id="cb427-6"><a href="sec-kernel-regression.html#cb427-6" tabindex="-1"></a>    <span class="at">Gasser_Mueller =</span> gm_estimate,</span>
-<span id="cb427-7"><a href="sec-kernel-regression.html#cb427-7" tabindex="-1"></a>    <span class="at">True_Function =</span> <span class="fu">true_function</span>(x_grid)</span>
-<span id="cb427-8"><a href="sec-kernel-regression.html#cb427-8" tabindex="-1"></a>)</span></code></pre></div>
-<div class="sourceCode" id="cb428"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb428-1"><a href="sec-kernel-regression.html#cb428-1" tabindex="-1"></a><span class="co"># Plot all estimators together</span></span>
-<span id="cb428-2"><a href="sec-kernel-regression.html#cb428-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb428-3"><a href="sec-kernel-regression.html#cb428-3" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;gray60&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb428-4"><a href="sec-kernel-regression.html#cb428-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, Nadaraya_Watson, <span class="at">color =</span> <span class="st">&quot;Nadaraya–Watson&quot;</span>),</span>
-<span id="cb428-5"><a href="sec-kernel-regression.html#cb428-5" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb428-6"><a href="sec-kernel-regression.html#cb428-6" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, Priestley_Chao, <span class="at">color =</span> <span class="st">&quot;Priestley–Chao&quot;</span>),</span>
-<span id="cb428-7"><a href="sec-kernel-regression.html#cb428-7" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb428-8"><a href="sec-kernel-regression.html#cb428-8" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, Gasser_Mueller, <span class="at">color =</span> <span class="st">&quot;Gasser–Müller&quot;</span>),</span>
-<span id="cb428-9"><a href="sec-kernel-regression.html#cb428-9" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb428-10"><a href="sec-kernel-regression.html#cb428-10" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, True_Function, <span class="at">color =</span> <span class="st">&quot;True Function&quot;</span>),</span>
-<span id="cb428-11"><a href="sec-kernel-regression.html#cb428-11" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb428-12"><a href="sec-kernel-regression.html#cb428-12" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb428-13"><a href="sec-kernel-regression.html#cb428-13" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;Estimator&quot;</span>,</span>
-<span id="cb428-14"><a href="sec-kernel-regression.html#cb428-14" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;Nadaraya–Watson&quot;</span> <span class="ot">=</span> <span class="st">&quot;green&quot;</span>,</span>
-<span id="cb428-15"><a href="sec-kernel-regression.html#cb428-15" tabindex="-1"></a>               <span class="st">&quot;Priestley–Chao&quot;</span>   <span class="ot">=</span> <span class="st">&quot;orange&quot;</span>,</span>
-<span id="cb428-16"><a href="sec-kernel-regression.html#cb428-16" tabindex="-1"></a>               <span class="st">&quot;Gasser–Müller&quot;</span>    <span class="ot">=</span> <span class="st">&quot;purple&quot;</span>,</span>
-<span id="cb428-17"><a href="sec-kernel-regression.html#cb428-17" tabindex="-1"></a>               <span class="st">&quot;True Function&quot;</span>    <span class="ot">=</span> <span class="st">&quot;red&quot;</span>)</span>
-<span id="cb428-18"><a href="sec-kernel-regression.html#cb428-18" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb428-19"><a href="sec-kernel-regression.html#cb428-19" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb428-20"><a href="sec-kernel-regression.html#cb428-20" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Comparison of Kernel-Based Regression Estimators&quot;</span>,</span>
-<span id="cb428-21"><a href="sec-kernel-regression.html#cb428-21" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb428-22"><a href="sec-kernel-regression.html#cb428-22" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
-<span id="cb428-23"><a href="sec-kernel-regression.html#cb428-23" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb428-24"><a href="sec-kernel-regression.html#cb428-24" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb432"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb432-1"><a href="sec-kernel-regression.html#cb432-1" tabindex="-1"></a><span class="co"># Combine all estimates for comparison</span></span>
+<span id="cb432-2"><a href="sec-kernel-regression.html#cb432-2" tabindex="-1"></a>estimates_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb432-3"><a href="sec-kernel-regression.html#cb432-3" tabindex="-1"></a>    <span class="at">x =</span> x_grid,</span>
+<span id="cb432-4"><a href="sec-kernel-regression.html#cb432-4" tabindex="-1"></a>    <span class="at">Nadaraya_Watson =</span> nw_estimate,</span>
+<span id="cb432-5"><a href="sec-kernel-regression.html#cb432-5" tabindex="-1"></a>    <span class="at">Priestley_Chao =</span> pc_estimate,</span>
+<span id="cb432-6"><a href="sec-kernel-regression.html#cb432-6" tabindex="-1"></a>    <span class="at">Gasser_Mueller =</span> gm_estimate,</span>
+<span id="cb432-7"><a href="sec-kernel-regression.html#cb432-7" tabindex="-1"></a>    <span class="at">True_Function =</span> <span class="fu">true_function</span>(x_grid)</span>
+<span id="cb432-8"><a href="sec-kernel-regression.html#cb432-8" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb433"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb433-1"><a href="sec-kernel-regression.html#cb433-1" tabindex="-1"></a><span class="co"># Plot all estimators together</span></span>
+<span id="cb433-2"><a href="sec-kernel-regression.html#cb433-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb433-3"><a href="sec-kernel-regression.html#cb433-3" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;gray60&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb433-4"><a href="sec-kernel-regression.html#cb433-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, Nadaraya_Watson, <span class="at">color =</span> <span class="st">&quot;Nadaraya–Watson&quot;</span>),</span>
+<span id="cb433-5"><a href="sec-kernel-regression.html#cb433-5" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb433-6"><a href="sec-kernel-regression.html#cb433-6" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, Priestley_Chao, <span class="at">color =</span> <span class="st">&quot;Priestley–Chao&quot;</span>),</span>
+<span id="cb433-7"><a href="sec-kernel-regression.html#cb433-7" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb433-8"><a href="sec-kernel-regression.html#cb433-8" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, Gasser_Mueller, <span class="at">color =</span> <span class="st">&quot;Gasser–Müller&quot;</span>),</span>
+<span id="cb433-9"><a href="sec-kernel-regression.html#cb433-9" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb433-10"><a href="sec-kernel-regression.html#cb433-10" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, True_Function, <span class="at">color =</span> <span class="st">&quot;True Function&quot;</span>),</span>
+<span id="cb433-11"><a href="sec-kernel-regression.html#cb433-11" tabindex="-1"></a>            <span class="at">data =</span> estimates_df, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb433-12"><a href="sec-kernel-regression.html#cb433-12" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb433-13"><a href="sec-kernel-regression.html#cb433-13" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;Estimator&quot;</span>,</span>
+<span id="cb433-14"><a href="sec-kernel-regression.html#cb433-14" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;Nadaraya–Watson&quot;</span> <span class="ot">=</span> <span class="st">&quot;green&quot;</span>,</span>
+<span id="cb433-15"><a href="sec-kernel-regression.html#cb433-15" tabindex="-1"></a>               <span class="st">&quot;Priestley–Chao&quot;</span>   <span class="ot">=</span> <span class="st">&quot;orange&quot;</span>,</span>
+<span id="cb433-16"><a href="sec-kernel-regression.html#cb433-16" tabindex="-1"></a>               <span class="st">&quot;Gasser–Müller&quot;</span>    <span class="ot">=</span> <span class="st">&quot;purple&quot;</span>,</span>
+<span id="cb433-17"><a href="sec-kernel-regression.html#cb433-17" tabindex="-1"></a>               <span class="st">&quot;True Function&quot;</span>    <span class="ot">=</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb433-18"><a href="sec-kernel-regression.html#cb433-18" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb433-19"><a href="sec-kernel-regression.html#cb433-19" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb433-20"><a href="sec-kernel-regression.html#cb433-20" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Comparison of Kernel-Based Regression Estimators&quot;</span>,</span>
+<span id="cb433-21"><a href="sec-kernel-regression.html#cb433-21" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb433-22"><a href="sec-kernel-regression.html#cb433-22" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
+<span id="cb433-23"><a href="sec-kernel-regression.html#cb433-23" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb433-24"><a href="sec-kernel-regression.html#cb433-24" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-comp-kernel"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-comp-kernel-1.png" alt="Chart titled Comparison of Kernel-Based Regression Estimators showing estimated m of x against x. The x-axis ranges from 0 to 10 and the y-axis from -3 to 2. Four lines represent different estimators: Gasser-Mueller in purple, Nadaraya-Watson in green, Priestley-Chao in orange, and the true function in red dashed. Data points are shown as gray dots. The chart highlights variations in estimation methods" width="100%" />
 <p class="caption">
@@ -2480,36 +2480,36 @@ Figure 10.5: Comparison of Kernel-Based Regression Estimators
 <li><p>The <a href="sec-kernel-regression.html#sec-priestley-chao-kernel-estimator">Priestley–Chao estimator</a> accounts for <strong>data spacing</strong>, making it more flexible with uneven data.</p></li>
 <li><p>The <a href="sec-kernel-regression.html#sec-gasser-mueller-kernel-estimator">Gasser–Müller estimator</a> reduces <strong>boundary bias</strong> and handles <strong>irregular data</strong> effectively.</p></li>
 </ul>
-<div class="sourceCode" id="cb429"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb429-1"><a href="sec-kernel-regression.html#cb429-1" tabindex="-1"></a><span class="co"># Cross-validation for bandwidth selection (for Nadaraya–Watson)</span></span>
-<span id="cb429-2"><a href="sec-kernel-regression.html#cb429-2" tabindex="-1"></a>cv_bandwidth <span class="ot">&lt;-</span> <span class="cf">function</span>(h, x, y, <span class="at">kernel =</span> gaussian_kernel) {</span>
-<span id="cb429-3"><a href="sec-kernel-regression.html#cb429-3" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
-<span id="cb429-4"><a href="sec-kernel-regression.html#cb429-4" tabindex="-1"></a>  cv_error <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb429-5"><a href="sec-kernel-regression.html#cb429-5" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb429-6"><a href="sec-kernel-regression.html#cb429-6" tabindex="-1"></a>    x_train <span class="ot">&lt;-</span> x[<span class="sc">-</span>i]</span>
-<span id="cb429-7"><a href="sec-kernel-regression.html#cb429-7" tabindex="-1"></a>    y_train <span class="ot">&lt;-</span> y[<span class="sc">-</span>i]</span>
-<span id="cb429-8"><a href="sec-kernel-regression.html#cb429-8" tabindex="-1"></a>    y_pred <span class="ot">&lt;-</span> <span class="fu">nadaraya_watson</span>(x[i], x_train, y_train, h, kernel)</span>
-<span id="cb429-9"><a href="sec-kernel-regression.html#cb429-9" tabindex="-1"></a>    cv_error <span class="ot">&lt;-</span> cv_error <span class="sc">+</span> (y[i] <span class="sc">-</span> y_pred)<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb429-10"><a href="sec-kernel-regression.html#cb429-10" tabindex="-1"></a>  }</span>
-<span id="cb429-11"><a href="sec-kernel-regression.html#cb429-11" tabindex="-1"></a>  <span class="fu">return</span>(cv_error <span class="sc">/</span> n)</span>
-<span id="cb429-12"><a href="sec-kernel-regression.html#cb429-12" tabindex="-1"></a>}</span>
-<span id="cb429-13"><a href="sec-kernel-regression.html#cb429-13" tabindex="-1"></a></span>
-<span id="cb429-14"><a href="sec-kernel-regression.html#cb429-14" tabindex="-1"></a><span class="co"># Optimize bandwidth</span></span>
-<span id="cb429-15"><a href="sec-kernel-regression.html#cb429-15" tabindex="-1"></a>bandwidths <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="dv">2</span>, <span class="at">by =</span> <span class="fl">0.1</span>)</span>
-<span id="cb429-16"><a href="sec-kernel-regression.html#cb429-16" tabindex="-1"></a>cv_errors <span class="ot">&lt;-</span> <span class="fu">sapply</span>(bandwidths, cv_bandwidth, <span class="at">x =</span> x, <span class="at">y =</span> y)</span>
-<span id="cb429-17"><a href="sec-kernel-regression.html#cb429-17" tabindex="-1"></a></span>
-<span id="cb429-18"><a href="sec-kernel-regression.html#cb429-18" tabindex="-1"></a><span class="co"># Optimal bandwidth</span></span>
-<span id="cb429-19"><a href="sec-kernel-regression.html#cb429-19" tabindex="-1"></a>optimal_h <span class="ot">&lt;-</span> bandwidths[<span class="fu">which.min</span>(cv_errors)]</span>
-<span id="cb429-20"><a href="sec-kernel-regression.html#cb429-20" tabindex="-1"></a>optimal_h</span>
-<span id="cb429-21"><a href="sec-kernel-regression.html#cb429-21" tabindex="-1"></a><span class="co">#&gt; [1] 0.3</span></span></code></pre></div>
-<div class="sourceCode" id="cb430"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb430-1"><a href="sec-kernel-regression.html#cb430-1" tabindex="-1"></a><span class="co"># Plot CV errors</span></span>
-<span id="cb430-2"><a href="sec-kernel-regression.html#cb430-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(bandwidths, cv_errors), <span class="fu">aes</span>(bandwidths, cv_errors)) <span class="sc">+</span></span>
-<span id="cb430-3"><a href="sec-kernel-regression.html#cb430-3" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>) <span class="sc">+</span></span>
-<span id="cb430-4"><a href="sec-kernel-regression.html#cb430-4" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> optimal_h, <span class="at">y =</span> <span class="fu">min</span>(cv_errors)),</span>
-<span id="cb430-5"><a href="sec-kernel-regression.html#cb430-5" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb430-6"><a href="sec-kernel-regression.html#cb430-6" tabindex="-1"></a>               <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb430-7"><a href="sec-kernel-regression.html#cb430-7" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Cross-Validation for Bandwidth Selection&quot;</span>,</span>
-<span id="cb430-8"><a href="sec-kernel-regression.html#cb430-8" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Bandwidth (h)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;CV Error&quot;</span>) <span class="sc">+</span></span>
-<span id="cb430-9"><a href="sec-kernel-regression.html#cb430-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb434"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb434-1"><a href="sec-kernel-regression.html#cb434-1" tabindex="-1"></a><span class="co"># Cross-validation for bandwidth selection (for Nadaraya–Watson)</span></span>
+<span id="cb434-2"><a href="sec-kernel-regression.html#cb434-2" tabindex="-1"></a>cv_bandwidth <span class="ot">&lt;-</span> <span class="cf">function</span>(h, x, y, <span class="at">kernel =</span> gaussian_kernel) {</span>
+<span id="cb434-3"><a href="sec-kernel-regression.html#cb434-3" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb434-4"><a href="sec-kernel-regression.html#cb434-4" tabindex="-1"></a>  cv_error <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb434-5"><a href="sec-kernel-regression.html#cb434-5" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb434-6"><a href="sec-kernel-regression.html#cb434-6" tabindex="-1"></a>    x_train <span class="ot">&lt;-</span> x[<span class="sc">-</span>i]</span>
+<span id="cb434-7"><a href="sec-kernel-regression.html#cb434-7" tabindex="-1"></a>    y_train <span class="ot">&lt;-</span> y[<span class="sc">-</span>i]</span>
+<span id="cb434-8"><a href="sec-kernel-regression.html#cb434-8" tabindex="-1"></a>    y_pred <span class="ot">&lt;-</span> <span class="fu">nadaraya_watson</span>(x[i], x_train, y_train, h, kernel)</span>
+<span id="cb434-9"><a href="sec-kernel-regression.html#cb434-9" tabindex="-1"></a>    cv_error <span class="ot">&lt;-</span> cv_error <span class="sc">+</span> (y[i] <span class="sc">-</span> y_pred)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb434-10"><a href="sec-kernel-regression.html#cb434-10" tabindex="-1"></a>  }</span>
+<span id="cb434-11"><a href="sec-kernel-regression.html#cb434-11" tabindex="-1"></a>  <span class="fu">return</span>(cv_error <span class="sc">/</span> n)</span>
+<span id="cb434-12"><a href="sec-kernel-regression.html#cb434-12" tabindex="-1"></a>}</span>
+<span id="cb434-13"><a href="sec-kernel-regression.html#cb434-13" tabindex="-1"></a></span>
+<span id="cb434-14"><a href="sec-kernel-regression.html#cb434-14" tabindex="-1"></a><span class="co"># Optimize bandwidth</span></span>
+<span id="cb434-15"><a href="sec-kernel-regression.html#cb434-15" tabindex="-1"></a>bandwidths <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="dv">2</span>, <span class="at">by =</span> <span class="fl">0.1</span>)</span>
+<span id="cb434-16"><a href="sec-kernel-regression.html#cb434-16" tabindex="-1"></a>cv_errors <span class="ot">&lt;-</span> <span class="fu">sapply</span>(bandwidths, cv_bandwidth, <span class="at">x =</span> x, <span class="at">y =</span> y)</span>
+<span id="cb434-17"><a href="sec-kernel-regression.html#cb434-17" tabindex="-1"></a></span>
+<span id="cb434-18"><a href="sec-kernel-regression.html#cb434-18" tabindex="-1"></a><span class="co"># Optimal bandwidth</span></span>
+<span id="cb434-19"><a href="sec-kernel-regression.html#cb434-19" tabindex="-1"></a>optimal_h <span class="ot">&lt;-</span> bandwidths[<span class="fu">which.min</span>(cv_errors)]</span>
+<span id="cb434-20"><a href="sec-kernel-regression.html#cb434-20" tabindex="-1"></a>optimal_h</span>
+<span id="cb434-21"><a href="sec-kernel-regression.html#cb434-21" tabindex="-1"></a><span class="co">#&gt; [1] 0.3</span></span></code></pre></div>
+<div class="sourceCode" id="cb435"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb435-1"><a href="sec-kernel-regression.html#cb435-1" tabindex="-1"></a><span class="co"># Plot CV errors</span></span>
+<span id="cb435-2"><a href="sec-kernel-regression.html#cb435-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(bandwidths, cv_errors), <span class="fu">aes</span>(bandwidths, cv_errors)) <span class="sc">+</span></span>
+<span id="cb435-3"><a href="sec-kernel-regression.html#cb435-3" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>) <span class="sc">+</span></span>
+<span id="cb435-4"><a href="sec-kernel-regression.html#cb435-4" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> optimal_h, <span class="at">y =</span> <span class="fu">min</span>(cv_errors)),</span>
+<span id="cb435-5"><a href="sec-kernel-regression.html#cb435-5" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb435-6"><a href="sec-kernel-regression.html#cb435-6" tabindex="-1"></a>               <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb435-7"><a href="sec-kernel-regression.html#cb435-7" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Cross-Validation for Bandwidth Selection&quot;</span>,</span>
+<span id="cb435-8"><a href="sec-kernel-regression.html#cb435-8" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Bandwidth (h)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;CV Error&quot;</span>) <span class="sc">+</span></span>
+<span id="cb435-9"><a href="sec-kernel-regression.html#cb435-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-cv-bandwidth-selection"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-cv-bandwidth-selection-1.png" alt="Chart titled Cross-Validation for Bandwidth Selection showing a plot of cross-validation error against bandwidth h. The curve is U-shaped, starting high, dipping to a minimum, and then rising again. A red dot marks the minimum point on the curve, indicating the optimal bandwidth selection" width="100%" />
 <p class="caption">

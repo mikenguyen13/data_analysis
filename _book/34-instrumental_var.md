@@ -198,7 +198,7 @@ This states that the IV estimator recovers the causal effect *only for compliers
 IV only identifies treatment effects for switchers (compliers):
 
 | Switcher Type | Compliance Type | Definition                                                        |
-|---------------|-----------------|-------------------------------------------------------------------|
+|--------------|--------------|-------------------------------------------|
 | Switchers     | Compliers       | $D_{1i} > D_{0i}$ (take treatment if $Z_i = 1$, not if $Z_i = 0$) |
 | Non-switchers | Always-Takers   | $D_{1i} = D_{0i} = 1$ (always take treatment)                     |
 | Non-switchers | Never-Takers    | $D_{1i} = D_{0i} = 0$ (never take treatment)                      |
@@ -274,10 +274,10 @@ summary(est_iv)
 #> x1           0.565095   0.084715  6.67051 4.9180e-10 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> RMSE: 0.398842   Adj. R2: 0.761653
-#> F-test (1st stage), x_endo_1: stat = 903.2    , p < 2.2e-16 , on 2 and 146 DoF.
-#> F-test (1st stage), x_endo_2: stat =   3.25828, p = 0.041268, on 2 and 146 DoF.
-#>                   Wu-Hausman: stat =   6.79183, p = 0.001518, on 2 and 144 DoF.
+#> RMSE: 0.398842   Adj. R2: 0.725033
+#> F-test (1st stage), x_endo_1: stat = 903.1628, p < 2.2e-16 , on 2 and 146 DoF.
+#> F-test (1st stage), x_endo_2: stat =   3.2583, p = 0.041268, on 2 and 146 DoF.
+#>                   Wu-Hausman: stat =   6.7918, p = 0.001518, on 2 and 144 DoF.
 ```
 
 Diagnostic Tests
@@ -288,12 +288,12 @@ To assess instrument validity:
 ``` r
 fitstat(est_iv, type = c("n", "f", "ivf", "ivf1", "ivf2", "ivwald", "cd"))
 #>                 Observations: 150
-#>                       F-test: stat = 132.0    , p < 2.2e-16 , on 3 and 146 DoF.
-#> F-test (1st stage), x_endo_1: stat = 903.2    , p < 2.2e-16 , on 2 and 146 DoF.
-#> F-test (1st stage), x_endo_2: stat =   3.25828, p = 0.041268, on 2 and 146 DoF.
-#>           F-test (2nd stage): stat = 194.2    , p < 2.2e-16 , on 2 and 146 DoF.
-#> Wald (1st stage), x_endo_1  : stat = 903.2    , p < 2.2e-16 , on 2 and 146 DoF, VCOV: IID.
-#> Wald (1st stage), x_endo_2  : stat =   3.25828, p = 0.041268, on 2 and 146 DoF, VCOV: IID.
+#>                       F-test: stat = 131.9612, p < 2.2e-16 , on 3 and 146 DoF.
+#> F-test (1st stage), x_endo_1: stat = 903.1628, p < 2.2e-16 , on 2 and 146 DoF.
+#> F-test (1st stage), x_endo_2: stat =   3.2583, p = 0.041268, on 2 and 146 DoF.
+#>           F-test (2nd stage): stat = 194.1967, p < 2.2e-16 , on 2 and 146 DoF.
+#> Wald (1st stage), x_endo_1  : stat = 903.1628, p < 2.2e-16 , on 2 and 146 DoF, VCOV: IID.
+#> Wald (1st stage), x_endo_2  : stat =   3.2583, p = 0.041268, on 2 and 146 DoF, VCOV: IID.
 #>                 Cragg-Donald: 3.11162
 ```
 
@@ -431,7 +431,7 @@ Then, the IV-GMM estimator simplifies to the standard IV (or 2SLS) estimator.
 Comparison of 2SLS and IV-GMM
 
 | Feature                 | 2SLS                                   | IV-GMM                               |
-|-------------------------|----------------------------------------|--------------------------------------|
+|------------------|----------------------------|--------------------------|
 | Instrument usage        | Uses a subset of available instruments | Uses all available instruments       |
 | Weighting               | No weighting applied                   | Weights instruments for efficiency   |
 | Efficiency              | Suboptimal in overidentified cases     | Efficient when $W = S^{-1}$          |
@@ -839,8 +839,8 @@ etable(
 #> _______________ ______________ ______________ _____________ _____________
 #> S.E. type                  IID            IID           IID           IID
 #> Observations             1,000          1,000         1,000         1,000
-#> R2                     0.98756        0.98760       0.99817       0.94976
-#> Adj. R2                0.98755        0.98757       0.99816       0.94971
+#> R2                     0.98756        0.98760       0.99817       0.11406
+#> Adj. R2                0.98755        0.98757       0.99816       0.11317
 #> 
 #>                          iv.2
 #> Dependent Var.:      response
@@ -852,8 +852,8 @@ etable(
 #> _______________ _____________
 #> S.E. type                 IID
 #> Observations            1,000
-#> R2                    0.95010
-#> Adj. R2               0.95000
+#> R2                    0.11608
+#> Adj. R2               0.11430
 #> ---
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -917,179 +917,137 @@ modelsummary(list(second_stage, second_stage_cf))
 ```{=html}
 <!-- preamble start -->
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
 
-      function styleCell_bcyeklf5s9it3st59pct(i, j, css_id) {
-          var table = document.getElementById("tinytable_bcyeklf5s9it3st59pct");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_bcyeklf5s9it3st59pct');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_bcyeklf5s9it3st59pct(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_bcyeklf5s9it3st59pct");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_q7drlij19vtq506kbwlu = TinyTable.createTableFunctions("tinytable_q7drlij19vtq506kbwlu");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 16, j: 1 }, { i: 16, j: 2 },  ], css_id: 'tinytable_css_loedou5fkndbhxj8rx6x',}, 
-          { positions: [ { i: 8, j: 1 }, { i: 8, j: 2 },  ], css_id: 'tinytable_css_r26r60ajssspwfmf290a',}, 
-          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 3, j: 1 }, { i: 5, j: 1 }, { i: 6, j: 1 }, { i: 7, j: 1 }, { i: 4, j: 2 }, { i: 9, j: 1 }, { i: 10, j: 1 }, { i: 11, j: 1 }, { i: 12, j: 1 }, { i: 13, j: 1 }, { i: 14, j: 1 }, { i: 15, j: 1 }, { i: 12, j: 2 }, { i: 4, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 3, j: 2 }, { i: 5, j: 2 }, { i: 6, j: 2 }, { i: 7, j: 2 }, { i: 9, j: 2 }, { i: 10, j: 2 }, { i: 11, j: 2 }, { i: 13, j: 2 }, { i: 14, j: 2 }, { i: 15, j: 2 },  ], css_id: 'tinytable_css_1au6c85u0y4nmlayzt6a',}, 
-          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_nsd9p1h6lz5yped7732d',}, 
-          { positions: [ { i: 16, j: 0 },  ], css_id: 'tinytable_css_mq7w75252rzirjsjyffa',}, 
-          { positions: [ { i: 8, j: 0 },  ], css_id: 'tinytable_css_01coubw8i75hkgsgfp9l',}, 
-          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 7, j: 0 }, { i: 12, j: 0 }, { i: 9, j: 0 }, { i: 10, j: 0 }, { i: 11, j: 0 }, { i: 13, j: 0 }, { i: 14, j: 0 }, { i: 15, j: 0 },  ], css_id: 'tinytable_css_0wp6hnlpsdgp0nxz78wo',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_piypxjc10jchlu8i8lum',}, 
+          { positions: [ { i: '16', j: 2 }, { i: '16', j: 3 } ], css_id: 'tinytable_css_r26r60ajssspwfmf290a',}, 
+          { positions: [ { i: '8', j: 2 }, { i: '8', j: 3 } ], css_id: 'tinytable_css_1au6c85u0y4nmlayzt6a',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '10', j: 2 }, { i: '11', j: 2 }, { i: '12', j: 2 }, { i: '13', j: 2 }, { i: '14', j: 2 }, { i: '15', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '10', j: 3 }, { i: '11', j: 3 }, { i: '12', j: 3 }, { i: '13', j: 3 }, { i: '14', j: 3 }, { i: '15', j: 3 } ], css_id: 'tinytable_css_nsd9p1h6lz5yped7732d',}, 
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_mq7w75252rzirjsjyffa',}, 
+          { positions: [ { i: '16', j: 1 } ], css_id: 'tinytable_css_01coubw8i75hkgsgfp9l',}, 
+          { positions: [ { i: '8', j: 1 } ], css_id: 'tinytable_css_0wp6hnlpsdgp0nxz78wo',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 }, { i: '11', j: 1 }, { i: '12', j: 1 }, { i: '13', j: 1 }, { i: '14', j: 1 }, { i: '15', j: 1 } ], css_id: 'tinytable_css_piypxjc10jchlu8i8lum',}, 
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_bcyeklf5s9it3st59pct',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_bcyeklf5s9it3st59pct(cell.i, cell.j, group.css_id);
+                  tableFns_q7drlij19vtq506kbwlu.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
     <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_loedou5fkndbhxj8rx6x, .table th.tinytable_css_loedou5fkndbhxj8rx6x { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_r26r60ajssspwfmf290a, .table th.tinytable_css_r26r60ajssspwfmf290a { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_1au6c85u0y4nmlayzt6a, .table th.tinytable_css_1au6c85u0y4nmlayzt6a { text-align: center; }
-      .table td.tinytable_css_nsd9p1h6lz5yped7732d, .table th.tinytable_css_nsd9p1h6lz5yped7732d { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_mq7w75252rzirjsjyffa, .table th.tinytable_css_mq7w75252rzirjsjyffa { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_01coubw8i75hkgsgfp9l, .table th.tinytable_css_01coubw8i75hkgsgfp9l { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_0wp6hnlpsdgp0nxz78wo, .table th.tinytable_css_0wp6hnlpsdgp0nxz78wo { text-align: left; }
-      .table td.tinytable_css_piypxjc10jchlu8i8lum, .table th.tinytable_css_piypxjc10jchlu8i8lum { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    /* tinytable css entries after */
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_r26r60ajssspwfmf290a, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_r26r60ajssspwfmf290a {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_1au6c85u0y4nmlayzt6a, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_1au6c85u0y4nmlayzt6a {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_nsd9p1h6lz5yped7732d, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_nsd9p1h6lz5yped7732d { text-align: center }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_mq7w75252rzirjsjyffa, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_mq7w75252rzirjsjyffa {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_01coubw8i75hkgsgfp9l, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_01coubw8i75hkgsgfp9l {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_0wp6hnlpsdgp0nxz78wo, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_0wp6hnlpsdgp0nxz78wo {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_piypxjc10jchlu8i8lum, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_piypxjc10jchlu8i8lum { text-align: left }
+    #tinytable_q7drlij19vtq506kbwlu td.tinytable_css_bcyeklf5s9it3st59pct, #tinytable_q7drlij19vtq506kbwlu th.tinytable_css_bcyeklf5s9it3st59pct {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_bcyeklf5s9it3st59pct" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
-        <thead>
+      <table class="tinytable" id="tinytable_q7drlij19vtq506kbwlu" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
         
+        <thead>
               <tr>
-                <th scope="col"> </th>
-                <th scope="col">(1)</th>
-                <th scope="col">(2)</th>
+                <th scope="col" data-row="0" data-col="1"> </th>
+                <th scope="col" data-row="0" data-col="2">(1)</th>
+                <th scope="col" data-row="0" data-col="3">(2)</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>(Intercept)</td>
-                  <td>11.991</td>
-                  <td>11.991</td>
+                  <td data-row="1" data-col="1">(Intercept)</td>
+                  <td data-row="1" data-col="2">11.991</td>
+                  <td data-row="1" data-col="3">11.991</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(5.767)</td>
-                  <td>(0.398)</td>
+                  <td data-row="2" data-col="1"></td>
+                  <td data-row="2" data-col="2">(5.767)</td>
+                  <td data-row="2" data-col="3">(0.398)</td>
                 </tr>
                 <tr>
-                  <td>new_endogenous</td>
-                  <td>3.210</td>
-                  <td></td>
+                  <td data-row="3" data-col="1">new_endogenous</td>
+                  <td data-row="3" data-col="2">3.210</td>
+                  <td data-row="3" data-col="3"></td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(0.283)</td>
-                  <td></td>
+                  <td data-row="4" data-col="1"></td>
+                  <td data-row="4" data-col="2">(0.283)</td>
+                  <td data-row="4" data-col="3"></td>
                 </tr>
                 <tr>
-                  <td>endogenous</td>
-                  <td></td>
-                  <td>3.210</td>
+                  <td data-row="5" data-col="1">endogenous</td>
+                  <td data-row="5" data-col="2"></td>
+                  <td data-row="5" data-col="3">3.210</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td></td>
-                  <td>(0.020)</td>
+                  <td data-row="6" data-col="1"></td>
+                  <td data-row="6" data-col="2"></td>
+                  <td data-row="6" data-col="3">(0.020)</td>
                 </tr>
                 <tr>
-                  <td>residual</td>
-                  <td></td>
-                  <td>0.950</td>
+                  <td data-row="7" data-col="1">residual</td>
+                  <td data-row="7" data-col="2"></td>
+                  <td data-row="7" data-col="3">0.950</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td></td>
-                  <td>(0.022)</td>
+                  <td data-row="8" data-col="1"></td>
+                  <td data-row="8" data-col="2"></td>
+                  <td data-row="8" data-col="3">(0.022)</td>
                 </tr>
                 <tr>
-                  <td>Num.Obs.</td>
-                  <td>1000</td>
-                  <td>1000</td>
+                  <td data-row="9" data-col="1">Num.Obs.</td>
+                  <td data-row="9" data-col="2">1000</td>
+                  <td data-row="9" data-col="3">1000</td>
                 </tr>
                 <tr>
-                  <td>R2</td>
-                  <td>0.114</td>
-                  <td>0.996</td>
+                  <td data-row="10" data-col="1">R2</td>
+                  <td data-row="10" data-col="2">0.114</td>
+                  <td data-row="10" data-col="3">0.996</td>
                 </tr>
                 <tr>
-                  <td>R2 Adj.</td>
-                  <td>0.113</td>
-                  <td>0.996</td>
+                  <td data-row="11" data-col="1">R2 Adj.</td>
+                  <td data-row="11" data-col="2">0.113</td>
+                  <td data-row="11" data-col="3">0.996</td>
                 </tr>
                 <tr>
-                  <td>AIC</td>
-                  <td>8977.0</td>
-                  <td>3633.5</td>
+                  <td data-row="12" data-col="1">AIC</td>
+                  <td data-row="12" data-col="2">8977.0</td>
+                  <td data-row="12" data-col="3">3633.5</td>
                 </tr>
                 <tr>
-                  <td>BIC</td>
-                  <td>8991.8</td>
-                  <td>3653.2</td>
+                  <td data-row="13" data-col="1">BIC</td>
+                  <td data-row="13" data-col="2">8991.8</td>
+                  <td data-row="13" data-col="3">3653.2</td>
                 </tr>
                 <tr>
-                  <td>Log.Lik.</td>
-                  <td>-4485.516</td>
-                  <td>-1812.768</td>
+                  <td data-row="14" data-col="1">Log.Lik.</td>
+                  <td data-row="14" data-col="2">-4485.516</td>
+                  <td data-row="14" data-col="3">-1812.768</td>
                 </tr>
                 <tr>
-                  <td>F</td>
-                  <td>128.483</td>
-                  <td>117473.460</td>
+                  <td data-row="15" data-col="1">F</td>
+                  <td data-row="15" data-col="2">128.483</td>
+                  <td data-row="15" data-col="3">117473.460</td>
                 </tr>
                 <tr>
-                  <td>RMSE</td>
-                  <td>21.47</td>
-                  <td>1.48</td>
+                  <td data-row="16" data-col="1">RMSE</td>
+                  <td data-row="16" data-col="2">21.47</td>
+                  <td data-row="16" data-col="3">1.48</td>
                 </tr>
         </tbody>
       </table>
@@ -1158,179 +1116,137 @@ modelsummary(list(second_stage, second_stage_cf))
 ```{=html}
 <!-- preamble start -->
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
 
-      function styleCell_gunj3tvsvj2u9zwprcks(i, j, css_id) {
-          var table = document.getElementById("tinytable_gunj3tvsvj2u9zwprcks");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_gunj3tvsvj2u9zwprcks');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_gunj3tvsvj2u9zwprcks(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_gunj3tvsvj2u9zwprcks");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_71c9ukscmx2qowqe5zv3 = TinyTable.createTableFunctions("tinytable_71c9ukscmx2qowqe5zv3");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 16, j: 1 }, { i: 16, j: 2 },  ], css_id: 'tinytable_css_joqirgo39649wwe8he46',}, 
-          { positions: [ { i: 8, j: 1 }, { i: 8, j: 2 },  ], css_id: 'tinytable_css_1pyfov7i1xroz6e7owob',}, 
-          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 3, j: 1 }, { i: 5, j: 1 }, { i: 6, j: 1 }, { i: 7, j: 1 }, { i: 4, j: 2 }, { i: 9, j: 1 }, { i: 10, j: 1 }, { i: 11, j: 1 }, { i: 12, j: 1 }, { i: 13, j: 1 }, { i: 14, j: 1 }, { i: 15, j: 1 }, { i: 12, j: 2 }, { i: 4, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 3, j: 2 }, { i: 5, j: 2 }, { i: 6, j: 2 }, { i: 7, j: 2 }, { i: 9, j: 2 }, { i: 10, j: 2 }, { i: 11, j: 2 }, { i: 13, j: 2 }, { i: 14, j: 2 }, { i: 15, j: 2 },  ], css_id: 'tinytable_css_5ihhxya5a015v9xlg2cu',}, 
-          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_ln1kvxnxdqzz7ajcfv1q',}, 
-          { positions: [ { i: 16, j: 0 },  ], css_id: 'tinytable_css_tpgrdq1fihx7tijhvcui',}, 
-          { positions: [ { i: 8, j: 0 },  ], css_id: 'tinytable_css_61l5drkaax3f6bc98ola',}, 
-          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 7, j: 0 }, { i: 12, j: 0 }, { i: 9, j: 0 }, { i: 10, j: 0 }, { i: 11, j: 0 }, { i: 13, j: 0 }, { i: 14, j: 0 }, { i: 15, j: 0 },  ], css_id: 'tinytable_css_yy8ma1xswh7egpgnn4hn',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_33ogij62iys81ucr3onb',}, 
+          { positions: [ { i: '16', j: 2 }, { i: '16', j: 3 } ], css_id: 'tinytable_css_5ihhxya5a015v9xlg2cu',}, 
+          { positions: [ { i: '8', j: 2 }, { i: '8', j: 3 } ], css_id: 'tinytable_css_ln1kvxnxdqzz7ajcfv1q',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '10', j: 2 }, { i: '11', j: 2 }, { i: '12', j: 2 }, { i: '13', j: 2 }, { i: '14', j: 2 }, { i: '15', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '10', j: 3 }, { i: '11', j: 3 }, { i: '12', j: 3 }, { i: '13', j: 3 }, { i: '14', j: 3 }, { i: '15', j: 3 } ], css_id: 'tinytable_css_tpgrdq1fihx7tijhvcui',}, 
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_61l5drkaax3f6bc98ola',}, 
+          { positions: [ { i: '16', j: 1 } ], css_id: 'tinytable_css_yy8ma1xswh7egpgnn4hn',}, 
+          { positions: [ { i: '8', j: 1 } ], css_id: 'tinytable_css_33ogij62iys81ucr3onb',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 }, { i: '11', j: 1 }, { i: '12', j: 1 }, { i: '13', j: 1 }, { i: '14', j: 1 }, { i: '15', j: 1 } ], css_id: 'tinytable_css_gunj3tvsvj2u9zwprcks',}, 
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_p282wjer1ni7s9isvb4d',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_gunj3tvsvj2u9zwprcks(cell.i, cell.j, group.css_id);
+                  tableFns_71c9ukscmx2qowqe5zv3.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
     <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_joqirgo39649wwe8he46, .table th.tinytable_css_joqirgo39649wwe8he46 { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_1pyfov7i1xroz6e7owob, .table th.tinytable_css_1pyfov7i1xroz6e7owob { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_5ihhxya5a015v9xlg2cu, .table th.tinytable_css_5ihhxya5a015v9xlg2cu { text-align: center; }
-      .table td.tinytable_css_ln1kvxnxdqzz7ajcfv1q, .table th.tinytable_css_ln1kvxnxdqzz7ajcfv1q { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_tpgrdq1fihx7tijhvcui, .table th.tinytable_css_tpgrdq1fihx7tijhvcui { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_61l5drkaax3f6bc98ola, .table th.tinytable_css_61l5drkaax3f6bc98ola { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_yy8ma1xswh7egpgnn4hn, .table th.tinytable_css_yy8ma1xswh7egpgnn4hn { text-align: left; }
-      .table td.tinytable_css_33ogij62iys81ucr3onb, .table th.tinytable_css_33ogij62iys81ucr3onb { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    /* tinytable css entries after */
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_5ihhxya5a015v9xlg2cu, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_5ihhxya5a015v9xlg2cu {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_ln1kvxnxdqzz7ajcfv1q, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_ln1kvxnxdqzz7ajcfv1q {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_tpgrdq1fihx7tijhvcui, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_tpgrdq1fihx7tijhvcui { text-align: center }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_61l5drkaax3f6bc98ola, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_61l5drkaax3f6bc98ola {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_yy8ma1xswh7egpgnn4hn, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_yy8ma1xswh7egpgnn4hn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_33ogij62iys81ucr3onb, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_33ogij62iys81ucr3onb {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_gunj3tvsvj2u9zwprcks, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_gunj3tvsvj2u9zwprcks { text-align: left }
+    #tinytable_71c9ukscmx2qowqe5zv3 td.tinytable_css_p282wjer1ni7s9isvb4d, #tinytable_71c9ukscmx2qowqe5zv3 th.tinytable_css_p282wjer1ni7s9isvb4d {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_gunj3tvsvj2u9zwprcks" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
-        <thead>
+      <table class="tinytable" id="tinytable_71c9ukscmx2qowqe5zv3" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
         
+        <thead>
               <tr>
-                <th scope="col"> </th>
-                <th scope="col">(1)</th>
-                <th scope="col">(2)</th>
+                <th scope="col" data-row="0" data-col="1"> </th>
+                <th scope="col" data-row="0" data-col="2">(1)</th>
+                <th scope="col" data-row="0" data-col="3">(2)</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>(Intercept)</td>
-                  <td>11.754</td>
-                  <td>11.754</td>
+                  <td data-row="1" data-col="1">(Intercept)</td>
+                  <td data-row="1" data-col="2">11.754</td>
+                  <td data-row="1" data-col="3">11.754</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(21.648)</td>
-                  <td>(0.670)</td>
+                  <td data-row="2" data-col="1"></td>
+                  <td data-row="2" data-col="2">(21.648)</td>
+                  <td data-row="2" data-col="3">(0.670)</td>
                 </tr>
                 <tr>
-                  <td>new_endogenous_nonlinear</td>
-                  <td>3.125</td>
-                  <td></td>
+                  <td data-row="3" data-col="1">new_endogenous_nonlinear</td>
+                  <td data-row="3" data-col="2">3.125</td>
+                  <td data-row="3" data-col="3"></td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(0.599)</td>
-                  <td></td>
+                  <td data-row="4" data-col="1"></td>
+                  <td data-row="4" data-col="2">(0.599)</td>
+                  <td data-row="4" data-col="3"></td>
                 </tr>
                 <tr>
-                  <td>endogenous_nonlinear</td>
-                  <td></td>
-                  <td>3.125</td>
+                  <td data-row="5" data-col="1">endogenous_nonlinear</td>
+                  <td data-row="5" data-col="2"></td>
+                  <td data-row="5" data-col="3">3.125</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td></td>
-                  <td>(0.019)</td>
+                  <td data-row="6" data-col="1"></td>
+                  <td data-row="6" data-col="2"></td>
+                  <td data-row="6" data-col="3">(0.019)</td>
                 </tr>
                 <tr>
-                  <td>residual</td>
-                  <td></td>
-                  <td>0.136</td>
+                  <td data-row="7" data-col="1">residual</td>
+                  <td data-row="7" data-col="2"></td>
+                  <td data-row="7" data-col="3">0.136</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td></td>
-                  <td>(0.019)</td>
+                  <td data-row="8" data-col="1"></td>
+                  <td data-row="8" data-col="2"></td>
+                  <td data-row="8" data-col="3">(0.019)</td>
                 </tr>
                 <tr>
-                  <td>Num.Obs.</td>
-                  <td>1000</td>
-                  <td>1000</td>
+                  <td data-row="9" data-col="1">Num.Obs.</td>
+                  <td data-row="9" data-col="2">1000</td>
+                  <td data-row="9" data-col="3">1000</td>
                 </tr>
                 <tr>
-                  <td>R2</td>
-                  <td>0.027</td>
-                  <td>0.999</td>
+                  <td data-row="10" data-col="1">R2</td>
+                  <td data-row="10" data-col="2">0.027</td>
+                  <td data-row="10" data-col="3">0.999</td>
                 </tr>
                 <tr>
-                  <td>R2 Adj.</td>
-                  <td>0.026</td>
-                  <td>0.999</td>
+                  <td data-row="11" data-col="1">R2 Adj.</td>
+                  <td data-row="11" data-col="2">0.026</td>
+                  <td data-row="11" data-col="3">0.999</td>
                 </tr>
                 <tr>
-                  <td>AIC</td>
-                  <td>11364.2</td>
-                  <td>4414.7</td>
+                  <td data-row="12" data-col="1">AIC</td>
+                  <td data-row="12" data-col="2">11364.2</td>
+                  <td data-row="12" data-col="3">4414.7</td>
                 </tr>
                 <tr>
-                  <td>BIC</td>
-                  <td>11378.9</td>
-                  <td>4434.4</td>
+                  <td data-row="13" data-col="1">BIC</td>
+                  <td data-row="13" data-col="2">11378.9</td>
+                  <td data-row="13" data-col="3">4434.4</td>
                 </tr>
                 <tr>
-                  <td>Log.Lik.</td>
-                  <td>-5679.079</td>
-                  <td>-2203.371</td>
+                  <td data-row="14" data-col="1">Log.Lik.</td>
+                  <td data-row="14" data-col="2">-5679.079</td>
+                  <td data-row="14" data-col="3">-2203.371</td>
                 </tr>
                 <tr>
-                  <td>F</td>
-                  <td>27.196</td>
-                  <td>534439.006</td>
+                  <td data-row="15" data-col="1">F</td>
+                  <td data-row="15" data-col="2">27.196</td>
+                  <td data-row="15" data-col="3">534439.006</td>
                 </tr>
                 <tr>
-                  <td>RMSE</td>
-                  <td>70.82</td>
-                  <td>2.19</td>
+                  <td data-row="16" data-col="1">RMSE</td>
+                  <td data-row="16" data-col="2">70.82</td>
+                  <td data-row="16" data-col="3">2.19</td>
                 </tr>
         </tbody>
       </table>
@@ -1399,179 +1315,137 @@ modelsummary(list(second_stage, second_stage_cf))
 ```{=html}
 <!-- preamble start -->
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
 
-      function styleCell_foncyue7l6n3r3g1l51p(i, j, css_id) {
-          var table = document.getElementById("tinytable_foncyue7l6n3r3g1l51p");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_foncyue7l6n3r3g1l51p');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_foncyue7l6n3r3g1l51p(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_foncyue7l6n3r3g1l51p");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_joqirgo39649wwe8he46 = TinyTable.createTableFunctions("tinytable_joqirgo39649wwe8he46");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 16, j: 1 }, { i: 16, j: 2 },  ], css_id: 'tinytable_css_tihu9oe35xyyz92hstch',}, 
-          { positions: [ { i: 8, j: 1 }, { i: 8, j: 2 },  ], css_id: 'tinytable_css_3zrpj2g730jekm7mkx4a',}, 
-          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 3, j: 1 }, { i: 5, j: 1 }, { i: 6, j: 1 }, { i: 7, j: 1 }, { i: 4, j: 2 }, { i: 9, j: 1 }, { i: 10, j: 1 }, { i: 11, j: 1 }, { i: 12, j: 1 }, { i: 13, j: 1 }, { i: 14, j: 1 }, { i: 15, j: 1 }, { i: 12, j: 2 }, { i: 4, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 3, j: 2 }, { i: 5, j: 2 }, { i: 6, j: 2 }, { i: 7, j: 2 }, { i: 9, j: 2 }, { i: 10, j: 2 }, { i: 11, j: 2 }, { i: 13, j: 2 }, { i: 14, j: 2 }, { i: 15, j: 2 },  ], css_id: 'tinytable_css_o5jfz0tqf78ebq9js54k',}, 
-          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_gkykmnb67lvy8jl1lfoq',}, 
-          { positions: [ { i: 16, j: 0 },  ], css_id: 'tinytable_css_i7zp0qw8pja7p06kcigp',}, 
-          { positions: [ { i: 8, j: 0 },  ], css_id: 'tinytable_css_0pwmvz6w9h2w2su5ha81',}, 
-          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 7, j: 0 }, { i: 12, j: 0 }, { i: 9, j: 0 }, { i: 10, j: 0 }, { i: 11, j: 0 }, { i: 13, j: 0 }, { i: 14, j: 0 }, { i: 15, j: 0 },  ], css_id: 'tinytable_css_o6pc4f1jgrgp52wz2ggn',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_n7u3moaxtrudjoxfh383',}, 
+          { positions: [ { i: '16', j: 2 }, { i: '16', j: 3 } ], css_id: 'tinytable_css_gkykmnb67lvy8jl1lfoq',}, 
+          { positions: [ { i: '8', j: 2 }, { i: '8', j: 3 } ], css_id: 'tinytable_css_i7zp0qw8pja7p06kcigp',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '10', j: 2 }, { i: '11', j: 2 }, { i: '12', j: 2 }, { i: '13', j: 2 }, { i: '14', j: 2 }, { i: '15', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '10', j: 3 }, { i: '11', j: 3 }, { i: '12', j: 3 }, { i: '13', j: 3 }, { i: '14', j: 3 }, { i: '15', j: 3 } ], css_id: 'tinytable_css_0pwmvz6w9h2w2su5ha81',}, 
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_o6pc4f1jgrgp52wz2ggn',}, 
+          { positions: [ { i: '16', j: 1 } ], css_id: 'tinytable_css_n7u3moaxtrudjoxfh383',}, 
+          { positions: [ { i: '8', j: 1 } ], css_id: 'tinytable_css_foncyue7l6n3r3g1l51p',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 }, { i: '11', j: 1 }, { i: '12', j: 1 }, { i: '13', j: 1 }, { i: '14', j: 1 }, { i: '15', j: 1 } ], css_id: 'tinytable_css_jl5bj4kvxbiiqmikso4v',}, 
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_6qwc4nnwktpg89nao578',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_foncyue7l6n3r3g1l51p(cell.i, cell.j, group.css_id);
+                  tableFns_joqirgo39649wwe8he46.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
     <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_tihu9oe35xyyz92hstch, .table th.tinytable_css_tihu9oe35xyyz92hstch { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_3zrpj2g730jekm7mkx4a, .table th.tinytable_css_3zrpj2g730jekm7mkx4a { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_o5jfz0tqf78ebq9js54k, .table th.tinytable_css_o5jfz0tqf78ebq9js54k { text-align: center; }
-      .table td.tinytable_css_gkykmnb67lvy8jl1lfoq, .table th.tinytable_css_gkykmnb67lvy8jl1lfoq { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_i7zp0qw8pja7p06kcigp, .table th.tinytable_css_i7zp0qw8pja7p06kcigp { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_0pwmvz6w9h2w2su5ha81, .table th.tinytable_css_0pwmvz6w9h2w2su5ha81 { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_o6pc4f1jgrgp52wz2ggn, .table th.tinytable_css_o6pc4f1jgrgp52wz2ggn { text-align: left; }
-      .table td.tinytable_css_n7u3moaxtrudjoxfh383, .table th.tinytable_css_n7u3moaxtrudjoxfh383 { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    /* tinytable css entries after */
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_gkykmnb67lvy8jl1lfoq, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_gkykmnb67lvy8jl1lfoq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_i7zp0qw8pja7p06kcigp, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_i7zp0qw8pja7p06kcigp {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_0pwmvz6w9h2w2su5ha81, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_0pwmvz6w9h2w2su5ha81 { text-align: center }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_o6pc4f1jgrgp52wz2ggn, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_o6pc4f1jgrgp52wz2ggn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_n7u3moaxtrudjoxfh383, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_n7u3moaxtrudjoxfh383 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_foncyue7l6n3r3g1l51p, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_foncyue7l6n3r3g1l51p {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_jl5bj4kvxbiiqmikso4v, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_jl5bj4kvxbiiqmikso4v { text-align: left }
+    #tinytable_joqirgo39649wwe8he46 td.tinytable_css_6qwc4nnwktpg89nao578, #tinytable_joqirgo39649wwe8he46 th.tinytable_css_6qwc4nnwktpg89nao578 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_foncyue7l6n3r3g1l51p" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
-        <thead>
+      <table class="tinytable" id="tinytable_joqirgo39649wwe8he46" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
         
+        <thead>
               <tr>
-                <th scope="col"> </th>
-                <th scope="col">(1)</th>
-                <th scope="col">(2)</th>
+                <th scope="col" data-row="0" data-col="1"> </th>
+                <th scope="col" data-row="0" data-col="2">(1)</th>
+                <th scope="col" data-row="0" data-col="3">(2)</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>(Intercept)</td>
-                  <td>-1137.875</td>
-                  <td>492.249</td>
+                  <td data-row="1" data-col="1">(Intercept)</td>
+                  <td data-row="1" data-col="2">-1137.875</td>
+                  <td data-row="1" data-col="3">492.249</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(173.811)</td>
-                  <td>(32.353)</td>
+                  <td data-row="2" data-col="1"></td>
+                  <td data-row="2" data-col="2">(173.811)</td>
+                  <td data-row="2" data-col="3">(32.353)</td>
                 </tr>
                 <tr>
-                  <td>new_endogenous</td>
-                  <td>122.525</td>
-                  <td></td>
+                  <td data-row="3" data-col="1">new_endogenous</td>
+                  <td data-row="3" data-col="2">122.525</td>
+                  <td data-row="3" data-col="3"></td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(8.534)</td>
-                  <td></td>
+                  <td data-row="4" data-col="1"></td>
+                  <td data-row="4" data-col="2">(8.534)</td>
+                  <td data-row="4" data-col="3"></td>
                 </tr>
                 <tr>
-                  <td>endogenous_nonlinear</td>
-                  <td></td>
-                  <td>23.599</td>
+                  <td data-row="5" data-col="1">endogenous_nonlinear</td>
+                  <td data-row="5" data-col="2"></td>
+                  <td data-row="5" data-col="3">23.599</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td></td>
-                  <td>(0.874)</td>
+                  <td data-row="6" data-col="1"></td>
+                  <td data-row="6" data-col="2"></td>
+                  <td data-row="6" data-col="3">(0.874)</td>
                 </tr>
                 <tr>
-                  <td>residual</td>
-                  <td></td>
-                  <td>30.591</td>
+                  <td data-row="7" data-col="1">residual</td>
+                  <td data-row="7" data-col="2"></td>
+                  <td data-row="7" data-col="3">30.591</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td></td>
-                  <td>(3.740)</td>
+                  <td data-row="8" data-col="1"></td>
+                  <td data-row="8" data-col="2"></td>
+                  <td data-row="8" data-col="3">(3.740)</td>
                 </tr>
                 <tr>
-                  <td>Num.Obs.</td>
-                  <td>1000</td>
-                  <td>1000</td>
+                  <td data-row="9" data-col="1">Num.Obs.</td>
+                  <td data-row="9" data-col="2">1000</td>
+                  <td data-row="9" data-col="3">1000</td>
                 </tr>
                 <tr>
-                  <td>R2</td>
-                  <td>0.171</td>
-                  <td>0.881</td>
+                  <td data-row="10" data-col="1">R2</td>
+                  <td data-row="10" data-col="2">0.171</td>
+                  <td data-row="10" data-col="3">0.881</td>
                 </tr>
                 <tr>
-                  <td>R2 Adj.</td>
-                  <td>0.170</td>
-                  <td>0.880</td>
+                  <td data-row="11" data-col="1">R2 Adj.</td>
+                  <td data-row="11" data-col="2">0.170</td>
+                  <td data-row="11" data-col="3">0.880</td>
                 </tr>
                 <tr>
-                  <td>AIC</td>
-                  <td>15788.6</td>
-                  <td>13853.1</td>
+                  <td data-row="12" data-col="1">AIC</td>
+                  <td data-row="12" data-col="2">15788.6</td>
+                  <td data-row="12" data-col="3">13853.1</td>
                 </tr>
                 <tr>
-                  <td>BIC</td>
-                  <td>15803.3</td>
-                  <td>13872.7</td>
+                  <td data-row="13" data-col="1">BIC</td>
+                  <td data-row="13" data-col="2">15803.3</td>
+                  <td data-row="13" data-col="3">13872.7</td>
                 </tr>
                 <tr>
-                  <td>Log.Lik.</td>
-                  <td>-7891.307</td>
-                  <td>-6922.553</td>
+                  <td data-row="14" data-col="1">Log.Lik.</td>
+                  <td data-row="14" data-col="2">-7891.307</td>
+                  <td data-row="14" data-col="3">-6922.553</td>
                 </tr>
                 <tr>
-                  <td>F</td>
-                  <td>206.123</td>
-                  <td>3676.480</td>
+                  <td data-row="15" data-col="1">F</td>
+                  <td data-row="15" data-col="2">206.123</td>
+                  <td data-row="15" data-col="3">3676.480</td>
                 </tr>
                 <tr>
-                  <td>RMSE</td>
-                  <td>647.01</td>
-                  <td>245.58</td>
+                  <td data-row="16" data-col="1">RMSE</td>
+                  <td data-row="16" data-col="2">647.01</td>
+                  <td data-row="16" data-col="3">245.58</td>
                 </tr>
         </tbody>
       </table>
@@ -1748,7 +1622,7 @@ Result
 Summary Table of Conditions
 
 | **Condition**               | **Requirement**                      | **Purpose**                  |
-|-----------------------------|--------------------------------------|------------------------------|
+|----------------------|----------------------------|----------------------|
 | Instrument Exogeneity       | $\mathbb{E}[Z'u] = 0$                | Instrument validity          |
 | Instrument Relevance        | $\mathrm{rank}(\mathbb{E}[Z'X]) = k$ | Model identification         |
 | Random Sampling             | IID (or stationary and mixing)       | LLN and CLT applicability    |
@@ -1855,7 +1729,7 @@ The divergence between $\hat{t}^2$ and $\hat{t}^2_{AR}$ depends on:
 ------------------------------------------------------------------------
 
 | Scenario          | Conditions                                                       | Inference Quality                                                        |
-|-------------------|------------------------------------------------------------------|--------------------------------------------------------------------------|
+|---------------|---------------------------|------------------------------|
 | Worst Case        | $\pi = 0$, $|\rho| = 1$                                          | $\hat{\beta} \pm 1.96 \times SE$ fails; Type I error = 100%              |
 | Best Case         | $\rho = 0$ (No endogeneity) or very large $\hat{f}$ (strong $Z$) | Standard inference works; intervals cover $\beta$ with correct rate      |
 | Intermediate Case | Moderate $\pi$, $\rho$, and $F$                                  | Coverage and Type I error lie between extremes; standard inference risky |
@@ -1933,7 +1807,7 @@ Key Properties of the AR Test
     -   Valid inference is possible when combined with heteroskedasticity-robust variance estimators or cluster-robust techniques.
 
 | Setting                            | Validity                                                                  | Reference                                |
-|------------------------------------|---------------------------------------------------------------------------|------------------------------------------|
+|------------------|----------------------------------|--------------------|
 | Non-Normal, Homoskedastic Errors   | Valid without distributional assumptions                                  | [@staiger1997instrumental]               |
 | Heteroskedastic Errors             | Generalized AR test remains valid; robust variance estimation recommended | [@stock2000gmm]                          |
 | Clustered or Autocorrelated Errors | Extensions available using cluster-robust and HAC variance estimators     | [@moreira2019optimal]                    |
@@ -2027,7 +1901,7 @@ The tF procedure is widely applicable in settings where just-identified IV model
 A comparison of the [AR approach](#sec-anderson-rubin-approach) and the [tF procedure](#sec-tf-procedure) can be found in @andrews2019weak.
 
 | Feature                     | Anderson-Rubin                                                 | tF Procedure                                               |
-|-----------------------------|----------------------------------------------------------------|------------------------------------------------------------|
+|-----------------|-----------------------------|---------------------------|
 | Robustness to Weak IV       | Yes (valid under weak instruments)                             | Yes (valid under weak instruments)                         |
 | Finite Confidence Intervals | No (interval becomes infinite for $F \le 3.84$)                | Yes (finite intervals for all $F$ values)                  |
 | Interval Length             | Often longer, especially when $F$ is moderate (e.g., $F = 16$) | Typically shorter than AR intervals for $F > 3.84$         |
@@ -2274,10 +2148,10 @@ est_iv
 #> x1           0.565095   0.084715  6.67051 4.9180e-10 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> RMSE: 0.398842   Adj. R2: 0.761653
-#> F-test (1st stage), x_endo_1: stat = 903.2    , p < 2.2e-16 , on 2 and 146 DoF.
-#> F-test (1st stage), x_endo_2: stat =   3.25828, p = 0.041268, on 2 and 146 DoF.
-#>                   Wu-Hausman: stat =   6.79183, p = 0.001518, on 2 and 144 DoF.
+#> RMSE: 0.398842   Adj. R2: 0.725033
+#> F-test (1st stage), x_endo_1: stat = 903.1628, p < 2.2e-16 , on 2 and 146 DoF.
+#> F-test (1st stage), x_endo_2: stat =   3.2583, p = 0.041268, on 2 and 146 DoF.
+#>                   Wu-Hausman: stat =   6.7918, p = 0.001518, on 2 and 144 DoF.
 
 res_est_iv <- est_iv$coeftable |> 
     rownames_to_column()
@@ -2352,9 +2226,12 @@ Key Contributions of the AK Approach
 AK adopt a reduced-form and first-stage specification for just-ID IV models:
 
 $$
-Y_i = Z_i \delta + X_i' \psi_1 + u_i \\
-D_i = Z_i \pi + X_i' \psi_2 + v_i
+\begin{aligned}
+Y_i &= Z_i \delta + X_i' \psi_1 + u_i \\
+D_i &= Z_i \pi + X_i' \psi_2 + v_i
+\end{aligned}
 $$
+where
 
 -   $Y_i$: Outcome variable
 -   $D_i$: Endogenous treatment variable
@@ -2418,7 +2295,7 @@ This screening approach:
 Comparison with AR and tF Procedures:
 
 | Approach          | Bias Reduction             | Coverage     | CI Length (F \> 3.84)                      |
-|-------------------|----------------------------|--------------|--------------------------------------------|
+|---------------|----------------|---------------|--------------------------|
 | AK Sign Screening | Halves median bias         | Near-nominal | Finite                                     |
 | AR Test           | No bias (inversion method) | Exact        | Infinite                                   |
 | tF Procedure      | Bias adjusted              | Near-nominal | Longer than AK (especially for moderate F) |
@@ -3033,7 +2910,7 @@ While the KP rk statistic tests for underidentification, it does not directly as
 Comparison: Kleibergen-Paap rk vs Cragg-Donald Statistic
 
 | Feature                       | [Kleibergen-Paap rk Statistic](#sec-kleibergen-paap-rk-statistic) | [Cragg-Donald Statistic](#sec-cragg-donald-test) |
-|-------------------------------|-------------------------------------------------------------------|--------------------------------------------------|
+|-----------------|-------------------------------|------------------------|
 | Robust to Heteroskedasticity  | Yes                                                               | No                                               |
 | Valid Under Non-i.i.d. Errors | Yes                                                               | No                                               |
 | Underidentification Test      | Yes                                                               | No (tests weak instruments)                      |
@@ -3116,7 +2993,7 @@ Interpretation
 #### Comparison of Weak Instrument Tests
 
 | Test                    | Description                                                   | Use Case                                                                               | Assumptions                |
-|-------------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------|----------------------------|
+|--------------|------------------|--------------------------|--------------|
 | First-Stage F-Statistic | Joint significance of instruments on $X_2$                    | Simple IV models (1 endogenous regressor, 1+ instruments)                              | i.i.d. errors              |
 | Cragg-Donald Wald       | Wald test for multiple instruments and endogenous variables   | Multi-equation IV models                                                               | i.i.d. errors              |
 | Stock-Yogo              | Critical values for bias/size distortion                      | Assess bias and size distortions in 2SLS estimator                                     | i.i.d. errors              |
@@ -3482,8 +3359,10 @@ where
 The Wald test of exogeneity assumes
 
 $$
-H_0: \delta_2 = 0 \\
-H_1: \delta_2 \neq 0
+\begin{aligned}
+H_0: \delta_2 &= 0 \\
+H_1: \delta_2 &\neq 0
+\end{aligned}
 $$
 
 If you have more than one endogenous variable with more than one instrument, $\delta_2$ is a vector of all residuals from all the first-stage equations. And the null hypothesis is that they are jointly equal 0.
@@ -3564,7 +3443,7 @@ $$
 The J-statistic can be written (in a Generalized Method of Moments context) as:
 
 $$
-J = n \,\hat{g}'\, W \,\hat{g},
+J = n \hat{g}' W \hat{g},
 $$
 
 where $\hat{g} = \frac{1}{n} \sum_{i=1}^n z_i \hat{u}_i$ is the sample average of instrument--residual covariances (for residuals $\hat{u}_i$), and $W$ is an appropriate weighting matrix (often the inverse of the variance matrix of $\hat{g}$).
@@ -3631,7 +3510,7 @@ Contextual Evaluation Is Key
 Summary Table: Common Misinterpretations vs. Reality
 
 | **Common Misinterpretation**                                 | **Correct Understanding**                                                                                                           |
-|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+|-----------------------|-------------------------------------------------|
 | "The J-test proves my instruments are valid."                | Failing to reject does *not* prove validity; it only means no evidence *against* validity was found.                                |
 | "A high p-value shows strong evidence of validity."          | A high p-value shows no evidence *against* validity, possibly due to low power or other limitations.                                |
 | "Rejecting the J-test means I know which instrument is bad." | Rejection only indicates a problem. It doesn't pinpoint which instrument or whether the issue is broader model misspecification.    |
@@ -4283,14 +4162,14 @@ $$
 
 where $U_i$ is the latent variable governing treatment selection. This function traces out how the treatment effect varies across individuals with different propensities to receive treatment, and it underlies other average effects such as:
 
--   ATE: $\int_0^1 \text{MTE}(u) \, du$
+-   ATE: $\int_0^1 \text{MTE}(u)  du$
 -   LATE: average of MTE over complier margin
 -   TT and TUT: other weighted averages of MTE
 
 Comparison of IV, LATE, and MTE Approaches
 
 | Feature                  | Traditional IV (LATE) | MTE / Selection Models                            |
-|--------------------------|-----------------------|---------------------------------------------------|
+|-------------------|------------------|------------------------------------|
 | Assumes constant effects | Implicitly violated   | Explicitly allows heterogeneity                   |
 | Interpretation           | LATE for compliers    | MTE curve + all average treatment effects         |
 | Data requirements        | Instrument + outcome  | Richer variation in instrument (e.g., continuous) |

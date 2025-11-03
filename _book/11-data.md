@@ -928,7 +928,7 @@ if (f_test$`Pr(>F)`[2] < 0.05) {
 If serial correlation is detected, the following adjustments should be made:
 
 | **Problem**                            | **Solution**                                                                                                       |
-|---------------------|---------------------------------------------------|
+|----------------------|--------------------------------------------------|
 | **Mild serial correlation**            | Use [Newey-West standard errors](#sec-newey-west-standard-errors)                                                  |
 | **Severe serial correlation**          | Use [Generalized Least Squares] or Prais-Winsten transformation                                                    |
 | **Autoregressive structure in errors** | Model as an **ARMA** process                                                                                       |
@@ -1043,7 +1043,7 @@ Since repeated cross-sections do not track individuals, a **synthetic cohort** c
 ### Advantages of Repeated Cross-Sectional Data
 
 | **Advantage**                  | **Explanation**                                                                                                    |
-|--------------------|----------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | **Tracks population trends**   | Useful for studying shifts in demographics, attitudes, and economic conditions over time.                          |
 | **Lower cost than panel data** | Tracking individuals across multiple waves (as in panel studies) is expensive and prone to attrition.              |
 | **No attrition bias**          | Unlike panel surveys, where respondents drop out over time, each wave draws a new representative sample.           |
@@ -1056,7 +1056,7 @@ Since repeated cross-sections do not track individuals, a **synthetic cohort** c
 ### Disadvantages of Repeated Cross-Sectional Data
 
 | **Disadvantage**                    | **Explanation**                                                                                                              |
-|--------------------|----------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | **No individual-level transitions** | Cannot track **how specific individuals change** over time (e.g., income mobility, changes in attitudes).                    |
 | **Limited causal inference**        | Since we observe different people in each wave, we cannot directly infer individual **cause-and-effect** relationships.      |
 | **Comparability issues**            | Small differences in survey design (e.g., question wording or sampling frame) can make it difficult to compare across waves. |
@@ -1120,7 +1120,7 @@ Panel data combines **cross-sectional variation (differences across entities)** 
 ### Disadvantages of Panel Data
 
 | **Disadvantage**               | **Explanation**                                                        |
-|------------------------|-----------------------------------------------|
+|-------------------------|-----------------------------------------------|
 | **Higher cost and complexity** | Tracking individuals over time is resource-intensive.                  |
 | **Attrition bias**             | If certain individuals drop out systematically, results may be biased. |
 | **Measurement errors**         | Errors accumulate over time, leading to potential biases.              |
@@ -1138,7 +1138,7 @@ Since we observe **both individuals and time periods**, we distinguish three typ
 -   **Within variation**: Differences **within** individuals (time variation).
 
 | **Estimate**     | **Formula**                                                   |
-|--------------------|----------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | Individual mean  | $\bar{x}_i = \frac{1}{T} \sum_t x_{it}$                       |
 | Overall mean     | $\bar{x} = \frac{1}{NT} \sum_i \sum_t x_{it}$                 |
 | Overall variance | $s_O^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x})^2$   |
@@ -2481,7 +2481,7 @@ If heteroskedasticity is detected, we need to adjust for it using **robust stand
 If heteroskedasticity is present, robust covariance matrix estimation is recommended. Different estimators apply depending on whether serial correlation is also an issue.
 
 | Estimator    | Corrects for Heteroskedasticity?    | Corrects for Serial Correlation? | Recommended For |
-|------------------|--------------------|------------------|------------------|
+|------------------|-------------------|------------------|------------------|
 | `"white1"`   | Yes                                 | No                               | Random Effects  |
 | `"white2"`   | Yes (common variance within groups) | No                               | Random Effects  |
 | `"arellano"` | Yes                                 | Yes                              | Fixed Effects   |
@@ -2556,7 +2556,7 @@ The choice between **FE and RE** depends on whether the individual-specific effe
 **Key Assumptions and Properties**
 
 | Hypothesis                                     | If True                                                                                          |
-|-------------------------|----------------------------------------------|
+|--------------------------|----------------------------------------------|
 | $H_0: \text{Cov}(c_i, \mathbf{x_{it}}) = 0$    | $\hat{\beta}_{RE}$ *is **consistent and efficient**, while* $\hat{\beta}_{FE}$ is **consistent** |
 | $H_0: \text{Cov}(c_i, \mathbf{x_{it}}) \neq 0$ | $\hat{\beta}_{RE}$ *is **inconsistent**, while* $\hat{\beta}_{FE}$ remains **consistent**        |
 
@@ -3180,12 +3180,12 @@ t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x)
 #> HC4 0.06742431 0.06496436 0.002193150
 ```
 
-| Test              | Null Hypothesis (H₀)     | Decision Rule             |
+| Test              | Null Hypothesis          | Decision Rule                  |
 |-------------------|--------------------------|---------------------------|
-| **LM Test**       | OLS is appropriate       | Reject H₀ → Use RE        |
-| **Hausman Test**  | Random effects preferred | Reject H₀ → Use FE        |
-| **pFtest**        | OLS is appropriate       | Reject H₀ → Use FE        |
-| **Breusch-Pagan** | No heteroskedasticity    | Reject H₀ → Use robust SE |
+| **LM Test**       | OLS is appropriate       | Reject $H_0 \to$ Use RE        |
+| **Hausman Test**  | Random effects preferred | Reject $H_0 \to$ Use FE        |
+| **pFtest**        | OLS is appropriate       | Reject $H_0 \to$ Use FE        |
+| **Breusch-Pagan** | No heteroskedasticity    | Reject $H_0 \to$ Use robust SE |
 
 : Summary of Model Selection
 
@@ -3565,7 +3565,7 @@ summary(zz)
 -   Ideal for large-N, small-T panels.
 
 | Estimator                          | Method                               | Application                                                                                   |
-|------------------|------------------|------------------------------------|
+|------------------|------------------|-----------------------------------|
 | **Variable Coefficients (`pvcm`)** | Fixed (`within`), Random (`random`)  | Allows coefficients to vary across individuals.                                               |
 | **GMM (`pgmm`)**                   | One-step, Two-step                   | Used in dynamic models with endogeneity.                                                      |
 | **Feasible GLS (`pggls`)**         | Fixed (`within`), Random (`pooling`) | Handles heteroskedasticity and serial correlation but assumes no cross-sectional correlation. |
@@ -3636,15 +3636,15 @@ etable(est)
 #> Dependent Var.:                  Ozone (ppb)        Ozone (ppb)
 #>                                                                
 #> Solar Radiation (Langleys) 0.1078** (0.0329)   0.0509* (0.0236)
-#> Wind Speed (mph)                             -3.289*** (0.7777)
-#> Temperature                                   2.052*** (0.2415)
+#> Wind Speed (mph)                             -3.289*** (0.7791)
+#> Temperature                                   2.052*** (0.2420)
 #> Fixed-Effects:             ----------------- ------------------
 #> Month                                    Yes                Yes
 #> Day                                      Yes                Yes
 #> __________________________ _________________ __________________
 #> S.E.: Clustered                      by: Day            by: Day
-#> Observations                             111                111
-#> R2                                   0.58018            0.81604
+#> Observations                             109                109
+#> R2                                   0.57983            0.81588
 #> Within R2                            0.12074            0.61471
 #> ---
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -3771,7 +3771,7 @@ Options to write the functions
     -   `mvsw(x1, x2, x3)` will be `sw0(x1, x2, x3, x1 + x2, x1 + x3, x2 + x3, x1 + x2 + x3)`
 
 | Stepwise Function  | Description                                                               |
-|-------------------|-----------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | `sw(x1, x2)`       | Sequentially estimates models with each element separately.               |
 | `sw0(x1, x2)`      | Same as `sw()`, but also estimates a baseline model without the elements. |
 | `csw(x1, x2)`      | Sequentially adds each element to the formula.                            |

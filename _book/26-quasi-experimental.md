@@ -138,7 +138,7 @@ Visualization Tools
 -   **Interaction Plots**: Plot estimated means or regression lines by group and condition.
 
 | **Approach**      | **Goal**                        | **Key Assumptions**                             | **Common Pitfalls**                        |
-|----------------|----------------|----------------------|-------------------|
+|-------------------|---------------------------------|-------------------------------------------------|--------------------------------------------|
 | Mediation         | Identify intermediate variables | Sequential ignorability, no omitted confounders | Mediators may be endogenous                |
 | Subgroup Analysis | Estimate effects by group       | Sufficient sample size, balanced covariates     | Spurious differences due to imbalance      |
 | Interaction Terms | Estimate conditional effects    | Correct model specification                     | Misinterpretation of non-significant terms |
@@ -254,7 +254,7 @@ Future research directions often emerge from the limitations of a quasi-experime
 ------------------------------------------------------------------------
 
 | **Threat**                          | **Example Design** | **Diagnostic Tool**               | **Remedy or Check**                          |
-|------------------|----------------|-----------------|----------------------|
+|-------------------------------------|--------------------|-----------------------------------|----------------------------------------------|
 | Unobserved Confounding              | Matching, DiD      | Pre-trend test, covariate balance | Sensitivity analysis, falsification outcomes |
 | Violation of Parallel Trends        | DiD                | Pre-treatment trends plot         | Group-specific trends, triple differences    |
 | Manipulation of Assignment Variable | RD                 | Density test (McCrary)            | Exclude manipulated region, use fuzzy RD     |
@@ -328,7 +328,7 @@ However, if SUTVA is violated, standard causal inference methods may fail. Commo
 Violating SUTVA introduces significant challenges in causal inference (Table \@ref(tab:quasi-exp-violating-sutva))
 
 |                                |                                                                                                                                    |
-|-----------------|-------------------------------------------------------|
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | Issue                          | Consequence                                                                                                                        |
 | **Bias in Estimators**         | If interference is ignored, treatment effects may be over- or underestimated.                                                      |
 | **Incorrect Standard Errors**  | Standard errors may be **underestimated** (if spillovers are ignored) or **overestimated** (if hidden treatment variations exist). |
@@ -388,7 +388,7 @@ Economists hear "no interference" and think:
 Table \@ref(tab:quasi-exp-no-interference) maps the statistical and economic language.
 
 | Statistical Term                        | Economic Translation            | Economic Intuition                                               |
-|---------------------|------------------|---------------------------------|
+|-----------------------------------------|---------------------------------|------------------------------------------------------------------|
 | No interference between units           | No externalities                | My treatment does not affect your utility or production function |
 | Outcomes depend only on own treatment   | No peer effects                 | My grade is unaffected by whether my classmates are treated      |
 | Unit's treatment does not affect prices | Partial equilibrium             | Market prices remain fixed regardless of who is treated          |
@@ -409,7 +409,7 @@ In many economic settings, no interference is a **very strong assumption** becau
 Economists often default to a **partial equilibrium** view to approximate no interference: analyze a small slice of the market where general equilibrium effects are negligible (Table \@ref(tab:quasi-exp-violations-econ)).
 
 | Scenario                   | Why Interference Occurs                                       | Type of Spillover          |
-|------------------|-------------------------------------|------------------|
+|----------------------------|---------------------------------------------------------------|----------------------------|
 | Housing voucher experiment | Treated households bid up rents in the same area              | Price-mediated spillover   |
 | Tax break to one industry  | Shifts labor and capital into that industry, affecting others | Factor market reallocation |
 | Vaccination program        | Reduces disease prevalence for all                            | Epidemiological spillover  |
@@ -630,7 +630,7 @@ If some subpopulations always receive treatment ($P(Z_i = 1 \mid X_i) = 1$) or n
 When the overlap assumption is violated, identifying causal effects becomes challenging (Table \@ref(tab:quasi-exp-consequences-overlap)).
 
 | **Issue**                                        | **Consequence**                                                                         |
-|--------------------------|----------------------------------------------|
+|--------------------------------------------------|-----------------------------------------------------------------------------------------|
 | **Limited Generalizability of ATE**              | ATE cannot be estimated if there is poor overlap in covariate distributions.            |
 | **ATT May Still Be Identifiable**                | ATT can be estimated if some overlap exists, but it is restricted to the treated group. |
 | **Severe Violations Can Prevent ATT Estimation** | If there is no overlap, even ATT is not identifiable.                                   |
@@ -905,10 +905,10 @@ res <- rwolf(
 #>   |                                                                              |                                                                      |   0%  |                                                                              |=======================                                               |  33%  |                                                                              |===============================================                       |  67%  |                                                                              |======================================================================| 100%
 
 res
-#>   model     Estimate   Std. Error      t value     Pr(>|t|) RW Pr(>|t|)
-#> 1     1 -0.06188.... 0.042966.... -1.44028.... 0.151898.... 0.147704591
-#> 2     2 1.858432.... 0.085855.... 21.64601.... 1.038667.... 0.001996008
-#> 3     3 0.752917.... 0.043530.... 17.29645.... 2.325498.... 0.001996008
+#>   model   Estimate Std. Error   t value     Pr(>|t|) RW Pr(>|t|)
+#> 1     1 -0.0618848 0.04296699 -1.440287    0.1518983 0.125748503
+#> 2     2   1.858433 0.08585565  21.64602 1.038667e-47 0.001996008
+#> 3     3  0.7529176 0.04353017  17.29645 2.325498e-37 0.001996008
 ```
 
 2.  **General Multiple Testing Adjustments**
@@ -1004,7 +1004,7 @@ See Figure \@ref(fig:continuum-causal-inference-methods) for a visual spectrum, 
 -   May be employed when experimental or quasi-experimental designs are not feasible.
 
 | **Aspect**      | **Design-Based**                           | **Model-Based**                    |
-|-----------------|-------------------------------|-------------------------|
+|-----------------|--------------------------------------------|------------------------------------|
 | **Approach**    | Relies on study design                     | Relies on statistical models       |
 | **Assumptions** | Fewer, often intuitive (e.g., cutoff)      | Stronger, often less testable      |
 | **Examples**    | RCTs, natural experiments, RD, DiD         | Structural models, PSM             |
@@ -1030,7 +1030,7 @@ These methods are particularly useful when:
 -   Quasi-random variation exists (e.g., firms, consumers, or individuals are assigned treatment based on factors outside their control).
 
 | **Method**                   | **Key Concept**                                    | **Assumptions**                                                        | **Example (Marketing & Economics)**                                     |
-|----------------|----------------|--------------------|---------------------|
+|------------------------------|----------------------------------------------------|------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | **Regression Discontinuity** | Units near a threshold are **as good as random**.  | No precise control over cutoff; outcomes continuous.                   | Loyalty program tiers, minimum wage effects.                            |
 | **Synthetic Control**        | Constructs a weighted synthetic counterfactual.    | Pre-treatment trends must match; no confounding post-treatment shocks. | National ad campaign impact, tax cut effects.                           |
 | **Event Studies**            | Measures how an event changes outcomes over time.  | Parallel pre-trends; no anticipatory effects.                          | Black Friday sales, stock price reactions.                              |
@@ -1074,7 +1074,7 @@ Unlike other quasi-experimental designs that leverage external assignment mechan
     -   They can be applied in a wide range of settings where policy-driven variation does not exist.
 
 | **Method**                                             | **Key Concept**                                                                | **Assumptions**                                                       | **Example (Marketing & Economics)**                                                      |
-|-----------------|------------------|-----------------|---------------------|
+|--------------------------------------------------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | **Propensity Score Matching (PSM) / Weighting**        | Uses estimated probabilities of treatment to create comparable groups.         | Treatment assignment is modeled correctly; no unmeasured confounding. | Job training programs (matching participants to non-participants); Ad campaign exposure. |
 | **Structural Causal Models (SCMs) / DAGs**             | Specifies causal relationships using directed acyclic graphs (DAGs).           | Correct causal structure; no omitted paths.                           | Customer churn prediction; Impact of pricing on sales.                                   |
 | **Covariate Adjustment (Regression-Based Approaches)** | Uses regression to control for confounding variables.                          | Linear or nonlinear functional forms are correctly specified.         | Estimating the impact of online ads on revenue.                                          |
@@ -1191,7 +1191,7 @@ Hence, *the key question for each method is:*
 Most real-world applications lie somewhere in the middle, combining aspects of both approaches (Table \@ref(tab:quasi-exp-model-vs-design).
 
 | **Feature**                            | **Design-Based Perspective**                                      | **Model-Based Perspective**                             |
-|------------------|-----------------------------|-------------------------|
+|----------------------------------------|-------------------------------------------------------------------|---------------------------------------------------------|
 | **Causal Identification**              | Based on external design (e.g., policy, cutoff, exogenous event). | Based on statistical modeling of treatment assignment.  |
 | **Reliance on Exogeneity**             | Yes, due to natural variation in treatment assignment.            | No, relies on observed data adjustments.                |
 | **Control for Confounders**            | Partially through design (e.g., RD exploits cutoffs).             | Entirely through covariate control.                     |

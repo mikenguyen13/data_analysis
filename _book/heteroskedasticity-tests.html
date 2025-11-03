@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>14.3 Heteroskedasticity Tests | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="14.3 Heteroskedasticity Tests | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1869,7 +1869,7 @@ div.csl-indent {
 <h2><span class="header-section-number">14.3</span> Heteroskedasticity Tests<a href="heteroskedasticity-tests.html#heteroskedasticity-tests" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p><strong>Heteroskedasticity</strong> occurs when the variance of the error terms (<span class="math inline">\(\epsilon_i\)</span>) in a regression model is <strong>not constant</strong> across observations. This violates the Classical <a href="ordinary-least-squares.html#ols-assumptions">OLS Assumption</a>, specifically the assumption of <strong>homoskedasticity</strong> (Assumption <a href="ordinary-least-squares.html#a4-homoskedasticity">A4 Homoskedasticity</a> in the <a href="ordinary-least-squares.html#gauss-markov-theorem">Gauss-Markov Theorem</a>), which states:</p>
 <p><span class="math display">\[
-\text{Var}(\epsilon_i) = \sigma^2 \quad \forall \, i
+\text{Var}(\epsilon_i) = \sigma^2 \quad \forall  i
 \]</span></p>
 <p>When heteroskedasticity is present:</p>
 <ul>
@@ -2157,132 +2157,132 @@ F \sim F_{(n_2 - k, n_1 - k)}
 </tbody>
 </table>
 <p>Detecting heteroskedasticity is critical for ensuring the reliability of regression models. While each test has strengths and limitations, combining multiple tests can provide robust insights. Once heteroskedasticity is detected, consider using <strong>robust standard errors</strong> or alternative estimation techniques (e.g., <a href="sec-generalized-least-squares.html#sec-generalized-least-squares">Generalized Least Squares</a> or <a href="sec-generalized-least-squares.html#weighted-least-squares">Weighted Least Squares</a>) to address the issue.</p>
-<div class="sourceCode" id="cb639"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb639-1"><a href="heteroskedasticity-tests.html#cb639-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
-<span id="cb639-2"><a href="heteroskedasticity-tests.html#cb639-2" tabindex="-1"></a><span class="co"># install.packages(&quot;lmtest&quot;)      # For Breusch–Pagan Test</span></span>
-<span id="cb639-3"><a href="heteroskedasticity-tests.html#cb639-3" tabindex="-1"></a><span class="co"># install.packages(&quot;car&quot;)         # For additional regression diagnostics</span></span>
-<span id="cb639-4"><a href="heteroskedasticity-tests.html#cb639-4" tabindex="-1"></a><span class="co"># install.packages(&quot;sandwich&quot;)    # For robust covariance estimation</span></span>
-<span id="cb639-5"><a href="heteroskedasticity-tests.html#cb639-5" tabindex="-1"></a></span>
-<span id="cb639-6"><a href="heteroskedasticity-tests.html#cb639-6" tabindex="-1"></a></span>
-<span id="cb639-7"><a href="heteroskedasticity-tests.html#cb639-7" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb639-8"><a href="heteroskedasticity-tests.html#cb639-8" tabindex="-1"></a><span class="fu">library</span>(car)</span>
-<span id="cb639-9"><a href="heteroskedasticity-tests.html#cb639-9" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb639-10"><a href="heteroskedasticity-tests.html#cb639-10" tabindex="-1"></a></span>
-<span id="cb639-11"><a href="heteroskedasticity-tests.html#cb639-11" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
-<span id="cb639-12"><a href="heteroskedasticity-tests.html#cb639-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb639-13"><a href="heteroskedasticity-tests.html#cb639-13" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb639-14"><a href="heteroskedasticity-tests.html#cb639-14" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
-<span id="cb639-15"><a href="heteroskedasticity-tests.html#cb639-15" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
-<span id="cb639-16"><a href="heteroskedasticity-tests.html#cb639-16" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span></span>
-<span id="cb639-17"><a href="heteroskedasticity-tests.html#cb639-17" tabindex="-1"></a>    <span class="fu">rnorm</span>(n, <span class="at">sd =</span> x1 <span class="sc">*</span> <span class="fl">0.1</span>)  <span class="co"># Heteroskedastic errors increasing with x1</span></span>
-<span id="cb639-18"><a href="heteroskedasticity-tests.html#cb639-18" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> epsilon</span>
-<span id="cb639-19"><a href="heteroskedasticity-tests.html#cb639-19" tabindex="-1"></a></span>
-<span id="cb639-20"><a href="heteroskedasticity-tests.html#cb639-20" tabindex="-1"></a><span class="co"># Original regression model</span></span>
-<span id="cb639-21"><a href="heteroskedasticity-tests.html#cb639-21" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
-<span id="cb639-22"><a href="heteroskedasticity-tests.html#cb639-22" tabindex="-1"></a></span>
-<span id="cb639-23"><a href="heteroskedasticity-tests.html#cb639-23" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-24"><a href="heteroskedasticity-tests.html#cb639-24" tabindex="-1"></a><span class="co"># 1. Breusch–Pagan Test</span></span>
-<span id="cb639-25"><a href="heteroskedasticity-tests.html#cb639-25" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-26"><a href="heteroskedasticity-tests.html#cb639-26" tabindex="-1"></a><span class="co"># Null Hypothesis: Homoskedasticity</span></span>
-<span id="cb639-27"><a href="heteroskedasticity-tests.html#cb639-27" tabindex="-1"></a>bp_test <span class="ot">&lt;-</span> <span class="fu">bptest</span>(model)</span>
-<span id="cb639-28"><a href="heteroskedasticity-tests.html#cb639-28" tabindex="-1"></a><span class="fu">print</span>(bp_test)</span>
-<span id="cb639-29"><a href="heteroskedasticity-tests.html#cb639-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-30"><a href="heteroskedasticity-tests.html#cb639-30" tabindex="-1"></a><span class="co">#&gt;  studentized Breusch-Pagan test</span></span>
-<span id="cb639-31"><a href="heteroskedasticity-tests.html#cb639-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-32"><a href="heteroskedasticity-tests.html#cb639-32" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb639-33"><a href="heteroskedasticity-tests.html#cb639-33" tabindex="-1"></a><span class="co">#&gt; BP = 7.8141, df = 2, p-value = 0.0201</span></span>
-<span id="cb639-34"><a href="heteroskedasticity-tests.html#cb639-34" tabindex="-1"></a></span>
-<span id="cb639-35"><a href="heteroskedasticity-tests.html#cb639-35" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-36"><a href="heteroskedasticity-tests.html#cb639-36" tabindex="-1"></a><span class="co"># 2. White Test (using Breusch–Pagan framework with squares &amp; interactions)</span></span>
-<span id="cb639-37"><a href="heteroskedasticity-tests.html#cb639-37" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-38"><a href="heteroskedasticity-tests.html#cb639-38" tabindex="-1"></a><span class="co"># Create squared and interaction terms</span></span>
-<span id="cb639-39"><a href="heteroskedasticity-tests.html#cb639-39" tabindex="-1"></a>model_white <span class="ot">&lt;-</span></span>
-<span id="cb639-40"><a href="heteroskedasticity-tests.html#cb639-40" tabindex="-1"></a>    <span class="fu">lm</span>(<span class="fu">residuals</span>(model) <span class="sc">^</span> <span class="dv">2</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> <span class="fu">I</span>(x1 <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(x2 <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(x1 <span class="sc">*</span> x2))</span>
-<span id="cb639-41"><a href="heteroskedasticity-tests.html#cb639-41" tabindex="-1"></a>white_statistic <span class="ot">&lt;-</span></span>
-<span id="cb639-42"><a href="heteroskedasticity-tests.html#cb639-42" tabindex="-1"></a>    <span class="fu">summary</span>(model_white)<span class="sc">$</span>r.squared <span class="sc">*</span> n  <span class="co"># White Test Statistic</span></span>
-<span id="cb639-43"><a href="heteroskedasticity-tests.html#cb639-43" tabindex="-1"></a>df_white <span class="ot">&lt;-</span></span>
-<span id="cb639-44"><a href="heteroskedasticity-tests.html#cb639-44" tabindex="-1"></a>    <span class="fu">length</span>(<span class="fu">coef</span>(model_white)) <span class="sc">-</span> <span class="dv">1</span>              <span class="co"># Degrees of freedom</span></span>
-<span id="cb639-45"><a href="heteroskedasticity-tests.html#cb639-45" tabindex="-1"></a>p_value_white <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(white_statistic, df_white)</span>
-<span id="cb639-46"><a href="heteroskedasticity-tests.html#cb639-46" tabindex="-1"></a></span>
-<span id="cb639-47"><a href="heteroskedasticity-tests.html#cb639-47" tabindex="-1"></a><span class="co"># Display White Test result</span></span>
-<span id="cb639-48"><a href="heteroskedasticity-tests.html#cb639-48" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;White Test Statistic:&quot;</span>, white_statistic, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb639-49"><a href="heteroskedasticity-tests.html#cb639-49" tabindex="-1"></a><span class="co">#&gt; White Test Statistic: 11.85132</span></span>
-<span id="cb639-50"><a href="heteroskedasticity-tests.html#cb639-50" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Degrees of Freedom:&quot;</span>, df_white, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb639-51"><a href="heteroskedasticity-tests.html#cb639-51" tabindex="-1"></a><span class="co">#&gt; Degrees of Freedom: 5</span></span>
-<span id="cb639-52"><a href="heteroskedasticity-tests.html#cb639-52" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;P-value:&quot;</span>, p_value_white, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb639-53"><a href="heteroskedasticity-tests.html#cb639-53" tabindex="-1"></a><span class="co">#&gt; P-value: 0.0368828</span></span>
-<span id="cb639-54"><a href="heteroskedasticity-tests.html#cb639-54" tabindex="-1"></a></span>
-<span id="cb639-55"><a href="heteroskedasticity-tests.html#cb639-55" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-56"><a href="heteroskedasticity-tests.html#cb639-56" tabindex="-1"></a><span class="co"># 3. Goldfeld–Quandt Test</span></span>
-<span id="cb639-57"><a href="heteroskedasticity-tests.html#cb639-57" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-58"><a href="heteroskedasticity-tests.html#cb639-58" tabindex="-1"></a><span class="co"># Null Hypothesis: Homoskedasticity</span></span>
-<span id="cb639-59"><a href="heteroskedasticity-tests.html#cb639-59" tabindex="-1"></a><span class="co"># Sort data by x1 (suspected source of heteroskedasticity)</span></span>
-<span id="cb639-60"><a href="heteroskedasticity-tests.html#cb639-60" tabindex="-1"></a>gq_test <span class="ot">&lt;-</span></span>
-<span id="cb639-61"><a href="heteroskedasticity-tests.html#cb639-61" tabindex="-1"></a>    <span class="fu">gqtest</span>(model, <span class="at">order.by =</span> <span class="sc">~</span> x1, <span class="at">fraction =</span> <span class="fl">0.2</span>)  <span class="co"># Omit middle 20% of data</span></span>
-<span id="cb639-62"><a href="heteroskedasticity-tests.html#cb639-62" tabindex="-1"></a><span class="fu">print</span>(gq_test)</span>
-<span id="cb639-63"><a href="heteroskedasticity-tests.html#cb639-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-64"><a href="heteroskedasticity-tests.html#cb639-64" tabindex="-1"></a><span class="co">#&gt;  Goldfeld-Quandt test</span></span>
-<span id="cb639-65"><a href="heteroskedasticity-tests.html#cb639-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-66"><a href="heteroskedasticity-tests.html#cb639-66" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb639-67"><a href="heteroskedasticity-tests.html#cb639-67" tabindex="-1"></a><span class="co">#&gt; GQ = 1.8352, df1 = 37, df2 = 37, p-value = 0.03434</span></span>
-<span id="cb639-68"><a href="heteroskedasticity-tests.html#cb639-68" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: variance increases from segment 1 to 2</span></span>
-<span id="cb639-69"><a href="heteroskedasticity-tests.html#cb639-69" tabindex="-1"></a></span>
-<span id="cb639-70"><a href="heteroskedasticity-tests.html#cb639-70" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-71"><a href="heteroskedasticity-tests.html#cb639-71" tabindex="-1"></a><span class="co"># 4. Park Test</span></span>
-<span id="cb639-72"><a href="heteroskedasticity-tests.html#cb639-72" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-73"><a href="heteroskedasticity-tests.html#cb639-73" tabindex="-1"></a><span class="co"># Step 1: Get residuals and square them</span></span>
-<span id="cb639-74"><a href="heteroskedasticity-tests.html#cb639-74" tabindex="-1"></a>residuals_squared <span class="ot">&lt;-</span> <span class="fu">residuals</span>(model) <span class="sc">^</span> <span class="dv">2</span></span>
-<span id="cb639-75"><a href="heteroskedasticity-tests.html#cb639-75" tabindex="-1"></a></span>
-<span id="cb639-76"><a href="heteroskedasticity-tests.html#cb639-76" tabindex="-1"></a><span class="co"># Step 2: Log-transform squared residuals</span></span>
-<span id="cb639-77"><a href="heteroskedasticity-tests.html#cb639-77" tabindex="-1"></a>log_residuals_squared <span class="ot">&lt;-</span> <span class="fu">log</span>(residuals_squared)</span>
-<span id="cb639-78"><a href="heteroskedasticity-tests.html#cb639-78" tabindex="-1"></a></span>
-<span id="cb639-79"><a href="heteroskedasticity-tests.html#cb639-79" tabindex="-1"></a><span class="co"># Step 3: Regress log(residuals^2) on log(x1) (assuming variance depends on x1)</span></span>
-<span id="cb639-80"><a href="heteroskedasticity-tests.html#cb639-80" tabindex="-1"></a>park_test <span class="ot">&lt;-</span> <span class="fu">lm</span>(log_residuals_squared <span class="sc">~</span> <span class="fu">log</span>(x1))</span>
-<span id="cb639-81"><a href="heteroskedasticity-tests.html#cb639-81" tabindex="-1"></a><span class="fu">summary</span>(park_test)</span>
-<span id="cb639-82"><a href="heteroskedasticity-tests.html#cb639-82" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-83"><a href="heteroskedasticity-tests.html#cb639-83" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb639-84"><a href="heteroskedasticity-tests.html#cb639-84" tabindex="-1"></a><span class="co">#&gt; lm(formula = log_residuals_squared ~ log(x1))</span></span>
-<span id="cb639-85"><a href="heteroskedasticity-tests.html#cb639-85" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-86"><a href="heteroskedasticity-tests.html#cb639-86" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb639-87"><a href="heteroskedasticity-tests.html#cb639-87" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb639-88"><a href="heteroskedasticity-tests.html#cb639-88" tabindex="-1"></a><span class="co">#&gt; -9.3633 -1.3424  0.4218  1.6089  3.0697 </span></span>
-<span id="cb639-89"><a href="heteroskedasticity-tests.html#cb639-89" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-90"><a href="heteroskedasticity-tests.html#cb639-90" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb639-91"><a href="heteroskedasticity-tests.html#cb639-91" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)</span></span>
-<span id="cb639-92"><a href="heteroskedasticity-tests.html#cb639-92" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -1.6319     4.5982  -0.355    0.723</span></span>
-<span id="cb639-93"><a href="heteroskedasticity-tests.html#cb639-93" tabindex="-1"></a><span class="co">#&gt; log(x1)       0.8903     1.1737   0.759    0.450</span></span>
-<span id="cb639-94"><a href="heteroskedasticity-tests.html#cb639-94" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-95"><a href="heteroskedasticity-tests.html#cb639-95" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.171 on 98 degrees of freedom</span></span>
-<span id="cb639-96"><a href="heteroskedasticity-tests.html#cb639-96" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.005837,   Adjusted R-squared:  -0.004308 </span></span>
-<span id="cb639-97"><a href="heteroskedasticity-tests.html#cb639-97" tabindex="-1"></a><span class="co">#&gt; F-statistic: 0.5754 on 1 and 98 DF,  p-value: 0.4499</span></span>
-<span id="cb639-98"><a href="heteroskedasticity-tests.html#cb639-98" tabindex="-1"></a></span>
-<span id="cb639-99"><a href="heteroskedasticity-tests.html#cb639-99" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-100"><a href="heteroskedasticity-tests.html#cb639-100" tabindex="-1"></a><span class="co"># 5. Glejser Test</span></span>
-<span id="cb639-101"><a href="heteroskedasticity-tests.html#cb639-101" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb639-102"><a href="heteroskedasticity-tests.html#cb639-102" tabindex="-1"></a><span class="co"># Step 1: Absolute value of residuals</span></span>
-<span id="cb639-103"><a href="heteroskedasticity-tests.html#cb639-103" tabindex="-1"></a>abs_residuals <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">residuals</span>(model))</span>
-<span id="cb639-104"><a href="heteroskedasticity-tests.html#cb639-104" tabindex="-1"></a></span>
-<span id="cb639-105"><a href="heteroskedasticity-tests.html#cb639-105" tabindex="-1"></a><span class="co"># Step 2: Regress absolute residuals on independent variables</span></span>
-<span id="cb639-106"><a href="heteroskedasticity-tests.html#cb639-106" tabindex="-1"></a>glejser_test <span class="ot">&lt;-</span> <span class="fu">lm</span>(abs_residuals <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
-<span id="cb639-107"><a href="heteroskedasticity-tests.html#cb639-107" tabindex="-1"></a><span class="fu">summary</span>(glejser_test)</span>
-<span id="cb639-108"><a href="heteroskedasticity-tests.html#cb639-108" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-109"><a href="heteroskedasticity-tests.html#cb639-109" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb639-110"><a href="heteroskedasticity-tests.html#cb639-110" tabindex="-1"></a><span class="co">#&gt; lm(formula = abs_residuals ~ x1 + x2)</span></span>
-<span id="cb639-111"><a href="heteroskedasticity-tests.html#cb639-111" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-112"><a href="heteroskedasticity-tests.html#cb639-112" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb639-113"><a href="heteroskedasticity-tests.html#cb639-113" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb639-114"><a href="heteroskedasticity-tests.html#cb639-114" tabindex="-1"></a><span class="co">#&gt; -4.3096 -2.2680 -0.4564  1.9554  8.3921 </span></span>
-<span id="cb639-115"><a href="heteroskedasticity-tests.html#cb639-115" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-116"><a href="heteroskedasticity-tests.html#cb639-116" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb639-117"><a href="heteroskedasticity-tests.html#cb639-117" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
-<span id="cb639-118"><a href="heteroskedasticity-tests.html#cb639-118" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.755846   2.554842   0.296   0.7680  </span></span>
-<span id="cb639-119"><a href="heteroskedasticity-tests.html#cb639-119" tabindex="-1"></a><span class="co">#&gt; x1           0.064896   0.032852   1.975   0.0511 .</span></span>
-<span id="cb639-120"><a href="heteroskedasticity-tests.html#cb639-120" tabindex="-1"></a><span class="co">#&gt; x2          -0.008495   0.062023  -0.137   0.8913  </span></span>
-<span id="cb639-121"><a href="heteroskedasticity-tests.html#cb639-121" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb639-122"><a href="heteroskedasticity-tests.html#cb639-122" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb639-123"><a href="heteroskedasticity-tests.html#cb639-123" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb639-124"><a href="heteroskedasticity-tests.html#cb639-124" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.98 on 97 degrees of freedom</span></span>
-<span id="cb639-125"><a href="heteroskedasticity-tests.html#cb639-125" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.0392, Adjusted R-squared:  0.01939 </span></span>
-<span id="cb639-126"><a href="heteroskedasticity-tests.html#cb639-126" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.979 on 2 and 97 DF,  p-value: 0.1438</span></span></code></pre></div>
+<div class="sourceCode" id="cb644"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb644-1"><a href="heteroskedasticity-tests.html#cb644-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
+<span id="cb644-2"><a href="heteroskedasticity-tests.html#cb644-2" tabindex="-1"></a><span class="co"># install.packages(&quot;lmtest&quot;)      # For Breusch–Pagan Test</span></span>
+<span id="cb644-3"><a href="heteroskedasticity-tests.html#cb644-3" tabindex="-1"></a><span class="co"># install.packages(&quot;car&quot;)         # For additional regression diagnostics</span></span>
+<span id="cb644-4"><a href="heteroskedasticity-tests.html#cb644-4" tabindex="-1"></a><span class="co"># install.packages(&quot;sandwich&quot;)    # For robust covariance estimation</span></span>
+<span id="cb644-5"><a href="heteroskedasticity-tests.html#cb644-5" tabindex="-1"></a></span>
+<span id="cb644-6"><a href="heteroskedasticity-tests.html#cb644-6" tabindex="-1"></a></span>
+<span id="cb644-7"><a href="heteroskedasticity-tests.html#cb644-7" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb644-8"><a href="heteroskedasticity-tests.html#cb644-8" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb644-9"><a href="heteroskedasticity-tests.html#cb644-9" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb644-10"><a href="heteroskedasticity-tests.html#cb644-10" tabindex="-1"></a></span>
+<span id="cb644-11"><a href="heteroskedasticity-tests.html#cb644-11" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
+<span id="cb644-12"><a href="heteroskedasticity-tests.html#cb644-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb644-13"><a href="heteroskedasticity-tests.html#cb644-13" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb644-14"><a href="heteroskedasticity-tests.html#cb644-14" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
+<span id="cb644-15"><a href="heteroskedasticity-tests.html#cb644-15" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb644-16"><a href="heteroskedasticity-tests.html#cb644-16" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span></span>
+<span id="cb644-17"><a href="heteroskedasticity-tests.html#cb644-17" tabindex="-1"></a>    <span class="fu">rnorm</span>(n, <span class="at">sd =</span> x1 <span class="sc">*</span> <span class="fl">0.1</span>)  <span class="co"># Heteroskedastic errors increasing with x1</span></span>
+<span id="cb644-18"><a href="heteroskedasticity-tests.html#cb644-18" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> epsilon</span>
+<span id="cb644-19"><a href="heteroskedasticity-tests.html#cb644-19" tabindex="-1"></a></span>
+<span id="cb644-20"><a href="heteroskedasticity-tests.html#cb644-20" tabindex="-1"></a><span class="co"># Original regression model</span></span>
+<span id="cb644-21"><a href="heteroskedasticity-tests.html#cb644-21" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
+<span id="cb644-22"><a href="heteroskedasticity-tests.html#cb644-22" tabindex="-1"></a></span>
+<span id="cb644-23"><a href="heteroskedasticity-tests.html#cb644-23" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-24"><a href="heteroskedasticity-tests.html#cb644-24" tabindex="-1"></a><span class="co"># 1. Breusch–Pagan Test</span></span>
+<span id="cb644-25"><a href="heteroskedasticity-tests.html#cb644-25" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-26"><a href="heteroskedasticity-tests.html#cb644-26" tabindex="-1"></a><span class="co"># Null Hypothesis: Homoskedasticity</span></span>
+<span id="cb644-27"><a href="heteroskedasticity-tests.html#cb644-27" tabindex="-1"></a>bp_test <span class="ot">&lt;-</span> <span class="fu">bptest</span>(model)</span>
+<span id="cb644-28"><a href="heteroskedasticity-tests.html#cb644-28" tabindex="-1"></a><span class="fu">print</span>(bp_test)</span>
+<span id="cb644-29"><a href="heteroskedasticity-tests.html#cb644-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-30"><a href="heteroskedasticity-tests.html#cb644-30" tabindex="-1"></a><span class="co">#&gt;  studentized Breusch-Pagan test</span></span>
+<span id="cb644-31"><a href="heteroskedasticity-tests.html#cb644-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-32"><a href="heteroskedasticity-tests.html#cb644-32" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb644-33"><a href="heteroskedasticity-tests.html#cb644-33" tabindex="-1"></a><span class="co">#&gt; BP = 7.8141, df = 2, p-value = 0.0201</span></span>
+<span id="cb644-34"><a href="heteroskedasticity-tests.html#cb644-34" tabindex="-1"></a></span>
+<span id="cb644-35"><a href="heteroskedasticity-tests.html#cb644-35" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-36"><a href="heteroskedasticity-tests.html#cb644-36" tabindex="-1"></a><span class="co"># 2. White Test (using Breusch–Pagan framework with squares &amp; interactions)</span></span>
+<span id="cb644-37"><a href="heteroskedasticity-tests.html#cb644-37" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-38"><a href="heteroskedasticity-tests.html#cb644-38" tabindex="-1"></a><span class="co"># Create squared and interaction terms</span></span>
+<span id="cb644-39"><a href="heteroskedasticity-tests.html#cb644-39" tabindex="-1"></a>model_white <span class="ot">&lt;-</span></span>
+<span id="cb644-40"><a href="heteroskedasticity-tests.html#cb644-40" tabindex="-1"></a>    <span class="fu">lm</span>(<span class="fu">residuals</span>(model) <span class="sc">^</span> <span class="dv">2</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> <span class="fu">I</span>(x1 <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(x2 <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(x1 <span class="sc">*</span> x2))</span>
+<span id="cb644-41"><a href="heteroskedasticity-tests.html#cb644-41" tabindex="-1"></a>white_statistic <span class="ot">&lt;-</span></span>
+<span id="cb644-42"><a href="heteroskedasticity-tests.html#cb644-42" tabindex="-1"></a>    <span class="fu">summary</span>(model_white)<span class="sc">$</span>r.squared <span class="sc">*</span> n  <span class="co"># White Test Statistic</span></span>
+<span id="cb644-43"><a href="heteroskedasticity-tests.html#cb644-43" tabindex="-1"></a>df_white <span class="ot">&lt;-</span></span>
+<span id="cb644-44"><a href="heteroskedasticity-tests.html#cb644-44" tabindex="-1"></a>    <span class="fu">length</span>(<span class="fu">coef</span>(model_white)) <span class="sc">-</span> <span class="dv">1</span>              <span class="co"># Degrees of freedom</span></span>
+<span id="cb644-45"><a href="heteroskedasticity-tests.html#cb644-45" tabindex="-1"></a>p_value_white <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">pchisq</span>(white_statistic, df_white)</span>
+<span id="cb644-46"><a href="heteroskedasticity-tests.html#cb644-46" tabindex="-1"></a></span>
+<span id="cb644-47"><a href="heteroskedasticity-tests.html#cb644-47" tabindex="-1"></a><span class="co"># Display White Test result</span></span>
+<span id="cb644-48"><a href="heteroskedasticity-tests.html#cb644-48" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;White Test Statistic:&quot;</span>, white_statistic, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb644-49"><a href="heteroskedasticity-tests.html#cb644-49" tabindex="-1"></a><span class="co">#&gt; White Test Statistic: 11.85132</span></span>
+<span id="cb644-50"><a href="heteroskedasticity-tests.html#cb644-50" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Degrees of Freedom:&quot;</span>, df_white, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb644-51"><a href="heteroskedasticity-tests.html#cb644-51" tabindex="-1"></a><span class="co">#&gt; Degrees of Freedom: 5</span></span>
+<span id="cb644-52"><a href="heteroskedasticity-tests.html#cb644-52" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;P-value:&quot;</span>, p_value_white, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb644-53"><a href="heteroskedasticity-tests.html#cb644-53" tabindex="-1"></a><span class="co">#&gt; P-value: 0.0368828</span></span>
+<span id="cb644-54"><a href="heteroskedasticity-tests.html#cb644-54" tabindex="-1"></a></span>
+<span id="cb644-55"><a href="heteroskedasticity-tests.html#cb644-55" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-56"><a href="heteroskedasticity-tests.html#cb644-56" tabindex="-1"></a><span class="co"># 3. Goldfeld–Quandt Test</span></span>
+<span id="cb644-57"><a href="heteroskedasticity-tests.html#cb644-57" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-58"><a href="heteroskedasticity-tests.html#cb644-58" tabindex="-1"></a><span class="co"># Null Hypothesis: Homoskedasticity</span></span>
+<span id="cb644-59"><a href="heteroskedasticity-tests.html#cb644-59" tabindex="-1"></a><span class="co"># Sort data by x1 (suspected source of heteroskedasticity)</span></span>
+<span id="cb644-60"><a href="heteroskedasticity-tests.html#cb644-60" tabindex="-1"></a>gq_test <span class="ot">&lt;-</span></span>
+<span id="cb644-61"><a href="heteroskedasticity-tests.html#cb644-61" tabindex="-1"></a>    <span class="fu">gqtest</span>(model, <span class="at">order.by =</span> <span class="sc">~</span> x1, <span class="at">fraction =</span> <span class="fl">0.2</span>)  <span class="co"># Omit middle 20% of data</span></span>
+<span id="cb644-62"><a href="heteroskedasticity-tests.html#cb644-62" tabindex="-1"></a><span class="fu">print</span>(gq_test)</span>
+<span id="cb644-63"><a href="heteroskedasticity-tests.html#cb644-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-64"><a href="heteroskedasticity-tests.html#cb644-64" tabindex="-1"></a><span class="co">#&gt;  Goldfeld-Quandt test</span></span>
+<span id="cb644-65"><a href="heteroskedasticity-tests.html#cb644-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-66"><a href="heteroskedasticity-tests.html#cb644-66" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb644-67"><a href="heteroskedasticity-tests.html#cb644-67" tabindex="-1"></a><span class="co">#&gt; GQ = 1.8352, df1 = 37, df2 = 37, p-value = 0.03434</span></span>
+<span id="cb644-68"><a href="heteroskedasticity-tests.html#cb644-68" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: variance increases from segment 1 to 2</span></span>
+<span id="cb644-69"><a href="heteroskedasticity-tests.html#cb644-69" tabindex="-1"></a></span>
+<span id="cb644-70"><a href="heteroskedasticity-tests.html#cb644-70" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-71"><a href="heteroskedasticity-tests.html#cb644-71" tabindex="-1"></a><span class="co"># 4. Park Test</span></span>
+<span id="cb644-72"><a href="heteroskedasticity-tests.html#cb644-72" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-73"><a href="heteroskedasticity-tests.html#cb644-73" tabindex="-1"></a><span class="co"># Step 1: Get residuals and square them</span></span>
+<span id="cb644-74"><a href="heteroskedasticity-tests.html#cb644-74" tabindex="-1"></a>residuals_squared <span class="ot">&lt;-</span> <span class="fu">residuals</span>(model) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb644-75"><a href="heteroskedasticity-tests.html#cb644-75" tabindex="-1"></a></span>
+<span id="cb644-76"><a href="heteroskedasticity-tests.html#cb644-76" tabindex="-1"></a><span class="co"># Step 2: Log-transform squared residuals</span></span>
+<span id="cb644-77"><a href="heteroskedasticity-tests.html#cb644-77" tabindex="-1"></a>log_residuals_squared <span class="ot">&lt;-</span> <span class="fu">log</span>(residuals_squared)</span>
+<span id="cb644-78"><a href="heteroskedasticity-tests.html#cb644-78" tabindex="-1"></a></span>
+<span id="cb644-79"><a href="heteroskedasticity-tests.html#cb644-79" tabindex="-1"></a><span class="co"># Step 3: Regress log(residuals^2) on log(x1) (assuming variance depends on x1)</span></span>
+<span id="cb644-80"><a href="heteroskedasticity-tests.html#cb644-80" tabindex="-1"></a>park_test <span class="ot">&lt;-</span> <span class="fu">lm</span>(log_residuals_squared <span class="sc">~</span> <span class="fu">log</span>(x1))</span>
+<span id="cb644-81"><a href="heteroskedasticity-tests.html#cb644-81" tabindex="-1"></a><span class="fu">summary</span>(park_test)</span>
+<span id="cb644-82"><a href="heteroskedasticity-tests.html#cb644-82" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-83"><a href="heteroskedasticity-tests.html#cb644-83" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb644-84"><a href="heteroskedasticity-tests.html#cb644-84" tabindex="-1"></a><span class="co">#&gt; lm(formula = log_residuals_squared ~ log(x1))</span></span>
+<span id="cb644-85"><a href="heteroskedasticity-tests.html#cb644-85" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-86"><a href="heteroskedasticity-tests.html#cb644-86" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb644-87"><a href="heteroskedasticity-tests.html#cb644-87" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb644-88"><a href="heteroskedasticity-tests.html#cb644-88" tabindex="-1"></a><span class="co">#&gt; -9.3633 -1.3424  0.4218  1.6089  3.0697 </span></span>
+<span id="cb644-89"><a href="heteroskedasticity-tests.html#cb644-89" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-90"><a href="heteroskedasticity-tests.html#cb644-90" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb644-91"><a href="heteroskedasticity-tests.html#cb644-91" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)</span></span>
+<span id="cb644-92"><a href="heteroskedasticity-tests.html#cb644-92" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -1.6319     4.5982  -0.355    0.723</span></span>
+<span id="cb644-93"><a href="heteroskedasticity-tests.html#cb644-93" tabindex="-1"></a><span class="co">#&gt; log(x1)       0.8903     1.1737   0.759    0.450</span></span>
+<span id="cb644-94"><a href="heteroskedasticity-tests.html#cb644-94" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-95"><a href="heteroskedasticity-tests.html#cb644-95" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.171 on 98 degrees of freedom</span></span>
+<span id="cb644-96"><a href="heteroskedasticity-tests.html#cb644-96" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.005837,   Adjusted R-squared:  -0.004308 </span></span>
+<span id="cb644-97"><a href="heteroskedasticity-tests.html#cb644-97" tabindex="-1"></a><span class="co">#&gt; F-statistic: 0.5754 on 1 and 98 DF,  p-value: 0.4499</span></span>
+<span id="cb644-98"><a href="heteroskedasticity-tests.html#cb644-98" tabindex="-1"></a></span>
+<span id="cb644-99"><a href="heteroskedasticity-tests.html#cb644-99" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-100"><a href="heteroskedasticity-tests.html#cb644-100" tabindex="-1"></a><span class="co"># 5. Glejser Test</span></span>
+<span id="cb644-101"><a href="heteroskedasticity-tests.html#cb644-101" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb644-102"><a href="heteroskedasticity-tests.html#cb644-102" tabindex="-1"></a><span class="co"># Step 1: Absolute value of residuals</span></span>
+<span id="cb644-103"><a href="heteroskedasticity-tests.html#cb644-103" tabindex="-1"></a>abs_residuals <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">residuals</span>(model))</span>
+<span id="cb644-104"><a href="heteroskedasticity-tests.html#cb644-104" tabindex="-1"></a></span>
+<span id="cb644-105"><a href="heteroskedasticity-tests.html#cb644-105" tabindex="-1"></a><span class="co"># Step 2: Regress absolute residuals on independent variables</span></span>
+<span id="cb644-106"><a href="heteroskedasticity-tests.html#cb644-106" tabindex="-1"></a>glejser_test <span class="ot">&lt;-</span> <span class="fu">lm</span>(abs_residuals <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
+<span id="cb644-107"><a href="heteroskedasticity-tests.html#cb644-107" tabindex="-1"></a><span class="fu">summary</span>(glejser_test)</span>
+<span id="cb644-108"><a href="heteroskedasticity-tests.html#cb644-108" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-109"><a href="heteroskedasticity-tests.html#cb644-109" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb644-110"><a href="heteroskedasticity-tests.html#cb644-110" tabindex="-1"></a><span class="co">#&gt; lm(formula = abs_residuals ~ x1 + x2)</span></span>
+<span id="cb644-111"><a href="heteroskedasticity-tests.html#cb644-111" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-112"><a href="heteroskedasticity-tests.html#cb644-112" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb644-113"><a href="heteroskedasticity-tests.html#cb644-113" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb644-114"><a href="heteroskedasticity-tests.html#cb644-114" tabindex="-1"></a><span class="co">#&gt; -4.3096 -2.2680 -0.4564  1.9554  8.3921 </span></span>
+<span id="cb644-115"><a href="heteroskedasticity-tests.html#cb644-115" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-116"><a href="heteroskedasticity-tests.html#cb644-116" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb644-117"><a href="heteroskedasticity-tests.html#cb644-117" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span id="cb644-118"><a href="heteroskedasticity-tests.html#cb644-118" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.755846   2.554842   0.296   0.7680  </span></span>
+<span id="cb644-119"><a href="heteroskedasticity-tests.html#cb644-119" tabindex="-1"></a><span class="co">#&gt; x1           0.064896   0.032852   1.975   0.0511 .</span></span>
+<span id="cb644-120"><a href="heteroskedasticity-tests.html#cb644-120" tabindex="-1"></a><span class="co">#&gt; x2          -0.008495   0.062023  -0.137   0.8913  </span></span>
+<span id="cb644-121"><a href="heteroskedasticity-tests.html#cb644-121" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb644-122"><a href="heteroskedasticity-tests.html#cb644-122" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb644-123"><a href="heteroskedasticity-tests.html#cb644-123" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb644-124"><a href="heteroskedasticity-tests.html#cb644-124" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.98 on 97 degrees of freedom</span></span>
+<span id="cb644-125"><a href="heteroskedasticity-tests.html#cb644-125" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.0392, Adjusted R-squared:  0.01939 </span></span>
+<span id="cb644-126"><a href="heteroskedasticity-tests.html#cb644-126" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.979 on 2 and 97 DF,  p-value: 0.1438</span></span></code></pre></div>
 <p><strong>Interpretation of the Results</strong></p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Breusch–Pagan Test</strong></p>

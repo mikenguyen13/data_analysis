@@ -610,13 +610,13 @@ t.test(data, conf.level = 0.95) # Perform t-test with 95% confidence interval
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = 1.8613, df = 99, p-value = 0.06567
+#> t = -0.0032923, df = 99, p-value = 0.9974
 #> alternative hypothesis: true mean is not equal to 0
 #> 95 percent confidence interval:
-#>  -0.01261374  0.39466291
+#>  -0.2019266  0.2012576
 #> sample estimates:
-#> mean of x 
-#> 0.1910246
+#>     mean of x 
+#> -0.0003344934
 ```
 
 For a one-sided hypothesis test, such as testing $H_0: \mu \geq 30$ versus $H_a: \mu < 30$:
@@ -629,13 +629,13 @@ t.test(data, mu = 30, alternative = "less")
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = -290.45, df = 99, p-value < 2.2e-16
+#> t = -295.29, df = 99, p-value < 2.2e-16
 #> alternative hypothesis: true mean is less than 30
 #> 95 percent confidence interval:
-#>      -Inf 0.361429
+#>       -Inf 0.1683576
 #> sample estimates:
-#> mean of x 
-#> 0.1910246
+#>     mean of x 
+#> -0.0003344934
 ```
 
 When $\sigma$ is unknown, you can estimate it using:

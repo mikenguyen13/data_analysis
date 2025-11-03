@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>14.1 Nested Model Tests | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="14.1 Nested Model Tests | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1915,7 +1915,7 @@ R = \begin{bmatrix} 0 &amp; 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 0 &amp; 1 \end{
 \]</span></p>
 <p>The Wald statistic is calculated as:</p>
 <p><span class="math display">\[
-W = (R\hat{\boldsymbol{\beta}} - r)&#39; \left[ R \, \hat{\text{Var}}(\hat{\boldsymbol{\beta}}) \, R&#39; \right]^{-1} (R\hat{\boldsymbol{\beta}} - r)
+W = (R\hat{\boldsymbol{\beta}} - r)&#39; \left[ R  \hat{\text{Var}}(\hat{\boldsymbol{\beta}})  R&#39; \right]^{-1} (R\hat{\boldsymbol{\beta}} - r)
 \]</span></p>
 <p>Where:</p>
 <ul>
@@ -2038,114 +2038,114 @@ F = \frac{(SSR_P - (SSR_1 + SSR_2)) / k}{(SSR_1 + SSR_2) / (n_1 + n_2 - 2k)}
 <li><p>A <strong>significant F-statistic</strong> suggests structural differences between groups, implying separate regressions are more appropriate.</p></li>
 <li><p>A <strong>non-significant F-statistic</strong> indicates no structural break, supporting the use of a pooled model.</p></li>
 </ul>
-<div class="sourceCode" id="cb637"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb637-1"><a href="nested-model-tests.html#cb637-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb637-2"><a href="nested-model-tests.html#cb637-2" tabindex="-1"></a><span class="fu">library</span>(car)        <span class="co"># For Wald Test</span></span>
-<span id="cb637-3"><a href="nested-model-tests.html#cb637-3" tabindex="-1"></a><span class="fu">library</span>(lmtest)     <span class="co"># For Likelihood Ratio Test</span></span>
-<span id="cb637-4"><a href="nested-model-tests.html#cb637-4" tabindex="-1"></a><span class="fu">library</span>(strucchange)  <span class="co"># For Chow Test</span></span>
-<span id="cb637-5"><a href="nested-model-tests.html#cb637-5" tabindex="-1"></a></span>
-<span id="cb637-6"><a href="nested-model-tests.html#cb637-6" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
-<span id="cb637-7"><a href="nested-model-tests.html#cb637-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb637-8"><a href="nested-model-tests.html#cb637-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb637-9"><a href="nested-model-tests.html#cb637-9" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb637-10"><a href="nested-model-tests.html#cb637-10" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb637-11"><a href="nested-model-tests.html#cb637-11" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb637-12"><a href="nested-model-tests.html#cb637-12" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb637-13"><a href="nested-model-tests.html#cb637-13" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> x1 <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> x2 <span class="sc">-</span> <span class="fl">0.7</span> <span class="sc">*</span> x3 <span class="sc">+</span> epsilon</span>
-<span id="cb637-14"><a href="nested-model-tests.html#cb637-14" tabindex="-1"></a></span>
-<span id="cb637-15"><a href="nested-model-tests.html#cb637-15" tabindex="-1"></a><span class="co"># Creating a group variable (simulating a structural break)</span></span>
-<span id="cb637-16"><a href="nested-model-tests.html#cb637-16" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">each =</span> n <span class="sc">/</span> <span class="dv">2</span>)  <span class="co"># Group 0 and Group 1</span></span>
-<span id="cb637-17"><a href="nested-model-tests.html#cb637-17" tabindex="-1"></a></span>
-<span id="cb637-18"><a href="nested-model-tests.html#cb637-18" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-19"><a href="nested-model-tests.html#cb637-19" tabindex="-1"></a><span class="co"># Wald Test</span></span>
-<span id="cb637-20"><a href="nested-model-tests.html#cb637-20" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-21"><a href="nested-model-tests.html#cb637-21" tabindex="-1"></a>unrestricted_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)    <span class="co"># Unrestricted model</span></span>
-<span id="cb637-22"><a href="nested-model-tests.html#cb637-22" tabindex="-1"></a>restricted_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1)                <span class="co"># Restricted model</span></span>
-<span id="cb637-23"><a href="nested-model-tests.html#cb637-23" tabindex="-1"></a></span>
-<span id="cb637-24"><a href="nested-model-tests.html#cb637-24" tabindex="-1"></a>wald_test <span class="ot">&lt;-</span> <span class="fu">linearHypothesis</span>(unrestricted_model, <span class="fu">c</span>(<span class="st">&quot;x2 = 0&quot;</span>, <span class="st">&quot;x3 = 0&quot;</span>))</span>
-<span id="cb637-25"><a href="nested-model-tests.html#cb637-25" tabindex="-1"></a><span class="fu">print</span>(wald_test)</span>
-<span id="cb637-26"><a href="nested-model-tests.html#cb637-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb637-27"><a href="nested-model-tests.html#cb637-27" tabindex="-1"></a><span class="co">#&gt; Linear hypothesis test:</span></span>
-<span id="cb637-28"><a href="nested-model-tests.html#cb637-28" tabindex="-1"></a><span class="co">#&gt; x2 = 0</span></span>
-<span id="cb637-29"><a href="nested-model-tests.html#cb637-29" tabindex="-1"></a><span class="co">#&gt; x3 = 0</span></span>
-<span id="cb637-30"><a href="nested-model-tests.html#cb637-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb637-31"><a href="nested-model-tests.html#cb637-31" tabindex="-1"></a><span class="co">#&gt; Model 1: restricted model</span></span>
-<span id="cb637-32"><a href="nested-model-tests.html#cb637-32" tabindex="-1"></a><span class="co">#&gt; Model 2: y ~ x1 + x2 + x3</span></span>
-<span id="cb637-33"><a href="nested-model-tests.html#cb637-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb637-34"><a href="nested-model-tests.html#cb637-34" tabindex="-1"></a><span class="co">#&gt;   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    </span></span>
-<span id="cb637-35"><a href="nested-model-tests.html#cb637-35" tabindex="-1"></a><span class="co">#&gt; 1     98 182.26                                  </span></span>
-<span id="cb637-36"><a href="nested-model-tests.html#cb637-36" tabindex="-1"></a><span class="co">#&gt; 2     96 106.14  2    76.117 34.421 5.368e-12 ***</span></span>
-<span id="cb637-37"><a href="nested-model-tests.html#cb637-37" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb637-38"><a href="nested-model-tests.html#cb637-38" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb637-39"><a href="nested-model-tests.html#cb637-39" tabindex="-1"></a></span>
-<span id="cb637-40"><a href="nested-model-tests.html#cb637-40" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-41"><a href="nested-model-tests.html#cb637-41" tabindex="-1"></a><span class="co"># Likelihood Ratio Test</span></span>
-<span id="cb637-42"><a href="nested-model-tests.html#cb637-42" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-43"><a href="nested-model-tests.html#cb637-43" tabindex="-1"></a>lr_test <span class="ot">&lt;-</span> <span class="fu">lrtest</span>(unrestricted_model, restricted_model)</span>
-<span id="cb637-44"><a href="nested-model-tests.html#cb637-44" tabindex="-1"></a><span class="fu">print</span>(lr_test)</span>
-<span id="cb637-45"><a href="nested-model-tests.html#cb637-45" tabindex="-1"></a><span class="co">#&gt; Likelihood ratio test</span></span>
-<span id="cb637-46"><a href="nested-model-tests.html#cb637-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb637-47"><a href="nested-model-tests.html#cb637-47" tabindex="-1"></a><span class="co">#&gt; Model 1: y ~ x1 + x2 + x3</span></span>
-<span id="cb637-48"><a href="nested-model-tests.html#cb637-48" tabindex="-1"></a><span class="co">#&gt; Model 2: y ~ x1</span></span>
-<span id="cb637-49"><a href="nested-model-tests.html#cb637-49" tabindex="-1"></a><span class="co">#&gt;   #Df  LogLik Df  Chisq Pr(&gt;Chisq)    </span></span>
-<span id="cb637-50"><a href="nested-model-tests.html#cb637-50" tabindex="-1"></a><span class="co">#&gt; 1   5 -144.88                         </span></span>
-<span id="cb637-51"><a href="nested-model-tests.html#cb637-51" tabindex="-1"></a><span class="co">#&gt; 2   3 -171.91 -2 54.064  1.821e-12 ***</span></span>
-<span id="cb637-52"><a href="nested-model-tests.html#cb637-52" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb637-53"><a href="nested-model-tests.html#cb637-53" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb637-54"><a href="nested-model-tests.html#cb637-54" tabindex="-1"></a></span>
-<span id="cb637-55"><a href="nested-model-tests.html#cb637-55" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-56"><a href="nested-model-tests.html#cb637-56" tabindex="-1"></a><span class="co"># F-Test (for Linear Regression)</span></span>
-<span id="cb637-57"><a href="nested-model-tests.html#cb637-57" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-58"><a href="nested-model-tests.html#cb637-58" tabindex="-1"></a>SSR_U <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(unrestricted_model)<span class="sc">^</span><span class="dv">2</span>)  <span class="co"># SSR for unrestricted model</span></span>
-<span id="cb637-59"><a href="nested-model-tests.html#cb637-59" tabindex="-1"></a>SSR_R <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(restricted_model)<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># SSR for restricted model</span></span>
-<span id="cb637-60"><a href="nested-model-tests.html#cb637-60" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="dv">2</span>                                        <span class="co"># Number of restrictions</span></span>
-<span id="cb637-61"><a href="nested-model-tests.html#cb637-61" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)                                <span class="co"># Sample size</span></span>
-<span id="cb637-62"><a href="nested-model-tests.html#cb637-62" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coef</span>(unrestricted_model))         <span class="co"># Number of parameters in unrestricted model</span></span>
-<span id="cb637-63"><a href="nested-model-tests.html#cb637-63" tabindex="-1"></a></span>
-<span id="cb637-64"><a href="nested-model-tests.html#cb637-64" tabindex="-1"></a><span class="co"># F-statistic formula</span></span>
-<span id="cb637-65"><a href="nested-model-tests.html#cb637-65" tabindex="-1"></a>F_statistic <span class="ot">&lt;-</span> ((SSR_R <span class="sc">-</span> SSR_U) <span class="sc">/</span> q) <span class="sc">/</span> (SSR_U <span class="sc">/</span> (n <span class="sc">-</span> k))</span>
-<span id="cb637-66"><a href="nested-model-tests.html#cb637-66" tabindex="-1"></a>p_value_F <span class="ot">&lt;-</span> <span class="fu">pf</span>(F_statistic, <span class="at">df1 =</span> q, <span class="at">df2 =</span> n <span class="sc">-</span> k, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb637-67"><a href="nested-model-tests.html#cb637-67" tabindex="-1"></a></span>
-<span id="cb637-68"><a href="nested-model-tests.html#cb637-68" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;F-statistic:&quot;</span>, F_statistic, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb637-69"><a href="nested-model-tests.html#cb637-69" tabindex="-1"></a><span class="co">#&gt; F-statistic: 34.42083</span></span>
-<span id="cb637-70"><a href="nested-model-tests.html#cb637-70" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;P-value:&quot;</span>, p_value_F, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb637-71"><a href="nested-model-tests.html#cb637-71" tabindex="-1"></a><span class="co">#&gt; P-value: 5.367912e-12</span></span>
-<span id="cb637-72"><a href="nested-model-tests.html#cb637-72" tabindex="-1"></a></span>
-<span id="cb637-73"><a href="nested-model-tests.html#cb637-73" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-74"><a href="nested-model-tests.html#cb637-74" tabindex="-1"></a><span class="co"># Chow Test (Proper Use of the Group Variable)</span></span>
-<span id="cb637-75"><a href="nested-model-tests.html#cb637-75" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb637-76"><a href="nested-model-tests.html#cb637-76" tabindex="-1"></a><span class="co"># Pooled model (all data)</span></span>
-<span id="cb637-77"><a href="nested-model-tests.html#cb637-77" tabindex="-1"></a>pooled_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
-<span id="cb637-78"><a href="nested-model-tests.html#cb637-78" tabindex="-1"></a></span>
-<span id="cb637-79"><a href="nested-model-tests.html#cb637-79" tabindex="-1"></a><span class="co"># Separate models for Group 0 and Group 1</span></span>
-<span id="cb637-80"><a href="nested-model-tests.html#cb637-80" tabindex="-1"></a>model_group0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y[group <span class="sc">==</span> <span class="dv">0</span>] <span class="sc">~</span> x1[group <span class="sc">==</span> <span class="dv">0</span>] <span class="sc">+</span> x2[group <span class="sc">==</span> <span class="dv">0</span>] <span class="sc">+</span> x3[group <span class="sc">==</span> <span class="dv">0</span>])</span>
-<span id="cb637-81"><a href="nested-model-tests.html#cb637-81" tabindex="-1"></a>model_group1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y[group <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">~</span> x1[group <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> x2[group <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> x3[group <span class="sc">==</span> <span class="dv">1</span>])</span>
-<span id="cb637-82"><a href="nested-model-tests.html#cb637-82" tabindex="-1"></a></span>
-<span id="cb637-83"><a href="nested-model-tests.html#cb637-83" tabindex="-1"></a><span class="co"># Calculating SSRs</span></span>
-<span id="cb637-84"><a href="nested-model-tests.html#cb637-84" tabindex="-1"></a>SSR_pooled <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(pooled_model)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb637-85"><a href="nested-model-tests.html#cb637-85" tabindex="-1"></a>SSR_group0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model_group0)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb637-86"><a href="nested-model-tests.html#cb637-86" tabindex="-1"></a>SSR_group1 <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model_group1)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb637-87"><a href="nested-model-tests.html#cb637-87" tabindex="-1"></a></span>
-<span id="cb637-88"><a href="nested-model-tests.html#cb637-88" tabindex="-1"></a><span class="co"># Chow Test formula</span></span>
-<span id="cb637-89"><a href="nested-model-tests.html#cb637-89" tabindex="-1"></a>k_chow <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coef</span>(pooled_model))  <span class="co"># Number of parameters (including intercept)</span></span>
-<span id="cb637-90"><a href="nested-model-tests.html#cb637-90" tabindex="-1"></a>n0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(group <span class="sc">==</span> <span class="dv">0</span>)                 <span class="co"># Sample size for Group 0</span></span>
-<span id="cb637-91"><a href="nested-model-tests.html#cb637-91" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="fu">sum</span>(group <span class="sc">==</span> <span class="dv">1</span>)                 <span class="co"># Sample size for Group 1</span></span>
-<span id="cb637-92"><a href="nested-model-tests.html#cb637-92" tabindex="-1"></a></span>
-<span id="cb637-93"><a href="nested-model-tests.html#cb637-93" tabindex="-1"></a>F_chow <span class="ot">&lt;-</span> ((SSR_pooled <span class="sc">-</span> (SSR_group0 <span class="sc">+</span> SSR_group1)) <span class="sc">/</span> k_chow) <span class="sc">/</span></span>
-<span id="cb637-94"><a href="nested-model-tests.html#cb637-94" tabindex="-1"></a>          ((SSR_group0 <span class="sc">+</span> SSR_group1) <span class="sc">/</span> (n0 <span class="sc">+</span> n1 <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> k_chow))</span>
-<span id="cb637-95"><a href="nested-model-tests.html#cb637-95" tabindex="-1"></a></span>
-<span id="cb637-96"><a href="nested-model-tests.html#cb637-96" tabindex="-1"></a><span class="co"># Corresponding p-value</span></span>
-<span id="cb637-97"><a href="nested-model-tests.html#cb637-97" tabindex="-1"></a>p_value_chow <span class="ot">&lt;-</span></span>
-<span id="cb637-98"><a href="nested-model-tests.html#cb637-98" tabindex="-1"></a>    <span class="fu">pf</span>(</span>
-<span id="cb637-99"><a href="nested-model-tests.html#cb637-99" tabindex="-1"></a>        F_chow,</span>
-<span id="cb637-100"><a href="nested-model-tests.html#cb637-100" tabindex="-1"></a>        <span class="at">df1 =</span> k_chow,</span>
-<span id="cb637-101"><a href="nested-model-tests.html#cb637-101" tabindex="-1"></a>        <span class="at">df2 =</span> (n0 <span class="sc">+</span> n1 <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> k_chow),</span>
-<span id="cb637-102"><a href="nested-model-tests.html#cb637-102" tabindex="-1"></a>        <span class="at">lower.tail =</span> <span class="cn">FALSE</span></span>
-<span id="cb637-103"><a href="nested-model-tests.html#cb637-103" tabindex="-1"></a>    )</span>
-<span id="cb637-104"><a href="nested-model-tests.html#cb637-104" tabindex="-1"></a></span>
-<span id="cb637-105"><a href="nested-model-tests.html#cb637-105" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Chow Test F-statistic:&quot;</span>, F_chow, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb637-106"><a href="nested-model-tests.html#cb637-106" tabindex="-1"></a><span class="co">#&gt; Chow Test F-statistic: 0.3551197</span></span>
-<span id="cb637-107"><a href="nested-model-tests.html#cb637-107" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;P-value:&quot;</span>, p_value_chow, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb637-108"><a href="nested-model-tests.html#cb637-108" tabindex="-1"></a><span class="co">#&gt; P-value: 0.8398657</span></span></code></pre></div>
+<div class="sourceCode" id="cb642"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb642-1"><a href="nested-model-tests.html#cb642-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb642-2"><a href="nested-model-tests.html#cb642-2" tabindex="-1"></a><span class="fu">library</span>(car)        <span class="co"># For Wald Test</span></span>
+<span id="cb642-3"><a href="nested-model-tests.html#cb642-3" tabindex="-1"></a><span class="fu">library</span>(lmtest)     <span class="co"># For Likelihood Ratio Test</span></span>
+<span id="cb642-4"><a href="nested-model-tests.html#cb642-4" tabindex="-1"></a><span class="fu">library</span>(strucchange)  <span class="co"># For Chow Test</span></span>
+<span id="cb642-5"><a href="nested-model-tests.html#cb642-5" tabindex="-1"></a></span>
+<span id="cb642-6"><a href="nested-model-tests.html#cb642-6" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
+<span id="cb642-7"><a href="nested-model-tests.html#cb642-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb642-8"><a href="nested-model-tests.html#cb642-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb642-9"><a href="nested-model-tests.html#cb642-9" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb642-10"><a href="nested-model-tests.html#cb642-10" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb642-11"><a href="nested-model-tests.html#cb642-11" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb642-12"><a href="nested-model-tests.html#cb642-12" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb642-13"><a href="nested-model-tests.html#cb642-13" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> x1 <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> x2 <span class="sc">-</span> <span class="fl">0.7</span> <span class="sc">*</span> x3 <span class="sc">+</span> epsilon</span>
+<span id="cb642-14"><a href="nested-model-tests.html#cb642-14" tabindex="-1"></a></span>
+<span id="cb642-15"><a href="nested-model-tests.html#cb642-15" tabindex="-1"></a><span class="co"># Creating a group variable (simulating a structural break)</span></span>
+<span id="cb642-16"><a href="nested-model-tests.html#cb642-16" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">each =</span> n <span class="sc">/</span> <span class="dv">2</span>)  <span class="co"># Group 0 and Group 1</span></span>
+<span id="cb642-17"><a href="nested-model-tests.html#cb642-17" tabindex="-1"></a></span>
+<span id="cb642-18"><a href="nested-model-tests.html#cb642-18" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-19"><a href="nested-model-tests.html#cb642-19" tabindex="-1"></a><span class="co"># Wald Test</span></span>
+<span id="cb642-20"><a href="nested-model-tests.html#cb642-20" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-21"><a href="nested-model-tests.html#cb642-21" tabindex="-1"></a>unrestricted_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)    <span class="co"># Unrestricted model</span></span>
+<span id="cb642-22"><a href="nested-model-tests.html#cb642-22" tabindex="-1"></a>restricted_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1)                <span class="co"># Restricted model</span></span>
+<span id="cb642-23"><a href="nested-model-tests.html#cb642-23" tabindex="-1"></a></span>
+<span id="cb642-24"><a href="nested-model-tests.html#cb642-24" tabindex="-1"></a>wald_test <span class="ot">&lt;-</span> <span class="fu">linearHypothesis</span>(unrestricted_model, <span class="fu">c</span>(<span class="st">&quot;x2 = 0&quot;</span>, <span class="st">&quot;x3 = 0&quot;</span>))</span>
+<span id="cb642-25"><a href="nested-model-tests.html#cb642-25" tabindex="-1"></a><span class="fu">print</span>(wald_test)</span>
+<span id="cb642-26"><a href="nested-model-tests.html#cb642-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb642-27"><a href="nested-model-tests.html#cb642-27" tabindex="-1"></a><span class="co">#&gt; Linear hypothesis test:</span></span>
+<span id="cb642-28"><a href="nested-model-tests.html#cb642-28" tabindex="-1"></a><span class="co">#&gt; x2 = 0</span></span>
+<span id="cb642-29"><a href="nested-model-tests.html#cb642-29" tabindex="-1"></a><span class="co">#&gt; x3 = 0</span></span>
+<span id="cb642-30"><a href="nested-model-tests.html#cb642-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb642-31"><a href="nested-model-tests.html#cb642-31" tabindex="-1"></a><span class="co">#&gt; Model 1: restricted model</span></span>
+<span id="cb642-32"><a href="nested-model-tests.html#cb642-32" tabindex="-1"></a><span class="co">#&gt; Model 2: y ~ x1 + x2 + x3</span></span>
+<span id="cb642-33"><a href="nested-model-tests.html#cb642-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb642-34"><a href="nested-model-tests.html#cb642-34" tabindex="-1"></a><span class="co">#&gt;   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    </span></span>
+<span id="cb642-35"><a href="nested-model-tests.html#cb642-35" tabindex="-1"></a><span class="co">#&gt; 1     98 182.26                                  </span></span>
+<span id="cb642-36"><a href="nested-model-tests.html#cb642-36" tabindex="-1"></a><span class="co">#&gt; 2     96 106.14  2    76.117 34.421 5.368e-12 ***</span></span>
+<span id="cb642-37"><a href="nested-model-tests.html#cb642-37" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb642-38"><a href="nested-model-tests.html#cb642-38" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb642-39"><a href="nested-model-tests.html#cb642-39" tabindex="-1"></a></span>
+<span id="cb642-40"><a href="nested-model-tests.html#cb642-40" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-41"><a href="nested-model-tests.html#cb642-41" tabindex="-1"></a><span class="co"># Likelihood Ratio Test</span></span>
+<span id="cb642-42"><a href="nested-model-tests.html#cb642-42" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-43"><a href="nested-model-tests.html#cb642-43" tabindex="-1"></a>lr_test <span class="ot">&lt;-</span> <span class="fu">lrtest</span>(unrestricted_model, restricted_model)</span>
+<span id="cb642-44"><a href="nested-model-tests.html#cb642-44" tabindex="-1"></a><span class="fu">print</span>(lr_test)</span>
+<span id="cb642-45"><a href="nested-model-tests.html#cb642-45" tabindex="-1"></a><span class="co">#&gt; Likelihood ratio test</span></span>
+<span id="cb642-46"><a href="nested-model-tests.html#cb642-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb642-47"><a href="nested-model-tests.html#cb642-47" tabindex="-1"></a><span class="co">#&gt; Model 1: y ~ x1 + x2 + x3</span></span>
+<span id="cb642-48"><a href="nested-model-tests.html#cb642-48" tabindex="-1"></a><span class="co">#&gt; Model 2: y ~ x1</span></span>
+<span id="cb642-49"><a href="nested-model-tests.html#cb642-49" tabindex="-1"></a><span class="co">#&gt;   #Df  LogLik Df  Chisq Pr(&gt;Chisq)    </span></span>
+<span id="cb642-50"><a href="nested-model-tests.html#cb642-50" tabindex="-1"></a><span class="co">#&gt; 1   5 -144.88                         </span></span>
+<span id="cb642-51"><a href="nested-model-tests.html#cb642-51" tabindex="-1"></a><span class="co">#&gt; 2   3 -171.91 -2 54.064  1.821e-12 ***</span></span>
+<span id="cb642-52"><a href="nested-model-tests.html#cb642-52" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb642-53"><a href="nested-model-tests.html#cb642-53" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb642-54"><a href="nested-model-tests.html#cb642-54" tabindex="-1"></a></span>
+<span id="cb642-55"><a href="nested-model-tests.html#cb642-55" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-56"><a href="nested-model-tests.html#cb642-56" tabindex="-1"></a><span class="co"># F-Test (for Linear Regression)</span></span>
+<span id="cb642-57"><a href="nested-model-tests.html#cb642-57" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-58"><a href="nested-model-tests.html#cb642-58" tabindex="-1"></a>SSR_U <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(unrestricted_model)<span class="sc">^</span><span class="dv">2</span>)  <span class="co"># SSR for unrestricted model</span></span>
+<span id="cb642-59"><a href="nested-model-tests.html#cb642-59" tabindex="-1"></a>SSR_R <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(restricted_model)<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># SSR for restricted model</span></span>
+<span id="cb642-60"><a href="nested-model-tests.html#cb642-60" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="dv">2</span>                                        <span class="co"># Number of restrictions</span></span>
+<span id="cb642-61"><a href="nested-model-tests.html#cb642-61" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)                                <span class="co"># Sample size</span></span>
+<span id="cb642-62"><a href="nested-model-tests.html#cb642-62" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coef</span>(unrestricted_model))         <span class="co"># Number of parameters in unrestricted model</span></span>
+<span id="cb642-63"><a href="nested-model-tests.html#cb642-63" tabindex="-1"></a></span>
+<span id="cb642-64"><a href="nested-model-tests.html#cb642-64" tabindex="-1"></a><span class="co"># F-statistic formula</span></span>
+<span id="cb642-65"><a href="nested-model-tests.html#cb642-65" tabindex="-1"></a>F_statistic <span class="ot">&lt;-</span> ((SSR_R <span class="sc">-</span> SSR_U) <span class="sc">/</span> q) <span class="sc">/</span> (SSR_U <span class="sc">/</span> (n <span class="sc">-</span> k))</span>
+<span id="cb642-66"><a href="nested-model-tests.html#cb642-66" tabindex="-1"></a>p_value_F <span class="ot">&lt;-</span> <span class="fu">pf</span>(F_statistic, <span class="at">df1 =</span> q, <span class="at">df2 =</span> n <span class="sc">-</span> k, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb642-67"><a href="nested-model-tests.html#cb642-67" tabindex="-1"></a></span>
+<span id="cb642-68"><a href="nested-model-tests.html#cb642-68" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;F-statistic:&quot;</span>, F_statistic, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb642-69"><a href="nested-model-tests.html#cb642-69" tabindex="-1"></a><span class="co">#&gt; F-statistic: 34.42083</span></span>
+<span id="cb642-70"><a href="nested-model-tests.html#cb642-70" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;P-value:&quot;</span>, p_value_F, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb642-71"><a href="nested-model-tests.html#cb642-71" tabindex="-1"></a><span class="co">#&gt; P-value: 5.367912e-12</span></span>
+<span id="cb642-72"><a href="nested-model-tests.html#cb642-72" tabindex="-1"></a></span>
+<span id="cb642-73"><a href="nested-model-tests.html#cb642-73" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-74"><a href="nested-model-tests.html#cb642-74" tabindex="-1"></a><span class="co"># Chow Test (Proper Use of the Group Variable)</span></span>
+<span id="cb642-75"><a href="nested-model-tests.html#cb642-75" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb642-76"><a href="nested-model-tests.html#cb642-76" tabindex="-1"></a><span class="co"># Pooled model (all data)</span></span>
+<span id="cb642-77"><a href="nested-model-tests.html#cb642-77" tabindex="-1"></a>pooled_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3)</span>
+<span id="cb642-78"><a href="nested-model-tests.html#cb642-78" tabindex="-1"></a></span>
+<span id="cb642-79"><a href="nested-model-tests.html#cb642-79" tabindex="-1"></a><span class="co"># Separate models for Group 0 and Group 1</span></span>
+<span id="cb642-80"><a href="nested-model-tests.html#cb642-80" tabindex="-1"></a>model_group0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y[group <span class="sc">==</span> <span class="dv">0</span>] <span class="sc">~</span> x1[group <span class="sc">==</span> <span class="dv">0</span>] <span class="sc">+</span> x2[group <span class="sc">==</span> <span class="dv">0</span>] <span class="sc">+</span> x3[group <span class="sc">==</span> <span class="dv">0</span>])</span>
+<span id="cb642-81"><a href="nested-model-tests.html#cb642-81" tabindex="-1"></a>model_group1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y[group <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">~</span> x1[group <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> x2[group <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> x3[group <span class="sc">==</span> <span class="dv">1</span>])</span>
+<span id="cb642-82"><a href="nested-model-tests.html#cb642-82" tabindex="-1"></a></span>
+<span id="cb642-83"><a href="nested-model-tests.html#cb642-83" tabindex="-1"></a><span class="co"># Calculating SSRs</span></span>
+<span id="cb642-84"><a href="nested-model-tests.html#cb642-84" tabindex="-1"></a>SSR_pooled <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(pooled_model)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb642-85"><a href="nested-model-tests.html#cb642-85" tabindex="-1"></a>SSR_group0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model_group0)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb642-86"><a href="nested-model-tests.html#cb642-86" tabindex="-1"></a>SSR_group1 <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">residuals</span>(model_group1)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb642-87"><a href="nested-model-tests.html#cb642-87" tabindex="-1"></a></span>
+<span id="cb642-88"><a href="nested-model-tests.html#cb642-88" tabindex="-1"></a><span class="co"># Chow Test formula</span></span>
+<span id="cb642-89"><a href="nested-model-tests.html#cb642-89" tabindex="-1"></a>k_chow <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">coef</span>(pooled_model))  <span class="co"># Number of parameters (including intercept)</span></span>
+<span id="cb642-90"><a href="nested-model-tests.html#cb642-90" tabindex="-1"></a>n0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(group <span class="sc">==</span> <span class="dv">0</span>)                 <span class="co"># Sample size for Group 0</span></span>
+<span id="cb642-91"><a href="nested-model-tests.html#cb642-91" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="fu">sum</span>(group <span class="sc">==</span> <span class="dv">1</span>)                 <span class="co"># Sample size for Group 1</span></span>
+<span id="cb642-92"><a href="nested-model-tests.html#cb642-92" tabindex="-1"></a></span>
+<span id="cb642-93"><a href="nested-model-tests.html#cb642-93" tabindex="-1"></a>F_chow <span class="ot">&lt;-</span> ((SSR_pooled <span class="sc">-</span> (SSR_group0 <span class="sc">+</span> SSR_group1)) <span class="sc">/</span> k_chow) <span class="sc">/</span></span>
+<span id="cb642-94"><a href="nested-model-tests.html#cb642-94" tabindex="-1"></a>          ((SSR_group0 <span class="sc">+</span> SSR_group1) <span class="sc">/</span> (n0 <span class="sc">+</span> n1 <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> k_chow))</span>
+<span id="cb642-95"><a href="nested-model-tests.html#cb642-95" tabindex="-1"></a></span>
+<span id="cb642-96"><a href="nested-model-tests.html#cb642-96" tabindex="-1"></a><span class="co"># Corresponding p-value</span></span>
+<span id="cb642-97"><a href="nested-model-tests.html#cb642-97" tabindex="-1"></a>p_value_chow <span class="ot">&lt;-</span></span>
+<span id="cb642-98"><a href="nested-model-tests.html#cb642-98" tabindex="-1"></a>    <span class="fu">pf</span>(</span>
+<span id="cb642-99"><a href="nested-model-tests.html#cb642-99" tabindex="-1"></a>        F_chow,</span>
+<span id="cb642-100"><a href="nested-model-tests.html#cb642-100" tabindex="-1"></a>        <span class="at">df1 =</span> k_chow,</span>
+<span id="cb642-101"><a href="nested-model-tests.html#cb642-101" tabindex="-1"></a>        <span class="at">df2 =</span> (n0 <span class="sc">+</span> n1 <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> k_chow),</span>
+<span id="cb642-102"><a href="nested-model-tests.html#cb642-102" tabindex="-1"></a>        <span class="at">lower.tail =</span> <span class="cn">FALSE</span></span>
+<span id="cb642-103"><a href="nested-model-tests.html#cb642-103" tabindex="-1"></a>    )</span>
+<span id="cb642-104"><a href="nested-model-tests.html#cb642-104" tabindex="-1"></a></span>
+<span id="cb642-105"><a href="nested-model-tests.html#cb642-105" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Chow Test F-statistic:&quot;</span>, F_chow, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb642-106"><a href="nested-model-tests.html#cb642-106" tabindex="-1"></a><span class="co">#&gt; Chow Test F-statistic: 0.3551197</span></span>
+<span id="cb642-107"><a href="nested-model-tests.html#cb642-107" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;P-value:&quot;</span>, p_value_chow, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb642-108"><a href="nested-model-tests.html#cb642-108" tabindex="-1"></a><span class="co">#&gt; P-value: 0.8398657</span></span></code></pre></div>
 <p><strong>Interpretation of the Results</strong></p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Wald Test</strong></p>

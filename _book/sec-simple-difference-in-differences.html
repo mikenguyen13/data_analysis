@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>30.3 Simple Difference-in-Differences | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="30.3 Simple Difference-in-Differences | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1931,98 +1931,98 @@ E[Y_1(1) - Y_0(1) | D = 1] &amp;= \{E[Y(1)|D = 1] - E[Y(1)|D = 0] \} \\
 <li>If the control group would have experienced a different trajectory, the DID estimate may be biased.</li>
 <li>Since we cannot observe treatment variation in the control group, we cannot infer the treatment effect for this group.</li>
 </ul>
-<div class="sourceCode" id="cb908"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb908-1"><a href="sec-simple-difference-in-differences.html#cb908-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
-<span id="cb908-2"><a href="sec-simple-difference-in-differences.html#cb908-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb908-3"><a href="sec-simple-difference-in-differences.html#cb908-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb908-4"><a href="sec-simple-difference-in-differences.html#cb908-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb908-5"><a href="sec-simple-difference-in-differences.html#cb908-5" tabindex="-1"></a></span>
-<span id="cb908-6"><a href="sec-simple-difference-in-differences.html#cb908-6" tabindex="-1"></a><span class="co"># Simulated dataset for illustration</span></span>
-<span id="cb908-7"><a href="sec-simple-difference-in-differences.html#cb908-7" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb908-8"><a href="sec-simple-difference-in-differences.html#cb908-8" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">each =</span> <span class="dv">50</span>),  <span class="co"># Pre (0) and Post (1)</span></span>
-<span id="cb908-9"><a href="sec-simple-difference-in-differences.html#cb908-9" tabindex="-1"></a>  <span class="at">treated =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">times =</span> <span class="dv">50</span>), <span class="co"># Control (0) and Treated (1)</span></span>
-<span id="cb908-10"><a href="sec-simple-difference-in-differences.html#cb908-10" tabindex="-1"></a>  <span class="at">error =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>)</span>
-<span id="cb908-11"><a href="sec-simple-difference-in-differences.html#cb908-11" tabindex="-1"></a>)</span>
-<span id="cb908-12"><a href="sec-simple-difference-in-differences.html#cb908-12" tabindex="-1"></a></span>
-<span id="cb908-13"><a href="sec-simple-difference-in-differences.html#cb908-13" tabindex="-1"></a><span class="co"># Generate outcome variable</span></span>
-<span id="cb908-14"><a href="sec-simple-difference-in-differences.html#cb908-14" tabindex="-1"></a>data<span class="sc">$</span>outcome <span class="ot">&lt;-</span></span>
-<span id="cb908-15"><a href="sec-simple-difference-in-differences.html#cb908-15" tabindex="-1"></a>    <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> data<span class="sc">$</span>treated <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> data<span class="sc">$</span>time <span class="sc">+</span> </span>
-<span id="cb908-16"><a href="sec-simple-difference-in-differences.html#cb908-16" tabindex="-1"></a>    <span class="dv">4</span> <span class="sc">*</span> data<span class="sc">$</span>treated <span class="sc">*</span> data<span class="sc">$</span>time <span class="sc">+</span> data<span class="sc">$</span>error</span>
-<span id="cb908-17"><a href="sec-simple-difference-in-differences.html#cb908-17" tabindex="-1"></a></span>
-<span id="cb908-18"><a href="sec-simple-difference-in-differences.html#cb908-18" tabindex="-1"></a><span class="co"># Compute averages for 2x2 table</span></span>
-<span id="cb908-19"><a href="sec-simple-difference-in-differences.html#cb908-19" tabindex="-1"></a>table_means <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
-<span id="cb908-20"><a href="sec-simple-difference-in-differences.html#cb908-20" tabindex="-1"></a>  <span class="fu">group_by</span>(treated, time) <span class="sc">%&gt;%</span></span>
-<span id="cb908-21"><a href="sec-simple-difference-in-differences.html#cb908-21" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean_outcome =</span> <span class="fu">mean</span>(outcome), <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb908-22"><a href="sec-simple-difference-in-differences.html#cb908-22" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb908-23"><a href="sec-simple-difference-in-differences.html#cb908-23" tabindex="-1"></a>    <span class="at">group =</span> <span class="fu">paste0</span>(<span class="fu">ifelse</span>(treated <span class="sc">==</span> <span class="dv">1</span>, <span class="st">&quot;Treated&quot;</span>, <span class="st">&quot;Control&quot;</span>), <span class="st">&quot;, &quot;</span>, </span>
-<span id="cb908-24"><a href="sec-simple-difference-in-differences.html#cb908-24" tabindex="-1"></a>                   <span class="fu">ifelse</span>(time <span class="sc">==</span> <span class="dv">1</span>, <span class="st">&quot;Post&quot;</span>, <span class="st">&quot;Pre&quot;</span>))</span>
-<span id="cb908-25"><a href="sec-simple-difference-in-differences.html#cb908-25" tabindex="-1"></a>  )</span>
-<span id="cb908-26"><a href="sec-simple-difference-in-differences.html#cb908-26" tabindex="-1"></a></span>
-<span id="cb908-27"><a href="sec-simple-difference-in-differences.html#cb908-27" tabindex="-1"></a><span class="co"># Display the 2x2 table</span></span>
-<span id="cb908-28"><a href="sec-simple-difference-in-differences.html#cb908-28" tabindex="-1"></a>table_2x2 <span class="ot">&lt;-</span> table_means <span class="sc">%&gt;%</span></span>
-<span id="cb908-29"><a href="sec-simple-difference-in-differences.html#cb908-29" tabindex="-1"></a>  <span class="fu">select</span>(group, mean_outcome) <span class="sc">%&gt;%</span></span>
-<span id="cb908-30"><a href="sec-simple-difference-in-differences.html#cb908-30" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">spread</span>(<span class="at">key =</span> group, <span class="at">value =</span> mean_outcome)</span>
-<span id="cb908-31"><a href="sec-simple-difference-in-differences.html#cb908-31" tabindex="-1"></a></span>
-<span id="cb908-32"><a href="sec-simple-difference-in-differences.html#cb908-32" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;2x2 Table of Mean Outcomes:&quot;</span>)</span>
-<span id="cb908-33"><a href="sec-simple-difference-in-differences.html#cb908-33" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2x2 Table of Mean Outcomes:&quot;</span></span>
-<span id="cb908-34"><a href="sec-simple-difference-in-differences.html#cb908-34" tabindex="-1"></a><span class="fu">print</span>(table_2x2)</span>
-<span id="cb908-35"><a href="sec-simple-difference-in-differences.html#cb908-35" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 4</span></span>
-<span id="cb908-36"><a href="sec-simple-difference-in-differences.html#cb908-36" tabindex="-1"></a><span class="co">#&gt;   `Control, Post` `Control, Pre` `Treated, Post` `Treated, Pre`</span></span>
-<span id="cb908-37"><a href="sec-simple-difference-in-differences.html#cb908-37" tabindex="-1"></a><span class="co">#&gt;             &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;          &lt;dbl&gt;</span></span>
-<span id="cb908-38"><a href="sec-simple-difference-in-differences.html#cb908-38" tabindex="-1"></a><span class="co">#&gt; 1            7.19           5.20            14.0           8.00</span></span>
-<span id="cb908-39"><a href="sec-simple-difference-in-differences.html#cb908-39" tabindex="-1"></a></span>
-<span id="cb908-40"><a href="sec-simple-difference-in-differences.html#cb908-40" tabindex="-1"></a><span class="co"># Calculate Diff-in-Diff manually</span></span>
-<span id="cb908-41"><a href="sec-simple-difference-in-differences.html#cb908-41" tabindex="-1"></a></span>
-<span id="cb908-42"><a href="sec-simple-difference-in-differences.html#cb908-42" tabindex="-1"></a><span class="co"># Treated, Post</span></span>
-<span id="cb908-43"><a href="sec-simple-difference-in-differences.html#cb908-43" tabindex="-1"></a>Y11 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Treated, Post&quot;</span>]  </span>
-<span id="cb908-44"><a href="sec-simple-difference-in-differences.html#cb908-44" tabindex="-1"></a></span>
-<span id="cb908-45"><a href="sec-simple-difference-in-differences.html#cb908-45" tabindex="-1"></a><span class="co"># Treated, Pre</span></span>
-<span id="cb908-46"><a href="sec-simple-difference-in-differences.html#cb908-46" tabindex="-1"></a>Y10 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Treated, Pre&quot;</span>]   </span>
-<span id="cb908-47"><a href="sec-simple-difference-in-differences.html#cb908-47" tabindex="-1"></a></span>
-<span id="cb908-48"><a href="sec-simple-difference-in-differences.html#cb908-48" tabindex="-1"></a><span class="co"># Control, Post</span></span>
-<span id="cb908-49"><a href="sec-simple-difference-in-differences.html#cb908-49" tabindex="-1"></a>Y01 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Control, Post&quot;</span>]  </span>
-<span id="cb908-50"><a href="sec-simple-difference-in-differences.html#cb908-50" tabindex="-1"></a></span>
-<span id="cb908-51"><a href="sec-simple-difference-in-differences.html#cb908-51" tabindex="-1"></a><span class="co"># Control, Pre</span></span>
-<span id="cb908-52"><a href="sec-simple-difference-in-differences.html#cb908-52" tabindex="-1"></a>Y00 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Control, Pre&quot;</span>]   </span>
-<span id="cb908-53"><a href="sec-simple-difference-in-differences.html#cb908-53" tabindex="-1"></a></span>
-<span id="cb908-54"><a href="sec-simple-difference-in-differences.html#cb908-54" tabindex="-1"></a>diff_in_diff_formula <span class="ot">&lt;-</span> (Y11 <span class="sc">-</span> Y10) <span class="sc">-</span> (Y01 <span class="sc">-</span> Y00)</span>
-<span id="cb908-55"><a href="sec-simple-difference-in-differences.html#cb908-55" tabindex="-1"></a></span>
-<span id="cb908-56"><a href="sec-simple-difference-in-differences.html#cb908-56" tabindex="-1"></a><span class="co"># Estimate DID using OLS</span></span>
-<span id="cb908-57"><a href="sec-simple-difference-in-differences.html#cb908-57" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(outcome <span class="sc">~</span> treated <span class="sc">*</span> time, <span class="at">data =</span> data)</span>
-<span id="cb908-58"><a href="sec-simple-difference-in-differences.html#cb908-58" tabindex="-1"></a>ols_estimate <span class="ot">&lt;-</span> <span class="fu">coef</span>(model)[<span class="st">&quot;treated:time&quot;</span>]</span>
-<span id="cb908-59"><a href="sec-simple-difference-in-differences.html#cb908-59" tabindex="-1"></a></span>
-<span id="cb908-60"><a href="sec-simple-difference-in-differences.html#cb908-60" tabindex="-1"></a><span class="co"># Print results</span></span>
-<span id="cb908-61"><a href="sec-simple-difference-in-differences.html#cb908-61" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb908-62"><a href="sec-simple-difference-in-differences.html#cb908-62" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;Diff-in-Diff Formula&quot;</span>, <span class="st">&quot;OLS Estimate&quot;</span>),</span>
-<span id="cb908-63"><a href="sec-simple-difference-in-differences.html#cb908-63" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(diff_in_diff_formula, ols_estimate)</span>
-<span id="cb908-64"><a href="sec-simple-difference-in-differences.html#cb908-64" tabindex="-1"></a>)</span>
-<span id="cb908-65"><a href="sec-simple-difference-in-differences.html#cb908-65" tabindex="-1"></a></span>
-<span id="cb908-66"><a href="sec-simple-difference-in-differences.html#cb908-66" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Comparison of DID Estimates:&quot;</span>)</span>
-<span id="cb908-67"><a href="sec-simple-difference-in-differences.html#cb908-67" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Comparison of DID Estimates:&quot;</span></span>
-<span id="cb908-68"><a href="sec-simple-difference-in-differences.html#cb908-68" tabindex="-1"></a><span class="fu">print</span>(results)</span>
-<span id="cb908-69"><a href="sec-simple-difference-in-differences.html#cb908-69" tabindex="-1"></a><span class="co">#&gt;                            Method Estimate</span></span>
-<span id="cb908-70"><a href="sec-simple-difference-in-differences.html#cb908-70" tabindex="-1"></a><span class="co">#&gt;              Diff-in-Diff Formula 4.035895</span></span>
-<span id="cb908-71"><a href="sec-simple-difference-in-differences.html#cb908-71" tabindex="-1"></a><span class="co">#&gt; treated:time         OLS Estimate 4.035895</span></span></code></pre></div>
-<div class="sourceCode" id="cb909"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb909-1"><a href="sec-simple-difference-in-differences.html#cb909-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb909-2"><a href="sec-simple-difference-in-differences.html#cb909-2" tabindex="-1"></a><span class="fu">ggplot</span>(data,</span>
-<span id="cb909-3"><a href="sec-simple-difference-in-differences.html#cb909-3" tabindex="-1"></a>       <span class="fu">aes</span>(</span>
-<span id="cb909-4"><a href="sec-simple-difference-in-differences.html#cb909-4" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">as.factor</span>(time),</span>
-<span id="cb909-5"><a href="sec-simple-difference-in-differences.html#cb909-5" tabindex="-1"></a>           <span class="at">y =</span> outcome,</span>
-<span id="cb909-6"><a href="sec-simple-difference-in-differences.html#cb909-6" tabindex="-1"></a>           <span class="at">color =</span> <span class="fu">as.factor</span>(treated),</span>
-<span id="cb909-7"><a href="sec-simple-difference-in-differences.html#cb909-7" tabindex="-1"></a>           <span class="at">group =</span> treated</span>
-<span id="cb909-8"><a href="sec-simple-difference-in-differences.html#cb909-8" tabindex="-1"></a>       )) <span class="sc">+</span></span>
-<span id="cb909-9"><a href="sec-simple-difference-in-differences.html#cb909-9" tabindex="-1"></a>    <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean, <span class="at">geom =</span> <span class="st">&quot;point&quot;</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb909-10"><a href="sec-simple-difference-in-differences.html#cb909-10" tabindex="-1"></a>    <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean,</span>
-<span id="cb909-11"><a href="sec-simple-difference-in-differences.html#cb909-11" tabindex="-1"></a>                 <span class="at">geom =</span> <span class="st">&quot;line&quot;</span>,</span>
-<span id="cb909-12"><a href="sec-simple-difference-in-differences.html#cb909-12" tabindex="-1"></a>                 <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
-<span id="cb909-13"><a href="sec-simple-difference-in-differences.html#cb909-13" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb909-14"><a href="sec-simple-difference-in-differences.html#cb909-14" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Difference-in-Differences Visualization&quot;</span>,</span>
-<span id="cb909-15"><a href="sec-simple-difference-in-differences.html#cb909-15" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Time (0 = Pre, 1 = Post)&quot;</span>,</span>
-<span id="cb909-16"><a href="sec-simple-difference-in-differences.html#cb909-16" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Outcome&quot;</span>,</span>
-<span id="cb909-17"><a href="sec-simple-difference-in-differences.html#cb909-17" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;Group&quot;</span></span>
-<span id="cb909-18"><a href="sec-simple-difference-in-differences.html#cb909-18" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb909-19"><a href="sec-simple-difference-in-differences.html#cb909-19" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Control&quot;</span>, <span class="st">&quot;Treated&quot;</span>),</span>
-<span id="cb909-20"><a href="sec-simple-difference-in-differences.html#cb909-20" tabindex="-1"></a>                       <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb909-21"><a href="sec-simple-difference-in-differences.html#cb909-21" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb913"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb913-1"><a href="sec-simple-difference-in-differences.html#cb913-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
+<span id="cb913-2"><a href="sec-simple-difference-in-differences.html#cb913-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb913-3"><a href="sec-simple-difference-in-differences.html#cb913-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb913-4"><a href="sec-simple-difference-in-differences.html#cb913-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb913-5"><a href="sec-simple-difference-in-differences.html#cb913-5" tabindex="-1"></a></span>
+<span id="cb913-6"><a href="sec-simple-difference-in-differences.html#cb913-6" tabindex="-1"></a><span class="co"># Simulated dataset for illustration</span></span>
+<span id="cb913-7"><a href="sec-simple-difference-in-differences.html#cb913-7" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb913-8"><a href="sec-simple-difference-in-differences.html#cb913-8" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">each =</span> <span class="dv">50</span>),  <span class="co"># Pre (0) and Post (1)</span></span>
+<span id="cb913-9"><a href="sec-simple-difference-in-differences.html#cb913-9" tabindex="-1"></a>  <span class="at">treated =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">times =</span> <span class="dv">50</span>), <span class="co"># Control (0) and Treated (1)</span></span>
+<span id="cb913-10"><a href="sec-simple-difference-in-differences.html#cb913-10" tabindex="-1"></a>  <span class="at">error =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>)</span>
+<span id="cb913-11"><a href="sec-simple-difference-in-differences.html#cb913-11" tabindex="-1"></a>)</span>
+<span id="cb913-12"><a href="sec-simple-difference-in-differences.html#cb913-12" tabindex="-1"></a></span>
+<span id="cb913-13"><a href="sec-simple-difference-in-differences.html#cb913-13" tabindex="-1"></a><span class="co"># Generate outcome variable</span></span>
+<span id="cb913-14"><a href="sec-simple-difference-in-differences.html#cb913-14" tabindex="-1"></a>data<span class="sc">$</span>outcome <span class="ot">&lt;-</span></span>
+<span id="cb913-15"><a href="sec-simple-difference-in-differences.html#cb913-15" tabindex="-1"></a>    <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> data<span class="sc">$</span>treated <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> data<span class="sc">$</span>time <span class="sc">+</span> </span>
+<span id="cb913-16"><a href="sec-simple-difference-in-differences.html#cb913-16" tabindex="-1"></a>    <span class="dv">4</span> <span class="sc">*</span> data<span class="sc">$</span>treated <span class="sc">*</span> data<span class="sc">$</span>time <span class="sc">+</span> data<span class="sc">$</span>error</span>
+<span id="cb913-17"><a href="sec-simple-difference-in-differences.html#cb913-17" tabindex="-1"></a></span>
+<span id="cb913-18"><a href="sec-simple-difference-in-differences.html#cb913-18" tabindex="-1"></a><span class="co"># Compute averages for 2x2 table</span></span>
+<span id="cb913-19"><a href="sec-simple-difference-in-differences.html#cb913-19" tabindex="-1"></a>table_means <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb913-20"><a href="sec-simple-difference-in-differences.html#cb913-20" tabindex="-1"></a>  <span class="fu">group_by</span>(treated, time) <span class="sc">%&gt;%</span></span>
+<span id="cb913-21"><a href="sec-simple-difference-in-differences.html#cb913-21" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean_outcome =</span> <span class="fu">mean</span>(outcome), <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb913-22"><a href="sec-simple-difference-in-differences.html#cb913-22" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb913-23"><a href="sec-simple-difference-in-differences.html#cb913-23" tabindex="-1"></a>    <span class="at">group =</span> <span class="fu">paste0</span>(<span class="fu">ifelse</span>(treated <span class="sc">==</span> <span class="dv">1</span>, <span class="st">&quot;Treated&quot;</span>, <span class="st">&quot;Control&quot;</span>), <span class="st">&quot;, &quot;</span>, </span>
+<span id="cb913-24"><a href="sec-simple-difference-in-differences.html#cb913-24" tabindex="-1"></a>                   <span class="fu">ifelse</span>(time <span class="sc">==</span> <span class="dv">1</span>, <span class="st">&quot;Post&quot;</span>, <span class="st">&quot;Pre&quot;</span>))</span>
+<span id="cb913-25"><a href="sec-simple-difference-in-differences.html#cb913-25" tabindex="-1"></a>  )</span>
+<span id="cb913-26"><a href="sec-simple-difference-in-differences.html#cb913-26" tabindex="-1"></a></span>
+<span id="cb913-27"><a href="sec-simple-difference-in-differences.html#cb913-27" tabindex="-1"></a><span class="co"># Display the 2x2 table</span></span>
+<span id="cb913-28"><a href="sec-simple-difference-in-differences.html#cb913-28" tabindex="-1"></a>table_2x2 <span class="ot">&lt;-</span> table_means <span class="sc">%&gt;%</span></span>
+<span id="cb913-29"><a href="sec-simple-difference-in-differences.html#cb913-29" tabindex="-1"></a>  <span class="fu">select</span>(group, mean_outcome) <span class="sc">%&gt;%</span></span>
+<span id="cb913-30"><a href="sec-simple-difference-in-differences.html#cb913-30" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">spread</span>(<span class="at">key =</span> group, <span class="at">value =</span> mean_outcome)</span>
+<span id="cb913-31"><a href="sec-simple-difference-in-differences.html#cb913-31" tabindex="-1"></a></span>
+<span id="cb913-32"><a href="sec-simple-difference-in-differences.html#cb913-32" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;2x2 Table of Mean Outcomes:&quot;</span>)</span>
+<span id="cb913-33"><a href="sec-simple-difference-in-differences.html#cb913-33" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2x2 Table of Mean Outcomes:&quot;</span></span>
+<span id="cb913-34"><a href="sec-simple-difference-in-differences.html#cb913-34" tabindex="-1"></a><span class="fu">print</span>(table_2x2)</span>
+<span id="cb913-35"><a href="sec-simple-difference-in-differences.html#cb913-35" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 4</span></span>
+<span id="cb913-36"><a href="sec-simple-difference-in-differences.html#cb913-36" tabindex="-1"></a><span class="co">#&gt;   `Control, Post` `Control, Pre` `Treated, Post` `Treated, Pre`</span></span>
+<span id="cb913-37"><a href="sec-simple-difference-in-differences.html#cb913-37" tabindex="-1"></a><span class="co">#&gt;             &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;          &lt;dbl&gt;</span></span>
+<span id="cb913-38"><a href="sec-simple-difference-in-differences.html#cb913-38" tabindex="-1"></a><span class="co">#&gt; 1            7.19           5.20            14.0           8.00</span></span>
+<span id="cb913-39"><a href="sec-simple-difference-in-differences.html#cb913-39" tabindex="-1"></a></span>
+<span id="cb913-40"><a href="sec-simple-difference-in-differences.html#cb913-40" tabindex="-1"></a><span class="co"># Calculate Diff-in-Diff manually</span></span>
+<span id="cb913-41"><a href="sec-simple-difference-in-differences.html#cb913-41" tabindex="-1"></a></span>
+<span id="cb913-42"><a href="sec-simple-difference-in-differences.html#cb913-42" tabindex="-1"></a><span class="co"># Treated, Post</span></span>
+<span id="cb913-43"><a href="sec-simple-difference-in-differences.html#cb913-43" tabindex="-1"></a>Y11 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Treated, Post&quot;</span>]  </span>
+<span id="cb913-44"><a href="sec-simple-difference-in-differences.html#cb913-44" tabindex="-1"></a></span>
+<span id="cb913-45"><a href="sec-simple-difference-in-differences.html#cb913-45" tabindex="-1"></a><span class="co"># Treated, Pre</span></span>
+<span id="cb913-46"><a href="sec-simple-difference-in-differences.html#cb913-46" tabindex="-1"></a>Y10 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Treated, Pre&quot;</span>]   </span>
+<span id="cb913-47"><a href="sec-simple-difference-in-differences.html#cb913-47" tabindex="-1"></a></span>
+<span id="cb913-48"><a href="sec-simple-difference-in-differences.html#cb913-48" tabindex="-1"></a><span class="co"># Control, Post</span></span>
+<span id="cb913-49"><a href="sec-simple-difference-in-differences.html#cb913-49" tabindex="-1"></a>Y01 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Control, Post&quot;</span>]  </span>
+<span id="cb913-50"><a href="sec-simple-difference-in-differences.html#cb913-50" tabindex="-1"></a></span>
+<span id="cb913-51"><a href="sec-simple-difference-in-differences.html#cb913-51" tabindex="-1"></a><span class="co"># Control, Pre</span></span>
+<span id="cb913-52"><a href="sec-simple-difference-in-differences.html#cb913-52" tabindex="-1"></a>Y00 <span class="ot">&lt;-</span> table_means<span class="sc">$</span>mean_outcome[table_means<span class="sc">$</span>group <span class="sc">==</span> <span class="st">&quot;Control, Pre&quot;</span>]   </span>
+<span id="cb913-53"><a href="sec-simple-difference-in-differences.html#cb913-53" tabindex="-1"></a></span>
+<span id="cb913-54"><a href="sec-simple-difference-in-differences.html#cb913-54" tabindex="-1"></a>diff_in_diff_formula <span class="ot">&lt;-</span> (Y11 <span class="sc">-</span> Y10) <span class="sc">-</span> (Y01 <span class="sc">-</span> Y00)</span>
+<span id="cb913-55"><a href="sec-simple-difference-in-differences.html#cb913-55" tabindex="-1"></a></span>
+<span id="cb913-56"><a href="sec-simple-difference-in-differences.html#cb913-56" tabindex="-1"></a><span class="co"># Estimate DID using OLS</span></span>
+<span id="cb913-57"><a href="sec-simple-difference-in-differences.html#cb913-57" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(outcome <span class="sc">~</span> treated <span class="sc">*</span> time, <span class="at">data =</span> data)</span>
+<span id="cb913-58"><a href="sec-simple-difference-in-differences.html#cb913-58" tabindex="-1"></a>ols_estimate <span class="ot">&lt;-</span> <span class="fu">coef</span>(model)[<span class="st">&quot;treated:time&quot;</span>]</span>
+<span id="cb913-59"><a href="sec-simple-difference-in-differences.html#cb913-59" tabindex="-1"></a></span>
+<span id="cb913-60"><a href="sec-simple-difference-in-differences.html#cb913-60" tabindex="-1"></a><span class="co"># Print results</span></span>
+<span id="cb913-61"><a href="sec-simple-difference-in-differences.html#cb913-61" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb913-62"><a href="sec-simple-difference-in-differences.html#cb913-62" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;Diff-in-Diff Formula&quot;</span>, <span class="st">&quot;OLS Estimate&quot;</span>),</span>
+<span id="cb913-63"><a href="sec-simple-difference-in-differences.html#cb913-63" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(diff_in_diff_formula, ols_estimate)</span>
+<span id="cb913-64"><a href="sec-simple-difference-in-differences.html#cb913-64" tabindex="-1"></a>)</span>
+<span id="cb913-65"><a href="sec-simple-difference-in-differences.html#cb913-65" tabindex="-1"></a></span>
+<span id="cb913-66"><a href="sec-simple-difference-in-differences.html#cb913-66" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Comparison of DID Estimates:&quot;</span>)</span>
+<span id="cb913-67"><a href="sec-simple-difference-in-differences.html#cb913-67" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Comparison of DID Estimates:&quot;</span></span>
+<span id="cb913-68"><a href="sec-simple-difference-in-differences.html#cb913-68" tabindex="-1"></a><span class="fu">print</span>(results)</span>
+<span id="cb913-69"><a href="sec-simple-difference-in-differences.html#cb913-69" tabindex="-1"></a><span class="co">#&gt;                            Method Estimate</span></span>
+<span id="cb913-70"><a href="sec-simple-difference-in-differences.html#cb913-70" tabindex="-1"></a><span class="co">#&gt;              Diff-in-Diff Formula 4.035895</span></span>
+<span id="cb913-71"><a href="sec-simple-difference-in-differences.html#cb913-71" tabindex="-1"></a><span class="co">#&gt; treated:time         OLS Estimate 4.035895</span></span></code></pre></div>
+<div class="sourceCode" id="cb914"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb914-1"><a href="sec-simple-difference-in-differences.html#cb914-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb914-2"><a href="sec-simple-difference-in-differences.html#cb914-2" tabindex="-1"></a><span class="fu">ggplot</span>(data,</span>
+<span id="cb914-3"><a href="sec-simple-difference-in-differences.html#cb914-3" tabindex="-1"></a>       <span class="fu">aes</span>(</span>
+<span id="cb914-4"><a href="sec-simple-difference-in-differences.html#cb914-4" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">as.factor</span>(time),</span>
+<span id="cb914-5"><a href="sec-simple-difference-in-differences.html#cb914-5" tabindex="-1"></a>           <span class="at">y =</span> outcome,</span>
+<span id="cb914-6"><a href="sec-simple-difference-in-differences.html#cb914-6" tabindex="-1"></a>           <span class="at">color =</span> <span class="fu">as.factor</span>(treated),</span>
+<span id="cb914-7"><a href="sec-simple-difference-in-differences.html#cb914-7" tabindex="-1"></a>           <span class="at">group =</span> treated</span>
+<span id="cb914-8"><a href="sec-simple-difference-in-differences.html#cb914-8" tabindex="-1"></a>       )) <span class="sc">+</span></span>
+<span id="cb914-9"><a href="sec-simple-difference-in-differences.html#cb914-9" tabindex="-1"></a>    <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean, <span class="at">geom =</span> <span class="st">&quot;point&quot;</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb914-10"><a href="sec-simple-difference-in-differences.html#cb914-10" tabindex="-1"></a>    <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean,</span>
+<span id="cb914-11"><a href="sec-simple-difference-in-differences.html#cb914-11" tabindex="-1"></a>                 <span class="at">geom =</span> <span class="st">&quot;line&quot;</span>,</span>
+<span id="cb914-12"><a href="sec-simple-difference-in-differences.html#cb914-12" tabindex="-1"></a>                 <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
+<span id="cb914-13"><a href="sec-simple-difference-in-differences.html#cb914-13" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb914-14"><a href="sec-simple-difference-in-differences.html#cb914-14" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Difference-in-Differences Visualization&quot;</span>,</span>
+<span id="cb914-15"><a href="sec-simple-difference-in-differences.html#cb914-15" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Time (0 = Pre, 1 = Post)&quot;</span>,</span>
+<span id="cb914-16"><a href="sec-simple-difference-in-differences.html#cb914-16" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Outcome&quot;</span>,</span>
+<span id="cb914-17"><a href="sec-simple-difference-in-differences.html#cb914-17" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;Group&quot;</span></span>
+<span id="cb914-18"><a href="sec-simple-difference-in-differences.html#cb914-18" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb914-19"><a href="sec-simple-difference-in-differences.html#cb914-19" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Control&quot;</span>, <span class="st">&quot;Treated&quot;</span>),</span>
+<span id="cb914-20"><a href="sec-simple-difference-in-differences.html#cb914-20" tabindex="-1"></a>                       <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb914-21"><a href="sec-simple-difference-in-differences.html#cb914-21" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-7"></span>
 <img src="30-dif-in-dif_files/figure-html/unnamed-chunk-7-1.png" alt="Scatter plot with two time points labeled 0 (pre) and 1 (post) on the x-axis and outcome values on the y-axis. The control group is shown in blue and the treated group in red. Both groups increase over time, but the treated group shows a larger rise. Dotted lines connect pre- and post-intervention points for each group, visually illustrating the DiD estimate. A legend distinguishes control and treated groups." width="90%" />
 <p class="caption">
@@ -2174,53 +2174,53 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb910"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb910-1"><a href="sec-simple-difference-in-differences.html#cb910-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb910-2"><a href="sec-simple-difference-in-differences.html#cb910-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb910-3"><a href="sec-simple-difference-in-differences.html#cb910-3" tabindex="-1"></a></span>
-<span id="cb910-4"><a href="sec-simple-difference-in-differences.html#cb910-4" tabindex="-1"></a>od <span class="ot">&lt;-</span> causaldata<span class="sc">::</span>organ_donations <span class="sc">%&gt;%</span></span>
-<span id="cb910-5"><a href="sec-simple-difference-in-differences.html#cb910-5" tabindex="-1"></a>    </span>
-<span id="cb910-6"><a href="sec-simple-difference-in-differences.html#cb910-6" tabindex="-1"></a>    <span class="co"># Treatment variable</span></span>
-<span id="cb910-7"><a href="sec-simple-difference-in-differences.html#cb910-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">California =</span> State <span class="sc">==</span> <span class="st">&#39;California&#39;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb910-8"><a href="sec-simple-difference-in-differences.html#cb910-8" tabindex="-1"></a>    <span class="co"># centered time variable</span></span>
-<span id="cb910-9"><a href="sec-simple-difference-in-differences.html#cb910-9" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">center_time =</span> <span class="fu">as.factor</span>(Quarter_Num <span class="sc">-</span> <span class="dv">3</span>))  </span>
-<span id="cb910-10"><a href="sec-simple-difference-in-differences.html#cb910-10" tabindex="-1"></a><span class="co"># where 3 is the reference period precedes the treatment period</span></span>
-<span id="cb910-11"><a href="sec-simple-difference-in-differences.html#cb910-11" tabindex="-1"></a></span>
-<span id="cb910-12"><a href="sec-simple-difference-in-differences.html#cb910-12" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>California)</span>
-<span id="cb910-13"><a href="sec-simple-difference-in-differences.html#cb910-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;logical&quot;</span></span>
-<span id="cb910-14"><a href="sec-simple-difference-in-differences.html#cb910-14" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>State)</span>
-<span id="cb910-15"><a href="sec-simple-difference-in-differences.html#cb910-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
-<span id="cb910-16"><a href="sec-simple-difference-in-differences.html#cb910-16" tabindex="-1"></a></span>
-<span id="cb910-17"><a href="sec-simple-difference-in-differences.html#cb910-17" tabindex="-1"></a>cali <span class="ot">&lt;-</span> <span class="fu">feols</span>(Rate <span class="sc">~</span> <span class="fu">i</span>(center_time, California, <span class="at">ref =</span> <span class="dv">0</span>) <span class="sc">|</span></span>
-<span id="cb910-18"><a href="sec-simple-difference-in-differences.html#cb910-18" tabindex="-1"></a>                  State <span class="sc">+</span> center_time,</span>
-<span id="cb910-19"><a href="sec-simple-difference-in-differences.html#cb910-19" tabindex="-1"></a>              <span class="at">data =</span> od)</span>
-<span id="cb910-20"><a href="sec-simple-difference-in-differences.html#cb910-20" tabindex="-1"></a></span>
-<span id="cb910-21"><a href="sec-simple-difference-in-differences.html#cb910-21" tabindex="-1"></a><span class="fu">etable</span>(cali)</span>
-<span id="cb910-22"><a href="sec-simple-difference-in-differences.html#cb910-22" tabindex="-1"></a><span class="co">#&gt;                                              cali</span></span>
-<span id="cb910-23"><a href="sec-simple-difference-in-differences.html#cb910-23" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:                              Rate</span></span>
-<span id="cb910-24"><a href="sec-simple-difference-in-differences.html#cb910-24" tabindex="-1"></a><span class="co">#&gt;                                                  </span></span>
-<span id="cb910-25"><a href="sec-simple-difference-in-differences.html#cb910-25" tabindex="-1"></a><span class="co">#&gt; California x center_time = -2    -0.0029 (0.0051)</span></span>
-<span id="cb910-26"><a href="sec-simple-difference-in-differences.html#cb910-26" tabindex="-1"></a><span class="co">#&gt; California x center_time = -1   0.0063** (0.0023)</span></span>
-<span id="cb910-27"><a href="sec-simple-difference-in-differences.html#cb910-27" tabindex="-1"></a><span class="co">#&gt; California x center_time = 1  -0.0216*** (0.0050)</span></span>
-<span id="cb910-28"><a href="sec-simple-difference-in-differences.html#cb910-28" tabindex="-1"></a><span class="co">#&gt; California x center_time = 2  -0.0203*** (0.0045)</span></span>
-<span id="cb910-29"><a href="sec-simple-difference-in-differences.html#cb910-29" tabindex="-1"></a><span class="co">#&gt; California x center_time = 3    -0.0222* (0.0100)</span></span>
-<span id="cb910-30"><a href="sec-simple-difference-in-differences.html#cb910-30" tabindex="-1"></a><span class="co">#&gt; Fixed-Effects:                -------------------</span></span>
-<span id="cb910-31"><a href="sec-simple-difference-in-differences.html#cb910-31" tabindex="-1"></a><span class="co">#&gt; State                                         Yes</span></span>
-<span id="cb910-32"><a href="sec-simple-difference-in-differences.html#cb910-32" tabindex="-1"></a><span class="co">#&gt; center_time                                   Yes</span></span>
-<span id="cb910-33"><a href="sec-simple-difference-in-differences.html#cb910-33" tabindex="-1"></a><span class="co">#&gt; _____________________________ ___________________</span></span>
-<span id="cb910-34"><a href="sec-simple-difference-in-differences.html#cb910-34" tabindex="-1"></a><span class="co">#&gt; S.E.: Clustered                         by: State</span></span>
-<span id="cb910-35"><a href="sec-simple-difference-in-differences.html#cb910-35" tabindex="-1"></a><span class="co">#&gt; Observations                                  162</span></span>
-<span id="cb910-36"><a href="sec-simple-difference-in-differences.html#cb910-36" tabindex="-1"></a><span class="co">#&gt; R2                                        0.97934</span></span>
-<span id="cb910-37"><a href="sec-simple-difference-in-differences.html#cb910-37" tabindex="-1"></a><span class="co">#&gt; Within R2                                 0.00979</span></span>
-<span id="cb910-38"><a href="sec-simple-difference-in-differences.html#cb910-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb910-39"><a href="sec-simple-difference-in-differences.html#cb910-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
-<div class="sourceCode" id="cb911"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb911-1"><a href="sec-simple-difference-in-differences.html#cb911-1" tabindex="-1"></a><span class="fu">iplot</span>(cali, <span class="at">pt.join =</span> T)</span></code></pre></div>
+<div class="sourceCode" id="cb915"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb915-1"><a href="sec-simple-difference-in-differences.html#cb915-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb915-2"><a href="sec-simple-difference-in-differences.html#cb915-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb915-3"><a href="sec-simple-difference-in-differences.html#cb915-3" tabindex="-1"></a></span>
+<span id="cb915-4"><a href="sec-simple-difference-in-differences.html#cb915-4" tabindex="-1"></a>od <span class="ot">&lt;-</span> causaldata<span class="sc">::</span>organ_donations <span class="sc">%&gt;%</span></span>
+<span id="cb915-5"><a href="sec-simple-difference-in-differences.html#cb915-5" tabindex="-1"></a>    </span>
+<span id="cb915-6"><a href="sec-simple-difference-in-differences.html#cb915-6" tabindex="-1"></a>    <span class="co"># Treatment variable</span></span>
+<span id="cb915-7"><a href="sec-simple-difference-in-differences.html#cb915-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">California =</span> State <span class="sc">==</span> <span class="st">&#39;California&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb915-8"><a href="sec-simple-difference-in-differences.html#cb915-8" tabindex="-1"></a>    <span class="co"># centered time variable</span></span>
+<span id="cb915-9"><a href="sec-simple-difference-in-differences.html#cb915-9" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">center_time =</span> <span class="fu">as.factor</span>(Quarter_Num <span class="sc">-</span> <span class="dv">3</span>))  </span>
+<span id="cb915-10"><a href="sec-simple-difference-in-differences.html#cb915-10" tabindex="-1"></a><span class="co"># where 3 is the reference period precedes the treatment period</span></span>
+<span id="cb915-11"><a href="sec-simple-difference-in-differences.html#cb915-11" tabindex="-1"></a></span>
+<span id="cb915-12"><a href="sec-simple-difference-in-differences.html#cb915-12" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>California)</span>
+<span id="cb915-13"><a href="sec-simple-difference-in-differences.html#cb915-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;logical&quot;</span></span>
+<span id="cb915-14"><a href="sec-simple-difference-in-differences.html#cb915-14" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>State)</span>
+<span id="cb915-15"><a href="sec-simple-difference-in-differences.html#cb915-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
+<span id="cb915-16"><a href="sec-simple-difference-in-differences.html#cb915-16" tabindex="-1"></a></span>
+<span id="cb915-17"><a href="sec-simple-difference-in-differences.html#cb915-17" tabindex="-1"></a>cali <span class="ot">&lt;-</span> <span class="fu">feols</span>(Rate <span class="sc">~</span> <span class="fu">i</span>(center_time, California, <span class="at">ref =</span> <span class="dv">0</span>) <span class="sc">|</span></span>
+<span id="cb915-18"><a href="sec-simple-difference-in-differences.html#cb915-18" tabindex="-1"></a>                  State <span class="sc">+</span> center_time,</span>
+<span id="cb915-19"><a href="sec-simple-difference-in-differences.html#cb915-19" tabindex="-1"></a>              <span class="at">data =</span> od)</span>
+<span id="cb915-20"><a href="sec-simple-difference-in-differences.html#cb915-20" tabindex="-1"></a></span>
+<span id="cb915-21"><a href="sec-simple-difference-in-differences.html#cb915-21" tabindex="-1"></a><span class="fu">etable</span>(cali)</span>
+<span id="cb915-22"><a href="sec-simple-difference-in-differences.html#cb915-22" tabindex="-1"></a><span class="co">#&gt;                                           cali</span></span>
+<span id="cb915-23"><a href="sec-simple-difference-in-differences.html#cb915-23" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:                           Rate</span></span>
+<span id="cb915-24"><a href="sec-simple-difference-in-differences.html#cb915-24" tabindex="-1"></a><span class="co">#&gt;                                               </span></span>
+<span id="cb915-25"><a href="sec-simple-difference-in-differences.html#cb915-25" tabindex="-1"></a><span class="co">#&gt; California x center_time = -2 -0.0029 (0.0360)</span></span>
+<span id="cb915-26"><a href="sec-simple-difference-in-differences.html#cb915-26" tabindex="-1"></a><span class="co">#&gt; California x center_time = -1  0.0063 (0.0360)</span></span>
+<span id="cb915-27"><a href="sec-simple-difference-in-differences.html#cb915-27" tabindex="-1"></a><span class="co">#&gt; California x center_time = 1  -0.0216 (0.0360)</span></span>
+<span id="cb915-28"><a href="sec-simple-difference-in-differences.html#cb915-28" tabindex="-1"></a><span class="co">#&gt; California x center_time = 2  -0.0203 (0.0360)</span></span>
+<span id="cb915-29"><a href="sec-simple-difference-in-differences.html#cb915-29" tabindex="-1"></a><span class="co">#&gt; California x center_time = 3  -0.0222 (0.0360)</span></span>
+<span id="cb915-30"><a href="sec-simple-difference-in-differences.html#cb915-30" tabindex="-1"></a><span class="co">#&gt; Fixed-Effects:                ----------------</span></span>
+<span id="cb915-31"><a href="sec-simple-difference-in-differences.html#cb915-31" tabindex="-1"></a><span class="co">#&gt; State                                      Yes</span></span>
+<span id="cb915-32"><a href="sec-simple-difference-in-differences.html#cb915-32" tabindex="-1"></a><span class="co">#&gt; center_time                                Yes</span></span>
+<span id="cb915-33"><a href="sec-simple-difference-in-differences.html#cb915-33" tabindex="-1"></a><span class="co">#&gt; _____________________________ ________________</span></span>
+<span id="cb915-34"><a href="sec-simple-difference-in-differences.html#cb915-34" tabindex="-1"></a><span class="co">#&gt; S.E. type                                  IID</span></span>
+<span id="cb915-35"><a href="sec-simple-difference-in-differences.html#cb915-35" tabindex="-1"></a><span class="co">#&gt; Observations                               162</span></span>
+<span id="cb915-36"><a href="sec-simple-difference-in-differences.html#cb915-36" tabindex="-1"></a><span class="co">#&gt; R2                                     0.97934</span></span>
+<span id="cb915-37"><a href="sec-simple-difference-in-differences.html#cb915-37" tabindex="-1"></a><span class="co">#&gt; Within R2                              0.00979</span></span>
+<span id="cb915-38"><a href="sec-simple-difference-in-differences.html#cb915-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb915-39"><a href="sec-simple-difference-in-differences.html#cb915-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb916"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb916-1"><a href="sec-simple-difference-in-differences.html#cb916-1" tabindex="-1"></a><span class="fu">iplot</span>(cali, <span class="at">pt.join =</span> T)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-9"></span>
 <img src="30-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" alt="Line plot of treatment effect estimates over time centered at the intervention point (time 0). The y-axis represents the effect on rate with confidence intervals, and the x-axis shows relative time periods from −2 to +3. Estimates before the intervention are close to zero, while those after show a negative trend, indicating a drop in the rate. Vertical error bars indicate 95% confidence intervals." width="90%" />
 <p class="caption">
 Figure 2.10: Estimated Effect on Rate Over Time
 </p>
 </div>
-<div class="sourceCode" id="cb912"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb912-1"><a href="sec-simple-difference-in-differences.html#cb912-1" tabindex="-1"></a><span class="fu">coefplot</span>(cali)</span></code></pre></div>
+<div class="sourceCode" id="cb917"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb917-1"><a href="sec-simple-difference-in-differences.html#cb917-1" tabindex="-1"></a><span class="fu">coefplot</span>(cali)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-10"></span>
 <img src="30-dif-in-dif_files/figure-html/unnamed-chunk-10-1.png" alt="Line plot of estimated interaction effects between California and relative time periods from −2 to 3, excluding time 0. The y-axis shows effect estimates with vertical 95% confidence intervals. Pre-intervention estimates hover around zero; post-intervention estimates are negative, indicating a decline in the rate attributable to California-specific policy changes." width="90%" />
 <p class="caption">

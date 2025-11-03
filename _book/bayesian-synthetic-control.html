@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>32.12 Bayesian Synthetic Control | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="32.12 Bayesian Synthetic Control | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1973,43 +1973,43 @@ P(\theta | Y_{\text{obs}}) \propto P(Y_{\text{obs}} | \theta) P(\theta),
 <li><p>Gibbs Sampling for latent factors and regression coefficients.</p></li>
 <li><p>Hamiltonian Monte Carlo (HMC) for high-dimensional posteriors.</p></li>
 </ul>
-<div class="sourceCode" id="cb1003"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1003-1"><a href="bayesian-synthetic-control.html#cb1003-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb1003-2"><a href="bayesian-synthetic-control.html#cb1003-2" tabindex="-1"></a><span class="fu">library</span>(rstan)</span>
-<span id="cb1003-3"><a href="bayesian-synthetic-control.html#cb1003-3" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span>
-<span id="cb1003-4"><a href="bayesian-synthetic-control.html#cb1003-4" tabindex="-1"></a></span>
-<span id="cb1003-5"><a href="bayesian-synthetic-control.html#cb1003-5" tabindex="-1"></a><span class="co"># Define Bayesian SCM model in Stan</span></span>
-<span id="cb1003-6"><a href="bayesian-synthetic-control.html#cb1003-6" tabindex="-1"></a>scm_model <span class="ot">&lt;-</span> <span class="st">&quot;</span></span>
-<span id="cb1003-7"><a href="bayesian-synthetic-control.html#cb1003-7" tabindex="-1"></a><span class="st">data {</span></span>
-<span id="cb1003-8"><a href="bayesian-synthetic-control.html#cb1003-8" tabindex="-1"></a><span class="st">  int&lt;lower=0&gt; N;  // Number of observations</span></span>
-<span id="cb1003-9"><a href="bayesian-synthetic-control.html#cb1003-9" tabindex="-1"></a><span class="st">  int&lt;lower=0&gt; T;  // Time periods</span></span>
-<span id="cb1003-10"><a href="bayesian-synthetic-control.html#cb1003-10" tabindex="-1"></a><span class="st">  matrix[N, T] Y;  // Outcome matrix</span></span>
-<span id="cb1003-11"><a href="bayesian-synthetic-control.html#cb1003-11" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb1003-12"><a href="bayesian-synthetic-control.html#cb1003-12" tabindex="-1"></a><span class="st">parameters {</span></span>
-<span id="cb1003-13"><a href="bayesian-synthetic-control.html#cb1003-13" tabindex="-1"></a><span class="st">  vector[T] f;  // Latent factors</span></span>
-<span id="cb1003-14"><a href="bayesian-synthetic-control.html#cb1003-14" tabindex="-1"></a><span class="st">  vector[N] lambda; // Factor loadings</span></span>
-<span id="cb1003-15"><a href="bayesian-synthetic-control.html#cb1003-15" tabindex="-1"></a><span class="st">  real&lt;lower=0&gt; sigma; // Noise variance</span></span>
-<span id="cb1003-16"><a href="bayesian-synthetic-control.html#cb1003-16" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb1003-17"><a href="bayesian-synthetic-control.html#cb1003-17" tabindex="-1"></a><span class="st">model {</span></span>
-<span id="cb1003-18"><a href="bayesian-synthetic-control.html#cb1003-18" tabindex="-1"></a><span class="st">  // Priors</span></span>
-<span id="cb1003-19"><a href="bayesian-synthetic-control.html#cb1003-19" tabindex="-1"></a><span class="st">  f ~ normal(0, 1);</span></span>
-<span id="cb1003-20"><a href="bayesian-synthetic-control.html#cb1003-20" tabindex="-1"></a><span class="st">  lambda ~ normal(0, 1);</span></span>
-<span id="cb1003-21"><a href="bayesian-synthetic-control.html#cb1003-21" tabindex="-1"></a></span>
-<span id="cb1003-22"><a href="bayesian-synthetic-control.html#cb1003-22" tabindex="-1"></a><span class="st">  // Likelihood</span></span>
-<span id="cb1003-23"><a href="bayesian-synthetic-control.html#cb1003-23" tabindex="-1"></a><span class="st">  for (i in 1:N)</span></span>
-<span id="cb1003-24"><a href="bayesian-synthetic-control.html#cb1003-24" tabindex="-1"></a><span class="st">    Y[i, ] ~ normal(lambda[i] * f, sigma);</span></span>
-<span id="cb1003-25"><a href="bayesian-synthetic-control.html#cb1003-25" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb1003-26"><a href="bayesian-synthetic-control.html#cb1003-26" tabindex="-1"></a><span class="st">&quot;</span></span>
-<span id="cb1003-27"><a href="bayesian-synthetic-control.html#cb1003-27" tabindex="-1"></a></span>
-<span id="cb1003-28"><a href="bayesian-synthetic-control.html#cb1003-28" tabindex="-1"></a><span class="co"># Compile and fit the model</span></span>
-<span id="cb1003-29"><a href="bayesian-synthetic-control.html#cb1003-29" tabindex="-1"></a>fit <span class="ot">&lt;-</span></span>
-<span id="cb1003-30"><a href="bayesian-synthetic-control.html#cb1003-30" tabindex="-1"></a>  <span class="fu">stan</span>(<span class="at">model_code =</span> scm_model, <span class="at">data =</span> <span class="fu">list</span>(</span>
-<span id="cb1003-31"><a href="bayesian-synthetic-control.html#cb1003-31" tabindex="-1"></a>    <span class="at">N =</span> <span class="dv">50</span>,</span>
-<span id="cb1003-32"><a href="bayesian-synthetic-control.html#cb1003-32" tabindex="-1"></a>    <span class="at">T =</span> <span class="dv">20</span>,</span>
-<span id="cb1003-33"><a href="bayesian-synthetic-control.html#cb1003-33" tabindex="-1"></a>    <span class="at">Y =</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">1000</span>), <span class="dv">50</span>, <span class="dv">20</span>)</span>
-<span id="cb1003-34"><a href="bayesian-synthetic-control.html#cb1003-34" tabindex="-1"></a>  ))</span>
-<span id="cb1003-35"><a href="bayesian-synthetic-control.html#cb1003-35" tabindex="-1"></a></span>
-<span id="cb1003-36"><a href="bayesian-synthetic-control.html#cb1003-36" tabindex="-1"></a><span class="co"># Summarize results</span></span>
-<span id="cb1003-37"><a href="bayesian-synthetic-control.html#cb1003-37" tabindex="-1"></a><span class="fu">print</span>(fit)</span></code></pre></div>
+<div class="sourceCode" id="cb1008"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1008-1"><a href="bayesian-synthetic-control.html#cb1008-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb1008-2"><a href="bayesian-synthetic-control.html#cb1008-2" tabindex="-1"></a><span class="fu">library</span>(rstan)</span>
+<span id="cb1008-3"><a href="bayesian-synthetic-control.html#cb1008-3" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span>
+<span id="cb1008-4"><a href="bayesian-synthetic-control.html#cb1008-4" tabindex="-1"></a></span>
+<span id="cb1008-5"><a href="bayesian-synthetic-control.html#cb1008-5" tabindex="-1"></a><span class="co"># Define Bayesian SCM model in Stan</span></span>
+<span id="cb1008-6"><a href="bayesian-synthetic-control.html#cb1008-6" tabindex="-1"></a>scm_model <span class="ot">&lt;-</span> <span class="st">&quot;</span></span>
+<span id="cb1008-7"><a href="bayesian-synthetic-control.html#cb1008-7" tabindex="-1"></a><span class="st">data {</span></span>
+<span id="cb1008-8"><a href="bayesian-synthetic-control.html#cb1008-8" tabindex="-1"></a><span class="st">  int&lt;lower=0&gt; N;  // Number of observations</span></span>
+<span id="cb1008-9"><a href="bayesian-synthetic-control.html#cb1008-9" tabindex="-1"></a><span class="st">  int&lt;lower=0&gt; T;  // Time periods</span></span>
+<span id="cb1008-10"><a href="bayesian-synthetic-control.html#cb1008-10" tabindex="-1"></a><span class="st">  matrix[N, T] Y;  // Outcome matrix</span></span>
+<span id="cb1008-11"><a href="bayesian-synthetic-control.html#cb1008-11" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb1008-12"><a href="bayesian-synthetic-control.html#cb1008-12" tabindex="-1"></a><span class="st">parameters {</span></span>
+<span id="cb1008-13"><a href="bayesian-synthetic-control.html#cb1008-13" tabindex="-1"></a><span class="st">  vector[T] f;  // Latent factors</span></span>
+<span id="cb1008-14"><a href="bayesian-synthetic-control.html#cb1008-14" tabindex="-1"></a><span class="st">  vector[N] lambda; // Factor loadings</span></span>
+<span id="cb1008-15"><a href="bayesian-synthetic-control.html#cb1008-15" tabindex="-1"></a><span class="st">  real&lt;lower=0&gt; sigma; // Noise variance</span></span>
+<span id="cb1008-16"><a href="bayesian-synthetic-control.html#cb1008-16" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb1008-17"><a href="bayesian-synthetic-control.html#cb1008-17" tabindex="-1"></a><span class="st">model {</span></span>
+<span id="cb1008-18"><a href="bayesian-synthetic-control.html#cb1008-18" tabindex="-1"></a><span class="st">  // Priors</span></span>
+<span id="cb1008-19"><a href="bayesian-synthetic-control.html#cb1008-19" tabindex="-1"></a><span class="st">  f ~ normal(0, 1);</span></span>
+<span id="cb1008-20"><a href="bayesian-synthetic-control.html#cb1008-20" tabindex="-1"></a><span class="st">  lambda ~ normal(0, 1);</span></span>
+<span id="cb1008-21"><a href="bayesian-synthetic-control.html#cb1008-21" tabindex="-1"></a></span>
+<span id="cb1008-22"><a href="bayesian-synthetic-control.html#cb1008-22" tabindex="-1"></a><span class="st">  // Likelihood</span></span>
+<span id="cb1008-23"><a href="bayesian-synthetic-control.html#cb1008-23" tabindex="-1"></a><span class="st">  for (i in 1:N)</span></span>
+<span id="cb1008-24"><a href="bayesian-synthetic-control.html#cb1008-24" tabindex="-1"></a><span class="st">    Y[i, ] ~ normal(lambda[i] * f, sigma);</span></span>
+<span id="cb1008-25"><a href="bayesian-synthetic-control.html#cb1008-25" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb1008-26"><a href="bayesian-synthetic-control.html#cb1008-26" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb1008-27"><a href="bayesian-synthetic-control.html#cb1008-27" tabindex="-1"></a></span>
+<span id="cb1008-28"><a href="bayesian-synthetic-control.html#cb1008-28" tabindex="-1"></a><span class="co"># Compile and fit the model</span></span>
+<span id="cb1008-29"><a href="bayesian-synthetic-control.html#cb1008-29" tabindex="-1"></a>fit <span class="ot">&lt;-</span></span>
+<span id="cb1008-30"><a href="bayesian-synthetic-control.html#cb1008-30" tabindex="-1"></a>  <span class="fu">stan</span>(<span class="at">model_code =</span> scm_model, <span class="at">data =</span> <span class="fu">list</span>(</span>
+<span id="cb1008-31"><a href="bayesian-synthetic-control.html#cb1008-31" tabindex="-1"></a>    <span class="at">N =</span> <span class="dv">50</span>,</span>
+<span id="cb1008-32"><a href="bayesian-synthetic-control.html#cb1008-32" tabindex="-1"></a>    <span class="at">T =</span> <span class="dv">20</span>,</span>
+<span id="cb1008-33"><a href="bayesian-synthetic-control.html#cb1008-33" tabindex="-1"></a>    <span class="at">Y =</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">1000</span>), <span class="dv">50</span>, <span class="dv">20</span>)</span>
+<span id="cb1008-34"><a href="bayesian-synthetic-control.html#cb1008-34" tabindex="-1"></a>  ))</span>
+<span id="cb1008-35"><a href="bayesian-synthetic-control.html#cb1008-35" tabindex="-1"></a></span>
+<span id="cb1008-36"><a href="bayesian-synthetic-control.html#cb1008-36" tabindex="-1"></a><span class="co"># Summarize results</span></span>
+<span id="cb1008-37"><a href="bayesian-synthetic-control.html#cb1008-37" tabindex="-1"></a><span class="fu">print</span>(fit)</span></code></pre></div>
 </div>
 </div>
 <h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>

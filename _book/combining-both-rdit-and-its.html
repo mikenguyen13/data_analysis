@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>28.3 Combining both RDiT and ITS | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="28.3 Combining both RDiT and ITS | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1987,21 +1987,21 @@ Y_{t} &amp;= \underbrace{\beta_0
 <li>Showing a two-stage approach where we first estimate a local jump and then adjust the outcome.</li>
 <li>Visualizing the results.</li>
 </ol>
-<div class="sourceCode" id="cb890"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb890-1"><a href="combining-both-rdit-and-its.html#cb890-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb890-2"><a href="combining-both-rdit-and-its.html#cb890-2" tabindex="-1"></a><span class="co"># 0. Libraries</span></span>
-<span id="cb890-3"><a href="combining-both-rdit-and-its.html#cb890-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb890-4"><a href="combining-both-rdit-and-its.html#cb890-4" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;sandwich&quot;</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;sandwich&quot;</span>, <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
-<span id="cb890-5"><a href="combining-both-rdit-and-its.html#cb890-5" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;lmtest&quot;</span>))   <span class="fu">install.packages</span>(<span class="st">&quot;lmtest&quot;</span>,   <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
-<span id="cb890-6"><a href="combining-both-rdit-and-its.html#cb890-6" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb890-7"><a href="combining-both-rdit-and-its.html#cb890-7" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb890-8"><a href="combining-both-rdit-and-its.html#cb890-8" tabindex="-1"></a></span>
-<span id="cb890-9"><a href="combining-both-rdit-and-its.html#cb890-9" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb890-10"><a href="combining-both-rdit-and-its.html#cb890-10" tabindex="-1"></a><span class="co"># 1. Generate Synthetic Data</span></span>
-<span id="cb890-11"><a href="combining-both-rdit-and-its.html#cb890-11" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb890-12"><a href="combining-both-rdit-and-its.html#cb890-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">111</span>)</span>
-<span id="cb890-13"><a href="combining-both-rdit-and-its.html#cb890-13" tabindex="-1"></a>n       <span class="ot">&lt;-</span> <span class="dv">150</span>             <span class="co"># total number of time points</span></span>
-<span id="cb890-14"><a href="combining-both-rdit-and-its.html#cb890-14" tabindex="-1"></a>T_star  <span class="ot">&lt;-</span> <span class="dv">80</span>              <span class="co"># cutoff/intervention time</span></span>
-<span id="cb890-15"><a href="combining-both-rdit-and-its.html#cb890-15" tabindex="-1"></a>t_vals  <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(n)      <span class="co"># time index: 1, 2, ..., n</span></span></code></pre></div>
+<div class="sourceCode" id="cb895"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb895-1"><a href="combining-both-rdit-and-its.html#cb895-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb895-2"><a href="combining-both-rdit-and-its.html#cb895-2" tabindex="-1"></a><span class="co"># 0. Libraries</span></span>
+<span id="cb895-3"><a href="combining-both-rdit-and-its.html#cb895-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb895-4"><a href="combining-both-rdit-and-its.html#cb895-4" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;sandwich&quot;</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;sandwich&quot;</span>, <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
+<span id="cb895-5"><a href="combining-both-rdit-and-its.html#cb895-5" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;lmtest&quot;</span>))   <span class="fu">install.packages</span>(<span class="st">&quot;lmtest&quot;</span>,   <span class="at">quiet=</span><span class="cn">TRUE</span>)</span>
+<span id="cb895-6"><a href="combining-both-rdit-and-its.html#cb895-6" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb895-7"><a href="combining-both-rdit-and-its.html#cb895-7" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb895-8"><a href="combining-both-rdit-and-its.html#cb895-8" tabindex="-1"></a></span>
+<span id="cb895-9"><a href="combining-both-rdit-and-its.html#cb895-9" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb895-10"><a href="combining-both-rdit-and-its.html#cb895-10" tabindex="-1"></a><span class="co"># 1. Generate Synthetic Data</span></span>
+<span id="cb895-11"><a href="combining-both-rdit-and-its.html#cb895-11" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb895-12"><a href="combining-both-rdit-and-its.html#cb895-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">111</span>)</span>
+<span id="cb895-13"><a href="combining-both-rdit-and-its.html#cb895-13" tabindex="-1"></a>n       <span class="ot">&lt;-</span> <span class="dv">150</span>             <span class="co"># total number of time points</span></span>
+<span id="cb895-14"><a href="combining-both-rdit-and-its.html#cb895-14" tabindex="-1"></a>T_star  <span class="ot">&lt;-</span> <span class="dv">80</span>              <span class="co"># cutoff/intervention time</span></span>
+<span id="cb895-15"><a href="combining-both-rdit-and-its.html#cb895-15" tabindex="-1"></a>t_vals  <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(n)      <span class="co"># time index: 1, 2, ..., n</span></span></code></pre></div>
 <p>We’ll create a dataset that has:</p>
 <ul>
 <li><p>Baseline slope (pre-intervention)</p></li>
@@ -2010,8 +2010,8 @@ Y_{t} &amp;= \underbrace{\beta_0
 <li><p>Sustained effect</p></li>
 <li><p>PLUS a local polynomial “extra jump” around <span class="math inline">\(T^* \pm h=5\)</span> (RDiT style)</p></li>
 </ul>
-<div class="sourceCode" id="cb891"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb891-1"><a href="combining-both-rdit-and-its.html#cb891-1" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="dv">5</span>  <span class="co"># bandwidth for local discontinuity</span></span>
-<span id="cb891-2"><a href="combining-both-rdit-and-its.html#cb891-2" tabindex="-1"></a>within_h <span class="ot">&lt;-</span> <span class="fu">abs</span>(t_vals <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h  <span class="co"># indicator for local region</span></span></code></pre></div>
+<div class="sourceCode" id="cb896"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb896-1"><a href="combining-both-rdit-and-its.html#cb896-1" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="dv">5</span>  <span class="co"># bandwidth for local discontinuity</span></span>
+<span id="cb896-2"><a href="combining-both-rdit-and-its.html#cb896-2" tabindex="-1"></a>within_h <span class="ot">&lt;-</span> <span class="fu">abs</span>(t_vals <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h  <span class="co"># indicator for local region</span></span></code></pre></div>
 <p>Create outcome <span class="math inline">\(Y\)</span> with:</p>
 <ul>
 <li><p>baseline slope: <span class="math inline">\(0.3 * t\)</span></p></li>
@@ -2021,148 +2021,148 @@ Y_{t} &amp;= \underbrace{\beta_0
 <li><p>local polynomial “extra jump” in the region <span class="math inline">\([T^* \pm h]\)</span>: <span class="math inline">\((t - T^*) * 2\)</span> only active within <span class="math inline">\(\pm h\)</span> of <span class="math inline">\(T^*\)</span></p></li>
 <li><p>random noise</p></li>
 </ul>
-<div class="sourceCode" id="cb892"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb892-1"><a href="combining-both-rdit-and-its.html#cb892-1" tabindex="-1"></a></span>
-<span id="cb892-2"><a href="combining-both-rdit-and-its.html#cb892-2" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fl">0.3</span> <span class="sc">*</span> t_vals <span class="sc">+</span>                                        <span class="co"># baseline slope</span></span>
-<span id="cb892-3"><a href="combining-both-rdit-and-its.html#cb892-3" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="dv">5</span>, <span class="dv">0</span>) <span class="sc">+</span>                      <span class="co"># immediate jump</span></span>
-<span id="cb892-4"><a href="combining-both-rdit-and-its.html#cb892-4" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="fl">0.2</span><span class="sc">*</span>(t_vals <span class="sc">-</span> T_star), <span class="dv">0</span>) <span class="sc">+</span>  <span class="co"># slope change</span></span>
-<span id="cb892-5"><a href="combining-both-rdit-and-its.html#cb892-5" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="fl">0.1</span><span class="sc">*</span>(t_vals <span class="sc">-</span> T_star), <span class="dv">0</span>) <span class="sc">+</span>  <span class="co"># sustained effect</span></span>
-<span id="cb892-6"><a href="combining-both-rdit-and-its.html#cb892-6" tabindex="-1"></a>     <span class="fu">ifelse</span>(within_h, <span class="dv">2</span><span class="sc">*</span>(t_vals <span class="sc">-</span> T_star), <span class="dv">0</span>) <span class="sc">+</span>            <span class="co"># local polynomial jump</span></span>
-<span id="cb892-7"><a href="combining-both-rdit-and-its.html#cb892-7" tabindex="-1"></a>     <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)                                        <span class="co"># noise</span></span>
-<span id="cb892-8"><a href="combining-both-rdit-and-its.html#cb892-8" tabindex="-1"></a></span>
-<span id="cb892-9"><a href="combining-both-rdit-and-its.html#cb892-9" tabindex="-1"></a><span class="co"># Put it in a data frame</span></span>
-<span id="cb892-10"><a href="combining-both-rdit-and-its.html#cb892-10" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> t_vals, <span class="at">Y =</span> Y)</span>
-<span id="cb892-11"><a href="combining-both-rdit-and-its.html#cb892-11" tabindex="-1"></a></span>
-<span id="cb892-12"><a href="combining-both-rdit-and-its.html#cb892-12" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb892-13"><a href="combining-both-rdit-and-its.html#cb892-13" tabindex="-1"></a><span class="co"># 2. Define Variables for a Single Unified Model</span></span>
-<span id="cb892-14"><a href="combining-both-rdit-and-its.html#cb892-14" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb892-15"><a href="combining-both-rdit-and-its.html#cb892-15" tabindex="-1"></a>df<span class="sc">$</span>D   <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>t <span class="sc">&gt;=</span> T_star, <span class="dv">1</span>, <span class="dv">0</span>)          <span class="co"># intervention dummy</span></span>
-<span id="cb892-16"><a href="combining-both-rdit-and-its.html#cb892-16" tabindex="-1"></a>df<span class="sc">$</span>T_c <span class="ot">&lt;-</span> df<span class="sc">$</span>t                                 <span class="co"># rename time to T_c for clarity</span></span>
-<span id="cb892-17"><a href="combining-both-rdit-and-its.html#cb892-17" tabindex="-1"></a>df<span class="sc">$</span>P   <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>t <span class="sc">&gt;=</span> T_star, df<span class="sc">$</span>t <span class="sc">-</span> T_star, <span class="dv">0</span>)  <span class="co"># time since intervention</span></span>
-<span id="cb892-18"><a href="combining-both-rdit-and-its.html#cb892-18" tabindex="-1"></a></span>
-<span id="cb892-19"><a href="combining-both-rdit-and-its.html#cb892-19" tabindex="-1"></a><span class="co"># Indicator for local region (± h around T_star)</span></span>
-<span id="cb892-20"><a href="combining-both-rdit-and-its.html#cb892-20" tabindex="-1"></a>df<span class="sc">$</span>local_indicator <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">abs</span>(df<span class="sc">$</span>t <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb892-21"><a href="combining-both-rdit-and-its.html#cb892-21" tabindex="-1"></a></span>
-<span id="cb892-22"><a href="combining-both-rdit-and-its.html#cb892-22" tabindex="-1"></a><span class="co"># Center time around T_star for local polynomial</span></span>
-<span id="cb892-23"><a href="combining-both-rdit-and-its.html#cb892-23" tabindex="-1"></a>df<span class="sc">$</span>t_centered <span class="ot">&lt;-</span> df<span class="sc">$</span>t <span class="sc">-</span> T_star</span>
-<span id="cb892-24"><a href="combining-both-rdit-and-its.html#cb892-24" tabindex="-1"></a></span>
-<span id="cb892-25"><a href="combining-both-rdit-and-its.html#cb892-25" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb892-26"><a href="combining-both-rdit-and-its.html#cb892-26" tabindex="-1"></a><span class="co"># 3. Fit the Unified &quot;Augmented ITS + RDiT&quot; Model</span></span>
-<span id="cb892-27"><a href="combining-both-rdit-and-its.html#cb892-27" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb892-28"><a href="combining-both-rdit-and-its.html#cb892-28" tabindex="-1"></a><span class="co"># Y_t = beta_0</span></span>
-<span id="cb892-29"><a href="combining-both-rdit-and-its.html#cb892-29" tabindex="-1"></a><span class="co">#       + beta_1 * T_c</span></span>
-<span id="cb892-30"><a href="combining-both-rdit-and-its.html#cb892-30" tabindex="-1"></a><span class="co">#       + beta_2 * D</span></span>
-<span id="cb892-31"><a href="combining-both-rdit-and-its.html#cb892-31" tabindex="-1"></a><span class="co">#       + beta_3 * (T_c * D)</span></span>
-<span id="cb892-32"><a href="combining-both-rdit-and-its.html#cb892-32" tabindex="-1"></a><span class="co">#       + beta_4 * P</span></span>
-<span id="cb892-33"><a href="combining-both-rdit-and-its.html#cb892-33" tabindex="-1"></a><span class="co">#       + alpha_1 * (t_centered)* local_indicator</span></span>
-<span id="cb892-34"><a href="combining-both-rdit-and-its.html#cb892-34" tabindex="-1"></a><span class="co">#       + alpha_2 * (t_centered)* D * local_indicator</span></span>
-<span id="cb892-35"><a href="combining-both-rdit-and-its.html#cb892-35" tabindex="-1"></a><span class="co">#       + epsilon_t</span></span>
-<span id="cb892-36"><a href="combining-both-rdit-and-its.html#cb892-36" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb892-37"><a href="combining-both-rdit-and-its.html#cb892-37" tabindex="-1"></a>mod_hybrid <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
-<span id="cb892-38"><a href="combining-both-rdit-and-its.html#cb892-38" tabindex="-1"></a>  Y <span class="sc">~</span> T_c <span class="sc">+</span> D <span class="sc">+</span> <span class="fu">I</span>(T_c<span class="sc">*</span>D) <span class="sc">+</span> P <span class="sc">+</span></span>
-<span id="cb892-39"><a href="combining-both-rdit-and-its.html#cb892-39" tabindex="-1"></a>       <span class="fu">I</span>(t_centered <span class="sc">*</span> local_indicator) <span class="sc">+</span></span>
-<span id="cb892-40"><a href="combining-both-rdit-and-its.html#cb892-40" tabindex="-1"></a>       <span class="fu">I</span>(t_centered <span class="sc">*</span> D <span class="sc">*</span> local_indicator),</span>
-<span id="cb892-41"><a href="combining-both-rdit-and-its.html#cb892-41" tabindex="-1"></a>  <span class="at">data =</span> df</span>
-<span id="cb892-42"><a href="combining-both-rdit-and-its.html#cb892-42" tabindex="-1"></a>)</span>
-<span id="cb892-43"><a href="combining-both-rdit-and-its.html#cb892-43" tabindex="-1"></a></span>
-<span id="cb892-44"><a href="combining-both-rdit-and-its.html#cb892-44" tabindex="-1"></a><span class="co"># Robust standard errors</span></span>
-<span id="cb892-45"><a href="combining-both-rdit-and-its.html#cb892-45" tabindex="-1"></a>res_hybrid <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_hybrid, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_hybrid, <span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>))</span>
-<span id="cb892-46"><a href="combining-both-rdit-and-its.html#cb892-46" tabindex="-1"></a></span>
-<span id="cb892-47"><a href="combining-both-rdit-and-its.html#cb892-47" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb892-48"><a href="combining-both-rdit-and-its.html#cb892-48" tabindex="-1"></a><span class="co"># 4. A Two-Stage Approach for Illustrative Purposes</span></span>
-<span id="cb892-49"><a href="combining-both-rdit-and-its.html#cb892-49" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb892-50"><a href="combining-both-rdit-and-its.html#cb892-50" tabindex="-1"></a><span class="co"># STAGE 1: Local RDiT to estimate extra local jump around T_star ± h</span></span>
-<span id="cb892-51"><a href="combining-both-rdit-and-its.html#cb892-51" tabindex="-1"></a>df_local <span class="ot">&lt;-</span> <span class="fu">subset</span>(df, <span class="fu">abs</span>(t <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h)</span>
-<span id="cb892-52"><a href="combining-both-rdit-and-its.html#cb892-52" tabindex="-1"></a>mod_local <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered<span class="sc">*</span>D, <span class="at">data =</span> df_local)</span>
-<span id="cb892-53"><a href="combining-both-rdit-and-its.html#cb892-53" tabindex="-1"></a></span>
-<span id="cb892-54"><a href="combining-both-rdit-and-its.html#cb892-54" tabindex="-1"></a><span class="co"># estimate of the jump at T_star from local model</span></span>
-<span id="cb892-55"><a href="combining-both-rdit-and-its.html#cb892-55" tabindex="-1"></a>tau_hat <span class="ot">&lt;-</span> <span class="fu">coef</span>(mod_local)[<span class="st">&quot;D&quot;</span>]  </span>
-<span id="cb892-56"><a href="combining-both-rdit-and-its.html#cb892-56" tabindex="-1"></a></span>
-<span id="cb892-57"><a href="combining-both-rdit-and-its.html#cb892-57" tabindex="-1"></a><span class="co"># Adjust outcome by subtracting local jump * D</span></span>
-<span id="cb892-58"><a href="combining-both-rdit-and-its.html#cb892-58" tabindex="-1"></a>df<span class="sc">$</span>Y_star <span class="ot">&lt;-</span> df<span class="sc">$</span>Y <span class="sc">-</span> tau_hat <span class="sc">*</span> df<span class="sc">$</span>D</span>
-<span id="cb892-59"><a href="combining-both-rdit-and-its.html#cb892-59" tabindex="-1"></a></span>
-<span id="cb892-60"><a href="combining-both-rdit-and-its.html#cb892-60" tabindex="-1"></a><span class="co"># STAGE 2: Fit a standard ITS on the adjusted outcome Y_star</span></span>
-<span id="cb892-61"><a href="combining-both-rdit-and-its.html#cb892-61" tabindex="-1"></a>mod_its_adjusted <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y_star <span class="sc">~</span> T_c <span class="sc">+</span> D <span class="sc">+</span> <span class="fu">I</span>(T_c<span class="sc">*</span>D) <span class="sc">+</span> P, <span class="at">data =</span> df)</span>
-<span id="cb892-62"><a href="combining-both-rdit-and-its.html#cb892-62" tabindex="-1"></a>res_its_adjusted <span class="ot">&lt;-</span></span>
-<span id="cb892-63"><a href="combining-both-rdit-and-its.html#cb892-63" tabindex="-1"></a>    <span class="fu">coeftest</span>(mod_its_adjusted, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_its_adjusted, <span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb893"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb893-1"><a href="combining-both-rdit-and-its.html#cb893-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb893-2"><a href="combining-both-rdit-and-its.html#cb893-2" tabindex="-1"></a><span class="co"># 5. Plot the Data and Fitted Lines</span></span>
-<span id="cb893-3"><a href="combining-both-rdit-and-its.html#cb893-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
-<span id="cb893-4"><a href="combining-both-rdit-and-its.html#cb893-4" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb893-5"><a href="combining-both-rdit-and-its.html#cb893-5" tabindex="-1"></a></span>
-<span id="cb893-6"><a href="combining-both-rdit-and-its.html#cb893-6" tabindex="-1"></a><span class="co"># Plot 1: Observed data vs. fitted &quot;Hybrid Model&quot;</span></span>
-<span id="cb893-7"><a href="combining-both-rdit-and-its.html#cb893-7" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb893-8"><a href="combining-both-rdit-and-its.html#cb893-8" tabindex="-1"></a>  df<span class="sc">$</span>t,</span>
-<span id="cb893-9"><a href="combining-both-rdit-and-its.html#cb893-9" tabindex="-1"></a>  df<span class="sc">$</span>Y,</span>
-<span id="cb893-10"><a href="combining-both-rdit-and-its.html#cb893-10" tabindex="-1"></a>  <span class="at">pch =</span> <span class="dv">16</span>,</span>
-<span id="cb893-11"><a href="combining-both-rdit-and-its.html#cb893-11" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;Time (t)&quot;</span>,</span>
-<span id="cb893-12"><a href="combining-both-rdit-and-its.html#cb893-12" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Outcome (Y)&quot;</span>,</span>
-<span id="cb893-13"><a href="combining-both-rdit-and-its.html#cb893-13" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">&quot;Hybrid RDiT+ITS Model&quot;</span></span>
-<span id="cb893-14"><a href="combining-both-rdit-and-its.html#cb893-14" tabindex="-1"></a>)</span>
-<span id="cb893-15"><a href="combining-both-rdit-and-its.html#cb893-15" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> T_star, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)  <span class="co"># cutoff</span></span>
-<span id="cb893-16"><a href="combining-both-rdit-and-its.html#cb893-16" tabindex="-1"></a><span class="fu">lines</span>(df<span class="sc">$</span>t,</span>
-<span id="cb893-17"><a href="combining-both-rdit-and-its.html#cb893-17" tabindex="-1"></a>      <span class="fu">predict</span>(mod_hybrid),</span>
-<span id="cb893-18"><a href="combining-both-rdit-and-its.html#cb893-18" tabindex="-1"></a>      <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb893-19"><a href="combining-both-rdit-and-its.html#cb893-19" tabindex="-1"></a>      <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb893-20"><a href="combining-both-rdit-and-its.html#cb893-20" tabindex="-1"></a></span>
-<span id="cb893-21"><a href="combining-both-rdit-and-its.html#cb893-21" tabindex="-1"></a><span class="co"># Plot 2: Adjusted Data (Two-Stage) vs. Fitted ITS</span></span>
-<span id="cb893-22"><a href="combining-both-rdit-and-its.html#cb893-22" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb893-23"><a href="combining-both-rdit-and-its.html#cb893-23" tabindex="-1"></a>  df<span class="sc">$</span>t,</span>
-<span id="cb893-24"><a href="combining-both-rdit-and-its.html#cb893-24" tabindex="-1"></a>  df<span class="sc">$</span>Y_star,</span>
-<span id="cb893-25"><a href="combining-both-rdit-and-its.html#cb893-25" tabindex="-1"></a>  <span class="at">pch =</span> <span class="dv">16</span>,</span>
-<span id="cb893-26"><a href="combining-both-rdit-and-its.html#cb893-26" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;Time (t)&quot;</span>,</span>
-<span id="cb893-27"><a href="combining-both-rdit-and-its.html#cb893-27" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Outcome (Y*)&quot;</span>,</span>
-<span id="cb893-28"><a href="combining-both-rdit-and-its.html#cb893-28" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">&quot;Two-Stage Approach: Adjusted Y*&quot;</span></span>
-<span id="cb893-29"><a href="combining-both-rdit-and-its.html#cb893-29" tabindex="-1"></a>)</span>
-<span id="cb893-30"><a href="combining-both-rdit-and-its.html#cb893-30" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> T_star, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
-<span id="cb893-31"><a href="combining-both-rdit-and-its.html#cb893-31" tabindex="-1"></a><span class="fu">lines</span>(df<span class="sc">$</span>t,</span>
-<span id="cb893-32"><a href="combining-both-rdit-and-its.html#cb893-32" tabindex="-1"></a>      <span class="fu">predict</span>(mod_its_adjusted),</span>
-<span id="cb893-33"><a href="combining-both-rdit-and-its.html#cb893-33" tabindex="-1"></a>      <span class="at">col =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb893-34"><a href="combining-both-rdit-and-its.html#cb893-34" tabindex="-1"></a>      <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb897"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb897-1"><a href="combining-both-rdit-and-its.html#cb897-1" tabindex="-1"></a></span>
+<span id="cb897-2"><a href="combining-both-rdit-and-its.html#cb897-2" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fl">0.3</span> <span class="sc">*</span> t_vals <span class="sc">+</span>                                        <span class="co"># baseline slope</span></span>
+<span id="cb897-3"><a href="combining-both-rdit-and-its.html#cb897-3" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="dv">5</span>, <span class="dv">0</span>) <span class="sc">+</span>                      <span class="co"># immediate jump</span></span>
+<span id="cb897-4"><a href="combining-both-rdit-and-its.html#cb897-4" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="fl">0.2</span><span class="sc">*</span>(t_vals <span class="sc">-</span> T_star), <span class="dv">0</span>) <span class="sc">+</span>  <span class="co"># slope change</span></span>
+<span id="cb897-5"><a href="combining-both-rdit-and-its.html#cb897-5" tabindex="-1"></a>     <span class="fu">ifelse</span>(t_vals <span class="sc">&gt;=</span> T_star, <span class="fl">0.1</span><span class="sc">*</span>(t_vals <span class="sc">-</span> T_star), <span class="dv">0</span>) <span class="sc">+</span>  <span class="co"># sustained effect</span></span>
+<span id="cb897-6"><a href="combining-both-rdit-and-its.html#cb897-6" tabindex="-1"></a>     <span class="fu">ifelse</span>(within_h, <span class="dv">2</span><span class="sc">*</span>(t_vals <span class="sc">-</span> T_star), <span class="dv">0</span>) <span class="sc">+</span>            <span class="co"># local polynomial jump</span></span>
+<span id="cb897-7"><a href="combining-both-rdit-and-its.html#cb897-7" tabindex="-1"></a>     <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">2</span>)                                        <span class="co"># noise</span></span>
+<span id="cb897-8"><a href="combining-both-rdit-and-its.html#cb897-8" tabindex="-1"></a></span>
+<span id="cb897-9"><a href="combining-both-rdit-and-its.html#cb897-9" tabindex="-1"></a><span class="co"># Put it in a data frame</span></span>
+<span id="cb897-10"><a href="combining-both-rdit-and-its.html#cb897-10" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> t_vals, <span class="at">Y =</span> Y)</span>
+<span id="cb897-11"><a href="combining-both-rdit-and-its.html#cb897-11" tabindex="-1"></a></span>
+<span id="cb897-12"><a href="combining-both-rdit-and-its.html#cb897-12" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb897-13"><a href="combining-both-rdit-and-its.html#cb897-13" tabindex="-1"></a><span class="co"># 2. Define Variables for a Single Unified Model</span></span>
+<span id="cb897-14"><a href="combining-both-rdit-and-its.html#cb897-14" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb897-15"><a href="combining-both-rdit-and-its.html#cb897-15" tabindex="-1"></a>df<span class="sc">$</span>D   <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>t <span class="sc">&gt;=</span> T_star, <span class="dv">1</span>, <span class="dv">0</span>)          <span class="co"># intervention dummy</span></span>
+<span id="cb897-16"><a href="combining-both-rdit-and-its.html#cb897-16" tabindex="-1"></a>df<span class="sc">$</span>T_c <span class="ot">&lt;-</span> df<span class="sc">$</span>t                                 <span class="co"># rename time to T_c for clarity</span></span>
+<span id="cb897-17"><a href="combining-both-rdit-and-its.html#cb897-17" tabindex="-1"></a>df<span class="sc">$</span>P   <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>t <span class="sc">&gt;=</span> T_star, df<span class="sc">$</span>t <span class="sc">-</span> T_star, <span class="dv">0</span>)  <span class="co"># time since intervention</span></span>
+<span id="cb897-18"><a href="combining-both-rdit-and-its.html#cb897-18" tabindex="-1"></a></span>
+<span id="cb897-19"><a href="combining-both-rdit-and-its.html#cb897-19" tabindex="-1"></a><span class="co"># Indicator for local region (± h around T_star)</span></span>
+<span id="cb897-20"><a href="combining-both-rdit-and-its.html#cb897-20" tabindex="-1"></a>df<span class="sc">$</span>local_indicator <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">abs</span>(df<span class="sc">$</span>t <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb897-21"><a href="combining-both-rdit-and-its.html#cb897-21" tabindex="-1"></a></span>
+<span id="cb897-22"><a href="combining-both-rdit-and-its.html#cb897-22" tabindex="-1"></a><span class="co"># Center time around T_star for local polynomial</span></span>
+<span id="cb897-23"><a href="combining-both-rdit-and-its.html#cb897-23" tabindex="-1"></a>df<span class="sc">$</span>t_centered <span class="ot">&lt;-</span> df<span class="sc">$</span>t <span class="sc">-</span> T_star</span>
+<span id="cb897-24"><a href="combining-both-rdit-and-its.html#cb897-24" tabindex="-1"></a></span>
+<span id="cb897-25"><a href="combining-both-rdit-and-its.html#cb897-25" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb897-26"><a href="combining-both-rdit-and-its.html#cb897-26" tabindex="-1"></a><span class="co"># 3. Fit the Unified &quot;Augmented ITS + RDiT&quot; Model</span></span>
+<span id="cb897-27"><a href="combining-both-rdit-and-its.html#cb897-27" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb897-28"><a href="combining-both-rdit-and-its.html#cb897-28" tabindex="-1"></a><span class="co"># Y_t = beta_0</span></span>
+<span id="cb897-29"><a href="combining-both-rdit-and-its.html#cb897-29" tabindex="-1"></a><span class="co">#       + beta_1 * T_c</span></span>
+<span id="cb897-30"><a href="combining-both-rdit-and-its.html#cb897-30" tabindex="-1"></a><span class="co">#       + beta_2 * D</span></span>
+<span id="cb897-31"><a href="combining-both-rdit-and-its.html#cb897-31" tabindex="-1"></a><span class="co">#       + beta_3 * (T_c * D)</span></span>
+<span id="cb897-32"><a href="combining-both-rdit-and-its.html#cb897-32" tabindex="-1"></a><span class="co">#       + beta_4 * P</span></span>
+<span id="cb897-33"><a href="combining-both-rdit-and-its.html#cb897-33" tabindex="-1"></a><span class="co">#       + alpha_1 * (t_centered)* local_indicator</span></span>
+<span id="cb897-34"><a href="combining-both-rdit-and-its.html#cb897-34" tabindex="-1"></a><span class="co">#       + alpha_2 * (t_centered)* D * local_indicator</span></span>
+<span id="cb897-35"><a href="combining-both-rdit-and-its.html#cb897-35" tabindex="-1"></a><span class="co">#       + epsilon_t</span></span>
+<span id="cb897-36"><a href="combining-both-rdit-and-its.html#cb897-36" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb897-37"><a href="combining-both-rdit-and-its.html#cb897-37" tabindex="-1"></a>mod_hybrid <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
+<span id="cb897-38"><a href="combining-both-rdit-and-its.html#cb897-38" tabindex="-1"></a>  Y <span class="sc">~</span> T_c <span class="sc">+</span> D <span class="sc">+</span> <span class="fu">I</span>(T_c<span class="sc">*</span>D) <span class="sc">+</span> P <span class="sc">+</span></span>
+<span id="cb897-39"><a href="combining-both-rdit-and-its.html#cb897-39" tabindex="-1"></a>       <span class="fu">I</span>(t_centered <span class="sc">*</span> local_indicator) <span class="sc">+</span></span>
+<span id="cb897-40"><a href="combining-both-rdit-and-its.html#cb897-40" tabindex="-1"></a>       <span class="fu">I</span>(t_centered <span class="sc">*</span> D <span class="sc">*</span> local_indicator),</span>
+<span id="cb897-41"><a href="combining-both-rdit-and-its.html#cb897-41" tabindex="-1"></a>  <span class="at">data =</span> df</span>
+<span id="cb897-42"><a href="combining-both-rdit-and-its.html#cb897-42" tabindex="-1"></a>)</span>
+<span id="cb897-43"><a href="combining-both-rdit-and-its.html#cb897-43" tabindex="-1"></a></span>
+<span id="cb897-44"><a href="combining-both-rdit-and-its.html#cb897-44" tabindex="-1"></a><span class="co"># Robust standard errors</span></span>
+<span id="cb897-45"><a href="combining-both-rdit-and-its.html#cb897-45" tabindex="-1"></a>res_hybrid <span class="ot">&lt;-</span> <span class="fu">coeftest</span>(mod_hybrid, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_hybrid, <span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>))</span>
+<span id="cb897-46"><a href="combining-both-rdit-and-its.html#cb897-46" tabindex="-1"></a></span>
+<span id="cb897-47"><a href="combining-both-rdit-and-its.html#cb897-47" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb897-48"><a href="combining-both-rdit-and-its.html#cb897-48" tabindex="-1"></a><span class="co"># 4. A Two-Stage Approach for Illustrative Purposes</span></span>
+<span id="cb897-49"><a href="combining-both-rdit-and-its.html#cb897-49" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb897-50"><a href="combining-both-rdit-and-its.html#cb897-50" tabindex="-1"></a><span class="co"># STAGE 1: Local RDiT to estimate extra local jump around T_star ± h</span></span>
+<span id="cb897-51"><a href="combining-both-rdit-and-its.html#cb897-51" tabindex="-1"></a>df_local <span class="ot">&lt;-</span> <span class="fu">subset</span>(df, <span class="fu">abs</span>(t <span class="sc">-</span> T_star) <span class="sc">&lt;</span> h)</span>
+<span id="cb897-52"><a href="combining-both-rdit-and-its.html#cb897-52" tabindex="-1"></a>mod_local <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> t_centered<span class="sc">*</span>D, <span class="at">data =</span> df_local)</span>
+<span id="cb897-53"><a href="combining-both-rdit-and-its.html#cb897-53" tabindex="-1"></a></span>
+<span id="cb897-54"><a href="combining-both-rdit-and-its.html#cb897-54" tabindex="-1"></a><span class="co"># estimate of the jump at T_star from local model</span></span>
+<span id="cb897-55"><a href="combining-both-rdit-and-its.html#cb897-55" tabindex="-1"></a>tau_hat <span class="ot">&lt;-</span> <span class="fu">coef</span>(mod_local)[<span class="st">&quot;D&quot;</span>]  </span>
+<span id="cb897-56"><a href="combining-both-rdit-and-its.html#cb897-56" tabindex="-1"></a></span>
+<span id="cb897-57"><a href="combining-both-rdit-and-its.html#cb897-57" tabindex="-1"></a><span class="co"># Adjust outcome by subtracting local jump * D</span></span>
+<span id="cb897-58"><a href="combining-both-rdit-and-its.html#cb897-58" tabindex="-1"></a>df<span class="sc">$</span>Y_star <span class="ot">&lt;-</span> df<span class="sc">$</span>Y <span class="sc">-</span> tau_hat <span class="sc">*</span> df<span class="sc">$</span>D</span>
+<span id="cb897-59"><a href="combining-both-rdit-and-its.html#cb897-59" tabindex="-1"></a></span>
+<span id="cb897-60"><a href="combining-both-rdit-and-its.html#cb897-60" tabindex="-1"></a><span class="co"># STAGE 2: Fit a standard ITS on the adjusted outcome Y_star</span></span>
+<span id="cb897-61"><a href="combining-both-rdit-and-its.html#cb897-61" tabindex="-1"></a>mod_its_adjusted <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y_star <span class="sc">~</span> T_c <span class="sc">+</span> D <span class="sc">+</span> <span class="fu">I</span>(T_c<span class="sc">*</span>D) <span class="sc">+</span> P, <span class="at">data =</span> df)</span>
+<span id="cb897-62"><a href="combining-both-rdit-and-its.html#cb897-62" tabindex="-1"></a>res_its_adjusted <span class="ot">&lt;-</span></span>
+<span id="cb897-63"><a href="combining-both-rdit-and-its.html#cb897-63" tabindex="-1"></a>    <span class="fu">coeftest</span>(mod_its_adjusted, <span class="at">vcov =</span> <span class="fu">vcovHC</span>(mod_its_adjusted, <span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb898"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb898-1"><a href="combining-both-rdit-and-its.html#cb898-1" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb898-2"><a href="combining-both-rdit-and-its.html#cb898-2" tabindex="-1"></a><span class="co"># 5. Plot the Data and Fitted Lines</span></span>
+<span id="cb898-3"><a href="combining-both-rdit-and-its.html#cb898-3" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------</span></span>
+<span id="cb898-4"><a href="combining-both-rdit-and-its.html#cb898-4" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb898-5"><a href="combining-both-rdit-and-its.html#cb898-5" tabindex="-1"></a></span>
+<span id="cb898-6"><a href="combining-both-rdit-and-its.html#cb898-6" tabindex="-1"></a><span class="co"># Plot 1: Observed data vs. fitted &quot;Hybrid Model&quot;</span></span>
+<span id="cb898-7"><a href="combining-both-rdit-and-its.html#cb898-7" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb898-8"><a href="combining-both-rdit-and-its.html#cb898-8" tabindex="-1"></a>  df<span class="sc">$</span>t,</span>
+<span id="cb898-9"><a href="combining-both-rdit-and-its.html#cb898-9" tabindex="-1"></a>  df<span class="sc">$</span>Y,</span>
+<span id="cb898-10"><a href="combining-both-rdit-and-its.html#cb898-10" tabindex="-1"></a>  <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb898-11"><a href="combining-both-rdit-and-its.html#cb898-11" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;Time (t)&quot;</span>,</span>
+<span id="cb898-12"><a href="combining-both-rdit-and-its.html#cb898-12" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Outcome (Y)&quot;</span>,</span>
+<span id="cb898-13"><a href="combining-both-rdit-and-its.html#cb898-13" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">&quot;Hybrid RDiT+ITS Model&quot;</span></span>
+<span id="cb898-14"><a href="combining-both-rdit-and-its.html#cb898-14" tabindex="-1"></a>)</span>
+<span id="cb898-15"><a href="combining-both-rdit-and-its.html#cb898-15" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> T_star, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)  <span class="co"># cutoff</span></span>
+<span id="cb898-16"><a href="combining-both-rdit-and-its.html#cb898-16" tabindex="-1"></a><span class="fu">lines</span>(df<span class="sc">$</span>t,</span>
+<span id="cb898-17"><a href="combining-both-rdit-and-its.html#cb898-17" tabindex="-1"></a>      <span class="fu">predict</span>(mod_hybrid),</span>
+<span id="cb898-18"><a href="combining-both-rdit-and-its.html#cb898-18" tabindex="-1"></a>      <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb898-19"><a href="combining-both-rdit-and-its.html#cb898-19" tabindex="-1"></a>      <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb898-20"><a href="combining-both-rdit-and-its.html#cb898-20" tabindex="-1"></a></span>
+<span id="cb898-21"><a href="combining-both-rdit-and-its.html#cb898-21" tabindex="-1"></a><span class="co"># Plot 2: Adjusted Data (Two-Stage) vs. Fitted ITS</span></span>
+<span id="cb898-22"><a href="combining-both-rdit-and-its.html#cb898-22" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb898-23"><a href="combining-both-rdit-and-its.html#cb898-23" tabindex="-1"></a>  df<span class="sc">$</span>t,</span>
+<span id="cb898-24"><a href="combining-both-rdit-and-its.html#cb898-24" tabindex="-1"></a>  df<span class="sc">$</span>Y_star,</span>
+<span id="cb898-25"><a href="combining-both-rdit-and-its.html#cb898-25" tabindex="-1"></a>  <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb898-26"><a href="combining-both-rdit-and-its.html#cb898-26" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;Time (t)&quot;</span>,</span>
+<span id="cb898-27"><a href="combining-both-rdit-and-its.html#cb898-27" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Outcome (Y*)&quot;</span>,</span>
+<span id="cb898-28"><a href="combining-both-rdit-and-its.html#cb898-28" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">&quot;Two-Stage Approach: Adjusted Y*&quot;</span></span>
+<span id="cb898-29"><a href="combining-both-rdit-and-its.html#cb898-29" tabindex="-1"></a>)</span>
+<span id="cb898-30"><a href="combining-both-rdit-and-its.html#cb898-30" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> T_star, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb898-31"><a href="combining-both-rdit-and-its.html#cb898-31" tabindex="-1"></a><span class="fu">lines</span>(df<span class="sc">$</span>t,</span>
+<span id="cb898-32"><a href="combining-both-rdit-and-its.html#cb898-32" tabindex="-1"></a>      <span class="fu">predict</span>(mod_its_adjusted),</span>
+<span id="cb898-33"><a href="combining-both-rdit-and-its.html#cb898-33" tabindex="-1"></a>      <span class="at">col =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb898-34"><a href="combining-both-rdit-and-its.html#cb898-34" tabindex="-1"></a>      <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-13"></span>
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-13-1.png" alt="Two-panel plot. The left panel shows a scatter plot of outcome Y over time t with a dashed vertical line at t = 75, overlaid by a piecewise linear blue fit indicating a hybrid RDiT+ITS model. The right panel displays the same data and cutoff, but with a red line representing a two-stage adjusted ITS fit. Both models capture a discontinuity in the outcome at the cutoff." width="90%" />
 <p class="caption">
 Figure 2.14: Comparing Hybrid RDiT+ITS and Two-Stage Approaches for Estimating Discontinuities
 </p>
 </div>
-<div class="sourceCode" id="cb894"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb894-1"><a href="combining-both-rdit-and-its.html#cb894-1" tabindex="-1"></a><span class="fu">print</span>(res_hybrid)</span>
-<span id="cb894-2"><a href="combining-both-rdit-and-its.html#cb894-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb894-3"><a href="combining-both-rdit-and-its.html#cb894-3" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb894-4"><a href="combining-both-rdit-and-its.html#cb894-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb894-5"><a href="combining-both-rdit-and-its.html#cb894-5" tabindex="-1"></a><span class="co">#&gt;                                       Estimate Std. Error  t value  Pr(&gt;|t|)</span></span>
-<span id="cb894-6"><a href="combining-both-rdit-and-its.html#cb894-6" tabindex="-1"></a><span class="co">#&gt; (Intercept)                          -1.066743   0.453019  -2.3547   0.01989</span></span>
-<span id="cb894-7"><a href="combining-both-rdit-and-its.html#cb894-7" tabindex="-1"></a><span class="co">#&gt; T_c                                   0.328522   0.009090  36.1409 &lt; 2.2e-16</span></span>
-<span id="cb894-8"><a href="combining-both-rdit-and-its.html#cb894-8" tabindex="-1"></a><span class="co">#&gt; D                                   -19.072974   1.557761 -12.2438 &lt; 2.2e-16</span></span>
-<span id="cb894-9"><a href="combining-both-rdit-and-its.html#cb894-9" tabindex="-1"></a><span class="co">#&gt; I(T_c * D)                            0.282215   0.015636  18.0488 &lt; 2.2e-16</span></span>
-<span id="cb894-10"><a href="combining-both-rdit-and-its.html#cb894-10" tabindex="-1"></a><span class="co">#&gt; I(t_centered * local_indicator)       2.197553   0.323646   6.7900 2.726e-10</span></span>
-<span id="cb894-11"><a href="combining-both-rdit-and-its.html#cb894-11" tabindex="-1"></a><span class="co">#&gt; I(t_centered * D * local_indicator)  -0.317783   0.399128  -0.7962   0.42723</span></span>
-<span id="cb894-12"><a href="combining-both-rdit-and-its.html#cb894-12" tabindex="-1"></a><span class="co">#&gt;                                        </span></span>
-<span id="cb894-13"><a href="combining-both-rdit-and-its.html#cb894-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)                         *  </span></span>
-<span id="cb894-14"><a href="combining-both-rdit-and-its.html#cb894-14" tabindex="-1"></a><span class="co">#&gt; T_c                                 ***</span></span>
-<span id="cb894-15"><a href="combining-both-rdit-and-its.html#cb894-15" tabindex="-1"></a><span class="co">#&gt; D                                   ***</span></span>
-<span id="cb894-16"><a href="combining-both-rdit-and-its.html#cb894-16" tabindex="-1"></a><span class="co">#&gt; I(T_c * D)                          ***</span></span>
-<span id="cb894-17"><a href="combining-both-rdit-and-its.html#cb894-17" tabindex="-1"></a><span class="co">#&gt; I(t_centered * local_indicator)     ***</span></span>
-<span id="cb894-18"><a href="combining-both-rdit-and-its.html#cb894-18" tabindex="-1"></a><span class="co">#&gt; I(t_centered * D * local_indicator)    </span></span>
-<span id="cb894-19"><a href="combining-both-rdit-and-its.html#cb894-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb894-20"><a href="combining-both-rdit-and-its.html#cb894-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb894-21"><a href="combining-both-rdit-and-its.html#cb894-21" tabindex="-1"></a></span>
-<span id="cb894-22"><a href="combining-both-rdit-and-its.html#cb894-22" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Two-Stage Approach:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb894-23"><a href="combining-both-rdit-and-its.html#cb894-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb894-24"><a href="combining-both-rdit-and-its.html#cb894-24" tabindex="-1"></a><span class="co">#&gt;  Two-Stage Approach:</span></span>
-<span id="cb894-25"><a href="combining-both-rdit-and-its.html#cb894-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;   (1) Local RDiT =&gt; estimated local jump = &quot;</span>, <span class="fu">round</span>(tau_hat,<span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb894-26"><a href="combining-both-rdit-and-its.html#cb894-26" tabindex="-1"></a><span class="co">#&gt;    (1) Local RDiT =&gt; estimated local jump =  3.27</span></span>
-<span id="cb894-27"><a href="combining-both-rdit-and-its.html#cb894-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;   (2) Standard ITS on adjusted outcome:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb894-28"><a href="combining-both-rdit-and-its.html#cb894-28" tabindex="-1"></a><span class="co">#&gt;    (2) Standard ITS on adjusted outcome:</span></span>
-<span id="cb894-29"><a href="combining-both-rdit-and-its.html#cb894-29" tabindex="-1"></a><span class="fu">print</span>(res_its_adjusted)</span>
-<span id="cb894-30"><a href="combining-both-rdit-and-its.html#cb894-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb894-31"><a href="combining-both-rdit-and-its.html#cb894-31" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb894-32"><a href="combining-both-rdit-and-its.html#cb894-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb894-33"><a href="combining-both-rdit-and-its.html#cb894-33" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error  t value Pr(&gt;|t|)    </span></span>
-<span id="cb894-34"><a href="combining-both-rdit-and-its.html#cb894-34" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -0.553196   0.507846  -1.0893   0.2778    </span></span>
-<span id="cb894-35"><a href="combining-both-rdit-and-its.html#cb894-35" tabindex="-1"></a><span class="co">#&gt; T_c           0.308729   0.012701  24.3075   &lt;2e-16 ***</span></span>
-<span id="cb894-36"><a href="combining-both-rdit-and-its.html#cb894-36" tabindex="-1"></a><span class="co">#&gt; D           -20.268345   1.889371 -10.7276   &lt;2e-16 ***</span></span>
-<span id="cb894-37"><a href="combining-both-rdit-and-its.html#cb894-37" tabindex="-1"></a><span class="co">#&gt; I(T_c * D)    0.281836   0.019730  14.2844   &lt;2e-16 ***</span></span>
-<span id="cb894-38"><a href="combining-both-rdit-and-its.html#cb894-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb894-39"><a href="combining-both-rdit-and-its.html#cb894-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb899"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb899-1"><a href="combining-both-rdit-and-its.html#cb899-1" tabindex="-1"></a><span class="fu">print</span>(res_hybrid)</span>
+<span id="cb899-2"><a href="combining-both-rdit-and-its.html#cb899-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb899-3"><a href="combining-both-rdit-and-its.html#cb899-3" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb899-4"><a href="combining-both-rdit-and-its.html#cb899-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb899-5"><a href="combining-both-rdit-and-its.html#cb899-5" tabindex="-1"></a><span class="co">#&gt;                                       Estimate Std. Error  t value  Pr(&gt;|t|)</span></span>
+<span id="cb899-6"><a href="combining-both-rdit-and-its.html#cb899-6" tabindex="-1"></a><span class="co">#&gt; (Intercept)                          -1.066743   0.453019  -2.3547   0.01989</span></span>
+<span id="cb899-7"><a href="combining-both-rdit-and-its.html#cb899-7" tabindex="-1"></a><span class="co">#&gt; T_c                                   0.328522   0.009090  36.1409 &lt; 2.2e-16</span></span>
+<span id="cb899-8"><a href="combining-both-rdit-and-its.html#cb899-8" tabindex="-1"></a><span class="co">#&gt; D                                   -19.072974   1.557761 -12.2438 &lt; 2.2e-16</span></span>
+<span id="cb899-9"><a href="combining-both-rdit-and-its.html#cb899-9" tabindex="-1"></a><span class="co">#&gt; I(T_c * D)                            0.282215   0.015636  18.0488 &lt; 2.2e-16</span></span>
+<span id="cb899-10"><a href="combining-both-rdit-and-its.html#cb899-10" tabindex="-1"></a><span class="co">#&gt; I(t_centered * local_indicator)       2.197553   0.323646   6.7900 2.726e-10</span></span>
+<span id="cb899-11"><a href="combining-both-rdit-and-its.html#cb899-11" tabindex="-1"></a><span class="co">#&gt; I(t_centered * D * local_indicator)  -0.317783   0.399128  -0.7962   0.42723</span></span>
+<span id="cb899-12"><a href="combining-both-rdit-and-its.html#cb899-12" tabindex="-1"></a><span class="co">#&gt;                                        </span></span>
+<span id="cb899-13"><a href="combining-both-rdit-and-its.html#cb899-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)                         *  </span></span>
+<span id="cb899-14"><a href="combining-both-rdit-and-its.html#cb899-14" tabindex="-1"></a><span class="co">#&gt; T_c                                 ***</span></span>
+<span id="cb899-15"><a href="combining-both-rdit-and-its.html#cb899-15" tabindex="-1"></a><span class="co">#&gt; D                                   ***</span></span>
+<span id="cb899-16"><a href="combining-both-rdit-and-its.html#cb899-16" tabindex="-1"></a><span class="co">#&gt; I(T_c * D)                          ***</span></span>
+<span id="cb899-17"><a href="combining-both-rdit-and-its.html#cb899-17" tabindex="-1"></a><span class="co">#&gt; I(t_centered * local_indicator)     ***</span></span>
+<span id="cb899-18"><a href="combining-both-rdit-and-its.html#cb899-18" tabindex="-1"></a><span class="co">#&gt; I(t_centered * D * local_indicator)    </span></span>
+<span id="cb899-19"><a href="combining-both-rdit-and-its.html#cb899-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb899-20"><a href="combining-both-rdit-and-its.html#cb899-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb899-21"><a href="combining-both-rdit-and-its.html#cb899-21" tabindex="-1"></a></span>
+<span id="cb899-22"><a href="combining-both-rdit-and-its.html#cb899-22" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st"> Two-Stage Approach:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb899-23"><a href="combining-both-rdit-and-its.html#cb899-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb899-24"><a href="combining-both-rdit-and-its.html#cb899-24" tabindex="-1"></a><span class="co">#&gt;  Two-Stage Approach:</span></span>
+<span id="cb899-25"><a href="combining-both-rdit-and-its.html#cb899-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;   (1) Local RDiT =&gt; estimated local jump = &quot;</span>, <span class="fu">round</span>(tau_hat,<span class="dv">2</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb899-26"><a href="combining-both-rdit-and-its.html#cb899-26" tabindex="-1"></a><span class="co">#&gt;    (1) Local RDiT =&gt; estimated local jump =  3.27</span></span>
+<span id="cb899-27"><a href="combining-both-rdit-and-its.html#cb899-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;   (2) Standard ITS on adjusted outcome:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb899-28"><a href="combining-both-rdit-and-its.html#cb899-28" tabindex="-1"></a><span class="co">#&gt;    (2) Standard ITS on adjusted outcome:</span></span>
+<span id="cb899-29"><a href="combining-both-rdit-and-its.html#cb899-29" tabindex="-1"></a><span class="fu">print</span>(res_its_adjusted)</span>
+<span id="cb899-30"><a href="combining-both-rdit-and-its.html#cb899-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb899-31"><a href="combining-both-rdit-and-its.html#cb899-31" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb899-32"><a href="combining-both-rdit-and-its.html#cb899-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb899-33"><a href="combining-both-rdit-and-its.html#cb899-33" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error  t value Pr(&gt;|t|)    </span></span>
+<span id="cb899-34"><a href="combining-both-rdit-and-its.html#cb899-34" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -0.553196   0.507846  -1.0893   0.2778    </span></span>
+<span id="cb899-35"><a href="combining-both-rdit-and-its.html#cb899-35" tabindex="-1"></a><span class="co">#&gt; T_c           0.308729   0.012701  24.3075   &lt;2e-16 ***</span></span>
+<span id="cb899-36"><a href="combining-both-rdit-and-its.html#cb899-36" tabindex="-1"></a><span class="co">#&gt; D           -20.268345   1.889371 -10.7276   &lt;2e-16 ***</span></span>
+<span id="cb899-37"><a href="combining-both-rdit-and-its.html#cb899-37" tabindex="-1"></a><span class="co">#&gt; I(T_c * D)    0.281836   0.019730  14.2844   &lt;2e-16 ***</span></span>
+<span id="cb899-38"><a href="combining-both-rdit-and-its.html#cb899-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb899-39"><a href="combining-both-rdit-and-its.html#cb899-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <ul>
 <li>Beta terms (<span class="math inline">\(T_c, D, T_c:D, P\)</span>) capture the global ITS components:
 <ul>

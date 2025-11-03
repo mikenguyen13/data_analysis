@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>17.5 Comparison: Delta Method vs. Alternative Approaches | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="17.5 Comparison: Delta Method vs. Alternative Approaches | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1927,86 +1927,86 @@ G(\beta) = e^{\beta}.
 <p><span class="math display">\[
 \text{Var}(e^{\beta}) \approx e^{2\beta} \cdot \text{Var}(\beta).
 \]</span></p>
-<div class="sourceCode" id="cb680"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb680-1"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
-<span id="cb680-2"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb680-3"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-3" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
-<span id="cb680-4"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-4" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb680-5"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-5" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb680-6"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-6" tabindex="-1"></a></span>
-<span id="cb680-7"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-7" tabindex="-1"></a><span class="co"># Simulate data</span></span>
-<span id="cb680-8"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-8" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb680-9"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-9" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb680-10"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-10" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)  <span class="co"># Simulate independent variable</span></span>
-<span id="cb680-11"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-11" tabindex="-1"></a><span class="co"># Generate binary outcome using logistic model</span></span>
-<span id="cb680-12"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-12" tabindex="-1"></a>Y <span class="ot">&lt;-</span></span>
-<span id="cb680-13"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-13" tabindex="-1"></a>    <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X))  </span>
-<span id="cb680-14"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-14" tabindex="-1"></a></span>
-<span id="cb680-15"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-15" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
-<span id="cb680-16"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-16" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span>
-<span id="cb680-17"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-17" tabindex="-1"></a></span>
-<span id="cb680-18"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-18" tabindex="-1"></a><span class="co"># Extract coefficient and variance</span></span>
-<span id="cb680-19"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-19" tabindex="-1"></a>beta_hat <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X&quot;</span>]   <span class="co"># Estimated coefficient</span></span>
-<span id="cb680-20"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-20" tabindex="-1"></a>var_beta_hat <span class="ot">&lt;-</span> <span class="fu">vcov</span>(logit_model)[<span class="st">&quot;X&quot;</span>, <span class="st">&quot;X&quot;</span>]  <span class="co"># Variance of beta_hat</span></span>
-<span id="cb680-21"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-21" tabindex="-1"></a></span>
-<span id="cb680-22"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-22" tabindex="-1"></a><span class="co"># Apply Delta Method</span></span>
-<span id="cb680-23"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-23" tabindex="-1"></a>odds_ratio <span class="ot">&lt;-</span> <span class="fu">exp</span>(beta_hat)  <span class="co"># Transform beta to odds ratio</span></span>
-<span id="cb680-24"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-24" tabindex="-1"></a>se_odds_ratio <span class="ot">&lt;-</span></span>
-<span id="cb680-25"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-25" tabindex="-1"></a>    <span class="fu">sqrt</span>(odds_ratio <span class="sc">^</span> <span class="dv">2</span> <span class="sc">*</span> var_beta_hat)  <span class="co"># Delta Method SE</span></span>
-<span id="cb680-26"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-26" tabindex="-1"></a></span>
-<span id="cb680-27"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-27" tabindex="-1"></a><span class="co"># Compute 95% Confidence Interval</span></span>
-<span id="cb680-28"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-28" tabindex="-1"></a>lower_CI <span class="ot">&lt;-</span> <span class="fu">exp</span>(beta_hat <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sqrt</span>(var_beta_hat))</span>
-<span id="cb680-29"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-29" tabindex="-1"></a>upper_CI <span class="ot">&lt;-</span> <span class="fu">exp</span>(beta_hat <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sqrt</span>(var_beta_hat))</span>
-<span id="cb680-30"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-30" tabindex="-1"></a></span>
-<span id="cb680-31"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-31" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb680-32"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-32" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb680-33"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-33" tabindex="-1"></a>    <span class="at">Term =</span> <span class="st">&quot;X&quot;</span>,</span>
-<span id="cb680-34"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-34" tabindex="-1"></a>    <span class="at">Odds_Ratio =</span> odds_ratio,</span>
-<span id="cb680-35"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-35" tabindex="-1"></a>    <span class="at">SE =</span> se_odds_ratio,</span>
-<span id="cb680-36"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-36" tabindex="-1"></a>    <span class="at">Lower_CI =</span> lower_CI,</span>
-<span id="cb680-37"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-37" tabindex="-1"></a>    <span class="at">Upper_CI =</span> upper_CI</span>
-<span id="cb680-38"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-38" tabindex="-1"></a>)</span>
-<span id="cb680-39"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-39" tabindex="-1"></a></span>
-<span id="cb680-40"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-40" tabindex="-1"></a><span class="fu">print</span>(results)</span>
-<span id="cb680-41"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-41" tabindex="-1"></a><span class="co">#&gt;   Term Odds_Ratio        SE Lower_CI Upper_CI</span></span>
-<span id="cb680-42"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-42" tabindex="-1"></a><span class="co">#&gt; X    X   2.655431 0.7677799 1.506669 4.680069</span></span>
-<span id="cb680-43"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-43" tabindex="-1"></a></span>
-<span id="cb680-44"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-44" tabindex="-1"></a><span class="co"># ---- VISUALIZATION 1: Distribution of Simulated Odds Ratios ----</span></span>
-<span id="cb680-45"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-45" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb680-46"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-46" tabindex="-1"></a><span class="co"># Simulate beta estimates</span></span>
-<span id="cb680-47"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-47" tabindex="-1"></a>simulated_betas <span class="ot">&lt;-</span></span>
-<span id="cb680-48"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-48" tabindex="-1"></a>    <span class="fu">rnorm</span>(<span class="dv">1000</span>, <span class="at">mean =</span> beta_hat, <span class="at">sd =</span> <span class="fu">sqrt</span>(var_beta_hat))  </span>
-<span id="cb680-49"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-49" tabindex="-1"></a>simulated_odds_ratios <span class="ot">&lt;-</span></span>
-<span id="cb680-50"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb680-50" tabindex="-1"></a>    <span class="fu">exp</span>(simulated_betas)  <span class="co"># Apply transformation</span></span></code></pre></div>
-<div class="sourceCode" id="cb681"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb681-1"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-1" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">Odds_Ratio =</span> simulated_odds_ratios),</span>
-<span id="cb681-2"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-2" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> Odds_Ratio)) <span class="sc">+</span></span>
-<span id="cb681-3"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-3" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(</span>
-<span id="cb681-4"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-4" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;black&quot;</span>,</span>
-<span id="cb681-5"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-5" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;skyblue&quot;</span>,</span>
-<span id="cb681-6"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-6" tabindex="-1"></a>        <span class="at">bins =</span> <span class="dv">50</span>,</span>
-<span id="cb681-7"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-7" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.7</span></span>
-<span id="cb681-8"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-8" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb681-9"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-9" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
-<span id="cb681-10"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-10" tabindex="-1"></a>        <span class="at">xintercept =</span> odds_ratio,</span>
-<span id="cb681-11"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-11" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb681-12"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-12" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb681-13"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-13" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">1.2</span></span>
-<span id="cb681-14"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-14" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb681-15"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-15" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
-<span id="cb681-16"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-16" tabindex="-1"></a>        <span class="at">xintercept =</span> lower_CI,</span>
-<span id="cb681-17"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-17" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb681-18"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-18" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>,</span>
-<span id="cb681-19"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-19" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">1.2</span></span>
-<span id="cb681-20"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-20" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb681-21"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-21" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
-<span id="cb681-22"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-22" tabindex="-1"></a>        <span class="at">xintercept =</span> upper_CI,</span>
-<span id="cb681-23"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-23" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb681-24"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-24" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>,</span>
-<span id="cb681-25"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-25" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">1.2</span></span>
-<span id="cb681-26"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-26" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb681-27"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-27" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Distribution of Simulated Odds Ratios&quot;</span>,</span>
-<span id="cb681-28"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-28" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Odds Ratio&quot;</span>,</span>
-<span id="cb681-29"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-29" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Frequency&quot;</span>) <span class="sc">+</span></span>
-<span id="cb681-30"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb681-30" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb685"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb685-1"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
+<span id="cb685-2"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb685-3"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-3" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
+<span id="cb685-4"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-4" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb685-5"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-5" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb685-6"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-6" tabindex="-1"></a></span>
+<span id="cb685-7"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-7" tabindex="-1"></a><span class="co"># Simulate data</span></span>
+<span id="cb685-8"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-8" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb685-9"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-9" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb685-10"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-10" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)  <span class="co"># Simulate independent variable</span></span>
+<span id="cb685-11"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-11" tabindex="-1"></a><span class="co"># Generate binary outcome using logistic model</span></span>
+<span id="cb685-12"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-12" tabindex="-1"></a>Y <span class="ot">&lt;-</span></span>
+<span id="cb685-13"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-13" tabindex="-1"></a>    <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X))  </span>
+<span id="cb685-14"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-14" tabindex="-1"></a></span>
+<span id="cb685-15"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-15" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
+<span id="cb685-16"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-16" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span>
+<span id="cb685-17"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-17" tabindex="-1"></a></span>
+<span id="cb685-18"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-18" tabindex="-1"></a><span class="co"># Extract coefficient and variance</span></span>
+<span id="cb685-19"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-19" tabindex="-1"></a>beta_hat <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X&quot;</span>]   <span class="co"># Estimated coefficient</span></span>
+<span id="cb685-20"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-20" tabindex="-1"></a>var_beta_hat <span class="ot">&lt;-</span> <span class="fu">vcov</span>(logit_model)[<span class="st">&quot;X&quot;</span>, <span class="st">&quot;X&quot;</span>]  <span class="co"># Variance of beta_hat</span></span>
+<span id="cb685-21"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-21" tabindex="-1"></a></span>
+<span id="cb685-22"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-22" tabindex="-1"></a><span class="co"># Apply Delta Method</span></span>
+<span id="cb685-23"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-23" tabindex="-1"></a>odds_ratio <span class="ot">&lt;-</span> <span class="fu">exp</span>(beta_hat)  <span class="co"># Transform beta to odds ratio</span></span>
+<span id="cb685-24"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-24" tabindex="-1"></a>se_odds_ratio <span class="ot">&lt;-</span></span>
+<span id="cb685-25"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-25" tabindex="-1"></a>    <span class="fu">sqrt</span>(odds_ratio <span class="sc">^</span> <span class="dv">2</span> <span class="sc">*</span> var_beta_hat)  <span class="co"># Delta Method SE</span></span>
+<span id="cb685-26"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-26" tabindex="-1"></a></span>
+<span id="cb685-27"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-27" tabindex="-1"></a><span class="co"># Compute 95% Confidence Interval</span></span>
+<span id="cb685-28"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-28" tabindex="-1"></a>lower_CI <span class="ot">&lt;-</span> <span class="fu">exp</span>(beta_hat <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sqrt</span>(var_beta_hat))</span>
+<span id="cb685-29"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-29" tabindex="-1"></a>upper_CI <span class="ot">&lt;-</span> <span class="fu">exp</span>(beta_hat <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sqrt</span>(var_beta_hat))</span>
+<span id="cb685-30"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-30" tabindex="-1"></a></span>
+<span id="cb685-31"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-31" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb685-32"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-32" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb685-33"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-33" tabindex="-1"></a>    <span class="at">Term =</span> <span class="st">&quot;X&quot;</span>,</span>
+<span id="cb685-34"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-34" tabindex="-1"></a>    <span class="at">Odds_Ratio =</span> odds_ratio,</span>
+<span id="cb685-35"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-35" tabindex="-1"></a>    <span class="at">SE =</span> se_odds_ratio,</span>
+<span id="cb685-36"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-36" tabindex="-1"></a>    <span class="at">Lower_CI =</span> lower_CI,</span>
+<span id="cb685-37"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-37" tabindex="-1"></a>    <span class="at">Upper_CI =</span> upper_CI</span>
+<span id="cb685-38"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-38" tabindex="-1"></a>)</span>
+<span id="cb685-39"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-39" tabindex="-1"></a></span>
+<span id="cb685-40"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-40" tabindex="-1"></a><span class="fu">print</span>(results)</span>
+<span id="cb685-41"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-41" tabindex="-1"></a><span class="co">#&gt;   Term Odds_Ratio        SE Lower_CI Upper_CI</span></span>
+<span id="cb685-42"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-42" tabindex="-1"></a><span class="co">#&gt; X    X   2.655431 0.7677799 1.506669 4.680069</span></span>
+<span id="cb685-43"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-43" tabindex="-1"></a></span>
+<span id="cb685-44"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-44" tabindex="-1"></a><span class="co"># ---- VISUALIZATION 1: Distribution of Simulated Odds Ratios ----</span></span>
+<span id="cb685-45"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-45" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb685-46"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-46" tabindex="-1"></a><span class="co"># Simulate beta estimates</span></span>
+<span id="cb685-47"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-47" tabindex="-1"></a>simulated_betas <span class="ot">&lt;-</span></span>
+<span id="cb685-48"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-48" tabindex="-1"></a>    <span class="fu">rnorm</span>(<span class="dv">1000</span>, <span class="at">mean =</span> beta_hat, <span class="at">sd =</span> <span class="fu">sqrt</span>(var_beta_hat))  </span>
+<span id="cb685-49"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-49" tabindex="-1"></a>simulated_odds_ratios <span class="ot">&lt;-</span></span>
+<span id="cb685-50"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb685-50" tabindex="-1"></a>    <span class="fu">exp</span>(simulated_betas)  <span class="co"># Apply transformation</span></span></code></pre></div>
+<div class="sourceCode" id="cb686"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb686-1"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-1" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">Odds_Ratio =</span> simulated_odds_ratios),</span>
+<span id="cb686-2"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-2" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> Odds_Ratio)) <span class="sc">+</span></span>
+<span id="cb686-3"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-3" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(</span>
+<span id="cb686-4"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-4" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;black&quot;</span>,</span>
+<span id="cb686-5"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-5" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">&quot;skyblue&quot;</span>,</span>
+<span id="cb686-6"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-6" tabindex="-1"></a>        <span class="at">bins =</span> <span class="dv">50</span>,</span>
+<span id="cb686-7"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-7" tabindex="-1"></a>        <span class="at">alpha =</span> <span class="fl">0.7</span></span>
+<span id="cb686-8"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-8" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb686-9"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-9" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
+<span id="cb686-10"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-10" tabindex="-1"></a>        <span class="at">xintercept =</span> odds_ratio,</span>
+<span id="cb686-11"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-11" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb686-12"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-12" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb686-13"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-13" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">1.2</span></span>
+<span id="cb686-14"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-14" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb686-15"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-15" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
+<span id="cb686-16"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-16" tabindex="-1"></a>        <span class="at">xintercept =</span> lower_CI,</span>
+<span id="cb686-17"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-17" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb686-18"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-18" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>,</span>
+<span id="cb686-19"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-19" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">1.2</span></span>
+<span id="cb686-20"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-20" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb686-21"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-21" tabindex="-1"></a>    <span class="fu">geom_vline</span>(</span>
+<span id="cb686-22"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-22" tabindex="-1"></a>        <span class="at">xintercept =</span> upper_CI,</span>
+<span id="cb686-23"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-23" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb686-24"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-24" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>,</span>
+<span id="cb686-25"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-25" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">1.2</span></span>
+<span id="cb686-26"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-26" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb686-27"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-27" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Distribution of Simulated Odds Ratios&quot;</span>,</span>
+<span id="cb686-28"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-28" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Odds Ratio&quot;</span>,</span>
+<span id="cb686-29"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-29" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Frequency&quot;</span>) <span class="sc">+</span></span>
+<span id="cb686-30"><a href="comparison-delta-method-vs.-alternative-approaches.html#cb686-30" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-simulated-odds-ratio-distribution"></span>
 <img src="17-marginal-effect_files/figure-html/fig-simulated-odds-ratio-distribution-1.png" alt="Histogram showing the distribution of simulated odds ratios. The x-axis represents odds ratio values from 0 to 7, and the y-axis shows frequency peaking around 60. A red dashed line marks the mean near 2, and blue dotted lines indicate confidence intervals" width="100%" />
 <p class="caption">

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>7.6 Quasi-Poisson Regression | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="7.6 Quasi-Poisson Regression | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1924,15 +1924,15 @@ div.csl-indent {
 <div id="checking-overdispersion-in-the-poisson-model" class="section level4 hasAnchor" number="7.6.2.1">
 <h4><span class="header-section-number">7.6.2.1</span> Checking Overdispersion in the Poisson Model<a href="sec-quasi-poisson-regression.html#checking-overdispersion-in-the-poisson-model" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>We first fit a <a href="sec-poisson-regression.html#sec-poisson-regression">Poisson regression model</a> and check for overdispersion using the deviance-to-degrees-of-freedom ratio:</p>
-<div class="sourceCode" id="cb333"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb333-1"><a href="sec-quasi-poisson-regression.html#cb333-1" tabindex="-1"></a><span class="co"># Fit Poisson regression model</span></span>
-<span id="cb333-2"><a href="sec-quasi-poisson-regression.html#cb333-2" tabindex="-1"></a>Poisson_Mod <span class="ot">&lt;-</span></span>
-<span id="cb333-3"><a href="sec-quasi-poisson-regression.html#cb333-3" tabindex="-1"></a>    <span class="fu">glm</span>(Num_Article <span class="sc">~</span> ., <span class="at">family =</span> poisson, <span class="at">data =</span> bioChemists)</span>
-<span id="cb333-4"><a href="sec-quasi-poisson-regression.html#cb333-4" tabindex="-1"></a></span>
-<span id="cb333-5"><a href="sec-quasi-poisson-regression.html#cb333-5" tabindex="-1"></a><span class="co"># Compute dispersion parameter</span></span>
-<span id="cb333-6"><a href="sec-quasi-poisson-regression.html#cb333-6" tabindex="-1"></a>dispersion_estimate <span class="ot">&lt;-</span></span>
-<span id="cb333-7"><a href="sec-quasi-poisson-regression.html#cb333-7" tabindex="-1"></a>    Poisson_Mod<span class="sc">$</span>deviance <span class="sc">/</span> Poisson_Mod<span class="sc">$</span>df.residual</span>
-<span id="cb333-8"><a href="sec-quasi-poisson-regression.html#cb333-8" tabindex="-1"></a>dispersion_estimate</span>
-<span id="cb333-9"><a href="sec-quasi-poisson-regression.html#cb333-9" tabindex="-1"></a><span class="co">#&gt; [1] 1.797988</span></span></code></pre></div>
+<div class="sourceCode" id="cb338"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb338-1"><a href="sec-quasi-poisson-regression.html#cb338-1" tabindex="-1"></a><span class="co"># Fit Poisson regression model</span></span>
+<span id="cb338-2"><a href="sec-quasi-poisson-regression.html#cb338-2" tabindex="-1"></a>Poisson_Mod <span class="ot">&lt;-</span></span>
+<span id="cb338-3"><a href="sec-quasi-poisson-regression.html#cb338-3" tabindex="-1"></a>    <span class="fu">glm</span>(Num_Article <span class="sc">~</span> ., <span class="at">family =</span> poisson, <span class="at">data =</span> bioChemists)</span>
+<span id="cb338-4"><a href="sec-quasi-poisson-regression.html#cb338-4" tabindex="-1"></a></span>
+<span id="cb338-5"><a href="sec-quasi-poisson-regression.html#cb338-5" tabindex="-1"></a><span class="co"># Compute dispersion parameter</span></span>
+<span id="cb338-6"><a href="sec-quasi-poisson-regression.html#cb338-6" tabindex="-1"></a>dispersion_estimate <span class="ot">&lt;-</span></span>
+<span id="cb338-7"><a href="sec-quasi-poisson-regression.html#cb338-7" tabindex="-1"></a>    Poisson_Mod<span class="sc">$</span>deviance <span class="sc">/</span> Poisson_Mod<span class="sc">$</span>df.residual</span>
+<span id="cb338-8"><a href="sec-quasi-poisson-regression.html#cb338-8" tabindex="-1"></a>dispersion_estimate</span>
+<span id="cb338-9"><a href="sec-quasi-poisson-regression.html#cb338-9" tabindex="-1"></a><span class="co">#&gt; [1] 1.797988</span></span></code></pre></div>
 <ul>
 <li><p>If <span class="math inline">\(\hat{\phi} &gt; 1\)</span>, the Poisson model underestimates variance.</p></li>
 <li><p>A large value (&gt;&gt; 1) suggests that Poisson regression is not appropriate.</p></li>
@@ -1941,34 +1941,34 @@ div.csl-indent {
 <div id="fitting-the-quasi-poisson-model" class="section level4 hasAnchor" number="7.6.2.2">
 <h4><span class="header-section-number">7.6.2.2</span> Fitting the Quasi-Poisson Model<a href="sec-quasi-poisson-regression.html#fitting-the-quasi-poisson-model" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>Since overdispersion is present, we refit the model using <a href="sec-quasi-poisson-regression.html#sec-quasi-poisson-regression">Quasi-Poisson regression</a>, which scales standard errors by <span class="math inline">\(\phi\)</span>.</p>
-<div class="sourceCode" id="cb334"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb334-1"><a href="sec-quasi-poisson-regression.html#cb334-1" tabindex="-1"></a><span class="co"># Fit Quasi-Poisson regression model</span></span>
-<span id="cb334-2"><a href="sec-quasi-poisson-regression.html#cb334-2" tabindex="-1"></a>quasiPoisson_Mod <span class="ot">&lt;-</span></span>
-<span id="cb334-3"><a href="sec-quasi-poisson-regression.html#cb334-3" tabindex="-1"></a>    <span class="fu">glm</span>(Num_Article <span class="sc">~</span> ., <span class="at">family =</span> quasipoisson, <span class="at">data =</span> bioChemists)</span>
-<span id="cb334-4"><a href="sec-quasi-poisson-regression.html#cb334-4" tabindex="-1"></a></span>
-<span id="cb334-5"><a href="sec-quasi-poisson-regression.html#cb334-5" tabindex="-1"></a><span class="co"># Summary of the model</span></span>
-<span id="cb334-6"><a href="sec-quasi-poisson-regression.html#cb334-6" tabindex="-1"></a><span class="fu">summary</span>(quasiPoisson_Mod)</span>
-<span id="cb334-7"><a href="sec-quasi-poisson-regression.html#cb334-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb334-8"><a href="sec-quasi-poisson-regression.html#cb334-8" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb334-9"><a href="sec-quasi-poisson-regression.html#cb334-9" tabindex="-1"></a><span class="co">#&gt; glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)</span></span>
-<span id="cb334-10"><a href="sec-quasi-poisson-regression.html#cb334-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb334-11"><a href="sec-quasi-poisson-regression.html#cb334-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb334-12"><a href="sec-quasi-poisson-regression.html#cb334-12" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb334-13"><a href="sec-quasi-poisson-regression.html#cb334-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.304617   0.139273   2.187 0.028983 *  </span></span>
-<span id="cb334-14"><a href="sec-quasi-poisson-regression.html#cb334-14" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.224594   0.073860  -3.041 0.002427 ** </span></span>
-<span id="cb334-15"><a href="sec-quasi-poisson-regression.html#cb334-15" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.155243   0.083003   1.870 0.061759 .  </span></span>
-<span id="cb334-16"><a href="sec-quasi-poisson-regression.html#cb334-16" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.184883   0.054268  -3.407 0.000686 ***</span></span>
-<span id="cb334-17"><a href="sec-quasi-poisson-regression.html#cb334-17" tabindex="-1"></a><span class="co">#&gt; PhD_Quality      0.012823   0.035700   0.359 0.719544    </span></span>
-<span id="cb334-18"><a href="sec-quasi-poisson-regression.html#cb334-18" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.025543   0.002713   9.415  &lt; 2e-16 ***</span></span>
-<span id="cb334-19"><a href="sec-quasi-poisson-regression.html#cb334-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb334-20"><a href="sec-quasi-poisson-regression.html#cb334-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb334-21"><a href="sec-quasi-poisson-regression.html#cb334-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb334-22"><a href="sec-quasi-poisson-regression.html#cb334-22" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for quasipoisson family taken to be 1.829006)</span></span>
-<span id="cb334-23"><a href="sec-quasi-poisson-regression.html#cb334-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb334-24"><a href="sec-quasi-poisson-regression.html#cb334-24" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1817.4  on 914  degrees of freedom</span></span>
-<span id="cb334-25"><a href="sec-quasi-poisson-regression.html#cb334-25" tabindex="-1"></a><span class="co">#&gt; Residual deviance: 1634.4  on 909  degrees of freedom</span></span>
-<span id="cb334-26"><a href="sec-quasi-poisson-regression.html#cb334-26" tabindex="-1"></a><span class="co">#&gt; AIC: NA</span></span>
-<span id="cb334-27"><a href="sec-quasi-poisson-regression.html#cb334-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb334-28"><a href="sec-quasi-poisson-regression.html#cb334-28" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 5</span></span></code></pre></div>
+<div class="sourceCode" id="cb339"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb339-1"><a href="sec-quasi-poisson-regression.html#cb339-1" tabindex="-1"></a><span class="co"># Fit Quasi-Poisson regression model</span></span>
+<span id="cb339-2"><a href="sec-quasi-poisson-regression.html#cb339-2" tabindex="-1"></a>quasiPoisson_Mod <span class="ot">&lt;-</span></span>
+<span id="cb339-3"><a href="sec-quasi-poisson-regression.html#cb339-3" tabindex="-1"></a>    <span class="fu">glm</span>(Num_Article <span class="sc">~</span> ., <span class="at">family =</span> quasipoisson, <span class="at">data =</span> bioChemists)</span>
+<span id="cb339-4"><a href="sec-quasi-poisson-regression.html#cb339-4" tabindex="-1"></a></span>
+<span id="cb339-5"><a href="sec-quasi-poisson-regression.html#cb339-5" tabindex="-1"></a><span class="co"># Summary of the model</span></span>
+<span id="cb339-6"><a href="sec-quasi-poisson-regression.html#cb339-6" tabindex="-1"></a><span class="fu">summary</span>(quasiPoisson_Mod)</span>
+<span id="cb339-7"><a href="sec-quasi-poisson-regression.html#cb339-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb339-8"><a href="sec-quasi-poisson-regression.html#cb339-8" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb339-9"><a href="sec-quasi-poisson-regression.html#cb339-9" tabindex="-1"></a><span class="co">#&gt; glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)</span></span>
+<span id="cb339-10"><a href="sec-quasi-poisson-regression.html#cb339-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb339-11"><a href="sec-quasi-poisson-regression.html#cb339-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb339-12"><a href="sec-quasi-poisson-regression.html#cb339-12" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb339-13"><a href="sec-quasi-poisson-regression.html#cb339-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.304617   0.139273   2.187 0.028983 *  </span></span>
+<span id="cb339-14"><a href="sec-quasi-poisson-regression.html#cb339-14" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.224594   0.073860  -3.041 0.002427 ** </span></span>
+<span id="cb339-15"><a href="sec-quasi-poisson-regression.html#cb339-15" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.155243   0.083003   1.870 0.061759 .  </span></span>
+<span id="cb339-16"><a href="sec-quasi-poisson-regression.html#cb339-16" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.184883   0.054268  -3.407 0.000686 ***</span></span>
+<span id="cb339-17"><a href="sec-quasi-poisson-regression.html#cb339-17" tabindex="-1"></a><span class="co">#&gt; PhD_Quality      0.012823   0.035700   0.359 0.719544    </span></span>
+<span id="cb339-18"><a href="sec-quasi-poisson-regression.html#cb339-18" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.025543   0.002713   9.415  &lt; 2e-16 ***</span></span>
+<span id="cb339-19"><a href="sec-quasi-poisson-regression.html#cb339-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb339-20"><a href="sec-quasi-poisson-regression.html#cb339-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb339-21"><a href="sec-quasi-poisson-regression.html#cb339-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb339-22"><a href="sec-quasi-poisson-regression.html#cb339-22" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for quasipoisson family taken to be 1.829006)</span></span>
+<span id="cb339-23"><a href="sec-quasi-poisson-regression.html#cb339-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb339-24"><a href="sec-quasi-poisson-regression.html#cb339-24" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1817.4  on 914  degrees of freedom</span></span>
+<span id="cb339-25"><a href="sec-quasi-poisson-regression.html#cb339-25" tabindex="-1"></a><span class="co">#&gt; Residual deviance: 1634.4  on 909  degrees of freedom</span></span>
+<span id="cb339-26"><a href="sec-quasi-poisson-regression.html#cb339-26" tabindex="-1"></a><span class="co">#&gt; AIC: NA</span></span>
+<span id="cb339-27"><a href="sec-quasi-poisson-regression.html#cb339-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb339-28"><a href="sec-quasi-poisson-regression.html#cb339-28" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 5</span></span></code></pre></div>
 <p>Interpretation:</p>
 <ul>
 <li><p>The coefficients remain the same as in Poisson regression.</p></li>
@@ -1979,21 +1979,21 @@ div.csl-indent {
 <div id="comparing-poisson-and-quasi-poisson" class="section level4 hasAnchor" number="7.6.2.3">
 <h4><span class="header-section-number">7.6.2.3</span> Comparing Poisson and Quasi-Poisson<a href="sec-quasi-poisson-regression.html#comparing-poisson-and-quasi-poisson" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>To see the effect of using <a href="sec-quasi-poisson-regression.html#sec-quasi-poisson-regression">Quasi-Poisson</a>, we compare standard errors:</p>
-<div class="sourceCode" id="cb335"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb335-1"><a href="sec-quasi-poisson-regression.html#cb335-1" tabindex="-1"></a><span class="co"># Extract coefficients and standard errors</span></span>
-<span id="cb335-2"><a href="sec-quasi-poisson-regression.html#cb335-2" tabindex="-1"></a>poisson_se <span class="ot">&lt;-</span> <span class="fu">summary</span>(Poisson_Mod)<span class="sc">$</span>coefficients[, <span class="dv">2</span>]</span>
-<span id="cb335-3"><a href="sec-quasi-poisson-regression.html#cb335-3" tabindex="-1"></a>quasi_se <span class="ot">&lt;-</span> <span class="fu">summary</span>(quasiPoisson_Mod)<span class="sc">$</span>coefficients[, <span class="dv">2</span>]</span>
-<span id="cb335-4"><a href="sec-quasi-poisson-regression.html#cb335-4" tabindex="-1"></a></span>
-<span id="cb335-5"><a href="sec-quasi-poisson-regression.html#cb335-5" tabindex="-1"></a><span class="co"># Compare standard errors</span></span>
-<span id="cb335-6"><a href="sec-quasi-poisson-regression.html#cb335-6" tabindex="-1"></a>se_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Poisson =</span> poisson_se,</span>
-<span id="cb335-7"><a href="sec-quasi-poisson-regression.html#cb335-7" tabindex="-1"></a>                            <span class="at">Quasi_Poisson =</span> quasi_se)</span>
-<span id="cb335-8"><a href="sec-quasi-poisson-regression.html#cb335-8" tabindex="-1"></a>se_comparison</span>
-<span id="cb335-9"><a href="sec-quasi-poisson-regression.html#cb335-9" tabindex="-1"></a><span class="co">#&gt;                     Poisson Quasi_Poisson</span></span>
-<span id="cb335-10"><a href="sec-quasi-poisson-regression.html#cb335-10" tabindex="-1"></a><span class="co">#&gt; (Intercept)     0.102981443   0.139272885</span></span>
-<span id="cb335-11"><a href="sec-quasi-poisson-regression.html#cb335-11" tabindex="-1"></a><span class="co">#&gt; SexWomen        0.054613488   0.073859696</span></span>
-<span id="cb335-12"><a href="sec-quasi-poisson-regression.html#cb335-12" tabindex="-1"></a><span class="co">#&gt; MarriedMarried  0.061374395   0.083003199</span></span>
-<span id="cb335-13"><a href="sec-quasi-poisson-regression.html#cb335-13" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        0.040126898   0.054267922</span></span>
-<span id="cb335-14"><a href="sec-quasi-poisson-regression.html#cb335-14" tabindex="-1"></a><span class="co">#&gt; PhD_Quality     0.026397045   0.035699564</span></span>
-<span id="cb335-15"><a href="sec-quasi-poisson-regression.html#cb335-15" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle 0.002006073   0.002713028</span></span></code></pre></div>
+<div class="sourceCode" id="cb340"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb340-1"><a href="sec-quasi-poisson-regression.html#cb340-1" tabindex="-1"></a><span class="co"># Extract coefficients and standard errors</span></span>
+<span id="cb340-2"><a href="sec-quasi-poisson-regression.html#cb340-2" tabindex="-1"></a>poisson_se <span class="ot">&lt;-</span> <span class="fu">summary</span>(Poisson_Mod)<span class="sc">$</span>coefficients[, <span class="dv">2</span>]</span>
+<span id="cb340-3"><a href="sec-quasi-poisson-regression.html#cb340-3" tabindex="-1"></a>quasi_se <span class="ot">&lt;-</span> <span class="fu">summary</span>(quasiPoisson_Mod)<span class="sc">$</span>coefficients[, <span class="dv">2</span>]</span>
+<span id="cb340-4"><a href="sec-quasi-poisson-regression.html#cb340-4" tabindex="-1"></a></span>
+<span id="cb340-5"><a href="sec-quasi-poisson-regression.html#cb340-5" tabindex="-1"></a><span class="co"># Compare standard errors</span></span>
+<span id="cb340-6"><a href="sec-quasi-poisson-regression.html#cb340-6" tabindex="-1"></a>se_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Poisson =</span> poisson_se,</span>
+<span id="cb340-7"><a href="sec-quasi-poisson-regression.html#cb340-7" tabindex="-1"></a>                            <span class="at">Quasi_Poisson =</span> quasi_se)</span>
+<span id="cb340-8"><a href="sec-quasi-poisson-regression.html#cb340-8" tabindex="-1"></a>se_comparison</span>
+<span id="cb340-9"><a href="sec-quasi-poisson-regression.html#cb340-9" tabindex="-1"></a><span class="co">#&gt;                     Poisson Quasi_Poisson</span></span>
+<span id="cb340-10"><a href="sec-quasi-poisson-regression.html#cb340-10" tabindex="-1"></a><span class="co">#&gt; (Intercept)     0.102981443   0.139272885</span></span>
+<span id="cb340-11"><a href="sec-quasi-poisson-regression.html#cb340-11" tabindex="-1"></a><span class="co">#&gt; SexWomen        0.054613488   0.073859696</span></span>
+<span id="cb340-12"><a href="sec-quasi-poisson-regression.html#cb340-12" tabindex="-1"></a><span class="co">#&gt; MarriedMarried  0.061374395   0.083003199</span></span>
+<span id="cb340-13"><a href="sec-quasi-poisson-regression.html#cb340-13" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        0.040126898   0.054267922</span></span>
+<span id="cb340-14"><a href="sec-quasi-poisson-regression.html#cb340-14" tabindex="-1"></a><span class="co">#&gt; PhD_Quality     0.026397045   0.035699564</span></span>
+<span id="cb340-15"><a href="sec-quasi-poisson-regression.html#cb340-15" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle 0.002006073   0.002713028</span></span></code></pre></div>
 <ul>
 <li><p><a href="sec-quasi-poisson-regression.html#sec-quasi-poisson-regression">Quasi-Poisson</a> has larger standard errors than <a href="sec-poisson-regression.html#sec-poisson-regression">Poisson</a>.</p></li>
 <li><p>This leads to wider confidence intervals, reducing the likelihood of false positives.</p></li>
@@ -2002,15 +2002,15 @@ div.csl-indent {
 <div id="model-diagnostics-checking-residuals" class="section level4 hasAnchor" number="7.6.2.4">
 <h4><span class="header-section-number">7.6.2.4</span> Model Diagnostics: Checking Residuals<a href="sec-quasi-poisson-regression.html#model-diagnostics-checking-residuals" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>We examine residuals to assess model fit:</p>
-<div class="sourceCode" id="cb336"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb336-1"><a href="sec-quasi-poisson-regression.html#cb336-1" tabindex="-1"></a><span class="co"># Residual plot</span></span>
-<span id="cb336-2"><a href="sec-quasi-poisson-regression.html#cb336-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb336-3"><a href="sec-quasi-poisson-regression.html#cb336-3" tabindex="-1"></a>    quasiPoisson_Mod<span class="sc">$</span>fitted.values,</span>
-<span id="cb336-4"><a href="sec-quasi-poisson-regression.html#cb336-4" tabindex="-1"></a>    <span class="fu">residuals</span>(quasiPoisson_Mod, <span class="at">type =</span> <span class="st">&quot;pearson&quot;</span>),</span>
-<span id="cb336-5"><a href="sec-quasi-poisson-regression.html#cb336-5" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Fitted Values&quot;</span>,</span>
-<span id="cb336-6"><a href="sec-quasi-poisson-regression.html#cb336-6" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Pearson Residuals&quot;</span>,</span>
-<span id="cb336-7"><a href="sec-quasi-poisson-regression.html#cb336-7" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Residuals vs. Fitted Values (Quasi-Poisson)&quot;</span></span>
-<span id="cb336-8"><a href="sec-quasi-poisson-regression.html#cb336-8" tabindex="-1"></a>)</span>
-<span id="cb336-9"><a href="sec-quasi-poisson-regression.html#cb336-9" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb341"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb341-1"><a href="sec-quasi-poisson-regression.html#cb341-1" tabindex="-1"></a><span class="co"># Residual plot</span></span>
+<span id="cb341-2"><a href="sec-quasi-poisson-regression.html#cb341-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb341-3"><a href="sec-quasi-poisson-regression.html#cb341-3" tabindex="-1"></a>    quasiPoisson_Mod<span class="sc">$</span>fitted.values,</span>
+<span id="cb341-4"><a href="sec-quasi-poisson-regression.html#cb341-4" tabindex="-1"></a>    <span class="fu">residuals</span>(quasiPoisson_Mod, <span class="at">type =</span> <span class="st">&quot;pearson&quot;</span>),</span>
+<span id="cb341-5"><a href="sec-quasi-poisson-regression.html#cb341-5" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Fitted Values&quot;</span>,</span>
+<span id="cb341-6"><a href="sec-quasi-poisson-regression.html#cb341-6" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Pearson Residuals&quot;</span>,</span>
+<span id="cb341-7"><a href="sec-quasi-poisson-regression.html#cb341-7" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Residuals vs. Fitted Values (Quasi-Poisson)&quot;</span></span>
+<span id="cb341-8"><a href="sec-quasi-poisson-regression.html#cb341-8" tabindex="-1"></a>)</span>
+<span id="cb341-9"><a href="sec-quasi-poisson-regression.html#cb341-9" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-res-fitted-val"></span>
 <img src="07-generalized-linear-models_files/figure-html/fig-res-fitted-val-1.png" alt="Scatter plot titled Residuals vs. Fitted Values Quasi-Poisson showing Pearson residuals on the y-axis and fitted values on the x-axis. Data points are scattered with a red horizontal line at zero indicating the baseline for residuals. The plot illustrates the distribution and variance of residuals relative to fitted values, highlighting potential patterns or deviations in a Quasi-Poisson regression model" width="100%" />
 <p class="caption">
@@ -2025,64 +2025,64 @@ Figure 7.8: Residuals vs. Fitted Values (Quasi-Poisson)
 <div id="alternative-negative-binomial-vs.-quasi-poisson" class="section level4 hasAnchor" number="7.6.2.5">
 <h4><span class="header-section-number">7.6.2.5</span> Alternative: Negative Binomial vs. Quasi-Poisson<a href="sec-quasi-poisson-regression.html#alternative-negative-binomial-vs.-quasi-poisson" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>If overdispersion is <strong>severe</strong>, <a href="sec-negative-binomial-regression.html#sec-negative-binomial-regression">Negative Binomial regression</a> may be preferable because it explicitly models dispersion:</p>
-<div class="sourceCode" id="cb337"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb337-1"><a href="sec-quasi-poisson-regression.html#cb337-1" tabindex="-1"></a><span class="co"># Fit Negative Binomial model</span></span>
-<span id="cb337-2"><a href="sec-quasi-poisson-regression.html#cb337-2" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
-<span id="cb337-3"><a href="sec-quasi-poisson-regression.html#cb337-3" tabindex="-1"></a>NegBinom_Mod <span class="ot">&lt;-</span> <span class="fu">glm.nb</span>(Num_Article <span class="sc">~</span> ., <span class="at">data =</span> bioChemists)</span>
-<span id="cb337-4"><a href="sec-quasi-poisson-regression.html#cb337-4" tabindex="-1"></a></span>
-<span id="cb337-5"><a href="sec-quasi-poisson-regression.html#cb337-5" tabindex="-1"></a><span class="co"># Model summaries</span></span>
-<span id="cb337-6"><a href="sec-quasi-poisson-regression.html#cb337-6" tabindex="-1"></a><span class="fu">summary</span>(quasiPoisson_Mod)</span>
-<span id="cb337-7"><a href="sec-quasi-poisson-regression.html#cb337-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-8"><a href="sec-quasi-poisson-regression.html#cb337-8" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb337-9"><a href="sec-quasi-poisson-regression.html#cb337-9" tabindex="-1"></a><span class="co">#&gt; glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)</span></span>
-<span id="cb337-10"><a href="sec-quasi-poisson-regression.html#cb337-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-11"><a href="sec-quasi-poisson-regression.html#cb337-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb337-12"><a href="sec-quasi-poisson-regression.html#cb337-12" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb337-13"><a href="sec-quasi-poisson-regression.html#cb337-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.304617   0.139273   2.187 0.028983 *  </span></span>
-<span id="cb337-14"><a href="sec-quasi-poisson-regression.html#cb337-14" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.224594   0.073860  -3.041 0.002427 ** </span></span>
-<span id="cb337-15"><a href="sec-quasi-poisson-regression.html#cb337-15" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.155243   0.083003   1.870 0.061759 .  </span></span>
-<span id="cb337-16"><a href="sec-quasi-poisson-regression.html#cb337-16" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.184883   0.054268  -3.407 0.000686 ***</span></span>
-<span id="cb337-17"><a href="sec-quasi-poisson-regression.html#cb337-17" tabindex="-1"></a><span class="co">#&gt; PhD_Quality      0.012823   0.035700   0.359 0.719544    </span></span>
-<span id="cb337-18"><a href="sec-quasi-poisson-regression.html#cb337-18" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.025543   0.002713   9.415  &lt; 2e-16 ***</span></span>
-<span id="cb337-19"><a href="sec-quasi-poisson-regression.html#cb337-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb337-20"><a href="sec-quasi-poisson-regression.html#cb337-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb337-21"><a href="sec-quasi-poisson-regression.html#cb337-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-22"><a href="sec-quasi-poisson-regression.html#cb337-22" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for quasipoisson family taken to be 1.829006)</span></span>
-<span id="cb337-23"><a href="sec-quasi-poisson-regression.html#cb337-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-24"><a href="sec-quasi-poisson-regression.html#cb337-24" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1817.4  on 914  degrees of freedom</span></span>
-<span id="cb337-25"><a href="sec-quasi-poisson-regression.html#cb337-25" tabindex="-1"></a><span class="co">#&gt; Residual deviance: 1634.4  on 909  degrees of freedom</span></span>
-<span id="cb337-26"><a href="sec-quasi-poisson-regression.html#cb337-26" tabindex="-1"></a><span class="co">#&gt; AIC: NA</span></span>
-<span id="cb337-27"><a href="sec-quasi-poisson-regression.html#cb337-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-28"><a href="sec-quasi-poisson-regression.html#cb337-28" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 5</span></span>
-<span id="cb337-29"><a href="sec-quasi-poisson-regression.html#cb337-29" tabindex="-1"></a><span class="fu">summary</span>(NegBinom_Mod)</span>
-<span id="cb337-30"><a href="sec-quasi-poisson-regression.html#cb337-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-31"><a href="sec-quasi-poisson-regression.html#cb337-31" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb337-32"><a href="sec-quasi-poisson-regression.html#cb337-32" tabindex="-1"></a><span class="co">#&gt; glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, </span></span>
-<span id="cb337-33"><a href="sec-quasi-poisson-regression.html#cb337-33" tabindex="-1"></a><span class="co">#&gt;     link = log)</span></span>
-<span id="cb337-34"><a href="sec-quasi-poisson-regression.html#cb337-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-35"><a href="sec-quasi-poisson-regression.html#cb337-35" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb337-36"><a href="sec-quasi-poisson-regression.html#cb337-36" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span id="cb337-37"><a href="sec-quasi-poisson-regression.html#cb337-37" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.256144   0.137348   1.865 0.062191 .  </span></span>
-<span id="cb337-38"><a href="sec-quasi-poisson-regression.html#cb337-38" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.216418   0.072636  -2.979 0.002887 ** </span></span>
-<span id="cb337-39"><a href="sec-quasi-poisson-regression.html#cb337-39" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.150489   0.082097   1.833 0.066791 .  </span></span>
-<span id="cb337-40"><a href="sec-quasi-poisson-regression.html#cb337-40" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.176415   0.052813  -3.340 0.000837 ***</span></span>
-<span id="cb337-41"><a href="sec-quasi-poisson-regression.html#cb337-41" tabindex="-1"></a><span class="co">#&gt; PhD_Quality      0.015271   0.035873   0.426 0.670326    </span></span>
-<span id="cb337-42"><a href="sec-quasi-poisson-regression.html#cb337-42" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.029082   0.003214   9.048  &lt; 2e-16 ***</span></span>
-<span id="cb337-43"><a href="sec-quasi-poisson-regression.html#cb337-43" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb337-44"><a href="sec-quasi-poisson-regression.html#cb337-44" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb337-45"><a href="sec-quasi-poisson-regression.html#cb337-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-46"><a href="sec-quasi-poisson-regression.html#cb337-46" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for Negative Binomial(2.2644) family taken to be 1)</span></span>
-<span id="cb337-47"><a href="sec-quasi-poisson-regression.html#cb337-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-48"><a href="sec-quasi-poisson-regression.html#cb337-48" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1109.0  on 914  degrees of freedom</span></span>
-<span id="cb337-49"><a href="sec-quasi-poisson-regression.html#cb337-49" tabindex="-1"></a><span class="co">#&gt; Residual deviance: 1004.3  on 909  degrees of freedom</span></span>
-<span id="cb337-50"><a href="sec-quasi-poisson-regression.html#cb337-50" tabindex="-1"></a><span class="co">#&gt; AIC: 3135.9</span></span>
-<span id="cb337-51"><a href="sec-quasi-poisson-regression.html#cb337-51" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-52"><a href="sec-quasi-poisson-regression.html#cb337-52" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 1</span></span>
-<span id="cb337-53"><a href="sec-quasi-poisson-regression.html#cb337-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-54"><a href="sec-quasi-poisson-regression.html#cb337-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-55"><a href="sec-quasi-poisson-regression.html#cb337-55" tabindex="-1"></a><span class="co">#&gt;               Theta:  2.264 </span></span>
-<span id="cb337-56"><a href="sec-quasi-poisson-regression.html#cb337-56" tabindex="-1"></a><span class="co">#&gt;           Std. Err.:  0.271 </span></span>
-<span id="cb337-57"><a href="sec-quasi-poisson-regression.html#cb337-57" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb337-58"><a href="sec-quasi-poisson-regression.html#cb337-58" tabindex="-1"></a><span class="co">#&gt;  2 x log-likelihood:  -3121.917</span></span></code></pre></div>
+<div class="sourceCode" id="cb342"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb342-1"><a href="sec-quasi-poisson-regression.html#cb342-1" tabindex="-1"></a><span class="co"># Fit Negative Binomial model</span></span>
+<span id="cb342-2"><a href="sec-quasi-poisson-regression.html#cb342-2" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb342-3"><a href="sec-quasi-poisson-regression.html#cb342-3" tabindex="-1"></a>NegBinom_Mod <span class="ot">&lt;-</span> <span class="fu">glm.nb</span>(Num_Article <span class="sc">~</span> ., <span class="at">data =</span> bioChemists)</span>
+<span id="cb342-4"><a href="sec-quasi-poisson-regression.html#cb342-4" tabindex="-1"></a></span>
+<span id="cb342-5"><a href="sec-quasi-poisson-regression.html#cb342-5" tabindex="-1"></a><span class="co"># Model summaries</span></span>
+<span id="cb342-6"><a href="sec-quasi-poisson-regression.html#cb342-6" tabindex="-1"></a><span class="fu">summary</span>(quasiPoisson_Mod)</span>
+<span id="cb342-7"><a href="sec-quasi-poisson-regression.html#cb342-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-8"><a href="sec-quasi-poisson-regression.html#cb342-8" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb342-9"><a href="sec-quasi-poisson-regression.html#cb342-9" tabindex="-1"></a><span class="co">#&gt; glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)</span></span>
+<span id="cb342-10"><a href="sec-quasi-poisson-regression.html#cb342-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-11"><a href="sec-quasi-poisson-regression.html#cb342-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb342-12"><a href="sec-quasi-poisson-regression.html#cb342-12" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb342-13"><a href="sec-quasi-poisson-regression.html#cb342-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.304617   0.139273   2.187 0.028983 *  </span></span>
+<span id="cb342-14"><a href="sec-quasi-poisson-regression.html#cb342-14" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.224594   0.073860  -3.041 0.002427 ** </span></span>
+<span id="cb342-15"><a href="sec-quasi-poisson-regression.html#cb342-15" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.155243   0.083003   1.870 0.061759 .  </span></span>
+<span id="cb342-16"><a href="sec-quasi-poisson-regression.html#cb342-16" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.184883   0.054268  -3.407 0.000686 ***</span></span>
+<span id="cb342-17"><a href="sec-quasi-poisson-regression.html#cb342-17" tabindex="-1"></a><span class="co">#&gt; PhD_Quality      0.012823   0.035700   0.359 0.719544    </span></span>
+<span id="cb342-18"><a href="sec-quasi-poisson-regression.html#cb342-18" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.025543   0.002713   9.415  &lt; 2e-16 ***</span></span>
+<span id="cb342-19"><a href="sec-quasi-poisson-regression.html#cb342-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb342-20"><a href="sec-quasi-poisson-regression.html#cb342-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb342-21"><a href="sec-quasi-poisson-regression.html#cb342-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-22"><a href="sec-quasi-poisson-regression.html#cb342-22" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for quasipoisson family taken to be 1.829006)</span></span>
+<span id="cb342-23"><a href="sec-quasi-poisson-regression.html#cb342-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-24"><a href="sec-quasi-poisson-regression.html#cb342-24" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1817.4  on 914  degrees of freedom</span></span>
+<span id="cb342-25"><a href="sec-quasi-poisson-regression.html#cb342-25" tabindex="-1"></a><span class="co">#&gt; Residual deviance: 1634.4  on 909  degrees of freedom</span></span>
+<span id="cb342-26"><a href="sec-quasi-poisson-regression.html#cb342-26" tabindex="-1"></a><span class="co">#&gt; AIC: NA</span></span>
+<span id="cb342-27"><a href="sec-quasi-poisson-regression.html#cb342-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-28"><a href="sec-quasi-poisson-regression.html#cb342-28" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 5</span></span>
+<span id="cb342-29"><a href="sec-quasi-poisson-regression.html#cb342-29" tabindex="-1"></a><span class="fu">summary</span>(NegBinom_Mod)</span>
+<span id="cb342-30"><a href="sec-quasi-poisson-regression.html#cb342-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-31"><a href="sec-quasi-poisson-regression.html#cb342-31" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb342-32"><a href="sec-quasi-poisson-regression.html#cb342-32" tabindex="-1"></a><span class="co">#&gt; glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, </span></span>
+<span id="cb342-33"><a href="sec-quasi-poisson-regression.html#cb342-33" tabindex="-1"></a><span class="co">#&gt;     link = log)</span></span>
+<span id="cb342-34"><a href="sec-quasi-poisson-regression.html#cb342-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-35"><a href="sec-quasi-poisson-regression.html#cb342-35" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb342-36"><a href="sec-quasi-poisson-regression.html#cb342-36" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb342-37"><a href="sec-quasi-poisson-regression.html#cb342-37" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.256144   0.137348   1.865 0.062191 .  </span></span>
+<span id="cb342-38"><a href="sec-quasi-poisson-regression.html#cb342-38" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.216418   0.072636  -2.979 0.002887 ** </span></span>
+<span id="cb342-39"><a href="sec-quasi-poisson-regression.html#cb342-39" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.150489   0.082097   1.833 0.066791 .  </span></span>
+<span id="cb342-40"><a href="sec-quasi-poisson-regression.html#cb342-40" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.176415   0.052813  -3.340 0.000837 ***</span></span>
+<span id="cb342-41"><a href="sec-quasi-poisson-regression.html#cb342-41" tabindex="-1"></a><span class="co">#&gt; PhD_Quality      0.015271   0.035873   0.426 0.670326    </span></span>
+<span id="cb342-42"><a href="sec-quasi-poisson-regression.html#cb342-42" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.029082   0.003214   9.048  &lt; 2e-16 ***</span></span>
+<span id="cb342-43"><a href="sec-quasi-poisson-regression.html#cb342-43" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb342-44"><a href="sec-quasi-poisson-regression.html#cb342-44" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb342-45"><a href="sec-quasi-poisson-regression.html#cb342-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-46"><a href="sec-quasi-poisson-regression.html#cb342-46" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for Negative Binomial(2.2644) family taken to be 1)</span></span>
+<span id="cb342-47"><a href="sec-quasi-poisson-regression.html#cb342-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-48"><a href="sec-quasi-poisson-regression.html#cb342-48" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 1109.0  on 914  degrees of freedom</span></span>
+<span id="cb342-49"><a href="sec-quasi-poisson-regression.html#cb342-49" tabindex="-1"></a><span class="co">#&gt; Residual deviance: 1004.3  on 909  degrees of freedom</span></span>
+<span id="cb342-50"><a href="sec-quasi-poisson-regression.html#cb342-50" tabindex="-1"></a><span class="co">#&gt; AIC: 3135.9</span></span>
+<span id="cb342-51"><a href="sec-quasi-poisson-regression.html#cb342-51" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-52"><a href="sec-quasi-poisson-regression.html#cb342-52" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 1</span></span>
+<span id="cb342-53"><a href="sec-quasi-poisson-regression.html#cb342-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-54"><a href="sec-quasi-poisson-regression.html#cb342-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-55"><a href="sec-quasi-poisson-regression.html#cb342-55" tabindex="-1"></a><span class="co">#&gt;               Theta:  2.264 </span></span>
+<span id="cb342-56"><a href="sec-quasi-poisson-regression.html#cb342-56" tabindex="-1"></a><span class="co">#&gt;           Std. Err.:  0.271 </span></span>
+<span id="cb342-57"><a href="sec-quasi-poisson-regression.html#cb342-57" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb342-58"><a href="sec-quasi-poisson-regression.html#cb342-58" tabindex="-1"></a><span class="co">#&gt;  2 x log-likelihood:  -3121.917</span></span></code></pre></div>
 </div>
 <div id="key-differences-quasi-poisson-vs.-negative-binomial" class="section level4 hasAnchor" number="7.6.2.6">
 <h4><span class="header-section-number">7.6.2.6</span> Key Differences: Quasi-Poisson vs. Negative Binomial<a href="sec-quasi-poisson-regression.html#key-differences-quasi-poisson-vs.-negative-binomial" class="anchor-section" aria-label="Anchor link to header"></a></h4>

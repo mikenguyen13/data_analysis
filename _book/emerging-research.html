@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>22.6 Emerging Research | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="22.6 Emerging Research | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1927,53 +1927,53 @@ div.csl-indent {
 </ol>
 <hr />
 <p>We first generate a dataset to simulate a scenario where an outcome variable (e.g., sales, website clicks) has many zeros, and treatment affects both the extensive and intensive margins.</p>
-<div class="sourceCode" id="cb790"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb790-1"><a href="emerging-research.html#cb790-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) <span class="co"># For reproducibility</span></span>
-<span id="cb790-2"><a href="emerging-research.html#cb790-2" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb790-3"><a href="emerging-research.html#cb790-3" tabindex="-1"></a></span>
-<span id="cb790-4"><a href="emerging-research.html#cb790-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># Number of observations</span></span>
-<span id="cb790-5"><a href="emerging-research.html#cb790-5" tabindex="-1"></a>p_treatment <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># Probability of being treated</span></span>
-<span id="cb790-6"><a href="emerging-research.html#cb790-6" tabindex="-1"></a></span>
-<span id="cb790-7"><a href="emerging-research.html#cb790-7" tabindex="-1"></a><span class="co"># Step 1: Generate the treatment variable D</span></span>
-<span id="cb790-8"><a href="emerging-research.html#cb790-8" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, p_treatment)</span>
-<span id="cb790-9"><a href="emerging-research.html#cb790-9" tabindex="-1"></a></span>
-<span id="cb790-10"><a href="emerging-research.html#cb790-10" tabindex="-1"></a><span class="co"># Step 2: Generate potential outcomes</span></span>
-<span id="cb790-11"><a href="emerging-research.html#cb790-11" tabindex="-1"></a><span class="co"># Untreated potential outcome (mostly zeroes)</span></span>
-<span id="cb790-12"><a href="emerging-research.html#cb790-12" tabindex="-1"></a>Y0 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>) <span class="sc">*</span> (<span class="fu">runif</span>(n) <span class="sc">&lt;</span> <span class="fl">0.3</span>)</span>
-<span id="cb790-13"><a href="emerging-research.html#cb790-13" tabindex="-1"></a></span>
-<span id="cb790-14"><a href="emerging-research.html#cb790-14" tabindex="-1"></a><span class="co"># Treated potential outcome (affecting both extensive and intensive margins)</span></span>
-<span id="cb790-15"><a href="emerging-research.html#cb790-15" tabindex="-1"></a>Y1 <span class="ot">&lt;-</span> Y0 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">2</span>, <span class="at">sd =</span> <span class="dv">1</span>) <span class="sc">*</span> (<span class="fu">runif</span>(n) <span class="sc">&lt;</span> <span class="fl">0.7</span>)</span>
-<span id="cb790-16"><a href="emerging-research.html#cb790-16" tabindex="-1"></a></span>
-<span id="cb790-17"><a href="emerging-research.html#cb790-17" tabindex="-1"></a><span class="co"># Step 3: Combine effects based on treatment assignment</span></span>
-<span id="cb790-18"><a href="emerging-research.html#cb790-18" tabindex="-1"></a>Y_observed <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> D) <span class="sc">*</span> Y0 <span class="sc">+</span> D <span class="sc">*</span> Y1</span>
-<span id="cb790-19"><a href="emerging-research.html#cb790-19" tabindex="-1"></a></span>
-<span id="cb790-20"><a href="emerging-research.html#cb790-20" tabindex="-1"></a><span class="co"># Ensure non-negative outcomes (modeling real-world situations)</span></span>
-<span id="cb790-21"><a href="emerging-research.html#cb790-21" tabindex="-1"></a>Y_observed[Y_observed <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb790-22"><a href="emerging-research.html#cb790-22" tabindex="-1"></a></span>
-<span id="cb790-23"><a href="emerging-research.html#cb790-23" tabindex="-1"></a><span class="co"># Create a dataset with an additional control variable</span></span>
-<span id="cb790-24"><a href="emerging-research.html#cb790-24" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb790-25"><a href="emerging-research.html#cb790-25" tabindex="-1"></a>    <span class="at">ID =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
-<span id="cb790-26"><a href="emerging-research.html#cb790-26" tabindex="-1"></a>    <span class="at">Treatment =</span> D,</span>
-<span id="cb790-27"><a href="emerging-research.html#cb790-27" tabindex="-1"></a>    <span class="at">Outcome =</span> Y_observed,</span>
-<span id="cb790-28"><a href="emerging-research.html#cb790-28" tabindex="-1"></a>    <span class="at">X =</span> <span class="fu">rnorm</span>(n) <span class="co"># Control variable</span></span>
-<span id="cb790-29"><a href="emerging-research.html#cb790-29" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb790-30"><a href="emerging-research.html#cb790-30" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">positive =</span> Outcome <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="co"># Indicator for extensive margin</span></span>
-<span id="cb790-31"><a href="emerging-research.html#cb790-31" tabindex="-1"></a></span>
-<span id="cb790-32"><a href="emerging-research.html#cb790-32" tabindex="-1"></a><span class="co"># View first few rows</span></span>
-<span id="cb790-33"><a href="emerging-research.html#cb790-33" tabindex="-1"></a><span class="fu">head</span>(data)</span>
-<span id="cb790-34"><a href="emerging-research.html#cb790-34" tabindex="-1"></a><span class="co">#&gt;   ID Treatment   Outcome          X positive</span></span>
-<span id="cb790-35"><a href="emerging-research.html#cb790-35" tabindex="-1"></a><span class="co">#&gt; 1  1         0 0.0000000  1.4783345    FALSE</span></span>
-<span id="cb790-36"><a href="emerging-research.html#cb790-36" tabindex="-1"></a><span class="co">#&gt; 2  2         1 2.2369379 -1.4067867     TRUE</span></span>
-<span id="cb790-37"><a href="emerging-research.html#cb790-37" tabindex="-1"></a><span class="co">#&gt; 3  3         0 0.0000000 -1.8839721    FALSE</span></span>
-<span id="cb790-38"><a href="emerging-research.html#cb790-38" tabindex="-1"></a><span class="co">#&gt; 4  4         1 3.2192276 -0.2773662     TRUE</span></span>
-<span id="cb790-39"><a href="emerging-research.html#cb790-39" tabindex="-1"></a><span class="co">#&gt; 5  5         1 0.6649693  0.4304278     TRUE</span></span>
-<span id="cb790-40"><a href="emerging-research.html#cb790-40" tabindex="-1"></a><span class="co">#&gt; 6  6         0 0.0000000 -0.1287867    FALSE</span></span></code></pre></div>
-<div class="sourceCode" id="cb791"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb791-1"><a href="emerging-research.html#cb791-1" tabindex="-1"></a><span class="co"># Plot distribution of outcomes</span></span>
-<span id="cb791-2"><a href="emerging-research.html#cb791-2" tabindex="-1"></a><span class="fu">hist</span>(</span>
-<span id="cb791-3"><a href="emerging-research.html#cb791-3" tabindex="-1"></a>    data<span class="sc">$</span>Outcome,</span>
-<span id="cb791-4"><a href="emerging-research.html#cb791-4" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="dv">30</span>,</span>
-<span id="cb791-5"><a href="emerging-research.html#cb791-5" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Distribution of Outcomes&quot;</span>,</span>
-<span id="cb791-6"><a href="emerging-research.html#cb791-6" tabindex="-1"></a>    <span class="at">col =</span> <span class="st">&quot;lightblue&quot;</span></span>
-<span id="cb791-7"><a href="emerging-research.html#cb791-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb795"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb795-1"><a href="emerging-research.html#cb795-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) <span class="co"># For reproducibility</span></span>
+<span id="cb795-2"><a href="emerging-research.html#cb795-2" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb795-3"><a href="emerging-research.html#cb795-3" tabindex="-1"></a></span>
+<span id="cb795-4"><a href="emerging-research.html#cb795-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># Number of observations</span></span>
+<span id="cb795-5"><a href="emerging-research.html#cb795-5" tabindex="-1"></a>p_treatment <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># Probability of being treated</span></span>
+<span id="cb795-6"><a href="emerging-research.html#cb795-6" tabindex="-1"></a></span>
+<span id="cb795-7"><a href="emerging-research.html#cb795-7" tabindex="-1"></a><span class="co"># Step 1: Generate the treatment variable D</span></span>
+<span id="cb795-8"><a href="emerging-research.html#cb795-8" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, p_treatment)</span>
+<span id="cb795-9"><a href="emerging-research.html#cb795-9" tabindex="-1"></a></span>
+<span id="cb795-10"><a href="emerging-research.html#cb795-10" tabindex="-1"></a><span class="co"># Step 2: Generate potential outcomes</span></span>
+<span id="cb795-11"><a href="emerging-research.html#cb795-11" tabindex="-1"></a><span class="co"># Untreated potential outcome (mostly zeroes)</span></span>
+<span id="cb795-12"><a href="emerging-research.html#cb795-12" tabindex="-1"></a>Y0 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>) <span class="sc">*</span> (<span class="fu">runif</span>(n) <span class="sc">&lt;</span> <span class="fl">0.3</span>)</span>
+<span id="cb795-13"><a href="emerging-research.html#cb795-13" tabindex="-1"></a></span>
+<span id="cb795-14"><a href="emerging-research.html#cb795-14" tabindex="-1"></a><span class="co"># Treated potential outcome (affecting both extensive and intensive margins)</span></span>
+<span id="cb795-15"><a href="emerging-research.html#cb795-15" tabindex="-1"></a>Y1 <span class="ot">&lt;-</span> Y0 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">2</span>, <span class="at">sd =</span> <span class="dv">1</span>) <span class="sc">*</span> (<span class="fu">runif</span>(n) <span class="sc">&lt;</span> <span class="fl">0.7</span>)</span>
+<span id="cb795-16"><a href="emerging-research.html#cb795-16" tabindex="-1"></a></span>
+<span id="cb795-17"><a href="emerging-research.html#cb795-17" tabindex="-1"></a><span class="co"># Step 3: Combine effects based on treatment assignment</span></span>
+<span id="cb795-18"><a href="emerging-research.html#cb795-18" tabindex="-1"></a>Y_observed <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> D) <span class="sc">*</span> Y0 <span class="sc">+</span> D <span class="sc">*</span> Y1</span>
+<span id="cb795-19"><a href="emerging-research.html#cb795-19" tabindex="-1"></a></span>
+<span id="cb795-20"><a href="emerging-research.html#cb795-20" tabindex="-1"></a><span class="co"># Ensure non-negative outcomes (modeling real-world situations)</span></span>
+<span id="cb795-21"><a href="emerging-research.html#cb795-21" tabindex="-1"></a>Y_observed[Y_observed <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb795-22"><a href="emerging-research.html#cb795-22" tabindex="-1"></a></span>
+<span id="cb795-23"><a href="emerging-research.html#cb795-23" tabindex="-1"></a><span class="co"># Create a dataset with an additional control variable</span></span>
+<span id="cb795-24"><a href="emerging-research.html#cb795-24" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb795-25"><a href="emerging-research.html#cb795-25" tabindex="-1"></a>    <span class="at">ID =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb795-26"><a href="emerging-research.html#cb795-26" tabindex="-1"></a>    <span class="at">Treatment =</span> D,</span>
+<span id="cb795-27"><a href="emerging-research.html#cb795-27" tabindex="-1"></a>    <span class="at">Outcome =</span> Y_observed,</span>
+<span id="cb795-28"><a href="emerging-research.html#cb795-28" tabindex="-1"></a>    <span class="at">X =</span> <span class="fu">rnorm</span>(n) <span class="co"># Control variable</span></span>
+<span id="cb795-29"><a href="emerging-research.html#cb795-29" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb795-30"><a href="emerging-research.html#cb795-30" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">positive =</span> Outcome <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="co"># Indicator for extensive margin</span></span>
+<span id="cb795-31"><a href="emerging-research.html#cb795-31" tabindex="-1"></a></span>
+<span id="cb795-32"><a href="emerging-research.html#cb795-32" tabindex="-1"></a><span class="co"># View first few rows</span></span>
+<span id="cb795-33"><a href="emerging-research.html#cb795-33" tabindex="-1"></a><span class="fu">head</span>(data)</span>
+<span id="cb795-34"><a href="emerging-research.html#cb795-34" tabindex="-1"></a><span class="co">#&gt;   ID Treatment   Outcome          X positive</span></span>
+<span id="cb795-35"><a href="emerging-research.html#cb795-35" tabindex="-1"></a><span class="co">#&gt; 1  1         0 0.0000000  1.4783345    FALSE</span></span>
+<span id="cb795-36"><a href="emerging-research.html#cb795-36" tabindex="-1"></a><span class="co">#&gt; 2  2         1 2.2369379 -1.4067867     TRUE</span></span>
+<span id="cb795-37"><a href="emerging-research.html#cb795-37" tabindex="-1"></a><span class="co">#&gt; 3  3         0 0.0000000 -1.8839721    FALSE</span></span>
+<span id="cb795-38"><a href="emerging-research.html#cb795-38" tabindex="-1"></a><span class="co">#&gt; 4  4         1 3.2192276 -0.2773662     TRUE</span></span>
+<span id="cb795-39"><a href="emerging-research.html#cb795-39" tabindex="-1"></a><span class="co">#&gt; 5  5         1 0.6649693  0.4304278     TRUE</span></span>
+<span id="cb795-40"><a href="emerging-research.html#cb795-40" tabindex="-1"></a><span class="co">#&gt; 6  6         0 0.0000000 -0.1287867    FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb796"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb796-1"><a href="emerging-research.html#cb796-1" tabindex="-1"></a><span class="co"># Plot distribution of outcomes</span></span>
+<span id="cb796-2"><a href="emerging-research.html#cb796-2" tabindex="-1"></a><span class="fu">hist</span>(</span>
+<span id="cb796-3"><a href="emerging-research.html#cb796-3" tabindex="-1"></a>    data<span class="sc">$</span>Outcome,</span>
+<span id="cb796-4"><a href="emerging-research.html#cb796-4" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="dv">30</span>,</span>
+<span id="cb796-5"><a href="emerging-research.html#cb796-5" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Distribution of Outcomes&quot;</span>,</span>
+<span id="cb796-6"><a href="emerging-research.html#cb796-6" tabindex="-1"></a>    <span class="at">col =</span> <span class="st">&quot;lightblue&quot;</span></span>
+<span id="cb796-7"><a href="emerging-research.html#cb796-7" tabindex="-1"></a>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-14"></span>
 <img src="22-experiment_files/figure-html/unnamed-chunk-14-1.png" alt="Bar chart showing outcome frequencies with high frequency at 0 and decreasing frequencies for outcomes 1 through 6." width="90%" />
 <p class="caption">
@@ -1983,69 +1983,69 @@ Figure 2.15: Distribution of Outcomes
 <div id="estimating-percentage-changes-in-the-average" class="section level4 hasAnchor" number="22.6.2.1">
 <h4><span class="header-section-number">22.6.2.1</span> Estimating Percentage Changes in the Average<a href="emerging-research.html#estimating-percentage-changes-in-the-average" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>Since we cannot use a log transformation, we estimate percentage changes using Poisson QMLE, which is robust to zero-valued outcomes.</p>
-<div class="sourceCode" id="cb792"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb792-1"><a href="emerging-research.html#cb792-1" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb792-2"><a href="emerging-research.html#cb792-2" tabindex="-1"></a></span>
-<span id="cb792-3"><a href="emerging-research.html#cb792-3" tabindex="-1"></a><span class="co"># Poisson Quasi-Maximum Likelihood Estimation (QMLE)</span></span>
-<span id="cb792-4"><a href="emerging-research.html#cb792-4" tabindex="-1"></a>res_pois <span class="ot">&lt;-</span> <span class="fu">fepois</span>(</span>
-<span id="cb792-5"><a href="emerging-research.html#cb792-5" tabindex="-1"></a>    <span class="at">fml =</span> Outcome <span class="sc">~</span> Treatment <span class="sc">+</span> X, </span>
-<span id="cb792-6"><a href="emerging-research.html#cb792-6" tabindex="-1"></a>    <span class="at">data =</span> data, </span>
-<span id="cb792-7"><a href="emerging-research.html#cb792-7" tabindex="-1"></a>    <span class="at">vcov =</span> <span class="st">&quot;hetero&quot;</span></span>
-<span id="cb792-8"><a href="emerging-research.html#cb792-8" tabindex="-1"></a>)</span>
-<span id="cb792-9"><a href="emerging-research.html#cb792-9" tabindex="-1"></a></span>
-<span id="cb792-10"><a href="emerging-research.html#cb792-10" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb792-11"><a href="emerging-research.html#cb792-11" tabindex="-1"></a><span class="fu">etable</span>(res_pois)</span>
-<span id="cb792-12"><a href="emerging-research.html#cb792-12" tabindex="-1"></a><span class="co">#&gt;                           res_pois</span></span>
-<span id="cb792-13"><a href="emerging-research.html#cb792-13" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:            Outcome</span></span>
-<span id="cb792-14"><a href="emerging-research.html#cb792-14" tabindex="-1"></a><span class="co">#&gt;                                   </span></span>
-<span id="cb792-15"><a href="emerging-research.html#cb792-15" tabindex="-1"></a><span class="co">#&gt; Constant        -2.223*** (0.1440)</span></span>
-<span id="cb792-16"><a href="emerging-research.html#cb792-16" tabindex="-1"></a><span class="co">#&gt; Treatment        2.579*** (0.1494)</span></span>
-<span id="cb792-17"><a href="emerging-research.html#cb792-17" tabindex="-1"></a><span class="co">#&gt; X                  0.0235 (0.0406)</span></span>
-<span id="cb792-18"><a href="emerging-research.html#cb792-18" tabindex="-1"></a><span class="co">#&gt; _______________ __________________</span></span>
-<span id="cb792-19"><a href="emerging-research.html#cb792-19" tabindex="-1"></a><span class="co">#&gt; S.E. type       Heteroskedas.-rob.</span></span>
-<span id="cb792-20"><a href="emerging-research.html#cb792-20" tabindex="-1"></a><span class="co">#&gt; Observations                 1,000</span></span>
-<span id="cb792-21"><a href="emerging-research.html#cb792-21" tabindex="-1"></a><span class="co">#&gt; Squared Cor.               0.33857</span></span>
-<span id="cb792-22"><a href="emerging-research.html#cb792-22" tabindex="-1"></a><span class="co">#&gt; Pseudo R2                  0.26145</span></span>
-<span id="cb792-23"><a href="emerging-research.html#cb792-23" tabindex="-1"></a><span class="co">#&gt; BIC                        1,927.9</span></span>
-<span id="cb792-24"><a href="emerging-research.html#cb792-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb792-25"><a href="emerging-research.html#cb792-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb797"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb797-1"><a href="emerging-research.html#cb797-1" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb797-2"><a href="emerging-research.html#cb797-2" tabindex="-1"></a></span>
+<span id="cb797-3"><a href="emerging-research.html#cb797-3" tabindex="-1"></a><span class="co"># Poisson Quasi-Maximum Likelihood Estimation (QMLE)</span></span>
+<span id="cb797-4"><a href="emerging-research.html#cb797-4" tabindex="-1"></a>res_pois <span class="ot">&lt;-</span> <span class="fu">fepois</span>(</span>
+<span id="cb797-5"><a href="emerging-research.html#cb797-5" tabindex="-1"></a>    <span class="at">fml =</span> Outcome <span class="sc">~</span> Treatment <span class="sc">+</span> X, </span>
+<span id="cb797-6"><a href="emerging-research.html#cb797-6" tabindex="-1"></a>    <span class="at">data =</span> data, </span>
+<span id="cb797-7"><a href="emerging-research.html#cb797-7" tabindex="-1"></a>    <span class="at">vcov =</span> <span class="st">&quot;hetero&quot;</span></span>
+<span id="cb797-8"><a href="emerging-research.html#cb797-8" tabindex="-1"></a>)</span>
+<span id="cb797-9"><a href="emerging-research.html#cb797-9" tabindex="-1"></a></span>
+<span id="cb797-10"><a href="emerging-research.html#cb797-10" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb797-11"><a href="emerging-research.html#cb797-11" tabindex="-1"></a><span class="fu">etable</span>(res_pois)</span>
+<span id="cb797-12"><a href="emerging-research.html#cb797-12" tabindex="-1"></a><span class="co">#&gt;                           res_pois</span></span>
+<span id="cb797-13"><a href="emerging-research.html#cb797-13" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:            Outcome</span></span>
+<span id="cb797-14"><a href="emerging-research.html#cb797-14" tabindex="-1"></a><span class="co">#&gt;                                   </span></span>
+<span id="cb797-15"><a href="emerging-research.html#cb797-15" tabindex="-1"></a><span class="co">#&gt; Constant        -2.223*** (0.1440)</span></span>
+<span id="cb797-16"><a href="emerging-research.html#cb797-16" tabindex="-1"></a><span class="co">#&gt; Treatment        2.579*** (0.1494)</span></span>
+<span id="cb797-17"><a href="emerging-research.html#cb797-17" tabindex="-1"></a><span class="co">#&gt; X                  0.0235 (0.0406)</span></span>
+<span id="cb797-18"><a href="emerging-research.html#cb797-18" tabindex="-1"></a><span class="co">#&gt; _______________ __________________</span></span>
+<span id="cb797-19"><a href="emerging-research.html#cb797-19" tabindex="-1"></a><span class="co">#&gt; S.E. type       Heteroskedas.-rob.</span></span>
+<span id="cb797-20"><a href="emerging-research.html#cb797-20" tabindex="-1"></a><span class="co">#&gt; Observations                 1,000</span></span>
+<span id="cb797-21"><a href="emerging-research.html#cb797-21" tabindex="-1"></a><span class="co">#&gt; Squared Cor.               0.33857</span></span>
+<span id="cb797-22"><a href="emerging-research.html#cb797-22" tabindex="-1"></a><span class="co">#&gt; Pseudo R2                  0.26145</span></span>
+<span id="cb797-23"><a href="emerging-research.html#cb797-23" tabindex="-1"></a><span class="co">#&gt; BIC                        1,927.9</span></span>
+<span id="cb797-24"><a href="emerging-research.html#cb797-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb797-25"><a href="emerging-research.html#cb797-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <p>To interpret the results:</p>
 <ul>
 <li><p>The coefficient on <code>Treatment</code> represents the log-percentage change in the mean outcome of the treatment group relative to the control group.</p></li>
 <li><p>To compute the proportional effect, we exponentiate the coefficient:</p></li>
 </ul>
-<div class="sourceCode" id="cb793"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb793-1"><a href="emerging-research.html#cb793-1" tabindex="-1"></a><span class="co"># Compute the proportional effect of treatment</span></span>
-<span id="cb793-2"><a href="emerging-research.html#cb793-2" tabindex="-1"></a>treatment_effect <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">coefficients</span>(res_pois)[<span class="st">&quot;Treatment&quot;</span>]) <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb793-3"><a href="emerging-research.html#cb793-3" tabindex="-1"></a>treatment_effect</span>
-<span id="cb793-4"><a href="emerging-research.html#cb793-4" tabindex="-1"></a><span class="co">#&gt; Treatment </span></span>
-<span id="cb793-5"><a href="emerging-research.html#cb793-5" tabindex="-1"></a><span class="co">#&gt;  12.17757</span></span></code></pre></div>
+<div class="sourceCode" id="cb798"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb798-1"><a href="emerging-research.html#cb798-1" tabindex="-1"></a><span class="co"># Compute the proportional effect of treatment</span></span>
+<span id="cb798-2"><a href="emerging-research.html#cb798-2" tabindex="-1"></a>treatment_effect <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">coefficients</span>(res_pois)[<span class="st">&quot;Treatment&quot;</span>]) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb798-3"><a href="emerging-research.html#cb798-3" tabindex="-1"></a>treatment_effect</span>
+<span id="cb798-4"><a href="emerging-research.html#cb798-4" tabindex="-1"></a><span class="co">#&gt; Treatment </span></span>
+<span id="cb798-5"><a href="emerging-research.html#cb798-5" tabindex="-1"></a><span class="co">#&gt;  12.17757</span></span></code></pre></div>
 <p>Compute the standard error:</p>
-<div class="sourceCode" id="cb794"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb794-1"><a href="emerging-research.html#cb794-1" tabindex="-1"></a><span class="co"># Compute standard error</span></span>
-<span id="cb794-2"><a href="emerging-research.html#cb794-2" tabindex="-1"></a>se_treatment <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">coefficients</span>(res_pois)[<span class="st">&quot;Treatment&quot;</span>]) <span class="sc">*</span></span>
-<span id="cb794-3"><a href="emerging-research.html#cb794-3" tabindex="-1"></a>    <span class="fu">sqrt</span>(res_pois<span class="sc">$</span>cov.scaled[<span class="st">&quot;Treatment&quot;</span>, <span class="st">&quot;Treatment&quot;</span>])</span>
-<span id="cb794-4"><a href="emerging-research.html#cb794-4" tabindex="-1"></a>se_treatment</span>
-<span id="cb794-5"><a href="emerging-research.html#cb794-5" tabindex="-1"></a><span class="co">#&gt; Treatment </span></span>
-<span id="cb794-6"><a href="emerging-research.html#cb794-6" tabindex="-1"></a><span class="co">#&gt;  1.968684</span></span></code></pre></div>
+<div class="sourceCode" id="cb799"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb799-1"><a href="emerging-research.html#cb799-1" tabindex="-1"></a><span class="co"># Compute standard error</span></span>
+<span id="cb799-2"><a href="emerging-research.html#cb799-2" tabindex="-1"></a>se_treatment <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">coefficients</span>(res_pois)[<span class="st">&quot;Treatment&quot;</span>]) <span class="sc">*</span></span>
+<span id="cb799-3"><a href="emerging-research.html#cb799-3" tabindex="-1"></a>    <span class="fu">sqrt</span>(res_pois<span class="sc">$</span>cov.scaled[<span class="st">&quot;Treatment&quot;</span>, <span class="st">&quot;Treatment&quot;</span>])</span>
+<span id="cb799-4"><a href="emerging-research.html#cb799-4" tabindex="-1"></a>se_treatment</span>
+<span id="cb799-5"><a href="emerging-research.html#cb799-5" tabindex="-1"></a><span class="co">#&gt; Treatment </span></span>
+<span id="cb799-6"><a href="emerging-research.html#cb799-6" tabindex="-1"></a><span class="co">#&gt;  1.968684</span></span></code></pre></div>
 <p>Thus, we conclude that the treatment effect increases the outcome by 1215% for the treated group compared to the control group.</p>
 </div>
 <div id="estimating-extensive-vs.-intensive-margins" class="section level4 hasAnchor" number="22.6.2.2">
 <h4><span class="header-section-number">22.6.2.2</span> Estimating Extensive vs. Intensive Margins<a href="emerging-research.html#estimating-extensive-vs.-intensive-margins" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>We now estimate treatment effects separately for the extensive margin (probability of a nonzero outcome) and the intensive margin (magnitude of effect among those with a nonzero outcome).</p>
 <p>First, we use Lee Bounds to estimate the intensive-margin effect for individuals who always have a nonzero outcome.</p>
-<div class="sourceCode" id="cb795"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb795-1"><a href="emerging-research.html#cb795-1" tabindex="-1"></a><span class="fu">library</span>(causalverse)</span>
-<span id="cb795-2"><a href="emerging-research.html#cb795-2" tabindex="-1"></a></span>
-<span id="cb795-3"><a href="emerging-research.html#cb795-3" tabindex="-1"></a>res <span class="ot">&lt;-</span> causalverse<span class="sc">::</span><span class="fu">lee_bounds</span>(</span>
-<span id="cb795-4"><a href="emerging-research.html#cb795-4" tabindex="-1"></a>    <span class="at">df =</span> data,</span>
-<span id="cb795-5"><a href="emerging-research.html#cb795-5" tabindex="-1"></a>    <span class="at">d =</span> <span class="st">&quot;Treatment&quot;</span>,</span>
-<span id="cb795-6"><a href="emerging-research.html#cb795-6" tabindex="-1"></a>    <span class="at">m =</span> <span class="st">&quot;positive&quot;</span>,</span>
-<span id="cb795-7"><a href="emerging-research.html#cb795-7" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Outcome&quot;</span>,</span>
-<span id="cb795-8"><a href="emerging-research.html#cb795-8" tabindex="-1"></a>    <span class="at">numdraws =</span> <span class="dv">10</span></span>
-<span id="cb795-9"><a href="emerging-research.html#cb795-9" tabindex="-1"></a>) <span class="sc">|&gt;</span> </span>
-<span id="cb795-10"><a href="emerging-research.html#cb795-10" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">nice_tab</span>(<span class="dv">2</span>)</span>
-<span id="cb795-11"><a href="emerging-research.html#cb795-11" tabindex="-1"></a></span>
-<span id="cb795-12"><a href="emerging-research.html#cb795-12" tabindex="-1"></a><span class="fu">print</span>(res)</span>
-<span id="cb795-13"><a href="emerging-research.html#cb795-13" tabindex="-1"></a><span class="co">#&gt;          term estimate std.error</span></span>
-<span id="cb795-14"><a href="emerging-research.html#cb795-14" tabindex="-1"></a><span class="co">#&gt; 1 Lower bound    -0.22      0.09</span></span>
-<span id="cb795-15"><a href="emerging-research.html#cb795-15" tabindex="-1"></a><span class="co">#&gt; 2 Upper bound     2.77      0.14</span></span></code></pre></div>
+<div class="sourceCode" id="cb800"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb800-1"><a href="emerging-research.html#cb800-1" tabindex="-1"></a><span class="fu">library</span>(causalverse)</span>
+<span id="cb800-2"><a href="emerging-research.html#cb800-2" tabindex="-1"></a></span>
+<span id="cb800-3"><a href="emerging-research.html#cb800-3" tabindex="-1"></a>res <span class="ot">&lt;-</span> causalverse<span class="sc">::</span><span class="fu">lee_bounds</span>(</span>
+<span id="cb800-4"><a href="emerging-research.html#cb800-4" tabindex="-1"></a>    <span class="at">df =</span> data,</span>
+<span id="cb800-5"><a href="emerging-research.html#cb800-5" tabindex="-1"></a>    <span class="at">d =</span> <span class="st">&quot;Treatment&quot;</span>,</span>
+<span id="cb800-6"><a href="emerging-research.html#cb800-6" tabindex="-1"></a>    <span class="at">m =</span> <span class="st">&quot;positive&quot;</span>,</span>
+<span id="cb800-7"><a href="emerging-research.html#cb800-7" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Outcome&quot;</span>,</span>
+<span id="cb800-8"><a href="emerging-research.html#cb800-8" tabindex="-1"></a>    <span class="at">numdraws =</span> <span class="dv">10</span></span>
+<span id="cb800-9"><a href="emerging-research.html#cb800-9" tabindex="-1"></a>) <span class="sc">|&gt;</span> </span>
+<span id="cb800-10"><a href="emerging-research.html#cb800-10" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">nice_tab</span>(<span class="dv">2</span>)</span>
+<span id="cb800-11"><a href="emerging-research.html#cb800-11" tabindex="-1"></a></span>
+<span id="cb800-12"><a href="emerging-research.html#cb800-12" tabindex="-1"></a><span class="fu">print</span>(res)</span>
+<span id="cb800-13"><a href="emerging-research.html#cb800-13" tabindex="-1"></a><span class="co">#&gt;          term estimate std.error</span></span>
+<span id="cb800-14"><a href="emerging-research.html#cb800-14" tabindex="-1"></a><span class="co">#&gt; 1 Lower bound    -0.22      0.09</span></span>
+<span id="cb800-15"><a href="emerging-research.html#cb800-15" tabindex="-1"></a><span class="co">#&gt; 2 Upper bound     2.77      0.14</span></span></code></pre></div>
 <p>Since the confidence interval includes zero, we cannot conclude that the treatment has a significant intensive-margin effect.</p>
 </div>
 <div id="sensitivity-analysis-varying-the-effect-for-compliers" class="section level4 hasAnchor" number="22.6.2.3">
@@ -2054,30 +2054,30 @@ Figure 2.15: Distribution of Outcomes
 <p>We assume that the expected outcome for compliers is <span class="math inline">\(100 \times c%\)</span> lower or higher than for always-takers: <span class="math display">\[
 E(Y(1) \| \text{Complier}) = (1 - c) E(Y(1) \| \text{Always-taker})
 \]</span> We compute Lee Bounds for different values of <span class="math inline">\(c\)</span>:</p>
-<div class="sourceCode" id="cb796"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb796-1"><a href="emerging-research.html#cb796-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb796-2"><a href="emerging-research.html#cb796-2" tabindex="-1"></a>c_values <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>)</span>
-<span id="cb796-3"><a href="emerging-research.html#cb796-3" tabindex="-1"></a></span>
-<span id="cb796-4"><a href="emerging-research.html#cb796-4" tabindex="-1"></a>combined_res <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(c_values, <span class="cf">function</span>(c) {</span>
-<span id="cb796-5"><a href="emerging-research.html#cb796-5" tabindex="-1"></a>    res <span class="ot">&lt;-</span> causalverse<span class="sc">::</span><span class="fu">lee_bounds</span>(</span>
-<span id="cb796-6"><a href="emerging-research.html#cb796-6" tabindex="-1"></a>        <span class="at">df =</span> data,</span>
-<span id="cb796-7"><a href="emerging-research.html#cb796-7" tabindex="-1"></a>        <span class="at">d =</span> <span class="st">&quot;Treatment&quot;</span>,</span>
-<span id="cb796-8"><a href="emerging-research.html#cb796-8" tabindex="-1"></a>        <span class="at">m =</span> <span class="st">&quot;positive&quot;</span>,</span>
-<span id="cb796-9"><a href="emerging-research.html#cb796-9" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Outcome&quot;</span>,</span>
-<span id="cb796-10"><a href="emerging-research.html#cb796-10" tabindex="-1"></a>        <span class="at">numdraws =</span> <span class="dv">10</span>,</span>
-<span id="cb796-11"><a href="emerging-research.html#cb796-11" tabindex="-1"></a>        <span class="at">c_at_ratio =</span> c</span>
-<span id="cb796-12"><a href="emerging-research.html#cb796-12" tabindex="-1"></a>    )</span>
-<span id="cb796-13"><a href="emerging-research.html#cb796-13" tabindex="-1"></a>    </span>
-<span id="cb796-14"><a href="emerging-research.html#cb796-14" tabindex="-1"></a>    res<span class="sc">$</span>c_value <span class="ot">&lt;-</span> <span class="fu">as.character</span>(c)</span>
-<span id="cb796-15"><a href="emerging-research.html#cb796-15" tabindex="-1"></a>    <span class="fu">return</span>(res)</span>
-<span id="cb796-16"><a href="emerging-research.html#cb796-16" tabindex="-1"></a>}))</span>
-<span id="cb796-17"><a href="emerging-research.html#cb796-17" tabindex="-1"></a></span>
-<span id="cb796-18"><a href="emerging-research.html#cb796-18" tabindex="-1"></a>combined_res <span class="sc">|&gt;</span> </span>
-<span id="cb796-19"><a href="emerging-research.html#cb796-19" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(c_value, <span class="fu">everything</span>()) <span class="sc">|&gt;</span> </span>
-<span id="cb796-20"><a href="emerging-research.html#cb796-20" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">nice_tab</span>()</span>
-<span id="cb796-21"><a href="emerging-research.html#cb796-21" tabindex="-1"></a><span class="co">#&gt;   c_value           term estimate std.error</span></span>
-<span id="cb796-22"><a href="emerging-research.html#cb796-22" tabindex="-1"></a><span class="co">#&gt; 1     0.1 Point estimate     6.60      0.71</span></span>
-<span id="cb796-23"><a href="emerging-research.html#cb796-23" tabindex="-1"></a><span class="co">#&gt; 2     0.5 Point estimate     2.54      0.13</span></span>
-<span id="cb796-24"><a href="emerging-research.html#cb796-24" tabindex="-1"></a><span class="co">#&gt; 3     0.7 Point estimate     1.82      0.08</span></span></code></pre></div>
+<div class="sourceCode" id="cb801"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb801-1"><a href="emerging-research.html#cb801-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb801-2"><a href="emerging-research.html#cb801-2" tabindex="-1"></a>c_values <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>)</span>
+<span id="cb801-3"><a href="emerging-research.html#cb801-3" tabindex="-1"></a></span>
+<span id="cb801-4"><a href="emerging-research.html#cb801-4" tabindex="-1"></a>combined_res <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(c_values, <span class="cf">function</span>(c) {</span>
+<span id="cb801-5"><a href="emerging-research.html#cb801-5" tabindex="-1"></a>    res <span class="ot">&lt;-</span> causalverse<span class="sc">::</span><span class="fu">lee_bounds</span>(</span>
+<span id="cb801-6"><a href="emerging-research.html#cb801-6" tabindex="-1"></a>        <span class="at">df =</span> data,</span>
+<span id="cb801-7"><a href="emerging-research.html#cb801-7" tabindex="-1"></a>        <span class="at">d =</span> <span class="st">&quot;Treatment&quot;</span>,</span>
+<span id="cb801-8"><a href="emerging-research.html#cb801-8" tabindex="-1"></a>        <span class="at">m =</span> <span class="st">&quot;positive&quot;</span>,</span>
+<span id="cb801-9"><a href="emerging-research.html#cb801-9" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Outcome&quot;</span>,</span>
+<span id="cb801-10"><a href="emerging-research.html#cb801-10" tabindex="-1"></a>        <span class="at">numdraws =</span> <span class="dv">10</span>,</span>
+<span id="cb801-11"><a href="emerging-research.html#cb801-11" tabindex="-1"></a>        <span class="at">c_at_ratio =</span> c</span>
+<span id="cb801-12"><a href="emerging-research.html#cb801-12" tabindex="-1"></a>    )</span>
+<span id="cb801-13"><a href="emerging-research.html#cb801-13" tabindex="-1"></a>    </span>
+<span id="cb801-14"><a href="emerging-research.html#cb801-14" tabindex="-1"></a>    res<span class="sc">$</span>c_value <span class="ot">&lt;-</span> <span class="fu">as.character</span>(c)</span>
+<span id="cb801-15"><a href="emerging-research.html#cb801-15" tabindex="-1"></a>    <span class="fu">return</span>(res)</span>
+<span id="cb801-16"><a href="emerging-research.html#cb801-16" tabindex="-1"></a>}))</span>
+<span id="cb801-17"><a href="emerging-research.html#cb801-17" tabindex="-1"></a></span>
+<span id="cb801-18"><a href="emerging-research.html#cb801-18" tabindex="-1"></a>combined_res <span class="sc">|&gt;</span> </span>
+<span id="cb801-19"><a href="emerging-research.html#cb801-19" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(c_value, <span class="fu">everything</span>()) <span class="sc">|&gt;</span> </span>
+<span id="cb801-20"><a href="emerging-research.html#cb801-20" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">nice_tab</span>()</span>
+<span id="cb801-21"><a href="emerging-research.html#cb801-21" tabindex="-1"></a><span class="co">#&gt;   c_value           term estimate std.error</span></span>
+<span id="cb801-22"><a href="emerging-research.html#cb801-22" tabindex="-1"></a><span class="co">#&gt; 1     0.1 Point estimate     6.60      0.71</span></span>
+<span id="cb801-23"><a href="emerging-research.html#cb801-23" tabindex="-1"></a><span class="co">#&gt; 2     0.5 Point estimate     2.54      0.13</span></span>
+<span id="cb801-24"><a href="emerging-research.html#cb801-24" tabindex="-1"></a><span class="co">#&gt; 3     0.7 Point estimate     1.82      0.08</span></span></code></pre></div>
 <ul>
 <li>If we assume <span class="math inline">\(c = 0.1\)</span>, meaning compliers’ outcomes are 10% of always-takers’, then the intensive-margin effect is 6.6 units higher for always-takers.</li>
 <li>If <span class="math inline">\(c = 0.5\)</span>, meaning compliers’ outcomes are 50% of always-takers’, then the intensive-margin effect is 2.54 units higher.</li>

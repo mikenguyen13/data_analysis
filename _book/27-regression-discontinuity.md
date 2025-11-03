@@ -4,7 +4,7 @@ Causal inference often requires creativity when randomized experiments are impra
 
 Imagine a policy in which financial aid is awarded only to students whose family income falls below a certain threshold, or a marketing campaign targeted solely at customers with a credit score above a specified value. These cutoffs create a situation where treatment assignment hinges on a single continuous variable (e.g., income or credit score ) crossing a fixed boundary. This boundary, or **cutoff**, introduces a discrete change in treatment probability based on a smooth, underlying score. That is the central insight behind RD: when individuals just above and just below the threshold are otherwise similar, comparing their outcomes offers a window into [local average treatment effects](#sec-local-average-treatment-effects).
 
-The RD design exploits this structure by focusing on the "edge" (the region near the cutoff) where treatment assignment changes abruptly. While units far from the threshold may differ systematically, those close to it are assumed to be comparable, as if randomly assigned to treatment or control. This gives RD a compelling advantage: under relatively mild assumptions, it can deliver **credible causal estimates**, particularly in situations where [randomized controlled trials](#sec-experimental-design) (RCTs) are unfeasible.
+The RD design exploits this structure by focusing on the "edge" (the region near the cutoff) where treatment assignment changes abruptly. While units far from the threshold may differ systematically, those close to it are assumed to be comparable, as if randomly assigned to treatment or control. This gives RD a compelling advantage: under relatively mild assumptions, it can deliver **credible causal estimates**, particularly in situations where [randomized controlled trials](#sec-experimental-design) (RCTs) are infeasible.
 
 Originally introduced by @thistlethwaite1960 in their evaluation of merit-based scholarships and their impact on academic outcomes, RD has since evolved into a widely used econometric tool across fields such as education, healthcare, marketing, political science, and finance. Its theoretical foundation was significantly refined and extended in modern work by @imbens2008regression and @lee2010regression, who formalized its assumptions and estimation strategies.
 
@@ -66,7 +66,7 @@ RD is not a one-size-fits-all approach. While the classic setup involves a binar
     2.  **Application**: Evaluates the immediate impact of an intervention that begins at a known point in time.
     3.  **Caveat**: Since time trends are often confounded by other events, careful modeling of pre- and post-trends is essential.
 
-> Note: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).
+> **Note**: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).
 
 ------------------------------------------------------------------------
 
@@ -104,13 +104,15 @@ RD designs have been extended in several directions to accommodate real-world co
 
 4.  **No Discontinuity in Confounding Variables:** Other covariates should be smooth at the threshold. A common test is to check for jumps in covariates unrelated to treatment.
 
+See Table \@ref(tab:rd-threat-validity) for examples of possible violations.
+
 | **Issue**                             | **Description**                                                                                                 | **Solution**                                                                                |
 |---------------------------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | Violation of Continuity in Covariates | If other variables besides treatment exhibit a discontinuity at the cutoff, the estimated effect may be biased. | Conduct balance tests on pre-treatment covariates.                                          |
 | Multiple Discontinuities              | When multiple threshold effects exist, identification becomes more challenging.                                 | Use robustness checks with alternative model specifications.                                |
 | Manipulation of the Running Variable  | Subjects may manipulate $X_i$ to qualify for treatment (e.g., strategic behavior in test scores).               | Implement McCrary's density test to check for discontinuities in the distribution of $X_i$. |
 
-: Threats to RD Validity
+: (#tab:rd-threat-validity) Threats to RD Validity
 
 ------------------------------------------------------------------------
 
@@ -318,6 +320,8 @@ library(rdd)
 set.seed(1)
 ```
 
+Figure \@ref(fig:rd-local-polynomial-reg-wo-dis)
+
 
 ``` r
 # Simulated data without discontinuity
@@ -326,8 +330,8 @@ DCdensity(x, 0)  # No discontinuity
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-2-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-2)Local Polynomial Regression without Discontinuity at Cutoff</p>
+<img src="27-regression-discontinuity_files/figure-html/rd-local-polynomial-reg-wo-dis-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%" />
+<p class="caption">(\#fig:rd-local-polynomial-reg-wo-dis)Local Polynomial Regression without Discontinuity at Cutoff</p>
 </div>
 
 ```
@@ -343,8 +347,8 @@ DCdensity(x, 0)  # Discontinuity detected
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-3-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-3)Local Polynomial Regression with Discontinuity at Cutoff</p>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-2-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-2)Local Polynomial Regression with Discontinuity at Cutoff</p>
 </div>
 
 ```
@@ -731,19 +735,19 @@ rdbounds_est <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-07-12 14:20:49.220756 Estimating CDFs for point estimates"
-#> [1] "2025-07-12 14:20:49.464659 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-07-12 14:20:51.392993 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-07-12 14:20:51.43695 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-07-12 14:20:54.430783 Beginning parallelized output by bootstrap.."
-#> [1] "2025-07-12 14:20:58.439781 Computing Confidence Intervals"
-#> [1] "2025-07-12 14:21:11.066909 Time taken:0.36 minutes"
+#> [1] "2025-10-31 13:58:24.879706 Estimating CDFs for point estimates"
+#> [1] "2025-10-31 13:58:25.141443 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-10-31 13:58:27.635615 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-10-31 13:58:27.714672 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-10-31 13:58:31.306173 Beginning parallelized output by bootstrap.."
+#> [1] "2025-10-31 13:58:36.075224 Computing Confidence Intervals"
+#> [1] "2025-10-31 13:58:52.152338 Time taken:0.46 minutes"
 ```
 
 
 ``` r
 rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
-#> [1] "Time taken: 0.36 minutes"
+#> [1] "Time taken: 0.46 minutes"
 #> [1] "Sample size: 1000"
 #> [1] "Local Average Treatment Effect:"
 #> $tau_hat
@@ -849,18 +853,18 @@ rdbounds_est_tau <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-07-12 14:21:12.533854 Estimating CDFs for point estimates"
-#> [1] "2025-07-12 14:21:12.81822 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-07-12 14:21:14.650755 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-07-12 14:21:14.694363 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-07-12 14:21:17.795855 Beginning parallelized output by bootstrap.."
-#> [1] "2025-07-12 14:21:21.63014 Estimating CDFs with fixed tau value of: 0.025"
-#> [1] "2025-07-12 14:21:21.695359 Estimating CDFs with fixed tau value of: 0.05"
-#> [1] "2025-07-12 14:21:21.744351 Estimating CDFs with fixed tau value of: 0.1"
-#> [1] "2025-07-12 14:21:21.783942 Estimating CDFs with fixed tau value of: 0.2"
-#> [1] "2025-07-12 14:21:22.801664 Beginning parallelized output by bootstrap x fixed tau.."
-#> [1] "2025-07-12 14:21:25.071523 Computing Confidence Intervals"
-#> [1] "2025-07-12 14:21:37.107259 Time taken:0.41 minutes"
+#> [1] "2025-10-31 13:58:54.17367 Estimating CDFs for point estimates"
+#> [1] "2025-10-31 13:58:54.436424 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-10-31 13:58:56.913018 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-10-31 13:58:56.975517 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-10-31 13:59:00.420274 Beginning parallelized output by bootstrap.."
+#> [1] "2025-10-31 13:59:05.437279 Estimating CDFs with fixed tau value of: 0.025"
+#> [1] "2025-10-31 13:59:05.512843 Estimating CDFs with fixed tau value of: 0.05"
+#> [1] "2025-10-31 13:59:05.560217 Estimating CDFs with fixed tau value of: 0.1"
+#> [1] "2025-10-31 13:59:05.628925 Estimating CDFs with fixed tau value of: 0.2"
+#> [1] "2025-10-31 13:59:06.821819 Beginning parallelized output by bootstrap x fixed tau.."
+#> [1] "2025-10-31 13:59:11.881752 Computing Confidence Intervals"
+#> [1] "2025-10-31 13:59:28.592243 Time taken:0.57 minutes"
 ```
 
 
@@ -869,8 +873,8 @@ causalverse::plot_rd_aa_share(rdbounds_est_tau) # For SRD (default)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-10-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-10)Robustness of Average Treatment Effect to Share of Always-assigned Units</p>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-9-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-9)Robustness of Average Treatment Effect to Share of Always-assigned Units</p>
 </div>
 
 ``` r
@@ -1729,7 +1733,7 @@ knitr::include_graphics('images/rd1.PNG')
 
 <div class="figure" style="text-align: center">
 <img src="images/rd1.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-11)Regression Discontinuity Design: Constant Slope</p>
+<p class="caption">(\#fig:unnamed-chunk-10)Regression Discontinuity Design: Constant Slope</p>
 </div>
 
 RD gives you $\beta_2$ (causal effect) of $X$ on $Y$ at the cutoff point
@@ -1747,7 +1751,7 @@ knitr::include_graphics('images/rd2.PNG')
 
 <div class="figure" style="text-align: center">
 <img src="images/rd2.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-12)Regression Discontinuity Design: Dynamic Slope</p>
+<p class="caption">(\#fig:unnamed-chunk-11)Regression Discontinuity Design: Dynamic Slope</p>
 </div>
 
 where we estimate different slope on different sides of the line. And if you estimate $\alpha_3$ to be no different from 0 then we return to the simple case.
@@ -1971,8 +1975,8 @@ plot(data, col = "red", cex = 0.5, xlab = "GPA", ylab = "Future Success")
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-14-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-14)Binned Scatter Plot of GPA and Future Success with Threshold at 3.5</p>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-13-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-13)Binned Scatter Plot of GPA and Future Success with Threshold at 3.5</p>
 </div>
 
 We estimate the Sharp RD treatment effect using [local linear regression](#sec-special-case-local-linear-regression):
@@ -2014,8 +2018,8 @@ plot(rdd_mod, cex = 0.5, col = "red", xlab = "GPA", ylab = "Future Success")
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-16-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-16)Coarse Binned Regression Discontinuity Plot of GPA and Future Success</p>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-15-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-15)Coarse Binned Regression Discontinuity Plot of GPA and Future Success</p>
 </div>
 
 We verify whether results hold under different bandwidths and functional forms:
@@ -2046,12 +2050,12 @@ summary(rd_out)
 #> rho (h/b)                     0.540        0.540
 #> Unique Obs.                      83           17
 #> 
-#> =============================================================================
-#>         Method     Coef. Std. Err.         z     P>|z|      [ 95% C.I. ]       
-#> =============================================================================
-#>   Conventional    12.836     2.495     5.144     0.000     [7.945 , 17.727]    
-#>         Robust         -         -     4.473     0.000     [7.677 , 19.653]    
-#> =============================================================================
+#> =====================================================================
+#>                    Point    Robust Inference
+#>                 Estimate         z     P>|z|      [ 95% C.I. ]       
+#> ---------------------------------------------------------------------
+#>      RD Effect    12.836     4.473     0.000     [7.677 , 19.653]    
+#> =====================================================================
 ```
 
 2.  McCrary Test for Manipulation

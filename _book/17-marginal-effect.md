@@ -228,7 +228,7 @@ $$
 The variance of $G(\beta)$ is then approximated as:
 
 $$
-\text{Var}(G(\beta)) \approx \nabla G(\beta) \, \text{Cov}(\beta) \, \nabla G(\beta)'.
+\text{Var}(G(\beta)) \approx \nabla G(\beta)  \text{Cov}(\beta)  \nabla G(\beta)'.
 $$
 
 where:
@@ -875,7 +875,7 @@ predictions(mod) %>% head()
 #>      17.0      0.712 23.9   <0.001 416.2  15.6   18.4
 #>      19.7      0.875 22.5   <0.001 368.8  17.9   21.4
 #> 
-#> Type:  response
+#> Type: response
 
 # Create a reference grid for prediction
 newdata <- datagrid(am = 0,
@@ -913,7 +913,7 @@ head(mfx)
 #>   -0.0387     0.0135 -2.87  0.00409 7.9 -0.0652 -0.012289
 #> 
 #> Term: hp
-#> Type:  response 
+#> Type: response
 #> Comparison: dY/dX
 
 # Compute Group-Average Marginal Effects
@@ -928,31 +928,31 @@ head(marginaleffects::slopes(mod, by = "hp", variables = "am"))
 #>  93     1.20       2.35  0.511    0.609 0.7 -3.40   5.80
 #> 
 #> Term: am
-#> Type:  response 
+#> Type: response
 #> Comparison: 1 - 0
 
 # Marginal Effects at Representative Values (MER)
 marginaleffects::slopes(mod, newdata = datagrid(am = 0, wt = c(2, 4)))
 #> 
 #>  Term Contrast am wt Estimate Std. Error      z Pr(>|z|)   S   2.5 %   97.5 %
-#>    am    1 - 0  0  2   2.5465     2.7860  0.914   0.3607 1.5 -2.9139  8.00694
-#>    am    1 - 0  0  4  -2.9661     3.0381 -0.976   0.3289 1.6 -8.9207  2.98852
+#>    am    1 - 0  0  2   2.5474     2.7891  0.913   0.3611 1.5 -2.9191  8.01403
+#>    am    1 - 0  0  4  -2.9541     3.0348 -0.973   0.3304 1.6 -8.9021  2.99400
 #>    hp    dY/dX  0  2  -0.0598     0.0283 -2.115   0.0344 4.9 -0.1153 -0.00439
-#>    hp    dY/dX  0  4  -0.0309     0.0187 -1.654   0.0981 3.4 -0.0676  0.00571
-#>    wt    dY/dX  0  2  -2.6762     1.4199 -1.885   0.0595 4.1 -5.4591  0.10676
-#>    wt    dY/dX  0  4  -2.6762     1.4206 -1.884   0.0596 4.1 -5.4605  0.10816
+#>    hp    dY/dX  0  4  -0.0309     0.0187 -1.654   0.0982 3.3 -0.0676  0.00573
+#>    wt    dY/dX  0  2  -2.6716     1.4149 -1.888   0.0590 4.1 -5.4449  0.10159
+#>    wt    dY/dX  0  4  -2.6716     1.4154 -1.888   0.0591 4.1 -5.4458  0.10248
 #> 
-#> Type:  response
+#> Type: response
 
 # Marginal Effects at the Mean (MEM)
 marginaleffects::slopes(mod, newdata = "mean")
 #> 
 #>  Term Contrast Estimate Std. Error      z Pr(>|z|)   S   2.5 %  97.5 %
-#>    am    1 - 0  -0.8086     1.5238 -0.531  0.59568 0.7 -3.7952  2.1781
+#>    am    1 - 0  -0.8009     1.5219 -0.526  0.59871 0.7 -3.7837  2.1819
 #>    hp    dY/dX  -0.0422     0.0133 -3.181  0.00147 9.4 -0.0683 -0.0162
-#>    wt    dY/dX  -2.6762     1.4193 -1.886  0.05935 4.1 -5.4579  0.1055
+#>    wt    dY/dX  -2.6716     1.4151 -1.888  0.05903 4.1 -5.4452  0.1019
 #> 
-#> Type:  response
+#> Type: response
 ```
 
 Counterfactual Comparisons
@@ -968,14 +968,14 @@ comparisons(mod, variables = list(am = 0:1))
 #>     1.201       2.35  0.511    0.609 0.7 -3.40   5.80
 #>    -1.703       1.87 -0.912    0.362 1.5 -5.36   1.96
 #>    -0.615       1.68 -0.366    0.715 0.5 -3.91   2.68
-#> --- 22 rows omitted. See ?print.marginaleffects --- 
+#> --- 22 rows omitted. See ?print.marginaleffects ---
 #>     4.081       3.94  1.037    0.300 1.7 -3.63  11.79
 #>     2.106       2.29  0.920    0.358 1.5 -2.38   6.59
 #>     0.895       1.64  0.544    0.586 0.8 -2.33   4.12
 #>     4.027       3.24  1.243    0.214 2.2 -2.32  10.38
 #>    -0.237       1.59 -0.149    0.881 0.2 -3.35   2.87
 #> Term: am
-#> Type:  response 
+#> Type: response
 #> Comparison: 1 - 0
 ```
 

@@ -499,22 +499,22 @@ cali <- feols(Rate ~ i(center_time, California, ref = 0) |
               data = od)
 
 etable(cali)
-#>                                              cali
-#> Dependent Var.:                              Rate
-#>                                                  
-#> California x center_time = -2    -0.0029 (0.0051)
-#> California x center_time = -1   0.0063** (0.0023)
-#> California x center_time = 1  -0.0216*** (0.0050)
-#> California x center_time = 2  -0.0203*** (0.0045)
-#> California x center_time = 3    -0.0222* (0.0100)
-#> Fixed-Effects:                -------------------
-#> State                                         Yes
-#> center_time                                   Yes
-#> _____________________________ ___________________
-#> S.E.: Clustered                         by: State
-#> Observations                                  162
-#> R2                                        0.97934
-#> Within R2                                 0.00979
+#>                                           cali
+#> Dependent Var.:                           Rate
+#>                                               
+#> California x center_time = -2 -0.0029 (0.0360)
+#> California x center_time = -1  0.0063 (0.0360)
+#> California x center_time = 1  -0.0216 (0.0360)
+#> California x center_time = 2  -0.0203 (0.0360)
+#> California x center_time = 3  -0.0222 (0.0360)
+#> Fixed-Effects:                ----------------
+#> State                                      Yes
+#> center_time                                Yes
+#> _____________________________ ________________
+#> S.E. type                                  IID
+#> Observations                               162
+#> R2                                     0.97934
+#> Within R2                              0.00979
 #> ---
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```

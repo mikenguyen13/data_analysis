@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>14.5 Autocorrelation Tests | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="14.5 Autocorrelation Tests | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1879,7 +1879,7 @@ div.csl-indent {
 <h3><span class="header-section-number">14.5.1</span> Durbin–Watson Test<a href="autocorrelation-tests.html#sec-durbin--watson-test" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>The <strong>Durbin–Watson (DW) Test</strong> is the most widely used test for detecting <strong>first-order autocorrelation</strong>, where the current error term is correlated with the previous one:</p>
 <p><span class="math display">\[
-\epsilon_t = \rho \, \epsilon_{t-1} + u_t
+\epsilon_t = \rho  \epsilon_{t-1} + u_t
 \]</span></p>
 <p>Where:</p>
 <ul>
@@ -2109,79 +2109,79 @@ Z \sim N(0, 1)
 </tbody>
 </table>
 <p>Detecting autocorrelation is crucial for ensuring the efficiency and reliability of regression models, especially in time-series analysis. While the <a href="#sec-durbin–watson-test">Durbin–Watson Test</a> is suitable for detecting first-order autocorrelation, the <a href="#sec-breusch–godfrey-test">Breusch–Godfrey Test</a> and <a href="#sec-ljung–box-test-or-box–pierce-test">Ljung–Box Test</a> offer more flexibility for higher-order and multi-lag dependencies. Non-parametric tests like the <a href="autocorrelation-tests.html#sec-runs-test">Runs Test</a> serve as useful supplementary diagnostics.</p>
-<div class="sourceCode" id="cb641"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb641-1"><a href="autocorrelation-tests.html#cb641-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
-<span id="cb641-2"><a href="autocorrelation-tests.html#cb641-2" tabindex="-1"></a><span class="co"># install.packages(&quot;lmtest&quot;)  # For Durbin–Watson and Breusch–Godfrey Tests</span></span>
-<span id="cb641-3"><a href="autocorrelation-tests.html#cb641-3" tabindex="-1"></a><span class="co"># install.packages(&quot;tseries&quot;) # For Runs Test</span></span>
-<span id="cb641-4"><a href="autocorrelation-tests.html#cb641-4" tabindex="-1"></a><span class="co"># install.packages(&quot;forecast&quot;)# For Ljung–Box Test</span></span>
-<span id="cb641-5"><a href="autocorrelation-tests.html#cb641-5" tabindex="-1"></a></span>
-<span id="cb641-6"><a href="autocorrelation-tests.html#cb641-6" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb641-7"><a href="autocorrelation-tests.html#cb641-7" tabindex="-1"></a><span class="fu">library</span>(tseries)</span>
-<span id="cb641-8"><a href="autocorrelation-tests.html#cb641-8" tabindex="-1"></a><span class="fu">library</span>(forecast)</span>
-<span id="cb641-9"><a href="autocorrelation-tests.html#cb641-9" tabindex="-1"></a></span>
-<span id="cb641-10"><a href="autocorrelation-tests.html#cb641-10" tabindex="-1"></a><span class="co"># Simulated time-series dataset</span></span>
-<span id="cb641-11"><a href="autocorrelation-tests.html#cb641-11" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb641-12"><a href="autocorrelation-tests.html#cb641-12" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb641-13"><a href="autocorrelation-tests.html#cb641-13" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span>n</span>
-<span id="cb641-14"><a href="autocorrelation-tests.html#cb641-14" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
-<span id="cb641-15"><a href="autocorrelation-tests.html#cb641-15" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
-<span id="cb641-16"><a href="autocorrelation-tests.html#cb641-16" tabindex="-1"></a></span>
-<span id="cb641-17"><a href="autocorrelation-tests.html#cb641-17" tabindex="-1"></a><span class="co"># Introducing autocorrelation in errors</span></span>
-<span id="cb641-18"><a href="autocorrelation-tests.html#cb641-18" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">arima.sim</span>(<span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> <span class="fl">0.6</span>), <span class="at">n =</span> n) </span>
-<span id="cb641-19"><a href="autocorrelation-tests.html#cb641-19" tabindex="-1"></a><span class="co"># AR(1) process with ρ = 0.6</span></span>
-<span id="cb641-20"><a href="autocorrelation-tests.html#cb641-20" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> epsilon</span>
-<span id="cb641-21"><a href="autocorrelation-tests.html#cb641-21" tabindex="-1"></a></span>
-<span id="cb641-22"><a href="autocorrelation-tests.html#cb641-22" tabindex="-1"></a><span class="co"># Original regression model</span></span>
-<span id="cb641-23"><a href="autocorrelation-tests.html#cb641-23" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
-<span id="cb641-24"><a href="autocorrelation-tests.html#cb641-24" tabindex="-1"></a></span>
-<span id="cb641-25"><a href="autocorrelation-tests.html#cb641-25" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-26"><a href="autocorrelation-tests.html#cb641-26" tabindex="-1"></a><span class="co"># 1. Durbin–Watson Test</span></span>
-<span id="cb641-27"><a href="autocorrelation-tests.html#cb641-27" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-28"><a href="autocorrelation-tests.html#cb641-28" tabindex="-1"></a><span class="co"># Null Hypothesis: No first-order autocorrelation</span></span>
-<span id="cb641-29"><a href="autocorrelation-tests.html#cb641-29" tabindex="-1"></a>dw_test <span class="ot">&lt;-</span> <span class="fu">dwtest</span>(model)</span>
-<span id="cb641-30"><a href="autocorrelation-tests.html#cb641-30" tabindex="-1"></a><span class="fu">print</span>(dw_test)</span>
-<span id="cb641-31"><a href="autocorrelation-tests.html#cb641-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-32"><a href="autocorrelation-tests.html#cb641-32" tabindex="-1"></a><span class="co">#&gt;  Durbin-Watson test</span></span>
-<span id="cb641-33"><a href="autocorrelation-tests.html#cb641-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-34"><a href="autocorrelation-tests.html#cb641-34" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb641-35"><a href="autocorrelation-tests.html#cb641-35" tabindex="-1"></a><span class="co">#&gt; DW = 0.77291, p-value = 3.323e-10</span></span>
-<span id="cb641-36"><a href="autocorrelation-tests.html#cb641-36" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true autocorrelation is greater than 0</span></span>
-<span id="cb641-37"><a href="autocorrelation-tests.html#cb641-37" tabindex="-1"></a></span>
-<span id="cb641-38"><a href="autocorrelation-tests.html#cb641-38" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-39"><a href="autocorrelation-tests.html#cb641-39" tabindex="-1"></a><span class="co"># 2. Breusch–Godfrey Test</span></span>
-<span id="cb641-40"><a href="autocorrelation-tests.html#cb641-40" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-41"><a href="autocorrelation-tests.html#cb641-41" tabindex="-1"></a><span class="co"># Null Hypothesis: No autocorrelation up to lag 2</span></span>
-<span id="cb641-42"><a href="autocorrelation-tests.html#cb641-42" tabindex="-1"></a>bg_test <span class="ot">&lt;-</span> <span class="fu">bgtest</span>(model, <span class="at">order =</span> <span class="dv">2</span>)  <span class="co"># Testing for autocorrelation up to lag 2</span></span>
-<span id="cb641-43"><a href="autocorrelation-tests.html#cb641-43" tabindex="-1"></a><span class="fu">print</span>(bg_test)</span>
-<span id="cb641-44"><a href="autocorrelation-tests.html#cb641-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-45"><a href="autocorrelation-tests.html#cb641-45" tabindex="-1"></a><span class="co">#&gt;  Breusch-Godfrey test for serial correlation of order up to 2</span></span>
-<span id="cb641-46"><a href="autocorrelation-tests.html#cb641-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-47"><a href="autocorrelation-tests.html#cb641-47" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
-<span id="cb641-48"><a href="autocorrelation-tests.html#cb641-48" tabindex="-1"></a><span class="co">#&gt; LM test = 40.314, df = 2, p-value = 1.762e-09</span></span>
-<span id="cb641-49"><a href="autocorrelation-tests.html#cb641-49" tabindex="-1"></a></span>
-<span id="cb641-50"><a href="autocorrelation-tests.html#cb641-50" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-51"><a href="autocorrelation-tests.html#cb641-51" tabindex="-1"></a><span class="co"># 3. Ljung–Box Test</span></span>
-<span id="cb641-52"><a href="autocorrelation-tests.html#cb641-52" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-53"><a href="autocorrelation-tests.html#cb641-53" tabindex="-1"></a><span class="co"># Null Hypothesis: No autocorrelation up to lag 10</span></span>
-<span id="cb641-54"><a href="autocorrelation-tests.html#cb641-54" tabindex="-1"></a>ljung_box_test <span class="ot">&lt;-</span> <span class="fu">Box.test</span>(<span class="fu">residuals</span>(model), <span class="at">lag =</span> <span class="dv">10</span>, <span class="at">type =</span> <span class="st">&quot;Ljung-Box&quot;</span>)</span>
-<span id="cb641-55"><a href="autocorrelation-tests.html#cb641-55" tabindex="-1"></a><span class="fu">print</span>(ljung_box_test)</span>
-<span id="cb641-56"><a href="autocorrelation-tests.html#cb641-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-57"><a href="autocorrelation-tests.html#cb641-57" tabindex="-1"></a><span class="co">#&gt;  Box-Ljung test</span></span>
-<span id="cb641-58"><a href="autocorrelation-tests.html#cb641-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-59"><a href="autocorrelation-tests.html#cb641-59" tabindex="-1"></a><span class="co">#&gt; data:  residuals(model)</span></span>
-<span id="cb641-60"><a href="autocorrelation-tests.html#cb641-60" tabindex="-1"></a><span class="co">#&gt; X-squared = 50.123, df = 10, p-value = 2.534e-07</span></span>
-<span id="cb641-61"><a href="autocorrelation-tests.html#cb641-61" tabindex="-1"></a></span>
-<span id="cb641-62"><a href="autocorrelation-tests.html#cb641-62" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-63"><a href="autocorrelation-tests.html#cb641-63" tabindex="-1"></a><span class="co"># 4. Runs Test (Non-parametric)</span></span>
-<span id="cb641-64"><a href="autocorrelation-tests.html#cb641-64" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
-<span id="cb641-65"><a href="autocorrelation-tests.html#cb641-65" tabindex="-1"></a><span class="co"># Null Hypothesis: Residuals are randomly distributed</span></span>
-<span id="cb641-66"><a href="autocorrelation-tests.html#cb641-66" tabindex="-1"></a>runs_test <span class="ot">&lt;-</span> <span class="fu">runs.test</span>(<span class="fu">as.factor</span>(<span class="fu">sign</span>(<span class="fu">residuals</span>(model))))</span>
-<span id="cb641-67"><a href="autocorrelation-tests.html#cb641-67" tabindex="-1"></a><span class="fu">print</span>(runs_test)</span>
-<span id="cb641-68"><a href="autocorrelation-tests.html#cb641-68" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-69"><a href="autocorrelation-tests.html#cb641-69" tabindex="-1"></a><span class="co">#&gt;  Runs Test</span></span>
-<span id="cb641-70"><a href="autocorrelation-tests.html#cb641-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb641-71"><a href="autocorrelation-tests.html#cb641-71" tabindex="-1"></a><span class="co">#&gt; data:  as.factor(sign(residuals(model)))</span></span>
-<span id="cb641-72"><a href="autocorrelation-tests.html#cb641-72" tabindex="-1"></a><span class="co">#&gt; Standard Normal = -4.2214, p-value = 2.428e-05</span></span>
-<span id="cb641-73"><a href="autocorrelation-tests.html#cb641-73" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two.sided</span></span></code></pre></div>
+<div class="sourceCode" id="cb646"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb646-1"><a href="autocorrelation-tests.html#cb646-1" tabindex="-1"></a><span class="co"># Install and load necessary libraries</span></span>
+<span id="cb646-2"><a href="autocorrelation-tests.html#cb646-2" tabindex="-1"></a><span class="co"># install.packages(&quot;lmtest&quot;)  # For Durbin–Watson and Breusch–Godfrey Tests</span></span>
+<span id="cb646-3"><a href="autocorrelation-tests.html#cb646-3" tabindex="-1"></a><span class="co"># install.packages(&quot;tseries&quot;) # For Runs Test</span></span>
+<span id="cb646-4"><a href="autocorrelation-tests.html#cb646-4" tabindex="-1"></a><span class="co"># install.packages(&quot;forecast&quot;)# For Ljung–Box Test</span></span>
+<span id="cb646-5"><a href="autocorrelation-tests.html#cb646-5" tabindex="-1"></a></span>
+<span id="cb646-6"><a href="autocorrelation-tests.html#cb646-6" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb646-7"><a href="autocorrelation-tests.html#cb646-7" tabindex="-1"></a><span class="fu">library</span>(tseries)</span>
+<span id="cb646-8"><a href="autocorrelation-tests.html#cb646-8" tabindex="-1"></a><span class="fu">library</span>(forecast)</span>
+<span id="cb646-9"><a href="autocorrelation-tests.html#cb646-9" tabindex="-1"></a></span>
+<span id="cb646-10"><a href="autocorrelation-tests.html#cb646-10" tabindex="-1"></a><span class="co"># Simulated time-series dataset</span></span>
+<span id="cb646-11"><a href="autocorrelation-tests.html#cb646-11" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb646-12"><a href="autocorrelation-tests.html#cb646-12" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb646-13"><a href="autocorrelation-tests.html#cb646-13" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span>n</span>
+<span id="cb646-14"><a href="autocorrelation-tests.html#cb646-14" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
+<span id="cb646-15"><a href="autocorrelation-tests.html#cb646-15" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">30</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb646-16"><a href="autocorrelation-tests.html#cb646-16" tabindex="-1"></a></span>
+<span id="cb646-17"><a href="autocorrelation-tests.html#cb646-17" tabindex="-1"></a><span class="co"># Introducing autocorrelation in errors</span></span>
+<span id="cb646-18"><a href="autocorrelation-tests.html#cb646-18" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">arima.sim</span>(<span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> <span class="fl">0.6</span>), <span class="at">n =</span> n) </span>
+<span id="cb646-19"><a href="autocorrelation-tests.html#cb646-19" tabindex="-1"></a><span class="co"># AR(1) process with ρ = 0.6</span></span>
+<span id="cb646-20"><a href="autocorrelation-tests.html#cb646-20" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> x1 <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> x2 <span class="sc">+</span> epsilon</span>
+<span id="cb646-21"><a href="autocorrelation-tests.html#cb646-21" tabindex="-1"></a></span>
+<span id="cb646-22"><a href="autocorrelation-tests.html#cb646-22" tabindex="-1"></a><span class="co"># Original regression model</span></span>
+<span id="cb646-23"><a href="autocorrelation-tests.html#cb646-23" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2)</span>
+<span id="cb646-24"><a href="autocorrelation-tests.html#cb646-24" tabindex="-1"></a></span>
+<span id="cb646-25"><a href="autocorrelation-tests.html#cb646-25" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-26"><a href="autocorrelation-tests.html#cb646-26" tabindex="-1"></a><span class="co"># 1. Durbin–Watson Test</span></span>
+<span id="cb646-27"><a href="autocorrelation-tests.html#cb646-27" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-28"><a href="autocorrelation-tests.html#cb646-28" tabindex="-1"></a><span class="co"># Null Hypothesis: No first-order autocorrelation</span></span>
+<span id="cb646-29"><a href="autocorrelation-tests.html#cb646-29" tabindex="-1"></a>dw_test <span class="ot">&lt;-</span> <span class="fu">dwtest</span>(model)</span>
+<span id="cb646-30"><a href="autocorrelation-tests.html#cb646-30" tabindex="-1"></a><span class="fu">print</span>(dw_test)</span>
+<span id="cb646-31"><a href="autocorrelation-tests.html#cb646-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-32"><a href="autocorrelation-tests.html#cb646-32" tabindex="-1"></a><span class="co">#&gt;  Durbin-Watson test</span></span>
+<span id="cb646-33"><a href="autocorrelation-tests.html#cb646-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-34"><a href="autocorrelation-tests.html#cb646-34" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb646-35"><a href="autocorrelation-tests.html#cb646-35" tabindex="-1"></a><span class="co">#&gt; DW = 0.77291, p-value = 3.323e-10</span></span>
+<span id="cb646-36"><a href="autocorrelation-tests.html#cb646-36" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true autocorrelation is greater than 0</span></span>
+<span id="cb646-37"><a href="autocorrelation-tests.html#cb646-37" tabindex="-1"></a></span>
+<span id="cb646-38"><a href="autocorrelation-tests.html#cb646-38" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-39"><a href="autocorrelation-tests.html#cb646-39" tabindex="-1"></a><span class="co"># 2. Breusch–Godfrey Test</span></span>
+<span id="cb646-40"><a href="autocorrelation-tests.html#cb646-40" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-41"><a href="autocorrelation-tests.html#cb646-41" tabindex="-1"></a><span class="co"># Null Hypothesis: No autocorrelation up to lag 2</span></span>
+<span id="cb646-42"><a href="autocorrelation-tests.html#cb646-42" tabindex="-1"></a>bg_test <span class="ot">&lt;-</span> <span class="fu">bgtest</span>(model, <span class="at">order =</span> <span class="dv">2</span>)  <span class="co"># Testing for autocorrelation up to lag 2</span></span>
+<span id="cb646-43"><a href="autocorrelation-tests.html#cb646-43" tabindex="-1"></a><span class="fu">print</span>(bg_test)</span>
+<span id="cb646-44"><a href="autocorrelation-tests.html#cb646-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-45"><a href="autocorrelation-tests.html#cb646-45" tabindex="-1"></a><span class="co">#&gt;  Breusch-Godfrey test for serial correlation of order up to 2</span></span>
+<span id="cb646-46"><a href="autocorrelation-tests.html#cb646-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-47"><a href="autocorrelation-tests.html#cb646-47" tabindex="-1"></a><span class="co">#&gt; data:  model</span></span>
+<span id="cb646-48"><a href="autocorrelation-tests.html#cb646-48" tabindex="-1"></a><span class="co">#&gt; LM test = 40.314, df = 2, p-value = 1.762e-09</span></span>
+<span id="cb646-49"><a href="autocorrelation-tests.html#cb646-49" tabindex="-1"></a></span>
+<span id="cb646-50"><a href="autocorrelation-tests.html#cb646-50" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-51"><a href="autocorrelation-tests.html#cb646-51" tabindex="-1"></a><span class="co"># 3. Ljung–Box Test</span></span>
+<span id="cb646-52"><a href="autocorrelation-tests.html#cb646-52" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-53"><a href="autocorrelation-tests.html#cb646-53" tabindex="-1"></a><span class="co"># Null Hypothesis: No autocorrelation up to lag 10</span></span>
+<span id="cb646-54"><a href="autocorrelation-tests.html#cb646-54" tabindex="-1"></a>ljung_box_test <span class="ot">&lt;-</span> <span class="fu">Box.test</span>(<span class="fu">residuals</span>(model), <span class="at">lag =</span> <span class="dv">10</span>, <span class="at">type =</span> <span class="st">&quot;Ljung-Box&quot;</span>)</span>
+<span id="cb646-55"><a href="autocorrelation-tests.html#cb646-55" tabindex="-1"></a><span class="fu">print</span>(ljung_box_test)</span>
+<span id="cb646-56"><a href="autocorrelation-tests.html#cb646-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-57"><a href="autocorrelation-tests.html#cb646-57" tabindex="-1"></a><span class="co">#&gt;  Box-Ljung test</span></span>
+<span id="cb646-58"><a href="autocorrelation-tests.html#cb646-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-59"><a href="autocorrelation-tests.html#cb646-59" tabindex="-1"></a><span class="co">#&gt; data:  residuals(model)</span></span>
+<span id="cb646-60"><a href="autocorrelation-tests.html#cb646-60" tabindex="-1"></a><span class="co">#&gt; X-squared = 50.123, df = 10, p-value = 2.534e-07</span></span>
+<span id="cb646-61"><a href="autocorrelation-tests.html#cb646-61" tabindex="-1"></a></span>
+<span id="cb646-62"><a href="autocorrelation-tests.html#cb646-62" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-63"><a href="autocorrelation-tests.html#cb646-63" tabindex="-1"></a><span class="co"># 4. Runs Test (Non-parametric)</span></span>
+<span id="cb646-64"><a href="autocorrelation-tests.html#cb646-64" tabindex="-1"></a><span class="co"># ----------------------------------------------------------------------</span></span>
+<span id="cb646-65"><a href="autocorrelation-tests.html#cb646-65" tabindex="-1"></a><span class="co"># Null Hypothesis: Residuals are randomly distributed</span></span>
+<span id="cb646-66"><a href="autocorrelation-tests.html#cb646-66" tabindex="-1"></a>runs_test <span class="ot">&lt;-</span> <span class="fu">runs.test</span>(<span class="fu">as.factor</span>(<span class="fu">sign</span>(<span class="fu">residuals</span>(model))))</span>
+<span id="cb646-67"><a href="autocorrelation-tests.html#cb646-67" tabindex="-1"></a><span class="fu">print</span>(runs_test)</span>
+<span id="cb646-68"><a href="autocorrelation-tests.html#cb646-68" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-69"><a href="autocorrelation-tests.html#cb646-69" tabindex="-1"></a><span class="co">#&gt;  Runs Test</span></span>
+<span id="cb646-70"><a href="autocorrelation-tests.html#cb646-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb646-71"><a href="autocorrelation-tests.html#cb646-71" tabindex="-1"></a><span class="co">#&gt; data:  as.factor(sign(residuals(model)))</span></span>
+<span id="cb646-72"><a href="autocorrelation-tests.html#cb646-72" tabindex="-1"></a><span class="co">#&gt; Standard Normal = -4.2214, p-value = 2.428e-05</span></span>
+<span id="cb646-73"><a href="autocorrelation-tests.html#cb646-73" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two.sided</span></span></code></pre></div>
 <p><strong>Interpretation of the Results</strong></p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Durbin–Watson Test</strong></p>

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>37.1 Aggregation Bias | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="37.1 Aggregation Bias | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1871,91 +1871,91 @@ div.csl-indent {
 <p>When the relationship between variables is different at the aggregate level than at the individual level, aggregation bias can result. The bias arises when inferences about individual behaviors are made based on aggregate data.</p>
 <p><strong>Example</strong>: Suppose we have data on individuals’ incomes and their personal consumption. At the individual level, it’s possible that as income rises, consumption also rises. However, when we aggregate the data to, say, a neighborhood level, neighborhoods with diverse income levels might all have similar average consumption due to other unobserved factors.</p>
 <p><strong>Step 1</strong>: Create individual level data</p>
-<div class="sourceCode" id="cb1131"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1131-1"><a href="sec-aggregation-bias.html#cb1131-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1131-2"><a href="sec-aggregation-bias.html#cb1131-2" tabindex="-1"></a></span>
-<span id="cb1131-3"><a href="sec-aggregation-bias.html#cb1131-3" tabindex="-1"></a><span class="co"># Generate data for 1000 individuals</span></span>
-<span id="cb1131-4"><a href="sec-aggregation-bias.html#cb1131-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb1131-5"><a href="sec-aggregation-bias.html#cb1131-5" tabindex="-1"></a></span>
-<span id="cb1131-6"><a href="sec-aggregation-bias.html#cb1131-6" tabindex="-1"></a>income <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
-<span id="cb1131-7"><a href="sec-aggregation-bias.html#cb1131-7" tabindex="-1"></a>consumption <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> income <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
-<span id="cb1131-8"><a href="sec-aggregation-bias.html#cb1131-8" tabindex="-1"></a></span>
-<span id="cb1131-9"><a href="sec-aggregation-bias.html#cb1131-9" tabindex="-1"></a><span class="co"># Individual level regression</span></span>
-<span id="cb1131-10"><a href="sec-aggregation-bias.html#cb1131-10" tabindex="-1"></a>individual_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(consumption <span class="sc">~</span> income)</span>
-<span id="cb1131-11"><a href="sec-aggregation-bias.html#cb1131-11" tabindex="-1"></a><span class="fu">summary</span>(individual_lm)</span>
-<span id="cb1131-12"><a href="sec-aggregation-bias.html#cb1131-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1131-13"><a href="sec-aggregation-bias.html#cb1131-13" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb1131-14"><a href="sec-aggregation-bias.html#cb1131-14" tabindex="-1"></a><span class="co">#&gt; lm(formula = consumption ~ income)</span></span>
-<span id="cb1131-15"><a href="sec-aggregation-bias.html#cb1131-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1131-16"><a href="sec-aggregation-bias.html#cb1131-16" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb1131-17"><a href="sec-aggregation-bias.html#cb1131-17" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span id="cb1131-18"><a href="sec-aggregation-bias.html#cb1131-18" tabindex="-1"></a><span class="co">#&gt; -15.1394  -3.4572   0.0213   3.5436  16.4557 </span></span>
-<span id="cb1131-19"><a href="sec-aggregation-bias.html#cb1131-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1131-20"><a href="sec-aggregation-bias.html#cb1131-20" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb1131-21"><a href="sec-aggregation-bias.html#cb1131-21" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1131-22"><a href="sec-aggregation-bias.html#cb1131-22" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.99596    0.82085  -2.432   0.0152 *  </span></span>
-<span id="cb1131-23"><a href="sec-aggregation-bias.html#cb1131-23" tabindex="-1"></a><span class="co">#&gt; income       0.54402    0.01605  33.888   &lt;2e-16 ***</span></span>
-<span id="cb1131-24"><a href="sec-aggregation-bias.html#cb1131-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1131-25"><a href="sec-aggregation-bias.html#cb1131-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb1131-26"><a href="sec-aggregation-bias.html#cb1131-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1131-27"><a href="sec-aggregation-bias.html#cb1131-27" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 5.032 on 998 degrees of freedom</span></span>
-<span id="cb1131-28"><a href="sec-aggregation-bias.html#cb1131-28" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.535,  Adjusted R-squared:  0.5346 </span></span>
-<span id="cb1131-29"><a href="sec-aggregation-bias.html#cb1131-29" tabindex="-1"></a><span class="co">#&gt; F-statistic:  1148 on 1 and 998 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<div class="sourceCode" id="cb1136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1136-1"><a href="sec-aggregation-bias.html#cb1136-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1136-2"><a href="sec-aggregation-bias.html#cb1136-2" tabindex="-1"></a></span>
+<span id="cb1136-3"><a href="sec-aggregation-bias.html#cb1136-3" tabindex="-1"></a><span class="co"># Generate data for 1000 individuals</span></span>
+<span id="cb1136-4"><a href="sec-aggregation-bias.html#cb1136-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb1136-5"><a href="sec-aggregation-bias.html#cb1136-5" tabindex="-1"></a></span>
+<span id="cb1136-6"><a href="sec-aggregation-bias.html#cb1136-6" tabindex="-1"></a>income <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">50</span>, <span class="at">sd =</span> <span class="dv">10</span>)</span>
+<span id="cb1136-7"><a href="sec-aggregation-bias.html#cb1136-7" tabindex="-1"></a>consumption <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> income <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb1136-8"><a href="sec-aggregation-bias.html#cb1136-8" tabindex="-1"></a></span>
+<span id="cb1136-9"><a href="sec-aggregation-bias.html#cb1136-9" tabindex="-1"></a><span class="co"># Individual level regression</span></span>
+<span id="cb1136-10"><a href="sec-aggregation-bias.html#cb1136-10" tabindex="-1"></a>individual_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(consumption <span class="sc">~</span> income)</span>
+<span id="cb1136-11"><a href="sec-aggregation-bias.html#cb1136-11" tabindex="-1"></a><span class="fu">summary</span>(individual_lm)</span>
+<span id="cb1136-12"><a href="sec-aggregation-bias.html#cb1136-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1136-13"><a href="sec-aggregation-bias.html#cb1136-13" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb1136-14"><a href="sec-aggregation-bias.html#cb1136-14" tabindex="-1"></a><span class="co">#&gt; lm(formula = consumption ~ income)</span></span>
+<span id="cb1136-15"><a href="sec-aggregation-bias.html#cb1136-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1136-16"><a href="sec-aggregation-bias.html#cb1136-16" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb1136-17"><a href="sec-aggregation-bias.html#cb1136-17" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span id="cb1136-18"><a href="sec-aggregation-bias.html#cb1136-18" tabindex="-1"></a><span class="co">#&gt; -15.1394  -3.4572   0.0213   3.5436  16.4557 </span></span>
+<span id="cb1136-19"><a href="sec-aggregation-bias.html#cb1136-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1136-20"><a href="sec-aggregation-bias.html#cb1136-20" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb1136-21"><a href="sec-aggregation-bias.html#cb1136-21" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1136-22"><a href="sec-aggregation-bias.html#cb1136-22" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.99596    0.82085  -2.432   0.0152 *  </span></span>
+<span id="cb1136-23"><a href="sec-aggregation-bias.html#cb1136-23" tabindex="-1"></a><span class="co">#&gt; income       0.54402    0.01605  33.888   &lt;2e-16 ***</span></span>
+<span id="cb1136-24"><a href="sec-aggregation-bias.html#cb1136-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1136-25"><a href="sec-aggregation-bias.html#cb1136-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb1136-26"><a href="sec-aggregation-bias.html#cb1136-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1136-27"><a href="sec-aggregation-bias.html#cb1136-27" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 5.032 on 998 degrees of freedom</span></span>
+<span id="cb1136-28"><a href="sec-aggregation-bias.html#cb1136-28" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.535,  Adjusted R-squared:  0.5346 </span></span>
+<span id="cb1136-29"><a href="sec-aggregation-bias.html#cb1136-29" tabindex="-1"></a><span class="co">#&gt; F-statistic:  1148 on 1 and 998 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>This would show a significant positive relationship between income and consumption.</p>
 <p><strong>Step 2</strong>: Aggregate data to ‘neighborhood’ level</p>
-<div class="sourceCode" id="cb1132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1132-1"><a href="sec-aggregation-bias.html#cb1132-1" tabindex="-1"></a><span class="co"># Assume 100 neighborhoods with 10 individuals each</span></span>
-<span id="cb1132-2"><a href="sec-aggregation-bias.html#cb1132-2" tabindex="-1"></a>n_neighborhoods <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb1132-3"><a href="sec-aggregation-bias.html#cb1132-3" tabindex="-1"></a></span>
-<span id="cb1132-4"><a href="sec-aggregation-bias.html#cb1132-4" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(income, consumption)</span>
-<span id="cb1132-5"><a href="sec-aggregation-bias.html#cb1132-5" tabindex="-1"></a>df<span class="sc">$</span>neighborhood <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>n_neighborhoods, <span class="at">each =</span> n <span class="sc">/</span> n_neighborhoods)</span>
-<span id="cb1132-6"><a href="sec-aggregation-bias.html#cb1132-6" tabindex="-1"></a></span>
-<span id="cb1132-7"><a href="sec-aggregation-bias.html#cb1132-7" tabindex="-1"></a>aggregate_data <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(. <span class="sc">~</span> neighborhood, <span class="at">data =</span> df, <span class="at">FUN =</span> mean)</span>
-<span id="cb1132-8"><a href="sec-aggregation-bias.html#cb1132-8" tabindex="-1"></a></span>
-<span id="cb1132-9"><a href="sec-aggregation-bias.html#cb1132-9" tabindex="-1"></a><span class="co"># Aggregate level regression</span></span>
-<span id="cb1132-10"><a href="sec-aggregation-bias.html#cb1132-10" tabindex="-1"></a>aggregate_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(consumption <span class="sc">~</span> income, <span class="at">data =</span> aggregate_data)</span>
-<span id="cb1132-11"><a href="sec-aggregation-bias.html#cb1132-11" tabindex="-1"></a><span class="fu">summary</span>(aggregate_lm)</span>
-<span id="cb1132-12"><a href="sec-aggregation-bias.html#cb1132-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1132-13"><a href="sec-aggregation-bias.html#cb1132-13" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb1132-14"><a href="sec-aggregation-bias.html#cb1132-14" tabindex="-1"></a><span class="co">#&gt; lm(formula = consumption ~ income, data = aggregate_data)</span></span>
-<span id="cb1132-15"><a href="sec-aggregation-bias.html#cb1132-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1132-16"><a href="sec-aggregation-bias.html#cb1132-16" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb1132-17"><a href="sec-aggregation-bias.html#cb1132-17" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb1132-18"><a href="sec-aggregation-bias.html#cb1132-18" tabindex="-1"></a><span class="co">#&gt; -4.4517 -0.9322 -0.0826  1.0556  3.5728 </span></span>
-<span id="cb1132-19"><a href="sec-aggregation-bias.html#cb1132-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1132-20"><a href="sec-aggregation-bias.html#cb1132-20" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb1132-21"><a href="sec-aggregation-bias.html#cb1132-21" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1132-22"><a href="sec-aggregation-bias.html#cb1132-22" tabindex="-1"></a><span class="co">#&gt; (Intercept) -4.94338    2.60699  -1.896   0.0609 .  </span></span>
-<span id="cb1132-23"><a href="sec-aggregation-bias.html#cb1132-23" tabindex="-1"></a><span class="co">#&gt; income       0.60278    0.05188  11.618   &lt;2e-16 ***</span></span>
-<span id="cb1132-24"><a href="sec-aggregation-bias.html#cb1132-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1132-25"><a href="sec-aggregation-bias.html#cb1132-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb1132-26"><a href="sec-aggregation-bias.html#cb1132-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1132-27"><a href="sec-aggregation-bias.html#cb1132-27" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 1.54 on 98 degrees of freedom</span></span>
-<span id="cb1132-28"><a href="sec-aggregation-bias.html#cb1132-28" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.5794, Adjusted R-squared:  0.5751 </span></span>
-<span id="cb1132-29"><a href="sec-aggregation-bias.html#cb1132-29" tabindex="-1"></a><span class="co">#&gt; F-statistic:   135 on 1 and 98 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<div class="sourceCode" id="cb1137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1137-1"><a href="sec-aggregation-bias.html#cb1137-1" tabindex="-1"></a><span class="co"># Assume 100 neighborhoods with 10 individuals each</span></span>
+<span id="cb1137-2"><a href="sec-aggregation-bias.html#cb1137-2" tabindex="-1"></a>n_neighborhoods <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb1137-3"><a href="sec-aggregation-bias.html#cb1137-3" tabindex="-1"></a></span>
+<span id="cb1137-4"><a href="sec-aggregation-bias.html#cb1137-4" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(income, consumption)</span>
+<span id="cb1137-5"><a href="sec-aggregation-bias.html#cb1137-5" tabindex="-1"></a>df<span class="sc">$</span>neighborhood <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>n_neighborhoods, <span class="at">each =</span> n <span class="sc">/</span> n_neighborhoods)</span>
+<span id="cb1137-6"><a href="sec-aggregation-bias.html#cb1137-6" tabindex="-1"></a></span>
+<span id="cb1137-7"><a href="sec-aggregation-bias.html#cb1137-7" tabindex="-1"></a>aggregate_data <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(. <span class="sc">~</span> neighborhood, <span class="at">data =</span> df, <span class="at">FUN =</span> mean)</span>
+<span id="cb1137-8"><a href="sec-aggregation-bias.html#cb1137-8" tabindex="-1"></a></span>
+<span id="cb1137-9"><a href="sec-aggregation-bias.html#cb1137-9" tabindex="-1"></a><span class="co"># Aggregate level regression</span></span>
+<span id="cb1137-10"><a href="sec-aggregation-bias.html#cb1137-10" tabindex="-1"></a>aggregate_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(consumption <span class="sc">~</span> income, <span class="at">data =</span> aggregate_data)</span>
+<span id="cb1137-11"><a href="sec-aggregation-bias.html#cb1137-11" tabindex="-1"></a><span class="fu">summary</span>(aggregate_lm)</span>
+<span id="cb1137-12"><a href="sec-aggregation-bias.html#cb1137-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1137-13"><a href="sec-aggregation-bias.html#cb1137-13" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb1137-14"><a href="sec-aggregation-bias.html#cb1137-14" tabindex="-1"></a><span class="co">#&gt; lm(formula = consumption ~ income, data = aggregate_data)</span></span>
+<span id="cb1137-15"><a href="sec-aggregation-bias.html#cb1137-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1137-16"><a href="sec-aggregation-bias.html#cb1137-16" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb1137-17"><a href="sec-aggregation-bias.html#cb1137-17" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb1137-18"><a href="sec-aggregation-bias.html#cb1137-18" tabindex="-1"></a><span class="co">#&gt; -4.4517 -0.9322 -0.0826  1.0556  3.5728 </span></span>
+<span id="cb1137-19"><a href="sec-aggregation-bias.html#cb1137-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1137-20"><a href="sec-aggregation-bias.html#cb1137-20" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb1137-21"><a href="sec-aggregation-bias.html#cb1137-21" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1137-22"><a href="sec-aggregation-bias.html#cb1137-22" tabindex="-1"></a><span class="co">#&gt; (Intercept) -4.94338    2.60699  -1.896   0.0609 .  </span></span>
+<span id="cb1137-23"><a href="sec-aggregation-bias.html#cb1137-23" tabindex="-1"></a><span class="co">#&gt; income       0.60278    0.05188  11.618   &lt;2e-16 ***</span></span>
+<span id="cb1137-24"><a href="sec-aggregation-bias.html#cb1137-24" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1137-25"><a href="sec-aggregation-bias.html#cb1137-25" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb1137-26"><a href="sec-aggregation-bias.html#cb1137-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1137-27"><a href="sec-aggregation-bias.html#cb1137-27" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 1.54 on 98 degrees of freedom</span></span>
+<span id="cb1137-28"><a href="sec-aggregation-bias.html#cb1137-28" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.5794, Adjusted R-squared:  0.5751 </span></span>
+<span id="cb1137-29"><a href="sec-aggregation-bias.html#cb1137-29" tabindex="-1"></a><span class="co">#&gt; F-statistic:   135 on 1 and 98 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>If aggregation bias is present, the coefficient for income in the aggregate regression might be different from the coefficient in the individual regression, even if the individual relationship is significant and strong.</p>
-<div class="sourceCode" id="cb1133"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1133-1"><a href="sec-aggregation-bias.html#cb1133-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1133-2"><a href="sec-aggregation-bias.html#cb1133-2" tabindex="-1"></a></span>
-<span id="cb1133-3"><a href="sec-aggregation-bias.html#cb1133-3" tabindex="-1"></a><span class="co"># Individual scatterplot</span></span>
-<span id="cb1133-4"><a href="sec-aggregation-bias.html#cb1133-4" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> income, <span class="at">y =</span> consumption)) <span class="sc">+</span></span>
-<span id="cb1133-5"><a href="sec-aggregation-bias.html#cb1133-5" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> neighborhood), <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb1133-6"><a href="sec-aggregation-bias.html#cb1133-6" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;lm&quot;</span>,</span>
-<span id="cb1133-7"><a href="sec-aggregation-bias.html#cb1133-7" tabindex="-1"></a>                <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1133-8"><a href="sec-aggregation-bias.html#cb1133-8" tabindex="-1"></a>                <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1133-9"><a href="sec-aggregation-bias.html#cb1133-9" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Individual Level Data&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1133-10"><a href="sec-aggregation-bias.html#cb1133-10" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span>
-<span id="cb1133-11"><a href="sec-aggregation-bias.html#cb1133-11" tabindex="-1"></a></span>
-<span id="cb1133-12"><a href="sec-aggregation-bias.html#cb1133-12" tabindex="-1"></a><span class="co"># Aggregate scatterplot</span></span>
-<span id="cb1133-13"><a href="sec-aggregation-bias.html#cb1133-13" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(aggregate_data, <span class="fu">aes</span>(<span class="at">x =</span> income, <span class="at">y =</span> consumption)) <span class="sc">+</span></span>
-<span id="cb1133-14"><a href="sec-aggregation-bias.html#cb1133-14" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1133-15"><a href="sec-aggregation-bias.html#cb1133-15" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;lm&quot;</span>,</span>
-<span id="cb1133-16"><a href="sec-aggregation-bias.html#cb1133-16" tabindex="-1"></a>                <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1133-17"><a href="sec-aggregation-bias.html#cb1133-17" tabindex="-1"></a>                <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1133-18"><a href="sec-aggregation-bias.html#cb1133-18" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Aggregate Level Data&quot;</span>) <span class="sc">+</span></span>
-<span id="cb1133-19"><a href="sec-aggregation-bias.html#cb1133-19" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span>
-<span id="cb1133-20"><a href="sec-aggregation-bias.html#cb1133-20" tabindex="-1"></a></span>
-<span id="cb1133-21"><a href="sec-aggregation-bias.html#cb1133-21" tabindex="-1"></a><span class="co"># print(p1)</span></span>
-<span id="cb1133-22"><a href="sec-aggregation-bias.html#cb1133-22" tabindex="-1"></a><span class="co"># print(p2)</span></span>
-<span id="cb1133-23"><a href="sec-aggregation-bias.html#cb1133-23" tabindex="-1"></a></span>
-<span id="cb1133-24"><a href="sec-aggregation-bias.html#cb1133-24" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(<span class="at">grobs =</span> <span class="fu">list</span>(p1, p2), <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1138"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1138-1"><a href="sec-aggregation-bias.html#cb1138-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1138-2"><a href="sec-aggregation-bias.html#cb1138-2" tabindex="-1"></a></span>
+<span id="cb1138-3"><a href="sec-aggregation-bias.html#cb1138-3" tabindex="-1"></a><span class="co"># Individual scatterplot</span></span>
+<span id="cb1138-4"><a href="sec-aggregation-bias.html#cb1138-4" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> income, <span class="at">y =</span> consumption)) <span class="sc">+</span></span>
+<span id="cb1138-5"><a href="sec-aggregation-bias.html#cb1138-5" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> neighborhood), <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb1138-6"><a href="sec-aggregation-bias.html#cb1138-6" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;lm&quot;</span>,</span>
+<span id="cb1138-7"><a href="sec-aggregation-bias.html#cb1138-7" tabindex="-1"></a>                <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1138-8"><a href="sec-aggregation-bias.html#cb1138-8" tabindex="-1"></a>                <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1138-9"><a href="sec-aggregation-bias.html#cb1138-9" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Individual Level Data&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1138-10"><a href="sec-aggregation-bias.html#cb1138-10" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span>
+<span id="cb1138-11"><a href="sec-aggregation-bias.html#cb1138-11" tabindex="-1"></a></span>
+<span id="cb1138-12"><a href="sec-aggregation-bias.html#cb1138-12" tabindex="-1"></a><span class="co"># Aggregate scatterplot</span></span>
+<span id="cb1138-13"><a href="sec-aggregation-bias.html#cb1138-13" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(aggregate_data, <span class="fu">aes</span>(<span class="at">x =</span> income, <span class="at">y =</span> consumption)) <span class="sc">+</span></span>
+<span id="cb1138-14"><a href="sec-aggregation-bias.html#cb1138-14" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1138-15"><a href="sec-aggregation-bias.html#cb1138-15" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;lm&quot;</span>,</span>
+<span id="cb1138-16"><a href="sec-aggregation-bias.html#cb1138-16" tabindex="-1"></a>                <span class="at">se =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1138-17"><a href="sec-aggregation-bias.html#cb1138-17" tabindex="-1"></a>                <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1138-18"><a href="sec-aggregation-bias.html#cb1138-18" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Aggregate Level Data&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1138-19"><a href="sec-aggregation-bias.html#cb1138-19" tabindex="-1"></a>    causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span>
+<span id="cb1138-20"><a href="sec-aggregation-bias.html#cb1138-20" tabindex="-1"></a></span>
+<span id="cb1138-21"><a href="sec-aggregation-bias.html#cb1138-21" tabindex="-1"></a><span class="co"># print(p1)</span></span>
+<span id="cb1138-22"><a href="sec-aggregation-bias.html#cb1138-22" tabindex="-1"></a><span class="co"># print(p2)</span></span>
+<span id="cb1138-23"><a href="sec-aggregation-bias.html#cb1138-23" tabindex="-1"></a></span>
+<span id="cb1138-24"><a href="sec-aggregation-bias.html#cb1138-24" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(<span class="at">grobs =</span> <span class="fu">list</span>(p1, p2), <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div>
 <p><img src="37-biases_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>From these plots, you can see the relationship at the individual level, with each neighborhood being colored differently in the first plot. The second plot shows the aggregate data, where each point now represents a whole neighborhood.</p>
 <p><strong>Direction of Bias</strong>: The direction of the aggregation bias isn’t predetermined. It depends on the underlying relationship and the data distribution. In some cases, aggregation might attenuate (reduce) a relationship, while in other cases, it might exaggerate it.</p>
@@ -2006,96 +2006,96 @@ div.csl-indent {
 <li><p>High-ability students tend to have high grades regardless of the technique.</p></li>
 <li><p>The new technique has a positive effect on grades, but this is masked by the fact that many low-ability students use it.</p></li>
 </ol>
-<div class="sourceCode" id="cb1134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1134-1"><a href="sec-aggregation-bias.html#cb1134-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1134-2"><a href="sec-aggregation-bias.html#cb1134-2" tabindex="-1"></a></span>
-<span id="cb1134-3"><a href="sec-aggregation-bias.html#cb1134-3" tabindex="-1"></a><span class="co"># Generate data for 1000 students</span></span>
-<span id="cb1134-4"><a href="sec-aggregation-bias.html#cb1134-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb1134-5"><a href="sec-aggregation-bias.html#cb1134-5" tabindex="-1"></a></span>
-<span id="cb1134-6"><a href="sec-aggregation-bias.html#cb1134-6" tabindex="-1"></a><span class="co"># 500 students are of high ability, 500 of low ability</span></span>
-<span id="cb1134-7"><a href="sec-aggregation-bias.html#cb1134-7" tabindex="-1"></a>ability <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;high&quot;</span>, <span class="dv">500</span>), <span class="fu">rep</span>(<span class="st">&quot;low&quot;</span>, <span class="dv">500</span>))</span>
-<span id="cb1134-8"><a href="sec-aggregation-bias.html#cb1134-8" tabindex="-1"></a></span>
-<span id="cb1134-9"><a href="sec-aggregation-bias.html#cb1134-9" tabindex="-1"></a><span class="co"># High ability students are less likely to use the technique</span></span>
-<span id="cb1134-10"><a href="sec-aggregation-bias.html#cb1134-10" tabindex="-1"></a>treatment <span class="ot">&lt;-</span></span>
-<span id="cb1134-11"><a href="sec-aggregation-bias.html#cb1134-11" tabindex="-1"></a>  <span class="fu">ifelse</span>(ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>, <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.2</span>), <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.8</span>))</span>
-<span id="cb1134-12"><a href="sec-aggregation-bias.html#cb1134-12" tabindex="-1"></a></span>
-<span id="cb1134-13"><a href="sec-aggregation-bias.html#cb1134-13" tabindex="-1"></a><span class="co"># Grades are influenced by ability and treatment (new technique),</span></span>
-<span id="cb1134-14"><a href="sec-aggregation-bias.html#cb1134-14" tabindex="-1"></a><span class="co"># but the treatment has opposite effects based on ability.</span></span>
-<span id="cb1134-15"><a href="sec-aggregation-bias.html#cb1134-15" tabindex="-1"></a>grades <span class="ot">&lt;-</span></span>
-<span id="cb1134-16"><a href="sec-aggregation-bias.html#cb1134-16" tabindex="-1"></a>  <span class="fu">ifelse</span>(</span>
-<span id="cb1134-17"><a href="sec-aggregation-bias.html#cb1134-17" tabindex="-1"></a>    ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>,</span>
-<span id="cb1134-18"><a href="sec-aggregation-bias.html#cb1134-18" tabindex="-1"></a>    <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="dv">85</span>, <span class="at">sd =</span> <span class="dv">5</span>) <span class="sc">+</span> treatment <span class="sc">*</span> <span class="sc">-</span><span class="dv">3</span>,</span>
-<span id="cb1134-19"><a href="sec-aggregation-bias.html#cb1134-19" tabindex="-1"></a>    <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="dv">60</span>, <span class="at">sd =</span> <span class="dv">5</span>) <span class="sc">+</span> treatment <span class="sc">*</span> <span class="dv">5</span></span>
-<span id="cb1134-20"><a href="sec-aggregation-bias.html#cb1134-20" tabindex="-1"></a>  )</span>
-<span id="cb1134-21"><a href="sec-aggregation-bias.html#cb1134-21" tabindex="-1"></a></span>
-<span id="cb1134-22"><a href="sec-aggregation-bias.html#cb1134-22" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(ability, treatment, grades)</span>
-<span id="cb1134-23"><a href="sec-aggregation-bias.html#cb1134-23" tabindex="-1"></a></span>
-<span id="cb1134-24"><a href="sec-aggregation-bias.html#cb1134-24" tabindex="-1"></a><span class="co"># Regression without considering ability</span></span>
-<span id="cb1134-25"><a href="sec-aggregation-bias.html#cb1134-25" tabindex="-1"></a>overall_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(grades <span class="sc">~</span> <span class="fu">factor</span>(treatment), <span class="at">data =</span> df)</span>
-<span id="cb1134-26"><a href="sec-aggregation-bias.html#cb1134-26" tabindex="-1"></a><span class="fu">summary</span>(overall_lm)</span>
-<span id="cb1134-27"><a href="sec-aggregation-bias.html#cb1134-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-28"><a href="sec-aggregation-bias.html#cb1134-28" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb1134-29"><a href="sec-aggregation-bias.html#cb1134-29" tabindex="-1"></a><span class="co">#&gt; lm(formula = grades ~ factor(treatment), data = df)</span></span>
-<span id="cb1134-30"><a href="sec-aggregation-bias.html#cb1134-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-31"><a href="sec-aggregation-bias.html#cb1134-31" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb1134-32"><a href="sec-aggregation-bias.html#cb1134-32" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb1134-33"><a href="sec-aggregation-bias.html#cb1134-33" tabindex="-1"></a><span class="co">#&gt; -33.490  -4.729   0.986   6.368  25.607 </span></span>
-<span id="cb1134-34"><a href="sec-aggregation-bias.html#cb1134-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-35"><a href="sec-aggregation-bias.html#cb1134-35" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb1134-36"><a href="sec-aggregation-bias.html#cb1134-36" tabindex="-1"></a><span class="co">#&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1134-37"><a href="sec-aggregation-bias.html#cb1134-37" tabindex="-1"></a><span class="co">#&gt; (Intercept)         80.0133     0.4373   183.0   &lt;2e-16 ***</span></span>
-<span id="cb1134-38"><a href="sec-aggregation-bias.html#cb1134-38" tabindex="-1"></a><span class="co">#&gt; factor(treatment)1 -11.7461     0.6248   -18.8   &lt;2e-16 ***</span></span>
-<span id="cb1134-39"><a href="sec-aggregation-bias.html#cb1134-39" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1134-40"><a href="sec-aggregation-bias.html#cb1134-40" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb1134-41"><a href="sec-aggregation-bias.html#cb1134-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-42"><a href="sec-aggregation-bias.html#cb1134-42" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 9.877 on 998 degrees of freedom</span></span>
-<span id="cb1134-43"><a href="sec-aggregation-bias.html#cb1134-43" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.2615, Adjusted R-squared:  0.2608 </span></span>
-<span id="cb1134-44"><a href="sec-aggregation-bias.html#cb1134-44" tabindex="-1"></a><span class="co">#&gt; F-statistic: 353.5 on 1 and 998 DF,  p-value: &lt; 2.2e-16</span></span>
-<span id="cb1134-45"><a href="sec-aggregation-bias.html#cb1134-45" tabindex="-1"></a></span>
-<span id="cb1134-46"><a href="sec-aggregation-bias.html#cb1134-46" tabindex="-1"></a><span class="co"># Regression within ability groups</span></span>
-<span id="cb1134-47"><a href="sec-aggregation-bias.html#cb1134-47" tabindex="-1"></a>high_ability_lm <span class="ot">&lt;-</span></span>
-<span id="cb1134-48"><a href="sec-aggregation-bias.html#cb1134-48" tabindex="-1"></a>  <span class="fu">lm</span>(grades <span class="sc">~</span> <span class="fu">factor</span>(treatment), <span class="at">data =</span> df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>,])</span>
-<span id="cb1134-49"><a href="sec-aggregation-bias.html#cb1134-49" tabindex="-1"></a>low_ability_lm <span class="ot">&lt;-</span></span>
-<span id="cb1134-50"><a href="sec-aggregation-bias.html#cb1134-50" tabindex="-1"></a>  <span class="fu">lm</span>(grades <span class="sc">~</span> <span class="fu">factor</span>(treatment), <span class="at">data =</span> df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;low&quot;</span>,])</span>
-<span id="cb1134-51"><a href="sec-aggregation-bias.html#cb1134-51" tabindex="-1"></a><span class="fu">summary</span>(high_ability_lm)</span>
-<span id="cb1134-52"><a href="sec-aggregation-bias.html#cb1134-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-53"><a href="sec-aggregation-bias.html#cb1134-53" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb1134-54"><a href="sec-aggregation-bias.html#cb1134-54" tabindex="-1"></a><span class="co">#&gt; lm(formula = grades ~ factor(treatment), data = df[df$ability == </span></span>
-<span id="cb1134-55"><a href="sec-aggregation-bias.html#cb1134-55" tabindex="-1"></a><span class="co">#&gt;     &quot;high&quot;, ])</span></span>
-<span id="cb1134-56"><a href="sec-aggregation-bias.html#cb1134-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-57"><a href="sec-aggregation-bias.html#cb1134-57" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb1134-58"><a href="sec-aggregation-bias.html#cb1134-58" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span id="cb1134-59"><a href="sec-aggregation-bias.html#cb1134-59" tabindex="-1"></a><span class="co">#&gt; -14.2156  -3.4813   0.1186   3.4952  13.2919 </span></span>
-<span id="cb1134-60"><a href="sec-aggregation-bias.html#cb1134-60" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-61"><a href="sec-aggregation-bias.html#cb1134-61" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb1134-62"><a href="sec-aggregation-bias.html#cb1134-62" tabindex="-1"></a><span class="co">#&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1134-63"><a href="sec-aggregation-bias.html#cb1134-63" tabindex="-1"></a><span class="co">#&gt; (Intercept)         85.1667     0.2504 340.088  &lt; 2e-16 ***</span></span>
-<span id="cb1134-64"><a href="sec-aggregation-bias.html#cb1134-64" tabindex="-1"></a><span class="co">#&gt; factor(treatment)1  -3.9489     0.5776  -6.837 2.37e-11 ***</span></span>
-<span id="cb1134-65"><a href="sec-aggregation-bias.html#cb1134-65" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1134-66"><a href="sec-aggregation-bias.html#cb1134-66" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb1134-67"><a href="sec-aggregation-bias.html#cb1134-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-68"><a href="sec-aggregation-bias.html#cb1134-68" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 5.046 on 498 degrees of freedom</span></span>
-<span id="cb1134-69"><a href="sec-aggregation-bias.html#cb1134-69" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08581,    Adjusted R-squared:  0.08398 </span></span>
-<span id="cb1134-70"><a href="sec-aggregation-bias.html#cb1134-70" tabindex="-1"></a><span class="co">#&gt; F-statistic: 46.75 on 1 and 498 DF,  p-value: 2.373e-11</span></span>
-<span id="cb1134-71"><a href="sec-aggregation-bias.html#cb1134-71" tabindex="-1"></a><span class="fu">summary</span>(low_ability_lm)</span>
-<span id="cb1134-72"><a href="sec-aggregation-bias.html#cb1134-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-73"><a href="sec-aggregation-bias.html#cb1134-73" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb1134-74"><a href="sec-aggregation-bias.html#cb1134-74" tabindex="-1"></a><span class="co">#&gt; lm(formula = grades ~ factor(treatment), data = df[df$ability == </span></span>
-<span id="cb1134-75"><a href="sec-aggregation-bias.html#cb1134-75" tabindex="-1"></a><span class="co">#&gt;     &quot;low&quot;, ])</span></span>
-<span id="cb1134-76"><a href="sec-aggregation-bias.html#cb1134-76" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-77"><a href="sec-aggregation-bias.html#cb1134-77" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb1134-78"><a href="sec-aggregation-bias.html#cb1134-78" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span id="cb1134-79"><a href="sec-aggregation-bias.html#cb1134-79" tabindex="-1"></a><span class="co">#&gt; -13.3717  -3.5413   0.1097   3.3531  17.0568 </span></span>
-<span id="cb1134-80"><a href="sec-aggregation-bias.html#cb1134-80" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-81"><a href="sec-aggregation-bias.html#cb1134-81" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb1134-82"><a href="sec-aggregation-bias.html#cb1134-82" tabindex="-1"></a><span class="co">#&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1134-83"><a href="sec-aggregation-bias.html#cb1134-83" tabindex="-1"></a><span class="co">#&gt; (Intercept)         59.8950     0.4871 122.956   &lt;2e-16 ***</span></span>
-<span id="cb1134-84"><a href="sec-aggregation-bias.html#cb1134-84" tabindex="-1"></a><span class="co">#&gt; factor(treatment)1   5.2979     0.5474   9.679   &lt;2e-16 ***</span></span>
-<span id="cb1134-85"><a href="sec-aggregation-bias.html#cb1134-85" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1134-86"><a href="sec-aggregation-bias.html#cb1134-86" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb1134-87"><a href="sec-aggregation-bias.html#cb1134-87" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1134-88"><a href="sec-aggregation-bias.html#cb1134-88" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 4.968 on 498 degrees of freedom</span></span>
-<span id="cb1134-89"><a href="sec-aggregation-bias.html#cb1134-89" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.1583, Adjusted R-squared:  0.1566 </span></span>
-<span id="cb1134-90"><a href="sec-aggregation-bias.html#cb1134-90" tabindex="-1"></a><span class="co">#&gt; F-statistic: 93.68 on 1 and 498 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<div class="sourceCode" id="cb1139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1139-1"><a href="sec-aggregation-bias.html#cb1139-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1139-2"><a href="sec-aggregation-bias.html#cb1139-2" tabindex="-1"></a></span>
+<span id="cb1139-3"><a href="sec-aggregation-bias.html#cb1139-3" tabindex="-1"></a><span class="co"># Generate data for 1000 students</span></span>
+<span id="cb1139-4"><a href="sec-aggregation-bias.html#cb1139-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb1139-5"><a href="sec-aggregation-bias.html#cb1139-5" tabindex="-1"></a></span>
+<span id="cb1139-6"><a href="sec-aggregation-bias.html#cb1139-6" tabindex="-1"></a><span class="co"># 500 students are of high ability, 500 of low ability</span></span>
+<span id="cb1139-7"><a href="sec-aggregation-bias.html#cb1139-7" tabindex="-1"></a>ability <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;high&quot;</span>, <span class="dv">500</span>), <span class="fu">rep</span>(<span class="st">&quot;low&quot;</span>, <span class="dv">500</span>))</span>
+<span id="cb1139-8"><a href="sec-aggregation-bias.html#cb1139-8" tabindex="-1"></a></span>
+<span id="cb1139-9"><a href="sec-aggregation-bias.html#cb1139-9" tabindex="-1"></a><span class="co"># High ability students are less likely to use the technique</span></span>
+<span id="cb1139-10"><a href="sec-aggregation-bias.html#cb1139-10" tabindex="-1"></a>treatment <span class="ot">&lt;-</span></span>
+<span id="cb1139-11"><a href="sec-aggregation-bias.html#cb1139-11" tabindex="-1"></a>  <span class="fu">ifelse</span>(ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>, <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.2</span>), <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.8</span>))</span>
+<span id="cb1139-12"><a href="sec-aggregation-bias.html#cb1139-12" tabindex="-1"></a></span>
+<span id="cb1139-13"><a href="sec-aggregation-bias.html#cb1139-13" tabindex="-1"></a><span class="co"># Grades are influenced by ability and treatment (new technique),</span></span>
+<span id="cb1139-14"><a href="sec-aggregation-bias.html#cb1139-14" tabindex="-1"></a><span class="co"># but the treatment has opposite effects based on ability.</span></span>
+<span id="cb1139-15"><a href="sec-aggregation-bias.html#cb1139-15" tabindex="-1"></a>grades <span class="ot">&lt;-</span></span>
+<span id="cb1139-16"><a href="sec-aggregation-bias.html#cb1139-16" tabindex="-1"></a>  <span class="fu">ifelse</span>(</span>
+<span id="cb1139-17"><a href="sec-aggregation-bias.html#cb1139-17" tabindex="-1"></a>    ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>,</span>
+<span id="cb1139-18"><a href="sec-aggregation-bias.html#cb1139-18" tabindex="-1"></a>    <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="dv">85</span>, <span class="at">sd =</span> <span class="dv">5</span>) <span class="sc">+</span> treatment <span class="sc">*</span> <span class="sc">-</span><span class="dv">3</span>,</span>
+<span id="cb1139-19"><a href="sec-aggregation-bias.html#cb1139-19" tabindex="-1"></a>    <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="dv">60</span>, <span class="at">sd =</span> <span class="dv">5</span>) <span class="sc">+</span> treatment <span class="sc">*</span> <span class="dv">5</span></span>
+<span id="cb1139-20"><a href="sec-aggregation-bias.html#cb1139-20" tabindex="-1"></a>  )</span>
+<span id="cb1139-21"><a href="sec-aggregation-bias.html#cb1139-21" tabindex="-1"></a></span>
+<span id="cb1139-22"><a href="sec-aggregation-bias.html#cb1139-22" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(ability, treatment, grades)</span>
+<span id="cb1139-23"><a href="sec-aggregation-bias.html#cb1139-23" tabindex="-1"></a></span>
+<span id="cb1139-24"><a href="sec-aggregation-bias.html#cb1139-24" tabindex="-1"></a><span class="co"># Regression without considering ability</span></span>
+<span id="cb1139-25"><a href="sec-aggregation-bias.html#cb1139-25" tabindex="-1"></a>overall_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(grades <span class="sc">~</span> <span class="fu">factor</span>(treatment), <span class="at">data =</span> df)</span>
+<span id="cb1139-26"><a href="sec-aggregation-bias.html#cb1139-26" tabindex="-1"></a><span class="fu">summary</span>(overall_lm)</span>
+<span id="cb1139-27"><a href="sec-aggregation-bias.html#cb1139-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-28"><a href="sec-aggregation-bias.html#cb1139-28" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb1139-29"><a href="sec-aggregation-bias.html#cb1139-29" tabindex="-1"></a><span class="co">#&gt; lm(formula = grades ~ factor(treatment), data = df)</span></span>
+<span id="cb1139-30"><a href="sec-aggregation-bias.html#cb1139-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-31"><a href="sec-aggregation-bias.html#cb1139-31" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb1139-32"><a href="sec-aggregation-bias.html#cb1139-32" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb1139-33"><a href="sec-aggregation-bias.html#cb1139-33" tabindex="-1"></a><span class="co">#&gt; -33.490  -4.729   0.986   6.368  25.607 </span></span>
+<span id="cb1139-34"><a href="sec-aggregation-bias.html#cb1139-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-35"><a href="sec-aggregation-bias.html#cb1139-35" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb1139-36"><a href="sec-aggregation-bias.html#cb1139-36" tabindex="-1"></a><span class="co">#&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1139-37"><a href="sec-aggregation-bias.html#cb1139-37" tabindex="-1"></a><span class="co">#&gt; (Intercept)         80.0133     0.4373   183.0   &lt;2e-16 ***</span></span>
+<span id="cb1139-38"><a href="sec-aggregation-bias.html#cb1139-38" tabindex="-1"></a><span class="co">#&gt; factor(treatment)1 -11.7461     0.6248   -18.8   &lt;2e-16 ***</span></span>
+<span id="cb1139-39"><a href="sec-aggregation-bias.html#cb1139-39" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1139-40"><a href="sec-aggregation-bias.html#cb1139-40" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb1139-41"><a href="sec-aggregation-bias.html#cb1139-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-42"><a href="sec-aggregation-bias.html#cb1139-42" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 9.877 on 998 degrees of freedom</span></span>
+<span id="cb1139-43"><a href="sec-aggregation-bias.html#cb1139-43" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.2615, Adjusted R-squared:  0.2608 </span></span>
+<span id="cb1139-44"><a href="sec-aggregation-bias.html#cb1139-44" tabindex="-1"></a><span class="co">#&gt; F-statistic: 353.5 on 1 and 998 DF,  p-value: &lt; 2.2e-16</span></span>
+<span id="cb1139-45"><a href="sec-aggregation-bias.html#cb1139-45" tabindex="-1"></a></span>
+<span id="cb1139-46"><a href="sec-aggregation-bias.html#cb1139-46" tabindex="-1"></a><span class="co"># Regression within ability groups</span></span>
+<span id="cb1139-47"><a href="sec-aggregation-bias.html#cb1139-47" tabindex="-1"></a>high_ability_lm <span class="ot">&lt;-</span></span>
+<span id="cb1139-48"><a href="sec-aggregation-bias.html#cb1139-48" tabindex="-1"></a>  <span class="fu">lm</span>(grades <span class="sc">~</span> <span class="fu">factor</span>(treatment), <span class="at">data =</span> df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>,])</span>
+<span id="cb1139-49"><a href="sec-aggregation-bias.html#cb1139-49" tabindex="-1"></a>low_ability_lm <span class="ot">&lt;-</span></span>
+<span id="cb1139-50"><a href="sec-aggregation-bias.html#cb1139-50" tabindex="-1"></a>  <span class="fu">lm</span>(grades <span class="sc">~</span> <span class="fu">factor</span>(treatment), <span class="at">data =</span> df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;low&quot;</span>,])</span>
+<span id="cb1139-51"><a href="sec-aggregation-bias.html#cb1139-51" tabindex="-1"></a><span class="fu">summary</span>(high_ability_lm)</span>
+<span id="cb1139-52"><a href="sec-aggregation-bias.html#cb1139-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-53"><a href="sec-aggregation-bias.html#cb1139-53" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb1139-54"><a href="sec-aggregation-bias.html#cb1139-54" tabindex="-1"></a><span class="co">#&gt; lm(formula = grades ~ factor(treatment), data = df[df$ability == </span></span>
+<span id="cb1139-55"><a href="sec-aggregation-bias.html#cb1139-55" tabindex="-1"></a><span class="co">#&gt;     &quot;high&quot;, ])</span></span>
+<span id="cb1139-56"><a href="sec-aggregation-bias.html#cb1139-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-57"><a href="sec-aggregation-bias.html#cb1139-57" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb1139-58"><a href="sec-aggregation-bias.html#cb1139-58" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span id="cb1139-59"><a href="sec-aggregation-bias.html#cb1139-59" tabindex="-1"></a><span class="co">#&gt; -14.2156  -3.4813   0.1186   3.4952  13.2919 </span></span>
+<span id="cb1139-60"><a href="sec-aggregation-bias.html#cb1139-60" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-61"><a href="sec-aggregation-bias.html#cb1139-61" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb1139-62"><a href="sec-aggregation-bias.html#cb1139-62" tabindex="-1"></a><span class="co">#&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1139-63"><a href="sec-aggregation-bias.html#cb1139-63" tabindex="-1"></a><span class="co">#&gt; (Intercept)         85.1667     0.2504 340.088  &lt; 2e-16 ***</span></span>
+<span id="cb1139-64"><a href="sec-aggregation-bias.html#cb1139-64" tabindex="-1"></a><span class="co">#&gt; factor(treatment)1  -3.9489     0.5776  -6.837 2.37e-11 ***</span></span>
+<span id="cb1139-65"><a href="sec-aggregation-bias.html#cb1139-65" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1139-66"><a href="sec-aggregation-bias.html#cb1139-66" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb1139-67"><a href="sec-aggregation-bias.html#cb1139-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-68"><a href="sec-aggregation-bias.html#cb1139-68" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 5.046 on 498 degrees of freedom</span></span>
+<span id="cb1139-69"><a href="sec-aggregation-bias.html#cb1139-69" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08581,    Adjusted R-squared:  0.08398 </span></span>
+<span id="cb1139-70"><a href="sec-aggregation-bias.html#cb1139-70" tabindex="-1"></a><span class="co">#&gt; F-statistic: 46.75 on 1 and 498 DF,  p-value: 2.373e-11</span></span>
+<span id="cb1139-71"><a href="sec-aggregation-bias.html#cb1139-71" tabindex="-1"></a><span class="fu">summary</span>(low_ability_lm)</span>
+<span id="cb1139-72"><a href="sec-aggregation-bias.html#cb1139-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-73"><a href="sec-aggregation-bias.html#cb1139-73" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb1139-74"><a href="sec-aggregation-bias.html#cb1139-74" tabindex="-1"></a><span class="co">#&gt; lm(formula = grades ~ factor(treatment), data = df[df$ability == </span></span>
+<span id="cb1139-75"><a href="sec-aggregation-bias.html#cb1139-75" tabindex="-1"></a><span class="co">#&gt;     &quot;low&quot;, ])</span></span>
+<span id="cb1139-76"><a href="sec-aggregation-bias.html#cb1139-76" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-77"><a href="sec-aggregation-bias.html#cb1139-77" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb1139-78"><a href="sec-aggregation-bias.html#cb1139-78" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span id="cb1139-79"><a href="sec-aggregation-bias.html#cb1139-79" tabindex="-1"></a><span class="co">#&gt; -13.3717  -3.5413   0.1097   3.3531  17.0568 </span></span>
+<span id="cb1139-80"><a href="sec-aggregation-bias.html#cb1139-80" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-81"><a href="sec-aggregation-bias.html#cb1139-81" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb1139-82"><a href="sec-aggregation-bias.html#cb1139-82" tabindex="-1"></a><span class="co">#&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1139-83"><a href="sec-aggregation-bias.html#cb1139-83" tabindex="-1"></a><span class="co">#&gt; (Intercept)         59.8950     0.4871 122.956   &lt;2e-16 ***</span></span>
+<span id="cb1139-84"><a href="sec-aggregation-bias.html#cb1139-84" tabindex="-1"></a><span class="co">#&gt; factor(treatment)1   5.2979     0.5474   9.679   &lt;2e-16 ***</span></span>
+<span id="cb1139-85"><a href="sec-aggregation-bias.html#cb1139-85" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1139-86"><a href="sec-aggregation-bias.html#cb1139-86" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb1139-87"><a href="sec-aggregation-bias.html#cb1139-87" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1139-88"><a href="sec-aggregation-bias.html#cb1139-88" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 4.968 on 498 degrees of freedom</span></span>
+<span id="cb1139-89"><a href="sec-aggregation-bias.html#cb1139-89" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.1583, Adjusted R-squared:  0.1566 </span></span>
+<span id="cb1139-90"><a href="sec-aggregation-bias.html#cb1139-90" tabindex="-1"></a><span class="co">#&gt; F-statistic: 93.68 on 1 and 498 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>From this simulation:</p>
 <ul>
 <li><p>The <strong><code>overall_lm</code></strong> might show that the new study technique is associated with lower grades (negative coefficient), because many of the high-ability students (who naturally have high grades) did not use it.</p></li>
@@ -2103,51 +2103,51 @@ div.csl-indent {
 <li><p>The <strong><code>low_ability_lm</code></strong> will likely show that low-ability students who used the technique had much higher grades than low-ability students who didn’t.</p></li>
 </ul>
 <p>This is a classic example of Simpson’s Paradox: within each ability group, the technique appears beneficial, but when data is aggregated, the effect seems negative because of the distribution of the technique across ability groups.</p>
-<div class="sourceCode" id="cb1135"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1135-1"><a href="sec-aggregation-bias.html#cb1135-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1135-2"><a href="sec-aggregation-bias.html#cb1135-2" tabindex="-1"></a></span>
-<span id="cb1135-3"><a href="sec-aggregation-bias.html#cb1135-3" tabindex="-1"></a><span class="co"># Scatterplot for overall data</span></span>
-<span id="cb1135-4"><a href="sec-aggregation-bias.html#cb1135-4" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
-<span id="cb1135-5"><a href="sec-aggregation-bias.html#cb1135-5" tabindex="-1"></a>  <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(</span>
-<span id="cb1135-6"><a href="sec-aggregation-bias.html#cb1135-6" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">factor</span>(treatment),</span>
-<span id="cb1135-7"><a href="sec-aggregation-bias.html#cb1135-7" tabindex="-1"></a>    <span class="at">y =</span> grades,</span>
-<span id="cb1135-8"><a href="sec-aggregation-bias.html#cb1135-8" tabindex="-1"></a>    <span class="at">color =</span> ability</span>
-<span id="cb1135-9"><a href="sec-aggregation-bias.html#cb1135-9" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb1135-10"><a href="sec-aggregation-bias.html#cb1135-10" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb1135-11"><a href="sec-aggregation-bias.html#cb1135-11" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb1135-12"><a href="sec-aggregation-bias.html#cb1135-12" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Overall Effect of Study Technique on Grades&quot;</span>,</span>
-<span id="cb1135-13"><a href="sec-aggregation-bias.html#cb1135-13" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Treatment (0 = No Technique, 1 = New Technique)&quot;</span>,</span>
-<span id="cb1135-14"><a href="sec-aggregation-bias.html#cb1135-14" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Grades&quot;</span>)</span>
-<span id="cb1135-15"><a href="sec-aggregation-bias.html#cb1135-15" tabindex="-1"></a></span>
-<span id="cb1135-16"><a href="sec-aggregation-bias.html#cb1135-16" tabindex="-1"></a><span class="co"># Scatterplot for high-ability students</span></span>
-<span id="cb1135-17"><a href="sec-aggregation-bias.html#cb1135-17" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
-<span id="cb1135-18"><a href="sec-aggregation-bias.html#cb1135-18" tabindex="-1"></a>  <span class="fu">ggplot</span>(df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>, ], <span class="fu">aes</span>(</span>
-<span id="cb1135-19"><a href="sec-aggregation-bias.html#cb1135-19" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">factor</span>(treatment),</span>
-<span id="cb1135-20"><a href="sec-aggregation-bias.html#cb1135-20" tabindex="-1"></a>    <span class="at">y =</span> grades,</span>
-<span id="cb1135-21"><a href="sec-aggregation-bias.html#cb1135-21" tabindex="-1"></a>    <span class="at">color =</span> ability</span>
-<span id="cb1135-22"><a href="sec-aggregation-bias.html#cb1135-22" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb1135-23"><a href="sec-aggregation-bias.html#cb1135-23" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb1135-24"><a href="sec-aggregation-bias.html#cb1135-24" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb1135-25"><a href="sec-aggregation-bias.html#cb1135-25" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of Study Technique on Grades (High Ability)&quot;</span>,</span>
-<span id="cb1135-26"><a href="sec-aggregation-bias.html#cb1135-26" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Treatment (0 = No Technique, 1 = New Technique)&quot;</span>,</span>
-<span id="cb1135-27"><a href="sec-aggregation-bias.html#cb1135-27" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Grades&quot;</span>)</span>
-<span id="cb1135-28"><a href="sec-aggregation-bias.html#cb1135-28" tabindex="-1"></a></span>
-<span id="cb1135-29"><a href="sec-aggregation-bias.html#cb1135-29" tabindex="-1"></a><span class="co"># Scatterplot for low-ability students</span></span>
-<span id="cb1135-30"><a href="sec-aggregation-bias.html#cb1135-30" tabindex="-1"></a>p3 <span class="ot">&lt;-</span></span>
-<span id="cb1135-31"><a href="sec-aggregation-bias.html#cb1135-31" tabindex="-1"></a>  <span class="fu">ggplot</span>(df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;low&quot;</span>, ], <span class="fu">aes</span>(</span>
-<span id="cb1135-32"><a href="sec-aggregation-bias.html#cb1135-32" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">factor</span>(treatment),</span>
-<span id="cb1135-33"><a href="sec-aggregation-bias.html#cb1135-33" tabindex="-1"></a>    <span class="at">y =</span> grades,</span>
-<span id="cb1135-34"><a href="sec-aggregation-bias.html#cb1135-34" tabindex="-1"></a>    <span class="at">color =</span> ability</span>
-<span id="cb1135-35"><a href="sec-aggregation-bias.html#cb1135-35" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb1135-36"><a href="sec-aggregation-bias.html#cb1135-36" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb1135-37"><a href="sec-aggregation-bias.html#cb1135-37" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb1135-38"><a href="sec-aggregation-bias.html#cb1135-38" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of Study Technique on Grades (Low Ability)&quot;</span>,</span>
-<span id="cb1135-39"><a href="sec-aggregation-bias.html#cb1135-39" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Treatment (0 = No Technique, 1 = New Technique)&quot;</span>,</span>
-<span id="cb1135-40"><a href="sec-aggregation-bias.html#cb1135-40" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Grades&quot;</span>)</span>
-<span id="cb1135-41"><a href="sec-aggregation-bias.html#cb1135-41" tabindex="-1"></a></span>
-<span id="cb1135-42"><a href="sec-aggregation-bias.html#cb1135-42" tabindex="-1"></a><span class="co"># print(p1)</span></span>
-<span id="cb1135-43"><a href="sec-aggregation-bias.html#cb1135-43" tabindex="-1"></a><span class="co"># print(p2)</span></span>
-<span id="cb1135-44"><a href="sec-aggregation-bias.html#cb1135-44" tabindex="-1"></a><span class="co"># print(p3)</span></span>
-<span id="cb1135-45"><a href="sec-aggregation-bias.html#cb1135-45" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(<span class="at">grobs =</span> <span class="fu">list</span>(p1, p2, p3), <span class="at">ncol =</span> <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1140"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1140-1"><a href="sec-aggregation-bias.html#cb1140-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1140-2"><a href="sec-aggregation-bias.html#cb1140-2" tabindex="-1"></a></span>
+<span id="cb1140-3"><a href="sec-aggregation-bias.html#cb1140-3" tabindex="-1"></a><span class="co"># Scatterplot for overall data</span></span>
+<span id="cb1140-4"><a href="sec-aggregation-bias.html#cb1140-4" tabindex="-1"></a>p1 <span class="ot">&lt;-</span></span>
+<span id="cb1140-5"><a href="sec-aggregation-bias.html#cb1140-5" tabindex="-1"></a>  <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(</span>
+<span id="cb1140-6"><a href="sec-aggregation-bias.html#cb1140-6" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">factor</span>(treatment),</span>
+<span id="cb1140-7"><a href="sec-aggregation-bias.html#cb1140-7" tabindex="-1"></a>    <span class="at">y =</span> grades,</span>
+<span id="cb1140-8"><a href="sec-aggregation-bias.html#cb1140-8" tabindex="-1"></a>    <span class="at">color =</span> ability</span>
+<span id="cb1140-9"><a href="sec-aggregation-bias.html#cb1140-9" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb1140-10"><a href="sec-aggregation-bias.html#cb1140-10" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb1140-11"><a href="sec-aggregation-bias.html#cb1140-11" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb1140-12"><a href="sec-aggregation-bias.html#cb1140-12" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Overall Effect of Study Technique on Grades&quot;</span>,</span>
+<span id="cb1140-13"><a href="sec-aggregation-bias.html#cb1140-13" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Treatment (0 = No Technique, 1 = New Technique)&quot;</span>,</span>
+<span id="cb1140-14"><a href="sec-aggregation-bias.html#cb1140-14" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Grades&quot;</span>)</span>
+<span id="cb1140-15"><a href="sec-aggregation-bias.html#cb1140-15" tabindex="-1"></a></span>
+<span id="cb1140-16"><a href="sec-aggregation-bias.html#cb1140-16" tabindex="-1"></a><span class="co"># Scatterplot for high-ability students</span></span>
+<span id="cb1140-17"><a href="sec-aggregation-bias.html#cb1140-17" tabindex="-1"></a>p2 <span class="ot">&lt;-</span></span>
+<span id="cb1140-18"><a href="sec-aggregation-bias.html#cb1140-18" tabindex="-1"></a>  <span class="fu">ggplot</span>(df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;high&quot;</span>, ], <span class="fu">aes</span>(</span>
+<span id="cb1140-19"><a href="sec-aggregation-bias.html#cb1140-19" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">factor</span>(treatment),</span>
+<span id="cb1140-20"><a href="sec-aggregation-bias.html#cb1140-20" tabindex="-1"></a>    <span class="at">y =</span> grades,</span>
+<span id="cb1140-21"><a href="sec-aggregation-bias.html#cb1140-21" tabindex="-1"></a>    <span class="at">color =</span> ability</span>
+<span id="cb1140-22"><a href="sec-aggregation-bias.html#cb1140-22" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb1140-23"><a href="sec-aggregation-bias.html#cb1140-23" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb1140-24"><a href="sec-aggregation-bias.html#cb1140-24" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb1140-25"><a href="sec-aggregation-bias.html#cb1140-25" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of Study Technique on Grades (High Ability)&quot;</span>,</span>
+<span id="cb1140-26"><a href="sec-aggregation-bias.html#cb1140-26" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Treatment (0 = No Technique, 1 = New Technique)&quot;</span>,</span>
+<span id="cb1140-27"><a href="sec-aggregation-bias.html#cb1140-27" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Grades&quot;</span>)</span>
+<span id="cb1140-28"><a href="sec-aggregation-bias.html#cb1140-28" tabindex="-1"></a></span>
+<span id="cb1140-29"><a href="sec-aggregation-bias.html#cb1140-29" tabindex="-1"></a><span class="co"># Scatterplot for low-ability students</span></span>
+<span id="cb1140-30"><a href="sec-aggregation-bias.html#cb1140-30" tabindex="-1"></a>p3 <span class="ot">&lt;-</span></span>
+<span id="cb1140-31"><a href="sec-aggregation-bias.html#cb1140-31" tabindex="-1"></a>  <span class="fu">ggplot</span>(df[df<span class="sc">$</span>ability <span class="sc">==</span> <span class="st">&quot;low&quot;</span>, ], <span class="fu">aes</span>(</span>
+<span id="cb1140-32"><a href="sec-aggregation-bias.html#cb1140-32" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">factor</span>(treatment),</span>
+<span id="cb1140-33"><a href="sec-aggregation-bias.html#cb1140-33" tabindex="-1"></a>    <span class="at">y =</span> grades,</span>
+<span id="cb1140-34"><a href="sec-aggregation-bias.html#cb1140-34" tabindex="-1"></a>    <span class="at">color =</span> ability</span>
+<span id="cb1140-35"><a href="sec-aggregation-bias.html#cb1140-35" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb1140-36"><a href="sec-aggregation-bias.html#cb1140-36" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb1140-37"><a href="sec-aggregation-bias.html#cb1140-37" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb1140-38"><a href="sec-aggregation-bias.html#cb1140-38" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of Study Technique on Grades (Low Ability)&quot;</span>,</span>
+<span id="cb1140-39"><a href="sec-aggregation-bias.html#cb1140-39" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Treatment (0 = No Technique, 1 = New Technique)&quot;</span>,</span>
+<span id="cb1140-40"><a href="sec-aggregation-bias.html#cb1140-40" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Grades&quot;</span>)</span>
+<span id="cb1140-41"><a href="sec-aggregation-bias.html#cb1140-41" tabindex="-1"></a></span>
+<span id="cb1140-42"><a href="sec-aggregation-bias.html#cb1140-42" tabindex="-1"></a><span class="co"># print(p1)</span></span>
+<span id="cb1140-43"><a href="sec-aggregation-bias.html#cb1140-43" tabindex="-1"></a><span class="co"># print(p2)</span></span>
+<span id="cb1140-44"><a href="sec-aggregation-bias.html#cb1140-44" tabindex="-1"></a><span class="co"># print(p3)</span></span>
+<span id="cb1140-45"><a href="sec-aggregation-bias.html#cb1140-45" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(<span class="at">grobs =</span> <span class="fu">list</span>(p1, p2, p3), <span class="at">ncol =</span> <span class="dv">1</span>)</span></code></pre></div>
 <p><img src="37-biases_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <hr />
 </div>

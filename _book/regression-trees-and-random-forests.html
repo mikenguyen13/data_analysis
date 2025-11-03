@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10.8 Regression Trees and Random Forests | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10.8 Regression Trees and Random Forests | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2017,176 +2017,176 @@ C_\alpha(T) = \text{RSS}(T) + \alpha |T|,
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb463"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb463-1"><a href="regression-trees-and-random-forests.html#cb463-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb463-2"><a href="regression-trees-and-random-forests.html#cb463-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb463-3"><a href="regression-trees-and-random-forests.html#cb463-3" tabindex="-1"></a><span class="fu">library</span>(rpart)           <span class="co"># For regression trees</span></span>
-<span id="cb463-4"><a href="regression-trees-and-random-forests.html#cb463-4" tabindex="-1"></a><span class="fu">library</span>(rpart.plot)       <span class="co"># For visualizing trees</span></span>
-<span id="cb463-5"><a href="regression-trees-and-random-forests.html#cb463-5" tabindex="-1"></a><span class="fu">library</span>(randomForest)     <span class="co"># For random forests</span></span>
-<span id="cb463-6"><a href="regression-trees-and-random-forests.html#cb463-6" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
-<span id="cb463-7"><a href="regression-trees-and-random-forests.html#cb463-7" tabindex="-1"></a></span>
-<span id="cb463-8"><a href="regression-trees-and-random-forests.html#cb463-8" tabindex="-1"></a><span class="co"># Simulate Data</span></span>
-<span id="cb463-9"><a href="regression-trees-and-random-forests.html#cb463-9" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb463-10"><a href="regression-trees-and-random-forests.html#cb463-10" tabindex="-1"></a></span>
-<span id="cb463-11"><a href="regression-trees-and-random-forests.html#cb463-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb463-12"><a href="regression-trees-and-random-forests.html#cb463-12" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>)</span>
-<span id="cb463-13"><a href="regression-trees-and-random-forests.html#cb463-13" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
-<span id="cb463-14"><a href="regression-trees-and-random-forests.html#cb463-14" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">5</span>, <span class="dv">2</span>)</span>
-<span id="cb463-15"><a href="regression-trees-and-random-forests.html#cb463-15" tabindex="-1"></a></span>
-<span id="cb463-16"><a href="regression-trees-and-random-forests.html#cb463-16" tabindex="-1"></a><span class="co"># Nonlinear functions</span></span>
-<span id="cb463-17"><a href="regression-trees-and-random-forests.html#cb463-17" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
-<span id="cb463-18"><a href="regression-trees-and-random-forests.html#cb463-18" tabindex="-1"></a>    <span class="fu">sin</span>(x)</span>
-<span id="cb463-19"><a href="regression-trees-and-random-forests.html#cb463-19" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
-<span id="cb463-20"><a href="regression-trees-and-random-forests.html#cb463-20" tabindex="-1"></a>    <span class="fu">log</span>(x <span class="sc">+</span> <span class="dv">1</span>)</span>
-<span id="cb463-21"><a href="regression-trees-and-random-forests.html#cb463-21" tabindex="-1"></a>f3 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
-<span id="cb463-22"><a href="regression-trees-and-random-forests.html#cb463-22" tabindex="-1"></a>    <span class="fl">0.5</span> <span class="sc">*</span> (x <span class="sc">-</span> <span class="dv">5</span>) <span class="sc">^</span> <span class="dv">2</span></span>
-<span id="cb463-23"><a href="regression-trees-and-random-forests.html#cb463-23" tabindex="-1"></a></span>
-<span id="cb463-24"><a href="regression-trees-and-random-forests.html#cb463-24" tabindex="-1"></a><span class="co"># Generate response variable with noise</span></span>
-<span id="cb463-25"><a href="regression-trees-and-random-forests.html#cb463-25" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> <span class="fu">f1</span>(x1) <span class="sc">+</span> <span class="fu">f2</span>(x2) <span class="sc">-</span> <span class="fu">f3</span>(x3) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb463-26"><a href="regression-trees-and-random-forests.html#cb463-26" tabindex="-1"></a></span>
-<span id="cb463-27"><a href="regression-trees-and-random-forests.html#cb463-27" tabindex="-1"></a><span class="co"># Data frame</span></span>
-<span id="cb463-28"><a href="regression-trees-and-random-forests.html#cb463-28" tabindex="-1"></a>data_tree <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
-<span id="cb463-29"><a href="regression-trees-and-random-forests.html#cb463-29" tabindex="-1"></a></span>
-<span id="cb463-30"><a href="regression-trees-and-random-forests.html#cb463-30" tabindex="-1"></a><span class="co"># Quick visualization of data</span></span>
-<span id="cb463-31"><a href="regression-trees-and-random-forests.html#cb463-31" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_tree, <span class="fu">aes</span>(x1, y)) <span class="sc">+</span></span>
-<span id="cb463-32"><a href="regression-trees-and-random-forests.html#cb463-32" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb463-33"><a href="regression-trees-and-random-forests.html#cb463-33" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x1&quot;</span>)</span>
-<span id="cb463-34"><a href="regression-trees-and-random-forests.html#cb463-34" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_tree, <span class="fu">aes</span>(x2, y)) <span class="sc">+</span></span>
-<span id="cb463-35"><a href="regression-trees-and-random-forests.html#cb463-35" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb463-36"><a href="regression-trees-and-random-forests.html#cb463-36" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x2&quot;</span>)</span>
-<span id="cb463-37"><a href="regression-trees-and-random-forests.html#cb463-37" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_tree, <span class="fu">aes</span>(x3, y)) <span class="sc">+</span></span>
-<span id="cb463-38"><a href="regression-trees-and-random-forests.html#cb463-38" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb463-39"><a href="regression-trees-and-random-forests.html#cb463-39" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x3&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb464"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb464-1"><a href="regression-trees-and-random-forests.html#cb464-1" tabindex="-1"></a><span class="fu">grid.arrange</span>(p1, p2, p3, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb468"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb468-1"><a href="regression-trees-and-random-forests.html#cb468-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb468-2"><a href="regression-trees-and-random-forests.html#cb468-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb468-3"><a href="regression-trees-and-random-forests.html#cb468-3" tabindex="-1"></a><span class="fu">library</span>(rpart)           <span class="co"># For regression trees</span></span>
+<span id="cb468-4"><a href="regression-trees-and-random-forests.html#cb468-4" tabindex="-1"></a><span class="fu">library</span>(rpart.plot)       <span class="co"># For visualizing trees</span></span>
+<span id="cb468-5"><a href="regression-trees-and-random-forests.html#cb468-5" tabindex="-1"></a><span class="fu">library</span>(randomForest)     <span class="co"># For random forests</span></span>
+<span id="cb468-6"><a href="regression-trees-and-random-forests.html#cb468-6" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb468-7"><a href="regression-trees-and-random-forests.html#cb468-7" tabindex="-1"></a></span>
+<span id="cb468-8"><a href="regression-trees-and-random-forests.html#cb468-8" tabindex="-1"></a><span class="co"># Simulate Data</span></span>
+<span id="cb468-9"><a href="regression-trees-and-random-forests.html#cb468-9" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb468-10"><a href="regression-trees-and-random-forests.html#cb468-10" tabindex="-1"></a></span>
+<span id="cb468-11"><a href="regression-trees-and-random-forests.html#cb468-11" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb468-12"><a href="regression-trees-and-random-forests.html#cb468-12" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>)</span>
+<span id="cb468-13"><a href="regression-trees-and-random-forests.html#cb468-13" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">5</span>)</span>
+<span id="cb468-14"><a href="regression-trees-and-random-forests.html#cb468-14" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">5</span>, <span class="dv">2</span>)</span>
+<span id="cb468-15"><a href="regression-trees-and-random-forests.html#cb468-15" tabindex="-1"></a></span>
+<span id="cb468-16"><a href="regression-trees-and-random-forests.html#cb468-16" tabindex="-1"></a><span class="co"># Nonlinear functions</span></span>
+<span id="cb468-17"><a href="regression-trees-and-random-forests.html#cb468-17" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
+<span id="cb468-18"><a href="regression-trees-and-random-forests.html#cb468-18" tabindex="-1"></a>    <span class="fu">sin</span>(x)</span>
+<span id="cb468-19"><a href="regression-trees-and-random-forests.html#cb468-19" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
+<span id="cb468-20"><a href="regression-trees-and-random-forests.html#cb468-20" tabindex="-1"></a>    <span class="fu">log</span>(x <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb468-21"><a href="regression-trees-and-random-forests.html#cb468-21" tabindex="-1"></a>f3 <span class="ot">&lt;-</span> <span class="cf">function</span>(x)</span>
+<span id="cb468-22"><a href="regression-trees-and-random-forests.html#cb468-22" tabindex="-1"></a>    <span class="fl">0.5</span> <span class="sc">*</span> (x <span class="sc">-</span> <span class="dv">5</span>) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb468-23"><a href="regression-trees-and-random-forests.html#cb468-23" tabindex="-1"></a></span>
+<span id="cb468-24"><a href="regression-trees-and-random-forests.html#cb468-24" tabindex="-1"></a><span class="co"># Generate response variable with noise</span></span>
+<span id="cb468-25"><a href="regression-trees-and-random-forests.html#cb468-25" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> <span class="fu">f1</span>(x1) <span class="sc">+</span> <span class="fu">f2</span>(x2) <span class="sc">-</span> <span class="fu">f3</span>(x3) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb468-26"><a href="regression-trees-and-random-forests.html#cb468-26" tabindex="-1"></a></span>
+<span id="cb468-27"><a href="regression-trees-and-random-forests.html#cb468-27" tabindex="-1"></a><span class="co"># Data frame</span></span>
+<span id="cb468-28"><a href="regression-trees-and-random-forests.html#cb468-28" tabindex="-1"></a>data_tree <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3)</span>
+<span id="cb468-29"><a href="regression-trees-and-random-forests.html#cb468-29" tabindex="-1"></a></span>
+<span id="cb468-30"><a href="regression-trees-and-random-forests.html#cb468-30" tabindex="-1"></a><span class="co"># Quick visualization of data</span></span>
+<span id="cb468-31"><a href="regression-trees-and-random-forests.html#cb468-31" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_tree, <span class="fu">aes</span>(x1, y)) <span class="sc">+</span></span>
+<span id="cb468-32"><a href="regression-trees-and-random-forests.html#cb468-32" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb468-33"><a href="regression-trees-and-random-forests.html#cb468-33" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x1&quot;</span>)</span>
+<span id="cb468-34"><a href="regression-trees-and-random-forests.html#cb468-34" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_tree, <span class="fu">aes</span>(x2, y)) <span class="sc">+</span></span>
+<span id="cb468-35"><a href="regression-trees-and-random-forests.html#cb468-35" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb468-36"><a href="regression-trees-and-random-forests.html#cb468-36" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x2&quot;</span>)</span>
+<span id="cb468-37"><a href="regression-trees-and-random-forests.html#cb468-37" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_tree, <span class="fu">aes</span>(x3, y)) <span class="sc">+</span></span>
+<span id="cb468-38"><a href="regression-trees-and-random-forests.html#cb468-38" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb468-39"><a href="regression-trees-and-random-forests.html#cb468-39" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect of x3&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb469"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb469-1"><a href="regression-trees-and-random-forests.html#cb469-1" tabindex="-1"></a><span class="fu">grid.arrange</span>(p1, p2, p3, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-scatter-effects"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-scatter-effects-1.png" alt="Three-panel scatter plot showing effects of x1 x2 and x3 on y. Each panel shows data points with different patterns. The third panel has points mostly at the top with some lower values. Axes are labeled x and y" width="100%" />
 <p class="caption">
 Figure 10.18: Scatter Plots of Variable Effects
 </p>
 </div>
-<div class="sourceCode" id="cb465"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb465-1"><a href="regression-trees-and-random-forests.html#cb465-1" tabindex="-1"></a><span class="co"># Fit a Regression Tree using rpart</span></span>
-<span id="cb465-2"><a href="regression-trees-and-random-forests.html#cb465-2" tabindex="-1"></a>tree_model <span class="ot">&lt;-</span></span>
-<span id="cb465-3"><a href="regression-trees-and-random-forests.html#cb465-3" tabindex="-1"></a>    <span class="fu">rpart</span>(</span>
-<span id="cb465-4"><a href="regression-trees-and-random-forests.html#cb465-4" tabindex="-1"></a>        y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
-<span id="cb465-5"><a href="regression-trees-and-random-forests.html#cb465-5" tabindex="-1"></a>        <span class="at">data =</span> data_tree,</span>
-<span id="cb465-6"><a href="regression-trees-and-random-forests.html#cb465-6" tabindex="-1"></a>        <span class="at">method =</span> <span class="st">&quot;anova&quot;</span>,</span>
-<span id="cb465-7"><a href="regression-trees-and-random-forests.html#cb465-7" tabindex="-1"></a>        <span class="at">control =</span> <span class="fu">rpart.control</span>(<span class="at">cp =</span> <span class="fl">0.01</span>)</span>
-<span id="cb465-8"><a href="regression-trees-and-random-forests.html#cb465-8" tabindex="-1"></a>    )  <span class="co"># cp = complexity parameter</span></span>
-<span id="cb465-9"><a href="regression-trees-and-random-forests.html#cb465-9" tabindex="-1"></a></span>
-<span id="cb465-10"><a href="regression-trees-and-random-forests.html#cb465-10" tabindex="-1"></a><span class="co"># Summary of the tree</span></span>
-<span id="cb465-11"><a href="regression-trees-and-random-forests.html#cb465-11" tabindex="-1"></a><span class="fu">summary</span>(tree_model)</span>
-<span id="cb465-12"><a href="regression-trees-and-random-forests.html#cb465-12" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb465-13"><a href="regression-trees-and-random-forests.html#cb465-13" tabindex="-1"></a><span class="co">#&gt; rpart(formula = y ~ x1 + x2 + x3, data = data_tree, method = &quot;anova&quot;, </span></span>
-<span id="cb465-14"><a href="regression-trees-and-random-forests.html#cb465-14" tabindex="-1"></a><span class="co">#&gt;     control = rpart.control(cp = 0.01))</span></span>
-<span id="cb465-15"><a href="regression-trees-and-random-forests.html#cb465-15" tabindex="-1"></a><span class="co">#&gt;   n= 100 </span></span>
-<span id="cb465-16"><a href="regression-trees-and-random-forests.html#cb465-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-17"><a href="regression-trees-and-random-forests.html#cb465-17" tabindex="-1"></a><span class="co">#&gt;           CP nsplit rel error    xerror      xstd</span></span>
-<span id="cb465-18"><a href="regression-trees-and-random-forests.html#cb465-18" tabindex="-1"></a><span class="co">#&gt; 1 0.39895879      0 1.0000000 1.0134781 0.3406703</span></span>
-<span id="cb465-19"><a href="regression-trees-and-random-forests.html#cb465-19" tabindex="-1"></a><span class="co">#&gt; 2 0.17470339      1 0.6010412 0.8649973 0.3336272</span></span>
-<span id="cb465-20"><a href="regression-trees-and-random-forests.html#cb465-20" tabindex="-1"></a><span class="co">#&gt; 3 0.04607373      2 0.4263378 0.5707932 0.1880333</span></span>
-<span id="cb465-21"><a href="regression-trees-and-random-forests.html#cb465-21" tabindex="-1"></a><span class="co">#&gt; 4 0.02754858      3 0.3802641 0.5287366 0.1866728</span></span>
-<span id="cb465-22"><a href="regression-trees-and-random-forests.html#cb465-22" tabindex="-1"></a><span class="co">#&gt; 5 0.01584638      4 0.3527155 0.5061104 0.1867491</span></span>
-<span id="cb465-23"><a href="regression-trees-and-random-forests.html#cb465-23" tabindex="-1"></a><span class="co">#&gt; 6 0.01032524      5 0.3368691 0.5136765 0.1861020</span></span>
-<span id="cb465-24"><a href="regression-trees-and-random-forests.html#cb465-24" tabindex="-1"></a><span class="co">#&gt; 7 0.01000000      7 0.3162187 0.4847072 0.1861849</span></span>
-<span id="cb465-25"><a href="regression-trees-and-random-forests.html#cb465-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-26"><a href="regression-trees-and-random-forests.html#cb465-26" tabindex="-1"></a><span class="co">#&gt; Variable importance</span></span>
-<span id="cb465-27"><a href="regression-trees-and-random-forests.html#cb465-27" tabindex="-1"></a><span class="co">#&gt; x3 x2 x1 </span></span>
-<span id="cb465-28"><a href="regression-trees-and-random-forests.html#cb465-28" tabindex="-1"></a><span class="co">#&gt; 91  6  3 </span></span>
-<span id="cb465-29"><a href="regression-trees-and-random-forests.html#cb465-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-30"><a href="regression-trees-and-random-forests.html#cb465-30" tabindex="-1"></a><span class="co">#&gt; Node number 1: 100 observations,    complexity param=0.3989588</span></span>
-<span id="cb465-31"><a href="regression-trees-and-random-forests.html#cb465-31" tabindex="-1"></a><span class="co">#&gt;   mean=2.639375, MSE=9.897038 </span></span>
-<span id="cb465-32"><a href="regression-trees-and-random-forests.html#cb465-32" tabindex="-1"></a><span class="co">#&gt;   left son=2 (7 obs) right son=3 (93 obs)</span></span>
-<span id="cb465-33"><a href="regression-trees-and-random-forests.html#cb465-33" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-34"><a href="regression-trees-and-random-forests.html#cb465-34" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 7.707736  to the right, improve=0.39895880, (0 missing)</span></span>
-<span id="cb465-35"><a href="regression-trees-and-random-forests.html#cb465-35" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.84138   to the left,  improve=0.07685517, (0 missing)</span></span>
-<span id="cb465-36"><a href="regression-trees-and-random-forests.html#cb465-36" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.627429  to the left,  improve=0.04029839, (0 missing)</span></span>
-<span id="cb465-37"><a href="regression-trees-and-random-forests.html#cb465-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-38"><a href="regression-trees-and-random-forests.html#cb465-38" tabindex="-1"></a><span class="co">#&gt; Node number 2: 7 observations</span></span>
-<span id="cb465-39"><a href="regression-trees-and-random-forests.html#cb465-39" tabindex="-1"></a><span class="co">#&gt;   mean=-4.603469, MSE=24.47372 </span></span>
-<span id="cb465-40"><a href="regression-trees-and-random-forests.html#cb465-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-41"><a href="regression-trees-and-random-forests.html#cb465-41" tabindex="-1"></a><span class="co">#&gt; Node number 3: 93 observations,    complexity param=0.1747034</span></span>
-<span id="cb465-42"><a href="regression-trees-and-random-forests.html#cb465-42" tabindex="-1"></a><span class="co">#&gt;   mean=3.184535, MSE=4.554158 </span></span>
-<span id="cb465-43"><a href="regression-trees-and-random-forests.html#cb465-43" tabindex="-1"></a><span class="co">#&gt;   left son=6 (18 obs) right son=7 (75 obs)</span></span>
-<span id="cb465-44"><a href="regression-trees-and-random-forests.html#cb465-44" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-45"><a href="regression-trees-and-random-forests.html#cb465-45" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 2.967495  to the left,  improve=0.40823990, (0 missing)</span></span>
-<span id="cb465-46"><a href="regression-trees-and-random-forests.html#cb465-46" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.001856  to the left,  improve=0.07353453, (0 missing)</span></span>
-<span id="cb465-47"><a href="regression-trees-and-random-forests.html#cb465-47" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.84138   to the left,  improve=0.07049507, (0 missing)</span></span>
-<span id="cb465-48"><a href="regression-trees-and-random-forests.html#cb465-48" tabindex="-1"></a><span class="co">#&gt;   Surrogate splits:</span></span>
-<span id="cb465-49"><a href="regression-trees-and-random-forests.html#cb465-49" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 0.3435293 to the left,  agree=0.828, adj=0.111, (0 split)</span></span>
-<span id="cb465-50"><a href="regression-trees-and-random-forests.html#cb465-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-51"><a href="regression-trees-and-random-forests.html#cb465-51" tabindex="-1"></a><span class="co">#&gt; Node number 6: 18 observations</span></span>
-<span id="cb465-52"><a href="regression-trees-and-random-forests.html#cb465-52" tabindex="-1"></a><span class="co">#&gt;   mean=0.4012593, MSE=3.4521 </span></span>
-<span id="cb465-53"><a href="regression-trees-and-random-forests.html#cb465-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-54"><a href="regression-trees-and-random-forests.html#cb465-54" tabindex="-1"></a><span class="co">#&gt; Node number 7: 75 observations,    complexity param=0.04607373</span></span>
-<span id="cb465-55"><a href="regression-trees-and-random-forests.html#cb465-55" tabindex="-1"></a><span class="co">#&gt;   mean=3.852521, MSE=2.513258 </span></span>
-<span id="cb465-56"><a href="regression-trees-and-random-forests.html#cb465-56" tabindex="-1"></a><span class="co">#&gt;   left son=14 (12 obs) right son=15 (63 obs)</span></span>
-<span id="cb465-57"><a href="regression-trees-and-random-forests.html#cb465-57" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-58"><a href="regression-trees-and-random-forests.html#cb465-58" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 6.324486  to the right, improve=0.24191360, (0 missing)</span></span>
-<span id="cb465-59"><a href="regression-trees-and-random-forests.html#cb465-59" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.603258  to the left,  improve=0.10759280, (0 missing)</span></span>
-<span id="cb465-60"><a href="regression-trees-and-random-forests.html#cb465-60" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.793804  to the left,  improve=0.09106168, (0 missing)</span></span>
-<span id="cb465-61"><a href="regression-trees-and-random-forests.html#cb465-61" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-62"><a href="regression-trees-and-random-forests.html#cb465-62" tabindex="-1"></a><span class="co">#&gt; Node number 14: 12 observations</span></span>
-<span id="cb465-63"><a href="regression-trees-and-random-forests.html#cb465-63" tabindex="-1"></a><span class="co">#&gt;   mean=2.065917, MSE=2.252311 </span></span>
-<span id="cb465-64"><a href="regression-trees-and-random-forests.html#cb465-64" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-65"><a href="regression-trees-and-random-forests.html#cb465-65" tabindex="-1"></a><span class="co">#&gt; Node number 15: 63 observations,    complexity param=0.02754858</span></span>
-<span id="cb465-66"><a href="regression-trees-and-random-forests.html#cb465-66" tabindex="-1"></a><span class="co">#&gt;   mean=4.192826, MSE=1.839163 </span></span>
-<span id="cb465-67"><a href="regression-trees-and-random-forests.html#cb465-67" tabindex="-1"></a><span class="co">#&gt;   left son=30 (9 obs) right son=31 (54 obs)</span></span>
-<span id="cb465-68"><a href="regression-trees-and-random-forests.html#cb465-68" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-69"><a href="regression-trees-and-random-forests.html#cb465-69" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 3.548257  to the left,  improve=0.2353119, (0 missing)</span></span>
-<span id="cb465-70"><a href="regression-trees-and-random-forests.html#cb465-70" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.349633  to the left,  improve=0.1103019, (0 missing)</span></span>
-<span id="cb465-71"><a href="regression-trees-and-random-forests.html#cb465-71" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 7.006669  to the left,  improve=0.1019295, (0 missing)</span></span>
-<span id="cb465-72"><a href="regression-trees-and-random-forests.html#cb465-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-73"><a href="regression-trees-and-random-forests.html#cb465-73" tabindex="-1"></a><span class="co">#&gt; Node number 30: 9 observations</span></span>
-<span id="cb465-74"><a href="regression-trees-and-random-forests.html#cb465-74" tabindex="-1"></a><span class="co">#&gt;   mean=2.581411, MSE=0.3669647 </span></span>
-<span id="cb465-75"><a href="regression-trees-and-random-forests.html#cb465-75" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-76"><a href="regression-trees-and-random-forests.html#cb465-76" tabindex="-1"></a><span class="co">#&gt; Node number 31: 54 observations,    complexity param=0.01584638</span></span>
-<span id="cb465-77"><a href="regression-trees-and-random-forests.html#cb465-77" tabindex="-1"></a><span class="co">#&gt;   mean=4.461396, MSE=1.579623 </span></span>
-<span id="cb465-78"><a href="regression-trees-and-random-forests.html#cb465-78" tabindex="-1"></a><span class="co">#&gt;   left son=62 (10 obs) right son=63 (44 obs)</span></span>
-<span id="cb465-79"><a href="regression-trees-and-random-forests.html#cb465-79" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-80"><a href="regression-trees-and-random-forests.html#cb465-80" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.130662  to the left,  improve=0.18386040, (0 missing)</span></span>
-<span id="cb465-81"><a href="regression-trees-and-random-forests.html#cb465-81" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.209961  to the left,  improve=0.14561510, (0 missing)</span></span>
-<span id="cb465-82"><a href="regression-trees-and-random-forests.html#cb465-82" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 4.517029  to the left,  improve=0.01044883, (0 missing)</span></span>
-<span id="cb465-83"><a href="regression-trees-and-random-forests.html#cb465-83" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-84"><a href="regression-trees-and-random-forests.html#cb465-84" tabindex="-1"></a><span class="co">#&gt; Node number 62: 10 observations</span></span>
-<span id="cb465-85"><a href="regression-trees-and-random-forests.html#cb465-85" tabindex="-1"></a><span class="co">#&gt;   mean=3.330957, MSE=2.001022 </span></span>
-<span id="cb465-86"><a href="regression-trees-and-random-forests.html#cb465-86" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-87"><a href="regression-trees-and-random-forests.html#cb465-87" tabindex="-1"></a><span class="co">#&gt; Node number 63: 44 observations,    complexity param=0.01032524</span></span>
-<span id="cb465-88"><a href="regression-trees-and-random-forests.html#cb465-88" tabindex="-1"></a><span class="co">#&gt;   mean=4.718314, MSE=1.127413 </span></span>
-<span id="cb465-89"><a href="regression-trees-and-random-forests.html#cb465-89" tabindex="-1"></a><span class="co">#&gt;   left son=126 (27 obs) right son=127 (17 obs)</span></span>
-<span id="cb465-90"><a href="regression-trees-and-random-forests.html#cb465-90" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-91"><a href="regression-trees-and-random-forests.html#cb465-91" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.468044  to the left,  improve=0.16079230, (0 missing)</span></span>
-<span id="cb465-92"><a href="regression-trees-and-random-forests.html#cb465-92" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 5.608708  to the right, improve=0.05277854, (0 missing)</span></span>
-<span id="cb465-93"><a href="regression-trees-and-random-forests.html#cb465-93" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.784688  to the left,  improve=0.03145241, (0 missing)</span></span>
-<span id="cb465-94"><a href="regression-trees-and-random-forests.html#cb465-94" tabindex="-1"></a><span class="co">#&gt;   Surrogate splits:</span></span>
-<span id="cb465-95"><a href="regression-trees-and-random-forests.html#cb465-95" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 3.074905  to the left,  agree=0.636, adj=0.059, (0 split)</span></span>
-<span id="cb465-96"><a href="regression-trees-and-random-forests.html#cb465-96" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 5.888028  to the left,  agree=0.636, adj=0.059, (0 split)</span></span>
-<span id="cb465-97"><a href="regression-trees-and-random-forests.html#cb465-97" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-98"><a href="regression-trees-and-random-forests.html#cb465-98" tabindex="-1"></a><span class="co">#&gt; Node number 126: 27 observations,    complexity param=0.01032524</span></span>
-<span id="cb465-99"><a href="regression-trees-and-random-forests.html#cb465-99" tabindex="-1"></a><span class="co">#&gt;   mean=4.380469, MSE=1.04313 </span></span>
-<span id="cb465-100"><a href="regression-trees-and-random-forests.html#cb465-100" tabindex="-1"></a><span class="co">#&gt;   left son=252 (12 obs) right son=253 (15 obs)</span></span>
-<span id="cb465-101"><a href="regression-trees-and-random-forests.html#cb465-101" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
-<span id="cb465-102"><a href="regression-trees-and-random-forests.html#cb465-102" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 3.658072  to the right, improve=0.4424566, (0 missing)</span></span>
-<span id="cb465-103"><a href="regression-trees-and-random-forests.html#cb465-103" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 4.270123  to the right, improve=0.1430466, (0 missing)</span></span>
-<span id="cb465-104"><a href="regression-trees-and-random-forests.html#cb465-104" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.658809  to the left,  improve=0.1121999, (0 missing)</span></span>
-<span id="cb465-105"><a href="regression-trees-and-random-forests.html#cb465-105" tabindex="-1"></a><span class="co">#&gt;   Surrogate splits:</span></span>
-<span id="cb465-106"><a href="regression-trees-and-random-forests.html#cb465-106" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.707432  to the left,  agree=0.815, adj=0.583, (0 split)</span></span>
-<span id="cb465-107"><a href="regression-trees-and-random-forests.html#cb465-107" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 4.010151  to the right, agree=0.593, adj=0.083, (0 split)</span></span>
-<span id="cb465-108"><a href="regression-trees-and-random-forests.html#cb465-108" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-109"><a href="regression-trees-and-random-forests.html#cb465-109" tabindex="-1"></a><span class="co">#&gt; Node number 127: 17 observations</span></span>
-<span id="cb465-110"><a href="regression-trees-and-random-forests.html#cb465-110" tabindex="-1"></a><span class="co">#&gt;   mean=5.25489, MSE=0.7920812 </span></span>
-<span id="cb465-111"><a href="regression-trees-and-random-forests.html#cb465-111" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-112"><a href="regression-trees-and-random-forests.html#cb465-112" tabindex="-1"></a><span class="co">#&gt; Node number 252: 12 observations</span></span>
-<span id="cb465-113"><a href="regression-trees-and-random-forests.html#cb465-113" tabindex="-1"></a><span class="co">#&gt;   mean=3.620914, MSE=0.6204645 </span></span>
-<span id="cb465-114"><a href="regression-trees-and-random-forests.html#cb465-114" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb465-115"><a href="regression-trees-and-random-forests.html#cb465-115" tabindex="-1"></a><span class="co">#&gt; Node number 253: 15 observations</span></span>
-<span id="cb465-116"><a href="regression-trees-and-random-forests.html#cb465-116" tabindex="-1"></a><span class="co">#&gt;   mean=4.988114, MSE=0.5504908</span></span></code></pre></div>
-<div class="sourceCode" id="cb466"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb466-1"><a href="regression-trees-and-random-forests.html#cb466-1" tabindex="-1"></a><span class="co"># Visualize the Regression Tree</span></span>
-<span id="cb466-2"><a href="regression-trees-and-random-forests.html#cb466-2" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
-<span id="cb466-3"><a href="regression-trees-and-random-forests.html#cb466-3" tabindex="-1"></a>    tree_model,</span>
-<span id="cb466-4"><a href="regression-trees-and-random-forests.html#cb466-4" tabindex="-1"></a>    <span class="at">type =</span> <span class="dv">2</span>,</span>
-<span id="cb466-5"><a href="regression-trees-and-random-forests.html#cb466-5" tabindex="-1"></a>    <span class="at">extra =</span> <span class="dv">101</span>,</span>
-<span id="cb466-6"><a href="regression-trees-and-random-forests.html#cb466-6" tabindex="-1"></a>    <span class="at">fallen.leaves =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb466-7"><a href="regression-trees-and-random-forests.html#cb466-7" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Regression Tree&quot;</span></span>
-<span id="cb466-8"><a href="regression-trees-and-random-forests.html#cb466-8" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb470"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb470-1"><a href="regression-trees-and-random-forests.html#cb470-1" tabindex="-1"></a><span class="co"># Fit a Regression Tree using rpart</span></span>
+<span id="cb470-2"><a href="regression-trees-and-random-forests.html#cb470-2" tabindex="-1"></a>tree_model <span class="ot">&lt;-</span></span>
+<span id="cb470-3"><a href="regression-trees-and-random-forests.html#cb470-3" tabindex="-1"></a>    <span class="fu">rpart</span>(</span>
+<span id="cb470-4"><a href="regression-trees-and-random-forests.html#cb470-4" tabindex="-1"></a>        y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
+<span id="cb470-5"><a href="regression-trees-and-random-forests.html#cb470-5" tabindex="-1"></a>        <span class="at">data =</span> data_tree,</span>
+<span id="cb470-6"><a href="regression-trees-and-random-forests.html#cb470-6" tabindex="-1"></a>        <span class="at">method =</span> <span class="st">&quot;anova&quot;</span>,</span>
+<span id="cb470-7"><a href="regression-trees-and-random-forests.html#cb470-7" tabindex="-1"></a>        <span class="at">control =</span> <span class="fu">rpart.control</span>(<span class="at">cp =</span> <span class="fl">0.01</span>)</span>
+<span id="cb470-8"><a href="regression-trees-and-random-forests.html#cb470-8" tabindex="-1"></a>    )  <span class="co"># cp = complexity parameter</span></span>
+<span id="cb470-9"><a href="regression-trees-and-random-forests.html#cb470-9" tabindex="-1"></a></span>
+<span id="cb470-10"><a href="regression-trees-and-random-forests.html#cb470-10" tabindex="-1"></a><span class="co"># Summary of the tree</span></span>
+<span id="cb470-11"><a href="regression-trees-and-random-forests.html#cb470-11" tabindex="-1"></a><span class="fu">summary</span>(tree_model)</span>
+<span id="cb470-12"><a href="regression-trees-and-random-forests.html#cb470-12" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb470-13"><a href="regression-trees-and-random-forests.html#cb470-13" tabindex="-1"></a><span class="co">#&gt; rpart(formula = y ~ x1 + x2 + x3, data = data_tree, method = &quot;anova&quot;, </span></span>
+<span id="cb470-14"><a href="regression-trees-and-random-forests.html#cb470-14" tabindex="-1"></a><span class="co">#&gt;     control = rpart.control(cp = 0.01))</span></span>
+<span id="cb470-15"><a href="regression-trees-and-random-forests.html#cb470-15" tabindex="-1"></a><span class="co">#&gt;   n= 100 </span></span>
+<span id="cb470-16"><a href="regression-trees-and-random-forests.html#cb470-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-17"><a href="regression-trees-and-random-forests.html#cb470-17" tabindex="-1"></a><span class="co">#&gt;           CP nsplit rel error    xerror      xstd</span></span>
+<span id="cb470-18"><a href="regression-trees-and-random-forests.html#cb470-18" tabindex="-1"></a><span class="co">#&gt; 1 0.39895879      0 1.0000000 1.0134781 0.3406703</span></span>
+<span id="cb470-19"><a href="regression-trees-and-random-forests.html#cb470-19" tabindex="-1"></a><span class="co">#&gt; 2 0.17470339      1 0.6010412 0.8649973 0.3336272</span></span>
+<span id="cb470-20"><a href="regression-trees-and-random-forests.html#cb470-20" tabindex="-1"></a><span class="co">#&gt; 3 0.04607373      2 0.4263378 0.5707932 0.1880333</span></span>
+<span id="cb470-21"><a href="regression-trees-and-random-forests.html#cb470-21" tabindex="-1"></a><span class="co">#&gt; 4 0.02754858      3 0.3802641 0.5287366 0.1866728</span></span>
+<span id="cb470-22"><a href="regression-trees-and-random-forests.html#cb470-22" tabindex="-1"></a><span class="co">#&gt; 5 0.01584638      4 0.3527155 0.5061104 0.1867491</span></span>
+<span id="cb470-23"><a href="regression-trees-and-random-forests.html#cb470-23" tabindex="-1"></a><span class="co">#&gt; 6 0.01032524      5 0.3368691 0.5136765 0.1861020</span></span>
+<span id="cb470-24"><a href="regression-trees-and-random-forests.html#cb470-24" tabindex="-1"></a><span class="co">#&gt; 7 0.01000000      7 0.3162187 0.4847072 0.1861849</span></span>
+<span id="cb470-25"><a href="regression-trees-and-random-forests.html#cb470-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-26"><a href="regression-trees-and-random-forests.html#cb470-26" tabindex="-1"></a><span class="co">#&gt; Variable importance</span></span>
+<span id="cb470-27"><a href="regression-trees-and-random-forests.html#cb470-27" tabindex="-1"></a><span class="co">#&gt; x3 x2 x1 </span></span>
+<span id="cb470-28"><a href="regression-trees-and-random-forests.html#cb470-28" tabindex="-1"></a><span class="co">#&gt; 91  6  3 </span></span>
+<span id="cb470-29"><a href="regression-trees-and-random-forests.html#cb470-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-30"><a href="regression-trees-and-random-forests.html#cb470-30" tabindex="-1"></a><span class="co">#&gt; Node number 1: 100 observations,    complexity param=0.3989588</span></span>
+<span id="cb470-31"><a href="regression-trees-and-random-forests.html#cb470-31" tabindex="-1"></a><span class="co">#&gt;   mean=2.639375, MSE=9.897038 </span></span>
+<span id="cb470-32"><a href="regression-trees-and-random-forests.html#cb470-32" tabindex="-1"></a><span class="co">#&gt;   left son=2 (7 obs) right son=3 (93 obs)</span></span>
+<span id="cb470-33"><a href="regression-trees-and-random-forests.html#cb470-33" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-34"><a href="regression-trees-and-random-forests.html#cb470-34" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 7.707736  to the right, improve=0.39895880, (0 missing)</span></span>
+<span id="cb470-35"><a href="regression-trees-and-random-forests.html#cb470-35" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.84138   to the left,  improve=0.07685517, (0 missing)</span></span>
+<span id="cb470-36"><a href="regression-trees-and-random-forests.html#cb470-36" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.627429  to the left,  improve=0.04029839, (0 missing)</span></span>
+<span id="cb470-37"><a href="regression-trees-and-random-forests.html#cb470-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-38"><a href="regression-trees-and-random-forests.html#cb470-38" tabindex="-1"></a><span class="co">#&gt; Node number 2: 7 observations</span></span>
+<span id="cb470-39"><a href="regression-trees-and-random-forests.html#cb470-39" tabindex="-1"></a><span class="co">#&gt;   mean=-4.603469, MSE=24.47372 </span></span>
+<span id="cb470-40"><a href="regression-trees-and-random-forests.html#cb470-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-41"><a href="regression-trees-and-random-forests.html#cb470-41" tabindex="-1"></a><span class="co">#&gt; Node number 3: 93 observations,    complexity param=0.1747034</span></span>
+<span id="cb470-42"><a href="regression-trees-and-random-forests.html#cb470-42" tabindex="-1"></a><span class="co">#&gt;   mean=3.184535, MSE=4.554158 </span></span>
+<span id="cb470-43"><a href="regression-trees-and-random-forests.html#cb470-43" tabindex="-1"></a><span class="co">#&gt;   left son=6 (18 obs) right son=7 (75 obs)</span></span>
+<span id="cb470-44"><a href="regression-trees-and-random-forests.html#cb470-44" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-45"><a href="regression-trees-and-random-forests.html#cb470-45" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 2.967495  to the left,  improve=0.40823990, (0 missing)</span></span>
+<span id="cb470-46"><a href="regression-trees-and-random-forests.html#cb470-46" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.001856  to the left,  improve=0.07353453, (0 missing)</span></span>
+<span id="cb470-47"><a href="regression-trees-and-random-forests.html#cb470-47" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.84138   to the left,  improve=0.07049507, (0 missing)</span></span>
+<span id="cb470-48"><a href="regression-trees-and-random-forests.html#cb470-48" tabindex="-1"></a><span class="co">#&gt;   Surrogate splits:</span></span>
+<span id="cb470-49"><a href="regression-trees-and-random-forests.html#cb470-49" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 0.3435293 to the left,  agree=0.828, adj=0.111, (0 split)</span></span>
+<span id="cb470-50"><a href="regression-trees-and-random-forests.html#cb470-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-51"><a href="regression-trees-and-random-forests.html#cb470-51" tabindex="-1"></a><span class="co">#&gt; Node number 6: 18 observations</span></span>
+<span id="cb470-52"><a href="regression-trees-and-random-forests.html#cb470-52" tabindex="-1"></a><span class="co">#&gt;   mean=0.4012593, MSE=3.4521 </span></span>
+<span id="cb470-53"><a href="regression-trees-and-random-forests.html#cb470-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-54"><a href="regression-trees-and-random-forests.html#cb470-54" tabindex="-1"></a><span class="co">#&gt; Node number 7: 75 observations,    complexity param=0.04607373</span></span>
+<span id="cb470-55"><a href="regression-trees-and-random-forests.html#cb470-55" tabindex="-1"></a><span class="co">#&gt;   mean=3.852521, MSE=2.513258 </span></span>
+<span id="cb470-56"><a href="regression-trees-and-random-forests.html#cb470-56" tabindex="-1"></a><span class="co">#&gt;   left son=14 (12 obs) right son=15 (63 obs)</span></span>
+<span id="cb470-57"><a href="regression-trees-and-random-forests.html#cb470-57" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-58"><a href="regression-trees-and-random-forests.html#cb470-58" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 6.324486  to the right, improve=0.24191360, (0 missing)</span></span>
+<span id="cb470-59"><a href="regression-trees-and-random-forests.html#cb470-59" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.603258  to the left,  improve=0.10759280, (0 missing)</span></span>
+<span id="cb470-60"><a href="regression-trees-and-random-forests.html#cb470-60" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.793804  to the left,  improve=0.09106168, (0 missing)</span></span>
+<span id="cb470-61"><a href="regression-trees-and-random-forests.html#cb470-61" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-62"><a href="regression-trees-and-random-forests.html#cb470-62" tabindex="-1"></a><span class="co">#&gt; Node number 14: 12 observations</span></span>
+<span id="cb470-63"><a href="regression-trees-and-random-forests.html#cb470-63" tabindex="-1"></a><span class="co">#&gt;   mean=2.065917, MSE=2.252311 </span></span>
+<span id="cb470-64"><a href="regression-trees-and-random-forests.html#cb470-64" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-65"><a href="regression-trees-and-random-forests.html#cb470-65" tabindex="-1"></a><span class="co">#&gt; Node number 15: 63 observations,    complexity param=0.02754858</span></span>
+<span id="cb470-66"><a href="regression-trees-and-random-forests.html#cb470-66" tabindex="-1"></a><span class="co">#&gt;   mean=4.192826, MSE=1.839163 </span></span>
+<span id="cb470-67"><a href="regression-trees-and-random-forests.html#cb470-67" tabindex="-1"></a><span class="co">#&gt;   left son=30 (9 obs) right son=31 (54 obs)</span></span>
+<span id="cb470-68"><a href="regression-trees-and-random-forests.html#cb470-68" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-69"><a href="regression-trees-and-random-forests.html#cb470-69" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 3.548257  to the left,  improve=0.2353119, (0 missing)</span></span>
+<span id="cb470-70"><a href="regression-trees-and-random-forests.html#cb470-70" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.349633  to the left,  improve=0.1103019, (0 missing)</span></span>
+<span id="cb470-71"><a href="regression-trees-and-random-forests.html#cb470-71" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 7.006669  to the left,  improve=0.1019295, (0 missing)</span></span>
+<span id="cb470-72"><a href="regression-trees-and-random-forests.html#cb470-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-73"><a href="regression-trees-and-random-forests.html#cb470-73" tabindex="-1"></a><span class="co">#&gt; Node number 30: 9 observations</span></span>
+<span id="cb470-74"><a href="regression-trees-and-random-forests.html#cb470-74" tabindex="-1"></a><span class="co">#&gt;   mean=2.581411, MSE=0.3669647 </span></span>
+<span id="cb470-75"><a href="regression-trees-and-random-forests.html#cb470-75" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-76"><a href="regression-trees-and-random-forests.html#cb470-76" tabindex="-1"></a><span class="co">#&gt; Node number 31: 54 observations,    complexity param=0.01584638</span></span>
+<span id="cb470-77"><a href="regression-trees-and-random-forests.html#cb470-77" tabindex="-1"></a><span class="co">#&gt;   mean=4.461396, MSE=1.579623 </span></span>
+<span id="cb470-78"><a href="regression-trees-and-random-forests.html#cb470-78" tabindex="-1"></a><span class="co">#&gt;   left son=62 (10 obs) right son=63 (44 obs)</span></span>
+<span id="cb470-79"><a href="regression-trees-and-random-forests.html#cb470-79" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-80"><a href="regression-trees-and-random-forests.html#cb470-80" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 1.130662  to the left,  improve=0.18386040, (0 missing)</span></span>
+<span id="cb470-81"><a href="regression-trees-and-random-forests.html#cb470-81" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.209961  to the left,  improve=0.14561510, (0 missing)</span></span>
+<span id="cb470-82"><a href="regression-trees-and-random-forests.html#cb470-82" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 4.517029  to the left,  improve=0.01044883, (0 missing)</span></span>
+<span id="cb470-83"><a href="regression-trees-and-random-forests.html#cb470-83" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-84"><a href="regression-trees-and-random-forests.html#cb470-84" tabindex="-1"></a><span class="co">#&gt; Node number 62: 10 observations</span></span>
+<span id="cb470-85"><a href="regression-trees-and-random-forests.html#cb470-85" tabindex="-1"></a><span class="co">#&gt;   mean=3.330957, MSE=2.001022 </span></span>
+<span id="cb470-86"><a href="regression-trees-and-random-forests.html#cb470-86" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-87"><a href="regression-trees-and-random-forests.html#cb470-87" tabindex="-1"></a><span class="co">#&gt; Node number 63: 44 observations,    complexity param=0.01032524</span></span>
+<span id="cb470-88"><a href="regression-trees-and-random-forests.html#cb470-88" tabindex="-1"></a><span class="co">#&gt;   mean=4.718314, MSE=1.127413 </span></span>
+<span id="cb470-89"><a href="regression-trees-and-random-forests.html#cb470-89" tabindex="-1"></a><span class="co">#&gt;   left son=126 (27 obs) right son=127 (17 obs)</span></span>
+<span id="cb470-90"><a href="regression-trees-and-random-forests.html#cb470-90" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-91"><a href="regression-trees-and-random-forests.html#cb470-91" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 6.468044  to the left,  improve=0.16079230, (0 missing)</span></span>
+<span id="cb470-92"><a href="regression-trees-and-random-forests.html#cb470-92" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 5.608708  to the right, improve=0.05277854, (0 missing)</span></span>
+<span id="cb470-93"><a href="regression-trees-and-random-forests.html#cb470-93" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.784688  to the left,  improve=0.03145241, (0 missing)</span></span>
+<span id="cb470-94"><a href="regression-trees-and-random-forests.html#cb470-94" tabindex="-1"></a><span class="co">#&gt;   Surrogate splits:</span></span>
+<span id="cb470-95"><a href="regression-trees-and-random-forests.html#cb470-95" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 3.074905  to the left,  agree=0.636, adj=0.059, (0 split)</span></span>
+<span id="cb470-96"><a href="regression-trees-and-random-forests.html#cb470-96" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 5.888028  to the left,  agree=0.636, adj=0.059, (0 split)</span></span>
+<span id="cb470-97"><a href="regression-trees-and-random-forests.html#cb470-97" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-98"><a href="regression-trees-and-random-forests.html#cb470-98" tabindex="-1"></a><span class="co">#&gt; Node number 126: 27 observations,    complexity param=0.01032524</span></span>
+<span id="cb470-99"><a href="regression-trees-and-random-forests.html#cb470-99" tabindex="-1"></a><span class="co">#&gt;   mean=4.380469, MSE=1.04313 </span></span>
+<span id="cb470-100"><a href="regression-trees-and-random-forests.html#cb470-100" tabindex="-1"></a><span class="co">#&gt;   left son=252 (12 obs) right son=253 (15 obs)</span></span>
+<span id="cb470-101"><a href="regression-trees-and-random-forests.html#cb470-101" tabindex="-1"></a><span class="co">#&gt;   Primary splits:</span></span>
+<span id="cb470-102"><a href="regression-trees-and-random-forests.html#cb470-102" tabindex="-1"></a><span class="co">#&gt;       x1 &lt; 3.658072  to the right, improve=0.4424566, (0 missing)</span></span>
+<span id="cb470-103"><a href="regression-trees-and-random-forests.html#cb470-103" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 4.270123  to the right, improve=0.1430466, (0 missing)</span></span>
+<span id="cb470-104"><a href="regression-trees-and-random-forests.html#cb470-104" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.658809  to the left,  improve=0.1121999, (0 missing)</span></span>
+<span id="cb470-105"><a href="regression-trees-and-random-forests.html#cb470-105" tabindex="-1"></a><span class="co">#&gt;   Surrogate splits:</span></span>
+<span id="cb470-106"><a href="regression-trees-and-random-forests.html#cb470-106" tabindex="-1"></a><span class="co">#&gt;       x2 &lt; 2.707432  to the left,  agree=0.815, adj=0.583, (0 split)</span></span>
+<span id="cb470-107"><a href="regression-trees-and-random-forests.html#cb470-107" tabindex="-1"></a><span class="co">#&gt;       x3 &lt; 4.010151  to the right, agree=0.593, adj=0.083, (0 split)</span></span>
+<span id="cb470-108"><a href="regression-trees-and-random-forests.html#cb470-108" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-109"><a href="regression-trees-and-random-forests.html#cb470-109" tabindex="-1"></a><span class="co">#&gt; Node number 127: 17 observations</span></span>
+<span id="cb470-110"><a href="regression-trees-and-random-forests.html#cb470-110" tabindex="-1"></a><span class="co">#&gt;   mean=5.25489, MSE=0.7920812 </span></span>
+<span id="cb470-111"><a href="regression-trees-and-random-forests.html#cb470-111" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-112"><a href="regression-trees-and-random-forests.html#cb470-112" tabindex="-1"></a><span class="co">#&gt; Node number 252: 12 observations</span></span>
+<span id="cb470-113"><a href="regression-trees-and-random-forests.html#cb470-113" tabindex="-1"></a><span class="co">#&gt;   mean=3.620914, MSE=0.6204645 </span></span>
+<span id="cb470-114"><a href="regression-trees-and-random-forests.html#cb470-114" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb470-115"><a href="regression-trees-and-random-forests.html#cb470-115" tabindex="-1"></a><span class="co">#&gt; Node number 253: 15 observations</span></span>
+<span id="cb470-116"><a href="regression-trees-and-random-forests.html#cb470-116" tabindex="-1"></a><span class="co">#&gt;   mean=4.988114, MSE=0.5504908</span></span></code></pre></div>
+<div class="sourceCode" id="cb471"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb471-1"><a href="regression-trees-and-random-forests.html#cb471-1" tabindex="-1"></a><span class="co"># Visualize the Regression Tree</span></span>
+<span id="cb471-2"><a href="regression-trees-and-random-forests.html#cb471-2" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
+<span id="cb471-3"><a href="regression-trees-and-random-forests.html#cb471-3" tabindex="-1"></a>    tree_model,</span>
+<span id="cb471-4"><a href="regression-trees-and-random-forests.html#cb471-4" tabindex="-1"></a>    <span class="at">type =</span> <span class="dv">2</span>,</span>
+<span id="cb471-5"><a href="regression-trees-and-random-forests.html#cb471-5" tabindex="-1"></a>    <span class="at">extra =</span> <span class="dv">101</span>,</span>
+<span id="cb471-6"><a href="regression-trees-and-random-forests.html#cb471-6" tabindex="-1"></a>    <span class="at">fallen.leaves =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb471-7"><a href="regression-trees-and-random-forests.html#cb471-7" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Regression Tree&quot;</span></span>
+<span id="cb471-8"><a href="regression-trees-and-random-forests.html#cb471-8" tabindex="-1"></a>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-7"></span>
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-7-1.png" alt="A regression tree diagram illustrating decision nodes and outcomes. The root node starts with a value of 2.6, splitting based on the condition of whether x3 is greater than or equal to 7.7. If yes, the left branch leads to a terminal node with a value of -4.6, while the right branch continues to further split if the condition is not met. Key decision points include conditions like whether x3 is smaller than 3, whether x3 is greater than or equal to 6.3, and whether x2 is smaller than  1.1. Terminal nodes display values such as 0.4, 2.1, 3.3, 3.6, 5, and 5.3, with corresponding sample sizes and percentages. The diagram visually represents the decision-making process in a regression analysis." width="90%" />
 <p class="caption">
@@ -2198,41 +2198,41 @@ Figure 2.7: Regression Tree
 <li>Terminal nodes (leaves) show the predicted value (mean response in that region).</li>
 <li>The tree depth affects interpretability and overfitting risk.</li>
 </ul>
-<div class="sourceCode" id="cb467"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb467-1"><a href="regression-trees-and-random-forests.html#cb467-1" tabindex="-1"></a><span class="co"># Optimal pruning based on cross-validation error</span></span>
-<span id="cb467-2"><a href="regression-trees-and-random-forests.html#cb467-2" tabindex="-1"></a><span class="fu">printcp</span>(tree_model) <span class="co"># Displays CP table with cross-validation error</span></span>
-<span id="cb467-3"><a href="regression-trees-and-random-forests.html#cb467-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb467-4"><a href="regression-trees-and-random-forests.html#cb467-4" tabindex="-1"></a><span class="co">#&gt; Regression tree:</span></span>
-<span id="cb467-5"><a href="regression-trees-and-random-forests.html#cb467-5" tabindex="-1"></a><span class="co">#&gt; rpart(formula = y ~ x1 + x2 + x3, data = data_tree, method = &quot;anova&quot;, </span></span>
-<span id="cb467-6"><a href="regression-trees-and-random-forests.html#cb467-6" tabindex="-1"></a><span class="co">#&gt;     control = rpart.control(cp = 0.01))</span></span>
-<span id="cb467-7"><a href="regression-trees-and-random-forests.html#cb467-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb467-8"><a href="regression-trees-and-random-forests.html#cb467-8" tabindex="-1"></a><span class="co">#&gt; Variables actually used in tree construction:</span></span>
-<span id="cb467-9"><a href="regression-trees-and-random-forests.html#cb467-9" tabindex="-1"></a><span class="co">#&gt; [1] x1 x2 x3</span></span>
-<span id="cb467-10"><a href="regression-trees-and-random-forests.html#cb467-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb467-11"><a href="regression-trees-and-random-forests.html#cb467-11" tabindex="-1"></a><span class="co">#&gt; Root node error: 989.7/100 = 9.897</span></span>
-<span id="cb467-12"><a href="regression-trees-and-random-forests.html#cb467-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb467-13"><a href="regression-trees-and-random-forests.html#cb467-13" tabindex="-1"></a><span class="co">#&gt; n= 100 </span></span>
-<span id="cb467-14"><a href="regression-trees-and-random-forests.html#cb467-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb467-15"><a href="regression-trees-and-random-forests.html#cb467-15" tabindex="-1"></a><span class="co">#&gt;         CP nsplit rel error  xerror    xstd</span></span>
-<span id="cb467-16"><a href="regression-trees-and-random-forests.html#cb467-16" tabindex="-1"></a><span class="co">#&gt; 1 0.398959      0   1.00000 1.01348 0.34067</span></span>
-<span id="cb467-17"><a href="regression-trees-and-random-forests.html#cb467-17" tabindex="-1"></a><span class="co">#&gt; 2 0.174703      1   0.60104 0.86500 0.33363</span></span>
-<span id="cb467-18"><a href="regression-trees-and-random-forests.html#cb467-18" tabindex="-1"></a><span class="co">#&gt; 3 0.046074      2   0.42634 0.57079 0.18803</span></span>
-<span id="cb467-19"><a href="regression-trees-and-random-forests.html#cb467-19" tabindex="-1"></a><span class="co">#&gt; 4 0.027549      3   0.38026 0.52874 0.18667</span></span>
-<span id="cb467-20"><a href="regression-trees-and-random-forests.html#cb467-20" tabindex="-1"></a><span class="co">#&gt; 5 0.015846      4   0.35272 0.50611 0.18675</span></span>
-<span id="cb467-21"><a href="regression-trees-and-random-forests.html#cb467-21" tabindex="-1"></a><span class="co">#&gt; 6 0.010325      5   0.33687 0.51368 0.18610</span></span>
-<span id="cb467-22"><a href="regression-trees-and-random-forests.html#cb467-22" tabindex="-1"></a><span class="co">#&gt; 7 0.010000      7   0.31622 0.48471 0.18618</span></span>
-<span id="cb467-23"><a href="regression-trees-and-random-forests.html#cb467-23" tabindex="-1"></a>optimal_cp <span class="ot">&lt;-</span></span>
-<span id="cb467-24"><a href="regression-trees-and-random-forests.html#cb467-24" tabindex="-1"></a>    tree_model<span class="sc">$</span>cptable[<span class="fu">which.min</span>(tree_model<span class="sc">$</span>cptable[, <span class="st">&quot;xerror&quot;</span>]), <span class="st">&quot;CP&quot;</span>]</span>
-<span id="cb467-25"><a href="regression-trees-and-random-forests.html#cb467-25" tabindex="-1"></a></span>
-<span id="cb467-26"><a href="regression-trees-and-random-forests.html#cb467-26" tabindex="-1"></a><span class="co"># Prune the tree</span></span>
-<span id="cb467-27"><a href="regression-trees-and-random-forests.html#cb467-27" tabindex="-1"></a>pruned_tree <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree_model, <span class="at">cp =</span> optimal_cp)</span></code></pre></div>
-<div class="sourceCode" id="cb468"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb468-1"><a href="regression-trees-and-random-forests.html#cb468-1" tabindex="-1"></a><span class="co"># Visualize the pruned tree</span></span>
-<span id="cb468-2"><a href="regression-trees-and-random-forests.html#cb468-2" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
-<span id="cb468-3"><a href="regression-trees-and-random-forests.html#cb468-3" tabindex="-1"></a>    pruned_tree,</span>
-<span id="cb468-4"><a href="regression-trees-and-random-forests.html#cb468-4" tabindex="-1"></a>    <span class="at">type =</span> <span class="dv">2</span>,</span>
-<span id="cb468-5"><a href="regression-trees-and-random-forests.html#cb468-5" tabindex="-1"></a>    <span class="at">extra =</span> <span class="dv">101</span>,</span>
-<span id="cb468-6"><a href="regression-trees-and-random-forests.html#cb468-6" tabindex="-1"></a>    <span class="at">fallen.leaves =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb468-7"><a href="regression-trees-and-random-forests.html#cb468-7" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Pruned Regression Tree&quot;</span></span>
-<span id="cb468-8"><a href="regression-trees-and-random-forests.html#cb468-8" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb472"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb472-1"><a href="regression-trees-and-random-forests.html#cb472-1" tabindex="-1"></a><span class="co"># Optimal pruning based on cross-validation error</span></span>
+<span id="cb472-2"><a href="regression-trees-and-random-forests.html#cb472-2" tabindex="-1"></a><span class="fu">printcp</span>(tree_model) <span class="co"># Displays CP table with cross-validation error</span></span>
+<span id="cb472-3"><a href="regression-trees-and-random-forests.html#cb472-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb472-4"><a href="regression-trees-and-random-forests.html#cb472-4" tabindex="-1"></a><span class="co">#&gt; Regression tree:</span></span>
+<span id="cb472-5"><a href="regression-trees-and-random-forests.html#cb472-5" tabindex="-1"></a><span class="co">#&gt; rpart(formula = y ~ x1 + x2 + x3, data = data_tree, method = &quot;anova&quot;, </span></span>
+<span id="cb472-6"><a href="regression-trees-and-random-forests.html#cb472-6" tabindex="-1"></a><span class="co">#&gt;     control = rpart.control(cp = 0.01))</span></span>
+<span id="cb472-7"><a href="regression-trees-and-random-forests.html#cb472-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb472-8"><a href="regression-trees-and-random-forests.html#cb472-8" tabindex="-1"></a><span class="co">#&gt; Variables actually used in tree construction:</span></span>
+<span id="cb472-9"><a href="regression-trees-and-random-forests.html#cb472-9" tabindex="-1"></a><span class="co">#&gt; [1] x1 x2 x3</span></span>
+<span id="cb472-10"><a href="regression-trees-and-random-forests.html#cb472-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb472-11"><a href="regression-trees-and-random-forests.html#cb472-11" tabindex="-1"></a><span class="co">#&gt; Root node error: 989.7/100 = 9.897</span></span>
+<span id="cb472-12"><a href="regression-trees-and-random-forests.html#cb472-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb472-13"><a href="regression-trees-and-random-forests.html#cb472-13" tabindex="-1"></a><span class="co">#&gt; n= 100 </span></span>
+<span id="cb472-14"><a href="regression-trees-and-random-forests.html#cb472-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb472-15"><a href="regression-trees-and-random-forests.html#cb472-15" tabindex="-1"></a><span class="co">#&gt;         CP nsplit rel error  xerror    xstd</span></span>
+<span id="cb472-16"><a href="regression-trees-and-random-forests.html#cb472-16" tabindex="-1"></a><span class="co">#&gt; 1 0.398959      0   1.00000 1.01348 0.34067</span></span>
+<span id="cb472-17"><a href="regression-trees-and-random-forests.html#cb472-17" tabindex="-1"></a><span class="co">#&gt; 2 0.174703      1   0.60104 0.86500 0.33363</span></span>
+<span id="cb472-18"><a href="regression-trees-and-random-forests.html#cb472-18" tabindex="-1"></a><span class="co">#&gt; 3 0.046074      2   0.42634 0.57079 0.18803</span></span>
+<span id="cb472-19"><a href="regression-trees-and-random-forests.html#cb472-19" tabindex="-1"></a><span class="co">#&gt; 4 0.027549      3   0.38026 0.52874 0.18667</span></span>
+<span id="cb472-20"><a href="regression-trees-and-random-forests.html#cb472-20" tabindex="-1"></a><span class="co">#&gt; 5 0.015846      4   0.35272 0.50611 0.18675</span></span>
+<span id="cb472-21"><a href="regression-trees-and-random-forests.html#cb472-21" tabindex="-1"></a><span class="co">#&gt; 6 0.010325      5   0.33687 0.51368 0.18610</span></span>
+<span id="cb472-22"><a href="regression-trees-and-random-forests.html#cb472-22" tabindex="-1"></a><span class="co">#&gt; 7 0.010000      7   0.31622 0.48471 0.18618</span></span>
+<span id="cb472-23"><a href="regression-trees-and-random-forests.html#cb472-23" tabindex="-1"></a>optimal_cp <span class="ot">&lt;-</span></span>
+<span id="cb472-24"><a href="regression-trees-and-random-forests.html#cb472-24" tabindex="-1"></a>    tree_model<span class="sc">$</span>cptable[<span class="fu">which.min</span>(tree_model<span class="sc">$</span>cptable[, <span class="st">&quot;xerror&quot;</span>]), <span class="st">&quot;CP&quot;</span>]</span>
+<span id="cb472-25"><a href="regression-trees-and-random-forests.html#cb472-25" tabindex="-1"></a></span>
+<span id="cb472-26"><a href="regression-trees-and-random-forests.html#cb472-26" tabindex="-1"></a><span class="co"># Prune the tree</span></span>
+<span id="cb472-27"><a href="regression-trees-and-random-forests.html#cb472-27" tabindex="-1"></a>pruned_tree <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree_model, <span class="at">cp =</span> optimal_cp)</span></code></pre></div>
+<div class="sourceCode" id="cb473"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb473-1"><a href="regression-trees-and-random-forests.html#cb473-1" tabindex="-1"></a><span class="co"># Visualize the pruned tree</span></span>
+<span id="cb473-2"><a href="regression-trees-and-random-forests.html#cb473-2" tabindex="-1"></a><span class="fu">rpart.plot</span>(</span>
+<span id="cb473-3"><a href="regression-trees-and-random-forests.html#cb473-3" tabindex="-1"></a>    pruned_tree,</span>
+<span id="cb473-4"><a href="regression-trees-and-random-forests.html#cb473-4" tabindex="-1"></a>    <span class="at">type =</span> <span class="dv">2</span>,</span>
+<span id="cb473-5"><a href="regression-trees-and-random-forests.html#cb473-5" tabindex="-1"></a>    <span class="at">extra =</span> <span class="dv">101</span>,</span>
+<span id="cb473-6"><a href="regression-trees-and-random-forests.html#cb473-6" tabindex="-1"></a>    <span class="at">fallen.leaves =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb473-7"><a href="regression-trees-and-random-forests.html#cb473-7" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Pruned Regression Tree&quot;</span></span>
+<span id="cb473-8"><a href="regression-trees-and-random-forests.html#cb473-8" tabindex="-1"></a>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-8"></span>
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-8-1.png" alt="Pruned regression tree diagram illustrating decision nodes and leaf nodes. The root node splits based on the condition of whether x3 is greater than or equal to 7.7, with subsequent branches dividing further based on conditions like whether x3 is smaller than 3, whether x3 is greater than or equal to 6.3, and whether x2 is smaller than 1.1. Each node displays a value, sample size n, and percentage. The tree ends with leaf nodes showing final values and sample distributions." width="90%" />
 <p class="caption">
@@ -2244,34 +2244,34 @@ Figure 2.9: Pruned Regression Tree Diagram
 <li>The optimal CP minimizes cross-validation error, balancing complexity and fit.</li>
 <li>A shallower tree improves generalization on unseen data.</li>
 </ul>
-<div class="sourceCode" id="cb469"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb469-1"><a href="regression-trees-and-random-forests.html#cb469-1" tabindex="-1"></a><span class="co"># Fit a Random Forest</span></span>
-<span id="cb469-2"><a href="regression-trees-and-random-forests.html#cb469-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb469-3"><a href="regression-trees-and-random-forests.html#cb469-3" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(</span>
-<span id="cb469-4"><a href="regression-trees-and-random-forests.html#cb469-4" tabindex="-1"></a>    y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
-<span id="cb469-5"><a href="regression-trees-and-random-forests.html#cb469-5" tabindex="-1"></a>    <span class="at">data =</span> data_tree,</span>
-<span id="cb469-6"><a href="regression-trees-and-random-forests.html#cb469-6" tabindex="-1"></a>    <span class="at">ntree =</span> <span class="dv">500</span>,</span>
-<span id="cb469-7"><a href="regression-trees-and-random-forests.html#cb469-7" tabindex="-1"></a>    <span class="at">mtry =</span> <span class="dv">2</span>,</span>
-<span id="cb469-8"><a href="regression-trees-and-random-forests.html#cb469-8" tabindex="-1"></a>    <span class="at">importance =</span> <span class="cn">TRUE</span></span>
-<span id="cb469-9"><a href="regression-trees-and-random-forests.html#cb469-9" tabindex="-1"></a>)</span>
-<span id="cb469-10"><a href="regression-trees-and-random-forests.html#cb469-10" tabindex="-1"></a></span>
-<span id="cb469-11"><a href="regression-trees-and-random-forests.html#cb469-11" tabindex="-1"></a><span class="co"># Summary of the Random Forest</span></span>
-<span id="cb469-12"><a href="regression-trees-and-random-forests.html#cb469-12" tabindex="-1"></a><span class="fu">print</span>(rf_model)</span>
-<span id="cb469-13"><a href="regression-trees-and-random-forests.html#cb469-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb469-14"><a href="regression-trees-and-random-forests.html#cb469-14" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb469-15"><a href="regression-trees-and-random-forests.html#cb469-15" tabindex="-1"></a><span class="co">#&gt;  randomForest(formula = y ~ x1 + x2 + x3, data = data_tree, ntree = 500,      mtry = 2, importance = TRUE) </span></span>
-<span id="cb469-16"><a href="regression-trees-and-random-forests.html#cb469-16" tabindex="-1"></a><span class="co">#&gt;                Type of random forest: regression</span></span>
-<span id="cb469-17"><a href="regression-trees-and-random-forests.html#cb469-17" tabindex="-1"></a><span class="co">#&gt;                      Number of trees: 500</span></span>
-<span id="cb469-18"><a href="regression-trees-and-random-forests.html#cb469-18" tabindex="-1"></a><span class="co">#&gt; No. of variables tried at each split: 2</span></span>
-<span id="cb469-19"><a href="regression-trees-and-random-forests.html#cb469-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb469-20"><a href="regression-trees-and-random-forests.html#cb469-20" tabindex="-1"></a><span class="co">#&gt;           Mean of squared residuals: 3.031589</span></span>
-<span id="cb469-21"><a href="regression-trees-and-random-forests.html#cb469-21" tabindex="-1"></a><span class="co">#&gt;                     % Var explained: 69.37</span></span></code></pre></div>
+<div class="sourceCode" id="cb474"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb474-1"><a href="regression-trees-and-random-forests.html#cb474-1" tabindex="-1"></a><span class="co"># Fit a Random Forest</span></span>
+<span id="cb474-2"><a href="regression-trees-and-random-forests.html#cb474-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb474-3"><a href="regression-trees-and-random-forests.html#cb474-3" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(</span>
+<span id="cb474-4"><a href="regression-trees-and-random-forests.html#cb474-4" tabindex="-1"></a>    y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
+<span id="cb474-5"><a href="regression-trees-and-random-forests.html#cb474-5" tabindex="-1"></a>    <span class="at">data =</span> data_tree,</span>
+<span id="cb474-6"><a href="regression-trees-and-random-forests.html#cb474-6" tabindex="-1"></a>    <span class="at">ntree =</span> <span class="dv">500</span>,</span>
+<span id="cb474-7"><a href="regression-trees-and-random-forests.html#cb474-7" tabindex="-1"></a>    <span class="at">mtry =</span> <span class="dv">2</span>,</span>
+<span id="cb474-8"><a href="regression-trees-and-random-forests.html#cb474-8" tabindex="-1"></a>    <span class="at">importance =</span> <span class="cn">TRUE</span></span>
+<span id="cb474-9"><a href="regression-trees-and-random-forests.html#cb474-9" tabindex="-1"></a>)</span>
+<span id="cb474-10"><a href="regression-trees-and-random-forests.html#cb474-10" tabindex="-1"></a></span>
+<span id="cb474-11"><a href="regression-trees-and-random-forests.html#cb474-11" tabindex="-1"></a><span class="co"># Summary of the Random Forest</span></span>
+<span id="cb474-12"><a href="regression-trees-and-random-forests.html#cb474-12" tabindex="-1"></a><span class="fu">print</span>(rf_model)</span>
+<span id="cb474-13"><a href="regression-trees-and-random-forests.html#cb474-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb474-14"><a href="regression-trees-and-random-forests.html#cb474-14" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb474-15"><a href="regression-trees-and-random-forests.html#cb474-15" tabindex="-1"></a><span class="co">#&gt;  randomForest(formula = y ~ x1 + x2 + x3, data = data_tree, ntree = 500,      mtry = 2, importance = TRUE) </span></span>
+<span id="cb474-16"><a href="regression-trees-and-random-forests.html#cb474-16" tabindex="-1"></a><span class="co">#&gt;                Type of random forest: regression</span></span>
+<span id="cb474-17"><a href="regression-trees-and-random-forests.html#cb474-17" tabindex="-1"></a><span class="co">#&gt;                      Number of trees: 500</span></span>
+<span id="cb474-18"><a href="regression-trees-and-random-forests.html#cb474-18" tabindex="-1"></a><span class="co">#&gt; No. of variables tried at each split: 2</span></span>
+<span id="cb474-19"><a href="regression-trees-and-random-forests.html#cb474-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb474-20"><a href="regression-trees-and-random-forests.html#cb474-20" tabindex="-1"></a><span class="co">#&gt;           Mean of squared residuals: 3.031589</span></span>
+<span id="cb474-21"><a href="regression-trees-and-random-forests.html#cb474-21" tabindex="-1"></a><span class="co">#&gt;                     % Var explained: 69.37</span></span></code></pre></div>
 <ul>
 <li>MSE decreases as more trees are added.</li>
 <li>% Variance Explained reflects predictive performance.</li>
 <li><code>mtry = 2</code> indicates 2 random predictors are considered at each split.</li>
 </ul>
-<div class="sourceCode" id="cb470"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb470-1"><a href="regression-trees-and-random-forests.html#cb470-1" tabindex="-1"></a><span class="co"># Plot OOB Error vs. Number of Trees</span></span>
-<span id="cb470-2"><a href="regression-trees-and-random-forests.html#cb470-2" tabindex="-1"></a><span class="fu">plot</span>(rf_model, <span class="at">main =</span> <span class="st">&quot;Out-of-Bag Error for Random Forest&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb475"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb475-1"><a href="regression-trees-and-random-forests.html#cb475-1" tabindex="-1"></a><span class="co"># Plot OOB Error vs. Number of Trees</span></span>
+<span id="cb475-2"><a href="regression-trees-and-random-forests.html#cb475-2" tabindex="-1"></a><span class="fu">plot</span>(rf_model, <span class="at">main =</span> <span class="st">&quot;Out-of-Bag Error for Random Forest&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-oob-error-plot"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-oob-error-plot-1.png" alt="Line chart titled Out-of-Bag Error for Random Forest showing the error rate on the y-axis and the number of trees on the x-axis. The error rate decreases sharply as the number of trees increases and stabilizes around 500 trees" width="100%" />
 <p class="caption">
@@ -2282,13 +2282,13 @@ Figure 10.19: Out-of-Bag Error for Random Forest
 <li>OOB error stabilizes as more trees are added, providing an unbiased estimate of test error.</li>
 <li>Helps determine if more trees improve performance or if the model has converged.</li>
 </ul>
-<div class="sourceCode" id="cb471"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb471-1"><a href="regression-trees-and-random-forests.html#cb471-1" tabindex="-1"></a><span class="co"># Variable Importance</span></span>
-<span id="cb471-2"><a href="regression-trees-and-random-forests.html#cb471-2" tabindex="-1"></a><span class="fu">importance</span>(rf_model)                <span class="co"># Numerical importance measures</span></span>
-<span id="cb471-3"><a href="regression-trees-and-random-forests.html#cb471-3" tabindex="-1"></a><span class="co">#&gt;      %IncMSE IncNodePurity</span></span>
-<span id="cb471-4"><a href="regression-trees-and-random-forests.html#cb471-4" tabindex="-1"></a><span class="co">#&gt; x1 10.145674     137.09918</span></span>
-<span id="cb471-5"><a href="regression-trees-and-random-forests.html#cb471-5" tabindex="-1"></a><span class="co">#&gt; x2  1.472662      77.41256</span></span>
-<span id="cb471-6"><a href="regression-trees-and-random-forests.html#cb471-6" tabindex="-1"></a><span class="co">#&gt; x3 44.232816     718.49567</span></span></code></pre></div>
-<div class="sourceCode" id="cb472"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb472-1"><a href="regression-trees-and-random-forests.html#cb472-1" tabindex="-1"></a><span class="fu">varImpPlot</span>(rf_model, <span class="at">main =</span> <span class="st">&quot;Variable Importance (Random Forest)&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb476"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb476-1"><a href="regression-trees-and-random-forests.html#cb476-1" tabindex="-1"></a><span class="co"># Variable Importance</span></span>
+<span id="cb476-2"><a href="regression-trees-and-random-forests.html#cb476-2" tabindex="-1"></a><span class="fu">importance</span>(rf_model)                <span class="co"># Numerical importance measures</span></span>
+<span id="cb476-3"><a href="regression-trees-and-random-forests.html#cb476-3" tabindex="-1"></a><span class="co">#&gt;      %IncMSE IncNodePurity</span></span>
+<span id="cb476-4"><a href="regression-trees-and-random-forests.html#cb476-4" tabindex="-1"></a><span class="co">#&gt; x1 10.145674     137.09918</span></span>
+<span id="cb476-5"><a href="regression-trees-and-random-forests.html#cb476-5" tabindex="-1"></a><span class="co">#&gt; x2  1.472662      77.41256</span></span>
+<span id="cb476-6"><a href="regression-trees-and-random-forests.html#cb476-6" tabindex="-1"></a><span class="co">#&gt; x3 44.232816     718.49567</span></span></code></pre></div>
+<div class="sourceCode" id="cb477"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb477-1"><a href="regression-trees-and-random-forests.html#cb477-1" tabindex="-1"></a><span class="fu">varImpPlot</span>(rf_model, <span class="at">main =</span> <span class="st">&quot;Variable Importance (Random Forest)&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-variable-importance-rf"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-variable-importance-rf-1.png" alt="Two XY charts display variable importance from a Random Forest model. The left chart shows percent increase in mean squared error on the x-axis, with variables x1, x2, and x3 on the y-axis. The right chart shows increase in node purity on the x-axis, with the same variables on the y-axis. Both charts indicate the relative importance of each variable, with x3 having the highest importance in both metrics" width="100%" />
 <p class="caption">
@@ -2300,35 +2300,35 @@ Figure 10.20: Variable Importance (Random Forest)
 <li>Mean Decrease in Node Impurity reflects how much each variable reduces variance in splits.</li>
 <li>Variables with higher importance are more influential in the model.</li>
 </ul>
-<div class="sourceCode" id="cb473"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb473-1"><a href="regression-trees-and-random-forests.html#cb473-1" tabindex="-1"></a><span class="co"># Predictions on new data</span></span>
-<span id="cb473-2"><a href="regression-trees-and-random-forests.html#cb473-2" tabindex="-1"></a>x_new <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
-<span id="cb473-3"><a href="regression-trees-and-random-forests.html#cb473-3" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> x_new,</span>
-<span id="cb473-4"><a href="regression-trees-and-random-forests.html#cb473-4" tabindex="-1"></a>                        <span class="at">x2 =</span> <span class="fu">mean</span>(x2),</span>
-<span id="cb473-5"><a href="regression-trees-and-random-forests.html#cb473-5" tabindex="-1"></a>                        <span class="at">x3 =</span> <span class="fu">mean</span>(x3))</span>
-<span id="cb473-6"><a href="regression-trees-and-random-forests.html#cb473-6" tabindex="-1"></a></span>
-<span id="cb473-7"><a href="regression-trees-and-random-forests.html#cb473-7" tabindex="-1"></a><span class="co"># Predictions</span></span>
-<span id="cb473-8"><a href="regression-trees-and-random-forests.html#cb473-8" tabindex="-1"></a>tree_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(pruned_tree, <span class="at">newdata =</span> test_data)</span>
-<span id="cb473-9"><a href="regression-trees-and-random-forests.html#cb473-9" tabindex="-1"></a>rf_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf_model, <span class="at">newdata =</span> test_data)</span></code></pre></div>
-<div class="sourceCode" id="cb474"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb474-1"><a href="regression-trees-and-random-forests.html#cb474-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb474-2"><a href="regression-trees-and-random-forests.html#cb474-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb474-3"><a href="regression-trees-and-random-forests.html#cb474-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x1, y),</span>
-<span id="cb474-4"><a href="regression-trees-and-random-forests.html#cb474-4" tabindex="-1"></a>               <span class="at">data =</span> data_tree,</span>
-<span id="cb474-5"><a href="regression-trees-and-random-forests.html#cb474-5" tabindex="-1"></a>               <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
-<span id="cb474-6"><a href="regression-trees-and-random-forests.html#cb474-6" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;gray&quot;</span>) <span class="sc">+</span></span>
-<span id="cb474-7"><a href="regression-trees-and-random-forests.html#cb474-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
-<span id="cb474-8"><a href="regression-trees-and-random-forests.html#cb474-8" tabindex="-1"></a>        <span class="fu">aes</span>(x_new, tree_pred),</span>
-<span id="cb474-9"><a href="regression-trees-and-random-forests.html#cb474-9" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb474-10"><a href="regression-trees-and-random-forests.html#cb474-10" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span>,</span>
-<span id="cb474-11"><a href="regression-trees-and-random-forests.html#cb474-11" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span></span>
-<span id="cb474-12"><a href="regression-trees-and-random-forests.html#cb474-12" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb474-13"><a href="regression-trees-and-random-forests.html#cb474-13" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_new, rf_pred), <span class="at">color =</span> <span class="st">&quot;green&quot;</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb474-14"><a href="regression-trees-and-random-forests.html#cb474-14" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb474-15"><a href="regression-trees-and-random-forests.html#cb474-15" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Regression Tree vs. Random Forest&quot;</span>,</span>
-<span id="cb474-16"><a href="regression-trees-and-random-forests.html#cb474-16" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Blue: Pruned Tree | Green: Random Forest&quot;</span>,</span>
-<span id="cb474-17"><a href="regression-trees-and-random-forests.html#cb474-17" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>,</span>
-<span id="cb474-18"><a href="regression-trees-and-random-forests.html#cb474-18" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Predicted y&quot;</span></span>
-<span id="cb474-19"><a href="regression-trees-and-random-forests.html#cb474-19" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb474-20"><a href="regression-trees-and-random-forests.html#cb474-20" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb478"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb478-1"><a href="regression-trees-and-random-forests.html#cb478-1" tabindex="-1"></a><span class="co"># Predictions on new data</span></span>
+<span id="cb478-2"><a href="regression-trees-and-random-forests.html#cb478-2" tabindex="-1"></a>x_new <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
+<span id="cb478-3"><a href="regression-trees-and-random-forests.html#cb478-3" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> x_new,</span>
+<span id="cb478-4"><a href="regression-trees-and-random-forests.html#cb478-4" tabindex="-1"></a>                        <span class="at">x2 =</span> <span class="fu">mean</span>(x2),</span>
+<span id="cb478-5"><a href="regression-trees-and-random-forests.html#cb478-5" tabindex="-1"></a>                        <span class="at">x3 =</span> <span class="fu">mean</span>(x3))</span>
+<span id="cb478-6"><a href="regression-trees-and-random-forests.html#cb478-6" tabindex="-1"></a></span>
+<span id="cb478-7"><a href="regression-trees-and-random-forests.html#cb478-7" tabindex="-1"></a><span class="co"># Predictions</span></span>
+<span id="cb478-8"><a href="regression-trees-and-random-forests.html#cb478-8" tabindex="-1"></a>tree_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(pruned_tree, <span class="at">newdata =</span> test_data)</span>
+<span id="cb478-9"><a href="regression-trees-and-random-forests.html#cb478-9" tabindex="-1"></a>rf_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf_model, <span class="at">newdata =</span> test_data)</span></code></pre></div>
+<div class="sourceCode" id="cb479"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb479-1"><a href="regression-trees-and-random-forests.html#cb479-1" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb479-2"><a href="regression-trees-and-random-forests.html#cb479-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb479-3"><a href="regression-trees-and-random-forests.html#cb479-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x1, y),</span>
+<span id="cb479-4"><a href="regression-trees-and-random-forests.html#cb479-4" tabindex="-1"></a>               <span class="at">data =</span> data_tree,</span>
+<span id="cb479-5"><a href="regression-trees-and-random-forests.html#cb479-5" tabindex="-1"></a>               <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
+<span id="cb479-6"><a href="regression-trees-and-random-forests.html#cb479-6" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;gray&quot;</span>) <span class="sc">+</span></span>
+<span id="cb479-7"><a href="regression-trees-and-random-forests.html#cb479-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
+<span id="cb479-8"><a href="regression-trees-and-random-forests.html#cb479-8" tabindex="-1"></a>        <span class="fu">aes</span>(x_new, tree_pred),</span>
+<span id="cb479-9"><a href="regression-trees-and-random-forests.html#cb479-9" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb479-10"><a href="regression-trees-and-random-forests.html#cb479-10" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb479-11"><a href="regression-trees-and-random-forests.html#cb479-11" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span></span>
+<span id="cb479-12"><a href="regression-trees-and-random-forests.html#cb479-12" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb479-13"><a href="regression-trees-and-random-forests.html#cb479-13" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_new, rf_pred), <span class="at">color =</span> <span class="st">&quot;green&quot;</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb479-14"><a href="regression-trees-and-random-forests.html#cb479-14" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb479-15"><a href="regression-trees-and-random-forests.html#cb479-15" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Regression Tree vs. Random Forest&quot;</span>,</span>
+<span id="cb479-16"><a href="regression-trees-and-random-forests.html#cb479-16" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Blue: Pruned Tree | Green: Random Forest&quot;</span>,</span>
+<span id="cb479-17"><a href="regression-trees-and-random-forests.html#cb479-17" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x1&quot;</span>,</span>
+<span id="cb479-18"><a href="regression-trees-and-random-forests.html#cb479-18" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Predicted y&quot;</span></span>
+<span id="cb479-19"><a href="regression-trees-and-random-forests.html#cb479-19" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb479-20"><a href="regression-trees-and-random-forests.html#cb479-20" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-tree-vs-rf"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-tree-vs-rf-1.png" alt="Chart comparing regression tree and random forest predictions. The x-axis is labeled x1 and the y-axis is labeled predicted y. A blue dashed line represents the pruned tree and a green line represents the random forest. Gray dots indicate data points. The chart title is Regression Tree vs. Random Forest, and the legend indicates blue for the pruned tree and green for the random forest" width="100%" />
 <p class="caption">
@@ -2339,21 +2339,21 @@ Figure 10.21: Regression Tree vs. Random Forest
 <li>The pruned regression tree (blue) shows step-like predictions, characteristic of piecewise constant fits.</li>
 <li>The random forest (green) provides a smoother fit by averaging across many trees, reducing variance.</li>
 </ul>
-<div class="sourceCode" id="cb475"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb475-1"><a href="regression-trees-and-random-forests.html#cb475-1" tabindex="-1"></a><span class="co"># OOB Error (Random Forest)</span></span>
-<span id="cb475-2"><a href="regression-trees-and-random-forests.html#cb475-2" tabindex="-1"></a>oob_mse <span class="ot">&lt;-</span> rf_model<span class="sc">$</span>mse[<span class="fu">length</span>(rf_model<span class="sc">$</span>mse)]  <span class="co"># Final OOB MSE</span></span>
-<span id="cb475-3"><a href="regression-trees-and-random-forests.html#cb475-3" tabindex="-1"></a></span>
-<span id="cb475-4"><a href="regression-trees-and-random-forests.html#cb475-4" tabindex="-1"></a><span class="co"># Cross-Validation Error (Regression Tree)</span></span>
-<span id="cb475-5"><a href="regression-trees-and-random-forests.html#cb475-5" tabindex="-1"></a>cv_mse_tree <span class="ot">&lt;-</span></span>
-<span id="cb475-6"><a href="regression-trees-and-random-forests.html#cb475-6" tabindex="-1"></a>    <span class="fu">min</span>(tree_model<span class="sc">$</span>cptable[, <span class="st">&quot;xerror&quot;</span>]) <span class="sc">*</span> <span class="fu">var</span>(data_tree<span class="sc">$</span>y)</span>
-<span id="cb475-7"><a href="regression-trees-and-random-forests.html#cb475-7" tabindex="-1"></a></span>
-<span id="cb475-8"><a href="regression-trees-and-random-forests.html#cb475-8" tabindex="-1"></a><span class="co"># Compare OOB and CV errors</span></span>
-<span id="cb475-9"><a href="regression-trees-and-random-forests.html#cb475-9" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
-<span id="cb475-10"><a href="regression-trees-and-random-forests.html#cb475-10" tabindex="-1"></a>    <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">&quot;Pruned Regression Tree&quot;</span>, <span class="st">&quot;Random Forest&quot;</span>),</span>
-<span id="cb475-11"><a href="regression-trees-and-random-forests.html#cb475-11" tabindex="-1"></a>    <span class="at">MSE =</span> <span class="fu">c</span>(cv_mse_tree, oob_mse)</span>
-<span id="cb475-12"><a href="regression-trees-and-random-forests.html#cb475-12" tabindex="-1"></a>)</span>
-<span id="cb475-13"><a href="regression-trees-and-random-forests.html#cb475-13" tabindex="-1"></a><span class="co">#&gt;                    Model      MSE</span></span>
-<span id="cb475-14"><a href="regression-trees-and-random-forests.html#cb475-14" tabindex="-1"></a><span class="co">#&gt; 1 Pruned Regression Tree 4.845622</span></span>
-<span id="cb475-15"><a href="regression-trees-and-random-forests.html#cb475-15" tabindex="-1"></a><span class="co">#&gt; 2          Random Forest 3.031589</span></span></code></pre></div>
+<div class="sourceCode" id="cb480"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb480-1"><a href="regression-trees-and-random-forests.html#cb480-1" tabindex="-1"></a><span class="co"># OOB Error (Random Forest)</span></span>
+<span id="cb480-2"><a href="regression-trees-and-random-forests.html#cb480-2" tabindex="-1"></a>oob_mse <span class="ot">&lt;-</span> rf_model<span class="sc">$</span>mse[<span class="fu">length</span>(rf_model<span class="sc">$</span>mse)]  <span class="co"># Final OOB MSE</span></span>
+<span id="cb480-3"><a href="regression-trees-and-random-forests.html#cb480-3" tabindex="-1"></a></span>
+<span id="cb480-4"><a href="regression-trees-and-random-forests.html#cb480-4" tabindex="-1"></a><span class="co"># Cross-Validation Error (Regression Tree)</span></span>
+<span id="cb480-5"><a href="regression-trees-and-random-forests.html#cb480-5" tabindex="-1"></a>cv_mse_tree <span class="ot">&lt;-</span></span>
+<span id="cb480-6"><a href="regression-trees-and-random-forests.html#cb480-6" tabindex="-1"></a>    <span class="fu">min</span>(tree_model<span class="sc">$</span>cptable[, <span class="st">&quot;xerror&quot;</span>]) <span class="sc">*</span> <span class="fu">var</span>(data_tree<span class="sc">$</span>y)</span>
+<span id="cb480-7"><a href="regression-trees-and-random-forests.html#cb480-7" tabindex="-1"></a></span>
+<span id="cb480-8"><a href="regression-trees-and-random-forests.html#cb480-8" tabindex="-1"></a><span class="co"># Compare OOB and CV errors</span></span>
+<span id="cb480-9"><a href="regression-trees-and-random-forests.html#cb480-9" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb480-10"><a href="regression-trees-and-random-forests.html#cb480-10" tabindex="-1"></a>    <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">&quot;Pruned Regression Tree&quot;</span>, <span class="st">&quot;Random Forest&quot;</span>),</span>
+<span id="cb480-11"><a href="regression-trees-and-random-forests.html#cb480-11" tabindex="-1"></a>    <span class="at">MSE =</span> <span class="fu">c</span>(cv_mse_tree, oob_mse)</span>
+<span id="cb480-12"><a href="regression-trees-and-random-forests.html#cb480-12" tabindex="-1"></a>)</span>
+<span id="cb480-13"><a href="regression-trees-and-random-forests.html#cb480-13" tabindex="-1"></a><span class="co">#&gt;                    Model      MSE</span></span>
+<span id="cb480-14"><a href="regression-trees-and-random-forests.html#cb480-14" tabindex="-1"></a><span class="co">#&gt; 1 Pruned Regression Tree 4.845622</span></span>
+<span id="cb480-15"><a href="regression-trees-and-random-forests.html#cb480-15" tabindex="-1"></a><span class="co">#&gt; 2          Random Forest 3.031589</span></span></code></pre></div>
 <ul>
 <li>OOB error (Random Forest) provides an efficient, unbiased estimate without cross-validation.</li>
 <li>Cross-validation error (Regression Tree) evaluates generalization through resampling.</li>

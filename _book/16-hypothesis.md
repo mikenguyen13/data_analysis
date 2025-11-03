@@ -929,130 +929,47 @@ likelihood_hat <-
 ``` r
 # Plot likelihood function
 ggplot(df, aes(x = theta, y = likelihood)) +
-    geom_line(color = "blue", linewidth = 1.2) +  # Likelihood curve
-    
-    # Vertical lines for theta_0 and theta_hat
-    geom_vline(
-        xintercept = theta_0,
-        linetype = "dashed",
-        color = "black",
-        linewidth = 1
-    ) +
-    geom_vline(
-        xintercept = theta_hat,
-        linetype = "dashed",
-        color = "red",
-        linewidth = 1
-    ) +
-    
-    # Labels for theta_0 and theta_hat
-    annotate(
-        "text",
-        x = theta_0 - 0.1,
-        y = -0.02,
-        label = expression(theta[0]),
-        color = "black",
-        size = 5,
-        fontface = "bold"
-    ) +
-    annotate(
-        "text",
-        x = theta_hat + 0.1,
-        y = -0.02,
-        label = expression(hat(theta)),
-        color = "red",
-        size = 5,
-        fontface = "bold"
-    ) +
-    
-    # LRT: Compare heights of likelihood at theta_0 and theta_hat
-    annotate(
-        "segment",
-        x = theta_0,
-        xend = theta_0,
-        y = likelihood_0,
-        yend = likelihood_hat,
-        color = "purple",
-        linewidth = 1.2,
-        arrow = arrow(length = unit(0.15, "inches"))
-    ) +
-    annotate(
-        "text",
-        x = -2,
-        y = (likelihood_0 + likelihood_hat) / 2 + 0.02,
-        label = "LRT: Height",
-        color = "purple",
-        hjust = 0,
-        fontface = "bold",
-        size = 5
-    ) +
-    # Add horizontal lines at both ends of LRT height comparison
-    annotate(
-        "segment",
-        x = -2.5,
-        xend = 2.5,
-        y = likelihood_0,
-        yend = likelihood_0,
-        color = "purple",
-        linetype = "dotted",
-        linewidth = 1
-    ) +
-    annotate(
-        "segment",
-        x = -2.5,
-        xend = 2.5,
-        y = likelihood_hat,
-        yend = likelihood_hat,
-        color = "purple",
-        linetype = "dotted",
-        linewidth = 1
-    ) +
-    
-    # Wald Test: Distance between theta_0 and theta_hat
-    annotate(
-        "segment",
-        x = theta_0,
-        xend = theta_hat,
-        y = 0.05,
-        yend = 0.05,
-        color = "green",
-        linewidth = 1.2,
-        arrow = arrow(length = unit(0.15, "inches"))
-    ) +
-    annotate(
-        "text",
-        x = (theta_0 + theta_hat) / 2,
-        y = 0.07,
-        label = "Wald: Distance",
-        color = "green",
-        hjust = 0.5,
-        fontface = "bold",
-        size = 5
-    ) +
-    
-    # LM Test: Slope at theta_0
-    annotate(
-        "segment",
-        x = theta_0 - 0.2,
-        xend = theta_0 + 0.2,
-        y = dnorm(theta_0 - 0.2, mean = 1, sd = 1),
-        yend = dnorm(theta_0 + 0.2, mean = 1, sd = 1),
-        color = "orange",
-        linewidth = 1.2,
-        arrow = arrow(length = unit(0.15, "inches"))
-    ) +
-    annotate(
-        "text",
-        x = -1.5,
-        y = dnorm(-1, mean = 1, sd = 1) + .2,
-        label = "LM: Slope",
-        color = "orange",
-        hjust = 0,
-        fontface = "bold",
-        size = 5
-    ) +
-    
-    # Titles and themes
+    geom_line(color = "blue", linewidth = 1.2) +
+    geom_vline(xintercept = theta_0, linetype = "dashed", color = "black", linewidth = 1) +
+    geom_vline(xintercept = theta_hat, linetype = "dashed", color = "red", linewidth = 1) +
+
+    annotate("text",
+             x = theta_0 - 0.1,
+             y = -0.02,
+             label = "theta[0]",
+             color = "black",
+             size = 5,
+             fontface = "bold",
+             parse = TRUE) +
+    annotate("text",
+             x = theta_hat + 0.1,
+             y = -0.02,
+             label = "hat(theta)",
+             color = "red",
+             size = 5,
+             fontface = "bold",
+             parse = TRUE) +
+
+    # rest of your code unchanged ...
+    annotate("segment", x = theta_0, xend = theta_0, y = likelihood_0, yend = likelihood_hat,
+             color = "purple", linewidth = 1.2, arrow = arrow(length = unit(0.15, "inches"))) +
+    annotate("text", x = -2, y = (likelihood_0 + likelihood_hat)/2 + 0.02, label = "LRT: Height",
+             color = "purple", hjust = 0, fontface = "bold", size = 5) +
+    annotate("segment", x = -2.5, xend = 2.5, y = likelihood_0, yend = likelihood_0,
+             color = "purple", linetype = "dotted", linewidth = 1) +
+    annotate("segment", x = -2.5, xend = 2.5, y = likelihood_hat, yend = likelihood_hat,
+             color = "purple", linetype = "dotted", linewidth = 1) +
+    annotate("segment", x = theta_0, xend = theta_hat, y = 0.05, yend = 0.05,
+             color = "green", linewidth = 1.2, arrow = arrow(length = unit(0.15, "inches"))) +
+    annotate("text", x = (theta_0 + theta_hat)/2, y = 0.07, label = "Wald: Distance",
+             color = "green", hjust = 0.5, fontface = "bold", size = 5) +
+    annotate("segment", x = theta_0 - 0.2, xend = theta_0 + 0.2,
+             y = dnorm(theta_0 - 0.2, mean = 1, sd = 1),
+             yend = dnorm(theta_0 + 0.2, mean = 1, sd = 1),
+             color = "orange", linewidth = 1.2, arrow = arrow(length = unit(0.15, "inches"))) +
+    annotate("text", x = -1.5, y = dnorm(-1, mean = 1, sd = 1) + .2,
+             label = "LM: Slope", color = "orange", hjust = 0,
+             fontface = "bold", size = 5) +
     theme_minimal() +
     labs(title = "Comparison of Hypothesis Tests",
          x = expression(theta),

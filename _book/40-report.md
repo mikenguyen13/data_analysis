@@ -332,31 +332,35 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 
 
 ```{=html}
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
-<col><col><col><col><tr>
-<th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 3</th></tr>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;">
+<col><col><col><col><thead>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Budget</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-2.43 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-5.16 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-6.70 ***</td></tr>
+<th class="huxtable-cell huxtable-header" style="text-align: center;  border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;      font-weight: normal;"></th><th class="huxtable-cell huxtable-header" style="text-align: center;  border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;      font-weight: normal;">Model 1</th><th class="huxtable-cell huxtable-header" style="text-align: center;  border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;      font-weight: normal;">Model 2</th><th class="huxtable-cell huxtable-header" style="text-align: center;  border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;      font-weight: normal;">Model 3</th></tr>
+</thead>
+<tbody>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.44)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.62)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.67)&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;">Budget</th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;">-2.43 ***</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;">-5.16 ***</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;">-6.70 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">US Gross</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.96 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.85 ***</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;"></th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">(0.44)&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">(0.62)&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">(0.67)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.51)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.48)&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;">US Gross</th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">3.96 ***</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">3.85 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Runtime (Hours)</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">14.29 ***</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;"></th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">(0.51)&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">(0.48)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(1.63)&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;">Runtime (Hours)</th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">14.29 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Constant</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">105.29 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">81.84 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">83.35 ***</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;"></th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">(1.63)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(7.65)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.66)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.82)&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;">Constant</th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">105.29 ***</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">81.84 ***</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">83.35 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">N</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;"></th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">(7.65)&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">(8.66)&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">(8.82)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">R2</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.03&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.09&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.17&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;      font-weight: normal;">N</th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th colspan="4" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Standard errors are heteroskedasticity robust.  *** p &lt; 0.001;  ** p &lt; 0.01;  * p &lt; 0.05.</th></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;      font-weight: normal;">R2</th><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;">0.03&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;">0.09&nbsp;&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;">0.17&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<th class="huxtable-cell huxtable-header" colspan="4" style="border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;      font-weight: normal;">Standard errors are heteroskedasticity robust. *** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05.</th></tr>
+</tbody>
 </table>
 
 ```
@@ -375,202 +379,160 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
 ```{=html}
 <!-- preamble start -->
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
 
-      function styleCell_yrkezmsqm0zjh1fngr9f(i, j, css_id) {
-          var table = document.getElementById("tinytable_yrkezmsqm0zjh1fngr9f");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_yrkezmsqm0zjh1fngr9f');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_yrkezmsqm0zjh1fngr9f(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_yrkezmsqm0zjh1fngr9f");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_obwdaqvbrki17eqiy5mp = TinyTable.createTableFunctions("tinytable_obwdaqvbrki17eqiy5mp");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 17, j: 1 }, { i: 17, j: 2 }, { i: 17, j: 3 },  ], css_id: 'tinytable_css_ukyijcuzh0ag1iuexdjz',}, 
-          { positions: [ { i: 8, j: 3 }, { i: 8, j: 1 }, { i: 8, j: 2 },  ], css_id: 'tinytable_css_3y31ewa9c177qx0bnrbh',}, 
-          { positions: [ { i: 3, j: 1 }, { i: 4, j: 1 }, { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 7, j: 1 }, { i: 3, j: 2 }, { i: 9, j: 1 }, { i: 6, j: 1 }, { i: 11, j: 1 }, { i: 12, j: 1 }, { i: 13, j: 1 }, { i: 14, j: 1 }, { i: 15, j: 1 }, { i: 16, j: 1 }, { i: 12, j: 2 }, { i: 5, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 16, j: 2 }, { i: 4, j: 2 }, { i: 10, j: 1 }, { i: 6, j: 2 }, { i: 7, j: 2 }, { i: 3, j: 3 }, { i: 9, j: 2 }, { i: 10, j: 2 }, { i: 11, j: 2 }, { i: 7, j: 3 }, { i: 13, j: 2 }, { i: 14, j: 2 }, { i: 15, j: 2 }, { i: 11, j: 3 }, { i: 12, j: 3 }, { i: 5, j: 2 }, { i: 1, j: 3 }, { i: 2, j: 3 }, { i: 16, j: 3 }, { i: 4, j: 3 }, { i: 5, j: 3 }, { i: 6, j: 3 }, { i: 15, j: 3 }, { i: 9, j: 3 }, { i: 10, j: 3 }, { i: 13, j: 3 }, { i: 14, j: 3 },  ], css_id: 'tinytable_css_qxe47340df7ml8h05w02',}, 
-          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_kbupspn4hjb5jfrrsyih',}, 
-          { positions: [ { i: 17, j: 0 },  ], css_id: 'tinytable_css_2xh7ii6fw24dldundga6',}, 
-          { positions: [ { i: 8, j: 0 },  ], css_id: 'tinytable_css_zfzp2jgvqwnab67bi6vs',}, 
-          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 7, j: 0 }, { i: 12, j: 0 }, { i: 9, j: 0 }, { i: 10, j: 0 }, { i: 11, j: 0 }, { i: 16, j: 0 }, { i: 13, j: 0 }, { i: 14, j: 0 }, { i: 15, j: 0 },  ], css_id: 'tinytable_css_k1fjlrnl908ktoy797hf',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_joki86mfgeai44oacl0r',}, 
+          { positions: [ { i: '17', j: 2 }, { i: '17', j: 3 }, { i: '17', j: 4 } ], css_id: 'tinytable_css_13wjs9tk5knz6coet8dd',}, 
+          { positions: [ { i: '8', j: 2 }, { i: '8', j: 3 }, { i: '8', j: 4 } ], css_id: 'tinytable_css_689dw8pi4o5btg3rnjrx',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '10', j: 2 }, { i: '11', j: 2 }, { i: '12', j: 2 }, { i: '13', j: 2 }, { i: '14', j: 2 }, { i: '15', j: 2 }, { i: '16', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '10', j: 3 }, { i: '11', j: 3 }, { i: '12', j: 3 }, { i: '13', j: 3 }, { i: '14', j: 3 }, { i: '15', j: 3 }, { i: '16', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 }, { i: '7', j: 4 }, { i: '9', j: 4 }, { i: '10', j: 4 }, { i: '11', j: 4 }, { i: '12', j: 4 }, { i: '13', j: 4 }, { i: '14', j: 4 }, { i: '15', j: 4 }, { i: '16', j: 4 } ], css_id: 'tinytable_css_8m3vxillu2yb15c7dvxq',}, 
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_wavy10ec4nac7l4b5qkt',}, 
+          { positions: [ { i: '17', j: 1 } ], css_id: 'tinytable_css_1np0z0x71i58jh8nf92j',}, 
+          { positions: [ { i: '8', j: 1 } ], css_id: 'tinytable_css_15nfh2aaj393hae7vsak',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 }, { i: '11', j: 1 }, { i: '12', j: 1 }, { i: '13', j: 1 }, { i: '14', j: 1 }, { i: '15', j: 1 }, { i: '16', j: 1 } ], css_id: 'tinytable_css_ejk7ogi668p6lg7u0206',}, 
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_k69mznaq18di59bqmy3d',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_yrkezmsqm0zjh1fngr9f(cell.i, cell.j, group.css_id);
+                  tableFns_obwdaqvbrki17eqiy5mp.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
     <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_ukyijcuzh0ag1iuexdjz, .table th.tinytable_css_ukyijcuzh0ag1iuexdjz { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_3y31ewa9c177qx0bnrbh, .table th.tinytable_css_3y31ewa9c177qx0bnrbh { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_qxe47340df7ml8h05w02, .table th.tinytable_css_qxe47340df7ml8h05w02 { text-align: center; }
-      .table td.tinytable_css_kbupspn4hjb5jfrrsyih, .table th.tinytable_css_kbupspn4hjb5jfrrsyih { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_2xh7ii6fw24dldundga6, .table th.tinytable_css_2xh7ii6fw24dldundga6 { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_zfzp2jgvqwnab67bi6vs, .table th.tinytable_css_zfzp2jgvqwnab67bi6vs { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_k1fjlrnl908ktoy797hf, .table th.tinytable_css_k1fjlrnl908ktoy797hf { text-align: left; }
-      .table td.tinytable_css_joki86mfgeai44oacl0r, .table th.tinytable_css_joki86mfgeai44oacl0r { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    /* tinytable css entries after */
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_13wjs9tk5knz6coet8dd, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_13wjs9tk5knz6coet8dd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_689dw8pi4o5btg3rnjrx, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_689dw8pi4o5btg3rnjrx {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_8m3vxillu2yb15c7dvxq, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_8m3vxillu2yb15c7dvxq { text-align: center }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_wavy10ec4nac7l4b5qkt, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_wavy10ec4nac7l4b5qkt {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_1np0z0x71i58jh8nf92j, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_1np0z0x71i58jh8nf92j {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_15nfh2aaj393hae7vsak, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_15nfh2aaj393hae7vsak {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_ejk7ogi668p6lg7u0206, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_ejk7ogi668p6lg7u0206 { text-align: left }
+    #tinytable_obwdaqvbrki17eqiy5mp td.tinytable_css_k69mznaq18di59bqmy3d, #tinytable_obwdaqvbrki17eqiy5mp th.tinytable_css_k69mznaq18di59bqmy3d {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_yrkezmsqm0zjh1fngr9f" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
-        <thead>
+      <table class="tinytable" id="tinytable_obwdaqvbrki17eqiy5mp" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
         
+        <thead>
               <tr>
-                <th scope="col"> </th>
-                <th scope="col">(1)</th>
-                <th scope="col">(2)</th>
-                <th scope="col">(3)</th>
+                <th scope="col" data-row="0" data-col="1"> </th>
+                <th scope="col" data-row="0" data-col="2">(1)</th>
+                <th scope="col" data-row="0" data-col="3">(2)</th>
+                <th scope="col" data-row="0" data-col="4">(3)</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>(Intercept)</td>
-                  <td>38.752</td>
-                  <td>38.752</td>
-                  <td>38.752</td>
+                  <td data-row="1" data-col="1">(Intercept)</td>
+                  <td data-row="1" data-col="2">38.752</td>
+                  <td data-row="1" data-col="3">38.752</td>
+                  <td data-row="1" data-col="4">38.752</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(1.787)</td>
-                  <td>(2.286)</td>
-                  <td>(2.177)</td>
+                  <td data-row="2" data-col="1"></td>
+                  <td data-row="2" data-col="2">(1.787)</td>
+                  <td data-row="2" data-col="3">(2.286)</td>
+                  <td data-row="2" data-col="4">(2.177)</td>
                 </tr>
                 <tr>
-                  <td>wt</td>
-                  <td>-3.167</td>
-                  <td>-3.167</td>
-                  <td>-3.167</td>
+                  <td data-row="3" data-col="1">wt</td>
+                  <td data-row="3" data-col="2">-3.167</td>
+                  <td data-row="3" data-col="3">-3.167</td>
+                  <td data-row="3" data-col="4">-3.167</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(0.741)</td>
-                  <td>(0.833)</td>
-                  <td>(0.819)</td>
+                  <td data-row="4" data-col="1"></td>
+                  <td data-row="4" data-col="2">(0.741)</td>
+                  <td data-row="4" data-col="3">(0.833)</td>
+                  <td data-row="4" data-col="4">(0.819)</td>
                 </tr>
                 <tr>
-                  <td>hp</td>
-                  <td>-0.018</td>
-                  <td>-0.018</td>
-                  <td>-0.018</td>
+                  <td data-row="5" data-col="1">hp</td>
+                  <td data-row="5" data-col="2">-0.018</td>
+                  <td data-row="5" data-col="3">-0.018</td>
+                  <td data-row="5" data-col="4">-0.018</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(0.012)</td>
-                  <td>(0.010)</td>
-                  <td>(0.013)</td>
+                  <td data-row="6" data-col="1"></td>
+                  <td data-row="6" data-col="2">(0.012)</td>
+                  <td data-row="6" data-col="3">(0.010)</td>
+                  <td data-row="6" data-col="4">(0.013)</td>
                 </tr>
                 <tr>
-                  <td>cyl</td>
-                  <td>-0.942</td>
-                  <td>-0.942</td>
-                  <td>-0.942</td>
+                  <td data-row="7" data-col="1">cyl</td>
+                  <td data-row="7" data-col="2">-0.942</td>
+                  <td data-row="7" data-col="3">-0.942</td>
+                  <td data-row="7" data-col="4">-0.942</td>
                 </tr>
                 <tr>
-                  <td></td>
-                  <td>(0.551)</td>
-                  <td>(0.573)</td>
-                  <td>(0.572)</td>
+                  <td data-row="8" data-col="1"></td>
+                  <td data-row="8" data-col="2">(0.551)</td>
+                  <td data-row="8" data-col="3">(0.573)</td>
+                  <td data-row="8" data-col="4">(0.572)</td>
                 </tr>
                 <tr>
-                  <td>Num.Obs.</td>
-                  <td>32</td>
-                  <td>32</td>
-                  <td>32</td>
+                  <td data-row="9" data-col="1">Num.Obs.</td>
+                  <td data-row="9" data-col="2">32</td>
+                  <td data-row="9" data-col="3">32</td>
+                  <td data-row="9" data-col="4">32</td>
                 </tr>
                 <tr>
-                  <td>R2</td>
-                  <td>0.843</td>
-                  <td>0.843</td>
-                  <td>0.843</td>
+                  <td data-row="10" data-col="1">R2</td>
+                  <td data-row="10" data-col="2">0.843</td>
+                  <td data-row="10" data-col="3">0.843</td>
+                  <td data-row="10" data-col="4">0.843</td>
                 </tr>
                 <tr>
-                  <td>R2 Adj.</td>
-                  <td>0.826</td>
-                  <td>0.826</td>
-                  <td>0.826</td>
+                  <td data-row="11" data-col="1">R2 Adj.</td>
+                  <td data-row="11" data-col="2">0.826</td>
+                  <td data-row="11" data-col="3">0.826</td>
+                  <td data-row="11" data-col="4">0.826</td>
                 </tr>
                 <tr>
-                  <td>AIC</td>
-                  <td>155.5</td>
-                  <td>155.5</td>
-                  <td>155.5</td>
+                  <td data-row="12" data-col="1">AIC</td>
+                  <td data-row="12" data-col="2">155.5</td>
+                  <td data-row="12" data-col="3">155.5</td>
+                  <td data-row="12" data-col="4">155.5</td>
                 </tr>
                 <tr>
-                  <td>BIC</td>
-                  <td>162.8</td>
-                  <td>162.8</td>
-                  <td>162.8</td>
+                  <td data-row="13" data-col="1">BIC</td>
+                  <td data-row="13" data-col="2">162.8</td>
+                  <td data-row="13" data-col="3">162.8</td>
+                  <td data-row="13" data-col="4">162.8</td>
                 </tr>
                 <tr>
-                  <td>Log.Lik.</td>
-                  <td>-72.738</td>
-                  <td>-72.738</td>
-                  <td>-72.738</td>
+                  <td data-row="14" data-col="1">Log.Lik.</td>
+                  <td data-row="14" data-col="2">-72.738</td>
+                  <td data-row="14" data-col="3">-72.738</td>
+                  <td data-row="14" data-col="4">-72.738</td>
                 </tr>
                 <tr>
-                  <td>F</td>
-                  <td>50.171</td>
-                  <td>31.065</td>
-                  <td>32.623</td>
+                  <td data-row="15" data-col="1">F</td>
+                  <td data-row="15" data-col="2">50.171</td>
+                  <td data-row="15" data-col="3">31.065</td>
+                  <td data-row="15" data-col="4">32.623</td>
                 </tr>
                 <tr>
-                  <td>RMSE</td>
-                  <td>2.35</td>
-                  <td>2.35</td>
-                  <td>2.35</td>
+                  <td data-row="16" data-col="1">RMSE</td>
+                  <td data-row="16" data-col="2">2.35</td>
+                  <td data-row="16" data-col="3">2.35</td>
+                  <td data-row="16" data-col="4">2.35</td>
                 </tr>
                 <tr>
-                  <td>Std.Errors</td>
-                  <td>IID</td>
-                  <td>HC3</td>
-                  <td>HC4</td>
+                  <td data-row="17" data-col="1">Std.Errors</td>
+                  <td data-row="17" data-col="2">IID</td>
+                  <td data-row="17" data-col="3">HC3</td>
+                  <td data-row="17" data-col="4">HC4</td>
                 </tr>
         </tbody>
       </table>
@@ -593,7 +555,7 @@ library("stargazer")
 stargazer(attitude)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Wed, May 14, 2025 - 8:45:23 PM
+#> % Date and time: Fri, Oct 31, 2025 - 2:10:48 PM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
@@ -634,7 +596,7 @@ stargazer(linear.1,
           align = TRUE)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Wed, May 14, 2025 - 8:45:23 PM
+#> % Date and time: Fri, Oct 31, 2025 - 2:10:48 PM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10.9 Wavelet Regression | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10.9 Wavelet Regression | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1992,59 +1992,59 @@ d_{j, k}, &amp; \text{if } |d_{j, k}| &gt; \tau, \\
 </tbody>
 </table>
 <hr />
-<div class="sourceCode" id="cb476"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb476-1"><a href="sec-wavelet-regression.html#cb476-1" tabindex="-1"></a><span class="co"># Simulated data: Noisy signal with discontinuities</span></span>
-<span id="cb476-2"><a href="sec-wavelet-regression.html#cb476-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb476-3"><a href="sec-wavelet-regression.html#cb476-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">96</span></span>
-<span id="cb476-4"><a href="sec-wavelet-regression.html#cb476-4" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n)</span>
-<span id="cb476-5"><a href="sec-wavelet-regression.html#cb476-5" tabindex="-1"></a>signal <span class="ot">&lt;-</span></span>
-<span id="cb476-6"><a href="sec-wavelet-regression.html#cb476-6" tabindex="-1"></a>    <span class="fu">sin</span>(<span class="dv">4</span> <span class="sc">*</span> pi <span class="sc">*</span> x) <span class="sc">+</span> <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)  <span class="co"># Discontinuity at x = 0.5</span></span>
-<span id="cb476-7"><a href="sec-wavelet-regression.html#cb476-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> signal <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.2</span>)</span>
-<span id="cb476-8"><a href="sec-wavelet-regression.html#cb476-8" tabindex="-1"></a></span>
-<span id="cb476-9"><a href="sec-wavelet-regression.html#cb476-9" tabindex="-1"></a><span class="co"># Wavelet Regression using Discrete Wavelet Transform (DWT)</span></span>
-<span id="cb476-10"><a href="sec-wavelet-regression.html#cb476-10" tabindex="-1"></a><span class="fu">library</span>(waveslim)</span>
-<span id="cb476-11"><a href="sec-wavelet-regression.html#cb476-11" tabindex="-1"></a></span>
-<span id="cb476-12"><a href="sec-wavelet-regression.html#cb476-12" tabindex="-1"></a><span class="co"># Apply DWT with the correct parameter name</span></span>
-<span id="cb476-13"><a href="sec-wavelet-regression.html#cb476-13" tabindex="-1"></a>dwt_result <span class="ot">&lt;-</span> <span class="fu">dwt</span>(y, <span class="at">wf =</span> <span class="st">&quot;haar&quot;</span>, <span class="at">n.levels =</span> <span class="dv">4</span>)</span>
-<span id="cb476-14"><a href="sec-wavelet-regression.html#cb476-14" tabindex="-1"></a></span>
-<span id="cb476-15"><a href="sec-wavelet-regression.html#cb476-15" tabindex="-1"></a><span class="co"># Thresholding (currently hard thresholding)</span></span>
-<span id="cb476-16"><a href="sec-wavelet-regression.html#cb476-16" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
-<span id="cb476-17"><a href="sec-wavelet-regression.html#cb476-17" tabindex="-1"></a>dwt_result_thresh <span class="ot">&lt;-</span> dwt_result</span>
-<span id="cb476-18"><a href="sec-wavelet-regression.html#cb476-18" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) {</span>
-<span id="cb476-19"><a href="sec-wavelet-regression.html#cb476-19" tabindex="-1"></a>    dwt_result_thresh[[i]] <span class="ot">&lt;-</span></span>
-<span id="cb476-20"><a href="sec-wavelet-regression.html#cb476-20" tabindex="-1"></a>        <span class="fu">ifelse</span>(<span class="fu">abs</span>(dwt_result[[i]]) <span class="sc">&gt;</span> threshold, dwt_result[[i]], <span class="dv">0</span>)</span>
-<span id="cb476-21"><a href="sec-wavelet-regression.html#cb476-21" tabindex="-1"></a>}</span>
-<span id="cb476-22"><a href="sec-wavelet-regression.html#cb476-22" tabindex="-1"></a></span>
-<span id="cb476-23"><a href="sec-wavelet-regression.html#cb476-23" tabindex="-1"></a><span class="co"># for soft thresholding</span></span>
-<span id="cb476-24"><a href="sec-wavelet-regression.html#cb476-24" tabindex="-1"></a><span class="co"># for (i in 1:4) {</span></span>
-<span id="cb476-25"><a href="sec-wavelet-regression.html#cb476-25" tabindex="-1"></a><span class="co">#     dwt_result_thresh[[i]] &lt;-</span></span>
-<span id="cb476-26"><a href="sec-wavelet-regression.html#cb476-26" tabindex="-1"></a><span class="co">#         sign(dwt_result[[i]]) * pmax(abs(dwt_result[[i]]) - threshold, 0)</span></span>
-<span id="cb476-27"><a href="sec-wavelet-regression.html#cb476-27" tabindex="-1"></a><span class="co"># }</span></span>
-<span id="cb476-28"><a href="sec-wavelet-regression.html#cb476-28" tabindex="-1"></a></span>
-<span id="cb476-29"><a href="sec-wavelet-regression.html#cb476-29" tabindex="-1"></a></span>
-<span id="cb476-30"><a href="sec-wavelet-regression.html#cb476-30" tabindex="-1"></a><span class="co"># Inverse DWT to reconstruct the signal</span></span>
-<span id="cb476-31"><a href="sec-wavelet-regression.html#cb476-31" tabindex="-1"></a>y_hat <span class="ot">&lt;-</span> <span class="fu">idwt</span>(dwt_result_thresh)</span></code></pre></div>
-<div class="sourceCode" id="cb477"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb477-1"><a href="sec-wavelet-regression.html#cb477-1" tabindex="-1"></a><span class="co"># Plotting</span></span>
-<span id="cb477-2"><a href="sec-wavelet-regression.html#cb477-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb477-3"><a href="sec-wavelet-regression.html#cb477-3" tabindex="-1"></a>    x,</span>
-<span id="cb477-4"><a href="sec-wavelet-regression.html#cb477-4" tabindex="-1"></a>    y,</span>
-<span id="cb477-5"><a href="sec-wavelet-regression.html#cb477-5" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;l&quot;</span>,</span>
-<span id="cb477-6"><a href="sec-wavelet-regression.html#cb477-6" tabindex="-1"></a>    <span class="at">col =</span> <span class="st">&quot;gray&quot;</span>,</span>
-<span id="cb477-7"><a href="sec-wavelet-regression.html#cb477-7" tabindex="-1"></a>    <span class="at">lwd =</span> <span class="dv">1</span>,</span>
-<span id="cb477-8"><a href="sec-wavelet-regression.html#cb477-8" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Wavelet Regression (Denoising)&quot;</span></span>
-<span id="cb477-9"><a href="sec-wavelet-regression.html#cb477-9" tabindex="-1"></a>)</span>
-<span id="cb477-10"><a href="sec-wavelet-regression.html#cb477-10" tabindex="-1"></a><span class="fu">lines</span>(x,</span>
-<span id="cb477-11"><a href="sec-wavelet-regression.html#cb477-11" tabindex="-1"></a>      signal,</span>
-<span id="cb477-12"><a href="sec-wavelet-regression.html#cb477-12" tabindex="-1"></a>      <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb477-13"><a href="sec-wavelet-regression.html#cb477-13" tabindex="-1"></a>      <span class="at">lwd =</span> <span class="dv">2</span>,</span>
-<span id="cb477-14"><a href="sec-wavelet-regression.html#cb477-14" tabindex="-1"></a>      <span class="at">lty =</span> <span class="dv">2</span>)  <span class="co"># True signal</span></span>
-<span id="cb477-15"><a href="sec-wavelet-regression.html#cb477-15" tabindex="-1"></a><span class="fu">lines</span>(x, y_hat, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)             <span class="co"># Denoised estimate</span></span>
-<span id="cb477-16"><a href="sec-wavelet-regression.html#cb477-16" tabindex="-1"></a><span class="fu">legend</span>(</span>
-<span id="cb477-17"><a href="sec-wavelet-regression.html#cb477-17" tabindex="-1"></a>    <span class="st">&quot;topright&quot;</span>,</span>
-<span id="cb477-18"><a href="sec-wavelet-regression.html#cb477-18" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;Noisy Data&quot;</span>, <span class="st">&quot;True Signal&quot;</span>, <span class="st">&quot;Wavelet Estimate&quot;</span>),</span>
-<span id="cb477-19"><a href="sec-wavelet-regression.html#cb477-19" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>),</span>
-<span id="cb477-20"><a href="sec-wavelet-regression.html#cb477-20" tabindex="-1"></a>    <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
-<span id="cb477-21"><a href="sec-wavelet-regression.html#cb477-21" tabindex="-1"></a>    <span class="at">lwd =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>)</span>
-<span id="cb477-22"><a href="sec-wavelet-regression.html#cb477-22" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb481"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb481-1"><a href="sec-wavelet-regression.html#cb481-1" tabindex="-1"></a><span class="co"># Simulated data: Noisy signal with discontinuities</span></span>
+<span id="cb481-2"><a href="sec-wavelet-regression.html#cb481-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb481-3"><a href="sec-wavelet-regression.html#cb481-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">96</span></span>
+<span id="cb481-4"><a href="sec-wavelet-regression.html#cb481-4" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb481-5"><a href="sec-wavelet-regression.html#cb481-5" tabindex="-1"></a>signal <span class="ot">&lt;-</span></span>
+<span id="cb481-6"><a href="sec-wavelet-regression.html#cb481-6" tabindex="-1"></a>    <span class="fu">sin</span>(<span class="dv">4</span> <span class="sc">*</span> pi <span class="sc">*</span> x) <span class="sc">+</span> <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)  <span class="co"># Discontinuity at x = 0.5</span></span>
+<span id="cb481-7"><a href="sec-wavelet-regression.html#cb481-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> signal <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.2</span>)</span>
+<span id="cb481-8"><a href="sec-wavelet-regression.html#cb481-8" tabindex="-1"></a></span>
+<span id="cb481-9"><a href="sec-wavelet-regression.html#cb481-9" tabindex="-1"></a><span class="co"># Wavelet Regression using Discrete Wavelet Transform (DWT)</span></span>
+<span id="cb481-10"><a href="sec-wavelet-regression.html#cb481-10" tabindex="-1"></a><span class="fu">library</span>(waveslim)</span>
+<span id="cb481-11"><a href="sec-wavelet-regression.html#cb481-11" tabindex="-1"></a></span>
+<span id="cb481-12"><a href="sec-wavelet-regression.html#cb481-12" tabindex="-1"></a><span class="co"># Apply DWT with the correct parameter name</span></span>
+<span id="cb481-13"><a href="sec-wavelet-regression.html#cb481-13" tabindex="-1"></a>dwt_result <span class="ot">&lt;-</span> <span class="fu">dwt</span>(y, <span class="at">wf =</span> <span class="st">&quot;haar&quot;</span>, <span class="at">n.levels =</span> <span class="dv">4</span>)</span>
+<span id="cb481-14"><a href="sec-wavelet-regression.html#cb481-14" tabindex="-1"></a></span>
+<span id="cb481-15"><a href="sec-wavelet-regression.html#cb481-15" tabindex="-1"></a><span class="co"># Thresholding (currently hard thresholding)</span></span>
+<span id="cb481-16"><a href="sec-wavelet-regression.html#cb481-16" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb481-17"><a href="sec-wavelet-regression.html#cb481-17" tabindex="-1"></a>dwt_result_thresh <span class="ot">&lt;-</span> dwt_result</span>
+<span id="cb481-18"><a href="sec-wavelet-regression.html#cb481-18" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) {</span>
+<span id="cb481-19"><a href="sec-wavelet-regression.html#cb481-19" tabindex="-1"></a>    dwt_result_thresh[[i]] <span class="ot">&lt;-</span></span>
+<span id="cb481-20"><a href="sec-wavelet-regression.html#cb481-20" tabindex="-1"></a>        <span class="fu">ifelse</span>(<span class="fu">abs</span>(dwt_result[[i]]) <span class="sc">&gt;</span> threshold, dwt_result[[i]], <span class="dv">0</span>)</span>
+<span id="cb481-21"><a href="sec-wavelet-regression.html#cb481-21" tabindex="-1"></a>}</span>
+<span id="cb481-22"><a href="sec-wavelet-regression.html#cb481-22" tabindex="-1"></a></span>
+<span id="cb481-23"><a href="sec-wavelet-regression.html#cb481-23" tabindex="-1"></a><span class="co"># for soft thresholding</span></span>
+<span id="cb481-24"><a href="sec-wavelet-regression.html#cb481-24" tabindex="-1"></a><span class="co"># for (i in 1:4) {</span></span>
+<span id="cb481-25"><a href="sec-wavelet-regression.html#cb481-25" tabindex="-1"></a><span class="co">#     dwt_result_thresh[[i]] &lt;-</span></span>
+<span id="cb481-26"><a href="sec-wavelet-regression.html#cb481-26" tabindex="-1"></a><span class="co">#         sign(dwt_result[[i]]) * pmax(abs(dwt_result[[i]]) - threshold, 0)</span></span>
+<span id="cb481-27"><a href="sec-wavelet-regression.html#cb481-27" tabindex="-1"></a><span class="co"># }</span></span>
+<span id="cb481-28"><a href="sec-wavelet-regression.html#cb481-28" tabindex="-1"></a></span>
+<span id="cb481-29"><a href="sec-wavelet-regression.html#cb481-29" tabindex="-1"></a></span>
+<span id="cb481-30"><a href="sec-wavelet-regression.html#cb481-30" tabindex="-1"></a><span class="co"># Inverse DWT to reconstruct the signal</span></span>
+<span id="cb481-31"><a href="sec-wavelet-regression.html#cb481-31" tabindex="-1"></a>y_hat <span class="ot">&lt;-</span> <span class="fu">idwt</span>(dwt_result_thresh)</span></code></pre></div>
+<div class="sourceCode" id="cb482"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb482-1"><a href="sec-wavelet-regression.html#cb482-1" tabindex="-1"></a><span class="co"># Plotting</span></span>
+<span id="cb482-2"><a href="sec-wavelet-regression.html#cb482-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb482-3"><a href="sec-wavelet-regression.html#cb482-3" tabindex="-1"></a>    x,</span>
+<span id="cb482-4"><a href="sec-wavelet-regression.html#cb482-4" tabindex="-1"></a>    y,</span>
+<span id="cb482-5"><a href="sec-wavelet-regression.html#cb482-5" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;l&quot;</span>,</span>
+<span id="cb482-6"><a href="sec-wavelet-regression.html#cb482-6" tabindex="-1"></a>    <span class="at">col =</span> <span class="st">&quot;gray&quot;</span>,</span>
+<span id="cb482-7"><a href="sec-wavelet-regression.html#cb482-7" tabindex="-1"></a>    <span class="at">lwd =</span> <span class="dv">1</span>,</span>
+<span id="cb482-8"><a href="sec-wavelet-regression.html#cb482-8" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;Wavelet Regression (Denoising)&quot;</span></span>
+<span id="cb482-9"><a href="sec-wavelet-regression.html#cb482-9" tabindex="-1"></a>)</span>
+<span id="cb482-10"><a href="sec-wavelet-regression.html#cb482-10" tabindex="-1"></a><span class="fu">lines</span>(x,</span>
+<span id="cb482-11"><a href="sec-wavelet-regression.html#cb482-11" tabindex="-1"></a>      signal,</span>
+<span id="cb482-12"><a href="sec-wavelet-regression.html#cb482-12" tabindex="-1"></a>      <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb482-13"><a href="sec-wavelet-regression.html#cb482-13" tabindex="-1"></a>      <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb482-14"><a href="sec-wavelet-regression.html#cb482-14" tabindex="-1"></a>      <span class="at">lty =</span> <span class="dv">2</span>)  <span class="co"># True signal</span></span>
+<span id="cb482-15"><a href="sec-wavelet-regression.html#cb482-15" tabindex="-1"></a><span class="fu">lines</span>(x, y_hat, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)             <span class="co"># Denoised estimate</span></span>
+<span id="cb482-16"><a href="sec-wavelet-regression.html#cb482-16" tabindex="-1"></a><span class="fu">legend</span>(</span>
+<span id="cb482-17"><a href="sec-wavelet-regression.html#cb482-17" tabindex="-1"></a>    <span class="st">&quot;topright&quot;</span>,</span>
+<span id="cb482-18"><a href="sec-wavelet-regression.html#cb482-18" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;Noisy Data&quot;</span>, <span class="st">&quot;True Signal&quot;</span>, <span class="st">&quot;Wavelet Estimate&quot;</span>),</span>
+<span id="cb482-19"><a href="sec-wavelet-regression.html#cb482-19" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>),</span>
+<span id="cb482-20"><a href="sec-wavelet-regression.html#cb482-20" tabindex="-1"></a>    <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
+<span id="cb482-21"><a href="sec-wavelet-regression.html#cb482-21" tabindex="-1"></a>    <span class="at">lwd =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb482-22"><a href="sec-wavelet-regression.html#cb482-22" tabindex="-1"></a>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-wavelet-denoising"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-wavelet-denoising-1.png" alt="Chart titled Wavelet Regression Denoising showing an XY plot with three lines: gray for noisy data, blue dashed for the true signal, and red for the wavelet estimate. The x-axis ranges from 0.0 to 1.0 and the y-axis ranges from -1.0 to 2.0. A legend in the top right corner labels the lines. The chart illustrates the effectiveness of wavelet regression in denoising data" width="100%" />
 <p class="caption">
@@ -2063,130 +2063,130 @@ Figure 10.22: Wavelet Regression (Denoising)
 <li><p><strong>Less Interpretability:</strong> Coefficients are less interpretable compared to spline or tree-based methods.</p></li>
 <li><p><strong>Boundary Effects:</strong> May suffer from artifacts near data boundaries without proper treatment.</p></li>
 </ul>
-<div class="sourceCode" id="cb478"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb478-1"><a href="sec-wavelet-regression.html#cb478-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb478-2"><a href="sec-wavelet-regression.html#cb478-2" tabindex="-1"></a><span class="fu">library</span>(waveslim)   <span class="co"># For Discrete Wavelet Transform (DWT)</span></span>
-<span id="cb478-3"><a href="sec-wavelet-regression.html#cb478-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb478-4"><a href="sec-wavelet-regression.html#cb478-4" tabindex="-1"></a></span>
-<span id="cb478-5"><a href="sec-wavelet-regression.html#cb478-5" tabindex="-1"></a></span>
-<span id="cb478-6"><a href="sec-wavelet-regression.html#cb478-6" tabindex="-1"></a><span class="co"># Simulate Data: Noisy signal with discontinuities</span></span>
-<span id="cb478-7"><a href="sec-wavelet-regression.html#cb478-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb478-8"><a href="sec-wavelet-regression.html#cb478-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">96</span></span>
-<span id="cb478-9"><a href="sec-wavelet-regression.html#cb478-9" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n)</span>
-<span id="cb478-10"><a href="sec-wavelet-regression.html#cb478-10" tabindex="-1"></a></span>
-<span id="cb478-11"><a href="sec-wavelet-regression.html#cb478-11" tabindex="-1"></a><span class="co"># True signal: Sinusoidal with a discontinuity at x = 0.5</span></span>
-<span id="cb478-12"><a href="sec-wavelet-regression.html#cb478-12" tabindex="-1"></a>signal <span class="ot">&lt;-</span> <span class="fu">sin</span>(<span class="dv">4</span> <span class="sc">*</span> pi <span class="sc">*</span> x) <span class="sc">+</span> <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb478-13"><a href="sec-wavelet-regression.html#cb478-13" tabindex="-1"></a></span>
-<span id="cb478-14"><a href="sec-wavelet-regression.html#cb478-14" tabindex="-1"></a><span class="co"># Add Gaussian noise</span></span>
-<span id="cb478-15"><a href="sec-wavelet-regression.html#cb478-15" tabindex="-1"></a>y <span class="ot">&lt;-</span> signal <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.2</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb479"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb479-1"><a href="sec-wavelet-regression.html#cb479-1" tabindex="-1"></a><span class="co"># Plot the noisy data and true signal</span></span>
-<span id="cb479-2"><a href="sec-wavelet-regression.html#cb479-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb479-3"><a href="sec-wavelet-regression.html#cb479-3" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, y),</span>
-<span id="cb479-4"><a href="sec-wavelet-regression.html#cb479-4" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;gray&quot;</span>,</span>
-<span id="cb479-5"><a href="sec-wavelet-regression.html#cb479-5" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">0.8</span>,</span>
-<span id="cb479-6"><a href="sec-wavelet-regression.html#cb479-6" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb479-7"><a href="sec-wavelet-regression.html#cb479-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
-<span id="cb479-8"><a href="sec-wavelet-regression.html#cb479-8" tabindex="-1"></a>        <span class="fu">aes</span>(x, signal),</span>
-<span id="cb479-9"><a href="sec-wavelet-regression.html#cb479-9" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb479-10"><a href="sec-wavelet-regression.html#cb479-10" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb479-11"><a href="sec-wavelet-regression.html#cb479-11" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">1</span></span>
-<span id="cb479-12"><a href="sec-wavelet-regression.html#cb479-12" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb479-13"><a href="sec-wavelet-regression.html#cb479-13" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Noisy Data with Underlying True Signal&quot;</span>,</span>
-<span id="cb479-14"><a href="sec-wavelet-regression.html#cb479-14" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Signal&quot;</span>) <span class="sc">+</span></span>
-<span id="cb479-15"><a href="sec-wavelet-regression.html#cb479-15" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb483"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb483-1"><a href="sec-wavelet-regression.html#cb483-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb483-2"><a href="sec-wavelet-regression.html#cb483-2" tabindex="-1"></a><span class="fu">library</span>(waveslim)   <span class="co"># For Discrete Wavelet Transform (DWT)</span></span>
+<span id="cb483-3"><a href="sec-wavelet-regression.html#cb483-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb483-4"><a href="sec-wavelet-regression.html#cb483-4" tabindex="-1"></a></span>
+<span id="cb483-5"><a href="sec-wavelet-regression.html#cb483-5" tabindex="-1"></a></span>
+<span id="cb483-6"><a href="sec-wavelet-regression.html#cb483-6" tabindex="-1"></a><span class="co"># Simulate Data: Noisy signal with discontinuities</span></span>
+<span id="cb483-7"><a href="sec-wavelet-regression.html#cb483-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb483-8"><a href="sec-wavelet-regression.html#cb483-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">96</span></span>
+<span id="cb483-9"><a href="sec-wavelet-regression.html#cb483-9" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb483-10"><a href="sec-wavelet-regression.html#cb483-10" tabindex="-1"></a></span>
+<span id="cb483-11"><a href="sec-wavelet-regression.html#cb483-11" tabindex="-1"></a><span class="co"># True signal: Sinusoidal with a discontinuity at x = 0.5</span></span>
+<span id="cb483-12"><a href="sec-wavelet-regression.html#cb483-12" tabindex="-1"></a>signal <span class="ot">&lt;-</span> <span class="fu">sin</span>(<span class="dv">4</span> <span class="sc">*</span> pi <span class="sc">*</span> x) <span class="sc">+</span> <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb483-13"><a href="sec-wavelet-regression.html#cb483-13" tabindex="-1"></a></span>
+<span id="cb483-14"><a href="sec-wavelet-regression.html#cb483-14" tabindex="-1"></a><span class="co"># Add Gaussian noise</span></span>
+<span id="cb483-15"><a href="sec-wavelet-regression.html#cb483-15" tabindex="-1"></a>y <span class="ot">&lt;-</span> signal <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb484"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb484-1"><a href="sec-wavelet-regression.html#cb484-1" tabindex="-1"></a><span class="co"># Plot the noisy data and true signal</span></span>
+<span id="cb484-2"><a href="sec-wavelet-regression.html#cb484-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb484-3"><a href="sec-wavelet-regression.html#cb484-3" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x, y),</span>
+<span id="cb484-4"><a href="sec-wavelet-regression.html#cb484-4" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;gray&quot;</span>,</span>
+<span id="cb484-5"><a href="sec-wavelet-regression.html#cb484-5" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">0.8</span>,</span>
+<span id="cb484-6"><a href="sec-wavelet-regression.html#cb484-6" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb484-7"><a href="sec-wavelet-regression.html#cb484-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
+<span id="cb484-8"><a href="sec-wavelet-regression.html#cb484-8" tabindex="-1"></a>        <span class="fu">aes</span>(x, signal),</span>
+<span id="cb484-9"><a href="sec-wavelet-regression.html#cb484-9" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb484-10"><a href="sec-wavelet-regression.html#cb484-10" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb484-11"><a href="sec-wavelet-regression.html#cb484-11" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">1</span></span>
+<span id="cb484-12"><a href="sec-wavelet-regression.html#cb484-12" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb484-13"><a href="sec-wavelet-regression.html#cb484-13" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Noisy Data with Underlying True Signal&quot;</span>,</span>
+<span id="cb484-14"><a href="sec-wavelet-regression.html#cb484-14" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Signal&quot;</span>) <span class="sc">+</span></span>
+<span id="cb484-15"><a href="sec-wavelet-regression.html#cb484-15" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-noisy-true-signal"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-noisy-true-signal-1.png" alt="Chart titled Noisy Data with Underlying True Signal showing an XY plot. The x-axis is labeled x and ranges from 0 to 1. The y-axis is labeled Signal and ranges from -1 to 2. A grey line represents noisy data with fluctuations, while a blue dashed line indicates the smoother underlying true signal" width="100%" />
 <p class="caption">
 Figure 10.23: Noisy Data with Underlying True Signal
 </p>
 </div>
-<div class="sourceCode" id="cb480"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb480-1"><a href="sec-wavelet-regression.html#cb480-1" tabindex="-1"></a><span class="co"># Apply Discrete Wavelet Transform (DWT) using Haar wavelet</span></span>
-<span id="cb480-2"><a href="sec-wavelet-regression.html#cb480-2" tabindex="-1"></a>dwt_result <span class="ot">&lt;-</span> <span class="fu">dwt</span>(y, <span class="at">wf =</span> <span class="st">&quot;haar&quot;</span>, <span class="at">n.levels =</span> <span class="dv">4</span>)</span>
-<span id="cb480-3"><a href="sec-wavelet-regression.html#cb480-3" tabindex="-1"></a></span>
-<span id="cb480-4"><a href="sec-wavelet-regression.html#cb480-4" tabindex="-1"></a><span class="co"># View DWT structure</span></span>
-<span id="cb480-5"><a href="sec-wavelet-regression.html#cb480-5" tabindex="-1"></a><span class="fu">str</span>(dwt_result)</span>
-<span id="cb480-6"><a href="sec-wavelet-regression.html#cb480-6" tabindex="-1"></a><span class="co">#&gt; List of 5</span></span>
-<span id="cb480-7"><a href="sec-wavelet-regression.html#cb480-7" tabindex="-1"></a><span class="co">#&gt;  $ d1: num [1:48] 0.14 -0.1221 0.3017 -0.1831 0.0745 ...</span></span>
-<span id="cb480-8"><a href="sec-wavelet-regression.html#cb480-8" tabindex="-1"></a><span class="co">#&gt;  $ d2: num [1:24] 0.50003 -0.06828 0.35298 0.01582 -0.00853 ...</span></span>
-<span id="cb480-9"><a href="sec-wavelet-regression.html#cb480-9" tabindex="-1"></a><span class="co">#&gt;  $ d3: num [1:12] 0.669 0.128 -0.746 -0.532 -0.258 ...</span></span>
-<span id="cb480-10"><a href="sec-wavelet-regression.html#cb480-10" tabindex="-1"></a><span class="co">#&gt;  $ d4: num [1:6] 1.07 -1.766 0.752 0.663 -1.963 ...</span></span>
-<span id="cb480-11"><a href="sec-wavelet-regression.html#cb480-11" tabindex="-1"></a><span class="co">#&gt;  $ s4: num [1:6] 2.963 -0.159 -2.758 6.945 3.845 ...</span></span>
-<span id="cb480-12"><a href="sec-wavelet-regression.html#cb480-12" tabindex="-1"></a><span class="co">#&gt;  - attr(*, &quot;class&quot;)= chr &quot;dwt&quot;</span></span>
-<span id="cb480-13"><a href="sec-wavelet-regression.html#cb480-13" tabindex="-1"></a><span class="co">#&gt;  - attr(*, &quot;wavelet&quot;)= chr &quot;haar&quot;</span></span>
-<span id="cb480-14"><a href="sec-wavelet-regression.html#cb480-14" tabindex="-1"></a><span class="co">#&gt;  - attr(*, &quot;boundary&quot;)= chr &quot;periodic&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb485"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb485-1"><a href="sec-wavelet-regression.html#cb485-1" tabindex="-1"></a><span class="co"># Apply Discrete Wavelet Transform (DWT) using Haar wavelet</span></span>
+<span id="cb485-2"><a href="sec-wavelet-regression.html#cb485-2" tabindex="-1"></a>dwt_result <span class="ot">&lt;-</span> <span class="fu">dwt</span>(y, <span class="at">wf =</span> <span class="st">&quot;haar&quot;</span>, <span class="at">n.levels =</span> <span class="dv">4</span>)</span>
+<span id="cb485-3"><a href="sec-wavelet-regression.html#cb485-3" tabindex="-1"></a></span>
+<span id="cb485-4"><a href="sec-wavelet-regression.html#cb485-4" tabindex="-1"></a><span class="co"># View DWT structure</span></span>
+<span id="cb485-5"><a href="sec-wavelet-regression.html#cb485-5" tabindex="-1"></a><span class="fu">str</span>(dwt_result)</span>
+<span id="cb485-6"><a href="sec-wavelet-regression.html#cb485-6" tabindex="-1"></a><span class="co">#&gt; List of 5</span></span>
+<span id="cb485-7"><a href="sec-wavelet-regression.html#cb485-7" tabindex="-1"></a><span class="co">#&gt;  $ d1: num [1:48] 0.14 -0.1221 0.3017 -0.1831 0.0745 ...</span></span>
+<span id="cb485-8"><a href="sec-wavelet-regression.html#cb485-8" tabindex="-1"></a><span class="co">#&gt;  $ d2: num [1:24] 0.50003 -0.06828 0.35298 0.01582 -0.00853 ...</span></span>
+<span id="cb485-9"><a href="sec-wavelet-regression.html#cb485-9" tabindex="-1"></a><span class="co">#&gt;  $ d3: num [1:12] 0.669 0.128 -0.746 -0.532 -0.258 ...</span></span>
+<span id="cb485-10"><a href="sec-wavelet-regression.html#cb485-10" tabindex="-1"></a><span class="co">#&gt;  $ d4: num [1:6] 1.07 -1.766 0.752 0.663 -1.963 ...</span></span>
+<span id="cb485-11"><a href="sec-wavelet-regression.html#cb485-11" tabindex="-1"></a><span class="co">#&gt;  $ s4: num [1:6] 2.963 -0.159 -2.758 6.945 3.845 ...</span></span>
+<span id="cb485-12"><a href="sec-wavelet-regression.html#cb485-12" tabindex="-1"></a><span class="co">#&gt;  - attr(*, &quot;class&quot;)= chr &quot;dwt&quot;</span></span>
+<span id="cb485-13"><a href="sec-wavelet-regression.html#cb485-13" tabindex="-1"></a><span class="co">#&gt;  - attr(*, &quot;wavelet&quot;)= chr &quot;haar&quot;</span></span>
+<span id="cb485-14"><a href="sec-wavelet-regression.html#cb485-14" tabindex="-1"></a><span class="co">#&gt;  - attr(*, &quot;boundary&quot;)= chr &quot;periodic&quot;</span></span></code></pre></div>
 <ul>
 <li><code>wf = "haar"</code>: Haar wavelet, simple and effective for detecting discontinuities.</li>
 <li><code>n.levels = 4</code>: Number of decomposition levels (captures details at different scales).</li>
 </ul>
 <p>The DWT output contains approximation coefficients and detail coefficients for each level.</p>
-<div class="sourceCode" id="cb481"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb481-1"><a href="sec-wavelet-regression.html#cb481-1" tabindex="-1"></a><span class="co"># Hard Thresholding</span></span>
-<span id="cb481-2"><a href="sec-wavelet-regression.html#cb481-2" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.2</span>  <span class="co"># Chosen threshold for demonstration</span></span>
-<span id="cb481-3"><a href="sec-wavelet-regression.html#cb481-3" tabindex="-1"></a>dwt_hard_thresh <span class="ot">&lt;-</span> dwt_result</span>
-<span id="cb481-4"><a href="sec-wavelet-regression.html#cb481-4" tabindex="-1"></a></span>
-<span id="cb481-5"><a href="sec-wavelet-regression.html#cb481-5" tabindex="-1"></a><span class="co"># Apply hard thresholding to detail coefficients</span></span>
-<span id="cb481-6"><a href="sec-wavelet-regression.html#cb481-6" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) {</span>
-<span id="cb481-7"><a href="sec-wavelet-regression.html#cb481-7" tabindex="-1"></a>  dwt_hard_thresh[[i]] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">abs</span>(dwt_result[[i]]) <span class="sc">&gt;</span> threshold, dwt_result[[i]], <span class="dv">0</span>)</span>
-<span id="cb481-8"><a href="sec-wavelet-regression.html#cb481-8" tabindex="-1"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb482"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb482-1"><a href="sec-wavelet-regression.html#cb482-1" tabindex="-1"></a><span class="co"># Soft Thresholding</span></span>
-<span id="cb482-2"><a href="sec-wavelet-regression.html#cb482-2" tabindex="-1"></a>dwt_soft_thresh <span class="ot">&lt;-</span> dwt_result</span>
-<span id="cb482-3"><a href="sec-wavelet-regression.html#cb482-3" tabindex="-1"></a></span>
-<span id="cb482-4"><a href="sec-wavelet-regression.html#cb482-4" tabindex="-1"></a><span class="co"># Apply soft thresholding to detail coefficients</span></span>
-<span id="cb482-5"><a href="sec-wavelet-regression.html#cb482-5" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) {</span>
-<span id="cb482-6"><a href="sec-wavelet-regression.html#cb482-6" tabindex="-1"></a>  dwt_soft_thresh[[i]] <span class="ot">&lt;-</span> <span class="fu">sign</span>(dwt_result[[i]]) <span class="sc">*</span> <span class="fu">pmax</span>(<span class="fu">abs</span>(dwt_result[[i]]) <span class="sc">-</span> threshold, <span class="dv">0</span>)</span>
-<span id="cb482-7"><a href="sec-wavelet-regression.html#cb482-7" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb486"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb486-1"><a href="sec-wavelet-regression.html#cb486-1" tabindex="-1"></a><span class="co"># Hard Thresholding</span></span>
+<span id="cb486-2"><a href="sec-wavelet-regression.html#cb486-2" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.2</span>  <span class="co"># Chosen threshold for demonstration</span></span>
+<span id="cb486-3"><a href="sec-wavelet-regression.html#cb486-3" tabindex="-1"></a>dwt_hard_thresh <span class="ot">&lt;-</span> dwt_result</span>
+<span id="cb486-4"><a href="sec-wavelet-regression.html#cb486-4" tabindex="-1"></a></span>
+<span id="cb486-5"><a href="sec-wavelet-regression.html#cb486-5" tabindex="-1"></a><span class="co"># Apply hard thresholding to detail coefficients</span></span>
+<span id="cb486-6"><a href="sec-wavelet-regression.html#cb486-6" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) {</span>
+<span id="cb486-7"><a href="sec-wavelet-regression.html#cb486-7" tabindex="-1"></a>  dwt_hard_thresh[[i]] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">abs</span>(dwt_result[[i]]) <span class="sc">&gt;</span> threshold, dwt_result[[i]], <span class="dv">0</span>)</span>
+<span id="cb486-8"><a href="sec-wavelet-regression.html#cb486-8" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb487"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb487-1"><a href="sec-wavelet-regression.html#cb487-1" tabindex="-1"></a><span class="co"># Soft Thresholding</span></span>
+<span id="cb487-2"><a href="sec-wavelet-regression.html#cb487-2" tabindex="-1"></a>dwt_soft_thresh <span class="ot">&lt;-</span> dwt_result</span>
+<span id="cb487-3"><a href="sec-wavelet-regression.html#cb487-3" tabindex="-1"></a></span>
+<span id="cb487-4"><a href="sec-wavelet-regression.html#cb487-4" tabindex="-1"></a><span class="co"># Apply soft thresholding to detail coefficients</span></span>
+<span id="cb487-5"><a href="sec-wavelet-regression.html#cb487-5" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) {</span>
+<span id="cb487-6"><a href="sec-wavelet-regression.html#cb487-6" tabindex="-1"></a>  dwt_soft_thresh[[i]] <span class="ot">&lt;-</span> <span class="fu">sign</span>(dwt_result[[i]]) <span class="sc">*</span> <span class="fu">pmax</span>(<span class="fu">abs</span>(dwt_result[[i]]) <span class="sc">-</span> threshold, <span class="dv">0</span>)</span>
+<span id="cb487-7"><a href="sec-wavelet-regression.html#cb487-7" tabindex="-1"></a>}</span></code></pre></div>
 <ul>
 <li>Hard Thresholding: Keeps coefficients above the threshold, sets others to zero.</li>
 <li>Soft Thresholding: Shrinks coefficients toward zero, reducing potential noise smoothly.</li>
 </ul>
-<div class="sourceCode" id="cb483"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb483-1"><a href="sec-wavelet-regression.html#cb483-1" tabindex="-1"></a><span class="co"># Reconstruct the denoised signals using Inverse DWT</span></span>
-<span id="cb483-2"><a href="sec-wavelet-regression.html#cb483-2" tabindex="-1"></a>y_hat_hard <span class="ot">&lt;-</span> <span class="fu">idwt</span>(dwt_hard_thresh)</span>
-<span id="cb483-3"><a href="sec-wavelet-regression.html#cb483-3" tabindex="-1"></a>y_hat_soft <span class="ot">&lt;-</span> <span class="fu">idwt</span>(dwt_soft_thresh)</span></code></pre></div>
-<div class="sourceCode" id="cb484"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb484-1"><a href="sec-wavelet-regression.html#cb484-1" tabindex="-1"></a><span class="co"># Combine data for ggplot</span></span>
-<span id="cb484-2"><a href="sec-wavelet-regression.html#cb484-2" tabindex="-1"></a>df_plot <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb484-3"><a href="sec-wavelet-regression.html#cb484-3" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">rep</span>(x, <span class="dv">4</span>),</span>
-<span id="cb484-4"><a href="sec-wavelet-regression.html#cb484-4" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">c</span>(y, signal, y_hat_hard, y_hat_soft),</span>
-<span id="cb484-5"><a href="sec-wavelet-regression.html#cb484-5" tabindex="-1"></a>    <span class="at">Type =</span> <span class="fu">rep</span>(</span>
-<span id="cb484-6"><a href="sec-wavelet-regression.html#cb484-6" tabindex="-1"></a>        <span class="fu">c</span>(</span>
-<span id="cb484-7"><a href="sec-wavelet-regression.html#cb484-7" tabindex="-1"></a>            <span class="st">&quot;Noisy Data&quot;</span>,</span>
-<span id="cb484-8"><a href="sec-wavelet-regression.html#cb484-8" tabindex="-1"></a>            <span class="st">&quot;True Signal&quot;</span>,</span>
-<span id="cb484-9"><a href="sec-wavelet-regression.html#cb484-9" tabindex="-1"></a>            <span class="st">&quot;Hard Thresholding&quot;</span>,</span>
-<span id="cb484-10"><a href="sec-wavelet-regression.html#cb484-10" tabindex="-1"></a>            <span class="st">&quot;Soft Thresholding&quot;</span></span>
-<span id="cb484-11"><a href="sec-wavelet-regression.html#cb484-11" tabindex="-1"></a>        ),</span>
-<span id="cb484-12"><a href="sec-wavelet-regression.html#cb484-12" tabindex="-1"></a>        <span class="at">each =</span> n</span>
-<span id="cb484-13"><a href="sec-wavelet-regression.html#cb484-13" tabindex="-1"></a>    )</span>
-<span id="cb484-14"><a href="sec-wavelet-regression.html#cb484-14" tabindex="-1"></a>)</span></code></pre></div>
-<div class="sourceCode" id="cb485"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb485-1"><a href="sec-wavelet-regression.html#cb485-1" tabindex="-1"></a><span class="co"># Plotting</span></span>
-<span id="cb485-2"><a href="sec-wavelet-regression.html#cb485-2" tabindex="-1"></a><span class="fu">ggplot</span>(df_plot, <span class="fu">aes</span>(x, y, <span class="at">color =</span> Type, <span class="at">linetype =</span> Type)) <span class="sc">+</span></span>
-<span id="cb485-3"><a href="sec-wavelet-regression.html#cb485-3" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb485-4"><a href="sec-wavelet-regression.html#cb485-4" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;green&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb485-5"><a href="sec-wavelet-regression.html#cb485-5" tabindex="-1"></a>    <span class="fu">scale_linetype_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;solid&quot;</span>, <span class="st">&quot;dashed&quot;</span>, <span class="st">&quot;solid&quot;</span>, <span class="st">&quot;solid&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb485-6"><a href="sec-wavelet-regression.html#cb485-6" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb485-7"><a href="sec-wavelet-regression.html#cb485-7" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Wavelet Regression (Denoising)&quot;</span>,</span>
-<span id="cb485-8"><a href="sec-wavelet-regression.html#cb485-8" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Comparison of Hard vs. Soft Thresholding&quot;</span>,</span>
-<span id="cb485-9"><a href="sec-wavelet-regression.html#cb485-9" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb485-10"><a href="sec-wavelet-regression.html#cb485-10" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Signal&quot;</span></span>
-<span id="cb485-11"><a href="sec-wavelet-regression.html#cb485-11" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb485-12"><a href="sec-wavelet-regression.html#cb485-12" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb485-13"><a href="sec-wavelet-regression.html#cb485-13" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb488"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb488-1"><a href="sec-wavelet-regression.html#cb488-1" tabindex="-1"></a><span class="co"># Reconstruct the denoised signals using Inverse DWT</span></span>
+<span id="cb488-2"><a href="sec-wavelet-regression.html#cb488-2" tabindex="-1"></a>y_hat_hard <span class="ot">&lt;-</span> <span class="fu">idwt</span>(dwt_hard_thresh)</span>
+<span id="cb488-3"><a href="sec-wavelet-regression.html#cb488-3" tabindex="-1"></a>y_hat_soft <span class="ot">&lt;-</span> <span class="fu">idwt</span>(dwt_soft_thresh)</span></code></pre></div>
+<div class="sourceCode" id="cb489"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb489-1"><a href="sec-wavelet-regression.html#cb489-1" tabindex="-1"></a><span class="co"># Combine data for ggplot</span></span>
+<span id="cb489-2"><a href="sec-wavelet-regression.html#cb489-2" tabindex="-1"></a>df_plot <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb489-3"><a href="sec-wavelet-regression.html#cb489-3" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">rep</span>(x, <span class="dv">4</span>),</span>
+<span id="cb489-4"><a href="sec-wavelet-regression.html#cb489-4" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">c</span>(y, signal, y_hat_hard, y_hat_soft),</span>
+<span id="cb489-5"><a href="sec-wavelet-regression.html#cb489-5" tabindex="-1"></a>    <span class="at">Type =</span> <span class="fu">rep</span>(</span>
+<span id="cb489-6"><a href="sec-wavelet-regression.html#cb489-6" tabindex="-1"></a>        <span class="fu">c</span>(</span>
+<span id="cb489-7"><a href="sec-wavelet-regression.html#cb489-7" tabindex="-1"></a>            <span class="st">&quot;Noisy Data&quot;</span>,</span>
+<span id="cb489-8"><a href="sec-wavelet-regression.html#cb489-8" tabindex="-1"></a>            <span class="st">&quot;True Signal&quot;</span>,</span>
+<span id="cb489-9"><a href="sec-wavelet-regression.html#cb489-9" tabindex="-1"></a>            <span class="st">&quot;Hard Thresholding&quot;</span>,</span>
+<span id="cb489-10"><a href="sec-wavelet-regression.html#cb489-10" tabindex="-1"></a>            <span class="st">&quot;Soft Thresholding&quot;</span></span>
+<span id="cb489-11"><a href="sec-wavelet-regression.html#cb489-11" tabindex="-1"></a>        ),</span>
+<span id="cb489-12"><a href="sec-wavelet-regression.html#cb489-12" tabindex="-1"></a>        <span class="at">each =</span> n</span>
+<span id="cb489-13"><a href="sec-wavelet-regression.html#cb489-13" tabindex="-1"></a>    )</span>
+<span id="cb489-14"><a href="sec-wavelet-regression.html#cb489-14" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb490"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb490-1"><a href="sec-wavelet-regression.html#cb490-1" tabindex="-1"></a><span class="co"># Plotting</span></span>
+<span id="cb490-2"><a href="sec-wavelet-regression.html#cb490-2" tabindex="-1"></a><span class="fu">ggplot</span>(df_plot, <span class="fu">aes</span>(x, y, <span class="at">color =</span> Type, <span class="at">linetype =</span> Type)) <span class="sc">+</span></span>
+<span id="cb490-3"><a href="sec-wavelet-regression.html#cb490-3" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb490-4"><a href="sec-wavelet-regression.html#cb490-4" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;green&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb490-5"><a href="sec-wavelet-regression.html#cb490-5" tabindex="-1"></a>    <span class="fu">scale_linetype_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;solid&quot;</span>, <span class="st">&quot;dashed&quot;</span>, <span class="st">&quot;solid&quot;</span>, <span class="st">&quot;solid&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb490-6"><a href="sec-wavelet-regression.html#cb490-6" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb490-7"><a href="sec-wavelet-regression.html#cb490-7" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Wavelet Regression (Denoising)&quot;</span>,</span>
+<span id="cb490-8"><a href="sec-wavelet-regression.html#cb490-8" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Comparison of Hard vs. Soft Thresholding&quot;</span>,</span>
+<span id="cb490-9"><a href="sec-wavelet-regression.html#cb490-9" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb490-10"><a href="sec-wavelet-regression.html#cb490-10" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Signal&quot;</span></span>
+<span id="cb490-11"><a href="sec-wavelet-regression.html#cb490-11" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb490-12"><a href="sec-wavelet-regression.html#cb490-12" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb490-13"><a href="sec-wavelet-regression.html#cb490-13" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-wavelet-thresholding"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-wavelet-thresholding-1.png" alt="Chart titled Wavelet Regression Denoising comparing hard and soft thresholding. The x-axis represents values from 0 to 1 and the y-axis represents the signal. The chart includes four lines: hard thresholding in gray, noisy data in blue, soft thresholding in red, and the true signal in green. The lines illustrate differences in denoising techniques, with the true signal showing a smooth curve and the others showing variations in data processing" width="100%" />
 <p class="caption">
 Figure 10.24: Wavelet Regression (Denoising)
 </p>
 </div>
-<div class="sourceCode" id="cb486"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb486-1"><a href="sec-wavelet-regression.html#cb486-1" tabindex="-1"></a><span class="co"># Compute Mean Squared Error (MSE) for each method</span></span>
-<span id="cb486-2"><a href="sec-wavelet-regression.html#cb486-2" tabindex="-1"></a>mse_noisy <span class="ot">&lt;-</span> <span class="fu">mean</span>((y <span class="sc">-</span> signal) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb486-3"><a href="sec-wavelet-regression.html#cb486-3" tabindex="-1"></a>mse_hard <span class="ot">&lt;-</span> <span class="fu">mean</span>((y_hat_hard <span class="sc">-</span> signal) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb486-4"><a href="sec-wavelet-regression.html#cb486-4" tabindex="-1"></a>mse_soft <span class="ot">&lt;-</span> <span class="fu">mean</span>((y_hat_soft <span class="sc">-</span> signal) <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb486-5"><a href="sec-wavelet-regression.html#cb486-5" tabindex="-1"></a></span>
-<span id="cb486-6"><a href="sec-wavelet-regression.html#cb486-6" tabindex="-1"></a><span class="co"># Display MSE comparison</span></span>
-<span id="cb486-7"><a href="sec-wavelet-regression.html#cb486-7" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
-<span id="cb486-8"><a href="sec-wavelet-regression.html#cb486-8" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;Noisy Data&quot;</span>, <span class="st">&quot;Hard Thresholding&quot;</span>, <span class="st">&quot;Soft Thresholding&quot;</span>),</span>
-<span id="cb486-9"><a href="sec-wavelet-regression.html#cb486-9" tabindex="-1"></a>  <span class="at">MSE =</span> <span class="fu">c</span>(mse_noisy, mse_hard, mse_soft)</span>
-<span id="cb486-10"><a href="sec-wavelet-regression.html#cb486-10" tabindex="-1"></a>)</span>
-<span id="cb486-11"><a href="sec-wavelet-regression.html#cb486-11" tabindex="-1"></a><span class="co">#&gt;              Method        MSE</span></span>
-<span id="cb486-12"><a href="sec-wavelet-regression.html#cb486-12" tabindex="-1"></a><span class="co">#&gt; 1        Noisy Data 0.03127707</span></span>
-<span id="cb486-13"><a href="sec-wavelet-regression.html#cb486-13" tabindex="-1"></a><span class="co">#&gt; 2 Hard Thresholding 0.02814465</span></span>
-<span id="cb486-14"><a href="sec-wavelet-regression.html#cb486-14" tabindex="-1"></a><span class="co">#&gt; 3 Soft Thresholding 0.02267171</span></span></code></pre></div>
+<div class="sourceCode" id="cb491"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb491-1"><a href="sec-wavelet-regression.html#cb491-1" tabindex="-1"></a><span class="co"># Compute Mean Squared Error (MSE) for each method</span></span>
+<span id="cb491-2"><a href="sec-wavelet-regression.html#cb491-2" tabindex="-1"></a>mse_noisy <span class="ot">&lt;-</span> <span class="fu">mean</span>((y <span class="sc">-</span> signal) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb491-3"><a href="sec-wavelet-regression.html#cb491-3" tabindex="-1"></a>mse_hard <span class="ot">&lt;-</span> <span class="fu">mean</span>((y_hat_hard <span class="sc">-</span> signal) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb491-4"><a href="sec-wavelet-regression.html#cb491-4" tabindex="-1"></a>mse_soft <span class="ot">&lt;-</span> <span class="fu">mean</span>((y_hat_soft <span class="sc">-</span> signal) <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb491-5"><a href="sec-wavelet-regression.html#cb491-5" tabindex="-1"></a></span>
+<span id="cb491-6"><a href="sec-wavelet-regression.html#cb491-6" tabindex="-1"></a><span class="co"># Display MSE comparison</span></span>
+<span id="cb491-7"><a href="sec-wavelet-regression.html#cb491-7" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb491-8"><a href="sec-wavelet-regression.html#cb491-8" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;Noisy Data&quot;</span>, <span class="st">&quot;Hard Thresholding&quot;</span>, <span class="st">&quot;Soft Thresholding&quot;</span>),</span>
+<span id="cb491-9"><a href="sec-wavelet-regression.html#cb491-9" tabindex="-1"></a>  <span class="at">MSE =</span> <span class="fu">c</span>(mse_noisy, mse_hard, mse_soft)</span>
+<span id="cb491-10"><a href="sec-wavelet-regression.html#cb491-10" tabindex="-1"></a>)</span>
+<span id="cb491-11"><a href="sec-wavelet-regression.html#cb491-11" tabindex="-1"></a><span class="co">#&gt;              Method        MSE</span></span>
+<span id="cb491-12"><a href="sec-wavelet-regression.html#cb491-12" tabindex="-1"></a><span class="co">#&gt; 1        Noisy Data 0.03127707</span></span>
+<span id="cb491-13"><a href="sec-wavelet-regression.html#cb491-13" tabindex="-1"></a><span class="co">#&gt; 2 Hard Thresholding 0.02814465</span></span>
+<span id="cb491-14"><a href="sec-wavelet-regression.html#cb491-14" tabindex="-1"></a><span class="co">#&gt; 3 Soft Thresholding 0.02267171</span></span></code></pre></div>
 <ul>
 <li>Lower MSE indicates better denoising performance.</li>
 <li>Soft thresholding often achieves smoother results with lower MSE.</li>

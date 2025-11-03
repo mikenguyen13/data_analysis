@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10.5 Smoothing Splines | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10.5 Smoothing Splines | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1926,83 +1926,83 @@ div.csl-indent {
 <p>defines a <strong>semi-norm</strong> that corresponds to the squared norm of <span class="math inline">\(f\)</span> in a particular RKHS associated with the cubic spline kernel. This interpretation reveals that smoothing splines are equivalent to solving a <strong>regularization problem in an RKHS</strong>, where the penalty controls the smoothness of the solution.</p>
 <p>This connection extends naturally to more general kernel-based methods (e.g., Gaussian process regression, kernel ridge regression) and higher-dimensional spline models.</p>
 <hr />
-<div class="sourceCode" id="cb441"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb441-1"><a href="sec-smoothing-splines.html#cb441-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb441-2"><a href="sec-smoothing-splines.html#cb441-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb441-3"><a href="sec-smoothing-splines.html#cb441-3" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
-<span id="cb441-4"><a href="sec-smoothing-splines.html#cb441-4" tabindex="-1"></a></span>
-<span id="cb441-5"><a href="sec-smoothing-splines.html#cb441-5" tabindex="-1"></a><span class="co"># 1. Simulate Data</span></span>
-<span id="cb441-6"><a href="sec-smoothing-splines.html#cb441-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb441-7"><a href="sec-smoothing-splines.html#cb441-7" tabindex="-1"></a></span>
-<span id="cb441-8"><a href="sec-smoothing-splines.html#cb441-8" tabindex="-1"></a></span>
-<span id="cb441-9"><a href="sec-smoothing-splines.html#cb441-9" tabindex="-1"></a><span class="co"># Generate predictor x and response y</span></span>
-<span id="cb441-10"><a href="sec-smoothing-splines.html#cb441-10" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb441-11"><a href="sec-smoothing-splines.html#cb441-11" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>))  <span class="co"># Sorted for smoother visualization</span></span>
-<span id="cb441-12"><a href="sec-smoothing-splines.html#cb441-12" tabindex="-1"></a>true_function <span class="ot">&lt;-</span></span>
-<span id="cb441-13"><a href="sec-smoothing-splines.html#cb441-13" tabindex="-1"></a>    <span class="cf">function</span>(x)</span>
-<span id="cb441-14"><a href="sec-smoothing-splines.html#cb441-14" tabindex="-1"></a>        <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> x)  <span class="co"># True regression function</span></span>
-<span id="cb441-15"><a href="sec-smoothing-splines.html#cb441-15" tabindex="-1"></a>y <span class="ot">&lt;-</span></span>
-<span id="cb441-16"><a href="sec-smoothing-splines.html#cb441-16" tabindex="-1"></a>    <span class="fu">true_function</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.3</span>) <span class="co"># Add Gaussian noise</span></span></code></pre></div>
-<div class="sourceCode" id="cb442"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb442-1"><a href="sec-smoothing-splines.html#cb442-1" tabindex="-1"></a><span class="co"># Visualization of the data</span></span>
-<span id="cb442-2"><a href="sec-smoothing-splines.html#cb442-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(x, y), <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
-<span id="cb442-3"><a href="sec-smoothing-splines.html#cb442-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb442-4"><a href="sec-smoothing-splines.html#cb442-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">true_function</span>(x)),</span>
-<span id="cb442-5"><a href="sec-smoothing-splines.html#cb442-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb442-6"><a href="sec-smoothing-splines.html#cb442-6" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
-<span id="cb442-7"><a href="sec-smoothing-splines.html#cb442-7" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Simulated Data with True Regression Function&quot;</span>,</span>
-<span id="cb442-8"><a href="sec-smoothing-splines.html#cb442-8" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x&quot;</span>, <span class="at">y =</span> <span class="st">&quot;y&quot;</span>) <span class="sc">+</span></span>
-<span id="cb442-9"><a href="sec-smoothing-splines.html#cb442-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb446"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb446-1"><a href="sec-smoothing-splines.html#cb446-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb446-2"><a href="sec-smoothing-splines.html#cb446-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb446-3"><a href="sec-smoothing-splines.html#cb446-3" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb446-4"><a href="sec-smoothing-splines.html#cb446-4" tabindex="-1"></a></span>
+<span id="cb446-5"><a href="sec-smoothing-splines.html#cb446-5" tabindex="-1"></a><span class="co"># 1. Simulate Data</span></span>
+<span id="cb446-6"><a href="sec-smoothing-splines.html#cb446-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb446-7"><a href="sec-smoothing-splines.html#cb446-7" tabindex="-1"></a></span>
+<span id="cb446-8"><a href="sec-smoothing-splines.html#cb446-8" tabindex="-1"></a></span>
+<span id="cb446-9"><a href="sec-smoothing-splines.html#cb446-9" tabindex="-1"></a><span class="co"># Generate predictor x and response y</span></span>
+<span id="cb446-10"><a href="sec-smoothing-splines.html#cb446-10" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb446-11"><a href="sec-smoothing-splines.html#cb446-11" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">10</span>))  <span class="co"># Sorted for smoother visualization</span></span>
+<span id="cb446-12"><a href="sec-smoothing-splines.html#cb446-12" tabindex="-1"></a>true_function <span class="ot">&lt;-</span></span>
+<span id="cb446-13"><a href="sec-smoothing-splines.html#cb446-13" tabindex="-1"></a>    <span class="cf">function</span>(x)</span>
+<span id="cb446-14"><a href="sec-smoothing-splines.html#cb446-14" tabindex="-1"></a>        <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> x)  <span class="co"># True regression function</span></span>
+<span id="cb446-15"><a href="sec-smoothing-splines.html#cb446-15" tabindex="-1"></a>y <span class="ot">&lt;-</span></span>
+<span id="cb446-16"><a href="sec-smoothing-splines.html#cb446-16" tabindex="-1"></a>    <span class="fu">true_function</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.3</span>) <span class="co"># Add Gaussian noise</span></span></code></pre></div>
+<div class="sourceCode" id="cb447"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb447-1"><a href="sec-smoothing-splines.html#cb447-1" tabindex="-1"></a><span class="co"># Visualization of the data</span></span>
+<span id="cb447-2"><a href="sec-smoothing-splines.html#cb447-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(x, y), <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb447-3"><a href="sec-smoothing-splines.html#cb447-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb447-4"><a href="sec-smoothing-splines.html#cb447-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">true_function</span>(x)),</span>
+<span id="cb447-5"><a href="sec-smoothing-splines.html#cb447-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb447-6"><a href="sec-smoothing-splines.html#cb447-6" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>) <span class="sc">+</span></span>
+<span id="cb447-7"><a href="sec-smoothing-splines.html#cb447-7" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Simulated Data with True Regression Function&quot;</span>,</span>
+<span id="cb447-8"><a href="sec-smoothing-splines.html#cb447-8" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;x&quot;</span>, <span class="at">y =</span> <span class="st">&quot;y&quot;</span>) <span class="sc">+</span></span>
+<span id="cb447-9"><a href="sec-smoothing-splines.html#cb447-9" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-sim-function-alt"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-sim-function-alt-1.png" alt="Scatter plot titled Simulated Data with True Regression Function showing blue data points distributed along the x-axis from 0 to 10 and the y-axis from -1 to 1. A red dashed line represents the true regression function, illustrating a non-linear trend with peaks and troughs. The x-axis is labeled x and the y-axis is labeled y" width="100%" />
 <p class="caption">
 Figure 10.11: Simulated Data with True Regression Function
 </p>
 </div>
-<div class="sourceCode" id="cb443"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb443-1"><a href="sec-smoothing-splines.html#cb443-1" tabindex="-1"></a><span class="co"># Apply Smoothing Spline with Default Lambda </span></span>
-<span id="cb443-2"><a href="sec-smoothing-splines.html#cb443-2" tabindex="-1"></a><span class="co"># (automatically selected using GCV)</span></span>
-<span id="cb443-3"><a href="sec-smoothing-splines.html#cb443-3" tabindex="-1"></a>spline_fit_default <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y)</span>
-<span id="cb443-4"><a href="sec-smoothing-splines.html#cb443-4" tabindex="-1"></a></span>
-<span id="cb443-5"><a href="sec-smoothing-splines.html#cb443-5" tabindex="-1"></a><span class="co"># Apply Smoothing Spline with Manual Lambda </span></span>
-<span id="cb443-6"><a href="sec-smoothing-splines.html#cb443-6" tabindex="-1"></a><span class="co"># (via smoothing parameter &#39;spar&#39;)</span></span>
-<span id="cb443-7"><a href="sec-smoothing-splines.html#cb443-7" tabindex="-1"></a>spline_fit_smooth <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> <span class="fl">0.8</span>)  <span class="co"># Smoother fit</span></span>
-<span id="cb443-8"><a href="sec-smoothing-splines.html#cb443-8" tabindex="-1"></a>spline_fit_flexible <span class="ot">&lt;-</span></span>
-<span id="cb443-9"><a href="sec-smoothing-splines.html#cb443-9" tabindex="-1"></a>    <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> <span class="fl">0.4</span>)  <span class="co"># More flexible fit</span></span>
-<span id="cb443-10"><a href="sec-smoothing-splines.html#cb443-10" tabindex="-1"></a></span>
-<span id="cb443-11"><a href="sec-smoothing-splines.html#cb443-11" tabindex="-1"></a><span class="co"># Create grid for prediction</span></span>
-<span id="cb443-12"><a href="sec-smoothing-splines.html#cb443-12" tabindex="-1"></a>x_grid               <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
-<span id="cb443-13"><a href="sec-smoothing-splines.html#cb443-13" tabindex="-1"></a>spline_pred_default  <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_default, x_grid)</span>
-<span id="cb443-14"><a href="sec-smoothing-splines.html#cb443-14" tabindex="-1"></a>spline_pred_smooth   <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_smooth, x_grid)</span>
-<span id="cb443-15"><a href="sec-smoothing-splines.html#cb443-15" tabindex="-1"></a>spline_pred_flexible <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_flexible, x_grid)</span></code></pre></div>
-<div class="sourceCode" id="cb444"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb444-1"><a href="sec-smoothing-splines.html#cb444-1" tabindex="-1"></a><span class="co"># Plot Smoothing Splines with Different Smoothness Levels</span></span>
-<span id="cb444-2"><a href="sec-smoothing-splines.html#cb444-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb444-3"><a href="sec-smoothing-splines.html#cb444-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb444-4"><a href="sec-smoothing-splines.html#cb444-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, spline_pred_default<span class="sc">$</span>y),</span>
-<span id="cb444-5"><a href="sec-smoothing-splines.html#cb444-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;green&quot;</span>,</span>
-<span id="cb444-6"><a href="sec-smoothing-splines.html#cb444-6" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb444-7"><a href="sec-smoothing-splines.html#cb444-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
-<span id="cb444-8"><a href="sec-smoothing-splines.html#cb444-8" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, spline_pred_smooth<span class="sc">$</span>y),</span>
-<span id="cb444-9"><a href="sec-smoothing-splines.html#cb444-9" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;orange&quot;</span>,</span>
-<span id="cb444-10"><a href="sec-smoothing-splines.html#cb444-10" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span>,</span>
-<span id="cb444-11"><a href="sec-smoothing-splines.html#cb444-11" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span></span>
-<span id="cb444-12"><a href="sec-smoothing-splines.html#cb444-12" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb444-13"><a href="sec-smoothing-splines.html#cb444-13" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
-<span id="cb444-14"><a href="sec-smoothing-splines.html#cb444-14" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, spline_pred_flexible<span class="sc">$</span>y),</span>
-<span id="cb444-15"><a href="sec-smoothing-splines.html#cb444-15" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;purple&quot;</span>,</span>
-<span id="cb444-16"><a href="sec-smoothing-splines.html#cb444-16" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span>,</span>
-<span id="cb444-17"><a href="sec-smoothing-splines.html#cb444-17" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span></span>
-<span id="cb444-18"><a href="sec-smoothing-splines.html#cb444-18" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb444-19"><a href="sec-smoothing-splines.html#cb444-19" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
-<span id="cb444-20"><a href="sec-smoothing-splines.html#cb444-20" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
-<span id="cb444-21"><a href="sec-smoothing-splines.html#cb444-21" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb444-22"><a href="sec-smoothing-splines.html#cb444-22" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;solid&quot;</span>,</span>
-<span id="cb444-23"><a href="sec-smoothing-splines.html#cb444-23" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">1</span></span>
-<span id="cb444-24"><a href="sec-smoothing-splines.html#cb444-24" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb444-25"><a href="sec-smoothing-splines.html#cb444-25" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb444-26"><a href="sec-smoothing-splines.html#cb444-26" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Smoothing Spline Fits&quot;</span>,</span>
-<span id="cb444-27"><a href="sec-smoothing-splines.html#cb444-27" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Green: GCV-selected | Orange: Smooth (spar=0.8) | Purple: Flexible (spar=0.4)&quot;</span>,</span>
-<span id="cb444-28"><a href="sec-smoothing-splines.html#cb444-28" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb444-29"><a href="sec-smoothing-splines.html#cb444-29" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
-<span id="cb444-30"><a href="sec-smoothing-splines.html#cb444-30" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb444-31"><a href="sec-smoothing-splines.html#cb444-31" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb448"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb448-1"><a href="sec-smoothing-splines.html#cb448-1" tabindex="-1"></a><span class="co"># Apply Smoothing Spline with Default Lambda </span></span>
+<span id="cb448-2"><a href="sec-smoothing-splines.html#cb448-2" tabindex="-1"></a><span class="co"># (automatically selected using GCV)</span></span>
+<span id="cb448-3"><a href="sec-smoothing-splines.html#cb448-3" tabindex="-1"></a>spline_fit_default <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y)</span>
+<span id="cb448-4"><a href="sec-smoothing-splines.html#cb448-4" tabindex="-1"></a></span>
+<span id="cb448-5"><a href="sec-smoothing-splines.html#cb448-5" tabindex="-1"></a><span class="co"># Apply Smoothing Spline with Manual Lambda </span></span>
+<span id="cb448-6"><a href="sec-smoothing-splines.html#cb448-6" tabindex="-1"></a><span class="co"># (via smoothing parameter &#39;spar&#39;)</span></span>
+<span id="cb448-7"><a href="sec-smoothing-splines.html#cb448-7" tabindex="-1"></a>spline_fit_smooth <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> <span class="fl">0.8</span>)  <span class="co"># Smoother fit</span></span>
+<span id="cb448-8"><a href="sec-smoothing-splines.html#cb448-8" tabindex="-1"></a>spline_fit_flexible <span class="ot">&lt;-</span></span>
+<span id="cb448-9"><a href="sec-smoothing-splines.html#cb448-9" tabindex="-1"></a>    <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> <span class="fl">0.4</span>)  <span class="co"># More flexible fit</span></span>
+<span id="cb448-10"><a href="sec-smoothing-splines.html#cb448-10" tabindex="-1"></a></span>
+<span id="cb448-11"><a href="sec-smoothing-splines.html#cb448-11" tabindex="-1"></a><span class="co"># Create grid for prediction</span></span>
+<span id="cb448-12"><a href="sec-smoothing-splines.html#cb448-12" tabindex="-1"></a>x_grid               <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
+<span id="cb448-13"><a href="sec-smoothing-splines.html#cb448-13" tabindex="-1"></a>spline_pred_default  <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_default, x_grid)</span>
+<span id="cb448-14"><a href="sec-smoothing-splines.html#cb448-14" tabindex="-1"></a>spline_pred_smooth   <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_smooth, x_grid)</span>
+<span id="cb448-15"><a href="sec-smoothing-splines.html#cb448-15" tabindex="-1"></a>spline_pred_flexible <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_flexible, x_grid)</span></code></pre></div>
+<div class="sourceCode" id="cb449"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb449-1"><a href="sec-smoothing-splines.html#cb449-1" tabindex="-1"></a><span class="co"># Plot Smoothing Splines with Different Smoothness Levels</span></span>
+<span id="cb449-2"><a href="sec-smoothing-splines.html#cb449-2" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb449-3"><a href="sec-smoothing-splines.html#cb449-3" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb449-4"><a href="sec-smoothing-splines.html#cb449-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, spline_pred_default<span class="sc">$</span>y),</span>
+<span id="cb449-5"><a href="sec-smoothing-splines.html#cb449-5" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;green&quot;</span>,</span>
+<span id="cb449-6"><a href="sec-smoothing-splines.html#cb449-6" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb449-7"><a href="sec-smoothing-splines.html#cb449-7" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
+<span id="cb449-8"><a href="sec-smoothing-splines.html#cb449-8" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, spline_pred_smooth<span class="sc">$</span>y),</span>
+<span id="cb449-9"><a href="sec-smoothing-splines.html#cb449-9" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;orange&quot;</span>,</span>
+<span id="cb449-10"><a href="sec-smoothing-splines.html#cb449-10" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb449-11"><a href="sec-smoothing-splines.html#cb449-11" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span></span>
+<span id="cb449-12"><a href="sec-smoothing-splines.html#cb449-12" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb449-13"><a href="sec-smoothing-splines.html#cb449-13" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
+<span id="cb449-14"><a href="sec-smoothing-splines.html#cb449-14" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, spline_pred_flexible<span class="sc">$</span>y),</span>
+<span id="cb449-15"><a href="sec-smoothing-splines.html#cb449-15" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;purple&quot;</span>,</span>
+<span id="cb449-16"><a href="sec-smoothing-splines.html#cb449-16" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb449-17"><a href="sec-smoothing-splines.html#cb449-17" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span></span>
+<span id="cb449-18"><a href="sec-smoothing-splines.html#cb449-18" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb449-19"><a href="sec-smoothing-splines.html#cb449-19" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
+<span id="cb449-20"><a href="sec-smoothing-splines.html#cb449-20" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
+<span id="cb449-21"><a href="sec-smoothing-splines.html#cb449-21" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb449-22"><a href="sec-smoothing-splines.html#cb449-22" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;solid&quot;</span>,</span>
+<span id="cb449-23"><a href="sec-smoothing-splines.html#cb449-23" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">1</span></span>
+<span id="cb449-24"><a href="sec-smoothing-splines.html#cb449-24" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb449-25"><a href="sec-smoothing-splines.html#cb449-25" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb449-26"><a href="sec-smoothing-splines.html#cb449-26" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Smoothing Spline Fits&quot;</span>,</span>
+<span id="cb449-27"><a href="sec-smoothing-splines.html#cb449-27" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">&quot;Green: GCV-selected | Orange: Smooth (spar=0.8) | Purple: Flexible (spar=0.4)&quot;</span>,</span>
+<span id="cb449-28"><a href="sec-smoothing-splines.html#cb449-28" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb449-29"><a href="sec-smoothing-splines.html#cb449-29" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
+<span id="cb449-30"><a href="sec-smoothing-splines.html#cb449-30" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb449-31"><a href="sec-smoothing-splines.html#cb449-31" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-smoothing-spline-fits"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-smoothing-spline-fits-1.png" alt="Chart titled Smoothing Spline Fits showing data points and three smoothing lines. The x-axis is labeled x and the y-axis is labeled estimated m of x. The green line represents GCV-selected, the orange line shows smooth with spar equal to 0.8, and the purple line shows flexible with spar equal to 0.4. The chart illustrates how different smoothing parameters affect the fit of the data" width="100%" />
 <p class="caption">
@@ -2015,35 +2015,35 @@ Figure 10.12: Smoothing Spline Fits
 <li>The purple curve (with <code>spar = 0.4</code>) is more flexible, fitting the data closely, potentially overfitting noise.</li>
 <li>The red solid line represents the true regression function.</li>
 </ul>
-<div class="sourceCode" id="cb445"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb445-1"><a href="sec-smoothing-splines.html#cb445-1" tabindex="-1"></a><span class="co"># Extract Generalized Cross-Validation (GCV) Scores</span></span>
-<span id="cb445-2"><a href="sec-smoothing-splines.html#cb445-2" tabindex="-1"></a>spline_fit_default<span class="sc">$</span>cv.crit  <span class="co"># GCV criterion for the default fit</span></span>
-<span id="cb445-3"><a href="sec-smoothing-splines.html#cb445-3" tabindex="-1"></a><span class="co">#&gt; [1] 0.09698728</span></span>
-<span id="cb445-4"><a href="sec-smoothing-splines.html#cb445-4" tabindex="-1"></a></span>
-<span id="cb445-5"><a href="sec-smoothing-splines.html#cb445-5" tabindex="-1"></a><span class="co"># Compare GCV for different spar values</span></span>
-<span id="cb445-6"><a href="sec-smoothing-splines.html#cb445-6" tabindex="-1"></a>spar_values <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">1.5</span>, <span class="at">by =</span> <span class="fl">0.05</span>)</span>
-<span id="cb445-7"><a href="sec-smoothing-splines.html#cb445-7" tabindex="-1"></a>gcv_scores <span class="ot">&lt;-</span> <span class="fu">sapply</span>(spar_values, <span class="cf">function</span>(spar) {</span>
-<span id="cb445-8"><a href="sec-smoothing-splines.html#cb445-8" tabindex="-1"></a>    fit <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> spar)</span>
-<span id="cb445-9"><a href="sec-smoothing-splines.html#cb445-9" tabindex="-1"></a>    fit<span class="sc">$</span>cv.crit</span>
-<span id="cb445-10"><a href="sec-smoothing-splines.html#cb445-10" tabindex="-1"></a>})</span>
-<span id="cb445-11"><a href="sec-smoothing-splines.html#cb445-11" tabindex="-1"></a></span>
-<span id="cb445-12"><a href="sec-smoothing-splines.html#cb445-12" tabindex="-1"></a><span class="co"># Optimal spar corresponding to the minimum GCV score</span></span>
-<span id="cb445-13"><a href="sec-smoothing-splines.html#cb445-13" tabindex="-1"></a>optimal_spar <span class="ot">&lt;-</span> spar_values[<span class="fu">which.min</span>(gcv_scores)]</span>
-<span id="cb445-14"><a href="sec-smoothing-splines.html#cb445-14" tabindex="-1"></a>optimal_spar</span>
-<span id="cb445-15"><a href="sec-smoothing-splines.html#cb445-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.7</span></span></code></pre></div>
-<div class="sourceCode" id="cb446"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb446-1"><a href="sec-smoothing-splines.html#cb446-1" tabindex="-1"></a><span class="co"># GCV Plot</span></span>
-<span id="cb446-2"><a href="sec-smoothing-splines.html#cb446-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(spar_values, gcv_scores),</span>
-<span id="cb446-3"><a href="sec-smoothing-splines.html#cb446-3" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> spar_values, <span class="at">y =</span> gcv_scores)) <span class="sc">+</span></span>
-<span id="cb446-4"><a href="sec-smoothing-splines.html#cb446-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb446-5"><a href="sec-smoothing-splines.html#cb446-5" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> optimal_spar, <span class="at">y =</span> <span class="fu">min</span>(gcv_scores)),</span>
-<span id="cb446-6"><a href="sec-smoothing-splines.html#cb446-6" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb446-7"><a href="sec-smoothing-splines.html#cb446-7" tabindex="-1"></a>               <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb446-8"><a href="sec-smoothing-splines.html#cb446-8" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb446-9"><a href="sec-smoothing-splines.html#cb446-9" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;GCV for Smoothing Parameter Selection&quot;</span>,</span>
-<span id="cb446-10"><a href="sec-smoothing-splines.html#cb446-10" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Optimal spar =&quot;</span>, <span class="fu">round</span>(optimal_spar, <span class="dv">2</span>)),</span>
-<span id="cb446-11"><a href="sec-smoothing-splines.html#cb446-11" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Smoothing Parameter (spar)&quot;</span>,</span>
-<span id="cb446-12"><a href="sec-smoothing-splines.html#cb446-12" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;GCV Score&quot;</span></span>
-<span id="cb446-13"><a href="sec-smoothing-splines.html#cb446-13" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb446-14"><a href="sec-smoothing-splines.html#cb446-14" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb450"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb450-1"><a href="sec-smoothing-splines.html#cb450-1" tabindex="-1"></a><span class="co"># Extract Generalized Cross-Validation (GCV) Scores</span></span>
+<span id="cb450-2"><a href="sec-smoothing-splines.html#cb450-2" tabindex="-1"></a>spline_fit_default<span class="sc">$</span>cv.crit  <span class="co"># GCV criterion for the default fit</span></span>
+<span id="cb450-3"><a href="sec-smoothing-splines.html#cb450-3" tabindex="-1"></a><span class="co">#&gt; [1] 0.09698728</span></span>
+<span id="cb450-4"><a href="sec-smoothing-splines.html#cb450-4" tabindex="-1"></a></span>
+<span id="cb450-5"><a href="sec-smoothing-splines.html#cb450-5" tabindex="-1"></a><span class="co"># Compare GCV for different spar values</span></span>
+<span id="cb450-6"><a href="sec-smoothing-splines.html#cb450-6" tabindex="-1"></a>spar_values <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">1.5</span>, <span class="at">by =</span> <span class="fl">0.05</span>)</span>
+<span id="cb450-7"><a href="sec-smoothing-splines.html#cb450-7" tabindex="-1"></a>gcv_scores <span class="ot">&lt;-</span> <span class="fu">sapply</span>(spar_values, <span class="cf">function</span>(spar) {</span>
+<span id="cb450-8"><a href="sec-smoothing-splines.html#cb450-8" tabindex="-1"></a>    fit <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> spar)</span>
+<span id="cb450-9"><a href="sec-smoothing-splines.html#cb450-9" tabindex="-1"></a>    fit<span class="sc">$</span>cv.crit</span>
+<span id="cb450-10"><a href="sec-smoothing-splines.html#cb450-10" tabindex="-1"></a>})</span>
+<span id="cb450-11"><a href="sec-smoothing-splines.html#cb450-11" tabindex="-1"></a></span>
+<span id="cb450-12"><a href="sec-smoothing-splines.html#cb450-12" tabindex="-1"></a><span class="co"># Optimal spar corresponding to the minimum GCV score</span></span>
+<span id="cb450-13"><a href="sec-smoothing-splines.html#cb450-13" tabindex="-1"></a>optimal_spar <span class="ot">&lt;-</span> spar_values[<span class="fu">which.min</span>(gcv_scores)]</span>
+<span id="cb450-14"><a href="sec-smoothing-splines.html#cb450-14" tabindex="-1"></a>optimal_spar</span>
+<span id="cb450-15"><a href="sec-smoothing-splines.html#cb450-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.7</span></span></code></pre></div>
+<div class="sourceCode" id="cb451"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb451-1"><a href="sec-smoothing-splines.html#cb451-1" tabindex="-1"></a><span class="co"># GCV Plot</span></span>
+<span id="cb451-2"><a href="sec-smoothing-splines.html#cb451-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(spar_values, gcv_scores),</span>
+<span id="cb451-3"><a href="sec-smoothing-splines.html#cb451-3" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> spar_values, <span class="at">y =</span> gcv_scores)) <span class="sc">+</span></span>
+<span id="cb451-4"><a href="sec-smoothing-splines.html#cb451-4" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb451-5"><a href="sec-smoothing-splines.html#cb451-5" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> optimal_spar, <span class="at">y =</span> <span class="fu">min</span>(gcv_scores)),</span>
+<span id="cb451-6"><a href="sec-smoothing-splines.html#cb451-6" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb451-7"><a href="sec-smoothing-splines.html#cb451-7" tabindex="-1"></a>               <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb451-8"><a href="sec-smoothing-splines.html#cb451-8" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb451-9"><a href="sec-smoothing-splines.html#cb451-9" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;GCV for Smoothing Parameter Selection&quot;</span>,</span>
+<span id="cb451-10"><a href="sec-smoothing-splines.html#cb451-10" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Optimal spar =&quot;</span>, <span class="fu">round</span>(optimal_spar, <span class="dv">2</span>)),</span>
+<span id="cb451-11"><a href="sec-smoothing-splines.html#cb451-11" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Smoothing Parameter (spar)&quot;</span>,</span>
+<span id="cb451-12"><a href="sec-smoothing-splines.html#cb451-12" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;GCV Score&quot;</span></span>
+<span id="cb451-13"><a href="sec-smoothing-splines.html#cb451-13" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb451-14"><a href="sec-smoothing-splines.html#cb451-14" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-gcv-smoothing-selection"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-gcv-smoothing-selection-1.png" alt="Graph titled GCV for Smoothing Parameter Selection showing the relationship between the smoothing parameter spar on the x-axis and the GCV score on the y-axis. The curve is blue with a red dot marking the minimum point at spar equal to 0.7, indicating the optimal smoothing parameter. The GCV score ranges from 0.2 to 0.6" width="100%" />
 <p class="caption">
@@ -2055,29 +2055,29 @@ Figure 10.13: GCV for Smoothing Parameter Selection
 <li>The red point indicates the optimal smoothing parameter that minimizes the GCV score.</li>
 <li>Low <code>spar</code> values correspond to flexible fits (risking overfitting), while high <code>spar</code> values produce smoother fits (risking underfitting).</li>
 </ul>
-<div class="sourceCode" id="cb447"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb447-1"><a href="sec-smoothing-splines.html#cb447-1" tabindex="-1"></a><span class="co"># Apply Smoothing Spline with Optimal spar</span></span>
-<span id="cb447-2"><a href="sec-smoothing-splines.html#cb447-2" tabindex="-1"></a>spline_fit_optimal <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> optimal_spar)</span>
-<span id="cb447-3"><a href="sec-smoothing-splines.html#cb447-3" tabindex="-1"></a>spline_pred_optimal <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_optimal, x_grid)</span>
-<span id="cb447-4"><a href="sec-smoothing-splines.html#cb447-4" tabindex="-1"></a></span>
-<span id="cb447-5"><a href="sec-smoothing-splines.html#cb447-5" tabindex="-1"></a><span class="co"># Plot Final Fit</span></span>
-<span id="cb447-6"><a href="sec-smoothing-splines.html#cb447-6" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb447-7"><a href="sec-smoothing-splines.html#cb447-7" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;gray60&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb447-8"><a href="sec-smoothing-splines.html#cb447-8" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, spline_pred_optimal<span class="sc">$</span>y),</span>
-<span id="cb447-9"><a href="sec-smoothing-splines.html#cb447-9" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;green&quot;</span>,</span>
-<span id="cb447-10"><a href="sec-smoothing-splines.html#cb447-10" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
-<span id="cb447-11"><a href="sec-smoothing-splines.html#cb447-11" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
-<span id="cb447-12"><a href="sec-smoothing-splines.html#cb447-12" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
-<span id="cb447-13"><a href="sec-smoothing-splines.html#cb447-13" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
-<span id="cb447-14"><a href="sec-smoothing-splines.html#cb447-14" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb447-15"><a href="sec-smoothing-splines.html#cb447-15" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span></span>
-<span id="cb447-16"><a href="sec-smoothing-splines.html#cb447-16" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb447-17"><a href="sec-smoothing-splines.html#cb447-17" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb447-18"><a href="sec-smoothing-splines.html#cb447-18" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Smoothing Spline with Optimal Smoothing Parameter&quot;</span>,</span>
-<span id="cb447-19"><a href="sec-smoothing-splines.html#cb447-19" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Optimal spar =&quot;</span>, <span class="fu">round</span>(optimal_spar, <span class="dv">2</span>)),</span>
-<span id="cb447-20"><a href="sec-smoothing-splines.html#cb447-20" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb447-21"><a href="sec-smoothing-splines.html#cb447-21" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
-<span id="cb447-22"><a href="sec-smoothing-splines.html#cb447-22" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb447-23"><a href="sec-smoothing-splines.html#cb447-23" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb452"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb452-1"><a href="sec-smoothing-splines.html#cb452-1" tabindex="-1"></a><span class="co"># Apply Smoothing Spline with Optimal spar</span></span>
+<span id="cb452-2"><a href="sec-smoothing-splines.html#cb452-2" tabindex="-1"></a>spline_fit_optimal <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">spar =</span> optimal_spar)</span>
+<span id="cb452-3"><a href="sec-smoothing-splines.html#cb452-3" tabindex="-1"></a>spline_pred_optimal <span class="ot">&lt;-</span> <span class="fu">predict</span>(spline_fit_optimal, x_grid)</span>
+<span id="cb452-4"><a href="sec-smoothing-splines.html#cb452-4" tabindex="-1"></a></span>
+<span id="cb452-5"><a href="sec-smoothing-splines.html#cb452-5" tabindex="-1"></a><span class="co"># Plot Final Fit</span></span>
+<span id="cb452-6"><a href="sec-smoothing-splines.html#cb452-6" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb452-7"><a href="sec-smoothing-splines.html#cb452-7" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">&quot;gray60&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb452-8"><a href="sec-smoothing-splines.html#cb452-8" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(x_grid, spline_pred_optimal<span class="sc">$</span>y),</span>
+<span id="cb452-9"><a href="sec-smoothing-splines.html#cb452-9" tabindex="-1"></a>              <span class="at">color =</span> <span class="st">&quot;green&quot;</span>,</span>
+<span id="cb452-10"><a href="sec-smoothing-splines.html#cb452-10" tabindex="-1"></a>              <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb452-11"><a href="sec-smoothing-splines.html#cb452-11" tabindex="-1"></a>    <span class="fu">geom_line</span>(</span>
+<span id="cb452-12"><a href="sec-smoothing-splines.html#cb452-12" tabindex="-1"></a>        <span class="fu">aes</span>(x_grid, <span class="fu">true_function</span>(x_grid)),</span>
+<span id="cb452-13"><a href="sec-smoothing-splines.html#cb452-13" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb452-14"><a href="sec-smoothing-splines.html#cb452-14" tabindex="-1"></a>        <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb452-15"><a href="sec-smoothing-splines.html#cb452-15" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">1.2</span></span>
+<span id="cb452-16"><a href="sec-smoothing-splines.html#cb452-16" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb452-17"><a href="sec-smoothing-splines.html#cb452-17" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb452-18"><a href="sec-smoothing-splines.html#cb452-18" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">&quot;Smoothing Spline with Optimal Smoothing Parameter&quot;</span>,</span>
+<span id="cb452-19"><a href="sec-smoothing-splines.html#cb452-19" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">&quot;Optimal spar =&quot;</span>, <span class="fu">round</span>(optimal_spar, <span class="dv">2</span>)),</span>
+<span id="cb452-20"><a href="sec-smoothing-splines.html#cb452-20" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb452-21"><a href="sec-smoothing-splines.html#cb452-21" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Estimated m(x)&quot;</span></span>
+<span id="cb452-22"><a href="sec-smoothing-splines.html#cb452-22" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb452-23"><a href="sec-smoothing-splines.html#cb452-23" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-spline-optimal-lambda"></span>
 <img src="10-nonparam-regression_files/figure-html/fig-spline-optimal-lambda-1.png" alt="Scatter plot showing a smoothing spline with an optimal smoothing parameter of 0.7. The x-axis is labeled x and the y-axis is labeled estimated m of x. Gray data points are scattered throughout the plot. A green line represents the smoothing spline and a red dashed line indicates the true function" width="100%" />
 <p class="caption">

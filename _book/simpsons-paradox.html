@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>21.2 Simpson’s Paradox | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="21.2 Simpson’s Paradox | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1944,31 +1944,31 @@ div.csl-indent {
 <li><strong>High-Value</strong> customers (who typically convert at a higher rate)</li>
 <li><strong>Low-Value</strong> customers (who convert at a lower rate).</li>
 </ol>
-<div class="sourceCode" id="cb773"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb773-1"><a href="simpsons-paradox.html#cb773-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb773-2"><a href="simpsons-paradox.html#cb773-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb773-3"><a href="simpsons-paradox.html#cb773-3" tabindex="-1"></a></span>
-<span id="cb773-4"><a href="simpsons-paradox.html#cb773-4" tabindex="-1"></a><span class="co"># Create a dataset where:</span></span>
-<span id="cb773-5"><a href="simpsons-paradox.html#cb773-5" tabindex="-1"></a><span class="co">#  - B is better than A in each individual segment.</span></span>
-<span id="cb773-6"><a href="simpsons-paradox.html#cb773-6" tabindex="-1"></a><span class="co">#  - A turns out better when we look at the overall (aggregated) data.</span></span>
-<span id="cb773-7"><a href="simpsons-paradox.html#cb773-7" tabindex="-1"></a></span>
-<span id="cb773-8"><a href="simpsons-paradox.html#cb773-8" tabindex="-1"></a>marketing_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb773-9"><a href="simpsons-paradox.html#cb773-9" tabindex="-1"></a>  <span class="at">Campaign =</span> <span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;B&quot;</span>),</span>
-<span id="cb773-10"><a href="simpsons-paradox.html#cb773-10" tabindex="-1"></a>  <span class="at">Segment  =</span> <span class="fu">c</span>(<span class="st">&quot;High-Value&quot;</span>, <span class="st">&quot;Low-Value&quot;</span>, <span class="st">&quot;High-Value&quot;</span>, <span class="st">&quot;Low-Value&quot;</span>),</span>
-<span id="cb773-11"><a href="simpsons-paradox.html#cb773-11" tabindex="-1"></a>  <span class="at">Visitors =</span> <span class="fu">c</span>(<span class="dv">500</span>, <span class="dv">2000</span>, <span class="dv">300</span>, <span class="dv">3000</span>),    <span class="co"># total visitors in each segment</span></span>
-<span id="cb773-12"><a href="simpsons-paradox.html#cb773-12" tabindex="-1"></a>  <span class="at">Conversions =</span> <span class="fu">c</span>(<span class="dv">290</span>, <span class="dv">170</span>, <span class="dv">180</span>, <span class="dv">270</span>)   <span class="co"># successful conversions</span></span>
-<span id="cb773-13"><a href="simpsons-paradox.html#cb773-13" tabindex="-1"></a>)</span>
-<span id="cb773-14"><a href="simpsons-paradox.html#cb773-14" tabindex="-1"></a></span>
-<span id="cb773-15"><a href="simpsons-paradox.html#cb773-15" tabindex="-1"></a><span class="co"># Compute segment-level conversion rate</span></span>
-<span id="cb773-16"><a href="simpsons-paradox.html#cb773-16" tabindex="-1"></a>marketing_data <span class="ot">&lt;-</span> marketing_data <span class="sc">%&gt;%</span></span>
-<span id="cb773-17"><a href="simpsons-paradox.html#cb773-17" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Conversion_Rate =</span> Conversions <span class="sc">/</span> Visitors)</span>
-<span id="cb773-18"><a href="simpsons-paradox.html#cb773-18" tabindex="-1"></a></span>
-<span id="cb773-19"><a href="simpsons-paradox.html#cb773-19" tabindex="-1"></a><span class="co"># Print the data</span></span>
-<span id="cb773-20"><a href="simpsons-paradox.html#cb773-20" tabindex="-1"></a><span class="fu">print</span>(marketing_data)</span>
-<span id="cb773-21"><a href="simpsons-paradox.html#cb773-21" tabindex="-1"></a><span class="co">#&gt;   Campaign    Segment Visitors Conversions Conversion_Rate</span></span>
-<span id="cb773-22"><a href="simpsons-paradox.html#cb773-22" tabindex="-1"></a><span class="co">#&gt; 1        A High-Value      500         290           0.580</span></span>
-<span id="cb773-23"><a href="simpsons-paradox.html#cb773-23" tabindex="-1"></a><span class="co">#&gt; 2        A  Low-Value     2000         170           0.085</span></span>
-<span id="cb773-24"><a href="simpsons-paradox.html#cb773-24" tabindex="-1"></a><span class="co">#&gt; 3        B High-Value      300         180           0.600</span></span>
-<span id="cb773-25"><a href="simpsons-paradox.html#cb773-25" tabindex="-1"></a><span class="co">#&gt; 4        B  Low-Value     3000         270           0.090</span></span></code></pre></div>
+<div class="sourceCode" id="cb778"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb778-1"><a href="simpsons-paradox.html#cb778-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb778-2"><a href="simpsons-paradox.html#cb778-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb778-3"><a href="simpsons-paradox.html#cb778-3" tabindex="-1"></a></span>
+<span id="cb778-4"><a href="simpsons-paradox.html#cb778-4" tabindex="-1"></a><span class="co"># Create a dataset where:</span></span>
+<span id="cb778-5"><a href="simpsons-paradox.html#cb778-5" tabindex="-1"></a><span class="co">#  - B is better than A in each individual segment.</span></span>
+<span id="cb778-6"><a href="simpsons-paradox.html#cb778-6" tabindex="-1"></a><span class="co">#  - A turns out better when we look at the overall (aggregated) data.</span></span>
+<span id="cb778-7"><a href="simpsons-paradox.html#cb778-7" tabindex="-1"></a></span>
+<span id="cb778-8"><a href="simpsons-paradox.html#cb778-8" tabindex="-1"></a>marketing_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb778-9"><a href="simpsons-paradox.html#cb778-9" tabindex="-1"></a>  <span class="at">Campaign =</span> <span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;B&quot;</span>),</span>
+<span id="cb778-10"><a href="simpsons-paradox.html#cb778-10" tabindex="-1"></a>  <span class="at">Segment  =</span> <span class="fu">c</span>(<span class="st">&quot;High-Value&quot;</span>, <span class="st">&quot;Low-Value&quot;</span>, <span class="st">&quot;High-Value&quot;</span>, <span class="st">&quot;Low-Value&quot;</span>),</span>
+<span id="cb778-11"><a href="simpsons-paradox.html#cb778-11" tabindex="-1"></a>  <span class="at">Visitors =</span> <span class="fu">c</span>(<span class="dv">500</span>, <span class="dv">2000</span>, <span class="dv">300</span>, <span class="dv">3000</span>),    <span class="co"># total visitors in each segment</span></span>
+<span id="cb778-12"><a href="simpsons-paradox.html#cb778-12" tabindex="-1"></a>  <span class="at">Conversions =</span> <span class="fu">c</span>(<span class="dv">290</span>, <span class="dv">170</span>, <span class="dv">180</span>, <span class="dv">270</span>)   <span class="co"># successful conversions</span></span>
+<span id="cb778-13"><a href="simpsons-paradox.html#cb778-13" tabindex="-1"></a>)</span>
+<span id="cb778-14"><a href="simpsons-paradox.html#cb778-14" tabindex="-1"></a></span>
+<span id="cb778-15"><a href="simpsons-paradox.html#cb778-15" tabindex="-1"></a><span class="co"># Compute segment-level conversion rate</span></span>
+<span id="cb778-16"><a href="simpsons-paradox.html#cb778-16" tabindex="-1"></a>marketing_data <span class="ot">&lt;-</span> marketing_data <span class="sc">%&gt;%</span></span>
+<span id="cb778-17"><a href="simpsons-paradox.html#cb778-17" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Conversion_Rate =</span> Conversions <span class="sc">/</span> Visitors)</span>
+<span id="cb778-18"><a href="simpsons-paradox.html#cb778-18" tabindex="-1"></a></span>
+<span id="cb778-19"><a href="simpsons-paradox.html#cb778-19" tabindex="-1"></a><span class="co"># Print the data</span></span>
+<span id="cb778-20"><a href="simpsons-paradox.html#cb778-20" tabindex="-1"></a><span class="fu">print</span>(marketing_data)</span>
+<span id="cb778-21"><a href="simpsons-paradox.html#cb778-21" tabindex="-1"></a><span class="co">#&gt;   Campaign    Segment Visitors Conversions Conversion_Rate</span></span>
+<span id="cb778-22"><a href="simpsons-paradox.html#cb778-22" tabindex="-1"></a><span class="co">#&gt; 1        A High-Value      500         290           0.580</span></span>
+<span id="cb778-23"><a href="simpsons-paradox.html#cb778-23" tabindex="-1"></a><span class="co">#&gt; 2        A  Low-Value     2000         170           0.085</span></span>
+<span id="cb778-24"><a href="simpsons-paradox.html#cb778-24" tabindex="-1"></a><span class="co">#&gt; 3        B High-Value      300         180           0.600</span></span>
+<span id="cb778-25"><a href="simpsons-paradox.html#cb778-25" tabindex="-1"></a><span class="co">#&gt; 4        B  Low-Value     3000         270           0.090</span></span></code></pre></div>
 <p>Interpreting This Data</p>
 <ul>
 <li><p><strong>Campaign B</strong> in the High-Value segment: <span class="math inline">\(\frac{180}{300} = 60\%\)</span></p></li>
@@ -1981,48 +1981,48 @@ div.csl-indent {
 <p>Thus, <strong>B</strong> outperforms <strong>A</strong> in each <strong>individual</strong> segment.</p>
 <p><strong>Step 2: Aggregating Data (Ignoring Customer Segments)</strong></p>
 <p>Now, let’s calculate the overall conversion rate for each campaign without considering customer segments.</p>
-<div class="sourceCode" id="cb774"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb774-1"><a href="simpsons-paradox.html#cb774-1" tabindex="-1"></a><span class="co"># Compute overall conversion rates for each campaign</span></span>
-<span id="cb774-2"><a href="simpsons-paradox.html#cb774-2" tabindex="-1"></a>overall_rates <span class="ot">&lt;-</span> marketing_data <span class="sc">%&gt;%</span></span>
-<span id="cb774-3"><a href="simpsons-paradox.html#cb774-3" tabindex="-1"></a>  <span class="fu">group_by</span>(Campaign) <span class="sc">%&gt;%</span></span>
-<span id="cb774-4"><a href="simpsons-paradox.html#cb774-4" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb774-5"><a href="simpsons-paradox.html#cb774-5" tabindex="-1"></a>    <span class="at">Total_Visitors     =</span> <span class="fu">sum</span>(Visitors),</span>
-<span id="cb774-6"><a href="simpsons-paradox.html#cb774-6" tabindex="-1"></a>    <span class="at">Total_Conversions  =</span> <span class="fu">sum</span>(Conversions),</span>
-<span id="cb774-7"><a href="simpsons-paradox.html#cb774-7" tabindex="-1"></a>    <span class="at">Overall_Conversion_Rate =</span> Total_Conversions <span class="sc">/</span> Total_Visitors</span>
-<span id="cb774-8"><a href="simpsons-paradox.html#cb774-8" tabindex="-1"></a>  )</span>
-<span id="cb774-9"><a href="simpsons-paradox.html#cb774-9" tabindex="-1"></a></span>
-<span id="cb774-10"><a href="simpsons-paradox.html#cb774-10" tabindex="-1"></a><span class="co"># Print overall conversion rates</span></span>
-<span id="cb774-11"><a href="simpsons-paradox.html#cb774-11" tabindex="-1"></a><span class="fu">print</span>(overall_rates)</span>
-<span id="cb774-12"><a href="simpsons-paradox.html#cb774-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 4</span></span>
-<span id="cb774-13"><a href="simpsons-paradox.html#cb774-13" tabindex="-1"></a><span class="co">#&gt;   Campaign Total_Visitors Total_Conversions Overall_Conversion_Rate</span></span>
-<span id="cb774-14"><a href="simpsons-paradox.html#cb774-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;             &lt;dbl&gt;             &lt;dbl&gt;                   &lt;dbl&gt;</span></span>
-<span id="cb774-15"><a href="simpsons-paradox.html#cb774-15" tabindex="-1"></a><span class="co">#&gt; 1 A                  2500               460                   0.184</span></span>
-<span id="cb774-16"><a href="simpsons-paradox.html#cb774-16" tabindex="-1"></a><span class="co">#&gt; 2 B                  3300               450                   0.136</span></span></code></pre></div>
+<div class="sourceCode" id="cb779"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb779-1"><a href="simpsons-paradox.html#cb779-1" tabindex="-1"></a><span class="co"># Compute overall conversion rates for each campaign</span></span>
+<span id="cb779-2"><a href="simpsons-paradox.html#cb779-2" tabindex="-1"></a>overall_rates <span class="ot">&lt;-</span> marketing_data <span class="sc">%&gt;%</span></span>
+<span id="cb779-3"><a href="simpsons-paradox.html#cb779-3" tabindex="-1"></a>  <span class="fu">group_by</span>(Campaign) <span class="sc">%&gt;%</span></span>
+<span id="cb779-4"><a href="simpsons-paradox.html#cb779-4" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb779-5"><a href="simpsons-paradox.html#cb779-5" tabindex="-1"></a>    <span class="at">Total_Visitors     =</span> <span class="fu">sum</span>(Visitors),</span>
+<span id="cb779-6"><a href="simpsons-paradox.html#cb779-6" tabindex="-1"></a>    <span class="at">Total_Conversions  =</span> <span class="fu">sum</span>(Conversions),</span>
+<span id="cb779-7"><a href="simpsons-paradox.html#cb779-7" tabindex="-1"></a>    <span class="at">Overall_Conversion_Rate =</span> Total_Conversions <span class="sc">/</span> Total_Visitors</span>
+<span id="cb779-8"><a href="simpsons-paradox.html#cb779-8" tabindex="-1"></a>  )</span>
+<span id="cb779-9"><a href="simpsons-paradox.html#cb779-9" tabindex="-1"></a></span>
+<span id="cb779-10"><a href="simpsons-paradox.html#cb779-10" tabindex="-1"></a><span class="co"># Print overall conversion rates</span></span>
+<span id="cb779-11"><a href="simpsons-paradox.html#cb779-11" tabindex="-1"></a><span class="fu">print</span>(overall_rates)</span>
+<span id="cb779-12"><a href="simpsons-paradox.html#cb779-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 4</span></span>
+<span id="cb779-13"><a href="simpsons-paradox.html#cb779-13" tabindex="-1"></a><span class="co">#&gt;   Campaign Total_Visitors Total_Conversions Overall_Conversion_Rate</span></span>
+<span id="cb779-14"><a href="simpsons-paradox.html#cb779-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;             &lt;dbl&gt;             &lt;dbl&gt;                   &lt;dbl&gt;</span></span>
+<span id="cb779-15"><a href="simpsons-paradox.html#cb779-15" tabindex="-1"></a><span class="co">#&gt; 1 A                  2500               460                   0.184</span></span>
+<span id="cb779-16"><a href="simpsons-paradox.html#cb779-16" tabindex="-1"></a><span class="co">#&gt; 2 B                  3300               450                   0.136</span></span></code></pre></div>
 <p><strong>Step 3: Observing Simpson’s Paradox</strong></p>
 <p>Let’s determine which campaign appears to have a higher conversion rate.</p>
-<div class="sourceCode" id="cb775"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb775-1"><a href="simpsons-paradox.html#cb775-1" tabindex="-1"></a><span class="co"># Identify the campaign with the higher overall conversion rate</span></span>
-<span id="cb775-2"><a href="simpsons-paradox.html#cb775-2" tabindex="-1"></a>best_campaign_overall <span class="ot">&lt;-</span> overall_rates <span class="sc">%&gt;%</span></span>
-<span id="cb775-3"><a href="simpsons-paradox.html#cb775-3" tabindex="-1"></a>    <span class="fu">filter</span>(Overall_Conversion_Rate <span class="sc">==</span> <span class="fu">max</span>(Overall_Conversion_Rate)) <span class="sc">%&gt;%</span></span>
-<span id="cb775-4"><a href="simpsons-paradox.html#cb775-4" tabindex="-1"></a>    <span class="fu">select</span>(Campaign, Overall_Conversion_Rate)</span>
-<span id="cb775-5"><a href="simpsons-paradox.html#cb775-5" tabindex="-1"></a></span>
-<span id="cb775-6"><a href="simpsons-paradox.html#cb775-6" tabindex="-1"></a><span class="fu">print</span>(best_campaign_overall)</span>
-<span id="cb775-7"><a href="simpsons-paradox.html#cb775-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 2</span></span>
-<span id="cb775-8"><a href="simpsons-paradox.html#cb775-8" tabindex="-1"></a><span class="co">#&gt;   Campaign Overall_Conversion_Rate</span></span>
-<span id="cb775-9"><a href="simpsons-paradox.html#cb775-9" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                      &lt;dbl&gt;</span></span>
-<span id="cb775-10"><a href="simpsons-paradox.html#cb775-10" tabindex="-1"></a><span class="co">#&gt; 1 A                          0.184</span></span></code></pre></div>
+<div class="sourceCode" id="cb780"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb780-1"><a href="simpsons-paradox.html#cb780-1" tabindex="-1"></a><span class="co"># Identify the campaign with the higher overall conversion rate</span></span>
+<span id="cb780-2"><a href="simpsons-paradox.html#cb780-2" tabindex="-1"></a>best_campaign_overall <span class="ot">&lt;-</span> overall_rates <span class="sc">%&gt;%</span></span>
+<span id="cb780-3"><a href="simpsons-paradox.html#cb780-3" tabindex="-1"></a>    <span class="fu">filter</span>(Overall_Conversion_Rate <span class="sc">==</span> <span class="fu">max</span>(Overall_Conversion_Rate)) <span class="sc">%&gt;%</span></span>
+<span id="cb780-4"><a href="simpsons-paradox.html#cb780-4" tabindex="-1"></a>    <span class="fu">select</span>(Campaign, Overall_Conversion_Rate)</span>
+<span id="cb780-5"><a href="simpsons-paradox.html#cb780-5" tabindex="-1"></a></span>
+<span id="cb780-6"><a href="simpsons-paradox.html#cb780-6" tabindex="-1"></a><span class="fu">print</span>(best_campaign_overall)</span>
+<span id="cb780-7"><a href="simpsons-paradox.html#cb780-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 1 × 2</span></span>
+<span id="cb780-8"><a href="simpsons-paradox.html#cb780-8" tabindex="-1"></a><span class="co">#&gt;   Campaign Overall_Conversion_Rate</span></span>
+<span id="cb780-9"><a href="simpsons-paradox.html#cb780-9" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                      &lt;dbl&gt;</span></span>
+<span id="cb780-10"><a href="simpsons-paradox.html#cb780-10" tabindex="-1"></a><span class="co">#&gt; 1 A                          0.184</span></span></code></pre></div>
 <p>Even though <strong>Campaign B</strong> is <strong>better</strong> in each <strong>segment</strong>, you should see that <strong>Campaign A</strong> has a <strong>higher</strong> aggregated (overall) conversion rate!</p>
 <p><strong>Step 4: Conversion Rates Within Customer Segments</strong></p>
 <p>We now analyze the conversion rates separately for high-value and low-value customers.</p>
-<div class="sourceCode" id="cb776"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb776-1"><a href="simpsons-paradox.html#cb776-1" tabindex="-1"></a><span class="co"># Compute conversion rates by customer segment</span></span>
-<span id="cb776-2"><a href="simpsons-paradox.html#cb776-2" tabindex="-1"></a>by_segment <span class="ot">&lt;-</span> marketing_data <span class="sc">%&gt;%</span></span>
-<span id="cb776-3"><a href="simpsons-paradox.html#cb776-3" tabindex="-1"></a>  <span class="fu">select</span>(Campaign, Segment, Conversion_Rate) <span class="sc">%&gt;%</span></span>
-<span id="cb776-4"><a href="simpsons-paradox.html#cb776-4" tabindex="-1"></a>  <span class="fu">arrange</span>(Segment)</span>
-<span id="cb776-5"><a href="simpsons-paradox.html#cb776-5" tabindex="-1"></a></span>
-<span id="cb776-6"><a href="simpsons-paradox.html#cb776-6" tabindex="-1"></a><span class="fu">print</span>(by_segment)</span>
-<span id="cb776-7"><a href="simpsons-paradox.html#cb776-7" tabindex="-1"></a><span class="co">#&gt;   Campaign    Segment Conversion_Rate</span></span>
-<span id="cb776-8"><a href="simpsons-paradox.html#cb776-8" tabindex="-1"></a><span class="co">#&gt; 1        A High-Value           0.580</span></span>
-<span id="cb776-9"><a href="simpsons-paradox.html#cb776-9" tabindex="-1"></a><span class="co">#&gt; 2        B High-Value           0.600</span></span>
-<span id="cb776-10"><a href="simpsons-paradox.html#cb776-10" tabindex="-1"></a><span class="co">#&gt; 3        A  Low-Value           0.085</span></span>
-<span id="cb776-11"><a href="simpsons-paradox.html#cb776-11" tabindex="-1"></a><span class="co">#&gt; 4        B  Low-Value           0.090</span></span></code></pre></div>
+<div class="sourceCode" id="cb781"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb781-1"><a href="simpsons-paradox.html#cb781-1" tabindex="-1"></a><span class="co"># Compute conversion rates by customer segment</span></span>
+<span id="cb781-2"><a href="simpsons-paradox.html#cb781-2" tabindex="-1"></a>by_segment <span class="ot">&lt;-</span> marketing_data <span class="sc">%&gt;%</span></span>
+<span id="cb781-3"><a href="simpsons-paradox.html#cb781-3" tabindex="-1"></a>  <span class="fu">select</span>(Campaign, Segment, Conversion_Rate) <span class="sc">%&gt;%</span></span>
+<span id="cb781-4"><a href="simpsons-paradox.html#cb781-4" tabindex="-1"></a>  <span class="fu">arrange</span>(Segment)</span>
+<span id="cb781-5"><a href="simpsons-paradox.html#cb781-5" tabindex="-1"></a></span>
+<span id="cb781-6"><a href="simpsons-paradox.html#cb781-6" tabindex="-1"></a><span class="fu">print</span>(by_segment)</span>
+<span id="cb781-7"><a href="simpsons-paradox.html#cb781-7" tabindex="-1"></a><span class="co">#&gt;   Campaign    Segment Conversion_Rate</span></span>
+<span id="cb781-8"><a href="simpsons-paradox.html#cb781-8" tabindex="-1"></a><span class="co">#&gt; 1        A High-Value           0.580</span></span>
+<span id="cb781-9"><a href="simpsons-paradox.html#cb781-9" tabindex="-1"></a><span class="co">#&gt; 2        B High-Value           0.600</span></span>
+<span id="cb781-10"><a href="simpsons-paradox.html#cb781-10" tabindex="-1"></a><span class="co">#&gt; 3        A  Low-Value           0.085</span></span>
+<span id="cb781-11"><a href="simpsons-paradox.html#cb781-11" tabindex="-1"></a><span class="co">#&gt; 4        B  Low-Value           0.090</span></span></code></pre></div>
 <ul>
 <li><p>In <strong>High-Value</strong>, B &gt; A.</p></li>
 <li><p>In <strong>Low-Value</strong>, B &gt; A.</p></li>
@@ -2031,20 +2031,20 @@ div.csl-indent {
 <p>This <strong>reversal</strong> is the hallmark of <strong>Simpson’s Paradox</strong>.</p>
 <p><strong>Step 5: Visualizing the Paradox</strong></p>
 <p>To make this clearer, let’s visualize the results.</p>
-<div class="sourceCode" id="cb777"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb777-1"><a href="simpsons-paradox.html#cb777-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb777-2"><a href="simpsons-paradox.html#cb777-2" tabindex="-1"></a></span>
-<span id="cb777-3"><a href="simpsons-paradox.html#cb777-3" tabindex="-1"></a><span class="co"># Plot conversion rates by campaign and segment</span></span>
-<span id="cb777-4"><a href="simpsons-paradox.html#cb777-4" tabindex="-1"></a><span class="fu">ggplot</span>(marketing_data,</span>
-<span id="cb777-5"><a href="simpsons-paradox.html#cb777-5" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> Segment,</span>
-<span id="cb777-6"><a href="simpsons-paradox.html#cb777-6" tabindex="-1"></a>           <span class="at">y =</span> Conversion_Rate,</span>
-<span id="cb777-7"><a href="simpsons-paradox.html#cb777-7" tabindex="-1"></a>           <span class="at">fill =</span> Campaign)) <span class="sc">+</span></span>
-<span id="cb777-8"><a href="simpsons-paradox.html#cb777-8" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
-<span id="cb777-9"><a href="simpsons-paradox.html#cb777-9" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb777-10"><a href="simpsons-paradox.html#cb777-10" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Simpson’s Paradox in Marketing&quot;</span>,</span>
-<span id="cb777-11"><a href="simpsons-paradox.html#cb777-11" tabindex="-1"></a>    <span class="at">x     =</span> <span class="st">&quot;Customer Segment&quot;</span>,</span>
-<span id="cb777-12"><a href="simpsons-paradox.html#cb777-12" tabindex="-1"></a>    <span class="at">y     =</span> <span class="st">&quot;Conversion Rate&quot;</span></span>
-<span id="cb777-13"><a href="simpsons-paradox.html#cb777-13" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb777-14"><a href="simpsons-paradox.html#cb777-14" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb782"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb782-1"><a href="simpsons-paradox.html#cb782-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb782-2"><a href="simpsons-paradox.html#cb782-2" tabindex="-1"></a></span>
+<span id="cb782-3"><a href="simpsons-paradox.html#cb782-3" tabindex="-1"></a><span class="co"># Plot conversion rates by campaign and segment</span></span>
+<span id="cb782-4"><a href="simpsons-paradox.html#cb782-4" tabindex="-1"></a><span class="fu">ggplot</span>(marketing_data,</span>
+<span id="cb782-5"><a href="simpsons-paradox.html#cb782-5" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> Segment,</span>
+<span id="cb782-6"><a href="simpsons-paradox.html#cb782-6" tabindex="-1"></a>           <span class="at">y =</span> Conversion_Rate,</span>
+<span id="cb782-7"><a href="simpsons-paradox.html#cb782-7" tabindex="-1"></a>           <span class="at">fill =</span> Campaign)) <span class="sc">+</span></span>
+<span id="cb782-8"><a href="simpsons-paradox.html#cb782-8" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>, <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
+<span id="cb782-9"><a href="simpsons-paradox.html#cb782-9" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb782-10"><a href="simpsons-paradox.html#cb782-10" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Simpson’s Paradox in Marketing&quot;</span>,</span>
+<span id="cb782-11"><a href="simpsons-paradox.html#cb782-11" tabindex="-1"></a>    <span class="at">x     =</span> <span class="st">&quot;Customer Segment&quot;</span>,</span>
+<span id="cb782-12"><a href="simpsons-paradox.html#cb782-12" tabindex="-1"></a>    <span class="at">y     =</span> <span class="st">&quot;Conversion Rate&quot;</span></span>
+<span id="cb782-13"><a href="simpsons-paradox.html#cb782-13" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb782-14"><a href="simpsons-paradox.html#cb782-14" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-5"></span>
 <img src="21-causality_files/figure-html/unnamed-chunk-5-1.png" alt="Bar chart comparing conversion rates for Campaigns A and B across High-Value and Low-Value customer segments." width="90%" />
 <p class="caption">
@@ -2087,34 +2087,34 @@ Figure 2.5: Simpson Paradox in Marketing
 <div id="correcting-simpsons-paradox-with-regression-adjustment" class="section level3 hasAnchor" number="21.2.5">
 <h3><span class="header-section-number">21.2.5</span> Correcting Simpson’s Paradox with Regression Adjustment<a href="simpsons-paradox.html#correcting-simpsons-paradox-with-regression-adjustment" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Let’s adjust for the confounding variable using <strong>logistic regression</strong>.</p>
-<div class="sourceCode" id="cb778"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb778-1"><a href="simpsons-paradox.html#cb778-1" tabindex="-1"></a><span class="co"># Logistic regression adjusting for the Segment</span></span>
-<span id="cb778-2"><a href="simpsons-paradox.html#cb778-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb778-3"><a href="simpsons-paradox.html#cb778-3" tabindex="-1"></a>  <span class="fu">cbind</span>(Conversions, Visitors <span class="sc">-</span> Conversions) <span class="sc">~</span> Campaign <span class="sc">+</span> Segment,</span>
-<span id="cb778-4"><a href="simpsons-paradox.html#cb778-4" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
-<span id="cb778-5"><a href="simpsons-paradox.html#cb778-5" tabindex="-1"></a>  <span class="at">data   =</span> marketing_data</span>
-<span id="cb778-6"><a href="simpsons-paradox.html#cb778-6" tabindex="-1"></a>)</span>
-<span id="cb778-7"><a href="simpsons-paradox.html#cb778-7" tabindex="-1"></a></span>
-<span id="cb778-8"><a href="simpsons-paradox.html#cb778-8" tabindex="-1"></a><span class="fu">summary</span>(model)</span>
-<span id="cb778-9"><a href="simpsons-paradox.html#cb778-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb778-10"><a href="simpsons-paradox.html#cb778-10" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb778-11"><a href="simpsons-paradox.html#cb778-11" tabindex="-1"></a><span class="co">#&gt; glm(formula = cbind(Conversions, Visitors - Conversions) ~ Campaign + </span></span>
-<span id="cb778-12"><a href="simpsons-paradox.html#cb778-12" tabindex="-1"></a><span class="co">#&gt;     Segment, family = binomial(), data = marketing_data)</span></span>
-<span id="cb778-13"><a href="simpsons-paradox.html#cb778-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb778-14"><a href="simpsons-paradox.html#cb778-14" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb778-15"><a href="simpsons-paradox.html#cb778-15" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span id="cb778-16"><a href="simpsons-paradox.html#cb778-16" tabindex="-1"></a><span class="co">#&gt; (Intercept)       0.32783    0.07839   4.182 2.89e-05 ***</span></span>
-<span id="cb778-17"><a href="simpsons-paradox.html#cb778-17" tabindex="-1"></a><span class="co">#&gt; CampaignB         0.06910    0.08439   0.819    0.413    </span></span>
-<span id="cb778-18"><a href="simpsons-paradox.html#cb778-18" tabindex="-1"></a><span class="co">#&gt; SegmentLow-Value -2.70806    0.08982 -30.151  &lt; 2e-16 ***</span></span>
-<span id="cb778-19"><a href="simpsons-paradox.html#cb778-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb778-20"><a href="simpsons-paradox.html#cb778-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb778-21"><a href="simpsons-paradox.html#cb778-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb778-22"><a href="simpsons-paradox.html#cb778-22" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for binomial family taken to be 1)</span></span>
-<span id="cb778-23"><a href="simpsons-paradox.html#cb778-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb778-24"><a href="simpsons-paradox.html#cb778-24" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 977.473003  on 3  degrees of freedom</span></span>
-<span id="cb778-25"><a href="simpsons-paradox.html#cb778-25" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   0.012337  on 1  degrees of freedom</span></span>
-<span id="cb778-26"><a href="simpsons-paradox.html#cb778-26" tabindex="-1"></a><span class="co">#&gt; AIC: 32.998</span></span>
-<span id="cb778-27"><a href="simpsons-paradox.html#cb778-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb778-28"><a href="simpsons-paradox.html#cb778-28" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 3</span></span></code></pre></div>
+<div class="sourceCode" id="cb783"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb783-1"><a href="simpsons-paradox.html#cb783-1" tabindex="-1"></a><span class="co"># Logistic regression adjusting for the Segment</span></span>
+<span id="cb783-2"><a href="simpsons-paradox.html#cb783-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb783-3"><a href="simpsons-paradox.html#cb783-3" tabindex="-1"></a>  <span class="fu">cbind</span>(Conversions, Visitors <span class="sc">-</span> Conversions) <span class="sc">~</span> Campaign <span class="sc">+</span> Segment,</span>
+<span id="cb783-4"><a href="simpsons-paradox.html#cb783-4" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb783-5"><a href="simpsons-paradox.html#cb783-5" tabindex="-1"></a>  <span class="at">data   =</span> marketing_data</span>
+<span id="cb783-6"><a href="simpsons-paradox.html#cb783-6" tabindex="-1"></a>)</span>
+<span id="cb783-7"><a href="simpsons-paradox.html#cb783-7" tabindex="-1"></a></span>
+<span id="cb783-8"><a href="simpsons-paradox.html#cb783-8" tabindex="-1"></a><span class="fu">summary</span>(model)</span>
+<span id="cb783-9"><a href="simpsons-paradox.html#cb783-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb783-10"><a href="simpsons-paradox.html#cb783-10" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb783-11"><a href="simpsons-paradox.html#cb783-11" tabindex="-1"></a><span class="co">#&gt; glm(formula = cbind(Conversions, Visitors - Conversions) ~ Campaign + </span></span>
+<span id="cb783-12"><a href="simpsons-paradox.html#cb783-12" tabindex="-1"></a><span class="co">#&gt;     Segment, family = binomial(), data = marketing_data)</span></span>
+<span id="cb783-13"><a href="simpsons-paradox.html#cb783-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb783-14"><a href="simpsons-paradox.html#cb783-14" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb783-15"><a href="simpsons-paradox.html#cb783-15" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb783-16"><a href="simpsons-paradox.html#cb783-16" tabindex="-1"></a><span class="co">#&gt; (Intercept)       0.32783    0.07839   4.182 2.89e-05 ***</span></span>
+<span id="cb783-17"><a href="simpsons-paradox.html#cb783-17" tabindex="-1"></a><span class="co">#&gt; CampaignB         0.06910    0.08439   0.819    0.413    </span></span>
+<span id="cb783-18"><a href="simpsons-paradox.html#cb783-18" tabindex="-1"></a><span class="co">#&gt; SegmentLow-Value -2.70806    0.08982 -30.151  &lt; 2e-16 ***</span></span>
+<span id="cb783-19"><a href="simpsons-paradox.html#cb783-19" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb783-20"><a href="simpsons-paradox.html#cb783-20" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb783-21"><a href="simpsons-paradox.html#cb783-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb783-22"><a href="simpsons-paradox.html#cb783-22" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for binomial family taken to be 1)</span></span>
+<span id="cb783-23"><a href="simpsons-paradox.html#cb783-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb783-24"><a href="simpsons-paradox.html#cb783-24" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 977.473003  on 3  degrees of freedom</span></span>
+<span id="cb783-25"><a href="simpsons-paradox.html#cb783-25" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   0.012337  on 1  degrees of freedom</span></span>
+<span id="cb783-26"><a href="simpsons-paradox.html#cb783-26" tabindex="-1"></a><span class="co">#&gt; AIC: 32.998</span></span>
+<span id="cb783-27"><a href="simpsons-paradox.html#cb783-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb783-28"><a href="simpsons-paradox.html#cb783-28" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 3</span></span></code></pre></div>
 <p>This model includes both <strong>Campaign</strong> and <strong>Segment</strong> as predictors, giving a clearer picture of the <em>true effect</em> of each campaign on conversion, <strong>after</strong> controlling for differences in segment composition.</p>
 </div>
 <div id="key-takeaways-3" class="section level3 hasAnchor" number="21.2.6">

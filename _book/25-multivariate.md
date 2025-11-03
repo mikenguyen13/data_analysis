@@ -913,12 +913,12 @@ ks_tests
 ``` r
 # Mardia's test for multivariate normality
 mardia_test <-
-    mvn(
+    MVN::mvn(
         trees,
-        mvnTest = "mardia",
-        covariance = FALSE,
-        multivariatePlot = "qq"
+        mvn_test  = "mardia"
     )
+
+plot(mardia_test)
 ```
 
 <div class="figure" style="text-align: center">
@@ -928,11 +928,10 @@ mardia_test <-
 
 
 ``` r
-mardia_test$multivariateNormality
-#>              Test         Statistic            p value Result
-#> 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
-#> 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES
-#> 3             MVN              <NA>               <NA>    YES
+mardia_test$multivariate_normality
+#>              Test Statistic p.value     Method      MVN
+#> 1 Mardia Skewness    33.436   0.544 asymptotic ✓ Normal
+#> 2 Mardia Kurtosis    -0.944   0.345 asymptotic ✓ Normal
 ```
 
 
@@ -941,10 +940,9 @@ mardia_test$multivariateNormality
 dh_test <-
     mvn(
         trees,
-        mvnTest = "dh",
-        covariance = FALSE,
-        multivariatePlot = "qq"
+        mvn_test = "doornik_hansen"
     )
+plot(dh_test)
 ```
 
 <div class="figure" style="text-align: center">
@@ -954,9 +952,9 @@ dh_test <-
 
 
 ``` r
-dh_test$multivariateNormality
-#>             Test        E df      p value MVN
-#> 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO
+dh_test$multivariate_normality
+#>             Test Statistic df p.value     Method          MVN
+#> 1 Doornik-Hansen   161.945 10  <0.001 asymptotic ✗ Not normal
 ```
 
 
@@ -965,10 +963,9 @@ dh_test$multivariateNormality
 hz_test <-
     mvn(
         trees,
-        mvnTest = "hz",
-        covariance = FALSE,
-        multivariatePlot = "qq"
+        mvn = "hz"
     )
+plot(hz_test)
 ```
 
 <div class="figure" style="text-align: center">
@@ -978,9 +975,9 @@ hz_test <-
 
 
 ``` r
-hz_test$multivariateNormality
-#>            Test        HZ   p value MVN
-#> 1 Henze-Zirkler 0.7591525 0.6398905 YES
+hz_test$multivariate_normality
+#>            Test Statistic p.value     Method      MVN
+#> 1 Henze-Zirkler     0.782   0.524 asymptotic ✓ Normal
 ```
 
 
@@ -989,10 +986,9 @@ hz_test$multivariateNormality
 royston_test <-
     mvn(
         trees,
-        mvnTest = "royston",
-        covariance = FALSE,
-        multivariatePlot = "qq"
+        mvn = "royston"
     )
+plot(royston_test)
 ```
 
 <div class="figure" style="text-align: center">
@@ -1002,9 +998,9 @@ royston_test <-
 
 
 ``` r
-royston_test$multivariateNormality
-#>      Test        H    p value MVN
-#> 1 Royston 9.064631 0.08199215 YES
+royston_test$multivariate_normality
+#>      Test Statistic p.value     Method      MVN
+#> 1 Royston     9.065   0.082 asymptotic ✓ Normal
 ```
 
 
@@ -1013,10 +1009,9 @@ royston_test$multivariateNormality
 estat_test <-
     mvn(
         trees,
-        mvnTest = "energy",
-        covariance = FALSE,
-        multivariatePlot = "qq"
+        mvn = "energy"
     )
+plot(estat_test)
 ```
 
 <div class="figure" style="text-align: center">
@@ -1026,9 +1021,9 @@ estat_test <-
 
 
 ``` r
-estat_test$multivariateNormality
-#>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.509 YES
+estat_test$multivariate_normality
+#>          Test Statistic p.value    Method      MVN
+#> 1 E-Statistic     1.091   0.518 bootstrap ✓ Normal
 ```
 
 ### Mean Vector Inference
@@ -2113,7 +2108,7 @@ print(twosamp_fit2)
 -   Fail to reject $H_0$: No significant difference between groups.
 
 | **Test**                                 | **Hypothesis**                                                  | **Application**                |
-|----------------------|--------------------------------|------------------|
+|------------------------------------------|-----------------------------------------------------------------|--------------------------------|
 | **One-Sample Hotelling's** $T^2$         | $H_0: \mathbf{\mu} = \mathbf{\mu}_0$                            | Single group mean vector test  |
 | **Paired-Sample Hotelling's** $T^2$      | $H_0: \mathbf{\mu}_d = 0$                                       | Paired measurements comparison |
 | **Independent-Sample Hotelling's** $T^2$ | $H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2$                          | Two-group mean vector test     |
@@ -3263,7 +3258,7 @@ If we fail to reject all three hypotheses, we conclude that:
 The three profile tests correspond to well-known univariate ANOVA components:
 
 | Test                      | Equivalent test for                                |
-|-------------------------|----------------------------------------------|
+|---------------------------|----------------------------------------------------|
 | **Parallel profiles**     | Interaction effect (treatment × time)              |
 | **Coincidental profiles** | Main effect of treatment (between-subjects factor) |
 | **Horizontal profiles**   | Main effect of time (repeated measures factor)     |

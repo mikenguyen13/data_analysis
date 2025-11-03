@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>33.9 Biases in Event Studies | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="33.9 Biases in Event Studies | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1904,28 +1904,28 @@ div.csl-indent {
 <li>Use <a href="long-run-event-studies.html#calendar-time-portfolio-abnormal-returns-ctars">Calendar-Time Portfolio Abnormal Returns (CTARs)</a> <span class="citation">(<a href="#ref-jaffe1974special">Jaffe 1974</a>)</span>.</li>
 <li>Apply a time-series standard deviation test statistic <span class="citation">(<a href="#ref-brown1980measuring">S. J. Brown and Warner 1980</a>)</span> to correct standard errors.</li>
 </ul>
-<div class="sourceCode" id="cb1040"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1040-1"><a href="biases-in-event-studies.html#cb1040-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
-<span id="cb1040-2"><a href="biases-in-event-studies.html#cb1040-2" tabindex="-1"></a><span class="fu">library</span>(sandwich)  <span class="co"># For robust standard errors</span></span>
-<span id="cb1040-3"><a href="biases-in-event-studies.html#cb1040-3" tabindex="-1"></a><span class="fu">library</span>(lmtest)    <span class="co"># For hypothesis testing</span></span>
-<span id="cb1040-4"><a href="biases-in-event-studies.html#cb1040-4" tabindex="-1"></a></span>
-<span id="cb1040-5"><a href="biases-in-event-studies.html#cb1040-5" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
-<span id="cb1040-6"><a href="biases-in-event-studies.html#cb1040-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1040-7"><a href="biases-in-event-studies.html#cb1040-7" tabindex="-1"></a>df_returns <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb1040-8"><a href="biases-in-event-studies.html#cb1040-8" tabindex="-1"></a>    <span class="at">event_id =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="at">each =</span> <span class="dv">10</span>),</span>
-<span id="cb1040-9"><a href="biases-in-event-studies.html#cb1040-9" tabindex="-1"></a>    <span class="at">firm_id =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">times =</span> <span class="dv">100</span>),</span>
-<span id="cb1040-10"><a href="biases-in-event-studies.html#cb1040-10" tabindex="-1"></a>    <span class="at">abnormal_return =</span> <span class="fu">rnorm</span>(<span class="dv">1000</span>, <span class="at">mean =</span> <span class="fl">0.02</span>, <span class="at">sd =</span> <span class="fl">0.05</span>)</span>
-<span id="cb1040-11"><a href="biases-in-event-studies.html#cb1040-11" tabindex="-1"></a>)</span>
-<span id="cb1040-12"><a href="biases-in-event-studies.html#cb1040-12" tabindex="-1"></a></span>
-<span id="cb1040-13"><a href="biases-in-event-studies.html#cb1040-13" tabindex="-1"></a><span class="co"># Cross-sectional dependence adjustment using clustered standard errors</span></span>
-<span id="cb1040-14"><a href="biases-in-event-studies.html#cb1040-14" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(abnormal_return <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> df_returns)</span>
-<span id="cb1040-15"><a href="biases-in-event-studies.html#cb1040-15" tabindex="-1"></a><span class="fu">coeftest</span>(model, <span class="at">vcov =</span> <span class="fu">vcovCL</span>(model, <span class="at">cluster =</span> <span class="sc">~</span>event_id))</span>
-<span id="cb1040-16"><a href="biases-in-event-studies.html#cb1040-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1040-17"><a href="biases-in-event-studies.html#cb1040-17" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb1040-18"><a href="biases-in-event-studies.html#cb1040-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1040-19"><a href="biases-in-event-studies.html#cb1040-19" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
-<span id="cb1040-20"><a href="biases-in-event-studies.html#cb1040-20" tabindex="-1"></a><span class="co">#&gt; (Intercept) 0.0208064  0.0014914  13.951 &lt; 2.2e-16 ***</span></span>
-<span id="cb1040-21"><a href="biases-in-event-studies.html#cb1040-21" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1040-22"><a href="biases-in-event-studies.html#cb1040-22" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb1045"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1045-1"><a href="biases-in-event-studies.html#cb1045-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
+<span id="cb1045-2"><a href="biases-in-event-studies.html#cb1045-2" tabindex="-1"></a><span class="fu">library</span>(sandwich)  <span class="co"># For robust standard errors</span></span>
+<span id="cb1045-3"><a href="biases-in-event-studies.html#cb1045-3" tabindex="-1"></a><span class="fu">library</span>(lmtest)    <span class="co"># For hypothesis testing</span></span>
+<span id="cb1045-4"><a href="biases-in-event-studies.html#cb1045-4" tabindex="-1"></a></span>
+<span id="cb1045-5"><a href="biases-in-event-studies.html#cb1045-5" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
+<span id="cb1045-6"><a href="biases-in-event-studies.html#cb1045-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1045-7"><a href="biases-in-event-studies.html#cb1045-7" tabindex="-1"></a>df_returns <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1045-8"><a href="biases-in-event-studies.html#cb1045-8" tabindex="-1"></a>    <span class="at">event_id =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="at">each =</span> <span class="dv">10</span>),</span>
+<span id="cb1045-9"><a href="biases-in-event-studies.html#cb1045-9" tabindex="-1"></a>    <span class="at">firm_id =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">times =</span> <span class="dv">100</span>),</span>
+<span id="cb1045-10"><a href="biases-in-event-studies.html#cb1045-10" tabindex="-1"></a>    <span class="at">abnormal_return =</span> <span class="fu">rnorm</span>(<span class="dv">1000</span>, <span class="at">mean =</span> <span class="fl">0.02</span>, <span class="at">sd =</span> <span class="fl">0.05</span>)</span>
+<span id="cb1045-11"><a href="biases-in-event-studies.html#cb1045-11" tabindex="-1"></a>)</span>
+<span id="cb1045-12"><a href="biases-in-event-studies.html#cb1045-12" tabindex="-1"></a></span>
+<span id="cb1045-13"><a href="biases-in-event-studies.html#cb1045-13" tabindex="-1"></a><span class="co"># Cross-sectional dependence adjustment using clustered standard errors</span></span>
+<span id="cb1045-14"><a href="biases-in-event-studies.html#cb1045-14" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(abnormal_return <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> df_returns)</span>
+<span id="cb1045-15"><a href="biases-in-event-studies.html#cb1045-15" tabindex="-1"></a><span class="fu">coeftest</span>(model, <span class="at">vcov =</span> <span class="fu">vcovCL</span>(model, <span class="at">cluster =</span> <span class="sc">~</span>event_id))</span>
+<span id="cb1045-16"><a href="biases-in-event-studies.html#cb1045-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1045-17"><a href="biases-in-event-studies.html#cb1045-17" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb1045-18"><a href="biases-in-event-studies.html#cb1045-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1045-19"><a href="biases-in-event-studies.html#cb1045-19" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
+<span id="cb1045-20"><a href="biases-in-event-studies.html#cb1045-20" tabindex="-1"></a><span class="co">#&gt; (Intercept) 0.0208064  0.0014914  13.951 &lt; 2.2e-16 ***</span></span>
+<span id="cb1045-21"><a href="biases-in-event-studies.html#cb1045-21" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1045-22"><a href="biases-in-event-studies.html#cb1045-22" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 </div>
 <div id="sample-selection-bias" class="section level3 hasAnchor" number="33.9.4">
 <h3><span class="header-section-number">33.9.4</span> Sample Selection Bias<a href="biases-in-event-studies.html#sample-selection-bias" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -1955,53 +1955,53 @@ div.csl-indent {
 <li><p><strong>First Stage (Selection Equation):</strong> Model the firm’s probability of experiencing the event using a Probit regression.</p></li>
 <li><p><strong>Second Stage (Outcome Equation):</strong> Model abnormal returns, controlling for the estimated Mills ratio (<span class="math inline">\(\lambda\)</span>).</p></li>
 </ol>
-<div class="sourceCode" id="cb1042"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1042-1"><a href="biases-in-event-studies.html#cb1042-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
-<span id="cb1042-2"><a href="biases-in-event-studies.html#cb1042-2" tabindex="-1"></a><span class="fu">library</span>(sampleSelection)</span>
-<span id="cb1042-3"><a href="biases-in-event-studies.html#cb1042-3" tabindex="-1"></a></span>
-<span id="cb1042-4"><a href="biases-in-event-studies.html#cb1042-4" tabindex="-1"></a><span class="co"># Simulated dataset for Heckman model</span></span>
-<span id="cb1042-5"><a href="biases-in-event-studies.html#cb1042-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1042-6"><a href="biases-in-event-studies.html#cb1042-6" tabindex="-1"></a>df_heckman <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb1042-7"><a href="biases-in-event-studies.html#cb1042-7" tabindex="-1"></a>    <span class="at">firm_id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>,</span>
-<span id="cb1042-8"><a href="biases-in-event-studies.html#cb1042-8" tabindex="-1"></a>    <span class="at">event =</span> <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.3</span>),  <span class="co"># Event occurrence (selection)</span></span>
-<span id="cb1042-9"><a href="biases-in-event-studies.html#cb1042-9" tabindex="-1"></a>    <span class="at">firm_size =</span> <span class="fu">runif</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="dv">10</span>), <span class="co"># Firm characteristic</span></span>
-<span id="cb1042-10"><a href="biases-in-event-studies.html#cb1042-10" tabindex="-1"></a>    <span class="at">abnormal_return =</span> <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="fl">0.02</span>, <span class="at">sd =</span> <span class="fl">0.05</span>)</span>
-<span id="cb1042-11"><a href="biases-in-event-studies.html#cb1042-11" tabindex="-1"></a>)</span>
-<span id="cb1042-12"><a href="biases-in-event-studies.html#cb1042-12" tabindex="-1"></a></span>
-<span id="cb1042-13"><a href="biases-in-event-studies.html#cb1042-13" tabindex="-1"></a><span class="co"># Introduce selection bias by correlating firm_size with event occurrence</span></span>
-<span id="cb1042-14"><a href="biases-in-event-studies.html#cb1042-14" tabindex="-1"></a>df_heckman<span class="sc">$</span>event[df_heckman<span class="sc">$</span>firm_size <span class="sc">&gt;</span> <span class="dv">7</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb1042-15"><a href="biases-in-event-studies.html#cb1042-15" tabindex="-1"></a></span>
-<span id="cb1042-16"><a href="biases-in-event-studies.html#cb1042-16" tabindex="-1"></a><span class="co"># Heckman Selection Model</span></span>
-<span id="cb1042-17"><a href="biases-in-event-studies.html#cb1042-17" tabindex="-1"></a>heckman_model <span class="ot">&lt;-</span> <span class="fu">selection</span>(</span>
-<span id="cb1042-18"><a href="biases-in-event-studies.html#cb1042-18" tabindex="-1"></a>    <span class="at">selection =</span> event <span class="sc">~</span> firm_size,  <span class="co"># Selection equation</span></span>
-<span id="cb1042-19"><a href="biases-in-event-studies.html#cb1042-19" tabindex="-1"></a>    <span class="at">outcome =</span> abnormal_return <span class="sc">~</span> firm_size,  <span class="co"># Outcome equation</span></span>
-<span id="cb1042-20"><a href="biases-in-event-studies.html#cb1042-20" tabindex="-1"></a>    <span class="at">data =</span> df_heckman</span>
-<span id="cb1042-21"><a href="biases-in-event-studies.html#cb1042-21" tabindex="-1"></a>)</span>
-<span id="cb1042-22"><a href="biases-in-event-studies.html#cb1042-22" tabindex="-1"></a></span>
-<span id="cb1042-23"><a href="biases-in-event-studies.html#cb1042-23" tabindex="-1"></a><span class="co"># Summary of Heckman model</span></span>
-<span id="cb1042-24"><a href="biases-in-event-studies.html#cb1042-24" tabindex="-1"></a><span class="fu">summary</span>(heckman_model)</span>
-<span id="cb1042-25"><a href="biases-in-event-studies.html#cb1042-25" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------</span></span>
-<span id="cb1042-26"><a href="biases-in-event-studies.html#cb1042-26" tabindex="-1"></a><span class="co">#&gt; Tobit 2 model (sample selection model)</span></span>
-<span id="cb1042-27"><a href="biases-in-event-studies.html#cb1042-27" tabindex="-1"></a><span class="co">#&gt; Maximum Likelihood estimation</span></span>
-<span id="cb1042-28"><a href="biases-in-event-studies.html#cb1042-28" tabindex="-1"></a><span class="co">#&gt; Newton-Raphson maximisation, 6 iterations</span></span>
-<span id="cb1042-29"><a href="biases-in-event-studies.html#cb1042-29" tabindex="-1"></a><span class="co">#&gt; Return code 8: successive function values within relative tolerance limit (reltol)</span></span>
-<span id="cb1042-30"><a href="biases-in-event-studies.html#cb1042-30" tabindex="-1"></a><span class="co">#&gt; Log-Likelihood: 165.4579 </span></span>
-<span id="cb1042-31"><a href="biases-in-event-studies.html#cb1042-31" tabindex="-1"></a><span class="co">#&gt; 500 observations (239 censored and 261 observed)</span></span>
-<span id="cb1042-32"><a href="biases-in-event-studies.html#cb1042-32" tabindex="-1"></a><span class="co">#&gt; 6 free parameters (df = 494)</span></span>
-<span id="cb1042-33"><a href="biases-in-event-studies.html#cb1042-33" tabindex="-1"></a><span class="co">#&gt; Probit selection equation:</span></span>
-<span id="cb1042-34"><a href="biases-in-event-studies.html#cb1042-34" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1042-35"><a href="biases-in-event-studies.html#cb1042-35" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.75936    0.15793  -11.14   &lt;2e-16 ***</span></span>
-<span id="cb1042-36"><a href="biases-in-event-studies.html#cb1042-36" tabindex="-1"></a><span class="co">#&gt; firm_size    0.33933    0.02776   12.22   &lt;2e-16 ***</span></span>
-<span id="cb1042-37"><a href="biases-in-event-studies.html#cb1042-37" tabindex="-1"></a><span class="co">#&gt; Outcome equation:</span></span>
-<span id="cb1042-38"><a href="biases-in-event-studies.html#cb1042-38" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)</span></span>
-<span id="cb1042-39"><a href="biases-in-event-studies.html#cb1042-39" tabindex="-1"></a><span class="co">#&gt; (Intercept) 0.006025   0.040359   0.149    0.881</span></span>
-<span id="cb1042-40"><a href="biases-in-event-studies.html#cb1042-40" tabindex="-1"></a><span class="co">#&gt; firm_size   0.001311   0.004205   0.312    0.755</span></span>
-<span id="cb1042-41"><a href="biases-in-event-studies.html#cb1042-41" tabindex="-1"></a><span class="co">#&gt;    Error terms:</span></span>
-<span id="cb1042-42"><a href="biases-in-event-studies.html#cb1042-42" tabindex="-1"></a><span class="co">#&gt;       Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb1042-43"><a href="biases-in-event-studies.html#cb1042-43" tabindex="-1"></a><span class="co">#&gt; sigma 0.049048   0.002836  17.297   &lt;2e-16 ***</span></span>
-<span id="cb1042-44"><a href="biases-in-event-studies.html#cb1042-44" tabindex="-1"></a><span class="co">#&gt; rho   0.188195   0.421944   0.446    0.656    </span></span>
-<span id="cb1042-45"><a href="biases-in-event-studies.html#cb1042-45" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb1042-46"><a href="biases-in-event-studies.html#cb1042-46" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb1042-47"><a href="biases-in-event-studies.html#cb1042-47" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------</span></span></code></pre></div>
+<div class="sourceCode" id="cb1047"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1047-1"><a href="biases-in-event-studies.html#cb1047-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
+<span id="cb1047-2"><a href="biases-in-event-studies.html#cb1047-2" tabindex="-1"></a><span class="fu">library</span>(sampleSelection)</span>
+<span id="cb1047-3"><a href="biases-in-event-studies.html#cb1047-3" tabindex="-1"></a></span>
+<span id="cb1047-4"><a href="biases-in-event-studies.html#cb1047-4" tabindex="-1"></a><span class="co"># Simulated dataset for Heckman model</span></span>
+<span id="cb1047-5"><a href="biases-in-event-studies.html#cb1047-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1047-6"><a href="biases-in-event-studies.html#cb1047-6" tabindex="-1"></a>df_heckman <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1047-7"><a href="biases-in-event-studies.html#cb1047-7" tabindex="-1"></a>    <span class="at">firm_id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>,</span>
+<span id="cb1047-8"><a href="biases-in-event-studies.html#cb1047-8" tabindex="-1"></a>    <span class="at">event =</span> <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.3</span>),  <span class="co"># Event occurrence (selection)</span></span>
+<span id="cb1047-9"><a href="biases-in-event-studies.html#cb1047-9" tabindex="-1"></a>    <span class="at">firm_size =</span> <span class="fu">runif</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="dv">10</span>), <span class="co"># Firm characteristic</span></span>
+<span id="cb1047-10"><a href="biases-in-event-studies.html#cb1047-10" tabindex="-1"></a>    <span class="at">abnormal_return =</span> <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="fl">0.02</span>, <span class="at">sd =</span> <span class="fl">0.05</span>)</span>
+<span id="cb1047-11"><a href="biases-in-event-studies.html#cb1047-11" tabindex="-1"></a>)</span>
+<span id="cb1047-12"><a href="biases-in-event-studies.html#cb1047-12" tabindex="-1"></a></span>
+<span id="cb1047-13"><a href="biases-in-event-studies.html#cb1047-13" tabindex="-1"></a><span class="co"># Introduce selection bias by correlating firm_size with event occurrence</span></span>
+<span id="cb1047-14"><a href="biases-in-event-studies.html#cb1047-14" tabindex="-1"></a>df_heckman<span class="sc">$</span>event[df_heckman<span class="sc">$</span>firm_size <span class="sc">&gt;</span> <span class="dv">7</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb1047-15"><a href="biases-in-event-studies.html#cb1047-15" tabindex="-1"></a></span>
+<span id="cb1047-16"><a href="biases-in-event-studies.html#cb1047-16" tabindex="-1"></a><span class="co"># Heckman Selection Model</span></span>
+<span id="cb1047-17"><a href="biases-in-event-studies.html#cb1047-17" tabindex="-1"></a>heckman_model <span class="ot">&lt;-</span> <span class="fu">selection</span>(</span>
+<span id="cb1047-18"><a href="biases-in-event-studies.html#cb1047-18" tabindex="-1"></a>    <span class="at">selection =</span> event <span class="sc">~</span> firm_size,  <span class="co"># Selection equation</span></span>
+<span id="cb1047-19"><a href="biases-in-event-studies.html#cb1047-19" tabindex="-1"></a>    <span class="at">outcome =</span> abnormal_return <span class="sc">~</span> firm_size,  <span class="co"># Outcome equation</span></span>
+<span id="cb1047-20"><a href="biases-in-event-studies.html#cb1047-20" tabindex="-1"></a>    <span class="at">data =</span> df_heckman</span>
+<span id="cb1047-21"><a href="biases-in-event-studies.html#cb1047-21" tabindex="-1"></a>)</span>
+<span id="cb1047-22"><a href="biases-in-event-studies.html#cb1047-22" tabindex="-1"></a></span>
+<span id="cb1047-23"><a href="biases-in-event-studies.html#cb1047-23" tabindex="-1"></a><span class="co"># Summary of Heckman model</span></span>
+<span id="cb1047-24"><a href="biases-in-event-studies.html#cb1047-24" tabindex="-1"></a><span class="fu">summary</span>(heckman_model)</span>
+<span id="cb1047-25"><a href="biases-in-event-studies.html#cb1047-25" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------</span></span>
+<span id="cb1047-26"><a href="biases-in-event-studies.html#cb1047-26" tabindex="-1"></a><span class="co">#&gt; Tobit 2 model (sample selection model)</span></span>
+<span id="cb1047-27"><a href="biases-in-event-studies.html#cb1047-27" tabindex="-1"></a><span class="co">#&gt; Maximum Likelihood estimation</span></span>
+<span id="cb1047-28"><a href="biases-in-event-studies.html#cb1047-28" tabindex="-1"></a><span class="co">#&gt; Newton-Raphson maximisation, 6 iterations</span></span>
+<span id="cb1047-29"><a href="biases-in-event-studies.html#cb1047-29" tabindex="-1"></a><span class="co">#&gt; Return code 8: successive function values within relative tolerance limit (reltol)</span></span>
+<span id="cb1047-30"><a href="biases-in-event-studies.html#cb1047-30" tabindex="-1"></a><span class="co">#&gt; Log-Likelihood: 165.4579 </span></span>
+<span id="cb1047-31"><a href="biases-in-event-studies.html#cb1047-31" tabindex="-1"></a><span class="co">#&gt; 500 observations (239 censored and 261 observed)</span></span>
+<span id="cb1047-32"><a href="biases-in-event-studies.html#cb1047-32" tabindex="-1"></a><span class="co">#&gt; 6 free parameters (df = 494)</span></span>
+<span id="cb1047-33"><a href="biases-in-event-studies.html#cb1047-33" tabindex="-1"></a><span class="co">#&gt; Probit selection equation:</span></span>
+<span id="cb1047-34"><a href="biases-in-event-studies.html#cb1047-34" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1047-35"><a href="biases-in-event-studies.html#cb1047-35" tabindex="-1"></a><span class="co">#&gt; (Intercept) -1.75936    0.15793  -11.14   &lt;2e-16 ***</span></span>
+<span id="cb1047-36"><a href="biases-in-event-studies.html#cb1047-36" tabindex="-1"></a><span class="co">#&gt; firm_size    0.33933    0.02776   12.22   &lt;2e-16 ***</span></span>
+<span id="cb1047-37"><a href="biases-in-event-studies.html#cb1047-37" tabindex="-1"></a><span class="co">#&gt; Outcome equation:</span></span>
+<span id="cb1047-38"><a href="biases-in-event-studies.html#cb1047-38" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)</span></span>
+<span id="cb1047-39"><a href="biases-in-event-studies.html#cb1047-39" tabindex="-1"></a><span class="co">#&gt; (Intercept) 0.006025   0.040359   0.149    0.881</span></span>
+<span id="cb1047-40"><a href="biases-in-event-studies.html#cb1047-40" tabindex="-1"></a><span class="co">#&gt; firm_size   0.001311   0.004205   0.312    0.755</span></span>
+<span id="cb1047-41"><a href="biases-in-event-studies.html#cb1047-41" tabindex="-1"></a><span class="co">#&gt;    Error terms:</span></span>
+<span id="cb1047-42"><a href="biases-in-event-studies.html#cb1047-42" tabindex="-1"></a><span class="co">#&gt;       Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb1047-43"><a href="biases-in-event-studies.html#cb1047-43" tabindex="-1"></a><span class="co">#&gt; sigma 0.049048   0.002836  17.297   &lt;2e-16 ***</span></span>
+<span id="cb1047-44"><a href="biases-in-event-studies.html#cb1047-44" tabindex="-1"></a><span class="co">#&gt; rho   0.188195   0.421944   0.446    0.656    </span></span>
+<span id="cb1047-45"><a href="biases-in-event-studies.html#cb1047-45" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb1047-46"><a href="biases-in-event-studies.html#cb1047-46" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb1047-47"><a href="biases-in-event-studies.html#cb1047-47" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------</span></span></code></pre></div>
 <p><strong>Interpretation</strong></p>
 <ul>
 <li><p>If the Mills ratio (<span class="math inline">\(\lambda\)</span>) is significant, it indicates that private information affects CARs.</p></li>
@@ -2016,57 +2016,57 @@ div.csl-indent {
 <li><p><strong>Finance:</strong> <span class="citation">Masulis and Nahata (<a href="#ref-masulis2011venture">2011</a>)</span>.</p></li>
 <li><p><strong>Marketing:</strong> <span class="citation">Cao and Sorescu (<a href="#ref-cao2013wedded">2013</a>)</span>.</p></li>
 </ul>
-<div class="sourceCode" id="cb1043"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1043-1"><a href="biases-in-event-studies.html#cb1043-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
-<span id="cb1043-2"><a href="biases-in-event-studies.html#cb1043-2" tabindex="-1"></a><span class="fu">library</span>(MatchIt)</span>
-<span id="cb1043-3"><a href="biases-in-event-studies.html#cb1043-3" tabindex="-1"></a></span>
-<span id="cb1043-4"><a href="biases-in-event-studies.html#cb1043-4" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
-<span id="cb1043-5"><a href="biases-in-event-studies.html#cb1043-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1043-6"><a href="biases-in-event-studies.html#cb1043-6" tabindex="-1"></a>df_psm <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb1043-7"><a href="biases-in-event-studies.html#cb1043-7" tabindex="-1"></a>    <span class="at">firm_id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>,</span>
-<span id="cb1043-8"><a href="biases-in-event-studies.html#cb1043-8" tabindex="-1"></a>    <span class="at">event =</span> <span class="fu">rbinom</span>(<span class="dv">1000</span>, <span class="dv">1</span>, <span class="fl">0.5</span>),  <span class="co"># 50% of firms experience an event</span></span>
-<span id="cb1043-9"><a href="biases-in-event-studies.html#cb1043-9" tabindex="-1"></a>    <span class="at">firm_size =</span> <span class="fu">runif</span>(<span class="dv">1000</span>, <span class="dv">1</span>, <span class="dv">10</span>),</span>
-<span id="cb1043-10"><a href="biases-in-event-studies.html#cb1043-10" tabindex="-1"></a>    <span class="at">market_cap =</span> <span class="fu">runif</span>(<span class="dv">1000</span>, <span class="dv">100</span>, <span class="dv">10000</span>)</span>
-<span id="cb1043-11"><a href="biases-in-event-studies.html#cb1043-11" tabindex="-1"></a>)</span>
-<span id="cb1043-12"><a href="biases-in-event-studies.html#cb1043-12" tabindex="-1"></a></span>
-<span id="cb1043-13"><a href="biases-in-event-studies.html#cb1043-13" tabindex="-1"></a><span class="co"># Propensity score matching (PSM)</span></span>
-<span id="cb1043-14"><a href="biases-in-event-studies.html#cb1043-14" tabindex="-1"></a>match_model <span class="ot">&lt;-</span> <span class="fu">matchit</span>(event <span class="sc">~</span> firm_size <span class="sc">+</span> market_cap, <span class="at">data =</span> df_psm, <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>)</span>
-<span id="cb1043-15"><a href="biases-in-event-studies.html#cb1043-15" tabindex="-1"></a></span>
-<span id="cb1043-16"><a href="biases-in-event-studies.html#cb1043-16" tabindex="-1"></a><span class="co"># Summary of matched sample</span></span>
-<span id="cb1043-17"><a href="biases-in-event-studies.html#cb1043-17" tabindex="-1"></a><span class="fu">summary</span>(match_model)</span>
-<span id="cb1043-18"><a href="biases-in-event-studies.html#cb1043-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1043-19"><a href="biases-in-event-studies.html#cb1043-19" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb1043-20"><a href="biases-in-event-studies.html#cb1043-20" tabindex="-1"></a><span class="co">#&gt; matchit(formula = event ~ firm_size + market_cap, data = df_psm, </span></span>
-<span id="cb1043-21"><a href="biases-in-event-studies.html#cb1043-21" tabindex="-1"></a><span class="co">#&gt;     method = &quot;nearest&quot;)</span></span>
-<span id="cb1043-22"><a href="biases-in-event-studies.html#cb1043-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1043-23"><a href="biases-in-event-studies.html#cb1043-23" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for All Data:</span></span>
-<span id="cb1043-24"><a href="biases-in-event-studies.html#cb1043-24" tabindex="-1"></a><span class="co">#&gt;            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
-<span id="cb1043-25"><a href="biases-in-event-studies.html#cb1043-25" tabindex="-1"></a><span class="co">#&gt; distance          0.4987        0.4875          0.2093     1.0656    0.0602</span></span>
-<span id="cb1043-26"><a href="biases-in-event-studies.html#cb1043-26" tabindex="-1"></a><span class="co">#&gt; firm_size         5.2627        5.6998         -0.1683     1.0530    0.0494</span></span>
-<span id="cb1043-27"><a href="biases-in-event-studies.html#cb1043-27" tabindex="-1"></a><span class="co">#&gt; market_cap     5208.5283     4868.5828          0.1163     1.0483    0.0359</span></span>
-<span id="cb1043-28"><a href="biases-in-event-studies.html#cb1043-28" tabindex="-1"></a><span class="co">#&gt;            eCDF Max</span></span>
-<span id="cb1043-29"><a href="biases-in-event-studies.html#cb1043-29" tabindex="-1"></a><span class="co">#&gt; distance     0.1152</span></span>
-<span id="cb1043-30"><a href="biases-in-event-studies.html#cb1043-30" tabindex="-1"></a><span class="co">#&gt; firm_size    0.0902</span></span>
-<span id="cb1043-31"><a href="biases-in-event-studies.html#cb1043-31" tabindex="-1"></a><span class="co">#&gt; market_cap   0.0713</span></span>
-<span id="cb1043-32"><a href="biases-in-event-studies.html#cb1043-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1043-33"><a href="biases-in-event-studies.html#cb1043-33" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
-<span id="cb1043-34"><a href="biases-in-event-studies.html#cb1043-34" tabindex="-1"></a><span class="co">#&gt;            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
-<span id="cb1043-35"><a href="biases-in-event-studies.html#cb1043-35" tabindex="-1"></a><span class="co">#&gt; distance          0.4987        0.4898          0.1668     1.1170    0.0489</span></span>
-<span id="cb1043-36"><a href="biases-in-event-studies.html#cb1043-36" tabindex="-1"></a><span class="co">#&gt; firm_size         5.2627        5.6182         -0.1369     1.0693    0.0404</span></span>
-<span id="cb1043-37"><a href="biases-in-event-studies.html#cb1043-37" tabindex="-1"></a><span class="co">#&gt; market_cap     5208.5283     4949.8521          0.0885     1.0594    0.0283</span></span>
-<span id="cb1043-38"><a href="biases-in-event-studies.html#cb1043-38" tabindex="-1"></a><span class="co">#&gt;            eCDF Max Std. Pair Dist.</span></span>
-<span id="cb1043-39"><a href="biases-in-event-studies.html#cb1043-39" tabindex="-1"></a><span class="co">#&gt; distance     0.1034          0.1673</span></span>
-<span id="cb1043-40"><a href="biases-in-event-studies.html#cb1043-40" tabindex="-1"></a><span class="co">#&gt; firm_size    0.0872          0.6549</span></span>
-<span id="cb1043-41"><a href="biases-in-event-studies.html#cb1043-41" tabindex="-1"></a><span class="co">#&gt; market_cap   0.0649          0.9168</span></span>
-<span id="cb1043-42"><a href="biases-in-event-studies.html#cb1043-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb1043-43"><a href="biases-in-event-studies.html#cb1043-43" tabindex="-1"></a><span class="co">#&gt; Sample Sizes:</span></span>
-<span id="cb1043-44"><a href="biases-in-event-studies.html#cb1043-44" tabindex="-1"></a><span class="co">#&gt;           Control Treated</span></span>
-<span id="cb1043-45"><a href="biases-in-event-studies.html#cb1043-45" tabindex="-1"></a><span class="co">#&gt; All           507     493</span></span>
-<span id="cb1043-46"><a href="biases-in-event-studies.html#cb1043-46" tabindex="-1"></a><span class="co">#&gt; Matched       493     493</span></span>
-<span id="cb1043-47"><a href="biases-in-event-studies.html#cb1043-47" tabindex="-1"></a><span class="co">#&gt; Unmatched      14       0</span></span>
-<span id="cb1043-48"><a href="biases-in-event-studies.html#cb1043-48" tabindex="-1"></a><span class="co">#&gt; Discarded       0       0</span></span>
-<span id="cb1043-49"><a href="biases-in-event-studies.html#cb1043-49" tabindex="-1"></a></span>
-<span id="cb1043-50"><a href="biases-in-event-studies.html#cb1043-50" tabindex="-1"></a><span class="co"># Extract matched data</span></span>
-<span id="cb1043-51"><a href="biases-in-event-studies.html#cb1043-51" tabindex="-1"></a>matched_data <span class="ot">&lt;-</span> <span class="fu">match.data</span>(match_model)</span></code></pre></div>
+<div class="sourceCode" id="cb1048"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1048-1"><a href="biases-in-event-studies.html#cb1048-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
+<span id="cb1048-2"><a href="biases-in-event-studies.html#cb1048-2" tabindex="-1"></a><span class="fu">library</span>(MatchIt)</span>
+<span id="cb1048-3"><a href="biases-in-event-studies.html#cb1048-3" tabindex="-1"></a></span>
+<span id="cb1048-4"><a href="biases-in-event-studies.html#cb1048-4" tabindex="-1"></a><span class="co"># Simulated dataset</span></span>
+<span id="cb1048-5"><a href="biases-in-event-studies.html#cb1048-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1048-6"><a href="biases-in-event-studies.html#cb1048-6" tabindex="-1"></a>df_psm <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1048-7"><a href="biases-in-event-studies.html#cb1048-7" tabindex="-1"></a>    <span class="at">firm_id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>,</span>
+<span id="cb1048-8"><a href="biases-in-event-studies.html#cb1048-8" tabindex="-1"></a>    <span class="at">event =</span> <span class="fu">rbinom</span>(<span class="dv">1000</span>, <span class="dv">1</span>, <span class="fl">0.5</span>),  <span class="co"># 50% of firms experience an event</span></span>
+<span id="cb1048-9"><a href="biases-in-event-studies.html#cb1048-9" tabindex="-1"></a>    <span class="at">firm_size =</span> <span class="fu">runif</span>(<span class="dv">1000</span>, <span class="dv">1</span>, <span class="dv">10</span>),</span>
+<span id="cb1048-10"><a href="biases-in-event-studies.html#cb1048-10" tabindex="-1"></a>    <span class="at">market_cap =</span> <span class="fu">runif</span>(<span class="dv">1000</span>, <span class="dv">100</span>, <span class="dv">10000</span>)</span>
+<span id="cb1048-11"><a href="biases-in-event-studies.html#cb1048-11" tabindex="-1"></a>)</span>
+<span id="cb1048-12"><a href="biases-in-event-studies.html#cb1048-12" tabindex="-1"></a></span>
+<span id="cb1048-13"><a href="biases-in-event-studies.html#cb1048-13" tabindex="-1"></a><span class="co"># Propensity score matching (PSM)</span></span>
+<span id="cb1048-14"><a href="biases-in-event-studies.html#cb1048-14" tabindex="-1"></a>match_model <span class="ot">&lt;-</span> <span class="fu">matchit</span>(event <span class="sc">~</span> firm_size <span class="sc">+</span> market_cap, <span class="at">data =</span> df_psm, <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>)</span>
+<span id="cb1048-15"><a href="biases-in-event-studies.html#cb1048-15" tabindex="-1"></a></span>
+<span id="cb1048-16"><a href="biases-in-event-studies.html#cb1048-16" tabindex="-1"></a><span class="co"># Summary of matched sample</span></span>
+<span id="cb1048-17"><a href="biases-in-event-studies.html#cb1048-17" tabindex="-1"></a><span class="fu">summary</span>(match_model)</span>
+<span id="cb1048-18"><a href="biases-in-event-studies.html#cb1048-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1048-19"><a href="biases-in-event-studies.html#cb1048-19" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb1048-20"><a href="biases-in-event-studies.html#cb1048-20" tabindex="-1"></a><span class="co">#&gt; matchit(formula = event ~ firm_size + market_cap, data = df_psm, </span></span>
+<span id="cb1048-21"><a href="biases-in-event-studies.html#cb1048-21" tabindex="-1"></a><span class="co">#&gt;     method = &quot;nearest&quot;)</span></span>
+<span id="cb1048-22"><a href="biases-in-event-studies.html#cb1048-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1048-23"><a href="biases-in-event-studies.html#cb1048-23" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for All Data:</span></span>
+<span id="cb1048-24"><a href="biases-in-event-studies.html#cb1048-24" tabindex="-1"></a><span class="co">#&gt;            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span id="cb1048-25"><a href="biases-in-event-studies.html#cb1048-25" tabindex="-1"></a><span class="co">#&gt; distance          0.4987        0.4875          0.2093     1.0656    0.0602</span></span>
+<span id="cb1048-26"><a href="biases-in-event-studies.html#cb1048-26" tabindex="-1"></a><span class="co">#&gt; firm_size         5.2627        5.6998         -0.1683     1.0530    0.0494</span></span>
+<span id="cb1048-27"><a href="biases-in-event-studies.html#cb1048-27" tabindex="-1"></a><span class="co">#&gt; market_cap     5208.5283     4868.5828          0.1163     1.0483    0.0359</span></span>
+<span id="cb1048-28"><a href="biases-in-event-studies.html#cb1048-28" tabindex="-1"></a><span class="co">#&gt;            eCDF Max</span></span>
+<span id="cb1048-29"><a href="biases-in-event-studies.html#cb1048-29" tabindex="-1"></a><span class="co">#&gt; distance     0.1152</span></span>
+<span id="cb1048-30"><a href="biases-in-event-studies.html#cb1048-30" tabindex="-1"></a><span class="co">#&gt; firm_size    0.0902</span></span>
+<span id="cb1048-31"><a href="biases-in-event-studies.html#cb1048-31" tabindex="-1"></a><span class="co">#&gt; market_cap   0.0713</span></span>
+<span id="cb1048-32"><a href="biases-in-event-studies.html#cb1048-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1048-33"><a href="biases-in-event-studies.html#cb1048-33" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
+<span id="cb1048-34"><a href="biases-in-event-studies.html#cb1048-34" tabindex="-1"></a><span class="co">#&gt;            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span id="cb1048-35"><a href="biases-in-event-studies.html#cb1048-35" tabindex="-1"></a><span class="co">#&gt; distance          0.4987        0.4898          0.1668     1.1170    0.0489</span></span>
+<span id="cb1048-36"><a href="biases-in-event-studies.html#cb1048-36" tabindex="-1"></a><span class="co">#&gt; firm_size         5.2627        5.6182         -0.1369     1.0693    0.0404</span></span>
+<span id="cb1048-37"><a href="biases-in-event-studies.html#cb1048-37" tabindex="-1"></a><span class="co">#&gt; market_cap     5208.5283     4949.8521          0.0885     1.0594    0.0283</span></span>
+<span id="cb1048-38"><a href="biases-in-event-studies.html#cb1048-38" tabindex="-1"></a><span class="co">#&gt;            eCDF Max Std. Pair Dist.</span></span>
+<span id="cb1048-39"><a href="biases-in-event-studies.html#cb1048-39" tabindex="-1"></a><span class="co">#&gt; distance     0.1034          0.1673</span></span>
+<span id="cb1048-40"><a href="biases-in-event-studies.html#cb1048-40" tabindex="-1"></a><span class="co">#&gt; firm_size    0.0872          0.6549</span></span>
+<span id="cb1048-41"><a href="biases-in-event-studies.html#cb1048-41" tabindex="-1"></a><span class="co">#&gt; market_cap   0.0649          0.9168</span></span>
+<span id="cb1048-42"><a href="biases-in-event-studies.html#cb1048-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1048-43"><a href="biases-in-event-studies.html#cb1048-43" tabindex="-1"></a><span class="co">#&gt; Sample Sizes:</span></span>
+<span id="cb1048-44"><a href="biases-in-event-studies.html#cb1048-44" tabindex="-1"></a><span class="co">#&gt;           Control Treated</span></span>
+<span id="cb1048-45"><a href="biases-in-event-studies.html#cb1048-45" tabindex="-1"></a><span class="co">#&gt; All           507     493</span></span>
+<span id="cb1048-46"><a href="biases-in-event-studies.html#cb1048-46" tabindex="-1"></a><span class="co">#&gt; Matched       493     493</span></span>
+<span id="cb1048-47"><a href="biases-in-event-studies.html#cb1048-47" tabindex="-1"></a><span class="co">#&gt; Unmatched      14       0</span></span>
+<span id="cb1048-48"><a href="biases-in-event-studies.html#cb1048-48" tabindex="-1"></a><span class="co">#&gt; Discarded       0       0</span></span>
+<span id="cb1048-49"><a href="biases-in-event-studies.html#cb1048-49" tabindex="-1"></a></span>
+<span id="cb1048-50"><a href="biases-in-event-studies.html#cb1048-50" tabindex="-1"></a><span class="co"># Extract matched data</span></span>
+<span id="cb1048-51"><a href="biases-in-event-studies.html#cb1048-51" tabindex="-1"></a>matched_data <span class="ot">&lt;-</span> <span class="fu">match.data</span>(match_model)</span></code></pre></div>
 <p><strong>Advantages of PSM</strong></p>
 <ul>
 <li><p>Controls for observable differences between event and non-event firms.</p></li>

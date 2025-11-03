@@ -7,7 +7,7 @@
 <title>Chapter 30 Difference-in-Differences | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
 <meta name="description" content="Difference-in-Differences (DID) is a widely used causal inference method for estimating the effect of policy interventions or exogenous shocks when randomized experiments are not feasible. The key...">
-<meta name="generator" content="bookdown 0.43 with bs4_book()">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
 <meta property="og:title" content="Chapter 30 Difference-in-Differences | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-difference-in-differences.html">
@@ -228,7 +228,7 @@ And don’t worry: the equations stay in the wings until the intuition takes cen
 <h3>
 <span class="header-section-number">30.2.1</span> Data check<a class="anchor" aria-label="anchor" href="#data-check"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb903"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb908"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/panelview/index.html">panelView</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
@@ -250,7 +250,7 @@ And don’t worry: the equations stay in the wings until the intuition takes cen
 <h3>
 <span class="header-section-number">30.2.2</span> Treatment Assignment Heatmap<a class="anchor" aria-label="anchor" href="#treatment-assignment-heatmap"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb904"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb909"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">panelView</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span></span>
 <span>    <span class="va">y</span> <span class="op">~</span> <span class="va">treat_stat</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">base_stagg</span>,</span>
@@ -268,7 +268,7 @@ Figure 2.2: Treatment Assignment Over Time by Unit
 </p>
 </div>
 <p>The diagonal “step” confirms that <strong>not all units adopt at once</strong>. This would be a perfect for a staggered-DiD design. Horizontal segments without a color change indicate units that never adopt.</p>
-<div class="sourceCode" id="cb905"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb910"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># alternatively specification</span></span>
 <span><span class="fu">panelView</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span></span>
 <span>    Y <span class="op">=</span> <span class="st">"y"</span>,</span>
@@ -292,7 +292,7 @@ Figure 2.3: Staggered Treatment Timing Across Units
 <h3>
 <span class="header-section-number">30.2.3</span> Raw Outcome Trajectories<a class="anchor" aria-label="anchor" href="#raw-outcome-trajectories"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb906"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb911"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Average outcomes for each cohort</span></span>
 <span><span class="fu">panelView</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/panelView/man/panelView.html">panelview</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">base_stagg</span>, </span>
@@ -318,7 +318,7 @@ Figure 2.4: Raw Panel Data by Treatment Status Over Time
 <span class="header-section-number">30.2.4</span> Event-time Averages<a class="anchor" aria-label="anchor" href="#event-time-averages"><i class="fas fa-link"></i></a>
 </h3>
 <p>A more focused diagnostic is to plot the <strong>average outcome in event time</strong> (years relative to first treatment).</p>
-<div class="sourceCode" id="cb907"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb912"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">base_stagg</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span>event_time <span class="op">=</span> <span class="va">year</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">year</span><span class="op">[</span><span class="va">treat_stat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>y_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>,</span>
@@ -422,7 +422,7 @@ E[Y_1(1) - Y_0(1) | D = 1] &amp;= \{E[Y(1)|D = 1] - E[Y(1)|D = 0] \} \\
 <li>If the control group would have experienced a different trajectory, the DID estimate may be biased.</li>
 <li>Since we cannot observe treatment variation in the control group, we cannot infer the treatment effect for this group.</li>
 </ul>
-<div class="sourceCode" id="cb908"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb913"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
@@ -494,7 +494,7 @@ E[Y_1(1) - Y_0(1) | D = 1] &amp;= \{E[Y(1)|D = 1] - E[Y(1)|D = 0] \} \\
 <span><span class="co">#&gt;                            Method Estimate</span></span>
 <span><span class="co">#&gt;              Diff-in-Diff Formula 4.035895</span></span>
 <span><span class="co">#&gt; treated:time         OLS Estimate 4.035895</span></span></code></pre></div>
-<div class="sourceCode" id="cb909"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb914"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visualization</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span></span>
@@ -679,7 +679,7 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 </li>
 </ol>
 <hr>
-<div class="sourceCode" id="cb910"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb915"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span></span>
@@ -701,25 +701,25 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 <span>              data <span class="op">=</span> <span class="va">od</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span><span class="va">cali</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                              cali</span></span>
-<span><span class="co">#&gt; Dependent Var.:                              Rate</span></span>
-<span><span class="co">#&gt;                                                  </span></span>
-<span><span class="co">#&gt; California x center_time = -2    -0.0029 (0.0051)</span></span>
-<span><span class="co">#&gt; California x center_time = -1   0.0063** (0.0023)</span></span>
-<span><span class="co">#&gt; California x center_time = 1  -0.0216*** (0.0050)</span></span>
-<span><span class="co">#&gt; California x center_time = 2  -0.0203*** (0.0045)</span></span>
-<span><span class="co">#&gt; California x center_time = 3    -0.0222* (0.0100)</span></span>
-<span><span class="co">#&gt; Fixed-Effects:                -------------------</span></span>
-<span><span class="co">#&gt; State                                         Yes</span></span>
-<span><span class="co">#&gt; center_time                                   Yes</span></span>
-<span><span class="co">#&gt; _____________________________ ___________________</span></span>
-<span><span class="co">#&gt; S.E.: Clustered                         by: State</span></span>
-<span><span class="co">#&gt; Observations                                  162</span></span>
-<span><span class="co">#&gt; R2                                        0.97934</span></span>
-<span><span class="co">#&gt; Within R2                                 0.00979</span></span>
+<span><span class="co">#&gt;                                           cali</span></span>
+<span><span class="co">#&gt; Dependent Var.:                           Rate</span></span>
+<span><span class="co">#&gt;                                               </span></span>
+<span><span class="co">#&gt; California x center_time = -2 -0.0029 (0.0360)</span></span>
+<span><span class="co">#&gt; California x center_time = -1  0.0063 (0.0360)</span></span>
+<span><span class="co">#&gt; California x center_time = 1  -0.0216 (0.0360)</span></span>
+<span><span class="co">#&gt; California x center_time = 2  -0.0203 (0.0360)</span></span>
+<span><span class="co">#&gt; California x center_time = 3  -0.0222 (0.0360)</span></span>
+<span><span class="co">#&gt; Fixed-Effects:                ----------------</span></span>
+<span><span class="co">#&gt; State                                      Yes</span></span>
+<span><span class="co">#&gt; center_time                                Yes</span></span>
+<span><span class="co">#&gt; _____________________________ ________________</span></span>
+<span><span class="co">#&gt; S.E. type                                  IID</span></span>
+<span><span class="co">#&gt; Observations                               162</span></span>
+<span><span class="co">#&gt; R2                                     0.97934</span></span>
+<span><span class="co">#&gt; Within R2                              0.00979</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
-<div class="sourceCode" id="cb911"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb916"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">cali</span>, pt.join <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:unnamed-chunk-9"></span>
@@ -727,7 +727,7 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 Figure 2.10: Estimated Effect on Rate Over Time
 </p>
 </div>
-<div class="sourceCode" id="cb912"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb917"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">cali</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:unnamed-chunk-10"></span>
@@ -1368,7 +1368,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <li>Comparisons between early-treated and later-treated groups can produce <strong>negative weights</strong>, potentially biasing the aggregate TWFE estimate.</li>
 </ul>
 <p>We illustrate the decomposition using the <code>castle</code> dataset from the <code>bacondecomp</code> package:</p>
-<div class="sourceCode" id="cb913"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb918"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">bacondecomp</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span></span>
@@ -1384,7 +1384,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <span><span class="co">#&gt; 5   1.749841    0 Alabama 2004</span></span>
 <span><span class="co">#&gt; 6   2.130440    0 Alabama 2005</span></span></code></pre></div>
 <p>Running the Goodman-Bacon Decomposition</p>
-<div class="sourceCode" id="cb914"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb919"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Apply Goodman-Bacon decomposition</span></span>
 <span><span class="va">df_bacon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bacondecomp/man/bacon.html">bacon</a></span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="va">l_homicide</span> <span class="op">~</span> <span class="va">post</span>,</span>
@@ -1402,7 +1402,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <span><span class="va">weighted_avg</span></span>
 <span><span class="co">#&gt; [1] 0.08181162</span></span></code></pre></div>
 <p>Comparing with the TWFE Estimate</p>
-<div class="sourceCode" id="cb915"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb920"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://broom.tidymodels.org/">broom</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Fit a TWFE model</span></span>
@@ -1427,7 +1427,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 </blockquote>
 <hr>
 <p>Visualizing the Decomposition</p>
-<div class="sourceCode" id="cb916"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb921"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_bacon</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1853,7 +1853,7 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <li><p>Cohort: Weighted by group sizes (i.e., treated cohorts).</p></li>
 <li><p>Calendar: Weighted by the number of observations in each calendar time.</p></li>
 </ul>
-<div class="sourceCode" id="cb917"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb922"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">staggered</span><span class="op">)</span> </span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"base_stagg"</span><span class="op">)</span></span>
@@ -1894,7 +1894,7 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <span><span class="co">#&gt;     estimate        se se_neyman</span></span>
 <span><span class="co">#&gt; 1 -0.5861831 0.1768297 0.1770729</span></span></code></pre></div>
 <p>To visualize treatment dynamics around the time of adoption, the event study specification estimates dynamic treatment effects relative to the time of treatment.</p>
-<div class="sourceCode" id="cb918"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb923"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/staggered/man/staggered.html">staggered</a></span><span class="op">(</span></span>
 <span>    df <span class="op">=</span> <span class="va">base_stagg</span>,</span>
 <span>    i <span class="op">=</span> <span class="st">"id"</span>,</span>
@@ -1904,7 +1904,7 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <span>    estimand <span class="op">=</span> <span class="st">"eventstudy"</span>, </span>
 <span>    eventTime <span class="op">=</span> <span class="op">-</span><span class="fl">9</span><span class="op">:</span><span class="fl">8</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb919"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb924"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plotting the event study with pointwise confidence intervals</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
@@ -1933,7 +1933,7 @@ Figure 30.1: Event Study Dynamic Treatment Effects
 <li><p><code><a href="https://rdrr.io/pkg/staggered/man/staggered_cs.html">staggered_cs()</a></code> implements the <span class="citation">Callaway and Sant’Anna (<a href="references.html#ref-callaway2021difference">2021</a>)</span> estimator.</p></li>
 <li><p><code><a href="https://rdrr.io/pkg/staggered/man/staggered_sa.html">staggered_sa()</a></code> implements the <span class="citation">L. Sun and Abraham (<a href="references.html#ref-sun2021estimating">2021</a>)</span> estimator, which adjusts for bias from comparisons involving already-treated units.</p></li>
 </ul>
-<div class="sourceCode" id="cb920"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb925"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Callaway and Sant’Anna estimator</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/staggered/man/staggered_cs.html">staggered_cs</a></span><span class="op">(</span></span>
 <span>    df <span class="op">=</span> <span class="va">base_stagg</span>,</span>
@@ -1958,7 +1958,7 @@ Figure 30.1: Event Study Dynamic Treatment Effects
 <span><span class="co">#&gt;     estimate        se se_neyman</span></span>
 <span><span class="co">#&gt; 1 -0.7551901 0.4407818 0.4409525</span></span></code></pre></div>
 <p>To assess statistical significance under the sharp null hypothesis <span class="math inline">\(H_0: \text{TE} = 0\)</span>, the <code>staggered</code> package includes an option for Fisher’s randomization (permutation) test. This approach tests whether the observed estimate could plausibly occur under a random reallocation of treatment timings.</p>
-<div class="sourceCode" id="cb921"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb926"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fisher Randomization Test</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/staggered/man/staggered.html">staggered</a></span><span class="op">(</span></span>
 <span>    df <span class="op">=</span> <span class="va">base_stagg</span>,</span>
@@ -2172,7 +2172,7 @@ CATT_{e, l} = 0 \quad \text{for all } l &lt; 0
 <p>This interaction-weighted estimator ensures that the estimated average treatment effect reflects a convex combination of dynamic treatment effects from different cohorts and times.</p>
 <p>In this way, their aggregation logic closely mirrors that of <span class="citation">Callaway and Sant’Anna (<a href="references.html#ref-callaway2021difference">2021</a>)</span>, who also construct average treatment effects from group-time ATTs using interpretable weights that align with the sampling structure.</p>
 <hr>
-<div class="sourceCode" id="cb922"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb927"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"base_stagg"</span><span class="op">)</span></span>
 <span></span>
@@ -2182,7 +2182,7 @@ CATT_{e, l} = 0 \quad \text{for all } l &lt; 0
 <span>  data <span class="op">=</span> <span class="va">base_stagg</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Use <code><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot()</a></code> to visualize the estimated dynamic treatment effects across relative time:</p>
-<div class="sourceCode" id="cb923"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb928"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">res_sa20</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:event-study-effect-on-y"></span>
@@ -2191,16 +2191,16 @@ Figure 30.2: Effect on y
 </p>
 </div>
 <p>You can summarize the results using different aggregation options:</p>
-<div class="sourceCode" id="cb924"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb929"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Overall average ATT</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">res_sa20</span>, agg <span class="op">=</span> <span class="st">"att"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; OLS estimation, Dep. Var.: y</span></span>
 <span><span class="co">#&gt; Observations: 950</span></span>
 <span><span class="co">#&gt; Fixed-effects: id: 95,  year: 10</span></span>
-<span><span class="co">#&gt; Standard-errors: Clustered (id) </span></span>
-<span><span class="co">#&gt;      Estimate Std. Error  t value  Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; x1   0.994678   0.018378 54.12293 &lt; 2.2e-16 ***</span></span>
-<span><span class="co">#&gt; ATT -1.133749   0.205070 -5.52858 2.882e-07 ***</span></span>
+<span><span class="co">#&gt; Standard-errors: IID </span></span>
+<span><span class="co">#&gt;      Estimate Std. Error  t value   Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; x1   0.994678   0.018823 52.84242  &lt; 2.2e-16 ***</span></span>
+<span><span class="co">#&gt; ATT -1.133749   0.194764 -5.82113 8.6022e-09 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; RMSE: 0.921817     Adj. R2: 0.887984</span></span>
@@ -2211,46 +2211,46 @@ Figure 30.2: Effect on y
 <span><span class="co">#&gt; OLS estimation, Dep. Var.: y</span></span>
 <span><span class="co">#&gt; Observations: 950</span></span>
 <span><span class="co">#&gt; Fixed-effects: id: 95,  year: 10</span></span>
-<span><span class="co">#&gt; Standard-errors: Clustered (id) </span></span>
+<span><span class="co">#&gt; Standard-errors: IID </span></span>
 <span><span class="co">#&gt;                      Estimate Std. Error   t value   Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; x1                   0.994678   0.018378 54.122928  &lt; 2.2e-16 ***</span></span>
-<span><span class="co">#&gt; year::-9:cohort::10  0.351766   0.359073  0.979649 3.2977e-01    </span></span>
-<span><span class="co">#&gt; year::-8:cohort::9   0.033914   0.471437  0.071937 9.4281e-01    </span></span>
-<span><span class="co">#&gt; year::-8:cohort::10 -0.191932   0.352896 -0.543876 5.8781e-01    </span></span>
-<span><span class="co">#&gt; year::-7:cohort::8  -0.589387   0.736910 -0.799809 4.2584e-01    </span></span>
-<span><span class="co">#&gt; year::-7:cohort::9   0.872995   0.493427  1.769249 8.0096e-02 .  </span></span>
-<span><span class="co">#&gt; year::-7:cohort::10  0.019512   0.603411  0.032336 9.7427e-01    </span></span>
-<span><span class="co">#&gt; year::-6:cohort::7  -0.042147   0.865736 -0.048683 9.6127e-01    </span></span>
-<span><span class="co">#&gt; year::-6:cohort::8  -0.657571   0.573257 -1.147078 2.5426e-01    </span></span>
-<span><span class="co">#&gt; year::-6:cohort::9   0.877743   0.533331  1.645775 1.0315e-01    </span></span>
-<span><span class="co">#&gt; year::-6:cohort::10 -0.403635   0.347412 -1.161832 2.4825e-01    </span></span>
-<span><span class="co">#&gt; year::-5:cohort::6  -0.658034   0.913407 -0.720418 4.7306e-01    </span></span>
-<span><span class="co">#&gt; year::-5:cohort::7  -0.316974   0.697939 -0.454158 6.5076e-01    </span></span>
-<span><span class="co">#&gt; year::-5:cohort::8  -0.238213   0.469744 -0.507113 6.1326e-01    </span></span>
-<span><span class="co">#&gt; year::-5:cohort::9   0.301477   0.604201  0.498968 6.1897e-01    </span></span>
-<span><span class="co">#&gt; year::-5:cohort::10 -0.564801   0.463214 -1.219308 2.2578e-01    </span></span>
-<span><span class="co">#&gt; year::-4:cohort::5  -0.983453   0.634492 -1.549984 1.2451e-01    </span></span>
-<span><span class="co">#&gt; year::-4:cohort::6   0.360407   0.858316  0.419900 6.7552e-01    </span></span>
-<span><span class="co">#&gt; year::-4:cohort::7  -0.430610   0.661356 -0.651102 5.1657e-01    </span></span>
-<span><span class="co">#&gt; year::-4:cohort::8  -0.895195   0.374901 -2.387816 1.8949e-02 *  </span></span>
-<span><span class="co">#&gt; year::-4:cohort::9  -0.392478   0.439547 -0.892914 3.7418e-01    </span></span>
-<span><span class="co">#&gt; year::-4:cohort::10  0.519001   0.597880  0.868069 3.8757e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::4   0.591288   0.680169  0.869324 3.8688e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::5  -1.000650   0.971741 -1.029749 3.0577e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::6   0.072188   0.652641  0.110609 9.1216e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::7  -0.836820   0.804275 -1.040465 3.0079e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::8  -0.783148   0.701312 -1.116691 2.6697e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::9   0.811285   0.564470  1.437251 1.5397e-01    </span></span>
-<span><span class="co">#&gt; year::-3:cohort::10  0.527203   0.320051  1.647250 1.0285e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::3   0.036941   0.673771  0.054828 9.5639e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::4   0.832250   0.859544  0.968246 3.3541e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::5  -1.574086   0.525563 -2.995051 3.5076e-03 ** </span></span>
-<span><span class="co">#&gt; year::-2:cohort::6   0.311758   0.832095  0.374666 7.0875e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::7  -0.558631   0.871993 -0.640638 5.2332e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::8   0.429591   0.305270  1.407250 1.6265e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::9   1.201899   0.819186  1.467188 1.4566e-01    </span></span>
-<span><span class="co">#&gt; year::-2:cohort::10 -0.002429   0.682087 -0.003562 9.9717e-01    </span></span>
-<span><span class="co">#&gt; att                 -1.133749   0.205070 -5.528584 2.8820e-07 ***</span></span>
+<span><span class="co">#&gt; x1                   0.994678   0.018823 52.842416  &lt; 2.2e-16 ***</span></span>
+<span><span class="co">#&gt; year::-9:cohort::10  0.351766   0.682887  0.515116 6.0662e-01    </span></span>
+<span><span class="co">#&gt; year::-8:cohort::9   0.033914   0.682561  0.049686 9.6039e-01    </span></span>
+<span><span class="co">#&gt; year::-8:cohort::10 -0.191932   0.681848 -0.281488 7.7841e-01    </span></span>
+<span><span class="co">#&gt; year::-7:cohort::8  -0.589387   0.681850 -0.864394 3.8764e-01    </span></span>
+<span><span class="co">#&gt; year::-7:cohort::9   0.872995   0.683597  1.277061 2.0197e-01    </span></span>
+<span><span class="co">#&gt; year::-7:cohort::10  0.019512   0.682179  0.028603 9.7719e-01    </span></span>
+<span><span class="co">#&gt; year::-6:cohort::7  -0.042147   0.681865 -0.061811 9.5073e-01    </span></span>
+<span><span class="co">#&gt; year::-6:cohort::8  -0.657571   0.682009 -0.964167 3.3527e-01    </span></span>
+<span><span class="co">#&gt; year::-6:cohort::9   0.877743   0.682578  1.285923 1.9886e-01    </span></span>
+<span><span class="co">#&gt; year::-6:cohort::10 -0.403635   0.681921 -0.591909 5.5409e-01    </span></span>
+<span><span class="co">#&gt; year::-5:cohort::6  -0.658034   0.682137 -0.964666 3.3502e-01    </span></span>
+<span><span class="co">#&gt; year::-5:cohort::7  -0.316974   0.683243 -0.463926 6.4283e-01    </span></span>
+<span><span class="co">#&gt; year::-5:cohort::8  -0.238213   0.682050 -0.349261 7.2699e-01    </span></span>
+<span><span class="co">#&gt; year::-5:cohort::9   0.301477   0.684068  0.440712 6.5955e-01    </span></span>
+<span><span class="co">#&gt; year::-5:cohort::10 -0.564801   0.681846 -0.828340 4.0774e-01    </span></span>
+<span><span class="co">#&gt; year::-4:cohort::5  -0.983453   0.681867 -1.442295 1.4963e-01    </span></span>
+<span><span class="co">#&gt; year::-4:cohort::6   0.360407   0.682386  0.528156 5.9754e-01    </span></span>
+<span><span class="co">#&gt; year::-4:cohort::7  -0.430610   0.681846 -0.631535 5.2788e-01    </span></span>
+<span><span class="co">#&gt; year::-4:cohort::8  -0.895195   0.681846 -1.312898 1.8961e-01    </span></span>
+<span><span class="co">#&gt; year::-4:cohort::9  -0.392478   0.682433 -0.575116 5.6538e-01    </span></span>
+<span><span class="co">#&gt; year::-4:cohort::10  0.519001   0.681901  0.761110 4.4683e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::4   0.591288   0.681879  0.867144 3.8614e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::5  -1.000650   0.682072 -1.467074 1.4277e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::6   0.072188   0.681865  0.105868 9.1571e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::7  -0.836820   0.681850 -1.227279 2.2010e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::8  -0.783148   0.681958 -1.148382 2.5117e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::9   0.811285   0.682635  1.188461 2.3502e-01    </span></span>
+<span><span class="co">#&gt; year::-3:cohort::10  0.527203   0.682593  0.772354 4.4014e-01    </span></span>
+<span><span class="co">#&gt; year::-2:cohort::3   0.036941   0.682296  0.054143 9.5684e-01    </span></span>
+<span><span class="co">#&gt; year::-2:cohort::4   0.832250   0.681851  1.220575 2.2262e-01    </span></span>
+<span><span class="co">#&gt; year::-2:cohort::5  -1.574086   0.681930 -2.308281 2.1250e-02 *  </span></span>
+<span><span class="co">#&gt; year::-2:cohort::6   0.311758   0.681848  0.457225 6.4764e-01    </span></span>
+<span><span class="co">#&gt; year::-2:cohort::7  -0.558631   0.681891 -0.819239 4.1291e-01    </span></span>
+<span><span class="co">#&gt; year::-2:cohort::8   0.429591   0.681861  0.630028 5.2886e-01    </span></span>
+<span><span class="co">#&gt; year::-2:cohort::9   1.201899   0.681871  1.762649 7.8359e-02 .  </span></span>
+<span><span class="co">#&gt; year::-2:cohort::10 -0.002429   0.682085 -0.003562 9.9716e-01    </span></span>
+<span><span class="co">#&gt; att                 -1.133749   0.194764 -5.821130 8.6022e-09 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; RMSE: 0.921817     Adj. R2: 0.887984</span></span>
@@ -2263,57 +2263,57 @@ Figure 30.2: Effect on y
 <span><span class="co">#&gt; Dependent Var.:                      y</span></span>
 <span><span class="co">#&gt;                                       </span></span>
 <span><span class="co">#&gt; x1                      0.99*** (0.02)</span></span>
-<span><span class="co">#&gt; year = -9 x cohort = 10    0.35 (0.36)</span></span>
-<span><span class="co">#&gt; year = -8 x cohort = 9     0.03 (0.47)</span></span>
-<span><span class="co">#&gt; year = -8 x cohort = 10   -0.19 (0.35)</span></span>
-<span><span class="co">#&gt; year = -7 x cohort = 8    -0.59 (0.74)</span></span>
-<span><span class="co">#&gt; year = -7 x cohort = 9    0.87. (0.49)</span></span>
-<span><span class="co">#&gt; year = -7 x cohort = 10    0.02 (0.60)</span></span>
-<span><span class="co">#&gt; year = -6 x cohort = 7    -0.04 (0.87)</span></span>
-<span><span class="co">#&gt; year = -6 x cohort = 8    -0.66 (0.57)</span></span>
-<span><span class="co">#&gt; year = -6 x cohort = 9     0.88 (0.53)</span></span>
-<span><span class="co">#&gt; year = -6 x cohort = 10   -0.40 (0.35)</span></span>
-<span><span class="co">#&gt; year = -5 x cohort = 6    -0.66 (0.91)</span></span>
-<span><span class="co">#&gt; year = -5 x cohort = 7    -0.32 (0.70)</span></span>
-<span><span class="co">#&gt; year = -5 x cohort = 8    -0.24 (0.47)</span></span>
-<span><span class="co">#&gt; year = -5 x cohort = 9     0.30 (0.60)</span></span>
-<span><span class="co">#&gt; year = -5 x cohort = 10   -0.56 (0.46)</span></span>
-<span><span class="co">#&gt; year = -4 x cohort = 5    -0.98 (0.63)</span></span>
-<span><span class="co">#&gt; year = -4 x cohort = 6     0.36 (0.86)</span></span>
-<span><span class="co">#&gt; year = -4 x cohort = 7    -0.43 (0.66)</span></span>
-<span><span class="co">#&gt; year = -4 x cohort = 8   -0.90* (0.37)</span></span>
-<span><span class="co">#&gt; year = -4 x cohort = 9    -0.39 (0.44)</span></span>
-<span><span class="co">#&gt; year = -4 x cohort = 10    0.52 (0.60)</span></span>
+<span><span class="co">#&gt; year = -9 x cohort = 10    0.35 (0.68)</span></span>
+<span><span class="co">#&gt; year = -8 x cohort = 9     0.03 (0.68)</span></span>
+<span><span class="co">#&gt; year = -8 x cohort = 10   -0.19 (0.68)</span></span>
+<span><span class="co">#&gt; year = -7 x cohort = 8    -0.59 (0.68)</span></span>
+<span><span class="co">#&gt; year = -7 x cohort = 9     0.87 (0.68)</span></span>
+<span><span class="co">#&gt; year = -7 x cohort = 10    0.02 (0.68)</span></span>
+<span><span class="co">#&gt; year = -6 x cohort = 7    -0.04 (0.68)</span></span>
+<span><span class="co">#&gt; year = -6 x cohort = 8    -0.66 (0.68)</span></span>
+<span><span class="co">#&gt; year = -6 x cohort = 9     0.88 (0.68)</span></span>
+<span><span class="co">#&gt; year = -6 x cohort = 10   -0.40 (0.68)</span></span>
+<span><span class="co">#&gt; year = -5 x cohort = 6    -0.66 (0.68)</span></span>
+<span><span class="co">#&gt; year = -5 x cohort = 7    -0.32 (0.68)</span></span>
+<span><span class="co">#&gt; year = -5 x cohort = 8    -0.24 (0.68)</span></span>
+<span><span class="co">#&gt; year = -5 x cohort = 9     0.30 (0.68)</span></span>
+<span><span class="co">#&gt; year = -5 x cohort = 10   -0.56 (0.68)</span></span>
+<span><span class="co">#&gt; year = -4 x cohort = 5    -0.98 (0.68)</span></span>
+<span><span class="co">#&gt; year = -4 x cohort = 6     0.36 (0.68)</span></span>
+<span><span class="co">#&gt; year = -4 x cohort = 7    -0.43 (0.68)</span></span>
+<span><span class="co">#&gt; year = -4 x cohort = 8    -0.90 (0.68)</span></span>
+<span><span class="co">#&gt; year = -4 x cohort = 9    -0.39 (0.68)</span></span>
+<span><span class="co">#&gt; year = -4 x cohort = 10    0.52 (0.68)</span></span>
 <span><span class="co">#&gt; year = -3 x cohort = 4     0.59 (0.68)</span></span>
-<span><span class="co">#&gt; year = -3 x cohort = 5     -1.0 (0.97)</span></span>
-<span><span class="co">#&gt; year = -3 x cohort = 6     0.07 (0.65)</span></span>
-<span><span class="co">#&gt; year = -3 x cohort = 7    -0.84 (0.80)</span></span>
-<span><span class="co">#&gt; year = -3 x cohort = 8    -0.78 (0.70)</span></span>
-<span><span class="co">#&gt; year = -3 x cohort = 9     0.81 (0.56)</span></span>
-<span><span class="co">#&gt; year = -3 x cohort = 10    0.53 (0.32)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 3     0.04 (0.67)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 4     0.83 (0.86)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 5   -1.6** (0.53)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 6     0.31 (0.83)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 7    -0.56 (0.87)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 8     0.43 (0.31)</span></span>
-<span><span class="co">#&gt; year = -2 x cohort = 9      1.2 (0.82)</span></span>
+<span><span class="co">#&gt; year = -3 x cohort = 5     -1.0 (0.68)</span></span>
+<span><span class="co">#&gt; year = -3 x cohort = 6     0.07 (0.68)</span></span>
+<span><span class="co">#&gt; year = -3 x cohort = 7    -0.84 (0.68)</span></span>
+<span><span class="co">#&gt; year = -3 x cohort = 8    -0.78 (0.68)</span></span>
+<span><span class="co">#&gt; year = -3 x cohort = 9     0.81 (0.68)</span></span>
+<span><span class="co">#&gt; year = -3 x cohort = 10    0.53 (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 3     0.04 (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 4     0.83 (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 5    -1.6* (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 6     0.31 (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 7    -0.56 (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 8     0.43 (0.68)</span></span>
+<span><span class="co">#&gt; year = -2 x cohort = 9     1.2. (0.68)</span></span>
 <span><span class="co">#&gt; year = -2 x cohort = 10  -0.002 (0.68)</span></span>
-<span><span class="co">#&gt; att                     -1.1*** (0.21)</span></span>
+<span><span class="co">#&gt; att                     -1.1*** (0.19)</span></span>
 <span><span class="co">#&gt; Fixed-Effects:          --------------</span></span>
 <span><span class="co">#&gt; id                                 Yes</span></span>
 <span><span class="co">#&gt; year                               Yes</span></span>
 <span><span class="co">#&gt; _______________________ ______________</span></span>
-<span><span class="co">#&gt; S.E.: Clustered                 by: id</span></span>
+<span><span class="co">#&gt; S.E. type                          IID</span></span>
 <span><span class="co">#&gt; Observations                       950</span></span>
 <span><span class="co">#&gt; R2                             0.90982</span></span>
 <span><span class="co">#&gt; Within R2                      0.87641</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
 <p>The <code>fwlplot</code> package provides diagnostics for how much variation is explained by fixed effects or covariates:</p>
-<div class="sourceCode" id="cb925"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb930"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">fwlplot</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb926"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb931"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Simple FWL plot</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, data <span class="op">=</span> <span class="va">base_stagg</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
@@ -2322,7 +2322,7 @@ Figure 30.2: Effect on y
 Figure 30.3: Scatter Plot of Y agaisnt X1
 </p>
 </div>
-<div class="sourceCode" id="cb927"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb932"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># With fixed effects</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>         data <span class="op">=</span> <span class="va">base_stagg</span>,</span>
@@ -2333,7 +2333,7 @@ Figure 30.3: Scatter Plot of Y agaisnt X1
 Figure 30.4: Scatter Plot of Residualized Y against Residualized X1
 </p>
 </div>
-<div class="sourceCode" id="cb928"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb933"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Splitting by treatment status</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span></span>
 <span>    <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span></span>
@@ -2514,7 +2514,7 @@ Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j)
 <li><p><strong>Cluster at Unit Level</strong> <span class="citation">(<a href="references.html#ref-deshpande2019screened">Deshpande and Li 2019</a>)</span>: Appropriate when units are uniquely identified and do not appear in multiple sub-experiments.</p></li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb929"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb934"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/did/">did</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
@@ -2566,7 +2566,7 @@ Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j)
 <span><span class="co"># Insert zero for the omitted period (usually -1)</span></span>
 <span><span class="va">stacked_coeffs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">stacked_coeffs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">0</span>, <span class="va">stacked_coeffs</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">stacked_se</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">stacked_se</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">0</span>, <span class="va">stacked_se</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb930"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb935"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plotting estimates from three methods: Callaway &amp; Sant'Anna, Sun &amp; Abraham, and Stacked DiD</span></span>
 <span></span>
 <span><span class="va">cs_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://bcallaway11.github.io/did/reference/att_gt.html">att_gt</a></span><span class="op">(</span></span>
@@ -2617,7 +2617,7 @@ Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j)
 <span>                  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="op">!</span><span class="va">period</span>, names_to <span class="op">=</span> <span class="st">"estimator"</span>, values_to <span class="op">=</span> <span class="st">"se"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>upper <span class="op">=</span> <span class="va">est</span> <span class="op">+</span>  <span class="fl">1.96</span> <span class="op">*</span> <span class="va">se</span>,</span>
 <span>           lower <span class="op">=</span> <span class="va">est</span> <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">se</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb931"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb936"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">compare_df_longer</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span></span>
 <span>        x <span class="op">=</span> <span class="va">period</span>,</span>
@@ -2783,11 +2783,11 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <h4>
 <span class="header-section-number">30.8.4.6</span> Implementing the Panel Match DiD Estimator<a class="anchor" aria-label="anchor" href="#implementing-the-panel-match-did-estimator"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb932"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb937"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Treatment Variation Plot</strong></p>
 <p>Visualizing the variation of treatment across space and time is essential to assess whether the treatment has sufficient heterogeneity to support credible causal identification.</p>
-<div class="sourceCode" id="cb933"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb938"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
 <span>  panel.data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelData.html">PanelData</a></span><span class="op">(</span></span>
 <span>    panel.data <span class="op">=</span> <span class="va">dem</span>,</span>
@@ -2982,7 +2982,7 @@ Figure 30.7: Treatment Distribution Across Units and Time
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb934"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb939"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span>
 <span><span class="co"># All examples follow the package's vignette</span></span>
 <span><span class="co"># Create the matched sets</span></span>
@@ -3002,7 +3002,7 @@ Figure 30.7: Treatment Distribution Across Units and Time
 <span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb935"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb940"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># visualize the treated unit and matched controls</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
@@ -3025,7 +3025,7 @@ Figure 30.8: Treatment by Country and Year
 </p>
 </div>
 <p>Control units and the treated unit have identical treatment histories over the lag window (1988-1991)</p>
-<div class="sourceCode" id="cb936"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb941"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
 <span>    legend.position <span class="op">=</span> <span class="st">"none"</span>,</span>
@@ -3118,7 +3118,7 @@ Figure 30.9: Focused Treatment Visualization
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb937"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb942"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># PanelMatch without any refinement</span></span>
 <span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
@@ -3159,7 +3159,7 @@ Figure 30.9: Focused Treatment Visualization
 <span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="va">msets.maha</span> <span class="op">&lt;-</span> <span class="va">PM.results.maha</span><span class="op">$</span><span class="va">att</span></span></code></pre></div>
-<div class="sourceCode" id="cb938"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb943"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># these 2 should be identical because weights are not shown</span></span>
 <span><span class="va">msets.none</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   wbcode2 year matched.set.size</span></span>
@@ -3168,7 +3168,7 @@ Figure 30.9: Focused Treatment Visualization
 <span><span class="co">#&gt; 3       6 1973               63</span></span>
 <span><span class="co">#&gt; 4       6 1983               73</span></span>
 <span><span class="co">#&gt; 5       7 1991               81</span></span>
-<span><span class="co">#&gt; 6       7 1998                1</span></span>
+<span><span class="co">#&gt; ... [1 more matched set(s) not printed]</span></span>
 <span><span class="va">msets.maha</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   wbcode2 year matched.set.size</span></span>
 <span><span class="co">#&gt; 1       4 1992               74</span></span>
@@ -3176,7 +3176,7 @@ Figure 30.9: Focused Treatment Visualization
 <span><span class="co">#&gt; 3       6 1973               63</span></span>
 <span><span class="co">#&gt; 4       6 1983               73</span></span>
 <span><span class="co">#&gt; 5       7 1991               81</span></span>
-<span><span class="co">#&gt; 6       7 1998                1</span></span>
+<span><span class="co">#&gt; ... [1 more matched set(s) not printed]</span></span>
 <span><span class="co"># summary(msets.none)</span></span>
 <span><span class="co"># summary(msets.maha)</span></span></code></pre></div>
 <p><strong>Visualizing Matched Sets with the plot method</strong></p>
@@ -3185,7 +3185,7 @@ Figure 30.9: Focused Treatment Visualization
 <li><p>A red line, by default, indicates the count of matched sets where treated units had no matching control units (i.e., empty matched sets).</p></li>
 <li><p>Plot adjustments can be made using <strong><code><a href="https://rdrr.io/r/graphics/plot.default.html">graphics::plot</a></code></strong>.</p></li>
 </ul>
-<div class="sourceCode" id="cb939"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb944"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">msets.none</span>,</span>
@@ -3244,7 +3244,7 @@ Figure 30.10: Weight Distribution
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb940"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb945"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
 <span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
@@ -3327,14 +3327,19 @@ Figure 30.10: Weight Distribution
 <span>              outcome <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span>,</span>
 <span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; $att</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ==============================</span></span>
+<span><span class="co">#&gt; PM.results.none </span></span>
+<span><span class="co">#&gt; ==============================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; --- QOI: att ---</span></span>
 <span><span class="co">#&gt;         tradewb            y</span></span>
 <span><span class="co">#&gt; t_4 -0.07245466  0.291871990</span></span>
 <span><span class="co">#&gt; t_3 -0.20930129  0.208654876</span></span>
 <span><span class="co">#&gt; t_2 -0.24425207  0.107736647</span></span>
 <span><span class="co">#&gt; t_1 -0.10806125 -0.004950238</span></span>
 <span><span class="co">#&gt; t_0 -0.09493854 -0.015198483</span></span></code></pre></div>
-<div class="sourceCode" id="cb941"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb946"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare covariate balance to refined sets</span></span>
 <span><span class="co"># See large improvement in balance</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
@@ -3346,7 +3351,12 @@ Figure 30.10: Weight Distribution
 <span>              outcome <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span>,</span>
 <span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; $att</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ==============================</span></span>
+<span><span class="co">#&gt; PM.results.ps.weight </span></span>
+<span><span class="co">#&gt; ==============================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; --- QOI: att ---</span></span>
 <span><span class="co">#&gt;         tradewb          y</span></span>
 <span><span class="co">#&gt; t_4 0.014362590 0.04035905</span></span>
 <span><span class="co">#&gt; t_3 0.005529734 0.04188731</span></span>
@@ -3375,7 +3385,7 @@ Figure 30.10: Weight Distribution
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb942"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb947"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PE.results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelEstimate.html">PanelEstimate</a></span><span class="op">(</span></span>
 <span>    sets              <span class="op">=</span> <span class="va">PM.results.ps.weight</span>,</span>
 <span>    panel.data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelData.html">PanelData</a></span><span class="op">(</span>panel.data <span class="op">=</span> <span class="va">dem</span>, </span>
@@ -3395,7 +3405,7 @@ Figure 30.10: Weight Distribution
 <span><span class="co"># standard errors</span></span>
 <span><span class="va">PE.results</span><span class="op">[[</span><span class="st">"standard.error"</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="co">#&gt;       t+0       t+1       t+2       t+3       t+4 </span></span>
-<span><span class="co">#&gt; 0.6104150 0.9879119 1.3888125 1.7574077 2.1240302</span></span>
+<span><span class="co">#&gt; 0.6378008 1.0580194 1.4415817 1.8023301 2.2215475</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># use conditional method</span></span>
@@ -3426,7 +3436,7 @@ Figure 30.10: Weight Distribution
 <span><span class="co">#&gt; t+2 1.2851017 1.1171942 -0.9045586 3.474762</span></span>
 <span><span class="co">#&gt; t+3 1.7370930 1.4116879 -1.0297644 4.503950</span></span>
 <span><span class="co">#&gt; t+4 1.4871846 1.7172143 -1.8784937 4.852863</span></span></code></pre></div>
-<div class="sourceCode" id="cb943"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb948"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">PE.results</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:treatment-effects-over-time"></span>
@@ -3435,7 +3445,7 @@ Figure 30.11: Post-treatment Effects Over Time
 </p>
 </div>
 <p><strong>Moderating Variables</strong></p>
-<div class="sourceCode" id="cb944"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb949"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># moderating variable</span></span>
 <span><span class="va">dem</span><span class="op">$</span><span class="va">moderator</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="va">dem</span><span class="op">$</span><span class="va">moderator</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">dem</span><span class="op">$</span><span class="va">wbcode2</span> <span class="op">&gt;</span> <span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
@@ -3473,7 +3483,7 @@ Figure 30.11: Post-treatment Effects Over Time
 <span>        <span class="op">)</span>,</span>
 <span>        moderator <span class="op">=</span> <span class="st">"moderator"</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb945"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb950"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Each element in the list corresponds to a level in the moderator</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">PE.results</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
@@ -3482,7 +3492,7 @@ Figure 30.11: Post-treatment Effects Over Time
 Figure 30.12: Estimated Effects of Treatment Over Time
 </p>
 </div>
-<div class="sourceCode" id="cb946"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb951"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># plot(PE.results[[2]])</span></span></code></pre></div>
 <!--#To write up for journal submission, you can follow the following report:  -->
@@ -3534,7 +3544,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <p>Lastly, we evaluate the balance of lagged outcome variables over several pre-treatment periods and that of time-varying covariates. This examination aids in assessing the validity of the parallel trend assumption integral to the DiD estimator justification.</p>
 </blockquote>
 <p>In the balance scatter figure, we demonstrate the enhancement of covariate balance thank to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference between before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.</p>
-<div class="sourceCode" id="cb947"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb952"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">causalverse</span><span class="op">)</span></span>
 <span></span>
@@ -3576,7 +3586,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="va">lags</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">sizes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>You can either do it sequentially</p>
-<div class="sourceCode" id="cb948"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb953"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">method</span> <span class="kw">in</span> <span class="va">methods</span><span class="op">)</span> <span class="op">{</span></span>
@@ -3602,7 +3612,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span>    <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>or in parallel</p>
-<div class="sourceCode" id="cb949"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb954"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/foreach">foreach</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/doparallel">doParallel</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">registerDoParallel</a></span><span class="op">(</span>cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
@@ -3662,7 +3672,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">stopImplicitCluster</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb950"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb955"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Updated plotting function</span></span>
@@ -3779,7 +3789,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span>    gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fontsize <span class="op">=</span> <span class="va">major.axes.fontsize</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb951"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb956"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"images"</span>, <span class="st">"did_balance_scatter.png"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:fig-matching-comparison"></span>
@@ -3788,7 +3798,7 @@ Figure 30.13: Variable Balance After Matched Set Refinement
 </p>
 </div>
 <p>Note: Scatter plots display the standardized mean difference of each covariate <span class="math inline">\(j\)</span> and lag year <span class="math inline">\(l\)</span> before (x-axis) and after (y-axis) matched set refinement. Each plot includes varying numbers of possible matches for each matching method. Rows represent different matching/weighting methods, while columns indicate adjustments for various lag lengths.</p>
-<div class="sourceCode" id="cb952"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb957"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 1: Define configurations</span></span>
 <span><span class="va">configurations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span>refinement.method <span class="op">=</span> <span class="st">"none"</span>, qoi <span class="op">=</span> <span class="st">"att"</span><span class="op">)</span>,</span>
@@ -3844,7 +3854,7 @@ Figure 30.13: Variable Balance After Matched Set Refinement
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/paste.html">paste</a></span><span class="op">(</span><span class="va">config</span><span class="op">$</span><span class="va">qoi</span>, <span class="va">config</span><span class="op">$</span><span class="va">refinement.method</span>, sep <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p>To export</p>
-<div class="sourceCode" id="cb953"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb958"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
 <span></span>
@@ -3925,7 +3935,7 @@ Figure 30.13: Variable Balance After Matched Set Refinement
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb954"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb959"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"images"</span>, <span class="st">"p_covariate_balance.png"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:fig-balance-by-method"></span>
@@ -3939,7 +3949,7 @@ Figure 30.14: Covariate Balance Over Time by Refinement Method and Estimand
 <p><strong>Estimation Results</strong></p>
 <p>We now detail the estimated ATTs derived from the matching techniques. Figure below offers visual representations of the impacts of treatment initiation (upper panel) and treatment reversal (lower panel) on the outcome variable for a duration of 5 years post-transition, specifically, (<span class="math inline">\(F = 0, 1, …, 4\)</span>). Across the five methods (columns), it becomes evident that the point estimates of effects associated with treatment initiation consistently approximate zero over the 5-year window. In contrast, the estimated outcomes of treatment reversal are notably negative and maintain statistical significance through all refinement techniques during the initial year of transition and the 1 to 4 years that follow, provided treatment reversal is permissible. These effects are notably pronounced, pointing to an estimated reduction of roughly X% in the outcome variable.</p>
 <p>Collectively, these findings indicate that the transition into the treated state from its absence doesn’t invariably lead to a heightened outcome. Instead, the transition from the treated state back to its absence exerts a considerable negative effect on the outcome variable in both the short and intermediate terms. Hence, the positive effect of the treatment (if we were to use traditional DiD) is actually driven by the negative effect of treatment reversal.</p>
-<div class="sourceCode" id="cb955"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb960"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># sequential</span></span>
 <span><span class="co"># Step 1: Apply PanelEstimate function</span></span>
 <span></span>
@@ -4010,7 +4020,7 @@ Figure 30.14: Covariate Balance Over Time by Refinement Method and Estimand
 <span>  <span class="co"># Transfer the name of the current element to the res_est_plot_rev list</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">res_est_plot_rev</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">res_est_rev</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb956"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb961"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># parallel</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/doparallel">doParallel</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/foreach">foreach</a></span><span class="op">)</span></span>
@@ -4085,7 +4095,7 @@ Figure 30.14: Covariate Balance Over Time by Refinement Method and Estimand
 <span><span class="co"># Stop the cluster</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span></code></pre></div>
 <p>To export</p>
-<div class="sourceCode" id="cb957"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb962"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
 <span></span>
@@ -4320,8 +4330,8 @@ Y_{it}(0)
 <li><p><a href="sec-difference-in-differences.html#two-stage-did-estimator">Two-stage DiD Estimator</a> <span class="citation">(<a href="references.html#ref-gardner2022two">Gardner 2022</a>; <a href="references.html#ref-borusyak2021revisiting">Borusyak, Jaravel, and Spiess 2021</a>)</span></p></li>
 <li><p><span class="citation">(<a href="references.html#ref-brown2023simple">N. Brown, Butts, and Westerlund 2023</a>)</span></p></li>
 </ul>
-<div class="sourceCode" id="cb958"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/fect/articles/tutorial.html">fect</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb963"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/fect/">fect</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">PanelMatch</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/PanelMatch/man/dem.html">dem</a></span></span>
 <span></span>
@@ -4346,7 +4356,7 @@ Y_{it}(0)
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">model.fect</span>, stats <span class="op">=</span> <span class="st">"F.p"</span><span class="op">)</span></span></code></pre></div>
 <p>F-test <span class="math inline">\(H_0\)</span>: residual averages in the pre-treatment periods = 0</p>
 <p>To see treatment reversal effects</p>
-<div class="sourceCode" id="cb959"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb964"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">model.fect</span>, stats <span class="op">=</span> <span class="st">"F.p"</span>, type <span class="op">=</span> <span class="st">'exit'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div id="placebo-test" class="section level5" number="30.8.5.0.2">
@@ -4355,7 +4365,7 @@ Y_{it}(0)
 </h5>
 <p>By selecting a part of the data and excluding observations within a specified range to improve the model fitting, we then evaluate whether the estimated Average Treatment Effect (ATT) within this range significantly differs from zero. This approach helps us analyze the periods before treatment.</p>
 <p>If this test fails, either the functional form or strict exogeneity assumption is problematic.</p>
-<div class="sourceCode" id="cb960"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb965"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out.fect.p</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/fect/man/fect.html">fect</a></span><span class="op">(</span></span>
 <span>        Y <span class="op">=</span> <span class="st">"y"</span>,</span>
@@ -4377,7 +4387,7 @@ Y_{it}(0)
 </h5>
 <p>The placebo test can be adapted to assess carryover effects by masking several post-treatment periods instead of pre-treatment ones. If no carryover effects are present, the average prediction error should approximate zero. For the carryover test, set <code>carryoverTest = TRUE</code>. Specify a post-treatment period range in carryover.period to exclude observations for model fitting, then evaluate if the estimated ATT significantly deviates from zero.</p>
 <p>Even if we have carryover effects, in most cases of the staggered adoption setting, researchers are interested in the cumulative effects, or aggregated treatment effects, so it’s okay.</p>
-<div class="sourceCode" id="cb961"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb966"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out.fect.c</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/fect/man/fect.html">fect</a></span><span class="op">(</span></span>
 <span>        Y <span class="op">=</span> <span class="st">"y"</span>,</span>
@@ -4624,7 +4634,7 @@ Y_{it} = L_{it} + \sum_{p=1}^{P} \sum_{q=1}^{Q} X_{ip} H_{pq} Z_{qt} + \mu_i + \
 <li><p>Estimate the time and unit fixed effects separately</p></li>
 <li><p>Known as the imputation method <span class="citation">(<a href="references.html#ref-borusyak2024revisiting">Borusyak, Jaravel, and Spiess 2024</a>)</span> or two-stage DiD <span class="citation">(<a href="references.html#ref-gardner2022two">Gardner 2022</a>)</span></p></li>
 </ul>
-<div class="sourceCode" id="cb962"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb967"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># remotes::install_github("kylebutts/did2s")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://kylebutts.github.io/did2s/">did2s</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
@@ -4654,20 +4664,19 @@ Y_{it} = L_{it} + \sum_{p=1}^{P} \sum_{q=1}^{Q} X_{ip} H_{pq} Z_{qt} + \mu_i + \
 <span><span class="co">#&gt; time_to_treatment = -4   -0.1152 (0.1438)</span></span>
 <span><span class="co">#&gt; time_to_treatment = -3   -0.0127 (0.1483)</span></span>
 <span><span class="co">#&gt; time_to_treatment = -2    0.1503 (0.1440)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 0  -5.139*** (0.3680)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 1  -3.480*** (0.3784)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 2  -2.021*** (0.3055)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 3   -0.6965. (0.3947)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 4    1.070** (0.3501)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 5   2.173*** (0.4456)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 6   4.449*** (0.3680)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 7   4.864*** (0.3698)</span></span>
-<span><span class="co">#&gt; time_to_treatment = 8   6.187*** (0.2702)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 0  -5.580*** (0.3533)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 1  -4.000*** (0.3371)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 2  -2.391*** (0.2967)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 3   -0.9665* (0.4391)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 4    0.7840* (0.3829)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 5   1.668*** (0.5004)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 6   4.355*** (0.4926)</span></span>
+<span><span class="co">#&gt; time_to_treatment = 7   4.402*** (0.5954)</span></span>
 <span><span class="co">#&gt; ______________________ __________________</span></span>
-<span><span class="co">#&gt; S.E. type                          Custom</span></span>
-<span><span class="co">#&gt; Observations                          950</span></span>
-<span><span class="co">#&gt; R2                                0.62486</span></span>
-<span><span class="co">#&gt; Adj. R2                           0.61843</span></span>
+<span><span class="co">#&gt; S.E.: Clustered                    by: id</span></span>
+<span><span class="co">#&gt; Observations                          900</span></span>
+<span><span class="co">#&gt; R2                                0.62668</span></span>
+<span><span class="co">#&gt; Adj. R2                           0.62034</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span></span>
@@ -4678,11 +4687,11 @@ Y_{it} = L_{it} + \sum_{p=1}^{P} \sum_{q=1}^{Q} X_{ip} H_{pq} Z_{qt} + \mu_i + \
 <span>    ref.line <span class="op">=</span> <span class="op">-</span><span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.2-did-other_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb963"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb968"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.2-did-other_files/figure-html/unnamed-chunk-22-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb964"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb969"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mult_est</span> <span class="op">&lt;-</span> <span class="fu">did2s</span><span class="fu">::</span><span class="fu"><a href="https://kylebutts.github.io/did2s/reference/event_study.html">event_study</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="fu">fixest</span><span class="fu">::</span><span class="va"><a href="https://lrberge.github.io/fixest/reference/base_stagg.html">base_stagg</a></span> <span class="op">|&gt;</span></span>
 <span>        <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year_treated <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">year_treated</span> <span class="op">==</span> <span class="fl">10000</span>, <span class="fl">0</span>, <span class="va">year_treated</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -4700,7 +4709,7 @@ Y_{it} = L_{it} + \sum_{p=1}^{P} \sum_{q=1}^{Q} X_{ip} H_{pq} Z_{qt} + \mu_i + \
 <div class="inline-figure"><img src="30.2-did-other_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p><span class="citation">Borusyak, Jaravel, and Spiess (<a href="references.html#ref-borusyak2024revisiting">2024</a>)</span> <code>didimputation</code></p>
 <p>This version is currently not working</p>
-<div class="sourceCode" id="cb965"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb970"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">didimputation</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"base_stagg"</span><span class="op">)</span></span>
@@ -5071,7 +5080,7 @@ Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
 </ol>
 <p>These assumptions are <strong>weaker</strong> than those required for TWFE to be unbiased.</p>
 <p><span class="citation">Clément De Chaisemartin and d’Haultfoeuille (<a href="references.html#ref-de2020two">2020</a>)</span> also propose a placebo version of DID_M using pre-treatment periods. If pre-treatment differences exist between switchers and non-switchers, this indicates violation of the parallel trends assumption. This test is analogous to pre-trend checks in event-study designs.</p>
-<div class="sourceCode" id="cb966"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb971"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span>            <span class="co"># For TWFE model and dataset</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/chaisemartinPackages">TwoWayFEWeights</a></span><span class="op">)</span>   <span class="co"># For decomposing TWFE weights</span></span>
@@ -5099,7 +5108,7 @@ Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
 <ol style="list-style-type: decimal">
 <li>Estimate TWFE Model</li>
 </ol>
-<div class="sourceCode" id="cb967"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb972"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run standard TWFE using fixest</span></span>
 <span><span class="va">twfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">base_stagg</span> <span class="op">|&gt;</span></span>
@@ -5108,9 +5117,9 @@ Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
 <span><span class="co">#&gt; OLS estimation, Dep. Var.: y</span></span>
 <span><span class="co">#&gt; Observations: 950</span></span>
 <span><span class="co">#&gt; Fixed-effects: id: 95,  year: 10</span></span>
-<span><span class="co">#&gt; Standard-errors: Clustered (id) </span></span>
-<span><span class="co">#&gt;           Estimate Std. Error t value   Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; treatment -3.46761    0.47672 -7.2739 1.0326e-10 ***</span></span>
+<span><span class="co">#&gt; Standard-errors: IID </span></span>
+<span><span class="co">#&gt;           Estimate Std. Error t value  Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; treatment -3.46761   0.336041 -10.319 &lt; 2.2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; RMSE: 2.471     Adj. R2: 0.272265</span></span>
@@ -5119,7 +5128,7 @@ Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
 <li>Decompose Weights with <code>TwoWayFEWeights</code>
 </li>
 </ol>
-<div class="sourceCode" id="cb968"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb973"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">twfe_weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/TwoWayFEWeights/man/twowayfeweights.html">twowayfeweights</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">base_stagg</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>treatment <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">time_to_treatment</span> <span class="op">&lt;</span> <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    Y <span class="op">=</span> <span class="st">"y"</span>,</span>
@@ -5156,7 +5165,7 @@ Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
 <li>Estimate DID_M (Switching DID Estimator) with <code>DIDmultiplegt</code>
 </li>
 </ol>
-<div class="sourceCode" id="cb969"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb974"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Estimate robust SDID estimator (DID_M)</span></span>
 <span><span class="va">did_m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DIDmultiplegt/man/did_multiplegt.html">did_multiplegt</a></span><span class="op">(</span></span>
 <span>        mode <span class="op">=</span> <span class="st">"dyn"</span>,</span>
@@ -5171,7 +5180,7 @@ Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
 <span>        placebo <span class="op">=</span> <span class="fl">2</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.2-did-other_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb970"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb975"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">did_m</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -5333,7 +5342,7 @@ m_{d,t}(x) = \mathbb{E}[Y_t \mid D=d, X=x].
 \]</span></p>
 <p>Hence an OR-based DID estimator (for panel or repeated cross-section) typically looks like</p>
 <p><span class="math display">\[
-\hat{\tau}^{\mathrm{reg}} = \Bigl(\overline{Y}_{1,1}\Bigr) - \Bigl(\overline{Y}_{1,0} + \frac{1}{n_{\mathrm{treat}}} \sum_{i:D_i=1} \bigl[ \hat{m}_{0,1}(X_i) - \hat{m}_{0,0}(X_i) \bigr] \Bigr),
+\hat{\tau}^{\mathrm{reg}} = \overline{Y}_{1,1} - \left(\overline{Y}_{1,0} + \frac{1}{n_{\mathrm{treat}}} \sum_{i:D_i=1} [ \hat{m}_{0,1}(X_i) - \hat{m}_{0,0}(X_i) ] \right),
 \]</span></p>
 <p>where <span class="math inline">\(\overline{Y}_{d,t}\)</span> is the sample mean of <span class="math inline">\(Y_t\)</span> among units with <span class="math inline">\(D=d\)</span>, and <span class="math inline">\(\hat{m}_{0,t}\)</span> is some fitted model (e.g., linear or semiparametric) for <span class="math inline">\(\mathbb{E}[Y_t \mid D=0,X]\)</span>.</p>
 <p>This OR estimator is consistent if (and only if) we have <em>correctly specified</em> the two outcome-regression functions <span class="math inline">\(m_{0,1}(x)\)</span> and <span class="math inline">\(m_{0,0}(x)\)</span>. If these regressions are misspecified, the estimator will generally be biased.</p>
@@ -5358,14 +5367,7 @@ p(x)= P(D=1 \mid X=x),
 \]</span></p>
 <p>Hence an IPW estimator for panel data is</p>
 <p><span class="math display">\[
-  \hat{\tau}^{\mathrm{ipw,p}}
-  =
-  \frac{1}{\overline{D}}
-  \sum_{i=1}^n
-    \Bigl[
-       \frac{D_i - \hat{p}(X_i)}{1-\hat{p}(X_i)}
-    \Bigr]
-    \frac{1}{n}\bigl(Y_{i1} - Y_{i0}\bigr),
+\hat{\tau}^{\mathrm{ipw,p}} = \frac{1}{\overline{D}} \sum_{i=1}^n \left[\frac{D_i - \hat{p}(X_i)}{1-\hat{p}(X_i)}\right] \frac{1}{n}(Y_{i1} - Y_{i0}),
 \]</span></p>
 <p>where <span class="math inline">\(\hat{p}(\cdot)\)</span> is a fitted propensity score model. Similar expressions exist for repeated cross-sections, with small modifications to handle the fact that we observe <span class="math inline">\(Y_1\)</span> only if <span class="math inline">\(T=1\)</span>, etc.</p>
 <p>This IPW estimator is consistent if (and only if) the propensity score is correctly specified, i.e., <span class="math inline">\(\hat{p}(x)\approx p(x)\)</span>. If the propensity-score model is incorrect, the estimator may be severely biased.</p>
@@ -5386,22 +5388,28 @@ p(x)= P(D=1 \mid X=x),
 <h5>
 <span class="header-section-number">30.8.12.3.1</span> DR estimand for panel data<a class="anchor" aria-label="anchor" href="#dr-estimand-for-panel-data"><i class="fas fa-link"></i></a>
 </h5>
-<p>When panel data are available, define <span class="math display">\[
+<p>When panel data are available, define</p>
+<p><span class="math display">\[
    \Delta Y = Y_1 - Y_0,
    \quad
    \mu_{0,\Delta}(X)=\mu_{0,1}(X)-\mu_{0,0}(X).
-\]</span> Then a DR moment for <span class="math inline">\(\tau\)</span> is: <span class="math display">\[
+\]</span></p>
+<p>Then a DR moment for <span class="math inline">\(\tau\)</span> is:</p>
+<p><span class="math display">\[
    \tau^{\mathrm{dr,p}}
    =
    \mathbb{E}\Bigl[
     \Bigl(w_{1}^{\mathrm{p}}(D)-w_{0}^{\mathrm{p}}(D,X;\pi)\Bigr)
     \Bigl(\Delta Y -\mu_{0,\Delta}(X)\Bigr)
    \Bigr],
-\]</span> where <span class="math display">\[
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
    w_{1}^{\mathrm{p}}(D)=\frac{D}{\mathbb{E}[D]},
    \quad\quad
    w_{0}^{\mathrm{p}}(D,X;\pi)=\frac{\pi(X)(1-D)}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)}{1-\pi(X)}\bigr]}.
-\]</span> It can be shown that <span class="math inline">\(\tau^{\mathrm{dr,p}} = \tau\)</span> provided <em>either</em> <span class="math inline">\(\pi(x)=p(x)\)</span> almost surely (a.s.) <em>or</em> <span class="math inline">\(\mu_{0,\Delta}(x)=m_{0,\Delta}(x)\)</span> a.s. (the latter meaning that at least the regression for the comparison group is correct).</p>
+\]</span></p>
+<p>It can be shown that <span class="math inline">\(\tau^{\mathrm{dr,p}} = \tau\)</span> provided <em>either</em> <span class="math inline">\(\pi(x)=p(x)\)</span> almost surely (a.s.) <em>or</em> <span class="math inline">\(\mu_{0,\Delta}(x)=m_{0,\Delta}(x)\)</span> a.s. (the latter meaning that at least the regression for the comparison group is correct).</p>
 </div>
 <div id="dr-estimands-for-repeated-cross-sections" class="section level5" number="30.8.12.3.2">
 <h5>
@@ -5410,12 +5418,7 @@ p(x)= P(D=1 \mid X=x),
 <p>When we only have repeated cross-sections, the DR construction must account for the fact that <span class="math inline">\(Y_0, Y_1\)</span> are not observed jointly on the same individuals. Let <span class="math inline">\(\lambda = P(T=1)\)</span>. Then two valid DR estimands are:</p>
 <ol style="list-style-type: decimal">
 <li><p><span class="math display">\[
-  \tau^{\mathrm{dr,rc}}_{1}
-  =
-  \mathbb{E}\Bigl[
-   \bigl(w_{1}^{\mathrm{rc}}(D,T)-w_{0}^{\mathrm{rc}}(D,T,X;\pi)\bigr)
-   \bigl(Y -\mu_{0,Y}(T,X)\bigr)
-  \Bigr],
+  \tau^{\mathrm{dr,rc}}_{1} = \mathbb{E}\left[(w_{1}^{\mathrm{rc}}(D,T)-w_{0}^{\mathrm{rc}}(D,T,X;\pi))(Y -\mu_{0,Y}(T,X))\right],
 \]</span> where <span class="math display">\[
   w_{1}^{\mathrm{rc}}(D,T)
   =
@@ -5432,7 +5435,7 @@ p(x)= P(D=1 \mid X=x),
   \frac{\pi(X)(1-D)1\{T=0\}}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)1\{T=0\}}{(1-\pi(X))}\bigr]},
 \]</span> and <span class="math inline">\(\mu_{0,Y}(T,X)=T\cdot\mu_{0,1}(X)+(1-T)\cdot\mu_{0,0}(X)\)</span>.</p></li>
 <li><p><span class="math display">\[
-\tau^{\mathrm{dr,rc}}_{2} = \tau^{\mathrm{dr,rc}}_{1}+\Bigl[    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\big|D=1\bigr)    -    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\big|D=1,T=1\bigr)    \Bigr]\\-\Bigl[    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\big|D=1\bigr)    -    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\big|D=1,T=0\bigr)    \Bigr]
+\tau^{\mathrm{dr,rc}}_{2} = \tau^{\mathrm{dr,rc}}_{1}+\left[\mathbb{E}(\mu_{1,1}(X) - \mu_{0,1}(X)|D=1) - \mathbb{E}(\mu_{1,1}(X) - \mu_{0,1}(X)|D=1,T=1)\right]\\-\left[\mathbb{E}(\mu_{1,0}(X) - \mu_{0,0}(X)|D=1) - \mathbb{E}(\mu_{1,0}(X) - \mu_{0,0}(X)|D=1,T=0)\right]
 \]</span> where <span class="math inline">\(\mu_{d,t}(x)\)</span> is a model for <span class="math inline">\(m_{d,t}(x)=\mathbb{E}[Y \mid D=d,T=t,X=x]\)</span>.</p></li>
 </ol>
 <p>One can show <span class="math inline">\(\tau^{\mathrm{dr,rc}}_1 = \tau^{\mathrm{dr,rc}}_2 = \tau\)</span> as long as the stationarity of <span class="math inline">\((D,X)\)</span> across time holds and <em>either</em> the propensity score model <span class="math inline">\(\pi(x)=p(x)\)</span> is correct <em>or</em> the comparison-group outcome regressions are correct <span class="citation">(<a href="references.html#ref-sant2020doubly">Sant’Anna and Zhao 2020</a>)</span>. Notably, <span class="math inline">\(\tau^{\mathrm{dr,rc}}_2\)</span> also includes explicit modeling of the treated group’s outcomes. However, in terms of identification alone, <span class="math inline">\(\tau^{\mathrm{dr,rc}}_1\)</span> and <span class="math inline">\(\tau^{\mathrm{dr,rc}}_2\)</span> share the same double-robust property.</p>
@@ -5450,9 +5453,9 @@ p(x)= P(D=1 \mid X=x),
 </ol>
 <p>Under the above mentioned assumptions (i.i.d. data generating process, overlap, and conditional parallel trends) and <em>without</em> imposing further parametric constraints on <span class="math inline">\((m_{d,t},p)\)</span>, one can derive that the <strong>EIF</strong> for <span class="math inline">\(\tau\)</span> in the panel-data setting is</p>
 <p><span class="math display">\[
-\eta^{e,\mathrm{p}}(Y_1, Y_0, D, X) =\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\+\frac{D}{\mathbb{E}[D]}\Bigl[\Delta Y - m_{1,\Delta}(X)\Bigr]\\-\frac{\pi(X)(1-D)}{(1 - \pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)}{1 - \pi(X)}\bigr]}\Bigl[\Delta Y - m_{0,\Delta}(X)\Bigr]
-\]</span></p>
-<p>where <span class="math inline">\(\Delta Y = Y_1 - Y_0\)</span> and <span class="math inline">\(m_{d,\Delta}(X) \equiv m_{d,1}(X) - m_{d,0}(X)\)</span>.</p>
+\eta^{e,\mathrm{p}}(Y_1, Y_0, D, X) =\frac{D}{\mathbb{E}[D]}[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau]\\+\frac{D}{\mathbb{E}[D]}[\Delta Y - m_{1,\Delta}(X)]\\-\frac{\pi(X)(1-D)}{(1 - \pi(X))\mathbb{E}[\tfrac{\pi(X)(1-D)}{1 - \pi(X)}]}[\Delta Y - m_{0,\Delta}(X)]
+\]</span>
+where <span class="math inline">\(\Delta Y = Y_1 - Y_0\)</span> and <span class="math inline">\(m_{d,\Delta}(X) \equiv m_{d,1}(X) - m_{d,0}(X)\)</span>.</p>
 <p>The associated <strong>semiparametric efficiency bound</strong> is <span class="math display">\[
    \mathbb{E}\bigl[\eta^{e,\mathrm{p}}(Y_1,Y_0,D,X)^2\bigr].
 \]</span> It can be shown that a DR DID estimator can <em>attain</em> this bound if (1) the propensity score is correctly modeled, and (2) the comparison-group outcome regressions are correctly modeled.</p>
@@ -5461,7 +5464,7 @@ p(x)= P(D=1 \mid X=x),
 </ol>
 <p>Similarly, when only repeated cross-sections are available, the EIF becomes</p>
 <p><span class="math display">\[
-\eta^{e,\mathrm{rc}}(Y,D,T,X) =\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\+\Bigl[    w_{1,1}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,1}(X)\bigr)    -    w_{1,0}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,0}(X)\bigr)    \Bigr]\\-\Bigl[    w_{0,1}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,1}(X)\bigr)    -    w_{0,0}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,0}(X)\bigr)    \Bigr]
+\eta^{e,\mathrm{rc}}(Y,D,T,X) =\frac{D}{\mathbb{E}[D]}[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau]\\+\left[w_{1,1}^{\mathrm{rc}}(D,T)(Y - m_{1,1}(X)) - w_{1,0}^{\mathrm{rc}}(D,T)(Y - m_{1,0}(X))\right]\\-\left[w_{0,1}^{\mathrm{rc}}(D,T,X;p)(Y - m_{0,1}(X)) - w_{0,0}^{\mathrm{rc}}(D,T,X;p)(Y - m_{0,0}(X))\right]
 \]</span></p>
 <p>with <span class="math inline">\(m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)\)</span>. The resulting efficiency bound is <span class="math inline">\(\mathbb{E}\bigl[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2\bigr]\)</span>.</p>
 <p>One can further show that having access to <em>panel</em> data can be strictly more informative (i.e., yields a <em>smaller</em> semiparametric variance bound) than repeated cross-sections. This difference can grow if the pre- and post-treatment samples are highly unbalanced.</p>
@@ -5502,17 +5505,7 @@ Replace <span class="math inline">\(p\)</span> with <span class="math inline">\(
 <ul>
 <li>
 <p><strong>For panel data:</strong> <span class="math display">\[
-    \hat{\tau}^{\mathrm{dr,p}}_{\mathrm{imp}}
-    =
-    \frac1n \sum_{i=1}^n
-      \Bigl[
-         w_{1}^{\mathrm{p}}(D_i) - w_{0}^{\mathrm{p}}\bigl(D_i,X_i;\hat{\gamma}^{\mathrm{ipt}}\bigr)
-      \Bigr]
-      \Bigl[
-        \bigl(Y_{i1}-Y_{i0}\bigr)
-        -
-        \hat{\mu}^{\mathrm{lin,p}}_{0,\Delta}\bigl(X_i;\hat{\beta}^{\mathrm{wls,p}}_{0,\Delta}\bigr)
-      \Bigr],
+    \hat{\tau}^{\mathrm{dr,p}}_{\mathrm{imp}} = \frac{1}{n} \sum_{i=1}^n \left[w_{1}^{\mathrm{p}}(D_i) - w_{0}^{\mathrm{p}}(D_i,X_i;\hat{\gamma}^{\mathrm{ipt}})\right] \left[(Y_{i1}-Y_{i0}) - \hat{\mu}^{\mathrm{lin,p}}_{0,\Delta}(X_i;\hat{\beta}^{\mathrm{wls,p}}_{0,\Delta})\right],
   \]</span> where <span class="math inline">\(\hat{\gamma}^{\mathrm{ipt}}\)</span> is the “inverse probability tilting” estimate for the logit propensity score, and <span class="math inline">\(\hat{\beta}^{\mathrm{wls,p}}_{0,\Delta}\)</span> is a weighted least squares estimate for the difference regressions of the comparison group. Under suitable regularity conditions, this estimator:</p>
 <ol style="list-style-type: decimal">
 <li><p>Remains consistent if either the logit model or the linear outcome model for <span class="math inline">\(\Delta Y\)</span> in the control group is correct.</p></li>
@@ -5564,7 +5557,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
    \hat{V} = \frac{1}{n}\sum_{i=1}^n \hat{\eta}_i^2,
 \]</span> where <span class="math inline">\(\hat{\eta}_i\)</span> is the evaluator’s best estimate of the influence function for observation <span class="math inline">\(i\)</span>. Under certain “improved DR” constructions, the same <span class="math inline">\(\hat{\eta}_i\)</span> works regardless of which part of the model is correct.</p>
 <hr>
-<div class="sourceCode" id="cb971"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb976"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">'base_stagg'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/did/">did</a></span><span class="op">)</span></span>
@@ -5588,7 +5581,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.8636        0.5869     -2.014      0.2867 </span></span>
+<span><span class="co">#&gt;  -0.8636        0.5924    -2.0247      0.2974 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---</span></span>
@@ -5600,7 +5593,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span></span>
 <span><span class="fu"><a href="https://bcallaway11.github.io/did/reference/ggdid.html">ggdid</a></span><span class="op">(</span><span class="va">agg.es</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.2-did-other_files/figure-html/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb972"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb977"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">agg.gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://bcallaway11.github.io/did/reference/aggte.html">aggte</a></span><span class="op">(</span><span class="va">drdid_result</span>, type <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span></span>
@@ -5767,7 +5760,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <ol style="list-style-type: decimal">
 <li>Install and load packages</li>
 </ol>
-<div class="sourceCode" id="cb973"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb978"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 1) Load packages ---</span></span>
 <span><span class="co"># install.packages("fixest")</span></span>
 <span><span class="co"># install.packages("marginaleffects")</span></span>
@@ -5792,7 +5785,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li><p>Some stores are “staggered” in the sense that they adopt in different periods. We’ll randomly draw their adoption date from <span class="math inline">\(\{4,5,6\}\)</span>. Others never adopt at all.</p></li>
 <li><p>We include store-level intercepts, time intercepts, and idiosyncratic noise to make it more realistic.</p></li>
 </ul>
-<div class="sourceCode" id="cb974"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb979"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 2) Simulate Data ---</span></span>
 <span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">200</span>   <span class="co"># number of stores</span></span>
 <span><span class="cn">T</span> <span class="op">&lt;-</span> <span class="fl">10</span>    <span class="co"># number of time periods</span></span>
@@ -5853,7 +5846,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li><p><code>vcov = ~id</code> clusters standard errors at the store level.</p></li>
 <li><p><code>cgroup = "never"</code>: We specify that the never-treated units form our comparison group. This ensures we can see <em>pre-treatment</em> and <em>post-treatment</em> dynamic effects in an event-study plot.</p></li>
 </ul>
-<div class="sourceCode" id="cb975"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb980"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 3) Estimate with etwfe ---</span></span>
 <span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://grantmcdermott.com/etwfe/reference/etwfe.html">etwfe</a></span><span class="op">(</span></span>
 <span>    fml    <span class="op">=</span> <span class="va">logY</span> <span class="op">~</span> <span class="va">xvar</span>,</span>
@@ -5870,7 +5863,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 </li>
 </ol>
 <p>Here’s a <em>single-number</em> estimate of the overall average effect on the treated, across all times and cohorts:</p>
-<div class="sourceCode" id="cb976"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb981"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 4) Single-number ATT ---</span></span>
 <span><span class="va">ATT_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://grantmcdermott.com/etwfe/reference/emfx.html">emfx</a></span><span class="op">(</span><span class="va">mod</span>, type <span class="op">=</span> <span class="st">"simple"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">ATT_est</span><span class="op">)</span></span>
@@ -5879,34 +5872,34 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span><span class="co">#&gt;     TRUE  -0.0707     0.0178 -3.97   &lt;0.001 13.8 -0.106 -0.0358</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Term: .Dtreat</span></span>
-<span><span class="co">#&gt; Type:  response </span></span>
+<span><span class="co">#&gt; Type: response</span></span>
 <span><span class="co">#&gt; Comparison: TRUE - FALSE</span></span></code></pre></div>
 <p>You should see an estimate near the <em>true</em> <span class="math inline">\(-0.05\)</span>.</p>
 <ol start="5" style="list-style-type: decimal">
 <li>Recover an event-study pattern of dynamic effects</li>
 </ol>
 <p>To check pre- and post-treatment dynamics, we ask for an <strong>event study</strong> via <code>type = "event"</code>. This shows how the outcome evolves <em>around</em> the adoption time. Negative “event” values correspond to pre-treatment, while nonnegative “event” values are post-treatment.</p>
-<div class="sourceCode" id="cb977"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb982"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 5) Event-study estimates ---</span></span>
 <span><span class="va">mod_es</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://grantmcdermott.com/etwfe/reference/emfx.html">emfx</a></span><span class="op">(</span><span class="va">mod</span>, type <span class="op">=</span> <span class="st">"event"</span><span class="op">)</span></span>
 <span><span class="va">mod_es</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  event Estimate Std. Error      z Pr(&gt;|z|)    S   2.5 %   97.5 %</span></span>
-<span><span class="co">#&gt;     -5 -0.04132     0.0467 -0.885  0.37628  1.4 -0.1329  0.05022</span></span>
-<span><span class="co">#&gt;     -4 -0.01120     0.0282 -0.396  0.69180  0.5 -0.0666  0.04416</span></span>
-<span><span class="co">#&gt;     -3  0.01747     0.0226  0.772  0.43999  1.2 -0.0269  0.06180</span></span>
-<span><span class="co">#&gt;     -2 -0.00912     0.0193 -0.472  0.63686  0.7 -0.0470  0.02873</span></span>
+<span><span class="co">#&gt;     -5 -0.04132     0.0467 -0.885  0.37616  1.4 -0.1328  0.05019</span></span>
+<span><span class="co">#&gt;     -4 -0.01120     0.0282 -0.397  0.69172  0.5 -0.0665  0.04415</span></span>
+<span><span class="co">#&gt;     -3  0.01747     0.0226  0.772  0.43987  1.2 -0.0269  0.06179</span></span>
+<span><span class="co">#&gt;     -2 -0.00912     0.0193 -0.472  0.63677  0.7 -0.0469  0.02872</span></span>
 <span><span class="co">#&gt;     -1  0.00000         NA     NA       NA   NA      NA       NA</span></span>
-<span><span class="co">#&gt;      0 -0.08223     0.0206 -3.995  &lt; 0.001 13.9 -0.1226 -0.04188</span></span>
-<span><span class="co">#&gt;      1 -0.06108     0.0209 -2.926  0.00344  8.2 -0.1020 -0.02016</span></span>
-<span><span class="co">#&gt;      2 -0.07094     0.0225 -3.159  0.00158  9.3 -0.1150 -0.02692</span></span>
-<span><span class="co">#&gt;      3 -0.07383     0.0189 -3.906  &lt; 0.001 13.4 -0.1109 -0.03679</span></span>
-<span><span class="co">#&gt;      4 -0.07330     0.0334 -2.196  0.02808  5.2 -0.1387 -0.00788</span></span>
-<span><span class="co">#&gt;      5 -0.06527     0.0285 -2.294  0.02178  5.5 -0.1210 -0.00951</span></span>
-<span><span class="co">#&gt;      6 -0.05661     0.0402 -1.407  0.15953  2.6 -0.1355  0.02227</span></span>
+<span><span class="co">#&gt;      0 -0.08223     0.0206 -3.996  &lt; 0.001 13.9 -0.1226 -0.04189</span></span>
+<span><span class="co">#&gt;      1 -0.06108     0.0209 -2.926  0.00343  8.2 -0.1020 -0.02017</span></span>
+<span><span class="co">#&gt;      2 -0.07094     0.0225 -3.159  0.00158  9.3 -0.1149 -0.02693</span></span>
+<span><span class="co">#&gt;      3 -0.07383     0.0189 -3.907  &lt; 0.001 13.4 -0.1109 -0.03680</span></span>
+<span><span class="co">#&gt;      4 -0.07330     0.0334 -2.197  0.02804  5.2 -0.1387 -0.00790</span></span>
+<span><span class="co">#&gt;      5 -0.06527     0.0284 -2.295  0.02175  5.5 -0.1210 -0.00952</span></span>
+<span><span class="co">#&gt;      6 -0.05661     0.0402 -1.407  0.15942  2.6 -0.1355  0.02225</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Term: .Dtreat</span></span>
-<span><span class="co">#&gt; Type:  response </span></span>
+<span><span class="co">#&gt; Type: response</span></span>
 <span><span class="co">#&gt; Comparison: TRUE - FALSE</span></span>
 <span></span>
 <span></span>
@@ -5927,207 +5920,161 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span><span class="op">)</span></span></code></pre></div>
 <!-- preamble start -->
 
-    <script>
-
-      function styleCell_80043twey8ariertttmj(i, j, css_id) {
-          var table = document.getElementById("tinytable_80043twey8ariertttmj");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_80043twey8ariertttmj');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_80043twey8ariertttmj(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_80043twey8ariertttmj");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_a5dkz0to9bl1fghi4azy = TinyTable.createTableFunctions("tinytable_a5dkz0to9bl1fghi4azy");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 27, j: 1 },  ], css_id: 'tinytable_css_5t12qi7qz3m3xx62317t',}, 
-          { positions: [ { i: 23, j: 1 },  ], css_id: 'tinytable_css_1x9wsbu4y5x2j8n1qvnk',}, 
-          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 3, j: 1 }, { i: 4, j: 1 }, { i: 5, j: 1 }, { i: 6, j: 1 }, { i: 7, j: 1 }, { i: 8, j: 1 }, { i: 9, j: 1 }, { i: 10, j: 1 }, { i: 11, j: 1 }, { i: 12, j: 1 }, { i: 13, j: 1 }, { i: 14, j: 1 }, { i: 15, j: 1 }, { i: 16, j: 1 }, { i: 17, j: 1 }, { i: 18, j: 1 }, { i: 19, j: 1 }, { i: 20, j: 1 }, { i: 21, j: 1 }, { i: 22, j: 1 }, { i: 24, j: 1 }, { i: 25, j: 1 }, { i: 26, j: 1 },  ], css_id: 'tinytable_css_x2fc96xpgrl9xynrqt4y',}, 
-          { positions: [ { i: 0, j: 1 },  ], css_id: 'tinytable_css_q19o1lv0k43caqv9jrwy',}, 
-          { positions: [ { i: 27, j: 0 },  ], css_id: 'tinytable_css_d7l1huj5c06j9l4pcs82',}, 
-          { positions: [ { i: 23, j: 0 },  ], css_id: 'tinytable_css_si9yxwen8zi5ryfpy76w',}, 
-          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 7, j: 0 }, { i: 8, j: 0 }, { i: 9, j: 0 }, { i: 10, j: 0 }, { i: 11, j: 0 }, { i: 12, j: 0 }, { i: 13, j: 0 }, { i: 14, j: 0 }, { i: 15, j: 0 }, { i: 16, j: 0 }, { i: 17, j: 0 }, { i: 18, j: 0 }, { i: 19, j: 0 }, { i: 20, j: 0 }, { i: 21, j: 0 }, { i: 22, j: 0 }, { i: 24, j: 0 }, { i: 25, j: 0 }, { i: 26, j: 0 },  ], css_id: 'tinytable_css_q7jtsqc1o5qi594xmgz8',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_n6i215vp9gl7hmx3w4w3',}, 
+          { positions: [ { i: '27', j: 2 } ], css_id: 'tinytable_css_1x9wsbu4y5x2j8n1qvnk',}, 
+          { positions: [ { i: '23', j: 2 } ], css_id: 'tinytable_css_x2fc96xpgrl9xynrqt4y',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '7', j: 2 }, { i: '8', j: 2 }, { i: '9', j: 2 }, { i: '10', j: 2 }, { i: '11', j: 2 }, { i: '12', j: 2 }, { i: '13', j: 2 }, { i: '14', j: 2 }, { i: '15', j: 2 }, { i: '16', j: 2 }, { i: '17', j: 2 }, { i: '18', j: 2 }, { i: '19', j: 2 }, { i: '20', j: 2 }, { i: '21', j: 2 }, { i: '22', j: 2 }, { i: '24', j: 2 }, { i: '25', j: 2 }, { i: '26', j: 2 } ], css_id: 'tinytable_css_q19o1lv0k43caqv9jrwy',}, 
+          { positions: [ { i: '0', j: 2 } ], css_id: 'tinytable_css_d7l1huj5c06j9l4pcs82',}, 
+          { positions: [ { i: '27', j: 1 } ], css_id: 'tinytable_css_si9yxwen8zi5ryfpy76w',}, 
+          { positions: [ { i: '23', j: 1 } ], css_id: 'tinytable_css_q7jtsqc1o5qi594xmgz8',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '8', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 }, { i: '11', j: 1 }, { i: '12', j: 1 }, { i: '13', j: 1 }, { i: '14', j: 1 }, { i: '15', j: 1 }, { i: '16', j: 1 }, { i: '17', j: 1 }, { i: '18', j: 1 }, { i: '19', j: 1 }, { i: '20', j: 1 }, { i: '21', j: 1 }, { i: '22', j: 1 }, { i: '24', j: 1 }, { i: '25', j: 1 }, { i: '26', j: 1 } ], css_id: 'tinytable_css_n6i215vp9gl7hmx3w4w3',}, 
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_80043twey8ariertttmj',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_80043twey8ariertttmj(cell.i, cell.j, group.css_id);
+                  tableFns_a5dkz0to9bl1fghi4azy.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
-    </script><style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_5t12qi7qz3m3xx62317t, .table th.tinytable_css_5t12qi7qz3m3xx62317t { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_1x9wsbu4y5x2j8n1qvnk, .table th.tinytable_css_1x9wsbu4y5x2j8n1qvnk { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_x2fc96xpgrl9xynrqt4y, .table th.tinytable_css_x2fc96xpgrl9xynrqt4y { text-align: center; }
-      .table td.tinytable_css_q19o1lv0k43caqv9jrwy, .table th.tinytable_css_q19o1lv0k43caqv9jrwy { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_d7l1huj5c06j9l4pcs82, .table th.tinytable_css_d7l1huj5c06j9l4pcs82 { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_si9yxwen8zi5ryfpy76w, .table th.tinytable_css_si9yxwen8zi5ryfpy76w { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_q7jtsqc1o5qi594xmgz8, .table th.tinytable_css_q7jtsqc1o5qi594xmgz8 { text-align: left; }
-      .table td.tinytable_css_n6i215vp9gl7hmx3w4w3, .table th.tinytable_css_n6i215vp9gl7hmx3w4w3 { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_1x9wsbu4y5x2j8n1qvnk, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_1x9wsbu4y5x2j8n1qvnk {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_x2fc96xpgrl9xynrqt4y, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_x2fc96xpgrl9xynrqt4y {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_q19o1lv0k43caqv9jrwy, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_q19o1lv0k43caqv9jrwy { text-align: center }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_d7l1huj5c06j9l4pcs82, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_d7l1huj5c06j9l4pcs82 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_si9yxwen8zi5ryfpy76w, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_si9yxwen8zi5ryfpy76w {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_q7jtsqc1o5qi594xmgz8, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_q7jtsqc1o5qi594xmgz8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_n6i215vp9gl7hmx3w4w3, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_n6i215vp9gl7hmx3w4w3 { text-align: left }
+    #tinytable_a5dkz0to9bl1fghi4azy td.tinytable_css_80043twey8ariertttmj, #tinytable_a5dkz0to9bl1fghi4azy th.tinytable_css_80043twey8ariertttmj {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
     </style>
 <div class="container">
-      <div class="inline-table"><table class="table table-borderless" id="tinytable_80043twey8ariertttmj" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead>
+      <div class="inline-table"><table class="tinytable" id="tinytable_a5dkz0to9bl1fghi4azy" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <caption>Event study</caption>
-              <tr>
-<th scope="col"> </th>
-                <th scope="col">(1)</th>
-              </tr>
-</thead>
+        <thead><tr>
+<th scope="col" data-row="0" data-col="1"> </th>
+                <th scope="col" data-row="0" data-col="2">(1)</th>
+              </tr></thead>
 <tfoot>
 <tr><td colspan="2">+ p &lt; 0.1, * p &lt; 0.05, ** p &lt; 0.01, *** p &lt; 0.001</td></tr>
 <tr><td colspan="2">Std. errors are clustered at the id level</td></tr>
 </tfoot>
 <tbody>
 <tr>
-<td>Period post treatment = -5</td>
-                  <td>-0.041</td>
+<td data-row="1" data-col="1">Period post treatment = -5</td>
+                  <td data-row="1" data-col="2">-0.041</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.047)</td>
+<td data-row="2" data-col="1"></td>
+                  <td data-row="2" data-col="2">(0.047)</td>
                 </tr>
 <tr>
-<td>Period post treatment = -4</td>
-                  <td>-0.011</td>
+<td data-row="3" data-col="1">Period post treatment = -4</td>
+                  <td data-row="3" data-col="2">-0.011</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.028)</td>
+<td data-row="4" data-col="1"></td>
+                  <td data-row="4" data-col="2">(0.028)</td>
                 </tr>
 <tr>
-<td>Period post treatment = -3</td>
-                  <td>0.017</td>
+<td data-row="5" data-col="1">Period post treatment = -3</td>
+                  <td data-row="5" data-col="2">0.017</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.023)</td>
+<td data-row="6" data-col="1"></td>
+                  <td data-row="6" data-col="2">(0.023)</td>
                 </tr>
 <tr>
-<td>Period post treatment = -2</td>
-                  <td>-0.009</td>
+<td data-row="7" data-col="1">Period post treatment = -2</td>
+                  <td data-row="7" data-col="2">-0.009</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.019)</td>
+<td data-row="8" data-col="1"></td>
+                  <td data-row="8" data-col="2">(0.019)</td>
                 </tr>
 <tr>
-<td>Period post treatment = -1</td>
-                  <td>0.000</td>
+<td data-row="9" data-col="1">Period post treatment = -1</td>
+                  <td data-row="9" data-col="2">0.000</td>
                 </tr>
 <tr>
-<td>Period post treatment = 0</td>
-                  <td>-0.082***</td>
+<td data-row="10" data-col="1">Period post treatment = 0</td>
+                  <td data-row="10" data-col="2">-0.082***</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.021)</td>
+<td data-row="11" data-col="1"></td>
+                  <td data-row="11" data-col="2">(0.021)</td>
                 </tr>
 <tr>
-<td>Period post treatment = 1</td>
-                  <td>-0.061**</td>
+<td data-row="12" data-col="1">Period post treatment = 1</td>
+                  <td data-row="12" data-col="2">-0.061**</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.021)</td>
+<td data-row="13" data-col="1"></td>
+                  <td data-row="13" data-col="2">(0.021)</td>
                 </tr>
 <tr>
-<td>Period post treatment = 2</td>
-                  <td>-0.071**</td>
+<td data-row="14" data-col="1">Period post treatment = 2</td>
+                  <td data-row="14" data-col="2">-0.071**</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.022)</td>
+<td data-row="15" data-col="1"></td>
+                  <td data-row="15" data-col="2">(0.022)</td>
                 </tr>
 <tr>
-<td>Period post treatment = 3</td>
-                  <td>-0.074***</td>
+<td data-row="16" data-col="1">Period post treatment = 3</td>
+                  <td data-row="16" data-col="2">-0.074***</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.019)</td>
+<td data-row="17" data-col="1"></td>
+                  <td data-row="17" data-col="2">(0.019)</td>
                 </tr>
 <tr>
-<td>Period post treatment = 4</td>
-                  <td>-0.073*</td>
+<td data-row="18" data-col="1">Period post treatment = 4</td>
+                  <td data-row="18" data-col="2">-0.073*</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.033)</td>
+<td data-row="19" data-col="1"></td>
+                  <td data-row="19" data-col="2">(0.033)</td>
                 </tr>
 <tr>
-<td>Period post treatment = 5</td>
-                  <td>-0.065*</td>
+<td data-row="20" data-col="1">Period post treatment = 5</td>
+                  <td data-row="20" data-col="2">-0.065*</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.028)</td>
+<td data-row="21" data-col="1"></td>
+                  <td data-row="21" data-col="2">(0.028)</td>
                 </tr>
 <tr>
-<td>Period post treatment = 6</td>
-                  <td>-0.057</td>
+<td data-row="22" data-col="1">Period post treatment = 6</td>
+                  <td data-row="22" data-col="2">-0.057</td>
                 </tr>
 <tr>
-<td></td>
-                  <td>(0.040)</td>
+<td data-row="23" data-col="1"></td>
+                  <td data-row="23" data-col="2">(0.040)</td>
                 </tr>
 <tr>
-<td>Num.Obs.</td>
-                  <td>2000</td>
+<td data-row="24" data-col="1">Num.Obs.</td>
+                  <td data-row="24" data-col="2">2000</td>
                 </tr>
 <tr>
-<td>R2</td>
-                  <td>0.235</td>
+<td data-row="25" data-col="1">R2</td>
+                  <td data-row="25" data-col="2">0.235</td>
                 </tr>
 <tr>
-<td>FE..adopt_time</td>
-                  <td>X</td>
+<td data-row="26" data-col="1">FE..adopt_time</td>
+                  <td data-row="26" data-col="2">X</td>
                 </tr>
 <tr>
-<td>FE..time</td>
-                  <td>X</td>
+<td data-row="27" data-col="1">FE..time</td>
+                  <td data-row="27" data-col="2">X</td>
                 </tr>
 </tbody>
 </table></div>
@@ -6152,7 +6099,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li><p>Build a <strong>reference</strong> dataset with the same event times.</p></li>
 <li><p>Plot both on the same figure.</p></li>
 </ol>
-<div class="sourceCode" id="cb978"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb983"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 6) Plot results vs. known effect ---</span></span>
 <span><span class="va">est_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">mod_es</span><span class="op">)</span></span>
 <span></span>
@@ -6216,7 +6163,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 </ul>
 <p>If the estimation works well (and your sample is big enough), the estimated event-study effects should hover near the dashed red line <em>post</em>-treatment, and near zero <em>pre</em>-treatment.</p>
 <p>Alternatively, we could also the <code>plot</code> function to produce a quick plot.</p>
-<div class="sourceCode" id="cb979"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb984"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span></span>
 <span>    <span class="va">mod_es</span>,</span>
 <span>    type <span class="op">=</span> <span class="st">"ribbon"</span>,</span>
@@ -6231,7 +6178,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li>Double-check in a regression table (optional)</li>
 </ol>
 <p>If you like to see a clean numeric summary of the <em>dynamic</em> estimates by period, you can pipe your event-study object into <code>modelsummary</code>:</p>
-<div class="sourceCode" id="cb980"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb985"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 7) Optional table for dynamic estimates ---</span></span>
 <span><span class="fu"><a href="https://modelsummary.com/man/modelsummary.html">modelsummary</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span><span class="st">"Event-Study"</span> <span class="op">=</span> <span class="va">mod_es</span><span class="op">)</span>,</span>
@@ -6754,7 +6701,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 </li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb981"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb986"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">od</span> <span class="op">&lt;-</span> <span class="fu">causaldata</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/causaldata/man/organ_donations.html">organ_donations</a></span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -6773,7 +6720,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.5-did-concerns_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb982"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb987"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># do it manually</span></span>
 <span><span class="co"># always good but plot the dependent out</span></span>
@@ -6788,7 +6735,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.5-did-concerns_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb983"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb988"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co"># but it's also important to use statistical test</span></span>
@@ -6798,7 +6745,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span></span>
 <span><span class="fu">fixest</span><span class="fu">::</span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">prior_trend</span>, grid <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.5-did-concerns_files/figure-html/unnamed-chunk-1-3.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb984"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb989"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fixest</span><span class="fu">::</span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">prior_trend</span>, grid <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.5-did-concerns_files/figure-html/unnamed-chunk-1-4.png" width="90%" style="display: block; margin: auto;"></div>
 <p>This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.</p>
@@ -6809,7 +6756,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <li><p><strong>Sensitivity Analysis</strong>: Evaluate how sensitive the results are to potential deviations from parallel trends.</p></li>
 </ul>
 <p>To implement these approaches, the <code>HonestDiD</code> package by <span class="citation">Rambachan and Roth (<a href="references.html#ref-rambachan2023more">2023</a>)</span> provides robust statistical tools:</p>
-<div class="sourceCode" id="cb985"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb990"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># https://github.com/asheshrambachan/HonestDiD</span></span>
 <span><span class="co"># remotes::install_github("asheshrambachan/HonestDiD")</span></span>
 <span><span class="co"># library(HonestDiD)</span></span></code></pre></div>
@@ -6819,7 +6766,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <li><p>With a stronger assumption on selection bias—grounded in policymakers’ perspectives—they can estimate a point estimate of ATT.</p></li>
 </ul>
 <p>Another useful tool for assessing parallel trends is the <code>pretrends</code> package by <span class="citation">Roth (<a href="references.html#ref-roth2022pretest">2022</a>)</span>, which provides formal pre-trend tests:</p>
-<div class="sourceCode" id="cb986"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb991"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install and load the pretrends package</span></span>
 <span><span class="co"># install.packages("pretrends")</span></span>
 <span><span class="co"># library(pretrends)</span></span></code></pre></div>
@@ -6889,7 +6836,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 </li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb987"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb992"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
@@ -6918,13 +6865,13 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span><span class="co">#&gt;                           clfe1            clfe2</span></span>
 <span><span class="co">#&gt; Dependent Var.:            Rate             Rate</span></span>
 <span><span class="co">#&gt;                                                 </span></span>
-<span><span class="co">#&gt; FakeTreat1      0.0061 (0.0051)                 </span></span>
-<span><span class="co">#&gt; FakeTreat2                      -0.0017 (0.0028)</span></span>
+<span><span class="co">#&gt; FakeTreat1      0.0061 (0.0195)                 </span></span>
+<span><span class="co">#&gt; FakeTreat2                      -0.0017 (0.0195)</span></span>
 <span><span class="co">#&gt; Fixed-Effects:  --------------- ----------------</span></span>
 <span><span class="co">#&gt; State                       Yes              Yes</span></span>
 <span><span class="co">#&gt; Quarter                     Yes              Yes</span></span>
 <span><span class="co">#&gt; _______________ _______________ ________________</span></span>
-<span><span class="co">#&gt; S.E.: Clustered       by: State        by: State</span></span>
+<span><span class="co">#&gt; S.E. type                   IID              IID</span></span>
 <span><span class="co">#&gt; Observations                 81               81</span></span>
 <span><span class="co">#&gt; R2                      0.99377          0.99376</span></span>
 <span><span class="co">#&gt; Within R2               0.00192          0.00015</span></span>
@@ -7252,7 +7199,7 @@ Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (Rel
 \exp(\hat{\beta}_r) - 1 = 0 \quad \text{for} \quad r &lt; 0.
 \]</span></p>
 <p>Even if the pre-treatment estimates appear close to zero, we should still conduct a sensitivity analysis <span class="citation">(<a href="references.html#ref-rambachan2023more">Rambachan and Roth 2023</a>)</span> to assess robustness (see <a href="sec-difference-in-differences.html#prior-parallel-trends-test">Prior Parallel Trends Test</a>).</p>
-<div class="sourceCode" id="cb988"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb993"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span> <span class="co"># For reproducibility</span></span>
 <span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">500</span> <span class="co"># Number of observations per group (treated and control)</span></span>
@@ -7303,7 +7250,7 @@ Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (Rel
 <span><span class="co">#&gt; 4  4         0      1      20</span></span>
 <span><span class="co">#&gt; 5  5         0      0      19</span></span>
 <span><span class="co">#&gt; 6  6         0      1       0</span></span></code></pre></div>
-<div class="sourceCode" id="cb989"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb994"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">res_pois</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feglm.html">fepois</a></span><span class="op">(</span><span class="va">Outcome</span> <span class="op">~</span> <span class="va">Treatment</span> <span class="op">+</span> <span class="va">Period</span> <span class="op">+</span> <span class="va">Treatment</span> <span class="op">*</span> <span class="va">Period</span>,</span>
@@ -7337,7 +7284,7 @@ Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (Rel
 <span><span class="co">#&gt; Treatment:Period </span></span>
 <span><span class="co">#&gt;        0.1288596</span></span></code></pre></div>
 <p>In this example, the DID coefficient is not significant. However, say that it’s significant, we can interpret the coefficient as 3 percent increase in post-treatment period due to the treatment.</p>
-<div class="sourceCode" id="cb990"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb995"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">base_did_log0</span> <span class="op">&lt;-</span> <span class="va">base_did</span> <span class="op">|&gt;</span> </span>
@@ -7420,7 +7367,7 @@ m(y) =
 </tr>
 </tbody>
 </table></div>
-<div class="sourceCode" id="cb991"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb996"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">base_did_log0_cali</span> <span class="op">&lt;-</span> <span class="va">base_did_log0</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="co"># get min </span></span>
@@ -7456,7 +7403,7 @@ m(y) =
 <span>       pch <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">xvec</span><span class="op">)</span>,</span>
 <span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">xvec</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="30.5-did-concerns_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb992"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb997"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span></span>
@@ -7593,9 +7540,9 @@ m(y) =
 </ul>
 <p>For two periods (pre, post) and two groups (T = treated, U = untreated) the simple DiD estimator is</p>
 <p><span class="math display">\[
-\hat\beta_{DD}= \Bigl[E(Y_T^{1}\mid \texttt{Post})-E(Y_T^{0}\mid \texttt{Pre})\Bigr]-\Bigl[E(Y_U^{0}\mid \texttt{Post})-E(Y_U^{0}\mid \texttt{Pre})\Bigr].
+\hat\beta_{DD}= \left[E(Y_T^{1}\mid \texttt{Post})-E(Y_T^{0}\mid \texttt{Pre})\right]-\left[E(Y_U^{0}\mid \texttt{Post})-E(Y_U^{0}\mid \texttt{Pre})\right]
 \]</span></p>
-<p>Add–subtract the <strong>counterfactual trend</strong> <span class="math inline">\(E(Y_T^{0}\mid \texttt{Post})\)</span> and rearrange:</p>
+<p>Add and subtract the <strong>counterfactual trend</strong> <span class="math inline">\(E(Y_T^{0}\mid \texttt{Post})\)</span> and rearrange:</p>
 <p><span class="math display">\[
 \begin{aligned}
 \hat\beta_{DD} &amp;= \underbrace{E(Y_T^{1}\mid\texttt{Post})-E(Y_T^{0}\mid\texttt{Post})}_{\text{ATT}} \\
@@ -7853,7 +7800,7 @@ The counterfactual slope in period <span class="math inline">\(k\)</span> may va
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-10-24.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-11-02.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

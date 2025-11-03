@@ -7,7 +7,7 @@
 <title>Chapter 27 Regression Discontinuity | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
 <meta name="description" content="Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the...">
-<meta name="generator" content="bookdown 0.43 with bs4_book()">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
 <meta property="og:title" content="Chapter 27 Regression Discontinuity | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-regression-discontinuity.html">
@@ -143,7 +143,7 @@
 </h1>
 <p>Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the structure of randomized experiments under certain assumptions. One of the most compelling and rigorous among these is the <strong>Regression Discontinuity (RD) design</strong>, a method that turns a seemingly arbitrary policy rule into an opportunity for causal estimation.</p>
 <p>Imagine a policy in which financial aid is awarded only to students whose family income falls below a certain threshold, or a marketing campaign targeted solely at customers with a credit score above a specified value. These cutoffs create a situation where treatment assignment hinges on a single continuous variable (e.g., income or credit score ) crossing a fixed boundary. This boundary, or <strong>cutoff</strong>, introduces a discrete change in treatment probability based on a smooth, underlying score. That is the central insight behind RD: when individuals just above and just below the threshold are otherwise similar, comparing their outcomes offers a window into <a href="sec-causal-inference.html#sec-local-average-treatment-effects">local average treatment effects</a>.</p>
-<p>The RD design exploits this structure by focusing on the “edge” (the region near the cutoff) where treatment assignment changes abruptly. While units far from the threshold may differ systematically, those close to it are assumed to be comparable, as if randomly assigned to treatment or control. This gives RD a compelling advantage: under relatively mild assumptions, it can deliver <strong>credible causal estimates</strong>, particularly in situations where <a href="sec-experimental-design.html#sec-experimental-design">randomized controlled trials</a> (RCTs) are unfeasible.</p>
+<p>The RD design exploits this structure by focusing on the “edge” (the region near the cutoff) where treatment assignment changes abruptly. While units far from the threshold may differ systematically, those close to it are assumed to be comparable, as if randomly assigned to treatment or control. This gives RD a compelling advantage: under relatively mild assumptions, it can deliver <strong>credible causal estimates</strong>, particularly in situations where <a href="sec-experimental-design.html#sec-experimental-design">randomized controlled trials</a> (RCTs) are infeasible.</p>
 <p>Originally introduced by <span class="citation">Thistlethwaite and Campbell (<a href="references.html#ref-thistlethwaite1960">1960</a>)</span> in their evaluation of merit-based scholarships and their impact on academic outcomes, RD has since evolved into a widely used econometric tool across fields such as education, healthcare, marketing, political science, and finance. Its theoretical foundation was significantly refined and extended in modern work by <span class="citation">G. Imbens and Lemieux (<a href="references.html#ref-imbens2008regression">2008</a>)</span> and <span class="citation">Lee and Lemieux (<a href="references.html#ref-lee2010regression">2010</a>)</span>, who formalized its assumptions and estimation strategies.</p>
 <p>RD designs come in two primary flavors:</p>
 <ul>
@@ -237,7 +237,7 @@
 </li>
 </ol>
 <blockquote>
-<p>Note: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).</p>
+<p><strong>Note</strong>: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).</p>
 </blockquote>
 <hr>
 <p>RD designs have been extended in several directions to accommodate real-world complexities:</p>
@@ -301,8 +301,10 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <li><p><strong>Exogeneity of the Cutoff:</strong> The cutoff should not be manipulable. No confounding interventions at the cutoff.</p></li>
 <li><p><strong>No Discontinuity in Confounding Variables:</strong> Other covariates should be smooth at the threshold. A common test is to check for jumps in covariates unrelated to treatment.</p></li>
 </ol>
+<p>See Table <a href="sec-regression-discontinuity.html#tab:rd-threat-validity">27.1</a> for examples of possible violations.</p>
 <div class="inline-table"><table class="table table-sm">
-<caption>Threats to RD Validity</caption>
+<caption>
+<span id="tab:rd-threat-validity">Table 27.1: </span> Threats to RD Validity</caption>
 <colgroup>
 <col width="15%">
 <col width="46%">
@@ -562,35 +564,36 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <p>If the bunching test fails to detect manipulation, we proceed to the <a href="sec-difference-in-differences.html#placebo-test">Placebo Test</a>.</p>
 <hr>
 <p><strong>McCrary Density Test (Discontinuity in Forcing Variable)</strong></p>
-<div class="sourceCode" id="cb856"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb861"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdd</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb857"><pre class="downlit sourceCode r">
+<p>Figure <a href="sec-regression-discontinuity.html#fig:rd-local-polynomial-reg-wo-dis">27.1</a></p>
+<div class="sourceCode" id="cb862"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Simulated data without discontinuity</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">100</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/rdd/man/DCdensity.html">DCdensity</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0</span><span class="op">)</span>  <span class="co"># No discontinuity</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-2"></span>
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-2-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%"><p class="caption">
-Figure 2.2: Local Polynomial Regression without Discontinuity at Cutoff
+<span style="display:block;" id="fig:rd-local-polynomial-reg-wo-dis"></span>
+<img src="27-regression-discontinuity_files/figure-html/rd-local-polynomial-reg-wo-dis-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%"><p class="caption">
+Figure 27.1: Local Polynomial Regression without Discontinuity at Cutoff
 </p>
 </div>
 <pre><code>#&gt; [1] 0.06355195</code></pre>
-<div class="sourceCode" id="cb859"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb864"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Simulated data with discontinuity</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">x</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/rdd/man/DCdensity.html">DCdensity</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0</span><span class="op">)</span>  <span class="co"># Discontinuity detected</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-3"></span>
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-3-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%"><p class="caption">
-Figure 2.3: Local Polynomial Regression with Discontinuity at Cutoff
+<span style="display:block;" id="fig:unnamed-chunk-2"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-2-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%"><p class="caption">
+Figure 2.2: Local Polynomial Regression with Discontinuity at Cutoff
 </p>
 </div>
 <pre><code>#&gt; [1] 0.001936782</code></pre>
 <p><strong>Cattaneo Density Test (Improved Version)</strong></p>
-<div class="sourceCode" id="cb861"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb866"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rddensity</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulated continuous density</span></span>
@@ -702,7 +705,7 @@ Z_i = \alpha_0 + \alpha_1 f(X_i) + I(X_i \geq c) \alpha_2 + [f(X_i) \times I(X_i
 <li>Results should be <strong>consistent</strong> across reasonable bandwidth choices.</li>
 <li>The optimal bandwidth for estimating treatment effects may <strong>differ</strong> from the optimal bandwidth for testing covariates but should be fairly close.</li>
 </ul>
-<div class="sourceCode" id="cb862"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb867"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdd</span><span class="op">)</span></span>
 <span></span>
@@ -1014,9 +1017,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb863"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb868"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"francoisgerard/rdbounds/R"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb864"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb869"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://renkun-ken.github.io/formattable/">formattable</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com">data.table</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.nber.org/papers/w22892">rdbounds</a></span><span class="op">)</span></span>
@@ -1060,16 +1063,16 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <span>        num_bootstraps <span class="op">=</span> <span class="fl">5</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:20:49.220756 Estimating CDFs for point estimates"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:20:49.464659 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:20:51.392993 Estimating CDFs with nudged tau (tau_star)"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:20:51.43695 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:20:54.430783 Beginning parallelized output by bootstrap.."</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:20:58.439781 Computing Confidence Intervals"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:11.066909 Time taken:0.36 minutes"</span></span></code></pre></div>
-<div class="sourceCode" id="cb865"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:24.879706 Estimating CDFs for point estimates"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:25.141443 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:27.635615 Estimating CDFs with nudged tau (tau_star)"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:27.714672 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:31.306173 Beginning parallelized output by bootstrap.."</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:36.075224 Computing Confidence Intervals"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:52.152338 Time taken:0.46 minutes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb870"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds_summary.html">rdbounds_summary</a></span><span class="op">(</span><span class="va">rdbounds_est</span>, title_prefix <span class="op">=</span> <span class="st">"Sample Data Results"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time taken: 0.36 minutes"</span></span>
+<span><span class="co">#&gt; [1] "Time taken: 0.46 minutes"</span></span>
 <span><span class="co">#&gt; [1] "Sample size: 1000"</span></span>
 <span><span class="co">#&gt; [1] "Local Average Treatment Effect:"</span></span>
 <span><span class="co">#&gt; $tau_hat</span></span>
@@ -1149,7 +1152,7 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $TE_FRD_right_CI</span></span>
 <span><span class="co">#&gt; [1] -14.75421  15.58640</span></span></code></pre></div>
-<div class="sourceCode" id="cb866"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb871"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rdbounds_est_tau</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds.html">rdbounds</a></span><span class="op">(</span></span>
 <span>        y <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">y</span>,</span>
@@ -1172,27 +1175,27 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <span>        num_bootstraps <span class="op">=</span> <span class="fl">5</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:12.533854 Estimating CDFs for point estimates"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:12.81822 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:14.650755 Estimating CDFs with nudged tau (tau_star)"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:14.694363 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:17.795855 Beginning parallelized output by bootstrap.."</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.63014 Estimating CDFs with fixed tau value of: 0.025"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.695359 Estimating CDFs with fixed tau value of: 0.05"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.744351 Estimating CDFs with fixed tau value of: 0.1"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.783942 Estimating CDFs with fixed tau value of: 0.2"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:22.801664 Beginning parallelized output by bootstrap x fixed tau.."</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:25.071523 Computing Confidence Intervals"</span></span>
-<span><span class="co">#&gt; [1] "2025-07-12 14:21:37.107259 Time taken:0.41 minutes"</span></span></code></pre></div>
-<div class="sourceCode" id="cb867"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:54.17367 Estimating CDFs for point estimates"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:54.436424 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:56.913018 Estimating CDFs with nudged tau (tau_star)"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:58:56.975517 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:00.420274 Beginning parallelized output by bootstrap.."</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:05.437279 Estimating CDFs with fixed tau value of: 0.025"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:05.512843 Estimating CDFs with fixed tau value of: 0.05"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:05.560217 Estimating CDFs with fixed tau value of: 0.1"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:05.628925 Estimating CDFs with fixed tau value of: 0.2"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:06.821819 Beginning parallelized output by bootstrap x fixed tau.."</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:11.881752 Computing Confidence Intervals"</span></span>
+<span><span class="co">#&gt; [1] "2025-10-31 13:59:28.592243 Time taken:0.57 minutes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb872"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/plot_rd_aa_share.html">plot_rd_aa_share</a></span><span class="op">(</span><span class="va">rdbounds_est_tau</span><span class="op">)</span> <span class="co"># For SRD (default)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-10"></span>
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-10-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%"><p class="caption">
-Figure 2.11: Robustness of Average Treatment Effect to Share of Always-assigned Units
+<span style="display:block;" id="fig:unnamed-chunk-9"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-9-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%"><p class="caption">
+Figure 2.10: Robustness of Average Treatment Effect to Share of Always-assigned Units
 </p>
 </div>
-<div class="sourceCode" id="cb868"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb873"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># causalverse::plot_rd_aa_share(rdbounds_est_tau, rd_type = "FRD")  # For FRD</span></span></code></pre></div>
 </div>
 </div>
@@ -2232,24 +2235,24 @@ Y_i = \alpha_0 + f(X_i) \alpha_1 + I(X_i \geq c) \alpha_2 + f(X_i) I(X_i \geq c)
 <p><span class="math display">\[
 Y_i = \beta_0 + \beta_1 X_i + I(X_i \geq c) \beta_2 + \epsilon_i.
 \]</span></p>
-<div class="sourceCode" id="cb869"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb874"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="st">'images/rd1.PNG'</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-11"></span>
+<span style="display:block;" id="fig:unnamed-chunk-10"></span>
 <img src="images/rd1.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%"><p class="caption">
-Figure 2.12: Regression Discontinuity Design: Constant Slope
+Figure 2.11: Regression Discontinuity Design: Constant Slope
 </p>
 </div>
 <p>RD gives you <span class="math inline">\(\beta_2\)</span> (causal effect) of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> at the cutoff point</p>
 <p>In practice, everyone does</p>
 <p><span class="math display">\[ Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i \]</span></p>
 <div class="inline-figure"><img src="images/rd2.PNG" style="display: block; margin: 1em auto" width="600" height="300"></div>
-<div class="sourceCode" id="cb870"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb875"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="st">'images/rd2.PNG'</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-12"></span>
+<span style="display:block;" id="fig:unnamed-chunk-11"></span>
 <img src="images/rd2.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%"><p class="caption">
-Figure 2.13: Regression Discontinuity Design: Dynamic Slope
+Figure 2.12: Regression Discontinuity Design: Dynamic Slope
 </p>
 </div>
 <p>where we estimate different slope on different sides of the line. And if you estimate <span class="math inline">\(\alpha_3\)</span> to be no different from 0 then we return to the simple case.</p>
@@ -2530,7 +2533,7 @@ X_i =
 \end{cases}
 \]</span></p>
 <p>We simulate 100 observations, where GPA is the forcing variable and career success depends on GPA and the treatment effect.</p>
-<div class="sourceCode" id="cb871"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb876"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set seed for reproducibility</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span></span>
@@ -2543,21 +2546,21 @@ X_i =
 <span><span class="va">future_success</span> <span class="op">&lt;-</span> <span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">GPA</span> <span class="op">+</span> <span class="fl">10</span> <span class="op">*</span> <span class="op">(</span><span class="va">GPA</span> <span class="op">&gt;=</span> <span class="fl">3.5</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Load RD package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://qua.st/rddtools/">rddtools</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bquast/rddtools">rddtools</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Format data for RD analysis</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_data.html">rdd_data</a></span><span class="op">(</span><span class="va">future_success</span>, <span class="va">GPA</span>, cutpoint <span class="op">=</span> <span class="fl">3.5</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb872"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb877"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot RD scatterplot</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">data</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, xlab <span class="op">=</span> <span class="st">"GPA"</span>, ylab <span class="op">=</span> <span class="st">"Future Success"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-14"></span>
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-14-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%"><p class="caption">
-Figure 2.15: Binned Scatter Plot of GPA and Future Success with Threshold at 3.5
+<span style="display:block;" id="fig:unnamed-chunk-13"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-13-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%"><p class="caption">
+Figure 2.14: Binned Scatter Plot of GPA and Future Success with Threshold at 3.5
 </p>
 </div>
 <p>We estimate the Sharp RD treatment effect using <a href="sec-nonparametric-regression.html#sec-special-case-local-linear-regression">local linear regression</a>:</p>
-<div class="sourceCode" id="cb873"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb878"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Estimate the sharp RDD model</span></span>
 <span><span class="va">rdd_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_reg_lm.html">rdd_reg_lm</a></span><span class="op">(</span>rdd_object <span class="op">=</span> <span class="va">data</span>, slope <span class="op">=</span> <span class="st">"same"</span><span class="op">)</span></span>
 <span></span>
@@ -2583,20 +2586,20 @@ Figure 2.15: Binned Scatter Plot of GPA and Future Success with Threshold at 3.5
 <span><span class="co">#&gt; Multiple R-squared:  0.9746, Adjusted R-squared:  0.9741 </span></span>
 <span><span class="co">#&gt; F-statistic:  1863 on 2 and 97 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>Plot the RD regression line with binned observations:</p>
-<div class="sourceCode" id="cb874"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb879"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot RD regression</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">rdd_mod</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"red"</span>, xlab <span class="op">=</span> <span class="st">"GPA"</span>, ylab <span class="op">=</span> <span class="st">"Future Success"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<span style="display:block;" id="fig:unnamed-chunk-16"></span>
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-16-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%"><p class="caption">
-Figure 2.17: Coarse Binned Regression Discontinuity Plot of GPA and Future Success
+<span style="display:block;" id="fig:unnamed-chunk-15"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-15-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%"><p class="caption">
+Figure 2.16: Coarse Binned Regression Discontinuity Plot of GPA and Future Success
 </p>
 </div>
 <p>We verify whether results hold under different bandwidths and functional forms:</p>
 <ol style="list-style-type: decimal">
 <li>Varying the Bandwidth</li>
 </ol>
-<div class="sourceCode" id="cb875"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb880"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Using rdrobust for robust estimation</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdrobust</span><span class="op">)</span></span>
 <span></span>
@@ -2619,16 +2622,16 @@ Figure 2.17: Coarse Binned Regression Discontinuity Plot of GPA and Future Succe
 <span><span class="co">#&gt; rho (h/b)                     0.540        0.540</span></span>
 <span><span class="co">#&gt; Unique Obs.                      83           17</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; =============================================================================</span></span>
-<span><span class="co">#&gt;         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       </span></span>
-<span><span class="co">#&gt; =============================================================================</span></span>
-<span><span class="co">#&gt;   Conventional    12.836     2.495     5.144     0.000     [7.945 , 17.727]    </span></span>
-<span><span class="co">#&gt;         Robust         -         -     4.473     0.000     [7.677 , 19.653]    </span></span>
-<span><span class="co">#&gt; =============================================================================</span></span></code></pre></div>
+<span><span class="co">#&gt; =====================================================================</span></span>
+<span><span class="co">#&gt;                    Point    Robust Inference</span></span>
+<span><span class="co">#&gt;                 Estimate         z     P&gt;|z|      [ 95% C.I. ]       </span></span>
+<span><span class="co">#&gt; ---------------------------------------------------------------------</span></span>
+<span><span class="co">#&gt;      RD Effect    12.836     4.473     0.000     [7.677 , 19.653]    </span></span>
+<span><span class="co">#&gt; =====================================================================</span></span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>McCrary Test for Manipulation</li>
 </ol>
-<div class="sourceCode" id="cb876"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb881"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rddensity</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check for discontinuities in GPA distribution</span></span>
@@ -2641,7 +2644,7 @@ Figure 2.17: Coarse Binned Regression Discontinuity Plot of GPA and Future Succe
 <li>Polynomial Functional Forms</li>
 </ol>
 <p>We compare linear and quadratic specifications:</p>
-<div class="sourceCode" id="cb877"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb882"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Estimate RD with a quadratic polynomial</span></span>
 <span><span class="va">rdd_mod_quad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_reg_lm.html">rdd_reg_lm</a></span><span class="op">(</span>rdd_object <span class="op">=</span> <span class="va">data</span>, slope <span class="op">=</span> <span class="st">"separate"</span>, order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">rdd_mod_quad</span><span class="op">)</span></span>
@@ -2969,7 +2972,7 @@ Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-10-24.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-11-02.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

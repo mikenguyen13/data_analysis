@@ -746,10 +746,10 @@ pkonfound(
 #> Robustness of Inference to Replacement (RIR):
 #> RIR = 215
 #> 
-#> To invalidate the inference of an effect using the threshold of 3.925 for
+#> To nullify the inference of an effect using the threshold of 3.925 for
 #> statistical significance (with null hypothesis = 0 and alpha = 0.05), 21.506%
-#> of the (5) estimate would have to be due to bias. This implies that to
-#> invalidate the inference one would expect to have to replace 215 (21.506%)
+#> of the estimate of 5 would have to be due to bias. This implies that to
+#> nullify the inference one would expect to have to replace 215 (21.506%)
 #> observations with data points for which the effect is 0 (RIR = 215).
 #> 
 #> See Frank et al. (2013) for a description of the method.

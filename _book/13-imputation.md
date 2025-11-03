@@ -433,8 +433,8 @@ naniar::mcar_test(airquality)
 misty::na.test(airquality)
 #>  Little's MCAR Test
 #> 
-#>     n nIncomp nPattern  chi2 df  pval 
-#>   152      42        4 35.68 14 0.001
+#>     n nIncomp nPattern  chi2 df     p 
+#>   153      42        4 35.15 14 0.001
 ```
 
 #### Diagnosing MCAR via Dummy Variables
@@ -764,12 +764,12 @@ print(data)
 #>    ID Age Gender Age_imputed
 #> 1   1  25      M          25
 #> 2   2  30      F          30
-#> 3   3  NA      F          70
+#> 3   3  NA      F          40
 #> 4   4  40      M          40
-#> 5   5  NA      M          70
+#> 5   5  NA      M          40
 #> 6   6  50      F          50
 #> 7   7  60      M          60
-#> 8   8  NA      F          25
+#> 8   8  NA      F          80
 #> 9   9  70      M          70
 #> 10 10  80      F          80
 ```
@@ -2406,8 +2406,8 @@ By default:
 
 -   **`pmm` (Predictive Mean Matching)**: For numeric variables.
 -   **`logreg` (Logistic Regression)**: For binary variables (2 levels).
--   **`polyreg` (Bayesian polytomous regression)**: For factor variables (≥2 levels).
--   **Proportional Odds Model**: For ordered factor variables (≥2 levels).
+-   **`polyreg` (Bayesian polytomous regression)**: For factor variables ($\ge2$ levels).
+-   **Proportional Odds Model**: For ordered factor variables ($\ge2$ levels).
 
 
 ``` r
@@ -2638,13 +2638,13 @@ iris.imp <- missForest(iris.mis)
 # Out-of-bag error estimates
 iris.imp$OOBerror
 #>      NRMSE        PFC 
-#> 0.14004144 0.02877698
+#> 0.14050838 0.03597122
 
 # Compare imputed data with original data to calculate error
 iris.err <- mixError(iris.imp$ximp, iris.mis, iris)
 iris.err
 #>      NRMSE        PFC 
-#> 0.14420833 0.09090909
+#> 0.13988273 0.09090909
 ```
 
 ### Hmisc
@@ -2713,28 +2713,28 @@ impute_arg
 #> R-squares for Predicting Non-Missing Values for Each Variable
 #> Using Last Imputations of Predictors
 #> Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
-#>        0.895        0.536        0.987        0.967        0.984
+#>        0.893        0.679        0.983        0.957        0.987
 
 # Access imputed values for Sepal.Length
 impute_arg$imputed$Sepal.Length
 #>     [,1] [,2] [,3] [,4] [,5]
-#> 13   4.4  4.9  4.9  5.0  4.9
-#> 14   4.8  4.4  5.0  4.5  4.5
-#> 23   4.8  5.1  5.1  5.1  4.8
-#> 26   5.0  4.8  4.9  4.9  5.0
-#> 34   5.0  5.8  6.0  5.7  5.8
-#> 39   4.4  4.9  5.0  4.5  4.6
-#> 41   5.2  5.1  4.8  5.0  4.8
-#> 69   5.8  6.0  6.3  6.0  6.1
-#> 72   5.6  5.7  5.7  5.8  6.1
-#> 89   6.1  5.7  5.7  5.6  6.9
-#> 90   5.5  6.2  5.2  6.0  5.8
-#> 91   5.7  6.9  6.0  6.4  6.4
-#> 116  5.9  6.8  6.4  6.6  6.9
+#> 13   4.4  4.4  4.6  4.6  5.0
+#> 14   4.4  4.6  4.5  4.8  5.0
+#> 23   5.4  4.7  5.4  5.1  4.6
+#> 26   4.7  5.1  4.7  4.8  4.6
+#> 34   5.5  5.1  5.8  5.5  5.6
+#> 39   4.9  5.0  5.0  5.0  4.4
+#> 41   5.0  5.1  4.6  5.1  5.1
+#> 69   5.7  5.7  5.7  5.7  6.0
+#> 72   5.8  5.7  5.8  5.6  6.2
+#> 89   5.7  6.9  5.6  6.3  5.8
+#> 90   5.6  5.2  5.2  5.7  5.8
+#> 91   6.9  5.7  6.0  6.6  6.9
+#> 116  6.1  6.6  6.7  5.9  6.4
 #> 118  7.9  7.9  7.9  7.9  7.9
-#> 135  6.7  6.7  6.7  6.9  6.7
-#> 141  7.0  6.3  5.9  6.7  7.0
-#> 143  5.7  6.7  5.8  6.3  5.4
+#> 135  6.9  7.7  7.1  6.5  6.5
+#> 141  6.3  6.4  6.0  6.3  6.0
+#> 143  6.7  6.1  6.4  6.2  6.4
 ```
 
 **Note**: While `missForest` often outperforms `Hmisc` in terms of accuracy, the latter is useful for datasets with simpler requirements.
@@ -2770,7 +2770,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Length$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.08472 -0.05577  0.01713  0.01257  0.04707  0.15870 
+#> -0.23831 -0.11681  0.01193  0.01815  0.10695  0.35233 
 #> 
 #> $Sepal.Length$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2785,7 +2785,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -1.00687 -0.35860 -0.04435  0.01484  0.40750  1.15351 
+#> -1.04832 -0.40883 -0.02505  0.01697  0.34854  1.41270 
 #> 
 #> $Sepal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2799,8 +2799,8 @@ summary(mi_data)
 #>   138    12 
 #> 
 #> $Petal.Length$imputed
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.90469 -0.56142  0.27738  0.05408  0.48431  0.74159 
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#> -0.9559 -0.4872  0.2480  0.0464  0.4266  0.9245 
 #> 
 #> $Petal.Length$observed
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -2815,7 +2815,7 @@ summary(mi_data)
 #> 
 #> $Petal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.76948 -0.08076  0.21047  0.14732  0.50042  0.77459 
+#> -0.78660 -0.02828  0.21386  0.17814  0.51056  1.19032 
 #> 
 #> $Petal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2826,8 +2826,8 @@ summary(mi_data)
 #> $Species$crosstab
 #>             
 #>              observed imputed
-#>   setosa          180      22
-#>   versicolor      192       6
+#>   setosa          180      21
+#>   versicolor      192       7
 #>   virginica       184      16
 #> 
 #> 
@@ -2846,5 +2846,5 @@ summary(mi_data)
 #> 
 #> $imputed_SepalLength2$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.90570 -0.48398 -0.06225  0.00000  0.35947  1.20292
+#> -0.90265 -0.48010 -0.05755  0.00000  0.34991  1.21010
 ```

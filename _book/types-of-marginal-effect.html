@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>17.6 Types of Marginal Effect | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="17.6 Types of Marginal Effect | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1910,43 +1910,43 @@ div.csl-indent {
 E\left[\frac{\hat{Y}_{i1} - \hat{Y}_{i0}}{h}\right] \approx \frac{\partial p (Y|\mathbf{X}, \beta)}{\partial X}.
 \]</span></li>
 </ol>
-<div class="sourceCode" id="cb682"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb682-1"><a href="types-of-marginal-effect.html#cb682-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
-<span id="cb682-2"><a href="types-of-marginal-effect.html#cb682-2" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
-<span id="cb682-3"><a href="types-of-marginal-effect.html#cb682-3" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb682-4"><a href="types-of-marginal-effect.html#cb682-4" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb682-5"><a href="types-of-marginal-effect.html#cb682-5" tabindex="-1"></a></span>
-<span id="cb682-6"><a href="types-of-marginal-effect.html#cb682-6" tabindex="-1"></a><span class="co"># Simulate data</span></span>
-<span id="cb682-7"><a href="types-of-marginal-effect.html#cb682-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb682-8"><a href="types-of-marginal-effect.html#cb682-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb682-9"><a href="types-of-marginal-effect.html#cb682-9" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb682-10"><a href="types-of-marginal-effect.html#cb682-10" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X))  <span class="co"># Logistic function</span></span>
-<span id="cb682-11"><a href="types-of-marginal-effect.html#cb682-11" tabindex="-1"></a></span>
-<span id="cb682-12"><a href="types-of-marginal-effect.html#cb682-12" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
-<span id="cb682-13"><a href="types-of-marginal-effect.html#cb682-13" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span>
-<span id="cb682-14"><a href="types-of-marginal-effect.html#cb682-14" tabindex="-1"></a></span>
-<span id="cb682-15"><a href="types-of-marginal-effect.html#cb682-15" tabindex="-1"></a><span class="co"># Define step size h for continuous variable</span></span>
-<span id="cb682-16"><a href="types-of-marginal-effect.html#cb682-16" tabindex="-1"></a>X_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(X)</span>
-<span id="cb682-17"><a href="types-of-marginal-effect.html#cb682-17" tabindex="-1"></a>h <span class="ot">&lt;-</span> (<span class="fu">abs</span>(X_mean) <span class="sc">+</span> <span class="fl">0.001</span>) <span class="sc">*</span> <span class="fl">0.001</span></span>
-<span id="cb682-18"><a href="types-of-marginal-effect.html#cb682-18" tabindex="-1"></a></span>
-<span id="cb682-19"><a href="types-of-marginal-effect.html#cb682-19" tabindex="-1"></a><span class="co"># Compute predicted probabilities at original X</span></span>
-<span id="cb682-20"><a href="types-of-marginal-effect.html#cb682-20" tabindex="-1"></a>pred_Y0 <span class="ot">&lt;-</span> <span class="fu">predict</span>(logit_model, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb682-21"><a href="types-of-marginal-effect.html#cb682-21" tabindex="-1"></a></span>
-<span id="cb682-22"><a href="types-of-marginal-effect.html#cb682-22" tabindex="-1"></a><span class="co"># Compute predicted probabilities at X + h</span></span>
-<span id="cb682-23"><a href="types-of-marginal-effect.html#cb682-23" tabindex="-1"></a>X_new <span class="ot">&lt;-</span> X <span class="sc">+</span> h</span>
-<span id="cb682-24"><a href="types-of-marginal-effect.html#cb682-24" tabindex="-1"></a>data_new <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X =</span> X_new)</span>
-<span id="cb682-25"><a href="types-of-marginal-effect.html#cb682-25" tabindex="-1"></a>pred_Y1 <span class="ot">&lt;-</span></span>
-<span id="cb682-26"><a href="types-of-marginal-effect.html#cb682-26" tabindex="-1"></a>    <span class="fu">predict</span>(logit_model, <span class="at">newdata =</span> data_new, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb682-27"><a href="types-of-marginal-effect.html#cb682-27" tabindex="-1"></a></span>
-<span id="cb682-28"><a href="types-of-marginal-effect.html#cb682-28" tabindex="-1"></a><span class="co"># Compute marginal effects</span></span>
-<span id="cb682-29"><a href="types-of-marginal-effect.html#cb682-29" tabindex="-1"></a>marginal_effects <span class="ot">&lt;-</span> (pred_Y1 <span class="sc">-</span> pred_Y0) <span class="sc">/</span> h</span>
-<span id="cb682-30"><a href="types-of-marginal-effect.html#cb682-30" tabindex="-1"></a></span>
-<span id="cb682-31"><a href="types-of-marginal-effect.html#cb682-31" tabindex="-1"></a><span class="co"># Compute Average Marginal Effect (AME)</span></span>
-<span id="cb682-32"><a href="types-of-marginal-effect.html#cb682-32" tabindex="-1"></a>AME_one_sided <span class="ot">&lt;-</span> <span class="fu">mean</span>(marginal_effects)</span>
-<span id="cb682-33"><a href="types-of-marginal-effect.html#cb682-33" tabindex="-1"></a></span>
-<span id="cb682-34"><a href="types-of-marginal-effect.html#cb682-34" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb682-35"><a href="types-of-marginal-effect.html#cb682-35" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="st">&quot;One-Sided AME&quot;</span>, <span class="at">Estimate =</span> AME_one_sided)</span>
-<span id="cb682-36"><a href="types-of-marginal-effect.html#cb682-36" tabindex="-1"></a><span class="co">#&gt;          Method  Estimate</span></span>
-<span id="cb682-37"><a href="types-of-marginal-effect.html#cb682-37" tabindex="-1"></a><span class="co">#&gt; 1 One-Sided AME 0.1921614</span></span></code></pre></div>
+<div class="sourceCode" id="cb687"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb687-1"><a href="types-of-marginal-effect.html#cb687-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
+<span id="cb687-2"><a href="types-of-marginal-effect.html#cb687-2" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
+<span id="cb687-3"><a href="types-of-marginal-effect.html#cb687-3" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb687-4"><a href="types-of-marginal-effect.html#cb687-4" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb687-5"><a href="types-of-marginal-effect.html#cb687-5" tabindex="-1"></a></span>
+<span id="cb687-6"><a href="types-of-marginal-effect.html#cb687-6" tabindex="-1"></a><span class="co"># Simulate data</span></span>
+<span id="cb687-7"><a href="types-of-marginal-effect.html#cb687-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb687-8"><a href="types-of-marginal-effect.html#cb687-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb687-9"><a href="types-of-marginal-effect.html#cb687-9" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb687-10"><a href="types-of-marginal-effect.html#cb687-10" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X))  <span class="co"># Logistic function</span></span>
+<span id="cb687-11"><a href="types-of-marginal-effect.html#cb687-11" tabindex="-1"></a></span>
+<span id="cb687-12"><a href="types-of-marginal-effect.html#cb687-12" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
+<span id="cb687-13"><a href="types-of-marginal-effect.html#cb687-13" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span>
+<span id="cb687-14"><a href="types-of-marginal-effect.html#cb687-14" tabindex="-1"></a></span>
+<span id="cb687-15"><a href="types-of-marginal-effect.html#cb687-15" tabindex="-1"></a><span class="co"># Define step size h for continuous variable</span></span>
+<span id="cb687-16"><a href="types-of-marginal-effect.html#cb687-16" tabindex="-1"></a>X_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(X)</span>
+<span id="cb687-17"><a href="types-of-marginal-effect.html#cb687-17" tabindex="-1"></a>h <span class="ot">&lt;-</span> (<span class="fu">abs</span>(X_mean) <span class="sc">+</span> <span class="fl">0.001</span>) <span class="sc">*</span> <span class="fl">0.001</span></span>
+<span id="cb687-18"><a href="types-of-marginal-effect.html#cb687-18" tabindex="-1"></a></span>
+<span id="cb687-19"><a href="types-of-marginal-effect.html#cb687-19" tabindex="-1"></a><span class="co"># Compute predicted probabilities at original X</span></span>
+<span id="cb687-20"><a href="types-of-marginal-effect.html#cb687-20" tabindex="-1"></a>pred_Y0 <span class="ot">&lt;-</span> <span class="fu">predict</span>(logit_model, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb687-21"><a href="types-of-marginal-effect.html#cb687-21" tabindex="-1"></a></span>
+<span id="cb687-22"><a href="types-of-marginal-effect.html#cb687-22" tabindex="-1"></a><span class="co"># Compute predicted probabilities at X + h</span></span>
+<span id="cb687-23"><a href="types-of-marginal-effect.html#cb687-23" tabindex="-1"></a>X_new <span class="ot">&lt;-</span> X <span class="sc">+</span> h</span>
+<span id="cb687-24"><a href="types-of-marginal-effect.html#cb687-24" tabindex="-1"></a>data_new <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X =</span> X_new)</span>
+<span id="cb687-25"><a href="types-of-marginal-effect.html#cb687-25" tabindex="-1"></a>pred_Y1 <span class="ot">&lt;-</span></span>
+<span id="cb687-26"><a href="types-of-marginal-effect.html#cb687-26" tabindex="-1"></a>    <span class="fu">predict</span>(logit_model, <span class="at">newdata =</span> data_new, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb687-27"><a href="types-of-marginal-effect.html#cb687-27" tabindex="-1"></a></span>
+<span id="cb687-28"><a href="types-of-marginal-effect.html#cb687-28" tabindex="-1"></a><span class="co"># Compute marginal effects</span></span>
+<span id="cb687-29"><a href="types-of-marginal-effect.html#cb687-29" tabindex="-1"></a>marginal_effects <span class="ot">&lt;-</span> (pred_Y1 <span class="sc">-</span> pred_Y0) <span class="sc">/</span> h</span>
+<span id="cb687-30"><a href="types-of-marginal-effect.html#cb687-30" tabindex="-1"></a></span>
+<span id="cb687-31"><a href="types-of-marginal-effect.html#cb687-31" tabindex="-1"></a><span class="co"># Compute Average Marginal Effect (AME)</span></span>
+<span id="cb687-32"><a href="types-of-marginal-effect.html#cb687-32" tabindex="-1"></a>AME_one_sided <span class="ot">&lt;-</span> <span class="fu">mean</span>(marginal_effects)</span>
+<span id="cb687-33"><a href="types-of-marginal-effect.html#cb687-33" tabindex="-1"></a></span>
+<span id="cb687-34"><a href="types-of-marginal-effect.html#cb687-34" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb687-35"><a href="types-of-marginal-effect.html#cb687-35" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="st">&quot;One-Sided AME&quot;</span>, <span class="at">Estimate =</span> AME_one_sided)</span>
+<span id="cb687-36"><a href="types-of-marginal-effect.html#cb687-36" tabindex="-1"></a><span class="co">#&gt;          Method  Estimate</span></span>
+<span id="cb687-37"><a href="types-of-marginal-effect.html#cb687-37" tabindex="-1"></a><span class="co">#&gt; 1 One-Sided AME 0.1921614</span></span></code></pre></div>
 <ul>
 <li><p>The AME is the average effect of <span class="math inline">\(X\)</span> on the probability of <span class="math inline">\(Y=1\)</span>.</p></li>
 <li><p>Since logistic regression is nonlinear, the effect varies across observations.</p></li>
@@ -1973,22 +1973,22 @@ E\left[\frac{\hat{Y}_{i1} - \hat{Y}_{i0}}{h}\right] \approx \frac{\partial p (Y|
 E\left[\frac{\hat{Y}_{i1} - \hat{Y}_{i2}}{2h}\right] \approx \frac{\partial p (Y|\mathbf{X}, \beta)}{\partial X}.
 \]</span></p></li>
 </ol>
-<div class="sourceCode" id="cb683"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb683-1"><a href="types-of-marginal-effect.html#cb683-1" tabindex="-1"></a><span class="co"># Compute predicted probabilities at X - h</span></span>
-<span id="cb683-2"><a href="types-of-marginal-effect.html#cb683-2" tabindex="-1"></a>X_new_minus <span class="ot">&lt;-</span> X <span class="sc">-</span> h</span>
-<span id="cb683-3"><a href="types-of-marginal-effect.html#cb683-3" tabindex="-1"></a>data_new_minus <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X =</span> X_new_minus)</span>
-<span id="cb683-4"><a href="types-of-marginal-effect.html#cb683-4" tabindex="-1"></a>pred_Y2 <span class="ot">&lt;-</span></span>
-<span id="cb683-5"><a href="types-of-marginal-effect.html#cb683-5" tabindex="-1"></a>    <span class="fu">predict</span>(logit_model, <span class="at">newdata =</span> data_new_minus, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb683-6"><a href="types-of-marginal-effect.html#cb683-6" tabindex="-1"></a></span>
-<span id="cb683-7"><a href="types-of-marginal-effect.html#cb683-7" tabindex="-1"></a><span class="co"># Compute two-sided marginal effects</span></span>
-<span id="cb683-8"><a href="types-of-marginal-effect.html#cb683-8" tabindex="-1"></a>marginal_effects_2sided <span class="ot">&lt;-</span> (pred_Y1 <span class="sc">-</span> pred_Y2) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> h)</span>
-<span id="cb683-9"><a href="types-of-marginal-effect.html#cb683-9" tabindex="-1"></a></span>
-<span id="cb683-10"><a href="types-of-marginal-effect.html#cb683-10" tabindex="-1"></a><span class="co"># Compute Average Marginal Effect (AME) - Two-Sided</span></span>
-<span id="cb683-11"><a href="types-of-marginal-effect.html#cb683-11" tabindex="-1"></a>AME_two_sided <span class="ot">&lt;-</span> <span class="fu">mean</span>(marginal_effects_2sided)</span>
-<span id="cb683-12"><a href="types-of-marginal-effect.html#cb683-12" tabindex="-1"></a></span>
-<span id="cb683-13"><a href="types-of-marginal-effect.html#cb683-13" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb683-14"><a href="types-of-marginal-effect.html#cb683-14" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="st">&quot;Two-Sided AME&quot;</span>, <span class="at">Estimate =</span> AME_two_sided)</span>
-<span id="cb683-15"><a href="types-of-marginal-effect.html#cb683-15" tabindex="-1"></a><span class="co">#&gt;          Method  Estimate</span></span>
-<span id="cb683-16"><a href="types-of-marginal-effect.html#cb683-16" tabindex="-1"></a><span class="co">#&gt; 1 Two-Sided AME 0.1921633</span></span></code></pre></div>
+<div class="sourceCode" id="cb688"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb688-1"><a href="types-of-marginal-effect.html#cb688-1" tabindex="-1"></a><span class="co"># Compute predicted probabilities at X - h</span></span>
+<span id="cb688-2"><a href="types-of-marginal-effect.html#cb688-2" tabindex="-1"></a>X_new_minus <span class="ot">&lt;-</span> X <span class="sc">-</span> h</span>
+<span id="cb688-3"><a href="types-of-marginal-effect.html#cb688-3" tabindex="-1"></a>data_new_minus <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X =</span> X_new_minus)</span>
+<span id="cb688-4"><a href="types-of-marginal-effect.html#cb688-4" tabindex="-1"></a>pred_Y2 <span class="ot">&lt;-</span></span>
+<span id="cb688-5"><a href="types-of-marginal-effect.html#cb688-5" tabindex="-1"></a>    <span class="fu">predict</span>(logit_model, <span class="at">newdata =</span> data_new_minus, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb688-6"><a href="types-of-marginal-effect.html#cb688-6" tabindex="-1"></a></span>
+<span id="cb688-7"><a href="types-of-marginal-effect.html#cb688-7" tabindex="-1"></a><span class="co"># Compute two-sided marginal effects</span></span>
+<span id="cb688-8"><a href="types-of-marginal-effect.html#cb688-8" tabindex="-1"></a>marginal_effects_2sided <span class="ot">&lt;-</span> (pred_Y1 <span class="sc">-</span> pred_Y2) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> h)</span>
+<span id="cb688-9"><a href="types-of-marginal-effect.html#cb688-9" tabindex="-1"></a></span>
+<span id="cb688-10"><a href="types-of-marginal-effect.html#cb688-10" tabindex="-1"></a><span class="co"># Compute Average Marginal Effect (AME) - Two-Sided</span></span>
+<span id="cb688-11"><a href="types-of-marginal-effect.html#cb688-11" tabindex="-1"></a>AME_two_sided <span class="ot">&lt;-</span> <span class="fu">mean</span>(marginal_effects_2sided)</span>
+<span id="cb688-12"><a href="types-of-marginal-effect.html#cb688-12" tabindex="-1"></a></span>
+<span id="cb688-13"><a href="types-of-marginal-effect.html#cb688-13" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb688-14"><a href="types-of-marginal-effect.html#cb688-14" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="st">&quot;Two-Sided AME&quot;</span>, <span class="at">Estimate =</span> AME_two_sided)</span>
+<span id="cb688-15"><a href="types-of-marginal-effect.html#cb688-15" tabindex="-1"></a><span class="co">#&gt;          Method  Estimate</span></span>
+<span id="cb688-16"><a href="types-of-marginal-effect.html#cb688-16" tabindex="-1"></a><span class="co">#&gt; 1 Two-Sided AME 0.1921633</span></span></code></pre></div>
 <table>
 <caption>Comparison of One-Sided vs. Two-Sided AME</caption>
 <thead>
@@ -2077,36 +2077,36 @@ E[Y|X] = \frac{1}{1 + e^{-(\beta_0 + \beta_1 X)}}
 </table>
 <hr />
 <p><strong>Step 1: Estimate the Model</strong></p>
-<div class="sourceCode" id="cb684"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb684-1"><a href="types-of-marginal-effect.html#cb684-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
-<span id="cb684-2"><a href="types-of-marginal-effect.html#cb684-2" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
-<span id="cb684-3"><a href="types-of-marginal-effect.html#cb684-3" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
-<span id="cb684-4"><a href="types-of-marginal-effect.html#cb684-4" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
-<span id="cb684-5"><a href="types-of-marginal-effect.html#cb684-5" tabindex="-1"></a></span>
-<span id="cb684-6"><a href="types-of-marginal-effect.html#cb684-6" tabindex="-1"></a><span class="co"># Simulate data</span></span>
-<span id="cb684-7"><a href="types-of-marginal-effect.html#cb684-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb684-8"><a href="types-of-marginal-effect.html#cb684-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb684-9"><a href="types-of-marginal-effect.html#cb684-9" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb684-10"><a href="types-of-marginal-effect.html#cb684-10" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X))  <span class="co"># Logistic function</span></span>
-<span id="cb684-11"><a href="types-of-marginal-effect.html#cb684-11" tabindex="-1"></a></span>
-<span id="cb684-12"><a href="types-of-marginal-effect.html#cb684-12" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
-<span id="cb684-13"><a href="types-of-marginal-effect.html#cb684-13" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb689"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb689-1"><a href="types-of-marginal-effect.html#cb689-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
+<span id="cb689-2"><a href="types-of-marginal-effect.html#cb689-2" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
+<span id="cb689-3"><a href="types-of-marginal-effect.html#cb689-3" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb689-4"><a href="types-of-marginal-effect.html#cb689-4" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb689-5"><a href="types-of-marginal-effect.html#cb689-5" tabindex="-1"></a></span>
+<span id="cb689-6"><a href="types-of-marginal-effect.html#cb689-6" tabindex="-1"></a><span class="co"># Simulate data</span></span>
+<span id="cb689-7"><a href="types-of-marginal-effect.html#cb689-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb689-8"><a href="types-of-marginal-effect.html#cb689-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb689-9"><a href="types-of-marginal-effect.html#cb689-9" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb689-10"><a href="types-of-marginal-effect.html#cb689-10" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X))  <span class="co"># Logistic function</span></span>
+<span id="cb689-11"><a href="types-of-marginal-effect.html#cb689-11" tabindex="-1"></a></span>
+<span id="cb689-12"><a href="types-of-marginal-effect.html#cb689-12" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
+<span id="cb689-13"><a href="types-of-marginal-effect.html#cb689-13" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span></code></pre></div>
 <p><strong>Step 2: Compute Marginal Effects at the Mean</strong></p>
-<div class="sourceCode" id="cb685"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb685-1"><a href="types-of-marginal-effect.html#cb685-1" tabindex="-1"></a><span class="co"># Compute mean of X</span></span>
-<span id="cb685-2"><a href="types-of-marginal-effect.html#cb685-2" tabindex="-1"></a>X_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(X)</span>
-<span id="cb685-3"><a href="types-of-marginal-effect.html#cb685-3" tabindex="-1"></a></span>
-<span id="cb685-4"><a href="types-of-marginal-effect.html#cb685-4" tabindex="-1"></a><span class="co"># Compute predicted probability at mean X</span></span>
-<span id="cb685-5"><a href="types-of-marginal-effect.html#cb685-5" tabindex="-1"></a>p_mean <span class="ot">&lt;-</span></span>
-<span id="cb685-6"><a href="types-of-marginal-effect.html#cb685-6" tabindex="-1"></a>    <span class="fu">predict</span>(logit_model,</span>
-<span id="cb685-7"><a href="types-of-marginal-effect.html#cb685-7" tabindex="-1"></a>            <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">X =</span> X_mean),</span>
-<span id="cb685-8"><a href="types-of-marginal-effect.html#cb685-8" tabindex="-1"></a>            <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb685-9"><a href="types-of-marginal-effect.html#cb685-9" tabindex="-1"></a></span>
-<span id="cb685-10"><a href="types-of-marginal-effect.html#cb685-10" tabindex="-1"></a><span class="co"># Compute MEM for X</span></span>
-<span id="cb685-11"><a href="types-of-marginal-effect.html#cb685-11" tabindex="-1"></a>MEM <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X&quot;</span>] <span class="sc">*</span> p_mean <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p_mean)</span>
-<span id="cb685-12"><a href="types-of-marginal-effect.html#cb685-12" tabindex="-1"></a></span>
-<span id="cb685-13"><a href="types-of-marginal-effect.html#cb685-13" tabindex="-1"></a><span class="co"># Display result</span></span>
-<span id="cb685-14"><a href="types-of-marginal-effect.html#cb685-14" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="st">&quot;MEM&quot;</span>, <span class="at">Estimate =</span> MEM)</span>
-<span id="cb685-15"><a href="types-of-marginal-effect.html#cb685-15" tabindex="-1"></a><span class="co">#&gt;   Method  Estimate</span></span>
-<span id="cb685-16"><a href="types-of-marginal-effect.html#cb685-16" tabindex="-1"></a><span class="co">#&gt; X    MEM 0.2146628</span></span></code></pre></div>
+<div class="sourceCode" id="cb690"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb690-1"><a href="types-of-marginal-effect.html#cb690-1" tabindex="-1"></a><span class="co"># Compute mean of X</span></span>
+<span id="cb690-2"><a href="types-of-marginal-effect.html#cb690-2" tabindex="-1"></a>X_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(X)</span>
+<span id="cb690-3"><a href="types-of-marginal-effect.html#cb690-3" tabindex="-1"></a></span>
+<span id="cb690-4"><a href="types-of-marginal-effect.html#cb690-4" tabindex="-1"></a><span class="co"># Compute predicted probability at mean X</span></span>
+<span id="cb690-5"><a href="types-of-marginal-effect.html#cb690-5" tabindex="-1"></a>p_mean <span class="ot">&lt;-</span></span>
+<span id="cb690-6"><a href="types-of-marginal-effect.html#cb690-6" tabindex="-1"></a>    <span class="fu">predict</span>(logit_model,</span>
+<span id="cb690-7"><a href="types-of-marginal-effect.html#cb690-7" tabindex="-1"></a>            <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">X =</span> X_mean),</span>
+<span id="cb690-8"><a href="types-of-marginal-effect.html#cb690-8" tabindex="-1"></a>            <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb690-9"><a href="types-of-marginal-effect.html#cb690-9" tabindex="-1"></a></span>
+<span id="cb690-10"><a href="types-of-marginal-effect.html#cb690-10" tabindex="-1"></a><span class="co"># Compute MEM for X</span></span>
+<span id="cb690-11"><a href="types-of-marginal-effect.html#cb690-11" tabindex="-1"></a>MEM <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X&quot;</span>] <span class="sc">*</span> p_mean <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p_mean)</span>
+<span id="cb690-12"><a href="types-of-marginal-effect.html#cb690-12" tabindex="-1"></a></span>
+<span id="cb690-13"><a href="types-of-marginal-effect.html#cb690-13" tabindex="-1"></a><span class="co"># Display result</span></span>
+<span id="cb690-14"><a href="types-of-marginal-effect.html#cb690-14" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="st">&quot;MEM&quot;</span>, <span class="at">Estimate =</span> MEM)</span>
+<span id="cb690-15"><a href="types-of-marginal-effect.html#cb690-15" tabindex="-1"></a><span class="co">#&gt;   Method  Estimate</span></span>
+<span id="cb690-16"><a href="types-of-marginal-effect.html#cb690-16" tabindex="-1"></a><span class="co">#&gt; X    MEM 0.2146628</span></span></code></pre></div>
 <p><strong>Interpretation</strong></p>
 <ul>
 <li><p>The MEM tells us the effect of <span class="math inline">\(X\)</span> on the probability of <span class="math inline">\(Y=1\)</span> at the mean value of <span class="math inline">\(X\)</span>.</p></li>
@@ -2229,42 +2229,42 @@ E[Y|X] = \frac{1}{1 + e^{-(\beta_0 + \beta_1 X)}}
 </ul>
 <hr />
 <p><strong>Step 1: Estimate the Model</strong></p>
-<div class="sourceCode" id="cb686"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb686-1"><a href="types-of-marginal-effect.html#cb686-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
-<span id="cb686-2"><a href="types-of-marginal-effect.html#cb686-2" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
-<span id="cb686-3"><a href="types-of-marginal-effect.html#cb686-3" tabindex="-1"></a></span>
-<span id="cb686-4"><a href="types-of-marginal-effect.html#cb686-4" tabindex="-1"></a><span class="co"># Simulate data</span></span>
-<span id="cb686-5"><a href="types-of-marginal-effect.html#cb686-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb686-6"><a href="types-of-marginal-effect.html#cb686-6" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb686-7"><a href="types-of-marginal-effect.html#cb686-7" tabindex="-1"></a>X1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)  <span class="co"># Continuous variable</span></span>
-<span id="cb686-8"><a href="types-of-marginal-effect.html#cb686-8" tabindex="-1"></a>X2 <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.5</span>)  <span class="co"># Binary variable</span></span>
-<span id="cb686-9"><a href="types-of-marginal-effect.html#cb686-9" tabindex="-1"></a><span class="co"># Logistic function</span></span>
-<span id="cb686-10"><a href="types-of-marginal-effect.html#cb686-10" tabindex="-1"></a>Y <span class="ot">&lt;-</span></span>
-<span id="cb686-11"><a href="types-of-marginal-effect.html#cb686-11" tabindex="-1"></a>    <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X1 <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> X2))  </span>
-<span id="cb686-12"><a href="types-of-marginal-effect.html#cb686-12" tabindex="-1"></a></span>
-<span id="cb686-13"><a href="types-of-marginal-effect.html#cb686-13" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
-<span id="cb686-14"><a href="types-of-marginal-effect.html#cb686-14" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X1 <span class="sc">+</span> X2, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb691"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb691-1"><a href="types-of-marginal-effect.html#cb691-1" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
+<span id="cb691-2"><a href="types-of-marginal-effect.html#cb691-2" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
+<span id="cb691-3"><a href="types-of-marginal-effect.html#cb691-3" tabindex="-1"></a></span>
+<span id="cb691-4"><a href="types-of-marginal-effect.html#cb691-4" tabindex="-1"></a><span class="co"># Simulate data</span></span>
+<span id="cb691-5"><a href="types-of-marginal-effect.html#cb691-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb691-6"><a href="types-of-marginal-effect.html#cb691-6" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb691-7"><a href="types-of-marginal-effect.html#cb691-7" tabindex="-1"></a>X1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)  <span class="co"># Continuous variable</span></span>
+<span id="cb691-8"><a href="types-of-marginal-effect.html#cb691-8" tabindex="-1"></a>X2 <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.5</span>)  <span class="co"># Binary variable</span></span>
+<span id="cb691-9"><a href="types-of-marginal-effect.html#cb691-9" tabindex="-1"></a><span class="co"># Logistic function</span></span>
+<span id="cb691-10"><a href="types-of-marginal-effect.html#cb691-10" tabindex="-1"></a>Y <span class="ot">&lt;-</span></span>
+<span id="cb691-11"><a href="types-of-marginal-effect.html#cb691-11" tabindex="-1"></a>    <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> X1 <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> X2))  </span>
+<span id="cb691-12"><a href="types-of-marginal-effect.html#cb691-12" tabindex="-1"></a></span>
+<span id="cb691-13"><a href="types-of-marginal-effect.html#cb691-13" tabindex="-1"></a><span class="co"># Logistic regression</span></span>
+<span id="cb691-14"><a href="types-of-marginal-effect.html#cb691-14" tabindex="-1"></a>logit_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> X1 <span class="sc">+</span> X2, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>))</span></code></pre></div>
 <p><strong>Step 2: Compute MAE</strong></p>
-<div class="sourceCode" id="cb687"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb687-1"><a href="types-of-marginal-effect.html#cb687-1" tabindex="-1"></a><span class="co"># Compute the average of independent variables</span></span>
-<span id="cb687-2"><a href="types-of-marginal-effect.html#cb687-2" tabindex="-1"></a>X_mean <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X1 =</span> <span class="fu">mean</span>(X1), <span class="at">X2 =</span> <span class="fu">mean</span>(X2))</span>
-<span id="cb687-3"><a href="types-of-marginal-effect.html#cb687-3" tabindex="-1"></a></span>
-<span id="cb687-4"><a href="types-of-marginal-effect.html#cb687-4" tabindex="-1"></a><span class="co"># Compute predicted probability at averaged X</span></span>
-<span id="cb687-5"><a href="types-of-marginal-effect.html#cb687-5" tabindex="-1"></a>p_mean <span class="ot">&lt;-</span> <span class="fu">predict</span>(logit_model, <span class="at">newdata =</span> X_mean, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
-<span id="cb687-6"><a href="types-of-marginal-effect.html#cb687-6" tabindex="-1"></a></span>
-<span id="cb687-7"><a href="types-of-marginal-effect.html#cb687-7" tabindex="-1"></a><span class="co"># Compute MAE for X1</span></span>
-<span id="cb687-8"><a href="types-of-marginal-effect.html#cb687-8" tabindex="-1"></a>MAE_X1 <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X1&quot;</span>] <span class="sc">*</span> p_mean <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p_mean)</span>
-<span id="cb687-9"><a href="types-of-marginal-effect.html#cb687-9" tabindex="-1"></a></span>
-<span id="cb687-10"><a href="types-of-marginal-effect.html#cb687-10" tabindex="-1"></a><span class="co"># Compute MAE for X2</span></span>
-<span id="cb687-11"><a href="types-of-marginal-effect.html#cb687-11" tabindex="-1"></a>MAE_X2 <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X2&quot;</span>] <span class="sc">*</span> p_mean <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p_mean)</span>
-<span id="cb687-12"><a href="types-of-marginal-effect.html#cb687-12" tabindex="-1"></a></span>
-<span id="cb687-13"><a href="types-of-marginal-effect.html#cb687-13" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb687-14"><a href="types-of-marginal-effect.html#cb687-14" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
-<span id="cb687-15"><a href="types-of-marginal-effect.html#cb687-15" tabindex="-1"></a>    <span class="at">Method =</span> <span class="st">&quot;MAE&quot;</span>,</span>
-<span id="cb687-16"><a href="types-of-marginal-effect.html#cb687-16" tabindex="-1"></a>    <span class="at">Variable =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>),</span>
-<span id="cb687-17"><a href="types-of-marginal-effect.html#cb687-17" tabindex="-1"></a>    <span class="at">Estimate =</span> <span class="fu">c</span>(MAE_X1, MAE_X2)</span>
-<span id="cb687-18"><a href="types-of-marginal-effect.html#cb687-18" tabindex="-1"></a>)</span>
-<span id="cb687-19"><a href="types-of-marginal-effect.html#cb687-19" tabindex="-1"></a><span class="co">#&gt;    Method Variable    Estimate</span></span>
-<span id="cb687-20"><a href="types-of-marginal-effect.html#cb687-20" tabindex="-1"></a><span class="co">#&gt; X1    MAE       X1  0.20280618</span></span>
-<span id="cb687-21"><a href="types-of-marginal-effect.html#cb687-21" tabindex="-1"></a><span class="co">#&gt; X2    MAE       X2 -0.06286593</span></span></code></pre></div>
+<div class="sourceCode" id="cb692"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb692-1"><a href="types-of-marginal-effect.html#cb692-1" tabindex="-1"></a><span class="co"># Compute the average of independent variables</span></span>
+<span id="cb692-2"><a href="types-of-marginal-effect.html#cb692-2" tabindex="-1"></a>X_mean <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X1 =</span> <span class="fu">mean</span>(X1), <span class="at">X2 =</span> <span class="fu">mean</span>(X2))</span>
+<span id="cb692-3"><a href="types-of-marginal-effect.html#cb692-3" tabindex="-1"></a></span>
+<span id="cb692-4"><a href="types-of-marginal-effect.html#cb692-4" tabindex="-1"></a><span class="co"># Compute predicted probability at averaged X</span></span>
+<span id="cb692-5"><a href="types-of-marginal-effect.html#cb692-5" tabindex="-1"></a>p_mean <span class="ot">&lt;-</span> <span class="fu">predict</span>(logit_model, <span class="at">newdata =</span> X_mean, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb692-6"><a href="types-of-marginal-effect.html#cb692-6" tabindex="-1"></a></span>
+<span id="cb692-7"><a href="types-of-marginal-effect.html#cb692-7" tabindex="-1"></a><span class="co"># Compute MAE for X1</span></span>
+<span id="cb692-8"><a href="types-of-marginal-effect.html#cb692-8" tabindex="-1"></a>MAE_X1 <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X1&quot;</span>] <span class="sc">*</span> p_mean <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p_mean)</span>
+<span id="cb692-9"><a href="types-of-marginal-effect.html#cb692-9" tabindex="-1"></a></span>
+<span id="cb692-10"><a href="types-of-marginal-effect.html#cb692-10" tabindex="-1"></a><span class="co"># Compute MAE for X2</span></span>
+<span id="cb692-11"><a href="types-of-marginal-effect.html#cb692-11" tabindex="-1"></a>MAE_X2 <span class="ot">&lt;-</span> <span class="fu">coef</span>(logit_model)[<span class="st">&quot;X2&quot;</span>] <span class="sc">*</span> p_mean <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p_mean)</span>
+<span id="cb692-12"><a href="types-of-marginal-effect.html#cb692-12" tabindex="-1"></a></span>
+<span id="cb692-13"><a href="types-of-marginal-effect.html#cb692-13" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb692-14"><a href="types-of-marginal-effect.html#cb692-14" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb692-15"><a href="types-of-marginal-effect.html#cb692-15" tabindex="-1"></a>    <span class="at">Method =</span> <span class="st">&quot;MAE&quot;</span>,</span>
+<span id="cb692-16"><a href="types-of-marginal-effect.html#cb692-16" tabindex="-1"></a>    <span class="at">Variable =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>),</span>
+<span id="cb692-17"><a href="types-of-marginal-effect.html#cb692-17" tabindex="-1"></a>    <span class="at">Estimate =</span> <span class="fu">c</span>(MAE_X1, MAE_X2)</span>
+<span id="cb692-18"><a href="types-of-marginal-effect.html#cb692-18" tabindex="-1"></a>)</span>
+<span id="cb692-19"><a href="types-of-marginal-effect.html#cb692-19" tabindex="-1"></a><span class="co">#&gt;    Method Variable    Estimate</span></span>
+<span id="cb692-20"><a href="types-of-marginal-effect.html#cb692-20" tabindex="-1"></a><span class="co">#&gt; X1    MAE       X1  0.20280618</span></span>
+<span id="cb692-21"><a href="types-of-marginal-effect.html#cb692-21" tabindex="-1"></a><span class="co">#&gt; X2    MAE       X2 -0.06286593</span></span></code></pre></div>
 <ul>
 <li><p>The MAE for <span class="math inline">\(X_1\)</span> represents the change in probability when increasing <span class="math inline">\(X_1\)</span> at the average values of <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span>.</p></li>
 <li><p>The MAE for <span class="math inline">\(X_2\)</span> (a binary variable) represents the probability change when switching from <span class="math inline">\(X_2 = 0\)</span> to <span class="math inline">\(X_2 = 1\)</span>, holding all other variables at their average.</p></li>

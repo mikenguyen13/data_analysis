@@ -676,18 +676,20 @@ summary(model_2)
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -10.8281  -3.2379   0.2682   2.9339  12.4055 
+#> -12.8538  -3.6057   0.0503   3.3696  10.8528 
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)
-#> (Intercept)  -0.6138     0.4703  -1.305    0.193
-#> x_2          -0.1370     0.2690  -0.509    0.611
-#> w             1.0077     0.6800   1.482    0.140
-#> x_2:w         0.3123     0.3954   0.790    0.430
+#>             Estimate Std. Error t value Pr(>|t|)  
+#> (Intercept)  -0.7879     0.5096  -1.546   0.1237  
+#> x_2           0.3369     0.2985   1.128   0.2606  
+#> w             1.7001     0.7030   2.418   0.0165 *
+#> x_2:w        -0.6986     0.4002  -1.745   0.0825 .
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 4.761 on 196 degrees of freedom
-#> Multiple R-squared:  0.01547,	Adjusted R-squared:  0.0004036 
-#> F-statistic: 1.027 on 3 and 196 DF,  p-value: 0.3818
+#> Residual standard error: 4.962 on 196 degrees of freedom
+#> Multiple R-squared:  0.04495,	Adjusted R-squared:  0.03033 
+#> F-statistic: 3.075 on 3 and 196 DF,  p-value: 0.0288
 ```
 
 

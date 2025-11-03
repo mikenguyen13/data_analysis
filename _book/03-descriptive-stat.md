@@ -125,12 +125,12 @@ library(e1071)
 # Calculate skewness
 skewness_value <- skewness(data)
 cat("Skewness:", skewness_value, "\n")
-#> Skewness: 0.3744006
+#> Skewness: -0.2663921
 
 # Calculate kurtosis
 kurtosis_value <- kurtosis(data)
 cat("Kurtosis:", kurtosis_value, "\n")
-#> Kurtosis: 1.759225
+#> Kurtosis: -0.3584637
 ```
 
 ## Graphical Measures
@@ -262,15 +262,16 @@ stem(data)
 #> 
 #>   The decimal point is at the |
 #> 
-#>   -1 | 97555
-#>   -1 | 4433221100
-#>   -0 | 9998888877776655555
-#>   -0 | 443333222222221100
-#>    0 | 011111222222233333334444
-#>    0 | 555577777899
-#>    1 | 00111222
-#>    1 | 67
-#>    2 | 01
+#>   -1 | 886665
+#>   -1 | 43332221100
+#>   -0 | 9988777766665555
+#>   -0 | 444333321111110
+#>    0 | 00011112222444
+#>    0 | 55566667777888899
+#>    1 | 001112333444
+#>    1 | 5567789
+#>    2 | 1
+#>    2 | 5
 ```
 
 
@@ -455,7 +456,7 @@ library("EnvStats")
 
 # Perform Probability Plot Correlation Coefficient (PPCC) Test
 gofTest(data, test = "ppcc")$p.value # Probability Plot Correlation Coefficient
-#> [1] 0.8447804
+#> [1] 0.5700034
 ```
 
 ##### Shapiro-Wilk Test
@@ -859,13 +860,13 @@ ks.test(data, "pnorm", mean(data), sd(data))
 #> 	Exact one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  data
-#> D = 0.085345, p-value = 0.8294
+#> D = 0.088929, p-value = 0.7912
 #> alternative hypothesis: two-sided
 
 # Goodness-of-fit test using gofTest
 library(DescTools)
 gofTest(data, test = "ks")$p.value  # Kolmogorov-Smirnov test p-value
-#> [1] 0.8294042
+#> [1] 0.7911566
 ```
 
 -   **Advantages**:
@@ -941,7 +942,7 @@ data <- rnorm(50)
 # Perform the Cramer-von Mises test
 library(DescTools)
 gofTest(data, test = "cvm")$p.value  # Cramer-von Mises test p-value
-#> [1] 0.5938969
+#> [1] 0.2648398
 ```
 
 -   **Advantages**:
@@ -1044,7 +1045,7 @@ jarque.bera.test(data)
 #> 	Jarque Bera Test
 #> 
 #> data:  data
-#> X-squared = 1.8829, df = 2, p-value = 0.3901
+#> X-squared = 3.8365, df = 2, p-value = 0.1469
 ```
 
 ## Bivariate Statistics
@@ -1695,7 +1696,7 @@ library(psych)
 # Compute Phi Coefficient
 phi_coeff <- phi(dt)
 cat("Phi Coefficient:", phi_coeff, "\n")
-#> Phi Coefficient: 0.0428
+#> Phi Coefficient: 0.04
 ```
 
 ##### Cramer's V {#cramers-v}
@@ -2260,114 +2261,72 @@ modelsummary::datasummary_correlation(df)
 ```{=html}
 <!-- preamble start -->
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
 
-      function styleCell_4bt818lqmx201is4xbhx(i, j, css_id) {
-          var table = document.getElementById("tinytable_4bt818lqmx201is4xbhx");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_4bt818lqmx201is4xbhx');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_4bt818lqmx201is4xbhx(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_4bt818lqmx201is4xbhx");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_mo0r8dufkbtl0brboo7u = TinyTable.createTableFunctions("tinytable_mo0r8dufkbtl0brboo7u");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 3, j: 1 }, { i: 3, j: 2 }, { i: 3, j: 3 },  ], css_id: 'tinytable_css_oykvf6oiyoc9xfan26tl',}, 
-          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 1, j: 3 }, { i: 2, j: 3 },  ], css_id: 'tinytable_css_8i4g8ocby718u646u1j7',}, 
-          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_k5np7k6ywt443a19x1b5',}, 
-          { positions: [ { i: 3, j: 0 },  ], css_id: 'tinytable_css_ess4l0lcl5wnlw9i7baf',}, 
-          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 },  ], css_id: 'tinytable_css_4oudzjuc2ns9c59ihkmp',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_c35moflpd57kn2dqci2s',}, 
+          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 }, { i: '3', j: 4 } ], css_id: 'tinytable_css_8i4g8ocby718u646u1j7',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_k5np7k6ywt443a19x1b5',}, 
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_ess4l0lcl5wnlw9i7baf',}, 
+          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_4oudzjuc2ns9c59ihkmp',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 } ], css_id: 'tinytable_css_c35moflpd57kn2dqci2s',}, 
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_4bt818lqmx201is4xbhx',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_4bt818lqmx201is4xbhx(cell.i, cell.j, group.css_id);
+                  tableFns_mo0r8dufkbtl0brboo7u.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
     <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_oykvf6oiyoc9xfan26tl, .table th.tinytable_css_oykvf6oiyoc9xfan26tl { text-align: right; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_8i4g8ocby718u646u1j7, .table th.tinytable_css_8i4g8ocby718u646u1j7 { text-align: right; }
-      .table td.tinytable_css_k5np7k6ywt443a19x1b5, .table th.tinytable_css_k5np7k6ywt443a19x1b5 { text-align: right; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_ess4l0lcl5wnlw9i7baf, .table th.tinytable_css_ess4l0lcl5wnlw9i7baf { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_4oudzjuc2ns9c59ihkmp, .table th.tinytable_css_4oudzjuc2ns9c59ihkmp { text-align: left; }
-      .table td.tinytable_css_c35moflpd57kn2dqci2s, .table th.tinytable_css_c35moflpd57kn2dqci2s { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    /* tinytable css entries after */
+    #tinytable_mo0r8dufkbtl0brboo7u td.tinytable_css_8i4g8ocby718u646u1j7, #tinytable_mo0r8dufkbtl0brboo7u th.tinytable_css_8i4g8ocby718u646u1j7 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: right }
+    #tinytable_mo0r8dufkbtl0brboo7u td.tinytable_css_k5np7k6ywt443a19x1b5, #tinytable_mo0r8dufkbtl0brboo7u th.tinytable_css_k5np7k6ywt443a19x1b5 { text-align: right }
+    #tinytable_mo0r8dufkbtl0brboo7u td.tinytable_css_ess4l0lcl5wnlw9i7baf, #tinytable_mo0r8dufkbtl0brboo7u th.tinytable_css_ess4l0lcl5wnlw9i7baf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: right }
+    #tinytable_mo0r8dufkbtl0brboo7u td.tinytable_css_4oudzjuc2ns9c59ihkmp, #tinytable_mo0r8dufkbtl0brboo7u th.tinytable_css_4oudzjuc2ns9c59ihkmp {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_mo0r8dufkbtl0brboo7u td.tinytable_css_c35moflpd57kn2dqci2s, #tinytable_mo0r8dufkbtl0brboo7u th.tinytable_css_c35moflpd57kn2dqci2s { text-align: left }
+    #tinytable_mo0r8dufkbtl0brboo7u td.tinytable_css_4bt818lqmx201is4xbhx, #tinytable_mo0r8dufkbtl0brboo7u th.tinytable_css_4bt818lqmx201is4xbhx {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: black; --line-color-left: black; --line-color-right: black; --line-color-top: black; --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_4bt818lqmx201is4xbhx" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
-        <thead>
+      <table class="tinytable" id="tinytable_mo0r8dufkbtl0brboo7u" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
         
+        <thead>
               <tr>
-                <th scope="col"> </th>
-                <th scope="col">cyl</th>
-                <th scope="col">vs</th>
-                <th scope="col">carb</th>
+                <th scope="col" data-row="0" data-col="1"> </th>
+                <th scope="col" data-row="0" data-col="2">cyl</th>
+                <th scope="col" data-row="0" data-col="3">vs</th>
+                <th scope="col" data-row="0" data-col="4">carb</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>cyl</td>
-                  <td>1</td>
-                  <td>.</td>
-                  <td>.</td>
+                  <td data-row="1" data-col="1">cyl</td>
+                  <td data-row="1" data-col="2">1</td>
+                  <td data-row="1" data-col="3">.</td>
+                  <td data-row="1" data-col="4">.</td>
                 </tr>
                 <tr>
-                  <td>vs</td>
-                  <td>-.81</td>
-                  <td>1</td>
-                  <td>.</td>
+                  <td data-row="2" data-col="1">vs</td>
+                  <td data-row="2" data-col="2">-.81</td>
+                  <td data-row="2" data-col="3">1</td>
+                  <td data-row="2" data-col="4">.</td>
                 </tr>
                 <tr>
-                  <td>carb</td>
-                  <td>.53</td>
-                  <td>-.57</td>
-                  <td>1</td>
+                  <td data-row="3" data-col="1">carb</td>
+                  <td data-row="3" data-col="2">.53</td>
+                  <td data-row="3" data-col="3">-.57</td>
+                  <td data-row="3" data-col="4">1</td>
                 </tr>
         </tbody>
       </table>

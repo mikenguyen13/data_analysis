@@ -674,7 +674,6 @@ Logistic_Resids <- residuals(Logistic_Model, type = "deviance")
 ```
 
 
-
 ``` r
 plot(
     y = Logistic_Resids,
@@ -749,7 +748,6 @@ plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 </div>
 
 Finally, we compare **predicted probabilities** to actual outcomes:
-
 
 
 ``` r
@@ -1568,7 +1566,7 @@ $$
 \text{Var}(Y_i) = E(Y_i) = \mu_i
 $$
 
-However, in many real-world datasets, the variance exceeds the mean---a phenomenon known as **overdispersion**. When overdispersion is present, the Poisson model underestimates the variance, leading to:
+However, in many real-world datasets, the variance exceeds the mean: a phenomenon known as **overdispersion**. When overdispersion is present, the Poisson model underestimates the variance, leading to:
 
 -   Inflated test statistics (small p-values).
 
@@ -1587,6 +1585,14 @@ $$ where:
 -   $\theta$ is the dispersion parameter.
 
 -   When $\theta \to 0$, the NB model reduces to the [Poisson model].
+
+Alternatively, some people might define (e.g., the `MASS` package) the variance as:
+
+$$
+Var(Y_i) = \mu_i + \frac{\mu^2}{\theta}
+$$
+
+where as $\theta \to \infty$, the NB model reduces to the [Poisson model].
 
 Thus, Negative Binomial regression is a **generalization of Poisson regression** that accounts for overdispersion.
 
@@ -1645,6 +1651,171 @@ Interpretation:
 
 -   Since $\theta$ is significantly different from 1, this confirms overdispersion, validating the choice of the Negative Binomial model over Poisson regression.
 
+
+``` r
+# Extract dispersion parameter estimate
+NegBinom_Mod$theta
+#> [1] 2.264388
+```
+
+-   A large $\theta$ suggests that overdispersion is present, while a small $\theta$ (close to 0) would indicate the Poisson model is reasonable.
+
+#### Simulation of Overdispersion and the Role of Theta
+
+We create two synthetic datasets, one Poisson with no extra dispersion, one Negative Binomial with clear overdispersion. We fit `glm` with Poisson, and `MASS::glm.nb`. We compare estimated `theta` to ground truth and interpret results.
+
+**Parameterization used by MASS**: NB2 with mean $\mu$ and variance $Var(Y) = \mu^2 + \frac{\mu^2}{\theta}$. Larger $\theta$ implies variance closer to Poisson. As $\theta \to \infty$, the Negative Binomial approaches the Poisson.
+
+
+``` r
+set.seed(20251027)
+suppressPackageStartupMessages({
+  library(MASS)     # glm.nb
+  library(knitr)    # kable for clean tables
+})
+```
+
+We use the same covariates and coefficients for both datasets. Dataset A is generated from a Poisson, dataset B from an NB2 with true `theta = 2`.
+
+
+``` r
+n  <- 5000
+x1 <- rnorm(n, 0, 1)
+x2 <- rbinom(n, 1, 0.4)
+x3 <- runif(n, -1, 1)
+
+b0 <- 0.2; b1 <- 0.5; b2 <- -0.7; b3 <- 0.9
+eta <- b0 + b1 * x1 + b2 * x2 + b3 * x3
+mu  <- exp(eta)
+
+# A: Poisson truth, no extra dispersion
+y_pois <- rpois(n, lambda = mu)
+dat_pois <- data.frame(y = y_pois, x1, x2, x3)
+
+# B: NB truth with strong overdispersion
+theta_true <- 2.0
+y_nb <- rnbinom(n, size = theta_true, mu = mu)
+dat_nb <- data.frame(y = y_nb, x1, x2, x3)
+```
+
+For each dataset we fit:
+
+1.  Poisson GLM, `glm(..., family = poisson)`
+2.  Negative Binomial GLM with unknown `theta`, `glm.nb(...)`
+
+We then extract key diagnostics.
+
+
+``` r
+# Dataset A, Poisson truth
+fitA_pois <- glm(y ~ x1 + x2 + x3, family = poisson(link = "log"), data = dat_pois)
+fitA_nb   <- glm.nb(y ~ x1 + x2 + x3, data = dat_pois)
+
+# Dataset B, NB truth
+fitB_pois <- glm(y ~ x1 + x2 + x3, family = poisson(link = "log"), data = dat_nb)
+fitB_nb   <- glm.nb(y ~ x1 + x2 + x3, data = dat_nb)
+```
+
+Dispersion at the outcome level
+
+Variance to mean ratio near 1 suggests Poisson, ratios much greater than 1 suggest overdispersion.
+
+
+``` r
+vmr_A <- var(dat_pois$y) / mean(dat_pois$y)
+vmr_B <- var(dat_nb$y)   / mean(dat_nb$y)
+
+disp_tab <- data.frame(
+  dataset = c("Poisson truth", "NB truth"),
+  n = c(n, n),
+  mean_y = c(mean(dat_pois$y), mean(dat_nb$y)),
+  var_y  = c(var(dat_pois$y),  var(dat_nb$y)),
+  var_to_mean_ratio = c(vmr_A, vmr_B)
+)
+
+kable(disp_tab, digits = 3)
+```
+
+
+
+|dataset       |    n| mean_y| var_y| var_to_mean_ratio|
+|:-------------|----:|------:|-----:|-----------------:|
+|Poisson truth | 5000|  1.231| 2.426|             1.970|
+|NB truth      | 5000|  1.259| 3.960|             3.146|
+
+
+
+**Interpretation**: In the Poisson dataset the variance to mean ratio should be close to 1. In the NB dataset the ratio should be clearly larger than 1, which signals overdispersion that Poisson cannot capture.
+
+For each dataset we report:
+
+-   `theta` estimate from `glm.nb` with its standard error and a Wald 95 percent interval,
+-   log likelihood and AIC for Poisson and NB,
+-   a likelihood ratio test comparing Poisson to NB, 1 degree of freedom, since NB adds one parameter, `theta`.
+
+
+``` r
+z <- qnorm(0.975)
+
+theta_A  <- unname(fitA_nb$theta)
+se_A     <- unname(fitA_nb$SE.theta)
+ciA_low  <- max(theta_A - z * se_A, .Machine$double.eps)
+ciA_high <- theta_A + z * se_A
+
+theta_B  <- unname(fitB_nb$theta)
+se_B     <- unname(fitB_nb$SE.theta)
+ciB_low  <- max(theta_B - z * se_B, .Machine$double.eps)
+ciB_high <- theta_B + z * se_B
+
+ll_A_p <- as.numeric(logLik(fitA_pois)); ll_A_nb <- as.numeric(logLik(fitA_nb))
+ll_B_p <- as.numeric(logLik(fitB_pois)); ll_B_nb <- as.numeric(logLik(fitB_nb))
+
+aic_A_p <- AIC(fitA_pois); aic_A_nb <- AIC(fitA_nb)
+aic_B_p <- AIC(fitB_pois); aic_B_nb <- AIC(fitB_nb)
+
+# LR tests
+lr_A  <- 2 * (ll_A_nb - ll_A_p)
+p_A   <- pchisq(lr_A, df = 1, lower.tail = FALSE)
+
+lr_B  <- 2 * (ll_B_nb - ll_B_p)
+p_B   <- pchisq(lr_B, df = 1, lower.tail = FALSE)
+
+fit_tab <- data.frame(
+  dataset = c("Poisson truth", "NB truth"),
+  theta_true = c(Inf, theta_true),
+  theta_hat  = c(theta_A, theta_B),
+  theta_SE   = c(se_A, se_B),
+  theta_CI95_lower = c(ciA_low, ciB_low),
+  theta_CI95_upper = c(ciA_high, ciB_high),
+  logLik_Pois = c(ll_A_p, ll_B_p),
+  logLik_NB   = c(ll_A_nb, ll_B_nb),
+  AIC_Pois    = c(aic_A_p, aic_B_p),
+  AIC_NB      = c(aic_A_nb, aic_B_nb),
+  LR_stat_Pois_vs_NB = c(lr_A, lr_B),
+  LR_df = c(1L, 1L),
+  LR_p_value = c(p_A, p_B)
+)
+
+kable(fit_tab, digits = 3)
+```
+
+
+
+|dataset       | theta_true| theta_hat| theta_SE| theta_CI95_lower| theta_CI95_upper| logLik_Pois| logLik_NB| AIC_Pois|   AIC_NB| LR_stat_Pois_vs_NB| LR_df| LR_p_value|
+|:-------------|----------:|---------:|--------:|----------------:|----------------:|-----------:|---------:|--------:|--------:|------------------:|-----:|----------:|
+|Poisson truth |        Inf|    259.67|  828.332|            0.000|         1883.172|   -6339.383| -6339.333| 12686.77| 12688.67|              0.100|     1|      0.751|
+|NB truth      |          2|      2.11|    0.130|            1.855|            2.365|   -7196.580| -6827.266| 14401.16| 13664.53|            738.629|     1|      0.000|
+
+
+
+**How to read `theta`**: In this NB2 parameterization, `Var(Y) = μ + μ^2 / theta`. When `theta` is very large, the extra term `μ^2 / theta` is small, so the variance is close to `μ`, which is the Poisson variance. When `theta` is small, the extra term is large, which implies strong overdispersion relative to Poisson.
+
+**Interpretation**:
+
+-   **Poisson truth**: The variance to mean ratio is near 1. The NB fit should report a large `theta`, often with a very wide interval, which indicates little evidence of extra dispersion. The likelihood ratio test should not reject Poisson, and AIC should be similar or favor Poisson.
+-   **NB truth, theta equals 2**: The variance to mean ratio is clearly greater than 1. The NB fit should estimate `theta` near 2 subject to sampling error and the 95 percent interval should include the true value for sufficiently large `n`. The likelihood ratio test should strongly favor NB and AIC should be lower for NB.
+
+
 #### Model Comparison: Poisson vs. Negative Binomial
 
 ##### Checking Overdispersion in Poisson Model
@@ -1687,21 +1858,6 @@ pchisq(2 * (logLik(NegBinom_Mod) - logLik(Poisson_Mod)),
 
 Since overdispersion is confirmed, the Negative Binomial model is preferred.
 
-#### Model Diagnostics and Evaluation
-
-##### Checking Dispersion Parameter $\theta$
-
-The Negative Binomial dispersion parameter $\theta$ can be retrieved:
-
-
-``` r
-# Extract dispersion parameter estimate
-NegBinom_Mod$theta
-#> [1] 2.264388
-```
-
--   A large $\theta$ suggests that overdispersion is **not extreme**, while a small $\theta$ (close to 0) would indicate the Poisson model is reasonable.
-
 #### Predictions and Rate Ratios
 
 In Negative Binomial regression, exponentiating the coefficients gives rate ratios:
@@ -1721,7 +1877,7 @@ data.frame(`Odds Ratios` = exp(coef(NegBinom_Mod)))
 
 A rate ratio of:
 
--   **\>** 1 $\to$ Increases expected article count.
+-   \> 1 $\to$ Increases expected article count.
 
 -   \< 1 $\to$ Decreases expected article count.
 
@@ -2070,7 +2226,7 @@ summary(NegBinom_Mod)
 #### Key Differences: Quasi-Poisson vs. Negative Binomial
 
 | Feature                               | Quasi-Poisson            | Negative Binomial |
-|--------------------------------|----------------------|-------------------|
+|-------------------------------|----------------------|-------------------|
 | Handles Overdispersion?               | ✅ Yes                   | ✅ Yes            |
 | Uses a Full Probability Distribution? | ❌ No                    | ✅ Yes            |
 | MLE-Based?                            | ❌ No (quasi-likelihood) | ✅ Yes            |
@@ -2484,7 +2640,7 @@ ggplot(gammaDat, aes(x = x, y = 1 / y)) +
 
 **3. Fit Gamma Regression Model**
 
-Gamma regression models **yield as a function of seeding rate** using an inverse link: 
+Gamma regression models **yield as a function of seeding rate** using an inverse link:
 
 $$
 \eta_{ij} = \beta_{0j} + \beta_{1j} x_{ij} + \beta_2 x_{ij}^2, \quad Y_{ij} = \eta_{ij}^{-1}
@@ -2930,7 +3086,7 @@ Example 4: Gamma Distribution (Inverse Link)
 The following table presents common **GLM link functions** and their corresponding **inverse functions**.
 
 | Link           | $\eta_i = g(\mu_i)$                             | $\mu_i = g^{-1}(\eta_i)$    |
-|-------------------|---------------------------------|---------------------|
+|-------------------|--------------------------------|---------------------|
 | Identity       | $\mu_i$                                         | $\eta_i$                    |
 | Log            | $\log_e \mu_i$                                  | $e^{\eta_i}$                |
 | Inverse        | $\mu_i^{-1}$                                    | $\eta_i^{-1}$               |
@@ -3908,7 +4064,7 @@ Over-dispersion occurs when the observed variance exceeds what the assumed model
 **Variance Assumptions for Common Random Components**
 
 | Random Component | Standard Assumption ($\text{var}(Y)$) | Alternative Model Allowing Over-Dispersion ($V(\mu)$) |
-|-------------------|-----------------------|-------------------------------|
+|-------------------|-----------------------|------------------------------|
 | **Binomial**     | $n \mu (1- \mu)$                      | $\phi n \mu (1- \mu)$, where $m_i = n$                |
 | **Poisson**      | $\mu$                                 | $\phi \mu$                                            |
 

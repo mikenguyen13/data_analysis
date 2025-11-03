@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>7.5 Negative Binomial Regression | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="7.5 Negative Binomial Regression | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1871,7 +1871,7 @@ div.csl-indent {
 <p><span class="math display">\[
 \text{Var}(Y_i) = E(Y_i) = \mu_i
 \]</span></p>
-<p>However, in many real-world datasets, the variance exceeds the mean—a phenomenon known as <strong>overdispersion</strong>. When overdispersion is present, the Poisson model underestimates the variance, leading to:</p>
+<p>However, in many real-world datasets, the variance exceeds the mean: a phenomenon known as <strong>overdispersion</strong>. When overdispersion is present, the Poisson model underestimates the variance, leading to:</p>
 <ul>
 <li><p>Inflated test statistics (small p-values).</p></li>
 <li><p>Overconfident predictions.</p></li>
@@ -1887,6 +1887,11 @@ div.csl-indent {
 <li><p><span class="math inline">\(\theta\)</span> is the dispersion parameter.</p></li>
 <li><p>When <span class="math inline">\(\theta \to 0\)</span>, the NB model reduces to the <a href="sec-poisson-regression.html#poisson-model">Poisson model</a>.</p></li>
 </ul>
+<p>Alternatively, some people might define (e.g., the <code>MASS</code> package) the variance as:</p>
+<p><span class="math display">\[
+Var(Y_i) = \mu_i + \frac{\mu^2}{\theta}
+\]</span></p>
+<p>where as <span class="math inline">\(\theta \to \infty\)</span>, the NB model reduces to the <a href="sec-poisson-regression.html#poisson-model">Poisson model</a>.</p>
 <p>Thus, Negative Binomial regression is a <strong>generalization of Poisson regression</strong> that accounts for overdispersion.</p>
 </div>
 <div id="application-negative-binomial-regression" class="section level3 hasAnchor" number="7.5.2">
@@ -1937,33 +1942,242 @@ div.csl-indent {
 <li><p>The dispersion parameter <span class="math inline">\(\theta\)</span> (also called size parameter in some contexts) is estimated as 2.264 with a standard error of 0.271. Check <a href="sec-generalization-of-generalized-linear-models.html#over-dispersion">Over-Dispersion</a> for more detail.</p></li>
 <li><p>Since <span class="math inline">\(\theta\)</span> is significantly different from 1, this confirms overdispersion, validating the choice of the Negative Binomial model over Poisson regression.</p></li>
 </ul>
+<div class="sourceCode" id="cb328"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb328-1"><a href="sec-negative-binomial-regression.html#cb328-1" tabindex="-1"></a><span class="co"># Extract dispersion parameter estimate</span></span>
+<span id="cb328-2"><a href="sec-negative-binomial-regression.html#cb328-2" tabindex="-1"></a>NegBinom_Mod<span class="sc">$</span>theta</span>
+<span id="cb328-3"><a href="sec-negative-binomial-regression.html#cb328-3" tabindex="-1"></a><span class="co">#&gt; [1] 2.264388</span></span></code></pre></div>
+<ul>
+<li>A large <span class="math inline">\(\theta\)</span> suggests that overdispersion is present, while a small <span class="math inline">\(\theta\)</span> (close to 0) would indicate the Poisson model is reasonable.</li>
+</ul>
 </div>
-<div id="model-comparison-poisson-vs.-negative-binomial" class="section level4 hasAnchor" number="7.5.2.2">
-<h4><span class="header-section-number">7.5.2.2</span> Model Comparison: Poisson vs. Negative Binomial<a href="sec-negative-binomial-regression.html#model-comparison-poisson-vs.-negative-binomial" class="anchor-section" aria-label="Anchor link to header"></a></h4>
-<div id="checking-overdispersion-in-poisson-model" class="section level5 hasAnchor" number="7.5.2.2.1">
-<h5><span class="header-section-number">7.5.2.2.1</span> Checking Overdispersion in Poisson Model<a href="sec-negative-binomial-regression.html#checking-overdispersion-in-poisson-model" class="anchor-section" aria-label="Anchor link to header"></a></h5>
+<div id="simulation-of-overdispersion-and-the-role-of-theta" class="section level4 hasAnchor" number="7.5.2.2">
+<h4><span class="header-section-number">7.5.2.2</span> Simulation of Overdispersion and the Role of Theta<a href="sec-negative-binomial-regression.html#simulation-of-overdispersion-and-the-role-of-theta" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>We create two synthetic datasets, one Poisson with no extra dispersion, one Negative Binomial with clear overdispersion. We fit <code>glm</code> with Poisson, and <code>MASS::glm.nb</code>. We compare estimated <code>theta</code> to ground truth and interpret results.</p>
+<p><strong>Parameterization used by MASS</strong>: NB2 with mean <span class="math inline">\(\mu\)</span> and variance <span class="math inline">\(Var(Y) = \mu^2 + \frac{\mu^2}{\theta}\)</span>. Larger <span class="math inline">\(\theta\)</span> implies variance closer to Poisson. As <span class="math inline">\(\theta \to \infty\)</span>, the Negative Binomial approaches the Poisson.</p>
+<div class="sourceCode" id="cb329"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb329-1"><a href="sec-negative-binomial-regression.html#cb329-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20251027</span>)</span>
+<span id="cb329-2"><a href="sec-negative-binomial-regression.html#cb329-2" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
+<span id="cb329-3"><a href="sec-negative-binomial-regression.html#cb329-3" tabindex="-1"></a>  <span class="fu">library</span>(MASS)     <span class="co"># glm.nb</span></span>
+<span id="cb329-4"><a href="sec-negative-binomial-regression.html#cb329-4" tabindex="-1"></a>  <span class="fu">library</span>(knitr)    <span class="co"># kable for clean tables</span></span>
+<span id="cb329-5"><a href="sec-negative-binomial-regression.html#cb329-5" tabindex="-1"></a>})</span></code></pre></div>
+<p>We use the same covariates and coefficients for both datasets. Dataset A is generated from a Poisson, dataset B from an NB2 with true <code>theta = 2</code>.</p>
+<div class="sourceCode" id="cb330"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb330-1"><a href="sec-negative-binomial-regression.html#cb330-1" tabindex="-1"></a>n  <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb330-2"><a href="sec-negative-binomial-regression.html#cb330-2" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb330-3"><a href="sec-negative-binomial-regression.html#cb330-3" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb330-4"><a href="sec-negative-binomial-regression.html#cb330-4" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb330-5"><a href="sec-negative-binomial-regression.html#cb330-5" tabindex="-1"></a></span>
+<span id="cb330-6"><a href="sec-negative-binomial-regression.html#cb330-6" tabindex="-1"></a>b0 <span class="ot">&lt;-</span> <span class="fl">0.2</span>; b1 <span class="ot">&lt;-</span> <span class="fl">0.5</span>; b2 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.7</span>; b3 <span class="ot">&lt;-</span> <span class="fl">0.9</span></span>
+<span id="cb330-7"><a href="sec-negative-binomial-regression.html#cb330-7" tabindex="-1"></a>eta <span class="ot">&lt;-</span> b0 <span class="sc">+</span> b1 <span class="sc">*</span> x1 <span class="sc">+</span> b2 <span class="sc">*</span> x2 <span class="sc">+</span> b3 <span class="sc">*</span> x3</span>
+<span id="cb330-8"><a href="sec-negative-binomial-regression.html#cb330-8" tabindex="-1"></a>mu  <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta)</span>
+<span id="cb330-9"><a href="sec-negative-binomial-regression.html#cb330-9" tabindex="-1"></a></span>
+<span id="cb330-10"><a href="sec-negative-binomial-regression.html#cb330-10" tabindex="-1"></a><span class="co"># A: Poisson truth, no extra dispersion</span></span>
+<span id="cb330-11"><a href="sec-negative-binomial-regression.html#cb330-11" tabindex="-1"></a>y_pois <span class="ot">&lt;-</span> <span class="fu">rpois</span>(n, <span class="at">lambda =</span> mu)</span>
+<span id="cb330-12"><a href="sec-negative-binomial-regression.html#cb330-12" tabindex="-1"></a>dat_pois <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y_pois, x1, x2, x3)</span>
+<span id="cb330-13"><a href="sec-negative-binomial-regression.html#cb330-13" tabindex="-1"></a></span>
+<span id="cb330-14"><a href="sec-negative-binomial-regression.html#cb330-14" tabindex="-1"></a><span class="co"># B: NB truth with strong overdispersion</span></span>
+<span id="cb330-15"><a href="sec-negative-binomial-regression.html#cb330-15" tabindex="-1"></a>theta_true <span class="ot">&lt;-</span> <span class="fl">2.0</span></span>
+<span id="cb330-16"><a href="sec-negative-binomial-regression.html#cb330-16" tabindex="-1"></a>y_nb <span class="ot">&lt;-</span> <span class="fu">rnbinom</span>(n, <span class="at">size =</span> theta_true, <span class="at">mu =</span> mu)</span>
+<span id="cb330-17"><a href="sec-negative-binomial-regression.html#cb330-17" tabindex="-1"></a>dat_nb <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y_nb, x1, x2, x3)</span></code></pre></div>
+<p>For each dataset we fit:</p>
+<ol style="list-style-type: decimal">
+<li>Poisson GLM, <code>glm(..., family = poisson)</code></li>
+<li>Negative Binomial GLM with unknown <code>theta</code>, <code>glm.nb(...)</code></li>
+</ol>
+<p>We then extract key diagnostics.</p>
+<div class="sourceCode" id="cb331"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb331-1"><a href="sec-negative-binomial-regression.html#cb331-1" tabindex="-1"></a><span class="co"># Dataset A, Poisson truth</span></span>
+<span id="cb331-2"><a href="sec-negative-binomial-regression.html#cb331-2" tabindex="-1"></a>fitA_pois <span class="ot">&lt;-</span> <span class="fu">glm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>), <span class="at">data =</span> dat_pois)</span>
+<span id="cb331-3"><a href="sec-negative-binomial-regression.html#cb331-3" tabindex="-1"></a>fitA_nb   <span class="ot">&lt;-</span> <span class="fu">glm.nb</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> dat_pois)</span>
+<span id="cb331-4"><a href="sec-negative-binomial-regression.html#cb331-4" tabindex="-1"></a></span>
+<span id="cb331-5"><a href="sec-negative-binomial-regression.html#cb331-5" tabindex="-1"></a><span class="co"># Dataset B, NB truth</span></span>
+<span id="cb331-6"><a href="sec-negative-binomial-regression.html#cb331-6" tabindex="-1"></a>fitB_pois <span class="ot">&lt;-</span> <span class="fu">glm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>), <span class="at">data =</span> dat_nb)</span>
+<span id="cb331-7"><a href="sec-negative-binomial-regression.html#cb331-7" tabindex="-1"></a>fitB_nb   <span class="ot">&lt;-</span> <span class="fu">glm.nb</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> dat_nb)</span></code></pre></div>
+<p>Dispersion at the outcome level</p>
+<p>Variance to mean ratio near 1 suggests Poisson, ratios much greater than 1 suggest overdispersion.</p>
+<div class="sourceCode" id="cb332"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb332-1"><a href="sec-negative-binomial-regression.html#cb332-1" tabindex="-1"></a>vmr_A <span class="ot">&lt;-</span> <span class="fu">var</span>(dat_pois<span class="sc">$</span>y) <span class="sc">/</span> <span class="fu">mean</span>(dat_pois<span class="sc">$</span>y)</span>
+<span id="cb332-2"><a href="sec-negative-binomial-regression.html#cb332-2" tabindex="-1"></a>vmr_B <span class="ot">&lt;-</span> <span class="fu">var</span>(dat_nb<span class="sc">$</span>y)   <span class="sc">/</span> <span class="fu">mean</span>(dat_nb<span class="sc">$</span>y)</span>
+<span id="cb332-3"><a href="sec-negative-binomial-regression.html#cb332-3" tabindex="-1"></a></span>
+<span id="cb332-4"><a href="sec-negative-binomial-regression.html#cb332-4" tabindex="-1"></a>disp_tab <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb332-5"><a href="sec-negative-binomial-regression.html#cb332-5" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(<span class="st">&quot;Poisson truth&quot;</span>, <span class="st">&quot;NB truth&quot;</span>),</span>
+<span id="cb332-6"><a href="sec-negative-binomial-regression.html#cb332-6" tabindex="-1"></a>  <span class="at">n =</span> <span class="fu">c</span>(n, n),</span>
+<span id="cb332-7"><a href="sec-negative-binomial-regression.html#cb332-7" tabindex="-1"></a>  <span class="at">mean_y =</span> <span class="fu">c</span>(<span class="fu">mean</span>(dat_pois<span class="sc">$</span>y), <span class="fu">mean</span>(dat_nb<span class="sc">$</span>y)),</span>
+<span id="cb332-8"><a href="sec-negative-binomial-regression.html#cb332-8" tabindex="-1"></a>  <span class="at">var_y  =</span> <span class="fu">c</span>(<span class="fu">var</span>(dat_pois<span class="sc">$</span>y),  <span class="fu">var</span>(dat_nb<span class="sc">$</span>y)),</span>
+<span id="cb332-9"><a href="sec-negative-binomial-regression.html#cb332-9" tabindex="-1"></a>  <span class="at">var_to_mean_ratio =</span> <span class="fu">c</span>(vmr_A, vmr_B)</span>
+<span id="cb332-10"><a href="sec-negative-binomial-regression.html#cb332-10" tabindex="-1"></a>)</span>
+<span id="cb332-11"><a href="sec-negative-binomial-regression.html#cb332-11" tabindex="-1"></a></span>
+<span id="cb332-12"><a href="sec-negative-binomial-regression.html#cb332-12" tabindex="-1"></a><span class="fu">kable</span>(disp_tab, <span class="at">digits =</span> <span class="dv">3</span>)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">dataset</th>
+<th align="right">n</th>
+<th align="right">mean_y</th>
+<th align="right">var_y</th>
+<th align="right">var_to_mean_ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Poisson truth</td>
+<td align="right">5000</td>
+<td align="right">1.231</td>
+<td align="right">2.426</td>
+<td align="right">1.970</td>
+</tr>
+<tr class="even">
+<td align="left">NB truth</td>
+<td align="right">5000</td>
+<td align="right">1.259</td>
+<td align="right">3.960</td>
+<td align="right">3.146</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation</strong>: In the Poisson dataset the variance to mean ratio should be close to 1. In the NB dataset the ratio should be clearly larger than 1, which signals overdispersion that Poisson cannot capture.</p>
+<p>For each dataset we report:</p>
+<ul>
+<li><code>theta</code> estimate from <code>glm.nb</code> with its standard error and a Wald 95 percent interval,</li>
+<li>log likelihood and AIC for Poisson and NB,</li>
+<li>a likelihood ratio test comparing Poisson to NB, 1 degree of freedom, since NB adds one parameter, <code>theta</code>.</li>
+</ul>
+<div class="sourceCode" id="cb333"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb333-1"><a href="sec-negative-binomial-regression.html#cb333-1" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="fl">0.975</span>)</span>
+<span id="cb333-2"><a href="sec-negative-binomial-regression.html#cb333-2" tabindex="-1"></a></span>
+<span id="cb333-3"><a href="sec-negative-binomial-regression.html#cb333-3" tabindex="-1"></a>theta_A  <span class="ot">&lt;-</span> <span class="fu">unname</span>(fitA_nb<span class="sc">$</span>theta)</span>
+<span id="cb333-4"><a href="sec-negative-binomial-regression.html#cb333-4" tabindex="-1"></a>se_A     <span class="ot">&lt;-</span> <span class="fu">unname</span>(fitA_nb<span class="sc">$</span>SE.theta)</span>
+<span id="cb333-5"><a href="sec-negative-binomial-regression.html#cb333-5" tabindex="-1"></a>ciA_low  <span class="ot">&lt;-</span> <span class="fu">max</span>(theta_A <span class="sc">-</span> z <span class="sc">*</span> se_A, .Machine<span class="sc">$</span>double.eps)</span>
+<span id="cb333-6"><a href="sec-negative-binomial-regression.html#cb333-6" tabindex="-1"></a>ciA_high <span class="ot">&lt;-</span> theta_A <span class="sc">+</span> z <span class="sc">*</span> se_A</span>
+<span id="cb333-7"><a href="sec-negative-binomial-regression.html#cb333-7" tabindex="-1"></a></span>
+<span id="cb333-8"><a href="sec-negative-binomial-regression.html#cb333-8" tabindex="-1"></a>theta_B  <span class="ot">&lt;-</span> <span class="fu">unname</span>(fitB_nb<span class="sc">$</span>theta)</span>
+<span id="cb333-9"><a href="sec-negative-binomial-regression.html#cb333-9" tabindex="-1"></a>se_B     <span class="ot">&lt;-</span> <span class="fu">unname</span>(fitB_nb<span class="sc">$</span>SE.theta)</span>
+<span id="cb333-10"><a href="sec-negative-binomial-regression.html#cb333-10" tabindex="-1"></a>ciB_low  <span class="ot">&lt;-</span> <span class="fu">max</span>(theta_B <span class="sc">-</span> z <span class="sc">*</span> se_B, .Machine<span class="sc">$</span>double.eps)</span>
+<span id="cb333-11"><a href="sec-negative-binomial-regression.html#cb333-11" tabindex="-1"></a>ciB_high <span class="ot">&lt;-</span> theta_B <span class="sc">+</span> z <span class="sc">*</span> se_B</span>
+<span id="cb333-12"><a href="sec-negative-binomial-regression.html#cb333-12" tabindex="-1"></a></span>
+<span id="cb333-13"><a href="sec-negative-binomial-regression.html#cb333-13" tabindex="-1"></a>ll_A_p <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(fitA_pois)); ll_A_nb <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(fitA_nb))</span>
+<span id="cb333-14"><a href="sec-negative-binomial-regression.html#cb333-14" tabindex="-1"></a>ll_B_p <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(fitB_pois)); ll_B_nb <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(fitB_nb))</span>
+<span id="cb333-15"><a href="sec-negative-binomial-regression.html#cb333-15" tabindex="-1"></a></span>
+<span id="cb333-16"><a href="sec-negative-binomial-regression.html#cb333-16" tabindex="-1"></a>aic_A_p <span class="ot">&lt;-</span> <span class="fu">AIC</span>(fitA_pois); aic_A_nb <span class="ot">&lt;-</span> <span class="fu">AIC</span>(fitA_nb)</span>
+<span id="cb333-17"><a href="sec-negative-binomial-regression.html#cb333-17" tabindex="-1"></a>aic_B_p <span class="ot">&lt;-</span> <span class="fu">AIC</span>(fitB_pois); aic_B_nb <span class="ot">&lt;-</span> <span class="fu">AIC</span>(fitB_nb)</span>
+<span id="cb333-18"><a href="sec-negative-binomial-regression.html#cb333-18" tabindex="-1"></a></span>
+<span id="cb333-19"><a href="sec-negative-binomial-regression.html#cb333-19" tabindex="-1"></a><span class="co"># LR tests</span></span>
+<span id="cb333-20"><a href="sec-negative-binomial-regression.html#cb333-20" tabindex="-1"></a>lr_A  <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (ll_A_nb <span class="sc">-</span> ll_A_p)</span>
+<span id="cb333-21"><a href="sec-negative-binomial-regression.html#cb333-21" tabindex="-1"></a>p_A   <span class="ot">&lt;-</span> <span class="fu">pchisq</span>(lr_A, <span class="at">df =</span> <span class="dv">1</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb333-22"><a href="sec-negative-binomial-regression.html#cb333-22" tabindex="-1"></a></span>
+<span id="cb333-23"><a href="sec-negative-binomial-regression.html#cb333-23" tabindex="-1"></a>lr_B  <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (ll_B_nb <span class="sc">-</span> ll_B_p)</span>
+<span id="cb333-24"><a href="sec-negative-binomial-regression.html#cb333-24" tabindex="-1"></a>p_B   <span class="ot">&lt;-</span> <span class="fu">pchisq</span>(lr_B, <span class="at">df =</span> <span class="dv">1</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb333-25"><a href="sec-negative-binomial-regression.html#cb333-25" tabindex="-1"></a></span>
+<span id="cb333-26"><a href="sec-negative-binomial-regression.html#cb333-26" tabindex="-1"></a>fit_tab <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb333-27"><a href="sec-negative-binomial-regression.html#cb333-27" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(<span class="st">&quot;Poisson truth&quot;</span>, <span class="st">&quot;NB truth&quot;</span>),</span>
+<span id="cb333-28"><a href="sec-negative-binomial-regression.html#cb333-28" tabindex="-1"></a>  <span class="at">theta_true =</span> <span class="fu">c</span>(<span class="cn">Inf</span>, theta_true),</span>
+<span id="cb333-29"><a href="sec-negative-binomial-regression.html#cb333-29" tabindex="-1"></a>  <span class="at">theta_hat  =</span> <span class="fu">c</span>(theta_A, theta_B),</span>
+<span id="cb333-30"><a href="sec-negative-binomial-regression.html#cb333-30" tabindex="-1"></a>  <span class="at">theta_SE   =</span> <span class="fu">c</span>(se_A, se_B),</span>
+<span id="cb333-31"><a href="sec-negative-binomial-regression.html#cb333-31" tabindex="-1"></a>  <span class="at">theta_CI95_lower =</span> <span class="fu">c</span>(ciA_low, ciB_low),</span>
+<span id="cb333-32"><a href="sec-negative-binomial-regression.html#cb333-32" tabindex="-1"></a>  <span class="at">theta_CI95_upper =</span> <span class="fu">c</span>(ciA_high, ciB_high),</span>
+<span id="cb333-33"><a href="sec-negative-binomial-regression.html#cb333-33" tabindex="-1"></a>  <span class="at">logLik_Pois =</span> <span class="fu">c</span>(ll_A_p, ll_B_p),</span>
+<span id="cb333-34"><a href="sec-negative-binomial-regression.html#cb333-34" tabindex="-1"></a>  <span class="at">logLik_NB   =</span> <span class="fu">c</span>(ll_A_nb, ll_B_nb),</span>
+<span id="cb333-35"><a href="sec-negative-binomial-regression.html#cb333-35" tabindex="-1"></a>  <span class="at">AIC_Pois    =</span> <span class="fu">c</span>(aic_A_p, aic_B_p),</span>
+<span id="cb333-36"><a href="sec-negative-binomial-regression.html#cb333-36" tabindex="-1"></a>  <span class="at">AIC_NB      =</span> <span class="fu">c</span>(aic_A_nb, aic_B_nb),</span>
+<span id="cb333-37"><a href="sec-negative-binomial-regression.html#cb333-37" tabindex="-1"></a>  <span class="at">LR_stat_Pois_vs_NB =</span> <span class="fu">c</span>(lr_A, lr_B),</span>
+<span id="cb333-38"><a href="sec-negative-binomial-regression.html#cb333-38" tabindex="-1"></a>  <span class="at">LR_df =</span> <span class="fu">c</span>(1L, 1L),</span>
+<span id="cb333-39"><a href="sec-negative-binomial-regression.html#cb333-39" tabindex="-1"></a>  <span class="at">LR_p_value =</span> <span class="fu">c</span>(p_A, p_B)</span>
+<span id="cb333-40"><a href="sec-negative-binomial-regression.html#cb333-40" tabindex="-1"></a>)</span>
+<span id="cb333-41"><a href="sec-negative-binomial-regression.html#cb333-41" tabindex="-1"></a></span>
+<span id="cb333-42"><a href="sec-negative-binomial-regression.html#cb333-42" tabindex="-1"></a><span class="fu">kable</span>(fit_tab, <span class="at">digits =</span> <span class="dv">3</span>)</span></code></pre></div>
+<table style="width:100%;">
+<colgroup>
+<col width="9%" />
+<col width="7%" />
+<col width="6%" />
+<col width="5%" />
+<col width="11%" />
+<col width="11%" />
+<col width="7%" />
+<col width="6%" />
+<col width="5%" />
+<col width="5%" />
+<col width="12%" />
+<col width="3%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">dataset</th>
+<th align="right">theta_true</th>
+<th align="right">theta_hat</th>
+<th align="right">theta_SE</th>
+<th align="right">theta_CI95_lower</th>
+<th align="right">theta_CI95_upper</th>
+<th align="right">logLik_Pois</th>
+<th align="right">logLik_NB</th>
+<th align="right">AIC_Pois</th>
+<th align="right">AIC_NB</th>
+<th align="right">LR_stat_Pois_vs_NB</th>
+<th align="right">LR_df</th>
+<th align="right">LR_p_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Poisson truth</td>
+<td align="right">Inf</td>
+<td align="right">259.67</td>
+<td align="right">828.332</td>
+<td align="right">0.000</td>
+<td align="right">1883.172</td>
+<td align="right">-6339.383</td>
+<td align="right">-6339.333</td>
+<td align="right">12686.77</td>
+<td align="right">12688.67</td>
+<td align="right">0.100</td>
+<td align="right">1</td>
+<td align="right">0.751</td>
+</tr>
+<tr class="even">
+<td align="left">NB truth</td>
+<td align="right">2</td>
+<td align="right">2.11</td>
+<td align="right">0.130</td>
+<td align="right">1.855</td>
+<td align="right">2.365</td>
+<td align="right">-7196.580</td>
+<td align="right">-6827.266</td>
+<td align="right">14401.16</td>
+<td align="right">13664.53</td>
+<td align="right">738.629</td>
+<td align="right">1</td>
+<td align="right">0.000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to read <code>theta</code></strong>: In this NB2 parameterization, <code>Var(Y) = μ + μ^2 / theta</code>. When <code>theta</code> is very large, the extra term <code>μ^2 / theta</code> is small, so the variance is close to <code>μ</code>, which is the Poisson variance. When <code>theta</code> is small, the extra term is large, which implies strong overdispersion relative to Poisson.</p>
+<p><strong>Interpretation</strong>:</p>
+<ul>
+<li><strong>Poisson truth</strong>: The variance to mean ratio is near 1. The NB fit should report a large <code>theta</code>, often with a very wide interval, which indicates little evidence of extra dispersion. The likelihood ratio test should not reject Poisson, and AIC should be similar or favor Poisson.</li>
+<li><strong>NB truth, theta equals 2</strong>: The variance to mean ratio is clearly greater than 1. The NB fit should estimate <code>theta</code> near 2 subject to sampling error and the 95 percent interval should include the true value for sufficiently large <code>n</code>. The likelihood ratio test should strongly favor NB and AIC should be lower for NB.</li>
+</ul>
+</div>
+<div id="model-comparison-poisson-vs.-negative-binomial" class="section level4 hasAnchor" number="7.5.2.3">
+<h4><span class="header-section-number">7.5.2.3</span> Model Comparison: Poisson vs. Negative Binomial<a href="sec-negative-binomial-regression.html#model-comparison-poisson-vs.-negative-binomial" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<div id="checking-overdispersion-in-poisson-model" class="section level5 hasAnchor" number="7.5.2.3.1">
+<h5><span class="header-section-number">7.5.2.3.1</span> Checking Overdispersion in Poisson Model<a href="sec-negative-binomial-regression.html#checking-overdispersion-in-poisson-model" class="anchor-section" aria-label="Anchor link to header"></a></h5>
 <p>Before using NB regression, we confirm <strong>overdispersion</strong> by computing:</p>
 <p><span class="math display">\[
 \hat{\phi} = \frac{\text{deviance}}{\text{degrees of freedom}}
 \]</span></p>
-<div class="sourceCode" id="cb328"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb328-1"><a href="sec-negative-binomial-regression.html#cb328-1" tabindex="-1"></a><span class="co"># Overdispersion check for Poisson model</span></span>
-<span id="cb328-2"><a href="sec-negative-binomial-regression.html#cb328-2" tabindex="-1"></a>Poisson_Mod<span class="sc">$</span>deviance <span class="sc">/</span> Poisson_Mod<span class="sc">$</span>df.residual</span>
-<span id="cb328-3"><a href="sec-negative-binomial-regression.html#cb328-3" tabindex="-1"></a><span class="co">#&gt; [1] 1.797988</span></span></code></pre></div>
+<div class="sourceCode" id="cb334"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb334-1"><a href="sec-negative-binomial-regression.html#cb334-1" tabindex="-1"></a><span class="co"># Overdispersion check for Poisson model</span></span>
+<span id="cb334-2"><a href="sec-negative-binomial-regression.html#cb334-2" tabindex="-1"></a>Poisson_Mod<span class="sc">$</span>deviance <span class="sc">/</span> Poisson_Mod<span class="sc">$</span>df.residual</span>
+<span id="cb334-3"><a href="sec-negative-binomial-regression.html#cb334-3" tabindex="-1"></a><span class="co">#&gt; [1] 1.797988</span></span></code></pre></div>
 <ul>
 <li><p>If <span class="math inline">\(\hat{\phi} &gt; 1\)</span>, overdispersion is present.</p></li>
 <li><p>A large value suggests that Poisson regression underestimates variance.</p></li>
 </ul>
 </div>
-<div id="likelihood-ratio-test-poisson-vs.-negative-binomial" class="section level5 hasAnchor" number="7.5.2.2.2">
-<h5><span class="header-section-number">7.5.2.2.2</span> Likelihood Ratio Test: Poisson vs. Negative Binomial<a href="sec-negative-binomial-regression.html#likelihood-ratio-test-poisson-vs.-negative-binomial" class="anchor-section" aria-label="Anchor link to header"></a></h5>
+<div id="likelihood-ratio-test-poisson-vs.-negative-binomial" class="section level5 hasAnchor" number="7.5.2.3.2">
+<h5><span class="header-section-number">7.5.2.3.2</span> Likelihood Ratio Test: Poisson vs. Negative Binomial<a href="sec-negative-binomial-regression.html#likelihood-ratio-test-poisson-vs.-negative-binomial" class="anchor-section" aria-label="Anchor link to header"></a></h5>
 <p>We compare the Poisson and Negative Binomial models using a <strong>likelihood ratio test</strong>, where: <span class="math display">\[
 G^2 = 2 \times ( \log L_{NB} - \log L_{Poisson})
 \]</span> with <span class="math inline">\(\text{df} = 1\)</span></p>
-<div class="sourceCode" id="cb329"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb329-1"><a href="sec-negative-binomial-regression.html#cb329-1" tabindex="-1"></a><span class="co"># Likelihood ratio test between Poisson and Negative Binomial</span></span>
-<span id="cb329-2"><a href="sec-negative-binomial-regression.html#cb329-2" tabindex="-1"></a><span class="fu">pchisq</span>(<span class="dv">2</span> <span class="sc">*</span> (<span class="fu">logLik</span>(NegBinom_Mod) <span class="sc">-</span> <span class="fu">logLik</span>(Poisson_Mod)),</span>
-<span id="cb329-3"><a href="sec-negative-binomial-regression.html#cb329-3" tabindex="-1"></a>       <span class="at">df =</span> <span class="dv">1</span>,</span>
-<span id="cb329-4"><a href="sec-negative-binomial-regression.html#cb329-4" tabindex="-1"></a>       <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb329-5"><a href="sec-negative-binomial-regression.html#cb329-5" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; 4.391728e-41 (df=7)</span></span></code></pre></div>
+<div class="sourceCode" id="cb335"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb335-1"><a href="sec-negative-binomial-regression.html#cb335-1" tabindex="-1"></a><span class="co"># Likelihood ratio test between Poisson and Negative Binomial</span></span>
+<span id="cb335-2"><a href="sec-negative-binomial-regression.html#cb335-2" tabindex="-1"></a><span class="fu">pchisq</span>(<span class="dv">2</span> <span class="sc">*</span> (<span class="fu">logLik</span>(NegBinom_Mod) <span class="sc">-</span> <span class="fu">logLik</span>(Poisson_Mod)),</span>
+<span id="cb335-3"><a href="sec-negative-binomial-regression.html#cb335-3" tabindex="-1"></a>       <span class="at">df =</span> <span class="dv">1</span>,</span>
+<span id="cb335-4"><a href="sec-negative-binomial-regression.html#cb335-4" tabindex="-1"></a>       <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb335-5"><a href="sec-negative-binomial-regression.html#cb335-5" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; 4.391728e-41 (df=7)</span></span></code></pre></div>
 <ul>
 <li><p>Small p-value (&lt; 0.05) → Negative Binomial model is significantly better.</p></li>
 <li><p>Large p-value (&gt; 0.05) → Poisson model is adequate.</p></li>
@@ -1971,34 +2185,21 @@ G^2 = 2 \times ( \log L_{NB} - \log L_{Poisson})
 <p>Since overdispersion is confirmed, the Negative Binomial model is preferred.</p>
 </div>
 </div>
-<div id="model-diagnostics-and-evaluation" class="section level4 hasAnchor" number="7.5.2.3">
-<h4><span class="header-section-number">7.5.2.3</span> Model Diagnostics and Evaluation<a href="sec-negative-binomial-regression.html#model-diagnostics-and-evaluation" class="anchor-section" aria-label="Anchor link to header"></a></h4>
-<div id="checking-dispersion-parameter-theta" class="section level5 hasAnchor" number="7.5.2.3.1">
-<h5><span class="header-section-number">7.5.2.3.1</span> Checking Dispersion Parameter <span class="math inline">\(\theta\)</span><a href="sec-negative-binomial-regression.html#checking-dispersion-parameter-theta" class="anchor-section" aria-label="Anchor link to header"></a></h5>
-<p>The Negative Binomial dispersion parameter <span class="math inline">\(\theta\)</span> can be retrieved:</p>
-<div class="sourceCode" id="cb330"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb330-1"><a href="sec-negative-binomial-regression.html#cb330-1" tabindex="-1"></a><span class="co"># Extract dispersion parameter estimate</span></span>
-<span id="cb330-2"><a href="sec-negative-binomial-regression.html#cb330-2" tabindex="-1"></a>NegBinom_Mod<span class="sc">$</span>theta</span>
-<span id="cb330-3"><a href="sec-negative-binomial-regression.html#cb330-3" tabindex="-1"></a><span class="co">#&gt; [1] 2.264388</span></span></code></pre></div>
-<ul>
-<li>A large <span class="math inline">\(\theta\)</span> suggests that overdispersion is <strong>not extreme</strong>, while a small <span class="math inline">\(\theta\)</span> (close to 0) would indicate the Poisson model is reasonable.</li>
-</ul>
-</div>
-</div>
 <div id="predictions-and-rate-ratios" class="section level4 hasAnchor" number="7.5.2.4">
 <h4><span class="header-section-number">7.5.2.4</span> Predictions and Rate Ratios<a href="sec-negative-binomial-regression.html#predictions-and-rate-ratios" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>In Negative Binomial regression, exponentiating the coefficients gives rate ratios:</p>
-<div class="sourceCode" id="cb331"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb331-1"><a href="sec-negative-binomial-regression.html#cb331-1" tabindex="-1"></a><span class="co"># Convert coefficients to rate ratios</span></span>
-<span id="cb331-2"><a href="sec-negative-binomial-regression.html#cb331-2" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="st">`</span><span class="at">Odds Ratios</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(NegBinom_Mod)))</span>
-<span id="cb331-3"><a href="sec-negative-binomial-regression.html#cb331-3" tabindex="-1"></a><span class="co">#&gt;                 Odds.Ratios</span></span>
-<span id="cb331-4"><a href="sec-negative-binomial-regression.html#cb331-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)       1.2919388</span></span>
-<span id="cb331-5"><a href="sec-negative-binomial-regression.html#cb331-5" tabindex="-1"></a><span class="co">#&gt; SexWomen          0.8053982</span></span>
-<span id="cb331-6"><a href="sec-negative-binomial-regression.html#cb331-6" tabindex="-1"></a><span class="co">#&gt; MarriedMarried    1.1624030</span></span>
-<span id="cb331-7"><a href="sec-negative-binomial-regression.html#cb331-7" tabindex="-1"></a><span class="co">#&gt; Num_Kid5          0.8382698</span></span>
-<span id="cb331-8"><a href="sec-negative-binomial-regression.html#cb331-8" tabindex="-1"></a><span class="co">#&gt; PhD_Quality       1.0153884</span></span>
-<span id="cb331-9"><a href="sec-negative-binomial-regression.html#cb331-9" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle   1.0295094</span></span></code></pre></div>
+<div class="sourceCode" id="cb336"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb336-1"><a href="sec-negative-binomial-regression.html#cb336-1" tabindex="-1"></a><span class="co"># Convert coefficients to rate ratios</span></span>
+<span id="cb336-2"><a href="sec-negative-binomial-regression.html#cb336-2" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="st">`</span><span class="at">Odds Ratios</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(NegBinom_Mod)))</span>
+<span id="cb336-3"><a href="sec-negative-binomial-regression.html#cb336-3" tabindex="-1"></a><span class="co">#&gt;                 Odds.Ratios</span></span>
+<span id="cb336-4"><a href="sec-negative-binomial-regression.html#cb336-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)       1.2919388</span></span>
+<span id="cb336-5"><a href="sec-negative-binomial-regression.html#cb336-5" tabindex="-1"></a><span class="co">#&gt; SexWomen          0.8053982</span></span>
+<span id="cb336-6"><a href="sec-negative-binomial-regression.html#cb336-6" tabindex="-1"></a><span class="co">#&gt; MarriedMarried    1.1624030</span></span>
+<span id="cb336-7"><a href="sec-negative-binomial-regression.html#cb336-7" tabindex="-1"></a><span class="co">#&gt; Num_Kid5          0.8382698</span></span>
+<span id="cb336-8"><a href="sec-negative-binomial-regression.html#cb336-8" tabindex="-1"></a><span class="co">#&gt; PhD_Quality       1.0153884</span></span>
+<span id="cb336-9"><a href="sec-negative-binomial-regression.html#cb336-9" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle   1.0295094</span></span></code></pre></div>
 <p>A rate ratio of:</p>
 <ul>
-<li><p><strong>&gt;</strong> 1 <span class="math inline">\(\to\)</span> Increases expected article count.</p></li>
+<li><p>&gt; 1 <span class="math inline">\(\to\)</span> Increases expected article count.</p></li>
 <li><p>&lt; 1 <span class="math inline">\(\to\)</span> Decreases expected article count.</p></li>
 <li><p>= 1 <span class="math inline">\(\to\)</span> No effect.</p></li>
 </ul>
@@ -2023,46 +2224,46 @@ G^2 = 2 \times ( \log L_{NB} - \log L_{Poisson})
 </div>
 <div id="fitting-a-zero-inflated-negative-binomial-model" class="section level3 hasAnchor" number="7.5.3">
 <h3><span class="header-section-number">7.5.3</span> Fitting a Zero-Inflated Negative Binomial Model<a href="sec-negative-binomial-regression.html#fitting-a-zero-inflated-negative-binomial-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb332"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb332-1"><a href="sec-negative-binomial-regression.html#cb332-1" tabindex="-1"></a><span class="co"># Load package for zero-inflated models</span></span>
-<span id="cb332-2"><a href="sec-negative-binomial-regression.html#cb332-2" tabindex="-1"></a><span class="fu">library</span>(pscl)</span>
-<span id="cb332-3"><a href="sec-negative-binomial-regression.html#cb332-3" tabindex="-1"></a></span>
-<span id="cb332-4"><a href="sec-negative-binomial-regression.html#cb332-4" tabindex="-1"></a><span class="co"># Fit ZINB model</span></span>
-<span id="cb332-5"><a href="sec-negative-binomial-regression.html#cb332-5" tabindex="-1"></a>ZINB_Mod <span class="ot">&lt;-</span> <span class="fu">zeroinfl</span>(Num_Article <span class="sc">~</span> ., <span class="at">data =</span> bioChemists, <span class="at">dist =</span> <span class="st">&quot;negbin&quot;</span>)</span>
-<span id="cb332-6"><a href="sec-negative-binomial-regression.html#cb332-6" tabindex="-1"></a></span>
-<span id="cb332-7"><a href="sec-negative-binomial-regression.html#cb332-7" tabindex="-1"></a><span class="co"># Model summary</span></span>
-<span id="cb332-8"><a href="sec-negative-binomial-regression.html#cb332-8" tabindex="-1"></a><span class="fu">summary</span>(ZINB_Mod)</span>
-<span id="cb332-9"><a href="sec-negative-binomial-regression.html#cb332-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb332-10"><a href="sec-negative-binomial-regression.html#cb332-10" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb332-11"><a href="sec-negative-binomial-regression.html#cb332-11" tabindex="-1"></a><span class="co">#&gt; zeroinfl(formula = Num_Article ~ ., data = bioChemists, dist = &quot;negbin&quot;)</span></span>
-<span id="cb332-12"><a href="sec-negative-binomial-regression.html#cb332-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb332-13"><a href="sec-negative-binomial-regression.html#cb332-13" tabindex="-1"></a><span class="co">#&gt; Pearson residuals:</span></span>
-<span id="cb332-14"><a href="sec-negative-binomial-regression.html#cb332-14" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb332-15"><a href="sec-negative-binomial-regression.html#cb332-15" tabindex="-1"></a><span class="co">#&gt; -1.2942 -0.7601 -0.2909  0.4448  6.4155 </span></span>
-<span id="cb332-16"><a href="sec-negative-binomial-regression.html#cb332-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb332-17"><a href="sec-negative-binomial-regression.html#cb332-17" tabindex="-1"></a><span class="co">#&gt; Count model coefficients (negbin with log link):</span></span>
-<span id="cb332-18"><a href="sec-negative-binomial-regression.html#cb332-18" tabindex="-1"></a><span class="co">#&gt;                   Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span id="cb332-19"><a href="sec-negative-binomial-regression.html#cb332-19" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.4167465  0.1435966   2.902  0.00371 ** </span></span>
-<span id="cb332-20"><a href="sec-negative-binomial-regression.html#cb332-20" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.1955068  0.0755926  -2.586  0.00970 ** </span></span>
-<span id="cb332-21"><a href="sec-negative-binomial-regression.html#cb332-21" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.0975826  0.0844520   1.155  0.24789    </span></span>
-<span id="cb332-22"><a href="sec-negative-binomial-regression.html#cb332-22" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.1517325  0.0542061  -2.799  0.00512 ** </span></span>
-<span id="cb332-23"><a href="sec-negative-binomial-regression.html#cb332-23" tabindex="-1"></a><span class="co">#&gt; PhD_Quality     -0.0007001  0.0362697  -0.019  0.98460    </span></span>
-<span id="cb332-24"><a href="sec-negative-binomial-regression.html#cb332-24" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.0247862  0.0034927   7.097 1.28e-12 ***</span></span>
-<span id="cb332-25"><a href="sec-negative-binomial-regression.html#cb332-25" tabindex="-1"></a><span class="co">#&gt; Log(theta)       0.9763565  0.1354695   7.207 5.71e-13 ***</span></span>
-<span id="cb332-26"><a href="sec-negative-binomial-regression.html#cb332-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb332-27"><a href="sec-negative-binomial-regression.html#cb332-27" tabindex="-1"></a><span class="co">#&gt; Zero-inflation model coefficients (binomial with logit link):</span></span>
-<span id="cb332-28"><a href="sec-negative-binomial-regression.html#cb332-28" tabindex="-1"></a><span class="co">#&gt;                 Estimate Std. Error z value Pr(&gt;|z|)   </span></span>
-<span id="cb332-29"><a href="sec-negative-binomial-regression.html#cb332-29" tabindex="-1"></a><span class="co">#&gt; (Intercept)     -0.19169    1.32282  -0.145  0.88478   </span></span>
-<span id="cb332-30"><a href="sec-negative-binomial-regression.html#cb332-30" tabindex="-1"></a><span class="co">#&gt; SexWomen         0.63593    0.84892   0.749  0.45379   </span></span>
-<span id="cb332-31"><a href="sec-negative-binomial-regression.html#cb332-31" tabindex="-1"></a><span class="co">#&gt; MarriedMarried  -1.49947    0.93867  -1.597  0.11017   </span></span>
-<span id="cb332-32"><a href="sec-negative-binomial-regression.html#cb332-32" tabindex="-1"></a><span class="co">#&gt; Num_Kid5         0.62843    0.44278   1.419  0.15582   </span></span>
-<span id="cb332-33"><a href="sec-negative-binomial-regression.html#cb332-33" tabindex="-1"></a><span class="co">#&gt; PhD_Quality     -0.03771    0.30801  -0.122  0.90254   </span></span>
-<span id="cb332-34"><a href="sec-negative-binomial-regression.html#cb332-34" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle -0.88229    0.31623  -2.790  0.00527 **</span></span>
-<span id="cb332-35"><a href="sec-negative-binomial-regression.html#cb332-35" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb332-36"><a href="sec-negative-binomial-regression.html#cb332-36" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1 </span></span>
-<span id="cb332-37"><a href="sec-negative-binomial-regression.html#cb332-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb332-38"><a href="sec-negative-binomial-regression.html#cb332-38" tabindex="-1"></a><span class="co">#&gt; Theta = 2.6548 </span></span>
-<span id="cb332-39"><a href="sec-negative-binomial-regression.html#cb332-39" tabindex="-1"></a><span class="co">#&gt; Number of iterations in BFGS optimization: 43 </span></span>
-<span id="cb332-40"><a href="sec-negative-binomial-regression.html#cb332-40" tabindex="-1"></a><span class="co">#&gt; Log-likelihood: -1550 on 13 Df</span></span></code></pre></div>
+<div class="sourceCode" id="cb337"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb337-1"><a href="sec-negative-binomial-regression.html#cb337-1" tabindex="-1"></a><span class="co"># Load package for zero-inflated models</span></span>
+<span id="cb337-2"><a href="sec-negative-binomial-regression.html#cb337-2" tabindex="-1"></a><span class="fu">library</span>(pscl)</span>
+<span id="cb337-3"><a href="sec-negative-binomial-regression.html#cb337-3" tabindex="-1"></a></span>
+<span id="cb337-4"><a href="sec-negative-binomial-regression.html#cb337-4" tabindex="-1"></a><span class="co"># Fit ZINB model</span></span>
+<span id="cb337-5"><a href="sec-negative-binomial-regression.html#cb337-5" tabindex="-1"></a>ZINB_Mod <span class="ot">&lt;-</span> <span class="fu">zeroinfl</span>(Num_Article <span class="sc">~</span> ., <span class="at">data =</span> bioChemists, <span class="at">dist =</span> <span class="st">&quot;negbin&quot;</span>)</span>
+<span id="cb337-6"><a href="sec-negative-binomial-regression.html#cb337-6" tabindex="-1"></a></span>
+<span id="cb337-7"><a href="sec-negative-binomial-regression.html#cb337-7" tabindex="-1"></a><span class="co"># Model summary</span></span>
+<span id="cb337-8"><a href="sec-negative-binomial-regression.html#cb337-8" tabindex="-1"></a><span class="fu">summary</span>(ZINB_Mod)</span>
+<span id="cb337-9"><a href="sec-negative-binomial-regression.html#cb337-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb337-10"><a href="sec-negative-binomial-regression.html#cb337-10" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb337-11"><a href="sec-negative-binomial-regression.html#cb337-11" tabindex="-1"></a><span class="co">#&gt; zeroinfl(formula = Num_Article ~ ., data = bioChemists, dist = &quot;negbin&quot;)</span></span>
+<span id="cb337-12"><a href="sec-negative-binomial-regression.html#cb337-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb337-13"><a href="sec-negative-binomial-regression.html#cb337-13" tabindex="-1"></a><span class="co">#&gt; Pearson residuals:</span></span>
+<span id="cb337-14"><a href="sec-negative-binomial-regression.html#cb337-14" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb337-15"><a href="sec-negative-binomial-regression.html#cb337-15" tabindex="-1"></a><span class="co">#&gt; -1.2942 -0.7601 -0.2909  0.4448  6.4155 </span></span>
+<span id="cb337-16"><a href="sec-negative-binomial-regression.html#cb337-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb337-17"><a href="sec-negative-binomial-regression.html#cb337-17" tabindex="-1"></a><span class="co">#&gt; Count model coefficients (negbin with log link):</span></span>
+<span id="cb337-18"><a href="sec-negative-binomial-regression.html#cb337-18" tabindex="-1"></a><span class="co">#&gt;                   Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb337-19"><a href="sec-negative-binomial-regression.html#cb337-19" tabindex="-1"></a><span class="co">#&gt; (Intercept)      0.4167465  0.1435966   2.902  0.00371 ** </span></span>
+<span id="cb337-20"><a href="sec-negative-binomial-regression.html#cb337-20" tabindex="-1"></a><span class="co">#&gt; SexWomen        -0.1955068  0.0755926  -2.586  0.00970 ** </span></span>
+<span id="cb337-21"><a href="sec-negative-binomial-regression.html#cb337-21" tabindex="-1"></a><span class="co">#&gt; MarriedMarried   0.0975826  0.0844520   1.155  0.24789    </span></span>
+<span id="cb337-22"><a href="sec-negative-binomial-regression.html#cb337-22" tabindex="-1"></a><span class="co">#&gt; Num_Kid5        -0.1517325  0.0542061  -2.799  0.00512 ** </span></span>
+<span id="cb337-23"><a href="sec-negative-binomial-regression.html#cb337-23" tabindex="-1"></a><span class="co">#&gt; PhD_Quality     -0.0007001  0.0362697  -0.019  0.98460    </span></span>
+<span id="cb337-24"><a href="sec-negative-binomial-regression.html#cb337-24" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle  0.0247862  0.0034927   7.097 1.28e-12 ***</span></span>
+<span id="cb337-25"><a href="sec-negative-binomial-regression.html#cb337-25" tabindex="-1"></a><span class="co">#&gt; Log(theta)       0.9763565  0.1354695   7.207 5.71e-13 ***</span></span>
+<span id="cb337-26"><a href="sec-negative-binomial-regression.html#cb337-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb337-27"><a href="sec-negative-binomial-regression.html#cb337-27" tabindex="-1"></a><span class="co">#&gt; Zero-inflation model coefficients (binomial with logit link):</span></span>
+<span id="cb337-28"><a href="sec-negative-binomial-regression.html#cb337-28" tabindex="-1"></a><span class="co">#&gt;                 Estimate Std. Error z value Pr(&gt;|z|)   </span></span>
+<span id="cb337-29"><a href="sec-negative-binomial-regression.html#cb337-29" tabindex="-1"></a><span class="co">#&gt; (Intercept)     -0.19169    1.32282  -0.145  0.88478   </span></span>
+<span id="cb337-30"><a href="sec-negative-binomial-regression.html#cb337-30" tabindex="-1"></a><span class="co">#&gt; SexWomen         0.63593    0.84892   0.749  0.45379   </span></span>
+<span id="cb337-31"><a href="sec-negative-binomial-regression.html#cb337-31" tabindex="-1"></a><span class="co">#&gt; MarriedMarried  -1.49947    0.93867  -1.597  0.11017   </span></span>
+<span id="cb337-32"><a href="sec-negative-binomial-regression.html#cb337-32" tabindex="-1"></a><span class="co">#&gt; Num_Kid5         0.62843    0.44278   1.419  0.15582   </span></span>
+<span id="cb337-33"><a href="sec-negative-binomial-regression.html#cb337-33" tabindex="-1"></a><span class="co">#&gt; PhD_Quality     -0.03771    0.30801  -0.122  0.90254   </span></span>
+<span id="cb337-34"><a href="sec-negative-binomial-regression.html#cb337-34" tabindex="-1"></a><span class="co">#&gt; Num_MentArticle -0.88229    0.31623  -2.790  0.00527 **</span></span>
+<span id="cb337-35"><a href="sec-negative-binomial-regression.html#cb337-35" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb337-36"><a href="sec-negative-binomial-regression.html#cb337-36" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1 </span></span>
+<span id="cb337-37"><a href="sec-negative-binomial-regression.html#cb337-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb337-38"><a href="sec-negative-binomial-regression.html#cb337-38" tabindex="-1"></a><span class="co">#&gt; Theta = 2.6548 </span></span>
+<span id="cb337-39"><a href="sec-negative-binomial-regression.html#cb337-39" tabindex="-1"></a><span class="co">#&gt; Number of iterations in BFGS optimization: 43 </span></span>
+<span id="cb337-40"><a href="sec-negative-binomial-regression.html#cb337-40" tabindex="-1"></a><span class="co">#&gt; Log-likelihood: -1550 on 13 Df</span></span></code></pre></div>
 <p>This model accounts for:</p>
 <ul>
 <li><p>Structural zero inflation.</p></li>

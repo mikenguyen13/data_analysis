@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>25.1 Basic Understanding | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="25.1 Basic Understanding | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2469,242 +2469,237 @@ d_i^2 \sim \chi^2_p.
 <li><strong>Transforming the data</strong> (e.g., log, Box-Cox, or rank transformations).</li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb818"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb818-1"><a href="basic-understanding.html#cb818-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb818-2"><a href="basic-understanding.html#cb818-2" tabindex="-1"></a><span class="fu">library</span>(heplots)      <span class="co"># Multivariate hypothesis tests</span></span>
-<span id="cb818-3"><a href="basic-understanding.html#cb818-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)        <span class="co"># Multivariate tests</span></span>
-<span id="cb818-4"><a href="basic-understanding.html#cb818-4" tabindex="-1"></a><span class="fu">library</span>(MVN)          <span class="co"># Multivariate normality tests</span></span>
-<span id="cb818-5"><a href="basic-understanding.html#cb818-5" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># Data wrangling &amp; visualization</span></span>
-<span id="cb818-6"><a href="basic-understanding.html#cb818-6" tabindex="-1"></a></span>
-<span id="cb818-7"><a href="basic-understanding.html#cb818-7" tabindex="-1"></a></span>
-<span id="cb818-8"><a href="basic-understanding.html#cb818-8" tabindex="-1"></a><span class="co"># Load dataset</span></span>
-<span id="cb818-9"><a href="basic-understanding.html#cb818-9" tabindex="-1"></a>trees <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;images/trees.dat&quot;</span>)</span>
-<span id="cb818-10"><a href="basic-understanding.html#cb818-10" tabindex="-1"></a><span class="fu">names</span>(trees) <span class="ot">&lt;-</span></span>
-<span id="cb818-11"><a href="basic-understanding.html#cb818-11" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;Nitrogen&quot;</span>, <span class="st">&quot;Phosphorous&quot;</span>, <span class="st">&quot;Potassium&quot;</span>, <span class="st">&quot;Ash&quot;</span>, <span class="st">&quot;Height&quot;</span>)</span>
-<span id="cb818-12"><a href="basic-understanding.html#cb818-12" tabindex="-1"></a></span>
-<span id="cb818-13"><a href="basic-understanding.html#cb818-13" tabindex="-1"></a><span class="co"># Structure of dataset</span></span>
-<span id="cb818-14"><a href="basic-understanding.html#cb818-14" tabindex="-1"></a><span class="fu">str</span>(trees)</span>
-<span id="cb818-15"><a href="basic-understanding.html#cb818-15" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    26 obs. of  5 variables:</span></span>
-<span id="cb818-16"><a href="basic-understanding.html#cb818-16" tabindex="-1"></a><span class="co">#&gt;  $ Nitrogen   : num  2.2 2.1 1.52 2.88 2.18 1.87 1.52 2.37 2.06 1.84 ...</span></span>
-<span id="cb818-17"><a href="basic-understanding.html#cb818-17" tabindex="-1"></a><span class="co">#&gt;  $ Phosphorous: num  0.417 0.354 0.208 0.335 0.314 0.271 0.164 0.302 0.373 0.265 ...</span></span>
-<span id="cb818-18"><a href="basic-understanding.html#cb818-18" tabindex="-1"></a><span class="co">#&gt;  $ Potassium  : num  1.35 0.9 0.71 0.9 1.26 1.15 0.83 0.89 0.79 0.72 ...</span></span>
-<span id="cb818-19"><a href="basic-understanding.html#cb818-19" tabindex="-1"></a><span class="co">#&gt;  $ Ash        : num  1.79 1.08 0.47 1.48 1.09 0.99 0.85 0.94 0.8 0.77 ...</span></span>
-<span id="cb818-20"><a href="basic-understanding.html#cb818-20" tabindex="-1"></a><span class="co">#&gt;  $ Height     : int  351 249 171 373 321 191 225 291 284 213 ...</span></span>
-<span id="cb818-21"><a href="basic-understanding.html#cb818-21" tabindex="-1"></a></span>
-<span id="cb818-22"><a href="basic-understanding.html#cb818-22" tabindex="-1"></a><span class="co"># Summary statistics</span></span>
-<span id="cb818-23"><a href="basic-understanding.html#cb818-23" tabindex="-1"></a><span class="fu">summary</span>(trees)</span>
-<span id="cb818-24"><a href="basic-understanding.html#cb818-24" tabindex="-1"></a><span class="co">#&gt;     Nitrogen      Phosphorous       Potassium           Ash        </span></span>
-<span id="cb818-25"><a href="basic-understanding.html#cb818-25" tabindex="-1"></a><span class="co">#&gt;  Min.   :1.130   Min.   :0.1570   Min.   :0.3800   Min.   :0.4500  </span></span>
-<span id="cb818-26"><a href="basic-understanding.html#cb818-26" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:1.532   1st Qu.:0.1963   1st Qu.:0.6050   1st Qu.:0.6375  </span></span>
-<span id="cb818-27"><a href="basic-understanding.html#cb818-27" tabindex="-1"></a><span class="co">#&gt;  Median :1.855   Median :0.2250   Median :0.7150   Median :0.9300  </span></span>
-<span id="cb818-28"><a href="basic-understanding.html#cb818-28" tabindex="-1"></a><span class="co">#&gt;  Mean   :1.896   Mean   :0.2506   Mean   :0.7619   Mean   :0.8873  </span></span>
-<span id="cb818-29"><a href="basic-understanding.html#cb818-29" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:2.160   3rd Qu.:0.2975   3rd Qu.:0.8975   3rd Qu.:0.9825  </span></span>
-<span id="cb818-30"><a href="basic-understanding.html#cb818-30" tabindex="-1"></a><span class="co">#&gt;  Max.   :2.880   Max.   :0.4170   Max.   :1.3500   Max.   :1.7900  </span></span>
-<span id="cb818-31"><a href="basic-understanding.html#cb818-31" tabindex="-1"></a><span class="co">#&gt;      Height     </span></span>
-<span id="cb818-32"><a href="basic-understanding.html#cb818-32" tabindex="-1"></a><span class="co">#&gt;  Min.   : 65.0  </span></span>
-<span id="cb818-33"><a href="basic-understanding.html#cb818-33" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:122.5  </span></span>
-<span id="cb818-34"><a href="basic-understanding.html#cb818-34" tabindex="-1"></a><span class="co">#&gt;  Median :181.0  </span></span>
-<span id="cb818-35"><a href="basic-understanding.html#cb818-35" tabindex="-1"></a><span class="co">#&gt;  Mean   :196.6  </span></span>
-<span id="cb818-36"><a href="basic-understanding.html#cb818-36" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:276.0  </span></span>
-<span id="cb818-37"><a href="basic-understanding.html#cb818-37" tabindex="-1"></a><span class="co">#&gt;  Max.   :373.0</span></span>
-<span id="cb818-38"><a href="basic-understanding.html#cb818-38" tabindex="-1"></a></span>
-<span id="cb818-39"><a href="basic-understanding.html#cb818-39" tabindex="-1"></a><span class="co"># Pearson correlation matrix</span></span>
-<span id="cb818-40"><a href="basic-understanding.html#cb818-40" tabindex="-1"></a><span class="fu">cor</span>(trees, <span class="at">method =</span> <span class="st">&quot;pearson&quot;</span>)</span>
-<span id="cb818-41"><a href="basic-understanding.html#cb818-41" tabindex="-1"></a><span class="co">#&gt;              Nitrogen Phosphorous Potassium       Ash    Height</span></span>
-<span id="cb818-42"><a href="basic-understanding.html#cb818-42" tabindex="-1"></a><span class="co">#&gt; Nitrogen    1.0000000   0.6023902 0.5462456 0.6509771 0.8181641</span></span>
-<span id="cb818-43"><a href="basic-understanding.html#cb818-43" tabindex="-1"></a><span class="co">#&gt; Phosphorous 0.6023902   1.0000000 0.7037469 0.6707871 0.7739656</span></span>
-<span id="cb818-44"><a href="basic-understanding.html#cb818-44" tabindex="-1"></a><span class="co">#&gt; Potassium   0.5462456   0.7037469 1.0000000 0.6710548 0.7915683</span></span>
-<span id="cb818-45"><a href="basic-understanding.html#cb818-45" tabindex="-1"></a><span class="co">#&gt; Ash         0.6509771   0.6707871 0.6710548 1.0000000 0.7676771</span></span>
-<span id="cb818-46"><a href="basic-understanding.html#cb818-46" tabindex="-1"></a><span class="co">#&gt; Height      0.8181641   0.7739656 0.7915683 0.7676771 1.0000000</span></span>
-<span id="cb818-47"><a href="basic-understanding.html#cb818-47" tabindex="-1"></a></span>
-<span id="cb818-48"><a href="basic-understanding.html#cb818-48" tabindex="-1"></a><span class="co"># Q-Q plots for each variable</span></span>
-<span id="cb818-49"><a href="basic-understanding.html#cb818-49" tabindex="-1"></a>gg <span class="ot">&lt;-</span> trees <span class="sc">%&gt;%</span></span>
-<span id="cb818-50"><a href="basic-understanding.html#cb818-50" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">&quot;Var&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Value&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb818-51"><a href="basic-understanding.html#cb818-51" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">sample =</span> Value)) <span class="sc">+</span></span>
-<span id="cb818-52"><a href="basic-understanding.html#cb818-52" tabindex="-1"></a>    <span class="fu">geom_qq</span>() <span class="sc">+</span></span>
-<span id="cb818-53"><a href="basic-understanding.html#cb818-53" tabindex="-1"></a>    <span class="fu">geom_qq_line</span>() <span class="sc">+</span></span>
-<span id="cb818-54"><a href="basic-understanding.html#cb818-54" tabindex="-1"></a>    <span class="fu">facet_wrap</span>( <span class="sc">~</span> Var, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb819"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb819-1"><a href="basic-understanding.html#cb819-1" tabindex="-1"></a><span class="fu">print</span>(gg)</span></code></pre></div>
+<div class="sourceCode" id="cb823"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb823-1"><a href="basic-understanding.html#cb823-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb823-2"><a href="basic-understanding.html#cb823-2" tabindex="-1"></a><span class="fu">library</span>(heplots)      <span class="co"># Multivariate hypothesis tests</span></span>
+<span id="cb823-3"><a href="basic-understanding.html#cb823-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)        <span class="co"># Multivariate tests</span></span>
+<span id="cb823-4"><a href="basic-understanding.html#cb823-4" tabindex="-1"></a><span class="fu">library</span>(MVN)          <span class="co"># Multivariate normality tests</span></span>
+<span id="cb823-5"><a href="basic-understanding.html#cb823-5" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># Data wrangling &amp; visualization</span></span>
+<span id="cb823-6"><a href="basic-understanding.html#cb823-6" tabindex="-1"></a></span>
+<span id="cb823-7"><a href="basic-understanding.html#cb823-7" tabindex="-1"></a></span>
+<span id="cb823-8"><a href="basic-understanding.html#cb823-8" tabindex="-1"></a><span class="co"># Load dataset</span></span>
+<span id="cb823-9"><a href="basic-understanding.html#cb823-9" tabindex="-1"></a>trees <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;images/trees.dat&quot;</span>)</span>
+<span id="cb823-10"><a href="basic-understanding.html#cb823-10" tabindex="-1"></a><span class="fu">names</span>(trees) <span class="ot">&lt;-</span></span>
+<span id="cb823-11"><a href="basic-understanding.html#cb823-11" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;Nitrogen&quot;</span>, <span class="st">&quot;Phosphorous&quot;</span>, <span class="st">&quot;Potassium&quot;</span>, <span class="st">&quot;Ash&quot;</span>, <span class="st">&quot;Height&quot;</span>)</span>
+<span id="cb823-12"><a href="basic-understanding.html#cb823-12" tabindex="-1"></a></span>
+<span id="cb823-13"><a href="basic-understanding.html#cb823-13" tabindex="-1"></a><span class="co"># Structure of dataset</span></span>
+<span id="cb823-14"><a href="basic-understanding.html#cb823-14" tabindex="-1"></a><span class="fu">str</span>(trees)</span>
+<span id="cb823-15"><a href="basic-understanding.html#cb823-15" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    26 obs. of  5 variables:</span></span>
+<span id="cb823-16"><a href="basic-understanding.html#cb823-16" tabindex="-1"></a><span class="co">#&gt;  $ Nitrogen   : num  2.2 2.1 1.52 2.88 2.18 1.87 1.52 2.37 2.06 1.84 ...</span></span>
+<span id="cb823-17"><a href="basic-understanding.html#cb823-17" tabindex="-1"></a><span class="co">#&gt;  $ Phosphorous: num  0.417 0.354 0.208 0.335 0.314 0.271 0.164 0.302 0.373 0.265 ...</span></span>
+<span id="cb823-18"><a href="basic-understanding.html#cb823-18" tabindex="-1"></a><span class="co">#&gt;  $ Potassium  : num  1.35 0.9 0.71 0.9 1.26 1.15 0.83 0.89 0.79 0.72 ...</span></span>
+<span id="cb823-19"><a href="basic-understanding.html#cb823-19" tabindex="-1"></a><span class="co">#&gt;  $ Ash        : num  1.79 1.08 0.47 1.48 1.09 0.99 0.85 0.94 0.8 0.77 ...</span></span>
+<span id="cb823-20"><a href="basic-understanding.html#cb823-20" tabindex="-1"></a><span class="co">#&gt;  $ Height     : int  351 249 171 373 321 191 225 291 284 213 ...</span></span>
+<span id="cb823-21"><a href="basic-understanding.html#cb823-21" tabindex="-1"></a></span>
+<span id="cb823-22"><a href="basic-understanding.html#cb823-22" tabindex="-1"></a><span class="co"># Summary statistics</span></span>
+<span id="cb823-23"><a href="basic-understanding.html#cb823-23" tabindex="-1"></a><span class="fu">summary</span>(trees)</span>
+<span id="cb823-24"><a href="basic-understanding.html#cb823-24" tabindex="-1"></a><span class="co">#&gt;     Nitrogen      Phosphorous       Potassium           Ash        </span></span>
+<span id="cb823-25"><a href="basic-understanding.html#cb823-25" tabindex="-1"></a><span class="co">#&gt;  Min.   :1.130   Min.   :0.1570   Min.   :0.3800   Min.   :0.4500  </span></span>
+<span id="cb823-26"><a href="basic-understanding.html#cb823-26" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:1.532   1st Qu.:0.1963   1st Qu.:0.6050   1st Qu.:0.6375  </span></span>
+<span id="cb823-27"><a href="basic-understanding.html#cb823-27" tabindex="-1"></a><span class="co">#&gt;  Median :1.855   Median :0.2250   Median :0.7150   Median :0.9300  </span></span>
+<span id="cb823-28"><a href="basic-understanding.html#cb823-28" tabindex="-1"></a><span class="co">#&gt;  Mean   :1.896   Mean   :0.2506   Mean   :0.7619   Mean   :0.8873  </span></span>
+<span id="cb823-29"><a href="basic-understanding.html#cb823-29" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:2.160   3rd Qu.:0.2975   3rd Qu.:0.8975   3rd Qu.:0.9825  </span></span>
+<span id="cb823-30"><a href="basic-understanding.html#cb823-30" tabindex="-1"></a><span class="co">#&gt;  Max.   :2.880   Max.   :0.4170   Max.   :1.3500   Max.   :1.7900  </span></span>
+<span id="cb823-31"><a href="basic-understanding.html#cb823-31" tabindex="-1"></a><span class="co">#&gt;      Height     </span></span>
+<span id="cb823-32"><a href="basic-understanding.html#cb823-32" tabindex="-1"></a><span class="co">#&gt;  Min.   : 65.0  </span></span>
+<span id="cb823-33"><a href="basic-understanding.html#cb823-33" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:122.5  </span></span>
+<span id="cb823-34"><a href="basic-understanding.html#cb823-34" tabindex="-1"></a><span class="co">#&gt;  Median :181.0  </span></span>
+<span id="cb823-35"><a href="basic-understanding.html#cb823-35" tabindex="-1"></a><span class="co">#&gt;  Mean   :196.6  </span></span>
+<span id="cb823-36"><a href="basic-understanding.html#cb823-36" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:276.0  </span></span>
+<span id="cb823-37"><a href="basic-understanding.html#cb823-37" tabindex="-1"></a><span class="co">#&gt;  Max.   :373.0</span></span>
+<span id="cb823-38"><a href="basic-understanding.html#cb823-38" tabindex="-1"></a></span>
+<span id="cb823-39"><a href="basic-understanding.html#cb823-39" tabindex="-1"></a><span class="co"># Pearson correlation matrix</span></span>
+<span id="cb823-40"><a href="basic-understanding.html#cb823-40" tabindex="-1"></a><span class="fu">cor</span>(trees, <span class="at">method =</span> <span class="st">&quot;pearson&quot;</span>)</span>
+<span id="cb823-41"><a href="basic-understanding.html#cb823-41" tabindex="-1"></a><span class="co">#&gt;              Nitrogen Phosphorous Potassium       Ash    Height</span></span>
+<span id="cb823-42"><a href="basic-understanding.html#cb823-42" tabindex="-1"></a><span class="co">#&gt; Nitrogen    1.0000000   0.6023902 0.5462456 0.6509771 0.8181641</span></span>
+<span id="cb823-43"><a href="basic-understanding.html#cb823-43" tabindex="-1"></a><span class="co">#&gt; Phosphorous 0.6023902   1.0000000 0.7037469 0.6707871 0.7739656</span></span>
+<span id="cb823-44"><a href="basic-understanding.html#cb823-44" tabindex="-1"></a><span class="co">#&gt; Potassium   0.5462456   0.7037469 1.0000000 0.6710548 0.7915683</span></span>
+<span id="cb823-45"><a href="basic-understanding.html#cb823-45" tabindex="-1"></a><span class="co">#&gt; Ash         0.6509771   0.6707871 0.6710548 1.0000000 0.7676771</span></span>
+<span id="cb823-46"><a href="basic-understanding.html#cb823-46" tabindex="-1"></a><span class="co">#&gt; Height      0.8181641   0.7739656 0.7915683 0.7676771 1.0000000</span></span>
+<span id="cb823-47"><a href="basic-understanding.html#cb823-47" tabindex="-1"></a></span>
+<span id="cb823-48"><a href="basic-understanding.html#cb823-48" tabindex="-1"></a><span class="co"># Q-Q plots for each variable</span></span>
+<span id="cb823-49"><a href="basic-understanding.html#cb823-49" tabindex="-1"></a>gg <span class="ot">&lt;-</span> trees <span class="sc">%&gt;%</span></span>
+<span id="cb823-50"><a href="basic-understanding.html#cb823-50" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">&quot;Var&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Value&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb823-51"><a href="basic-understanding.html#cb823-51" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">sample =</span> Value)) <span class="sc">+</span></span>
+<span id="cb823-52"><a href="basic-understanding.html#cb823-52" tabindex="-1"></a>    <span class="fu">geom_qq</span>() <span class="sc">+</span></span>
+<span id="cb823-53"><a href="basic-understanding.html#cb823-53" tabindex="-1"></a>    <span class="fu">geom_qq_line</span>() <span class="sc">+</span></span>
+<span id="cb823-54"><a href="basic-understanding.html#cb823-54" tabindex="-1"></a>    <span class="fu">facet_wrap</span>( <span class="sc">~</span> Var, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb824"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb824-1"><a href="basic-understanding.html#cb824-1" tabindex="-1"></a><span class="fu">print</span>(gg)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-2"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-2-1.png" alt="Five-panel X-Y chart displaying scatter plots with linear regression lines. Each panel represents a different variable: Ash, Height, Nitrogen, Phosphorous, and Potassium. The x-axis ranges from -2 to 2, and the y-axis varies per panel. Data points are plotted with a positive correlation trend in each chart." width="90%" />
 <p class="caption">
 Figure 2.2: Scatterplot
 </p>
 </div>
-<div class="sourceCode" id="cb820"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb820-1"><a href="basic-understanding.html#cb820-1" tabindex="-1"></a><span class="co"># Shapiro-Wilk test for univariate normality</span></span>
-<span id="cb820-2"><a href="basic-understanding.html#cb820-2" tabindex="-1"></a>sw_tests <span class="ot">&lt;-</span> <span class="fu">apply</span>(trees, <span class="at">MARGIN =</span> <span class="dv">2</span>, <span class="at">FUN =</span> shapiro.test)</span>
-<span id="cb820-3"><a href="basic-understanding.html#cb820-3" tabindex="-1"></a>sw_tests</span>
-<span id="cb820-4"><a href="basic-understanding.html#cb820-4" tabindex="-1"></a><span class="co">#&gt; $Nitrogen</span></span>
-<span id="cb820-5"><a href="basic-understanding.html#cb820-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-6"><a href="basic-understanding.html#cb820-6" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
-<span id="cb820-7"><a href="basic-understanding.html#cb820-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-8"><a href="basic-understanding.html#cb820-8" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
-<span id="cb820-9"><a href="basic-understanding.html#cb820-9" tabindex="-1"></a><span class="co">#&gt; W = 0.96829, p-value = 0.5794</span></span>
-<span id="cb820-10"><a href="basic-understanding.html#cb820-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-11"><a href="basic-understanding.html#cb820-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-12"><a href="basic-understanding.html#cb820-12" tabindex="-1"></a><span class="co">#&gt; $Phosphorous</span></span>
-<span id="cb820-13"><a href="basic-understanding.html#cb820-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-14"><a href="basic-understanding.html#cb820-14" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
-<span id="cb820-15"><a href="basic-understanding.html#cb820-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-16"><a href="basic-understanding.html#cb820-16" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
-<span id="cb820-17"><a href="basic-understanding.html#cb820-17" tabindex="-1"></a><span class="co">#&gt; W = 0.93644, p-value = 0.1104</span></span>
-<span id="cb820-18"><a href="basic-understanding.html#cb820-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-19"><a href="basic-understanding.html#cb820-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-20"><a href="basic-understanding.html#cb820-20" tabindex="-1"></a><span class="co">#&gt; $Potassium</span></span>
-<span id="cb820-21"><a href="basic-understanding.html#cb820-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-22"><a href="basic-understanding.html#cb820-22" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
-<span id="cb820-23"><a href="basic-understanding.html#cb820-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-24"><a href="basic-understanding.html#cb820-24" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
-<span id="cb820-25"><a href="basic-understanding.html#cb820-25" tabindex="-1"></a><span class="co">#&gt; W = 0.95709, p-value = 0.3375</span></span>
-<span id="cb820-26"><a href="basic-understanding.html#cb820-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-27"><a href="basic-understanding.html#cb820-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-28"><a href="basic-understanding.html#cb820-28" tabindex="-1"></a><span class="co">#&gt; $Ash</span></span>
-<span id="cb820-29"><a href="basic-understanding.html#cb820-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-30"><a href="basic-understanding.html#cb820-30" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
-<span id="cb820-31"><a href="basic-understanding.html#cb820-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-32"><a href="basic-understanding.html#cb820-32" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
-<span id="cb820-33"><a href="basic-understanding.html#cb820-33" tabindex="-1"></a><span class="co">#&gt; W = 0.92071, p-value = 0.04671</span></span>
-<span id="cb820-34"><a href="basic-understanding.html#cb820-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-35"><a href="basic-understanding.html#cb820-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-36"><a href="basic-understanding.html#cb820-36" tabindex="-1"></a><span class="co">#&gt; $Height</span></span>
-<span id="cb820-37"><a href="basic-understanding.html#cb820-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-38"><a href="basic-understanding.html#cb820-38" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
-<span id="cb820-39"><a href="basic-understanding.html#cb820-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-40"><a href="basic-understanding.html#cb820-40" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
-<span id="cb820-41"><a href="basic-understanding.html#cb820-41" tabindex="-1"></a><span class="co">#&gt; W = 0.94107, p-value = 0.1424</span></span>
-<span id="cb820-42"><a href="basic-understanding.html#cb820-42" tabindex="-1"></a></span>
-<span id="cb820-43"><a href="basic-understanding.html#cb820-43" tabindex="-1"></a><span class="co"># Kolmogorov-Smirnov test for normality</span></span>
-<span id="cb820-44"><a href="basic-understanding.html#cb820-44" tabindex="-1"></a>ks_tests <span class="ot">&lt;-</span> <span class="fu">map</span>(trees, <span class="sc">~</span> <span class="fu">ks.test</span>(<span class="fu">scale</span>(.x), <span class="st">&quot;pnorm&quot;</span>))</span>
-<span id="cb820-45"><a href="basic-understanding.html#cb820-45" tabindex="-1"></a>ks_tests</span>
-<span id="cb820-46"><a href="basic-understanding.html#cb820-46" tabindex="-1"></a><span class="co">#&gt; $Nitrogen</span></span>
-<span id="cb820-47"><a href="basic-understanding.html#cb820-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-48"><a href="basic-understanding.html#cb820-48" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
-<span id="cb820-49"><a href="basic-understanding.html#cb820-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-50"><a href="basic-understanding.html#cb820-50" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
-<span id="cb820-51"><a href="basic-understanding.html#cb820-51" tabindex="-1"></a><span class="co">#&gt; D = 0.12182, p-value = 0.8351</span></span>
-<span id="cb820-52"><a href="basic-understanding.html#cb820-52" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
-<span id="cb820-53"><a href="basic-understanding.html#cb820-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-54"><a href="basic-understanding.html#cb820-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-55"><a href="basic-understanding.html#cb820-55" tabindex="-1"></a><span class="co">#&gt; $Phosphorous</span></span>
-<span id="cb820-56"><a href="basic-understanding.html#cb820-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-57"><a href="basic-understanding.html#cb820-57" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
-<span id="cb820-58"><a href="basic-understanding.html#cb820-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-59"><a href="basic-understanding.html#cb820-59" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
-<span id="cb820-60"><a href="basic-understanding.html#cb820-60" tabindex="-1"></a><span class="co">#&gt; D = 0.17627, p-value = 0.3944</span></span>
-<span id="cb820-61"><a href="basic-understanding.html#cb820-61" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
-<span id="cb820-62"><a href="basic-understanding.html#cb820-62" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-63"><a href="basic-understanding.html#cb820-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-64"><a href="basic-understanding.html#cb820-64" tabindex="-1"></a><span class="co">#&gt; $Potassium</span></span>
-<span id="cb820-65"><a href="basic-understanding.html#cb820-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-66"><a href="basic-understanding.html#cb820-66" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
-<span id="cb820-67"><a href="basic-understanding.html#cb820-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-68"><a href="basic-understanding.html#cb820-68" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
-<span id="cb820-69"><a href="basic-understanding.html#cb820-69" tabindex="-1"></a><span class="co">#&gt; D = 0.10542, p-value = 0.9348</span></span>
-<span id="cb820-70"><a href="basic-understanding.html#cb820-70" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
-<span id="cb820-71"><a href="basic-understanding.html#cb820-71" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-72"><a href="basic-understanding.html#cb820-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-73"><a href="basic-understanding.html#cb820-73" tabindex="-1"></a><span class="co">#&gt; $Ash</span></span>
-<span id="cb820-74"><a href="basic-understanding.html#cb820-74" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-75"><a href="basic-understanding.html#cb820-75" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
-<span id="cb820-76"><a href="basic-understanding.html#cb820-76" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-77"><a href="basic-understanding.html#cb820-77" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
-<span id="cb820-78"><a href="basic-understanding.html#cb820-78" tabindex="-1"></a><span class="co">#&gt; D = 0.14503, p-value = 0.6449</span></span>
-<span id="cb820-79"><a href="basic-understanding.html#cb820-79" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
-<span id="cb820-80"><a href="basic-understanding.html#cb820-80" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-81"><a href="basic-understanding.html#cb820-81" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-82"><a href="basic-understanding.html#cb820-82" tabindex="-1"></a><span class="co">#&gt; $Height</span></span>
-<span id="cb820-83"><a href="basic-understanding.html#cb820-83" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-84"><a href="basic-understanding.html#cb820-84" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
-<span id="cb820-85"><a href="basic-understanding.html#cb820-85" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb820-86"><a href="basic-understanding.html#cb820-86" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
-<span id="cb820-87"><a href="basic-understanding.html#cb820-87" tabindex="-1"></a><span class="co">#&gt; D = 0.1107, p-value = 0.9076</span></span>
-<span id="cb820-88"><a href="basic-understanding.html#cb820-88" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span></code></pre></div>
-<div class="sourceCode" id="cb821"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb821-1"><a href="basic-understanding.html#cb821-1" tabindex="-1"></a><span class="co"># Mardia&#39;s test for multivariate normality</span></span>
-<span id="cb821-2"><a href="basic-understanding.html#cb821-2" tabindex="-1"></a>mardia_test <span class="ot">&lt;-</span></span>
-<span id="cb821-3"><a href="basic-understanding.html#cb821-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
-<span id="cb821-4"><a href="basic-understanding.html#cb821-4" tabindex="-1"></a>        trees,</span>
-<span id="cb821-5"><a href="basic-understanding.html#cb821-5" tabindex="-1"></a>        <span class="at">mvnTest =</span> <span class="st">&quot;mardia&quot;</span>,</span>
-<span id="cb821-6"><a href="basic-understanding.html#cb821-6" tabindex="-1"></a>        <span class="at">covariance =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb821-7"><a href="basic-understanding.html#cb821-7" tabindex="-1"></a>        <span class="at">multivariatePlot =</span> <span class="st">&quot;qq&quot;</span></span>
-<span id="cb821-8"><a href="basic-understanding.html#cb821-8" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb825"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb825-1"><a href="basic-understanding.html#cb825-1" tabindex="-1"></a><span class="co"># Shapiro-Wilk test for univariate normality</span></span>
+<span id="cb825-2"><a href="basic-understanding.html#cb825-2" tabindex="-1"></a>sw_tests <span class="ot">&lt;-</span> <span class="fu">apply</span>(trees, <span class="at">MARGIN =</span> <span class="dv">2</span>, <span class="at">FUN =</span> shapiro.test)</span>
+<span id="cb825-3"><a href="basic-understanding.html#cb825-3" tabindex="-1"></a>sw_tests</span>
+<span id="cb825-4"><a href="basic-understanding.html#cb825-4" tabindex="-1"></a><span class="co">#&gt; $Nitrogen</span></span>
+<span id="cb825-5"><a href="basic-understanding.html#cb825-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-6"><a href="basic-understanding.html#cb825-6" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
+<span id="cb825-7"><a href="basic-understanding.html#cb825-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-8"><a href="basic-understanding.html#cb825-8" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
+<span id="cb825-9"><a href="basic-understanding.html#cb825-9" tabindex="-1"></a><span class="co">#&gt; W = 0.96829, p-value = 0.5794</span></span>
+<span id="cb825-10"><a href="basic-understanding.html#cb825-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-11"><a href="basic-understanding.html#cb825-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-12"><a href="basic-understanding.html#cb825-12" tabindex="-1"></a><span class="co">#&gt; $Phosphorous</span></span>
+<span id="cb825-13"><a href="basic-understanding.html#cb825-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-14"><a href="basic-understanding.html#cb825-14" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
+<span id="cb825-15"><a href="basic-understanding.html#cb825-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-16"><a href="basic-understanding.html#cb825-16" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
+<span id="cb825-17"><a href="basic-understanding.html#cb825-17" tabindex="-1"></a><span class="co">#&gt; W = 0.93644, p-value = 0.1104</span></span>
+<span id="cb825-18"><a href="basic-understanding.html#cb825-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-19"><a href="basic-understanding.html#cb825-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-20"><a href="basic-understanding.html#cb825-20" tabindex="-1"></a><span class="co">#&gt; $Potassium</span></span>
+<span id="cb825-21"><a href="basic-understanding.html#cb825-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-22"><a href="basic-understanding.html#cb825-22" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
+<span id="cb825-23"><a href="basic-understanding.html#cb825-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-24"><a href="basic-understanding.html#cb825-24" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
+<span id="cb825-25"><a href="basic-understanding.html#cb825-25" tabindex="-1"></a><span class="co">#&gt; W = 0.95709, p-value = 0.3375</span></span>
+<span id="cb825-26"><a href="basic-understanding.html#cb825-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-27"><a href="basic-understanding.html#cb825-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-28"><a href="basic-understanding.html#cb825-28" tabindex="-1"></a><span class="co">#&gt; $Ash</span></span>
+<span id="cb825-29"><a href="basic-understanding.html#cb825-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-30"><a href="basic-understanding.html#cb825-30" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
+<span id="cb825-31"><a href="basic-understanding.html#cb825-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-32"><a href="basic-understanding.html#cb825-32" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
+<span id="cb825-33"><a href="basic-understanding.html#cb825-33" tabindex="-1"></a><span class="co">#&gt; W = 0.92071, p-value = 0.04671</span></span>
+<span id="cb825-34"><a href="basic-understanding.html#cb825-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-35"><a href="basic-understanding.html#cb825-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-36"><a href="basic-understanding.html#cb825-36" tabindex="-1"></a><span class="co">#&gt; $Height</span></span>
+<span id="cb825-37"><a href="basic-understanding.html#cb825-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-38"><a href="basic-understanding.html#cb825-38" tabindex="-1"></a><span class="co">#&gt;  Shapiro-Wilk normality test</span></span>
+<span id="cb825-39"><a href="basic-understanding.html#cb825-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-40"><a href="basic-understanding.html#cb825-40" tabindex="-1"></a><span class="co">#&gt; data:  newX[, i]</span></span>
+<span id="cb825-41"><a href="basic-understanding.html#cb825-41" tabindex="-1"></a><span class="co">#&gt; W = 0.94107, p-value = 0.1424</span></span>
+<span id="cb825-42"><a href="basic-understanding.html#cb825-42" tabindex="-1"></a></span>
+<span id="cb825-43"><a href="basic-understanding.html#cb825-43" tabindex="-1"></a><span class="co"># Kolmogorov-Smirnov test for normality</span></span>
+<span id="cb825-44"><a href="basic-understanding.html#cb825-44" tabindex="-1"></a>ks_tests <span class="ot">&lt;-</span> <span class="fu">map</span>(trees, <span class="sc">~</span> <span class="fu">ks.test</span>(<span class="fu">scale</span>(.x), <span class="st">&quot;pnorm&quot;</span>))</span>
+<span id="cb825-45"><a href="basic-understanding.html#cb825-45" tabindex="-1"></a>ks_tests</span>
+<span id="cb825-46"><a href="basic-understanding.html#cb825-46" tabindex="-1"></a><span class="co">#&gt; $Nitrogen</span></span>
+<span id="cb825-47"><a href="basic-understanding.html#cb825-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-48"><a href="basic-understanding.html#cb825-48" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
+<span id="cb825-49"><a href="basic-understanding.html#cb825-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-50"><a href="basic-understanding.html#cb825-50" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
+<span id="cb825-51"><a href="basic-understanding.html#cb825-51" tabindex="-1"></a><span class="co">#&gt; D = 0.12182, p-value = 0.8351</span></span>
+<span id="cb825-52"><a href="basic-understanding.html#cb825-52" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
+<span id="cb825-53"><a href="basic-understanding.html#cb825-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-54"><a href="basic-understanding.html#cb825-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-55"><a href="basic-understanding.html#cb825-55" tabindex="-1"></a><span class="co">#&gt; $Phosphorous</span></span>
+<span id="cb825-56"><a href="basic-understanding.html#cb825-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-57"><a href="basic-understanding.html#cb825-57" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
+<span id="cb825-58"><a href="basic-understanding.html#cb825-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-59"><a href="basic-understanding.html#cb825-59" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
+<span id="cb825-60"><a href="basic-understanding.html#cb825-60" tabindex="-1"></a><span class="co">#&gt; D = 0.17627, p-value = 0.3944</span></span>
+<span id="cb825-61"><a href="basic-understanding.html#cb825-61" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
+<span id="cb825-62"><a href="basic-understanding.html#cb825-62" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-63"><a href="basic-understanding.html#cb825-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-64"><a href="basic-understanding.html#cb825-64" tabindex="-1"></a><span class="co">#&gt; $Potassium</span></span>
+<span id="cb825-65"><a href="basic-understanding.html#cb825-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-66"><a href="basic-understanding.html#cb825-66" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
+<span id="cb825-67"><a href="basic-understanding.html#cb825-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-68"><a href="basic-understanding.html#cb825-68" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
+<span id="cb825-69"><a href="basic-understanding.html#cb825-69" tabindex="-1"></a><span class="co">#&gt; D = 0.10542, p-value = 0.9348</span></span>
+<span id="cb825-70"><a href="basic-understanding.html#cb825-70" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
+<span id="cb825-71"><a href="basic-understanding.html#cb825-71" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-72"><a href="basic-understanding.html#cb825-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-73"><a href="basic-understanding.html#cb825-73" tabindex="-1"></a><span class="co">#&gt; $Ash</span></span>
+<span id="cb825-74"><a href="basic-understanding.html#cb825-74" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-75"><a href="basic-understanding.html#cb825-75" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
+<span id="cb825-76"><a href="basic-understanding.html#cb825-76" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-77"><a href="basic-understanding.html#cb825-77" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
+<span id="cb825-78"><a href="basic-understanding.html#cb825-78" tabindex="-1"></a><span class="co">#&gt; D = 0.14503, p-value = 0.6449</span></span>
+<span id="cb825-79"><a href="basic-understanding.html#cb825-79" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span>
+<span id="cb825-80"><a href="basic-understanding.html#cb825-80" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-81"><a href="basic-understanding.html#cb825-81" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-82"><a href="basic-understanding.html#cb825-82" tabindex="-1"></a><span class="co">#&gt; $Height</span></span>
+<span id="cb825-83"><a href="basic-understanding.html#cb825-83" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-84"><a href="basic-understanding.html#cb825-84" tabindex="-1"></a><span class="co">#&gt;  Asymptotic one-sample Kolmogorov-Smirnov test</span></span>
+<span id="cb825-85"><a href="basic-understanding.html#cb825-85" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb825-86"><a href="basic-understanding.html#cb825-86" tabindex="-1"></a><span class="co">#&gt; data:  scale(.x)</span></span>
+<span id="cb825-87"><a href="basic-understanding.html#cb825-87" tabindex="-1"></a><span class="co">#&gt; D = 0.1107, p-value = 0.9076</span></span>
+<span id="cb825-88"><a href="basic-understanding.html#cb825-88" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: two-sided</span></span></code></pre></div>
+<div class="sourceCode" id="cb826"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb826-1"><a href="basic-understanding.html#cb826-1" tabindex="-1"></a><span class="co"># Mardia&#39;s test for multivariate normality</span></span>
+<span id="cb826-2"><a href="basic-understanding.html#cb826-2" tabindex="-1"></a>mardia_test <span class="ot">&lt;-</span></span>
+<span id="cb826-3"><a href="basic-understanding.html#cb826-3" tabindex="-1"></a>    MVN<span class="sc">::</span><span class="fu">mvn</span>(</span>
+<span id="cb826-4"><a href="basic-understanding.html#cb826-4" tabindex="-1"></a>        trees,</span>
+<span id="cb826-5"><a href="basic-understanding.html#cb826-5" tabindex="-1"></a>        <span class="at">mvn_test  =</span> <span class="st">&quot;mardia&quot;</span></span>
+<span id="cb826-6"><a href="basic-understanding.html#cb826-6" tabindex="-1"></a>    )</span>
+<span id="cb826-7"><a href="basic-understanding.html#cb826-7" tabindex="-1"></a></span>
+<span id="cb826-8"><a href="basic-understanding.html#cb826-8" tabindex="-1"></a><span class="fu">plot</span>(mardia_test)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-4"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-4-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Mardia). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
 <p class="caption">
 Figure 2.4: Chi-Square Q-Q Plot Mardia
 </p>
 </div>
-<div class="sourceCode" id="cb822"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb822-1"><a href="basic-understanding.html#cb822-1" tabindex="-1"></a>mardia_test<span class="sc">$</span>multivariateNormality</span>
-<span id="cb822-2"><a href="basic-understanding.html#cb822-2" tabindex="-1"></a><span class="co">#&gt;              Test         Statistic            p value Result</span></span>
-<span id="cb822-3"><a href="basic-understanding.html#cb822-3" tabindex="-1"></a><span class="co">#&gt; 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES</span></span>
-<span id="cb822-4"><a href="basic-understanding.html#cb822-4" tabindex="-1"></a><span class="co">#&gt; 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES</span></span>
-<span id="cb822-5"><a href="basic-understanding.html#cb822-5" tabindex="-1"></a><span class="co">#&gt; 3             MVN              &lt;NA&gt;               &lt;NA&gt;    YES</span></span></code></pre></div>
-<div class="sourceCode" id="cb823"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb823-1"><a href="basic-understanding.html#cb823-1" tabindex="-1"></a><span class="co"># Doornik-Hansen test</span></span>
-<span id="cb823-2"><a href="basic-understanding.html#cb823-2" tabindex="-1"></a>dh_test <span class="ot">&lt;-</span></span>
-<span id="cb823-3"><a href="basic-understanding.html#cb823-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
-<span id="cb823-4"><a href="basic-understanding.html#cb823-4" tabindex="-1"></a>        trees,</span>
-<span id="cb823-5"><a href="basic-understanding.html#cb823-5" tabindex="-1"></a>        <span class="at">mvnTest =</span> <span class="st">&quot;dh&quot;</span>,</span>
-<span id="cb823-6"><a href="basic-understanding.html#cb823-6" tabindex="-1"></a>        <span class="at">covariance =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb823-7"><a href="basic-understanding.html#cb823-7" tabindex="-1"></a>        <span class="at">multivariatePlot =</span> <span class="st">&quot;qq&quot;</span></span>
-<span id="cb823-8"><a href="basic-understanding.html#cb823-8" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb827"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb827-1"><a href="basic-understanding.html#cb827-1" tabindex="-1"></a>mardia_test<span class="sc">$</span>multivariate_normality</span>
+<span id="cb827-2"><a href="basic-understanding.html#cb827-2" tabindex="-1"></a><span class="co">#&gt;              Test Statistic p.value     Method      MVN</span></span>
+<span id="cb827-3"><a href="basic-understanding.html#cb827-3" tabindex="-1"></a><span class="co">#&gt; 1 Mardia Skewness    33.436   0.544 asymptotic ✓ Normal</span></span>
+<span id="cb827-4"><a href="basic-understanding.html#cb827-4" tabindex="-1"></a><span class="co">#&gt; 2 Mardia Kurtosis    -0.944   0.345 asymptotic ✓ Normal</span></span></code></pre></div>
+<div class="sourceCode" id="cb828"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb828-1"><a href="basic-understanding.html#cb828-1" tabindex="-1"></a><span class="co"># Doornik-Hansen test</span></span>
+<span id="cb828-2"><a href="basic-understanding.html#cb828-2" tabindex="-1"></a>dh_test <span class="ot">&lt;-</span></span>
+<span id="cb828-3"><a href="basic-understanding.html#cb828-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
+<span id="cb828-4"><a href="basic-understanding.html#cb828-4" tabindex="-1"></a>        trees,</span>
+<span id="cb828-5"><a href="basic-understanding.html#cb828-5" tabindex="-1"></a>        <span class="at">mvn_test =</span> <span class="st">&quot;doornik_hansen&quot;</span></span>
+<span id="cb828-6"><a href="basic-understanding.html#cb828-6" tabindex="-1"></a>    )</span>
+<span id="cb828-7"><a href="basic-understanding.html#cb828-7" tabindex="-1"></a><span class="fu">plot</span>(dh_test)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-6"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-6-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Doornik-Hansen Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
 <p class="caption">
 Figure 2.6: Chi-Square Q-Q Plot Doornik-Hansen Test
 </p>
 </div>
-<div class="sourceCode" id="cb824"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb824-1"><a href="basic-understanding.html#cb824-1" tabindex="-1"></a>dh_test<span class="sc">$</span>multivariateNormality</span>
-<span id="cb824-2"><a href="basic-understanding.html#cb824-2" tabindex="-1"></a><span class="co">#&gt;             Test        E df      p value MVN</span></span>
-<span id="cb824-3"><a href="basic-understanding.html#cb824-3" tabindex="-1"></a><span class="co">#&gt; 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO</span></span></code></pre></div>
-<div class="sourceCode" id="cb825"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb825-1"><a href="basic-understanding.html#cb825-1" tabindex="-1"></a><span class="co"># Henze-Zirkler test</span></span>
-<span id="cb825-2"><a href="basic-understanding.html#cb825-2" tabindex="-1"></a>hz_test <span class="ot">&lt;-</span></span>
-<span id="cb825-3"><a href="basic-understanding.html#cb825-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
-<span id="cb825-4"><a href="basic-understanding.html#cb825-4" tabindex="-1"></a>        trees,</span>
-<span id="cb825-5"><a href="basic-understanding.html#cb825-5" tabindex="-1"></a>        <span class="at">mvnTest =</span> <span class="st">&quot;hz&quot;</span>,</span>
-<span id="cb825-6"><a href="basic-understanding.html#cb825-6" tabindex="-1"></a>        <span class="at">covariance =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb825-7"><a href="basic-understanding.html#cb825-7" tabindex="-1"></a>        <span class="at">multivariatePlot =</span> <span class="st">&quot;qq&quot;</span></span>
-<span id="cb825-8"><a href="basic-understanding.html#cb825-8" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb829"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb829-1"><a href="basic-understanding.html#cb829-1" tabindex="-1"></a>dh_test<span class="sc">$</span>multivariate_normality</span>
+<span id="cb829-2"><a href="basic-understanding.html#cb829-2" tabindex="-1"></a><span class="co">#&gt;             Test Statistic df p.value     Method          MVN</span></span>
+<span id="cb829-3"><a href="basic-understanding.html#cb829-3" tabindex="-1"></a><span class="co">#&gt; 1 Doornik-Hansen   161.945 10  &lt;0.001 asymptotic ✗ Not normal</span></span></code></pre></div>
+<div class="sourceCode" id="cb830"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb830-1"><a href="basic-understanding.html#cb830-1" tabindex="-1"></a><span class="co"># Henze-Zirkler test</span></span>
+<span id="cb830-2"><a href="basic-understanding.html#cb830-2" tabindex="-1"></a>hz_test <span class="ot">&lt;-</span></span>
+<span id="cb830-3"><a href="basic-understanding.html#cb830-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
+<span id="cb830-4"><a href="basic-understanding.html#cb830-4" tabindex="-1"></a>        trees,</span>
+<span id="cb830-5"><a href="basic-understanding.html#cb830-5" tabindex="-1"></a>        <span class="at">mvn =</span> <span class="st">&quot;hz&quot;</span></span>
+<span id="cb830-6"><a href="basic-understanding.html#cb830-6" tabindex="-1"></a>    )</span>
+<span id="cb830-7"><a href="basic-understanding.html#cb830-7" tabindex="-1"></a><span class="fu">plot</span>(hz_test)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-8"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-8-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Henze-Zirkler Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
 <p class="caption">
 Figure 2.9: Chi-Square Q-Q Plot Henze-Zirkler Test
 </p>
 </div>
-<div class="sourceCode" id="cb826"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb826-1"><a href="basic-understanding.html#cb826-1" tabindex="-1"></a>hz_test<span class="sc">$</span>multivariateNormality</span>
-<span id="cb826-2"><a href="basic-understanding.html#cb826-2" tabindex="-1"></a><span class="co">#&gt;            Test        HZ   p value MVN</span></span>
-<span id="cb826-3"><a href="basic-understanding.html#cb826-3" tabindex="-1"></a><span class="co">#&gt; 1 Henze-Zirkler 0.7591525 0.6398905 YES</span></span></code></pre></div>
-<div class="sourceCode" id="cb827"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb827-1"><a href="basic-understanding.html#cb827-1" tabindex="-1"></a><span class="co"># Royston&#39;s test (only for 3 &lt; obs &lt; 5000)</span></span>
-<span id="cb827-2"><a href="basic-understanding.html#cb827-2" tabindex="-1"></a>royston_test <span class="ot">&lt;-</span></span>
-<span id="cb827-3"><a href="basic-understanding.html#cb827-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
-<span id="cb827-4"><a href="basic-understanding.html#cb827-4" tabindex="-1"></a>        trees,</span>
-<span id="cb827-5"><a href="basic-understanding.html#cb827-5" tabindex="-1"></a>        <span class="at">mvnTest =</span> <span class="st">&quot;royston&quot;</span>,</span>
-<span id="cb827-6"><a href="basic-understanding.html#cb827-6" tabindex="-1"></a>        <span class="at">covariance =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb827-7"><a href="basic-understanding.html#cb827-7" tabindex="-1"></a>        <span class="at">multivariatePlot =</span> <span class="st">&quot;qq&quot;</span></span>
-<span id="cb827-8"><a href="basic-understanding.html#cb827-8" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb831"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb831-1"><a href="basic-understanding.html#cb831-1" tabindex="-1"></a>hz_test<span class="sc">$</span>multivariate_normality</span>
+<span id="cb831-2"><a href="basic-understanding.html#cb831-2" tabindex="-1"></a><span class="co">#&gt;            Test Statistic p.value     Method      MVN</span></span>
+<span id="cb831-3"><a href="basic-understanding.html#cb831-3" tabindex="-1"></a><span class="co">#&gt; 1 Henze-Zirkler     0.782   0.524 asymptotic ✓ Normal</span></span></code></pre></div>
+<div class="sourceCode" id="cb832"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb832-1"><a href="basic-understanding.html#cb832-1" tabindex="-1"></a><span class="co"># Royston&#39;s test (only for 3 &lt; obs &lt; 5000)</span></span>
+<span id="cb832-2"><a href="basic-understanding.html#cb832-2" tabindex="-1"></a>royston_test <span class="ot">&lt;-</span></span>
+<span id="cb832-3"><a href="basic-understanding.html#cb832-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
+<span id="cb832-4"><a href="basic-understanding.html#cb832-4" tabindex="-1"></a>        trees,</span>
+<span id="cb832-5"><a href="basic-understanding.html#cb832-5" tabindex="-1"></a>        <span class="at">mvn =</span> <span class="st">&quot;royston&quot;</span></span>
+<span id="cb832-6"><a href="basic-understanding.html#cb832-6" tabindex="-1"></a>    )</span>
+<span id="cb832-7"><a href="basic-understanding.html#cb832-7" tabindex="-1"></a><span class="fu">plot</span>(royston_test)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-10"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-10-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Royston Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
 <p class="caption">
 Figure 2.11: Chi-Square Q-Q Plot Royston Test
 </p>
 </div>
-<div class="sourceCode" id="cb828"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb828-1"><a href="basic-understanding.html#cb828-1" tabindex="-1"></a>royston_test<span class="sc">$</span>multivariateNormality</span>
-<span id="cb828-2"><a href="basic-understanding.html#cb828-2" tabindex="-1"></a><span class="co">#&gt;      Test        H    p value MVN</span></span>
-<span id="cb828-3"><a href="basic-understanding.html#cb828-3" tabindex="-1"></a><span class="co">#&gt; 1 Royston 9.064631 0.08199215 YES</span></span></code></pre></div>
-<div class="sourceCode" id="cb829"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb829-1"><a href="basic-understanding.html#cb829-1" tabindex="-1"></a><span class="co"># Energy test</span></span>
-<span id="cb829-2"><a href="basic-understanding.html#cb829-2" tabindex="-1"></a>estat_test <span class="ot">&lt;-</span></span>
-<span id="cb829-3"><a href="basic-understanding.html#cb829-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
-<span id="cb829-4"><a href="basic-understanding.html#cb829-4" tabindex="-1"></a>        trees,</span>
-<span id="cb829-5"><a href="basic-understanding.html#cb829-5" tabindex="-1"></a>        <span class="at">mvnTest =</span> <span class="st">&quot;energy&quot;</span>,</span>
-<span id="cb829-6"><a href="basic-understanding.html#cb829-6" tabindex="-1"></a>        <span class="at">covariance =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb829-7"><a href="basic-understanding.html#cb829-7" tabindex="-1"></a>        <span class="at">multivariatePlot =</span> <span class="st">&quot;qq&quot;</span></span>
-<span id="cb829-8"><a href="basic-understanding.html#cb829-8" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb833"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb833-1"><a href="basic-understanding.html#cb833-1" tabindex="-1"></a>royston_test<span class="sc">$</span>multivariate_normality</span>
+<span id="cb833-2"><a href="basic-understanding.html#cb833-2" tabindex="-1"></a><span class="co">#&gt;      Test Statistic p.value     Method      MVN</span></span>
+<span id="cb833-3"><a href="basic-understanding.html#cb833-3" tabindex="-1"></a><span class="co">#&gt; 1 Royston     9.065   0.082 asymptotic ✓ Normal</span></span></code></pre></div>
+<div class="sourceCode" id="cb834"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb834-1"><a href="basic-understanding.html#cb834-1" tabindex="-1"></a><span class="co"># Energy test</span></span>
+<span id="cb834-2"><a href="basic-understanding.html#cb834-2" tabindex="-1"></a>estat_test <span class="ot">&lt;-</span></span>
+<span id="cb834-3"><a href="basic-understanding.html#cb834-3" tabindex="-1"></a>    <span class="fu">mvn</span>(</span>
+<span id="cb834-4"><a href="basic-understanding.html#cb834-4" tabindex="-1"></a>        trees,</span>
+<span id="cb834-5"><a href="basic-understanding.html#cb834-5" tabindex="-1"></a>        <span class="at">mvn =</span> <span class="st">&quot;energy&quot;</span></span>
+<span id="cb834-6"><a href="basic-understanding.html#cb834-6" tabindex="-1"></a>    )</span>
+<span id="cb834-7"><a href="basic-understanding.html#cb834-7" tabindex="-1"></a><span class="fu">plot</span>(estat_test)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-12"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-12-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Energy Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
 <p class="caption">
 Figure 2.13: Chi-Square Q-Q Plot Energy Test
 </p>
 </div>
-<div class="sourceCode" id="cb830"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb830-1"><a href="basic-understanding.html#cb830-1" tabindex="-1"></a>estat_test<span class="sc">$</span>multivariateNormality</span>
-<span id="cb830-2"><a href="basic-understanding.html#cb830-2" tabindex="-1"></a><span class="co">#&gt;          Test Statistic p value MVN</span></span>
-<span id="cb830-3"><a href="basic-understanding.html#cb830-3" tabindex="-1"></a><span class="co">#&gt; 1 E-statistic  1.091101   0.509 YES</span></span></code></pre></div>
+<div class="sourceCode" id="cb835"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb835-1"><a href="basic-understanding.html#cb835-1" tabindex="-1"></a>estat_test<span class="sc">$</span>multivariate_normality</span>
+<span id="cb835-2"><a href="basic-understanding.html#cb835-2" tabindex="-1"></a><span class="co">#&gt;          Test Statistic p.value    Method      MVN</span></span>
+<span id="cb835-3"><a href="basic-understanding.html#cb835-3" tabindex="-1"></a><span class="co">#&gt; 1 E-Statistic     1.091   0.518 bootstrap ✓ Normal</span></span></code></pre></div>
 </div>
 </div>
 <div id="mean-vector-inference" class="section level3 hasAnchor" number="25.1.6">
@@ -2788,36 +2783,36 @@ T^2(\mathbf{z}) = T^2(\mathbf{y}).
 </ul></li>
 </ol>
 <hr />
-<div class="sourceCode" id="cb831"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb831-1"><a href="basic-understanding.html#cb831-1" tabindex="-1"></a><span class="co"># Load required packages</span></span>
-<span id="cb831-2"><a href="basic-understanding.html#cb831-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate analysis</span></span>
-<span id="cb831-3"><a href="basic-understanding.html#cb831-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T^2 test</span></span>
-<span id="cb831-4"><a href="basic-understanding.html#cb831-4" tabindex="-1"></a></span>
-<span id="cb831-5"><a href="basic-understanding.html#cb831-5" tabindex="-1"></a><span class="co"># Simulated dataset (5 variables, 30 observations)</span></span>
-<span id="cb831-6"><a href="basic-understanding.html#cb831-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb831-7"><a href="basic-understanding.html#cb831-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span>  <span class="co"># Sample size</span></span>
-<span id="cb831-8"><a href="basic-understanding.html#cb831-8" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span>   <span class="co"># Number of variables</span></span>
-<span id="cb831-9"><a href="basic-understanding.html#cb831-9" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  <span class="co"># Population mean vector</span></span>
-<span id="cb831-10"><a href="basic-understanding.html#cb831-10" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p) <span class="co"># Identity covariance matrix</span></span>
-<span id="cb831-11"><a href="basic-understanding.html#cb831-11" tabindex="-1"></a></span>
-<span id="cb831-12"><a href="basic-understanding.html#cb831-12" tabindex="-1"></a><span class="co"># Generate multivariate normal data</span></span>
-<span id="cb831-13"><a href="basic-understanding.html#cb831-13" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n, mu, Sigma)</span>
-<span id="cb831-14"><a href="basic-understanding.html#cb831-14" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;V&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
-<span id="cb831-15"><a href="basic-understanding.html#cb831-15" tabindex="-1"></a></span>
-<span id="cb831-16"><a href="basic-understanding.html#cb831-16" tabindex="-1"></a><span class="co"># Compute sample mean and covariance</span></span>
-<span id="cb831-17"><a href="basic-understanding.html#cb831-17" tabindex="-1"></a>sample_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data)</span>
-<span id="cb831-18"><a href="basic-understanding.html#cb831-18" tabindex="-1"></a>sample_cov  <span class="ot">&lt;-</span> <span class="fu">cov</span>(data)</span>
-<span id="cb831-19"><a href="basic-understanding.html#cb831-19" tabindex="-1"></a></span>
-<span id="cb831-20"><a href="basic-understanding.html#cb831-20" tabindex="-1"></a><span class="co"># Perform Hotelling&#39;s T^2 test (testing against mu_0 = rep(0, p))</span></span>
-<span id="cb831-21"><a href="basic-understanding.html#cb831-21" tabindex="-1"></a>hotelling_test <span class="ot">&lt;-</span> <span class="fu">HotellingsT2</span>(data, <span class="at">mu =</span> <span class="fu">rep</span>(<span class="dv">0</span>, p))</span>
-<span id="cb831-22"><a href="basic-understanding.html#cb831-22" tabindex="-1"></a></span>
-<span id="cb831-23"><a href="basic-understanding.html#cb831-23" tabindex="-1"></a><span class="co"># Print results</span></span>
-<span id="cb831-24"><a href="basic-understanding.html#cb831-24" tabindex="-1"></a><span class="fu">print</span>(hotelling_test)</span>
-<span id="cb831-25"><a href="basic-understanding.html#cb831-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb831-26"><a href="basic-understanding.html#cb831-26" tabindex="-1"></a><span class="co">#&gt;  Hotelling&#39;s one sample T2-test</span></span>
-<span id="cb831-27"><a href="basic-understanding.html#cb831-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb831-28"><a href="basic-understanding.html#cb831-28" tabindex="-1"></a><span class="co">#&gt; data:  data</span></span>
-<span id="cb831-29"><a href="basic-understanding.html#cb831-29" tabindex="-1"></a><span class="co">#&gt; T.2 = 0.43475, df1 = 5, df2 = 25, p-value = 0.82</span></span>
-<span id="cb831-30"><a href="basic-understanding.html#cb831-30" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true location is not equal to c(0,0,0,0,0)</span></span></code></pre></div>
+<div class="sourceCode" id="cb836"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb836-1"><a href="basic-understanding.html#cb836-1" tabindex="-1"></a><span class="co"># Load required packages</span></span>
+<span id="cb836-2"><a href="basic-understanding.html#cb836-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate analysis</span></span>
+<span id="cb836-3"><a href="basic-understanding.html#cb836-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T^2 test</span></span>
+<span id="cb836-4"><a href="basic-understanding.html#cb836-4" tabindex="-1"></a></span>
+<span id="cb836-5"><a href="basic-understanding.html#cb836-5" tabindex="-1"></a><span class="co"># Simulated dataset (5 variables, 30 observations)</span></span>
+<span id="cb836-6"><a href="basic-understanding.html#cb836-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb836-7"><a href="basic-understanding.html#cb836-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span>  <span class="co"># Sample size</span></span>
+<span id="cb836-8"><a href="basic-understanding.html#cb836-8" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span>   <span class="co"># Number of variables</span></span>
+<span id="cb836-9"><a href="basic-understanding.html#cb836-9" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  <span class="co"># Population mean vector</span></span>
+<span id="cb836-10"><a href="basic-understanding.html#cb836-10" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p) <span class="co"># Identity covariance matrix</span></span>
+<span id="cb836-11"><a href="basic-understanding.html#cb836-11" tabindex="-1"></a></span>
+<span id="cb836-12"><a href="basic-understanding.html#cb836-12" tabindex="-1"></a><span class="co"># Generate multivariate normal data</span></span>
+<span id="cb836-13"><a href="basic-understanding.html#cb836-13" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n, mu, Sigma)</span>
+<span id="cb836-14"><a href="basic-understanding.html#cb836-14" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;V&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
+<span id="cb836-15"><a href="basic-understanding.html#cb836-15" tabindex="-1"></a></span>
+<span id="cb836-16"><a href="basic-understanding.html#cb836-16" tabindex="-1"></a><span class="co"># Compute sample mean and covariance</span></span>
+<span id="cb836-17"><a href="basic-understanding.html#cb836-17" tabindex="-1"></a>sample_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data)</span>
+<span id="cb836-18"><a href="basic-understanding.html#cb836-18" tabindex="-1"></a>sample_cov  <span class="ot">&lt;-</span> <span class="fu">cov</span>(data)</span>
+<span id="cb836-19"><a href="basic-understanding.html#cb836-19" tabindex="-1"></a></span>
+<span id="cb836-20"><a href="basic-understanding.html#cb836-20" tabindex="-1"></a><span class="co"># Perform Hotelling&#39;s T^2 test (testing against mu_0 = rep(0, p))</span></span>
+<span id="cb836-21"><a href="basic-understanding.html#cb836-21" tabindex="-1"></a>hotelling_test <span class="ot">&lt;-</span> <span class="fu">HotellingsT2</span>(data, <span class="at">mu =</span> <span class="fu">rep</span>(<span class="dv">0</span>, p))</span>
+<span id="cb836-22"><a href="basic-understanding.html#cb836-22" tabindex="-1"></a></span>
+<span id="cb836-23"><a href="basic-understanding.html#cb836-23" tabindex="-1"></a><span class="co"># Print results</span></span>
+<span id="cb836-24"><a href="basic-understanding.html#cb836-24" tabindex="-1"></a><span class="fu">print</span>(hotelling_test)</span>
+<span id="cb836-25"><a href="basic-understanding.html#cb836-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb836-26"><a href="basic-understanding.html#cb836-26" tabindex="-1"></a><span class="co">#&gt;  Hotelling&#39;s one sample T2-test</span></span>
+<span id="cb836-27"><a href="basic-understanding.html#cb836-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb836-28"><a href="basic-understanding.html#cb836-28" tabindex="-1"></a><span class="co">#&gt; data:  data</span></span>
+<span id="cb836-29"><a href="basic-understanding.html#cb836-29" tabindex="-1"></a><span class="co">#&gt; T.2 = 0.43475, df1 = 5, df2 = 25, p-value = 0.82</span></span>
+<span id="cb836-30"><a href="basic-understanding.html#cb836-30" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true location is not equal to c(0,0,0,0,0)</span></span></code></pre></div>
 </div>
 <div id="confidence-intervals" class="section level4 hasAnchor" number="25.1.6.3">
 <h4><span class="header-section-number">25.1.6.3</span> Confidence Intervals<a href="basic-understanding.html#confidence-intervals" class="anchor-section" aria-label="Anchor link to header"></a></h4>
@@ -2884,76 +2879,76 @@ n(\bar{\mathbf{y}} - \mathbf{\mu}_0)&#39; \mathbf{S}^{-1} (\bar{\mathbf{y}} - \m
 <li>The method becomes more conservative as the number of comparisons <span class="math inline">\(k\)</span> increases.</li>
 </ul>
 <hr />
-<div class="sourceCode" id="cb832"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb832-1"><a href="basic-understanding.html#cb832-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb832-2"><a href="basic-understanding.html#cb832-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate analysis</span></span>
-<span id="cb832-3"><a href="basic-understanding.html#cb832-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T2 test</span></span>
-<span id="cb832-4"><a href="basic-understanding.html#cb832-4" tabindex="-1"></a><span class="fu">library</span>(tidyverse)  <span class="co"># Data manipulation and plotting</span></span>
-<span id="cb832-5"><a href="basic-understanding.html#cb832-5" tabindex="-1"></a></span>
-<span id="cb832-6"><a href="basic-understanding.html#cb832-6" tabindex="-1"></a><span class="co"># Simulated dataset (5 variables, 30 observations)</span></span>
-<span id="cb832-7"><a href="basic-understanding.html#cb832-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb832-8"><a href="basic-understanding.html#cb832-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span>  <span class="co"># Sample size</span></span>
-<span id="cb832-9"><a href="basic-understanding.html#cb832-9" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span>   <span class="co"># Number of variables</span></span>
-<span id="cb832-10"><a href="basic-understanding.html#cb832-10" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span>  <span class="co"># Significance level</span></span>
-<span id="cb832-11"><a href="basic-understanding.html#cb832-11" tabindex="-1"></a></span>
-<span id="cb832-12"><a href="basic-understanding.html#cb832-12" tabindex="-1"></a><span class="co"># Population mean and covariance</span></span>
-<span id="cb832-13"><a href="basic-understanding.html#cb832-13" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  </span>
-<span id="cb832-14"><a href="basic-understanding.html#cb832-14" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)  </span>
-<span id="cb832-15"><a href="basic-understanding.html#cb832-15" tabindex="-1"></a></span>
-<span id="cb832-16"><a href="basic-understanding.html#cb832-16" tabindex="-1"></a><span class="co"># Generate multivariate normal data</span></span>
-<span id="cb832-17"><a href="basic-understanding.html#cb832-17" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n, mu, Sigma)</span>
-<span id="cb832-18"><a href="basic-understanding.html#cb832-18" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;V&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
-<span id="cb832-19"><a href="basic-understanding.html#cb832-19" tabindex="-1"></a></span>
-<span id="cb832-20"><a href="basic-understanding.html#cb832-20" tabindex="-1"></a><span class="co"># Compute sample mean and covariance</span></span>
-<span id="cb832-21"><a href="basic-understanding.html#cb832-21" tabindex="-1"></a>sample_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data)</span>
-<span id="cb832-22"><a href="basic-understanding.html#cb832-22" tabindex="-1"></a>sample_cov  <span class="ot">&lt;-</span> <span class="fu">cov</span>(data)</span>
-<span id="cb832-23"><a href="basic-understanding.html#cb832-23" tabindex="-1"></a></span>
-<span id="cb832-24"><a href="basic-understanding.html#cb832-24" tabindex="-1"></a><span class="co"># Hotelling&#39;s T^2 statistic</span></span>
-<span id="cb832-25"><a href="basic-understanding.html#cb832-25" tabindex="-1"></a>T2 <span class="ot">&lt;-</span></span>
-<span id="cb832-26"><a href="basic-understanding.html#cb832-26" tabindex="-1"></a>    n <span class="sc">*</span> <span class="fu">t</span>(sample_mean <span class="sc">-</span> mu) <span class="sc">%*%</span> <span class="fu">solve</span>(sample_cov) <span class="sc">%*%</span> (sample_mean <span class="sc">-</span> mu)</span>
-<span id="cb832-27"><a href="basic-understanding.html#cb832-27" tabindex="-1"></a></span>
-<span id="cb832-28"><a href="basic-understanding.html#cb832-28" tabindex="-1"></a><span class="co"># Critical value for Hotelling&#39;s T^2 test</span></span>
-<span id="cb832-29"><a href="basic-understanding.html#cb832-29" tabindex="-1"></a>F_crit <span class="ot">&lt;-</span> ((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> p <span class="sc">/</span> (n <span class="sc">-</span> p)) <span class="sc">*</span> <span class="fu">qf</span>(<span class="dv">1</span> <span class="sc">-</span> alpha, p, n <span class="sc">-</span> p)</span>
-<span id="cb832-30"><a href="basic-understanding.html#cb832-30" tabindex="-1"></a></span>
-<span id="cb832-31"><a href="basic-understanding.html#cb832-31" tabindex="-1"></a><span class="co"># Confidence region check</span></span>
-<span id="cb832-32"><a href="basic-understanding.html#cb832-32" tabindex="-1"></a>T2 <span class="sc">&lt;=</span> F_crit  <span class="co"># If TRUE, mean vector is within the confidence region</span></span>
-<span id="cb832-33"><a href="basic-understanding.html#cb832-33" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
-<span id="cb832-34"><a href="basic-understanding.html#cb832-34" tabindex="-1"></a><span class="co">#&gt; [1,] TRUE</span></span>
-<span id="cb832-35"><a href="basic-understanding.html#cb832-35" tabindex="-1"></a></span>
-<span id="cb832-36"><a href="basic-understanding.html#cb832-36" tabindex="-1"></a><span class="co"># Simultaneous confidence intervals</span></span>
-<span id="cb832-37"><a href="basic-understanding.html#cb832-37" tabindex="-1"></a>CI_limits <span class="ot">&lt;-</span></span>
-<span id="cb832-38"><a href="basic-understanding.html#cb832-38" tabindex="-1"></a>    <span class="fu">sqrt</span>(((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> p) <span class="sc">/</span> (n <span class="sc">-</span> p) <span class="sc">*</span> <span class="fu">qf</span>(<span class="dv">1</span> <span class="sc">-</span> alpha, p, n <span class="sc">-</span> p) <span class="sc">*</span> <span class="fu">diag</span>(sample_cov) <span class="sc">/</span> n)</span>
-<span id="cb832-39"><a href="basic-understanding.html#cb832-39" tabindex="-1"></a></span>
-<span id="cb832-40"><a href="basic-understanding.html#cb832-40" tabindex="-1"></a><span class="co"># Construct confidence intervals</span></span>
-<span id="cb832-41"><a href="basic-understanding.html#cb832-41" tabindex="-1"></a>simultaneous_CI <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb832-42"><a href="basic-understanding.html#cb832-42" tabindex="-1"></a>  <span class="at">Variable =</span> <span class="fu">colnames</span>(data),</span>
-<span id="cb832-43"><a href="basic-understanding.html#cb832-43" tabindex="-1"></a>  <span class="at">Lower =</span> sample_mean <span class="sc">-</span> CI_limits,</span>
-<span id="cb832-44"><a href="basic-understanding.html#cb832-44" tabindex="-1"></a>  <span class="at">Upper =</span> sample_mean <span class="sc">+</span> CI_limits</span>
-<span id="cb832-45"><a href="basic-understanding.html#cb832-45" tabindex="-1"></a>)</span>
-<span id="cb832-46"><a href="basic-understanding.html#cb832-46" tabindex="-1"></a></span>
-<span id="cb832-47"><a href="basic-understanding.html#cb832-47" tabindex="-1"></a><span class="fu">print</span>(simultaneous_CI)</span>
-<span id="cb832-48"><a href="basic-understanding.html#cb832-48" tabindex="-1"></a><span class="co">#&gt;    Variable      Lower     Upper</span></span>
-<span id="cb832-49"><a href="basic-understanding.html#cb832-49" tabindex="-1"></a><span class="co">#&gt; V1       V1 -0.9983080 0.6311472</span></span>
-<span id="cb832-50"><a href="basic-understanding.html#cb832-50" tabindex="-1"></a><span class="co">#&gt; V2       V2 -0.7372215 0.5494437</span></span>
-<span id="cb832-51"><a href="basic-understanding.html#cb832-51" tabindex="-1"></a><span class="co">#&gt; V3       V3 -0.5926088 0.6414496</span></span>
-<span id="cb832-52"><a href="basic-understanding.html#cb832-52" tabindex="-1"></a><span class="co">#&gt; V4       V4 -0.4140990 0.7707756</span></span>
-<span id="cb832-53"><a href="basic-understanding.html#cb832-53" tabindex="-1"></a><span class="co">#&gt; V5       V5 -0.7430441 0.6488366</span></span>
-<span id="cb832-54"><a href="basic-understanding.html#cb832-54" tabindex="-1"></a></span>
-<span id="cb832-55"><a href="basic-understanding.html#cb832-55" tabindex="-1"></a><span class="co"># Bonferroni-corrected one-at-a-time confidence intervals</span></span>
-<span id="cb832-56"><a href="basic-understanding.html#cb832-56" tabindex="-1"></a>t_crit <span class="ot">&lt;-</span> <span class="fu">qt</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> p), n <span class="sc">-</span> <span class="dv">1</span>)</span>
-<span id="cb832-57"><a href="basic-understanding.html#cb832-57" tabindex="-1"></a></span>
-<span id="cb832-58"><a href="basic-understanding.html#cb832-58" tabindex="-1"></a>bonferroni_CI <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb832-59"><a href="basic-understanding.html#cb832-59" tabindex="-1"></a>  <span class="at">Variable =</span> <span class="fu">colnames</span>(data),</span>
-<span id="cb832-60"><a href="basic-understanding.html#cb832-60" tabindex="-1"></a>  <span class="at">Lower =</span> sample_mean <span class="sc">-</span> t_crit <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(sample_cov) <span class="sc">/</span> n),</span>
-<span id="cb832-61"><a href="basic-understanding.html#cb832-61" tabindex="-1"></a>  <span class="at">Upper =</span> sample_mean <span class="sc">+</span> t_crit <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(sample_cov) <span class="sc">/</span> n)</span>
-<span id="cb832-62"><a href="basic-understanding.html#cb832-62" tabindex="-1"></a>)</span>
-<span id="cb832-63"><a href="basic-understanding.html#cb832-63" tabindex="-1"></a></span>
-<span id="cb832-64"><a href="basic-understanding.html#cb832-64" tabindex="-1"></a><span class="fu">print</span>(bonferroni_CI)</span>
-<span id="cb832-65"><a href="basic-understanding.html#cb832-65" tabindex="-1"></a><span class="co">#&gt;    Variable      Lower     Upper</span></span>
-<span id="cb832-66"><a href="basic-understanding.html#cb832-66" tabindex="-1"></a><span class="co">#&gt; V1       V1 -0.7615465 0.3943857</span></span>
-<span id="cb832-67"><a href="basic-understanding.html#cb832-67" tabindex="-1"></a><span class="co">#&gt; V2       V2 -0.5502678 0.3624900</span></span>
-<span id="cb832-68"><a href="basic-understanding.html#cb832-68" tabindex="-1"></a><span class="co">#&gt; V3       V3 -0.4132989 0.4621397</span></span>
-<span id="cb832-69"><a href="basic-understanding.html#cb832-69" tabindex="-1"></a><span class="co">#&gt; V4       V4 -0.2419355 0.5986122</span></span>
-<span id="cb832-70"><a href="basic-understanding.html#cb832-70" tabindex="-1"></a><span class="co">#&gt; V5       V5 -0.5408025 0.4465950</span></span></code></pre></div>
+<div class="sourceCode" id="cb837"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb837-1"><a href="basic-understanding.html#cb837-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb837-2"><a href="basic-understanding.html#cb837-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate analysis</span></span>
+<span id="cb837-3"><a href="basic-understanding.html#cb837-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T2 test</span></span>
+<span id="cb837-4"><a href="basic-understanding.html#cb837-4" tabindex="-1"></a><span class="fu">library</span>(tidyverse)  <span class="co"># Data manipulation and plotting</span></span>
+<span id="cb837-5"><a href="basic-understanding.html#cb837-5" tabindex="-1"></a></span>
+<span id="cb837-6"><a href="basic-understanding.html#cb837-6" tabindex="-1"></a><span class="co"># Simulated dataset (5 variables, 30 observations)</span></span>
+<span id="cb837-7"><a href="basic-understanding.html#cb837-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb837-8"><a href="basic-understanding.html#cb837-8" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span>  <span class="co"># Sample size</span></span>
+<span id="cb837-9"><a href="basic-understanding.html#cb837-9" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span>   <span class="co"># Number of variables</span></span>
+<span id="cb837-10"><a href="basic-understanding.html#cb837-10" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span>  <span class="co"># Significance level</span></span>
+<span id="cb837-11"><a href="basic-understanding.html#cb837-11" tabindex="-1"></a></span>
+<span id="cb837-12"><a href="basic-understanding.html#cb837-12" tabindex="-1"></a><span class="co"># Population mean and covariance</span></span>
+<span id="cb837-13"><a href="basic-understanding.html#cb837-13" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  </span>
+<span id="cb837-14"><a href="basic-understanding.html#cb837-14" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)  </span>
+<span id="cb837-15"><a href="basic-understanding.html#cb837-15" tabindex="-1"></a></span>
+<span id="cb837-16"><a href="basic-understanding.html#cb837-16" tabindex="-1"></a><span class="co"># Generate multivariate normal data</span></span>
+<span id="cb837-17"><a href="basic-understanding.html#cb837-17" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n, mu, Sigma)</span>
+<span id="cb837-18"><a href="basic-understanding.html#cb837-18" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;V&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
+<span id="cb837-19"><a href="basic-understanding.html#cb837-19" tabindex="-1"></a></span>
+<span id="cb837-20"><a href="basic-understanding.html#cb837-20" tabindex="-1"></a><span class="co"># Compute sample mean and covariance</span></span>
+<span id="cb837-21"><a href="basic-understanding.html#cb837-21" tabindex="-1"></a>sample_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data)</span>
+<span id="cb837-22"><a href="basic-understanding.html#cb837-22" tabindex="-1"></a>sample_cov  <span class="ot">&lt;-</span> <span class="fu">cov</span>(data)</span>
+<span id="cb837-23"><a href="basic-understanding.html#cb837-23" tabindex="-1"></a></span>
+<span id="cb837-24"><a href="basic-understanding.html#cb837-24" tabindex="-1"></a><span class="co"># Hotelling&#39;s T^2 statistic</span></span>
+<span id="cb837-25"><a href="basic-understanding.html#cb837-25" tabindex="-1"></a>T2 <span class="ot">&lt;-</span></span>
+<span id="cb837-26"><a href="basic-understanding.html#cb837-26" tabindex="-1"></a>    n <span class="sc">*</span> <span class="fu">t</span>(sample_mean <span class="sc">-</span> mu) <span class="sc">%*%</span> <span class="fu">solve</span>(sample_cov) <span class="sc">%*%</span> (sample_mean <span class="sc">-</span> mu)</span>
+<span id="cb837-27"><a href="basic-understanding.html#cb837-27" tabindex="-1"></a></span>
+<span id="cb837-28"><a href="basic-understanding.html#cb837-28" tabindex="-1"></a><span class="co"># Critical value for Hotelling&#39;s T^2 test</span></span>
+<span id="cb837-29"><a href="basic-understanding.html#cb837-29" tabindex="-1"></a>F_crit <span class="ot">&lt;-</span> ((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> p <span class="sc">/</span> (n <span class="sc">-</span> p)) <span class="sc">*</span> <span class="fu">qf</span>(<span class="dv">1</span> <span class="sc">-</span> alpha, p, n <span class="sc">-</span> p)</span>
+<span id="cb837-30"><a href="basic-understanding.html#cb837-30" tabindex="-1"></a></span>
+<span id="cb837-31"><a href="basic-understanding.html#cb837-31" tabindex="-1"></a><span class="co"># Confidence region check</span></span>
+<span id="cb837-32"><a href="basic-understanding.html#cb837-32" tabindex="-1"></a>T2 <span class="sc">&lt;=</span> F_crit  <span class="co"># If TRUE, mean vector is within the confidence region</span></span>
+<span id="cb837-33"><a href="basic-understanding.html#cb837-33" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
+<span id="cb837-34"><a href="basic-understanding.html#cb837-34" tabindex="-1"></a><span class="co">#&gt; [1,] TRUE</span></span>
+<span id="cb837-35"><a href="basic-understanding.html#cb837-35" tabindex="-1"></a></span>
+<span id="cb837-36"><a href="basic-understanding.html#cb837-36" tabindex="-1"></a><span class="co"># Simultaneous confidence intervals</span></span>
+<span id="cb837-37"><a href="basic-understanding.html#cb837-37" tabindex="-1"></a>CI_limits <span class="ot">&lt;-</span></span>
+<span id="cb837-38"><a href="basic-understanding.html#cb837-38" tabindex="-1"></a>    <span class="fu">sqrt</span>(((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> p) <span class="sc">/</span> (n <span class="sc">-</span> p) <span class="sc">*</span> <span class="fu">qf</span>(<span class="dv">1</span> <span class="sc">-</span> alpha, p, n <span class="sc">-</span> p) <span class="sc">*</span> <span class="fu">diag</span>(sample_cov) <span class="sc">/</span> n)</span>
+<span id="cb837-39"><a href="basic-understanding.html#cb837-39" tabindex="-1"></a></span>
+<span id="cb837-40"><a href="basic-understanding.html#cb837-40" tabindex="-1"></a><span class="co"># Construct confidence intervals</span></span>
+<span id="cb837-41"><a href="basic-understanding.html#cb837-41" tabindex="-1"></a>simultaneous_CI <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb837-42"><a href="basic-understanding.html#cb837-42" tabindex="-1"></a>  <span class="at">Variable =</span> <span class="fu">colnames</span>(data),</span>
+<span id="cb837-43"><a href="basic-understanding.html#cb837-43" tabindex="-1"></a>  <span class="at">Lower =</span> sample_mean <span class="sc">-</span> CI_limits,</span>
+<span id="cb837-44"><a href="basic-understanding.html#cb837-44" tabindex="-1"></a>  <span class="at">Upper =</span> sample_mean <span class="sc">+</span> CI_limits</span>
+<span id="cb837-45"><a href="basic-understanding.html#cb837-45" tabindex="-1"></a>)</span>
+<span id="cb837-46"><a href="basic-understanding.html#cb837-46" tabindex="-1"></a></span>
+<span id="cb837-47"><a href="basic-understanding.html#cb837-47" tabindex="-1"></a><span class="fu">print</span>(simultaneous_CI)</span>
+<span id="cb837-48"><a href="basic-understanding.html#cb837-48" tabindex="-1"></a><span class="co">#&gt;    Variable      Lower     Upper</span></span>
+<span id="cb837-49"><a href="basic-understanding.html#cb837-49" tabindex="-1"></a><span class="co">#&gt; V1       V1 -0.9983080 0.6311472</span></span>
+<span id="cb837-50"><a href="basic-understanding.html#cb837-50" tabindex="-1"></a><span class="co">#&gt; V2       V2 -0.7372215 0.5494437</span></span>
+<span id="cb837-51"><a href="basic-understanding.html#cb837-51" tabindex="-1"></a><span class="co">#&gt; V3       V3 -0.5926088 0.6414496</span></span>
+<span id="cb837-52"><a href="basic-understanding.html#cb837-52" tabindex="-1"></a><span class="co">#&gt; V4       V4 -0.4140990 0.7707756</span></span>
+<span id="cb837-53"><a href="basic-understanding.html#cb837-53" tabindex="-1"></a><span class="co">#&gt; V5       V5 -0.7430441 0.6488366</span></span>
+<span id="cb837-54"><a href="basic-understanding.html#cb837-54" tabindex="-1"></a></span>
+<span id="cb837-55"><a href="basic-understanding.html#cb837-55" tabindex="-1"></a><span class="co"># Bonferroni-corrected one-at-a-time confidence intervals</span></span>
+<span id="cb837-56"><a href="basic-understanding.html#cb837-56" tabindex="-1"></a>t_crit <span class="ot">&lt;-</span> <span class="fu">qt</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> p), n <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb837-57"><a href="basic-understanding.html#cb837-57" tabindex="-1"></a></span>
+<span id="cb837-58"><a href="basic-understanding.html#cb837-58" tabindex="-1"></a>bonferroni_CI <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb837-59"><a href="basic-understanding.html#cb837-59" tabindex="-1"></a>  <span class="at">Variable =</span> <span class="fu">colnames</span>(data),</span>
+<span id="cb837-60"><a href="basic-understanding.html#cb837-60" tabindex="-1"></a>  <span class="at">Lower =</span> sample_mean <span class="sc">-</span> t_crit <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(sample_cov) <span class="sc">/</span> n),</span>
+<span id="cb837-61"><a href="basic-understanding.html#cb837-61" tabindex="-1"></a>  <span class="at">Upper =</span> sample_mean <span class="sc">+</span> t_crit <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(sample_cov) <span class="sc">/</span> n)</span>
+<span id="cb837-62"><a href="basic-understanding.html#cb837-62" tabindex="-1"></a>)</span>
+<span id="cb837-63"><a href="basic-understanding.html#cb837-63" tabindex="-1"></a></span>
+<span id="cb837-64"><a href="basic-understanding.html#cb837-64" tabindex="-1"></a><span class="fu">print</span>(bonferroni_CI)</span>
+<span id="cb837-65"><a href="basic-understanding.html#cb837-65" tabindex="-1"></a><span class="co">#&gt;    Variable      Lower     Upper</span></span>
+<span id="cb837-66"><a href="basic-understanding.html#cb837-66" tabindex="-1"></a><span class="co">#&gt; V1       V1 -0.7615465 0.3943857</span></span>
+<span id="cb837-67"><a href="basic-understanding.html#cb837-67" tabindex="-1"></a><span class="co">#&gt; V2       V2 -0.5502678 0.3624900</span></span>
+<span id="cb837-68"><a href="basic-understanding.html#cb837-68" tabindex="-1"></a><span class="co">#&gt; V3       V3 -0.4132989 0.4621397</span></span>
+<span id="cb837-69"><a href="basic-understanding.html#cb837-69" tabindex="-1"></a><span class="co">#&gt; V4       V4 -0.2419355 0.5986122</span></span>
+<span id="cb837-70"><a href="basic-understanding.html#cb837-70" tabindex="-1"></a><span class="co">#&gt; V5       V5 -0.5408025 0.4465950</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -3077,68 +3072,68 @@ H_0: \mu_1 = \mu_2 = \dots = \mu_6.
 \end{bmatrix}.
 \]</span></p>
 <hr />
-<div class="sourceCode" id="cb833"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb833-1"><a href="basic-understanding.html#cb833-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb833-2"><a href="basic-understanding.html#cb833-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate normal data</span></span>
-<span id="cb833-3"><a href="basic-understanding.html#cb833-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T^2 test</span></span>
-<span id="cb833-4"><a href="basic-understanding.html#cb833-4" tabindex="-1"></a></span>
-<span id="cb833-5"><a href="basic-understanding.html#cb833-5" tabindex="-1"></a><span class="co"># Simulated dataset (6 variables, 8 subjects)</span></span>
-<span id="cb833-6"><a href="basic-understanding.html#cb833-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb833-7"><a href="basic-understanding.html#cb833-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8</span>   <span class="co"># Number of subjects</span></span>
-<span id="cb833-8"><a href="basic-understanding.html#cb833-8" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">6</span>   <span class="co"># Number of time points</span></span>
-<span id="cb833-9"><a href="basic-understanding.html#cb833-9" tabindex="-1"></a></span>
-<span id="cb833-10"><a href="basic-understanding.html#cb833-10" tabindex="-1"></a><span class="co"># Generate sample data</span></span>
-<span id="cb833-11"><a href="basic-understanding.html#cb833-11" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">5</span>, p)  <span class="co"># Population mean</span></span>
-<span id="cb833-12"><a href="basic-understanding.html#cb833-12" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)  <span class="co"># Identity covariance matrix</span></span>
-<span id="cb833-13"><a href="basic-understanding.html#cb833-13" tabindex="-1"></a></span>
-<span id="cb833-14"><a href="basic-understanding.html#cb833-14" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n, mu, Sigma)</span>
-<span id="cb833-15"><a href="basic-understanding.html#cb833-15" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;Time&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
-<span id="cb833-16"><a href="basic-understanding.html#cb833-16" tabindex="-1"></a></span>
-<span id="cb833-17"><a href="basic-understanding.html#cb833-17" tabindex="-1"></a><span class="co"># Compute sample mean and covariance</span></span>
-<span id="cb833-18"><a href="basic-understanding.html#cb833-18" tabindex="-1"></a>sample_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data)</span>
-<span id="cb833-19"><a href="basic-understanding.html#cb833-19" tabindex="-1"></a>sample_cov  <span class="ot">&lt;-</span> <span class="fu">cov</span>(data)</span>
-<span id="cb833-20"><a href="basic-understanding.html#cb833-20" tabindex="-1"></a></span>
-<span id="cb833-21"><a href="basic-understanding.html#cb833-21" tabindex="-1"></a><span class="co"># Define contrast matrix for equal means hypothesis</span></span>
-<span id="cb833-22"><a href="basic-understanding.html#cb833-22" tabindex="-1"></a>C <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> p <span class="sc">-</span> <span class="dv">1</span>, <span class="at">ncol =</span> p)</span>
-<span id="cb833-23"><a href="basic-understanding.html#cb833-23" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(p <span class="sc">-</span> <span class="dv">1</span>)) {</span>
-<span id="cb833-24"><a href="basic-understanding.html#cb833-24" tabindex="-1"></a>  C[i, i] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb833-25"><a href="basic-understanding.html#cb833-25" tabindex="-1"></a>  C[i, i <span class="sc">+</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span></span>
-<span id="cb833-26"><a href="basic-understanding.html#cb833-26" tabindex="-1"></a>}</span>
-<span id="cb833-27"><a href="basic-understanding.html#cb833-27" tabindex="-1"></a></span>
-<span id="cb833-28"><a href="basic-understanding.html#cb833-28" tabindex="-1"></a><span class="co"># Compute Hotelling&#39;s T^2 statistic</span></span>
-<span id="cb833-29"><a href="basic-understanding.html#cb833-29" tabindex="-1"></a>T2 <span class="ot">&lt;-</span></span>
-<span id="cb833-30"><a href="basic-understanding.html#cb833-30" tabindex="-1"></a>    n <span class="sc">*</span> <span class="fu">t</span>(C <span class="sc">%*%</span> sample_mean) <span class="sc">%*%</span> <span class="fu">solve</span>(C <span class="sc">%*%</span> sample_cov <span class="sc">%*%</span> <span class="fu">t</span>(C)) <span class="sc">%*%</span> (C <span class="sc">%*%</span> sample_mean)</span>
-<span id="cb833-31"><a href="basic-understanding.html#cb833-31" tabindex="-1"></a></span>
-<span id="cb833-32"><a href="basic-understanding.html#cb833-32" tabindex="-1"></a><span class="co"># Compute F statistic</span></span>
-<span id="cb833-33"><a href="basic-understanding.html#cb833-33" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="fu">nrow</span>(C)</span>
-<span id="cb833-34"><a href="basic-understanding.html#cb833-34" tabindex="-1"></a>F_stat <span class="ot">&lt;-</span> ((n <span class="sc">-</span> c) <span class="sc">/</span> ((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> c)) <span class="sc">*</span> T2</span>
-<span id="cb833-35"><a href="basic-understanding.html#cb833-35" tabindex="-1"></a></span>
-<span id="cb833-36"><a href="basic-understanding.html#cb833-36" tabindex="-1"></a><span class="co"># Critical value</span></span>
-<span id="cb833-37"><a href="basic-understanding.html#cb833-37" tabindex="-1"></a>F_crit <span class="ot">&lt;-</span> <span class="fu">qf</span>(<span class="fl">0.95</span>, c, n <span class="sc">-</span> c)</span>
-<span id="cb833-38"><a href="basic-understanding.html#cb833-38" tabindex="-1"></a></span>
-<span id="cb833-39"><a href="basic-understanding.html#cb833-39" tabindex="-1"></a><span class="co"># Decision rule</span></span>
-<span id="cb833-40"><a href="basic-understanding.html#cb833-40" tabindex="-1"></a>decision <span class="ot">&lt;-</span> F_stat <span class="sc">&gt;</span> F_crit</span>
-<span id="cb833-41"><a href="basic-understanding.html#cb833-41" tabindex="-1"></a></span>
-<span id="cb833-42"><a href="basic-understanding.html#cb833-42" tabindex="-1"></a><span class="co"># Print results</span></span>
-<span id="cb833-43"><a href="basic-understanding.html#cb833-43" tabindex="-1"></a><span class="fu">list</span>(</span>
-<span id="cb833-44"><a href="basic-understanding.html#cb833-44" tabindex="-1"></a>  <span class="at">T2_statistic =</span> T2,</span>
-<span id="cb833-45"><a href="basic-understanding.html#cb833-45" tabindex="-1"></a>  <span class="at">F_statistic =</span> F_stat,</span>
-<span id="cb833-46"><a href="basic-understanding.html#cb833-46" tabindex="-1"></a>  <span class="at">F_critical_value =</span> F_crit,</span>
-<span id="cb833-47"><a href="basic-understanding.html#cb833-47" tabindex="-1"></a>  <span class="at">Reject_H0 =</span> decision</span>
-<span id="cb833-48"><a href="basic-understanding.html#cb833-48" tabindex="-1"></a>)</span>
-<span id="cb833-49"><a href="basic-understanding.html#cb833-49" tabindex="-1"></a><span class="co">#&gt; $T2_statistic</span></span>
-<span id="cb833-50"><a href="basic-understanding.html#cb833-50" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
-<span id="cb833-51"><a href="basic-understanding.html#cb833-51" tabindex="-1"></a><span class="co">#&gt; [1,] 22.54896</span></span>
-<span id="cb833-52"><a href="basic-understanding.html#cb833-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb833-53"><a href="basic-understanding.html#cb833-53" tabindex="-1"></a><span class="co">#&gt; $F_statistic</span></span>
-<span id="cb833-54"><a href="basic-understanding.html#cb833-54" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
-<span id="cb833-55"><a href="basic-understanding.html#cb833-55" tabindex="-1"></a><span class="co">#&gt; [1,] 1.932768</span></span>
-<span id="cb833-56"><a href="basic-understanding.html#cb833-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb833-57"><a href="basic-understanding.html#cb833-57" tabindex="-1"></a><span class="co">#&gt; $F_critical_value</span></span>
-<span id="cb833-58"><a href="basic-understanding.html#cb833-58" tabindex="-1"></a><span class="co">#&gt; [1] 9.013455</span></span>
-<span id="cb833-59"><a href="basic-understanding.html#cb833-59" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb833-60"><a href="basic-understanding.html#cb833-60" tabindex="-1"></a><span class="co">#&gt; $Reject_H0</span></span>
-<span id="cb833-61"><a href="basic-understanding.html#cb833-61" tabindex="-1"></a><span class="co">#&gt;       [,1]</span></span>
-<span id="cb833-62"><a href="basic-understanding.html#cb833-62" tabindex="-1"></a><span class="co">#&gt; [1,] FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb838"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb838-1"><a href="basic-understanding.html#cb838-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb838-2"><a href="basic-understanding.html#cb838-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate normal data</span></span>
+<span id="cb838-3"><a href="basic-understanding.html#cb838-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T^2 test</span></span>
+<span id="cb838-4"><a href="basic-understanding.html#cb838-4" tabindex="-1"></a></span>
+<span id="cb838-5"><a href="basic-understanding.html#cb838-5" tabindex="-1"></a><span class="co"># Simulated dataset (6 variables, 8 subjects)</span></span>
+<span id="cb838-6"><a href="basic-understanding.html#cb838-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb838-7"><a href="basic-understanding.html#cb838-7" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8</span>   <span class="co"># Number of subjects</span></span>
+<span id="cb838-8"><a href="basic-understanding.html#cb838-8" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">6</span>   <span class="co"># Number of time points</span></span>
+<span id="cb838-9"><a href="basic-understanding.html#cb838-9" tabindex="-1"></a></span>
+<span id="cb838-10"><a href="basic-understanding.html#cb838-10" tabindex="-1"></a><span class="co"># Generate sample data</span></span>
+<span id="cb838-11"><a href="basic-understanding.html#cb838-11" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">5</span>, p)  <span class="co"># Population mean</span></span>
+<span id="cb838-12"><a href="basic-understanding.html#cb838-12" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)  <span class="co"># Identity covariance matrix</span></span>
+<span id="cb838-13"><a href="basic-understanding.html#cb838-13" tabindex="-1"></a></span>
+<span id="cb838-14"><a href="basic-understanding.html#cb838-14" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n, mu, Sigma)</span>
+<span id="cb838-15"><a href="basic-understanding.html#cb838-15" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;Time&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
+<span id="cb838-16"><a href="basic-understanding.html#cb838-16" tabindex="-1"></a></span>
+<span id="cb838-17"><a href="basic-understanding.html#cb838-17" tabindex="-1"></a><span class="co"># Compute sample mean and covariance</span></span>
+<span id="cb838-18"><a href="basic-understanding.html#cb838-18" tabindex="-1"></a>sample_mean <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data)</span>
+<span id="cb838-19"><a href="basic-understanding.html#cb838-19" tabindex="-1"></a>sample_cov  <span class="ot">&lt;-</span> <span class="fu">cov</span>(data)</span>
+<span id="cb838-20"><a href="basic-understanding.html#cb838-20" tabindex="-1"></a></span>
+<span id="cb838-21"><a href="basic-understanding.html#cb838-21" tabindex="-1"></a><span class="co"># Define contrast matrix for equal means hypothesis</span></span>
+<span id="cb838-22"><a href="basic-understanding.html#cb838-22" tabindex="-1"></a>C <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> p <span class="sc">-</span> <span class="dv">1</span>, <span class="at">ncol =</span> p)</span>
+<span id="cb838-23"><a href="basic-understanding.html#cb838-23" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(p <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb838-24"><a href="basic-understanding.html#cb838-24" tabindex="-1"></a>  C[i, i] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb838-25"><a href="basic-understanding.html#cb838-25" tabindex="-1"></a>  C[i, i <span class="sc">+</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb838-26"><a href="basic-understanding.html#cb838-26" tabindex="-1"></a>}</span>
+<span id="cb838-27"><a href="basic-understanding.html#cb838-27" tabindex="-1"></a></span>
+<span id="cb838-28"><a href="basic-understanding.html#cb838-28" tabindex="-1"></a><span class="co"># Compute Hotelling&#39;s T^2 statistic</span></span>
+<span id="cb838-29"><a href="basic-understanding.html#cb838-29" tabindex="-1"></a>T2 <span class="ot">&lt;-</span></span>
+<span id="cb838-30"><a href="basic-understanding.html#cb838-30" tabindex="-1"></a>    n <span class="sc">*</span> <span class="fu">t</span>(C <span class="sc">%*%</span> sample_mean) <span class="sc">%*%</span> <span class="fu">solve</span>(C <span class="sc">%*%</span> sample_cov <span class="sc">%*%</span> <span class="fu">t</span>(C)) <span class="sc">%*%</span> (C <span class="sc">%*%</span> sample_mean)</span>
+<span id="cb838-31"><a href="basic-understanding.html#cb838-31" tabindex="-1"></a></span>
+<span id="cb838-32"><a href="basic-understanding.html#cb838-32" tabindex="-1"></a><span class="co"># Compute F statistic</span></span>
+<span id="cb838-33"><a href="basic-understanding.html#cb838-33" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="fu">nrow</span>(C)</span>
+<span id="cb838-34"><a href="basic-understanding.html#cb838-34" tabindex="-1"></a>F_stat <span class="ot">&lt;-</span> ((n <span class="sc">-</span> c) <span class="sc">/</span> ((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> c)) <span class="sc">*</span> T2</span>
+<span id="cb838-35"><a href="basic-understanding.html#cb838-35" tabindex="-1"></a></span>
+<span id="cb838-36"><a href="basic-understanding.html#cb838-36" tabindex="-1"></a><span class="co"># Critical value</span></span>
+<span id="cb838-37"><a href="basic-understanding.html#cb838-37" tabindex="-1"></a>F_crit <span class="ot">&lt;-</span> <span class="fu">qf</span>(<span class="fl">0.95</span>, c, n <span class="sc">-</span> c)</span>
+<span id="cb838-38"><a href="basic-understanding.html#cb838-38" tabindex="-1"></a></span>
+<span id="cb838-39"><a href="basic-understanding.html#cb838-39" tabindex="-1"></a><span class="co"># Decision rule</span></span>
+<span id="cb838-40"><a href="basic-understanding.html#cb838-40" tabindex="-1"></a>decision <span class="ot">&lt;-</span> F_stat <span class="sc">&gt;</span> F_crit</span>
+<span id="cb838-41"><a href="basic-understanding.html#cb838-41" tabindex="-1"></a></span>
+<span id="cb838-42"><a href="basic-understanding.html#cb838-42" tabindex="-1"></a><span class="co"># Print results</span></span>
+<span id="cb838-43"><a href="basic-understanding.html#cb838-43" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb838-44"><a href="basic-understanding.html#cb838-44" tabindex="-1"></a>  <span class="at">T2_statistic =</span> T2,</span>
+<span id="cb838-45"><a href="basic-understanding.html#cb838-45" tabindex="-1"></a>  <span class="at">F_statistic =</span> F_stat,</span>
+<span id="cb838-46"><a href="basic-understanding.html#cb838-46" tabindex="-1"></a>  <span class="at">F_critical_value =</span> F_crit,</span>
+<span id="cb838-47"><a href="basic-understanding.html#cb838-47" tabindex="-1"></a>  <span class="at">Reject_H0 =</span> decision</span>
+<span id="cb838-48"><a href="basic-understanding.html#cb838-48" tabindex="-1"></a>)</span>
+<span id="cb838-49"><a href="basic-understanding.html#cb838-49" tabindex="-1"></a><span class="co">#&gt; $T2_statistic</span></span>
+<span id="cb838-50"><a href="basic-understanding.html#cb838-50" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
+<span id="cb838-51"><a href="basic-understanding.html#cb838-51" tabindex="-1"></a><span class="co">#&gt; [1,] 22.54896</span></span>
+<span id="cb838-52"><a href="basic-understanding.html#cb838-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb838-53"><a href="basic-understanding.html#cb838-53" tabindex="-1"></a><span class="co">#&gt; $F_statistic</span></span>
+<span id="cb838-54"><a href="basic-understanding.html#cb838-54" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
+<span id="cb838-55"><a href="basic-understanding.html#cb838-55" tabindex="-1"></a><span class="co">#&gt; [1,] 1.932768</span></span>
+<span id="cb838-56"><a href="basic-understanding.html#cb838-56" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb838-57"><a href="basic-understanding.html#cb838-57" tabindex="-1"></a><span class="co">#&gt; $F_critical_value</span></span>
+<span id="cb838-58"><a href="basic-understanding.html#cb838-58" tabindex="-1"></a><span class="co">#&gt; [1] 9.013455</span></span>
+<span id="cb838-59"><a href="basic-understanding.html#cb838-59" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb838-60"><a href="basic-understanding.html#cb838-60" tabindex="-1"></a><span class="co">#&gt; $Reject_H0</span></span>
+<span id="cb838-61"><a href="basic-understanding.html#cb838-61" tabindex="-1"></a><span class="co">#&gt;       [,1]</span></span>
+<span id="cb838-62"><a href="basic-understanding.html#cb838-62" tabindex="-1"></a><span class="co">#&gt; [1,] FALSE</span></span></code></pre></div>
 <hr />
 </div>
 <div id="sec-two-sample-multivariate-tests" class="section level4 hasAnchor" number="25.1.7.2">
@@ -3219,64 +3214,64 @@ F \geq f_{(1- \alpha, p , n_1 + n_2 - p -1)}.
 (\bar{y}_{1i} - \bar{y}_{2i}) \pm t_{(1-\alpha/2k, n_1 + n_2 - 2)} \sqrt{\left(\frac{1}{n_1}  + \frac{1}{n_2}\right) s_{ii}}.
 \]</span></p>
 <hr />
-<div class="sourceCode" id="cb834"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb834-1"><a href="basic-understanding.html#cb834-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb834-2"><a href="basic-understanding.html#cb834-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate analysis</span></span>
-<span id="cb834-3"><a href="basic-understanding.html#cb834-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T^2 test</span></span>
-<span id="cb834-4"><a href="basic-understanding.html#cb834-4" tabindex="-1"></a></span>
-<span id="cb834-5"><a href="basic-understanding.html#cb834-5" tabindex="-1"></a><span class="co"># Simulated dataset (p = 4 variables, two groups)</span></span>
-<span id="cb834-6"><a href="basic-understanding.html#cb834-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb834-7"><a href="basic-understanding.html#cb834-7" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="dv">20</span>  <span class="co"># Sample size for group 1</span></span>
-<span id="cb834-8"><a href="basic-understanding.html#cb834-8" tabindex="-1"></a>n2 <span class="ot">&lt;-</span> <span class="dv">25</span>  <span class="co"># Sample size for group 2</span></span>
-<span id="cb834-9"><a href="basic-understanding.html#cb834-9" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">4</span>    <span class="co"># Number of variables</span></span>
-<span id="cb834-10"><a href="basic-understanding.html#cb834-10" tabindex="-1"></a></span>
-<span id="cb834-11"><a href="basic-understanding.html#cb834-11" tabindex="-1"></a><span class="co"># Generate data for both groups</span></span>
-<span id="cb834-12"><a href="basic-understanding.html#cb834-12" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  <span class="co"># Mean vector for group 1</span></span>
-<span id="cb834-13"><a href="basic-understanding.html#cb834-13" tabindex="-1"></a>mu2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, p)  <span class="co"># Mean vector for group 2</span></span>
-<span id="cb834-14"><a href="basic-understanding.html#cb834-14" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)  <span class="co"># Identity covariance matrix</span></span>
-<span id="cb834-15"><a href="basic-understanding.html#cb834-15" tabindex="-1"></a></span>
-<span id="cb834-16"><a href="basic-understanding.html#cb834-16" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n1, mu1, Sigma)</span>
-<span id="cb834-17"><a href="basic-understanding.html#cb834-17" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n2, mu2, Sigma)</span>
-<span id="cb834-18"><a href="basic-understanding.html#cb834-18" tabindex="-1"></a></span>
-<span id="cb834-19"><a href="basic-understanding.html#cb834-19" tabindex="-1"></a><span class="co"># Compute sample means and covariance matrices</span></span>
-<span id="cb834-20"><a href="basic-understanding.html#cb834-20" tabindex="-1"></a>y1_bar <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data1)</span>
-<span id="cb834-21"><a href="basic-understanding.html#cb834-21" tabindex="-1"></a>y2_bar <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data2)</span>
-<span id="cb834-22"><a href="basic-understanding.html#cb834-22" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data1)</span>
-<span id="cb834-23"><a href="basic-understanding.html#cb834-23" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data2)</span>
-<span id="cb834-24"><a href="basic-understanding.html#cb834-24" tabindex="-1"></a></span>
-<span id="cb834-25"><a href="basic-understanding.html#cb834-25" tabindex="-1"></a><span class="co"># Compute pooled covariance matrix</span></span>
-<span id="cb834-26"><a href="basic-understanding.html#cb834-26" tabindex="-1"></a>S_pooled <span class="ot">&lt;-</span> ((n1 <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> S1 <span class="sc">+</span> (n2 <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> S2) <span class="sc">/</span> (n1 <span class="sc">+</span> n2 <span class="sc">-</span> <span class="dv">2</span>)</span>
-<span id="cb834-27"><a href="basic-understanding.html#cb834-27" tabindex="-1"></a></span>
-<span id="cb834-28"><a href="basic-understanding.html#cb834-28" tabindex="-1"></a><span class="co"># Compute Hotelling&#39;s T^2 statistic</span></span>
-<span id="cb834-29"><a href="basic-understanding.html#cb834-29" tabindex="-1"></a>T2 <span class="ot">&lt;-</span> (y1_bar <span class="sc">-</span> y2_bar) <span class="sc">%*%</span> <span class="fu">solve</span>(S_pooled <span class="sc">*</span> (<span class="dv">1</span><span class="sc">/</span>n1 <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>n2)) <span class="sc">%*%</span> (y1_bar <span class="sc">-</span> y2_bar)</span>
-<span id="cb834-30"><a href="basic-understanding.html#cb834-30" tabindex="-1"></a></span>
-<span id="cb834-31"><a href="basic-understanding.html#cb834-31" tabindex="-1"></a><span class="co"># Convert to F-statistic</span></span>
-<span id="cb834-32"><a href="basic-understanding.html#cb834-32" tabindex="-1"></a>F_stat <span class="ot">&lt;-</span> ((n1 <span class="sc">+</span> n2 <span class="sc">-</span> p <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> ((n1 <span class="sc">+</span> n2 <span class="sc">-</span> <span class="dv">2</span>) <span class="sc">*</span> p)) <span class="sc">*</span> T2</span>
-<span id="cb834-33"><a href="basic-understanding.html#cb834-33" tabindex="-1"></a>F_crit <span class="ot">&lt;-</span> <span class="fu">qf</span>(<span class="fl">0.95</span>, p, n1 <span class="sc">+</span> n2 <span class="sc">-</span> p <span class="sc">-</span> <span class="dv">1</span>)</span>
-<span id="cb834-34"><a href="basic-understanding.html#cb834-34" tabindex="-1"></a></span>
-<span id="cb834-35"><a href="basic-understanding.html#cb834-35" tabindex="-1"></a><span class="co"># Decision rule</span></span>
-<span id="cb834-36"><a href="basic-understanding.html#cb834-36" tabindex="-1"></a>decision <span class="ot">&lt;-</span> F_stat <span class="sc">&gt;</span> F_crit</span>
-<span id="cb834-37"><a href="basic-understanding.html#cb834-37" tabindex="-1"></a></span>
-<span id="cb834-38"><a href="basic-understanding.html#cb834-38" tabindex="-1"></a><span class="co"># Print results</span></span>
-<span id="cb834-39"><a href="basic-understanding.html#cb834-39" tabindex="-1"></a><span class="fu">list</span>(</span>
-<span id="cb834-40"><a href="basic-understanding.html#cb834-40" tabindex="-1"></a>  <span class="at">T2_statistic =</span> T2,</span>
-<span id="cb834-41"><a href="basic-understanding.html#cb834-41" tabindex="-1"></a>  <span class="at">F_statistic =</span> F_stat,</span>
-<span id="cb834-42"><a href="basic-understanding.html#cb834-42" tabindex="-1"></a>  <span class="at">F_critical_value =</span> F_crit,</span>
-<span id="cb834-43"><a href="basic-understanding.html#cb834-43" tabindex="-1"></a>  <span class="at">Reject_H0 =</span> decision</span>
-<span id="cb834-44"><a href="basic-understanding.html#cb834-44" tabindex="-1"></a>)</span>
-<span id="cb834-45"><a href="basic-understanding.html#cb834-45" tabindex="-1"></a><span class="co">#&gt; $T2_statistic</span></span>
-<span id="cb834-46"><a href="basic-understanding.html#cb834-46" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
-<span id="cb834-47"><a href="basic-understanding.html#cb834-47" tabindex="-1"></a><span class="co">#&gt; [1,] 51.90437</span></span>
-<span id="cb834-48"><a href="basic-understanding.html#cb834-48" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb834-49"><a href="basic-understanding.html#cb834-49" tabindex="-1"></a><span class="co">#&gt; $F_statistic</span></span>
-<span id="cb834-50"><a href="basic-understanding.html#cb834-50" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
-<span id="cb834-51"><a href="basic-understanding.html#cb834-51" tabindex="-1"></a><span class="co">#&gt; [1,] 12.07078</span></span>
-<span id="cb834-52"><a href="basic-understanding.html#cb834-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb834-53"><a href="basic-understanding.html#cb834-53" tabindex="-1"></a><span class="co">#&gt; $F_critical_value</span></span>
-<span id="cb834-54"><a href="basic-understanding.html#cb834-54" tabindex="-1"></a><span class="co">#&gt; [1] 2.605975</span></span>
-<span id="cb834-55"><a href="basic-understanding.html#cb834-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb834-56"><a href="basic-understanding.html#cb834-56" tabindex="-1"></a><span class="co">#&gt; $Reject_H0</span></span>
-<span id="cb834-57"><a href="basic-understanding.html#cb834-57" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
-<span id="cb834-58"><a href="basic-understanding.html#cb834-58" tabindex="-1"></a><span class="co">#&gt; [1,] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb839"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb839-1"><a href="basic-understanding.html#cb839-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb839-2"><a href="basic-understanding.html#cb839-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate analysis</span></span>
+<span id="cb839-3"><a href="basic-understanding.html#cb839-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># For Hotelling&#39;s T^2 test</span></span>
+<span id="cb839-4"><a href="basic-understanding.html#cb839-4" tabindex="-1"></a></span>
+<span id="cb839-5"><a href="basic-understanding.html#cb839-5" tabindex="-1"></a><span class="co"># Simulated dataset (p = 4 variables, two groups)</span></span>
+<span id="cb839-6"><a href="basic-understanding.html#cb839-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb839-7"><a href="basic-understanding.html#cb839-7" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="dv">20</span>  <span class="co"># Sample size for group 1</span></span>
+<span id="cb839-8"><a href="basic-understanding.html#cb839-8" tabindex="-1"></a>n2 <span class="ot">&lt;-</span> <span class="dv">25</span>  <span class="co"># Sample size for group 2</span></span>
+<span id="cb839-9"><a href="basic-understanding.html#cb839-9" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">4</span>    <span class="co"># Number of variables</span></span>
+<span id="cb839-10"><a href="basic-understanding.html#cb839-10" tabindex="-1"></a></span>
+<span id="cb839-11"><a href="basic-understanding.html#cb839-11" tabindex="-1"></a><span class="co"># Generate data for both groups</span></span>
+<span id="cb839-12"><a href="basic-understanding.html#cb839-12" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  <span class="co"># Mean vector for group 1</span></span>
+<span id="cb839-13"><a href="basic-understanding.html#cb839-13" tabindex="-1"></a>mu2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, p)  <span class="co"># Mean vector for group 2</span></span>
+<span id="cb839-14"><a href="basic-understanding.html#cb839-14" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)  <span class="co"># Identity covariance matrix</span></span>
+<span id="cb839-15"><a href="basic-understanding.html#cb839-15" tabindex="-1"></a></span>
+<span id="cb839-16"><a href="basic-understanding.html#cb839-16" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n1, mu1, Sigma)</span>
+<span id="cb839-17"><a href="basic-understanding.html#cb839-17" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n2, mu2, Sigma)</span>
+<span id="cb839-18"><a href="basic-understanding.html#cb839-18" tabindex="-1"></a></span>
+<span id="cb839-19"><a href="basic-understanding.html#cb839-19" tabindex="-1"></a><span class="co"># Compute sample means and covariance matrices</span></span>
+<span id="cb839-20"><a href="basic-understanding.html#cb839-20" tabindex="-1"></a>y1_bar <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data1)</span>
+<span id="cb839-21"><a href="basic-understanding.html#cb839-21" tabindex="-1"></a>y2_bar <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(data2)</span>
+<span id="cb839-22"><a href="basic-understanding.html#cb839-22" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data1)</span>
+<span id="cb839-23"><a href="basic-understanding.html#cb839-23" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data2)</span>
+<span id="cb839-24"><a href="basic-understanding.html#cb839-24" tabindex="-1"></a></span>
+<span id="cb839-25"><a href="basic-understanding.html#cb839-25" tabindex="-1"></a><span class="co"># Compute pooled covariance matrix</span></span>
+<span id="cb839-26"><a href="basic-understanding.html#cb839-26" tabindex="-1"></a>S_pooled <span class="ot">&lt;-</span> ((n1 <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> S1 <span class="sc">+</span> (n2 <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> S2) <span class="sc">/</span> (n1 <span class="sc">+</span> n2 <span class="sc">-</span> <span class="dv">2</span>)</span>
+<span id="cb839-27"><a href="basic-understanding.html#cb839-27" tabindex="-1"></a></span>
+<span id="cb839-28"><a href="basic-understanding.html#cb839-28" tabindex="-1"></a><span class="co"># Compute Hotelling&#39;s T^2 statistic</span></span>
+<span id="cb839-29"><a href="basic-understanding.html#cb839-29" tabindex="-1"></a>T2 <span class="ot">&lt;-</span> (y1_bar <span class="sc">-</span> y2_bar) <span class="sc">%*%</span> <span class="fu">solve</span>(S_pooled <span class="sc">*</span> (<span class="dv">1</span><span class="sc">/</span>n1 <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>n2)) <span class="sc">%*%</span> (y1_bar <span class="sc">-</span> y2_bar)</span>
+<span id="cb839-30"><a href="basic-understanding.html#cb839-30" tabindex="-1"></a></span>
+<span id="cb839-31"><a href="basic-understanding.html#cb839-31" tabindex="-1"></a><span class="co"># Convert to F-statistic</span></span>
+<span id="cb839-32"><a href="basic-understanding.html#cb839-32" tabindex="-1"></a>F_stat <span class="ot">&lt;-</span> ((n1 <span class="sc">+</span> n2 <span class="sc">-</span> p <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> ((n1 <span class="sc">+</span> n2 <span class="sc">-</span> <span class="dv">2</span>) <span class="sc">*</span> p)) <span class="sc">*</span> T2</span>
+<span id="cb839-33"><a href="basic-understanding.html#cb839-33" tabindex="-1"></a>F_crit <span class="ot">&lt;-</span> <span class="fu">qf</span>(<span class="fl">0.95</span>, p, n1 <span class="sc">+</span> n2 <span class="sc">-</span> p <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb839-34"><a href="basic-understanding.html#cb839-34" tabindex="-1"></a></span>
+<span id="cb839-35"><a href="basic-understanding.html#cb839-35" tabindex="-1"></a><span class="co"># Decision rule</span></span>
+<span id="cb839-36"><a href="basic-understanding.html#cb839-36" tabindex="-1"></a>decision <span class="ot">&lt;-</span> F_stat <span class="sc">&gt;</span> F_crit</span>
+<span id="cb839-37"><a href="basic-understanding.html#cb839-37" tabindex="-1"></a></span>
+<span id="cb839-38"><a href="basic-understanding.html#cb839-38" tabindex="-1"></a><span class="co"># Print results</span></span>
+<span id="cb839-39"><a href="basic-understanding.html#cb839-39" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb839-40"><a href="basic-understanding.html#cb839-40" tabindex="-1"></a>  <span class="at">T2_statistic =</span> T2,</span>
+<span id="cb839-41"><a href="basic-understanding.html#cb839-41" tabindex="-1"></a>  <span class="at">F_statistic =</span> F_stat,</span>
+<span id="cb839-42"><a href="basic-understanding.html#cb839-42" tabindex="-1"></a>  <span class="at">F_critical_value =</span> F_crit,</span>
+<span id="cb839-43"><a href="basic-understanding.html#cb839-43" tabindex="-1"></a>  <span class="at">Reject_H0 =</span> decision</span>
+<span id="cb839-44"><a href="basic-understanding.html#cb839-44" tabindex="-1"></a>)</span>
+<span id="cb839-45"><a href="basic-understanding.html#cb839-45" tabindex="-1"></a><span class="co">#&gt; $T2_statistic</span></span>
+<span id="cb839-46"><a href="basic-understanding.html#cb839-46" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
+<span id="cb839-47"><a href="basic-understanding.html#cb839-47" tabindex="-1"></a><span class="co">#&gt; [1,] 51.90437</span></span>
+<span id="cb839-48"><a href="basic-understanding.html#cb839-48" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb839-49"><a href="basic-understanding.html#cb839-49" tabindex="-1"></a><span class="co">#&gt; $F_statistic</span></span>
+<span id="cb839-50"><a href="basic-understanding.html#cb839-50" tabindex="-1"></a><span class="co">#&gt;          [,1]</span></span>
+<span id="cb839-51"><a href="basic-understanding.html#cb839-51" tabindex="-1"></a><span class="co">#&gt; [1,] 12.07078</span></span>
+<span id="cb839-52"><a href="basic-understanding.html#cb839-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb839-53"><a href="basic-understanding.html#cb839-53" tabindex="-1"></a><span class="co">#&gt; $F_critical_value</span></span>
+<span id="cb839-54"><a href="basic-understanding.html#cb839-54" tabindex="-1"></a><span class="co">#&gt; [1] 2.605975</span></span>
+<span id="cb839-55"><a href="basic-understanding.html#cb839-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb839-56"><a href="basic-understanding.html#cb839-56" tabindex="-1"></a><span class="co">#&gt; $Reject_H0</span></span>
+<span id="cb839-57"><a href="basic-understanding.html#cb839-57" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
+<span id="cb839-58"><a href="basic-understanding.html#cb839-58" tabindex="-1"></a><span class="co">#&gt; [1,] TRUE</span></span></code></pre></div>
 </div>
 <div id="model-assumptions-in-multivariate-tests" class="section level4 hasAnchor" number="25.1.7.3">
 <h4><span class="header-section-number">25.1.7.3</span> Model Assumptions in Multivariate Tests<a href="basic-understanding.html#model-assumptions-in-multivariate-tests" class="anchor-section" aria-label="Anchor link to header"></a></h4>
@@ -3369,57 +3364,57 @@ MC^{-1} &gt; \chi^2_{1- \alpha, (k-1)p(p+1)/2}.
 <li>Best practice: Check univariate and multivariate normality first before using Bartlett’s test.</li>
 </ul>
 <hr />
-<div class="sourceCode" id="cb835"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb835-1"><a href="basic-understanding.html#cb835-1" tabindex="-1"></a><span class="co"># Load required packages</span></span>
-<span id="cb835-2"><a href="basic-understanding.html#cb835-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate normal data</span></span>
-<span id="cb835-3"><a href="basic-understanding.html#cb835-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># Multivariate tests</span></span>
-<span id="cb835-4"><a href="basic-understanding.html#cb835-4" tabindex="-1"></a><span class="fu">library</span>(car)     <span class="co"># Homogeneity of variance tests</span></span>
-<span id="cb835-5"><a href="basic-understanding.html#cb835-5" tabindex="-1"></a></span>
-<span id="cb835-6"><a href="basic-understanding.html#cb835-6" tabindex="-1"></a><span class="co"># Simulated dataset (three groups, p = 4 variables)</span></span>
-<span id="cb835-7"><a href="basic-understanding.html#cb835-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb835-8"><a href="basic-understanding.html#cb835-8" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="dv">20</span>  <span class="co"># Group 1 sample size</span></span>
-<span id="cb835-9"><a href="basic-understanding.html#cb835-9" tabindex="-1"></a>n2 <span class="ot">&lt;-</span> <span class="dv">25</span>  <span class="co"># Group 2 sample size</span></span>
-<span id="cb835-10"><a href="basic-understanding.html#cb835-10" tabindex="-1"></a>n3 <span class="ot">&lt;-</span> <span class="dv">30</span>  <span class="co"># Group 3 sample size</span></span>
-<span id="cb835-11"><a href="basic-understanding.html#cb835-11" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">4</span>    <span class="co"># Number of variables</span></span>
-<span id="cb835-12"><a href="basic-understanding.html#cb835-12" tabindex="-1"></a></span>
-<span id="cb835-13"><a href="basic-understanding.html#cb835-13" tabindex="-1"></a><span class="co"># Generate data from different covariance structures</span></span>
-<span id="cb835-14"><a href="basic-understanding.html#cb835-14" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  </span>
-<span id="cb835-15"><a href="basic-understanding.html#cb835-15" tabindex="-1"></a>mu2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, p)  </span>
-<span id="cb835-16"><a href="basic-understanding.html#cb835-16" tabindex="-1"></a>mu3 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">2</span>, p)  </span>
-<span id="cb835-17"><a href="basic-understanding.html#cb835-17" tabindex="-1"></a></span>
-<span id="cb835-18"><a href="basic-understanding.html#cb835-18" tabindex="-1"></a>Sigma1 <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)         <span class="co"># Identity covariance for group 1</span></span>
-<span id="cb835-19"><a href="basic-understanding.html#cb835-19" tabindex="-1"></a>Sigma2 <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">diag</span>(p)     <span class="co"># Scaled identity for group 2</span></span>
-<span id="cb835-20"><a href="basic-understanding.html#cb835-20" tabindex="-1"></a>Sigma3 <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fl">0.5</span>, p, p) <span class="sc">+</span> <span class="fu">diag</span>(<span class="fl">0.5</span>, p)  <span class="co"># Structured covariance for group 3</span></span>
-<span id="cb835-21"><a href="basic-understanding.html#cb835-21" tabindex="-1"></a></span>
-<span id="cb835-22"><a href="basic-understanding.html#cb835-22" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n1, mu1, Sigma1)</span>
-<span id="cb835-23"><a href="basic-understanding.html#cb835-23" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n2, mu2, Sigma2)</span>
-<span id="cb835-24"><a href="basic-understanding.html#cb835-24" tabindex="-1"></a>data3 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n3, mu3, Sigma3)</span>
-<span id="cb835-25"><a href="basic-understanding.html#cb835-25" tabindex="-1"></a></span>
-<span id="cb835-26"><a href="basic-understanding.html#cb835-26" tabindex="-1"></a><span class="co"># Create a combined dataset</span></span>
-<span id="cb835-27"><a href="basic-understanding.html#cb835-27" tabindex="-1"></a>group_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;Group1&quot;</span>, n1), <span class="fu">rep</span>(<span class="st">&quot;Group2&quot;</span>, n2), <span class="fu">rep</span>(<span class="st">&quot;Group3&quot;</span>, n3))</span>
-<span id="cb835-28"><a href="basic-understanding.html#cb835-28" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Group =</span> group_labels, <span class="fu">rbind</span>(data1, data2, data3))</span>
-<span id="cb835-29"><a href="basic-understanding.html#cb835-29" tabindex="-1"></a></span>
-<span id="cb835-30"><a href="basic-understanding.html#cb835-30" tabindex="-1"></a><span class="co"># Compute covariance matrices</span></span>
-<span id="cb835-31"><a href="basic-understanding.html#cb835-31" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data1)</span>
-<span id="cb835-32"><a href="basic-understanding.html#cb835-32" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data2)</span>
-<span id="cb835-33"><a href="basic-understanding.html#cb835-33" tabindex="-1"></a>S3 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data3)</span>
-<span id="cb835-34"><a href="basic-understanding.html#cb835-34" tabindex="-1"></a></span>
-<span id="cb835-35"><a href="basic-understanding.html#cb835-35" tabindex="-1"></a><span class="co"># Bartlett&#39;s Test for Equal Covariances</span></span>
-<span id="cb835-36"><a href="basic-understanding.html#cb835-36" tabindex="-1"></a>bartlett_test <span class="ot">&lt;-</span> <span class="fu">bartlett.test</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">g =</span> data<span class="sc">$</span>Group)</span>
-<span id="cb835-37"><a href="basic-understanding.html#cb835-37" tabindex="-1"></a><span class="fu">print</span>(bartlett_test)</span>
-<span id="cb835-38"><a href="basic-understanding.html#cb835-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb835-39"><a href="basic-understanding.html#cb835-39" tabindex="-1"></a><span class="co">#&gt;  Bartlett test of homogeneity of variances</span></span>
-<span id="cb835-40"><a href="basic-understanding.html#cb835-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb835-41"><a href="basic-understanding.html#cb835-41" tabindex="-1"></a><span class="co">#&gt; data:  data[, -1]</span></span>
-<span id="cb835-42"><a href="basic-understanding.html#cb835-42" tabindex="-1"></a><span class="co">#&gt; Bartlett&#39;s K-squared = 0.99333, df = 3, p-value = 0.8029</span></span>
-<span id="cb835-43"><a href="basic-understanding.html#cb835-43" tabindex="-1"></a></span>
-<span id="cb835-44"><a href="basic-understanding.html#cb835-44" tabindex="-1"></a><span class="co"># Box’s M test (alternative for multivariate homogeneity)</span></span>
-<span id="cb835-45"><a href="basic-understanding.html#cb835-45" tabindex="-1"></a>box_test <span class="ot">&lt;-</span> <span class="fu">boxM</span>(data[,<span class="sc">-</span><span class="dv">1</span>], data<span class="sc">$</span>Group)</span>
-<span id="cb835-46"><a href="basic-understanding.html#cb835-46" tabindex="-1"></a><span class="fu">print</span>(box_test)</span>
-<span id="cb835-47"><a href="basic-understanding.html#cb835-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb835-48"><a href="basic-understanding.html#cb835-48" tabindex="-1"></a><span class="co">#&gt;  Box&#39;s M-test for Homogeneity of Covariance Matrices</span></span>
-<span id="cb835-49"><a href="basic-understanding.html#cb835-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb835-50"><a href="basic-understanding.html#cb835-50" tabindex="-1"></a><span class="co">#&gt; data:  data[, -1]</span></span>
-<span id="cb835-51"><a href="basic-understanding.html#cb835-51" tabindex="-1"></a><span class="co">#&gt; Chi-Sq (approx.) = 51.039, df = 20, p-value = 0.000157</span></span></code></pre></div>
+<div class="sourceCode" id="cb840"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb840-1"><a href="basic-understanding.html#cb840-1" tabindex="-1"></a><span class="co"># Load required packages</span></span>
+<span id="cb840-2"><a href="basic-understanding.html#cb840-2" tabindex="-1"></a><span class="fu">library</span>(MASS)    <span class="co"># For multivariate normal data</span></span>
+<span id="cb840-3"><a href="basic-understanding.html#cb840-3" tabindex="-1"></a><span class="fu">library</span>(ICSNP)   <span class="co"># Multivariate tests</span></span>
+<span id="cb840-4"><a href="basic-understanding.html#cb840-4" tabindex="-1"></a><span class="fu">library</span>(car)     <span class="co"># Homogeneity of variance tests</span></span>
+<span id="cb840-5"><a href="basic-understanding.html#cb840-5" tabindex="-1"></a></span>
+<span id="cb840-6"><a href="basic-understanding.html#cb840-6" tabindex="-1"></a><span class="co"># Simulated dataset (three groups, p = 4 variables)</span></span>
+<span id="cb840-7"><a href="basic-understanding.html#cb840-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb840-8"><a href="basic-understanding.html#cb840-8" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="dv">20</span>  <span class="co"># Group 1 sample size</span></span>
+<span id="cb840-9"><a href="basic-understanding.html#cb840-9" tabindex="-1"></a>n2 <span class="ot">&lt;-</span> <span class="dv">25</span>  <span class="co"># Group 2 sample size</span></span>
+<span id="cb840-10"><a href="basic-understanding.html#cb840-10" tabindex="-1"></a>n3 <span class="ot">&lt;-</span> <span class="dv">30</span>  <span class="co"># Group 3 sample size</span></span>
+<span id="cb840-11"><a href="basic-understanding.html#cb840-11" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">4</span>    <span class="co"># Number of variables</span></span>
+<span id="cb840-12"><a href="basic-understanding.html#cb840-12" tabindex="-1"></a></span>
+<span id="cb840-13"><a href="basic-understanding.html#cb840-13" tabindex="-1"></a><span class="co"># Generate data from different covariance structures</span></span>
+<span id="cb840-14"><a href="basic-understanding.html#cb840-14" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)  </span>
+<span id="cb840-15"><a href="basic-understanding.html#cb840-15" tabindex="-1"></a>mu2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, p)  </span>
+<span id="cb840-16"><a href="basic-understanding.html#cb840-16" tabindex="-1"></a>mu3 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">2</span>, p)  </span>
+<span id="cb840-17"><a href="basic-understanding.html#cb840-17" tabindex="-1"></a></span>
+<span id="cb840-18"><a href="basic-understanding.html#cb840-18" tabindex="-1"></a>Sigma1 <span class="ot">&lt;-</span> <span class="fu">diag</span>(p)         <span class="co"># Identity covariance for group 1</span></span>
+<span id="cb840-19"><a href="basic-understanding.html#cb840-19" tabindex="-1"></a>Sigma2 <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">diag</span>(p)     <span class="co"># Scaled identity for group 2</span></span>
+<span id="cb840-20"><a href="basic-understanding.html#cb840-20" tabindex="-1"></a>Sigma3 <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fl">0.5</span>, p, p) <span class="sc">+</span> <span class="fu">diag</span>(<span class="fl">0.5</span>, p)  <span class="co"># Structured covariance for group 3</span></span>
+<span id="cb840-21"><a href="basic-understanding.html#cb840-21" tabindex="-1"></a></span>
+<span id="cb840-22"><a href="basic-understanding.html#cb840-22" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n1, mu1, Sigma1)</span>
+<span id="cb840-23"><a href="basic-understanding.html#cb840-23" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n2, mu2, Sigma2)</span>
+<span id="cb840-24"><a href="basic-understanding.html#cb840-24" tabindex="-1"></a>data3 <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(n3, mu3, Sigma3)</span>
+<span id="cb840-25"><a href="basic-understanding.html#cb840-25" tabindex="-1"></a></span>
+<span id="cb840-26"><a href="basic-understanding.html#cb840-26" tabindex="-1"></a><span class="co"># Create a combined dataset</span></span>
+<span id="cb840-27"><a href="basic-understanding.html#cb840-27" tabindex="-1"></a>group_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;Group1&quot;</span>, n1), <span class="fu">rep</span>(<span class="st">&quot;Group2&quot;</span>, n2), <span class="fu">rep</span>(<span class="st">&quot;Group3&quot;</span>, n3))</span>
+<span id="cb840-28"><a href="basic-understanding.html#cb840-28" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Group =</span> group_labels, <span class="fu">rbind</span>(data1, data2, data3))</span>
+<span id="cb840-29"><a href="basic-understanding.html#cb840-29" tabindex="-1"></a></span>
+<span id="cb840-30"><a href="basic-understanding.html#cb840-30" tabindex="-1"></a><span class="co"># Compute covariance matrices</span></span>
+<span id="cb840-31"><a href="basic-understanding.html#cb840-31" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data1)</span>
+<span id="cb840-32"><a href="basic-understanding.html#cb840-32" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data2)</span>
+<span id="cb840-33"><a href="basic-understanding.html#cb840-33" tabindex="-1"></a>S3 <span class="ot">&lt;-</span> <span class="fu">cov</span>(data3)</span>
+<span id="cb840-34"><a href="basic-understanding.html#cb840-34" tabindex="-1"></a></span>
+<span id="cb840-35"><a href="basic-understanding.html#cb840-35" tabindex="-1"></a><span class="co"># Bartlett&#39;s Test for Equal Covariances</span></span>
+<span id="cb840-36"><a href="basic-understanding.html#cb840-36" tabindex="-1"></a>bartlett_test <span class="ot">&lt;-</span> <span class="fu">bartlett.test</span>(data[,<span class="sc">-</span><span class="dv">1</span>], <span class="at">g =</span> data<span class="sc">$</span>Group)</span>
+<span id="cb840-37"><a href="basic-understanding.html#cb840-37" tabindex="-1"></a><span class="fu">print</span>(bartlett_test)</span>
+<span id="cb840-38"><a href="basic-understanding.html#cb840-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb840-39"><a href="basic-understanding.html#cb840-39" tabindex="-1"></a><span class="co">#&gt;  Bartlett test of homogeneity of variances</span></span>
+<span id="cb840-40"><a href="basic-understanding.html#cb840-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb840-41"><a href="basic-understanding.html#cb840-41" tabindex="-1"></a><span class="co">#&gt; data:  data[, -1]</span></span>
+<span id="cb840-42"><a href="basic-understanding.html#cb840-42" tabindex="-1"></a><span class="co">#&gt; Bartlett&#39;s K-squared = 0.99333, df = 3, p-value = 0.8029</span></span>
+<span id="cb840-43"><a href="basic-understanding.html#cb840-43" tabindex="-1"></a></span>
+<span id="cb840-44"><a href="basic-understanding.html#cb840-44" tabindex="-1"></a><span class="co"># Box’s M test (alternative for multivariate homogeneity)</span></span>
+<span id="cb840-45"><a href="basic-understanding.html#cb840-45" tabindex="-1"></a>box_test <span class="ot">&lt;-</span> <span class="fu">boxM</span>(data[,<span class="sc">-</span><span class="dv">1</span>], data<span class="sc">$</span>Group)</span>
+<span id="cb840-46"><a href="basic-understanding.html#cb840-46" tabindex="-1"></a><span class="fu">print</span>(box_test)</span>
+<span id="cb840-47"><a href="basic-understanding.html#cb840-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb840-48"><a href="basic-understanding.html#cb840-48" tabindex="-1"></a><span class="co">#&gt;  Box&#39;s M-test for Homogeneity of Covariance Matrices</span></span>
+<span id="cb840-49"><a href="basic-understanding.html#cb840-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb840-50"><a href="basic-understanding.html#cb840-50" tabindex="-1"></a><span class="co">#&gt; data:  data[, -1]</span></span>
+<span id="cb840-51"><a href="basic-understanding.html#cb840-51" tabindex="-1"></a><span class="co">#&gt; Chi-Sq (approx.) = 51.039, df = 20, p-value = 0.000157</span></span></code></pre></div>
 <hr />
 </div>
 </div>
@@ -3484,34 +3479,34 @@ H_0: \mathbf{C}(\mu_1 - \mu_2) = \mathbf{0}_c,
 <ol style="list-style-type: decimal">
 <li><strong>One-Sample Hotelling’s</strong> <span class="math inline">\(T^2\)</span> Test</li>
 </ol>
-<div class="sourceCode" id="cb836"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb836-1"><a href="basic-understanding.html#cb836-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
-<span id="cb836-2"><a href="basic-understanding.html#cb836-2" tabindex="-1"></a><span class="fu">library</span>(ICSNP)</span>
-<span id="cb836-3"><a href="basic-understanding.html#cb836-3" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb836-4"><a href="basic-understanding.html#cb836-4" tabindex="-1"></a></span>
-<span id="cb836-5"><a href="basic-understanding.html#cb836-5" tabindex="-1"></a><span class="co"># Data: Measurements on 3 variables</span></span>
-<span id="cb836-6"><a href="basic-understanding.html#cb836-6" tabindex="-1"></a>plants <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb836-7"><a href="basic-understanding.html#cb836-7" tabindex="-1"></a>    <span class="at">y1 =</span> <span class="fu">c</span>(<span class="fl">2.11</span>, <span class="fl">2.36</span>, <span class="fl">2.13</span>, <span class="fl">2.78</span>, <span class="fl">2.17</span>),</span>
-<span id="cb836-8"><a href="basic-understanding.html#cb836-8" tabindex="-1"></a>    <span class="at">y2 =</span> <span class="fu">c</span>(<span class="fl">10.1</span>, <span class="fl">35.0</span>, <span class="fl">2.0</span>, <span class="fl">6.0</span>, <span class="fl">2.0</span>),</span>
-<span id="cb836-9"><a href="basic-understanding.html#cb836-9" tabindex="-1"></a>    <span class="at">y3 =</span> <span class="fu">c</span>(<span class="fl">3.4</span>, <span class="fl">4.1</span>, <span class="fl">1.9</span>, <span class="fl">3.8</span>, <span class="fl">1.7</span>)</span>
-<span id="cb836-10"><a href="basic-understanding.html#cb836-10" tabindex="-1"></a>)</span>
-<span id="cb836-11"><a href="basic-understanding.html#cb836-11" tabindex="-1"></a></span>
-<span id="cb836-12"><a href="basic-understanding.html#cb836-12" tabindex="-1"></a><span class="co"># Center the data with hypothesized means</span></span>
-<span id="cb836-13"><a href="basic-understanding.html#cb836-13" tabindex="-1"></a>plants_ctr <span class="ot">&lt;-</span> plants <span class="sc">%&gt;%</span></span>
-<span id="cb836-14"><a href="basic-understanding.html#cb836-14" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">y1_ctr =</span> y1 <span class="sc">-</span> <span class="fl">2.85</span>,</span>
-<span id="cb836-15"><a href="basic-understanding.html#cb836-15" tabindex="-1"></a>              <span class="at">y2_ctr =</span> y2 <span class="sc">-</span> <span class="fl">15.0</span>,</span>
-<span id="cb836-16"><a href="basic-understanding.html#cb836-16" tabindex="-1"></a>              <span class="at">y3_ctr =</span> y3 <span class="sc">-</span> <span class="fl">6.0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb836-17"><a href="basic-understanding.html#cb836-17" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
-<span id="cb836-18"><a href="basic-understanding.html#cb836-18" tabindex="-1"></a></span>
-<span id="cb836-19"><a href="basic-understanding.html#cb836-19" tabindex="-1"></a><span class="co"># Perform Wilks&#39; Lambda test for one-sample Hotelling&#39;s T^2</span></span>
-<span id="cb836-20"><a href="basic-understanding.html#cb836-20" tabindex="-1"></a>onesamp_fit <span class="ot">&lt;-</span> <span class="fu">anova</span>(<span class="fu">lm</span>(plants_ctr <span class="sc">~</span> <span class="dv">1</span>), <span class="at">test =</span> <span class="st">&quot;Wilks&quot;</span>)</span>
-<span id="cb836-21"><a href="basic-understanding.html#cb836-21" tabindex="-1"></a><span class="fu">print</span>(onesamp_fit)</span>
-<span id="cb836-22"><a href="basic-understanding.html#cb836-22" tabindex="-1"></a><span class="co">#&gt; Analysis of Variance Table</span></span>
-<span id="cb836-23"><a href="basic-understanding.html#cb836-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb836-24"><a href="basic-understanding.html#cb836-24" tabindex="-1"></a><span class="co">#&gt;             Df    Wilks approx F num Df den Df  Pr(&gt;F)  </span></span>
-<span id="cb836-25"><a href="basic-understanding.html#cb836-25" tabindex="-1"></a><span class="co">#&gt; (Intercept)  1 0.054219   11.629      3      2 0.08022 .</span></span>
-<span id="cb836-26"><a href="basic-understanding.html#cb836-26" tabindex="-1"></a><span class="co">#&gt; Residuals    4                                          </span></span>
-<span id="cb836-27"><a href="basic-understanding.html#cb836-27" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb836-28"><a href="basic-understanding.html#cb836-28" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb841"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb841-1"><a href="basic-understanding.html#cb841-1" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb841-2"><a href="basic-understanding.html#cb841-2" tabindex="-1"></a><span class="fu">library</span>(ICSNP)</span>
+<span id="cb841-3"><a href="basic-understanding.html#cb841-3" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb841-4"><a href="basic-understanding.html#cb841-4" tabindex="-1"></a></span>
+<span id="cb841-5"><a href="basic-understanding.html#cb841-5" tabindex="-1"></a><span class="co"># Data: Measurements on 3 variables</span></span>
+<span id="cb841-6"><a href="basic-understanding.html#cb841-6" tabindex="-1"></a>plants <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb841-7"><a href="basic-understanding.html#cb841-7" tabindex="-1"></a>    <span class="at">y1 =</span> <span class="fu">c</span>(<span class="fl">2.11</span>, <span class="fl">2.36</span>, <span class="fl">2.13</span>, <span class="fl">2.78</span>, <span class="fl">2.17</span>),</span>
+<span id="cb841-8"><a href="basic-understanding.html#cb841-8" tabindex="-1"></a>    <span class="at">y2 =</span> <span class="fu">c</span>(<span class="fl">10.1</span>, <span class="fl">35.0</span>, <span class="fl">2.0</span>, <span class="fl">6.0</span>, <span class="fl">2.0</span>),</span>
+<span id="cb841-9"><a href="basic-understanding.html#cb841-9" tabindex="-1"></a>    <span class="at">y3 =</span> <span class="fu">c</span>(<span class="fl">3.4</span>, <span class="fl">4.1</span>, <span class="fl">1.9</span>, <span class="fl">3.8</span>, <span class="fl">1.7</span>)</span>
+<span id="cb841-10"><a href="basic-understanding.html#cb841-10" tabindex="-1"></a>)</span>
+<span id="cb841-11"><a href="basic-understanding.html#cb841-11" tabindex="-1"></a></span>
+<span id="cb841-12"><a href="basic-understanding.html#cb841-12" tabindex="-1"></a><span class="co"># Center the data with hypothesized means</span></span>
+<span id="cb841-13"><a href="basic-understanding.html#cb841-13" tabindex="-1"></a>plants_ctr <span class="ot">&lt;-</span> plants <span class="sc">%&gt;%</span></span>
+<span id="cb841-14"><a href="basic-understanding.html#cb841-14" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">y1_ctr =</span> y1 <span class="sc">-</span> <span class="fl">2.85</span>,</span>
+<span id="cb841-15"><a href="basic-understanding.html#cb841-15" tabindex="-1"></a>              <span class="at">y2_ctr =</span> y2 <span class="sc">-</span> <span class="fl">15.0</span>,</span>
+<span id="cb841-16"><a href="basic-understanding.html#cb841-16" tabindex="-1"></a>              <span class="at">y3_ctr =</span> y3 <span class="sc">-</span> <span class="fl">6.0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb841-17"><a href="basic-understanding.html#cb841-17" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
+<span id="cb841-18"><a href="basic-understanding.html#cb841-18" tabindex="-1"></a></span>
+<span id="cb841-19"><a href="basic-understanding.html#cb841-19" tabindex="-1"></a><span class="co"># Perform Wilks&#39; Lambda test for one-sample Hotelling&#39;s T^2</span></span>
+<span id="cb841-20"><a href="basic-understanding.html#cb841-20" tabindex="-1"></a>onesamp_fit <span class="ot">&lt;-</span> <span class="fu">anova</span>(<span class="fu">lm</span>(plants_ctr <span class="sc">~</span> <span class="dv">1</span>), <span class="at">test =</span> <span class="st">&quot;Wilks&quot;</span>)</span>
+<span id="cb841-21"><a href="basic-understanding.html#cb841-21" tabindex="-1"></a><span class="fu">print</span>(onesamp_fit)</span>
+<span id="cb841-22"><a href="basic-understanding.html#cb841-22" tabindex="-1"></a><span class="co">#&gt; Analysis of Variance Table</span></span>
+<span id="cb841-23"><a href="basic-understanding.html#cb841-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb841-24"><a href="basic-understanding.html#cb841-24" tabindex="-1"></a><span class="co">#&gt;             Df    Wilks approx F num Df den Df  Pr(&gt;F)  </span></span>
+<span id="cb841-25"><a href="basic-understanding.html#cb841-25" tabindex="-1"></a><span class="co">#&gt; (Intercept)  1 0.054219   11.629      3      2 0.08022 .</span></span>
+<span id="cb841-26"><a href="basic-understanding.html#cb841-26" tabindex="-1"></a><span class="co">#&gt; Residuals    4                                          </span></span>
+<span id="cb841-27"><a href="basic-understanding.html#cb841-27" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb841-28"><a href="basic-understanding.html#cb841-28" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <ul>
 <li><p>If the p-value is large, we fail to reject <span class="math inline">\(H_0\)</span> and conclude that the hypothesized mean vector is plausible.</p></li>
 <li><p>If the p-value is small, we reject <span class="math inline">\(H_0\)</span> and infer that the sample mean significantly differs from the hypothesized values.</p></li>
@@ -3520,29 +3515,29 @@ H_0: \mathbf{C}(\mu_1 - \mu_2) = \mathbf{0}_c,
 <li><strong>Paired-Sample Hotelling’s</strong> <span class="math inline">\(T^2\)</span> <strong>Test</strong></li>
 </ol>
 <p>Used when each subject has two sets of paired measurements.</p>
-<div class="sourceCode" id="cb837"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb837-1"><a href="basic-understanding.html#cb837-1" tabindex="-1"></a><span class="co"># Data: Commercial vs. State Lab Waste Analysis</span></span>
-<span id="cb837-2"><a href="basic-understanding.html#cb837-2" tabindex="-1"></a>waste <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb837-3"><a href="basic-understanding.html#cb837-3" tabindex="-1"></a>    <span class="at">case =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>,</span>
-<span id="cb837-4"><a href="basic-understanding.html#cb837-4" tabindex="-1"></a>    <span class="at">com_y1 =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">18</span>, <span class="dv">8</span>, <span class="dv">11</span>, <span class="dv">34</span>, <span class="dv">28</span>, <span class="dv">71</span>, <span class="dv">43</span>, <span class="dv">33</span>, <span class="dv">20</span>),</span>
-<span id="cb837-5"><a href="basic-understanding.html#cb837-5" tabindex="-1"></a>    <span class="at">com_y2 =</span> <span class="fu">c</span>(<span class="dv">27</span>, <span class="dv">23</span>, <span class="dv">64</span>, <span class="dv">44</span>, <span class="dv">30</span>, <span class="dv">75</span>, <span class="dv">26</span>, <span class="dv">124</span>, <span class="dv">54</span>, <span class="dv">30</span>, <span class="dv">14</span>),</span>
-<span id="cb837-6"><a href="basic-understanding.html#cb837-6" tabindex="-1"></a>    <span class="at">state_y1 =</span> <span class="fu">c</span>(<span class="dv">25</span>, <span class="dv">28</span>, <span class="dv">36</span>, <span class="dv">35</span>, <span class="dv">15</span>, <span class="dv">44</span>, <span class="dv">42</span>, <span class="dv">54</span>, <span class="dv">34</span>, <span class="dv">29</span>, <span class="dv">39</span>),</span>
-<span id="cb837-7"><a href="basic-understanding.html#cb837-7" tabindex="-1"></a>    <span class="at">state_y2 =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">13</span>, <span class="dv">22</span>, <span class="dv">29</span>, <span class="dv">31</span>, <span class="dv">64</span>, <span class="dv">30</span>, <span class="dv">64</span>, <span class="dv">56</span>, <span class="dv">20</span>, <span class="dv">21</span>)</span>
-<span id="cb837-8"><a href="basic-understanding.html#cb837-8" tabindex="-1"></a>)</span>
-<span id="cb837-9"><a href="basic-understanding.html#cb837-9" tabindex="-1"></a></span>
-<span id="cb837-10"><a href="basic-understanding.html#cb837-10" tabindex="-1"></a><span class="co"># Compute differences between commercial and state labs</span></span>
-<span id="cb837-11"><a href="basic-understanding.html#cb837-11" tabindex="-1"></a>waste_diff <span class="ot">&lt;-</span> waste <span class="sc">%&gt;%</span></span>
-<span id="cb837-12"><a href="basic-understanding.html#cb837-12" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">y1_diff =</span> com_y1 <span class="sc">-</span> state_y1,</span>
-<span id="cb837-13"><a href="basic-understanding.html#cb837-13" tabindex="-1"></a>              <span class="at">y2_diff =</span> com_y2 <span class="sc">-</span> state_y2)</span>
-<span id="cb837-14"><a href="basic-understanding.html#cb837-14" tabindex="-1"></a></span>
-<span id="cb837-15"><a href="basic-understanding.html#cb837-15" tabindex="-1"></a><span class="co"># Perform Paired Hotelling’s T^2 test</span></span>
-<span id="cb837-16"><a href="basic-understanding.html#cb837-16" tabindex="-1"></a>paired_fit <span class="ot">&lt;-</span> <span class="fu">HotellingsT2</span>(waste_diff)</span>
-<span id="cb837-17"><a href="basic-understanding.html#cb837-17" tabindex="-1"></a><span class="fu">print</span>(paired_fit)</span>
-<span id="cb837-18"><a href="basic-understanding.html#cb837-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb837-19"><a href="basic-understanding.html#cb837-19" tabindex="-1"></a><span class="co">#&gt;  Hotelling&#39;s one sample T2-test</span></span>
-<span id="cb837-20"><a href="basic-understanding.html#cb837-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb837-21"><a href="basic-understanding.html#cb837-21" tabindex="-1"></a><span class="co">#&gt; data:  waste_diff</span></span>
-<span id="cb837-22"><a href="basic-understanding.html#cb837-22" tabindex="-1"></a><span class="co">#&gt; T.2 = 6.1377, df1 = 2, df2 = 9, p-value = 0.02083</span></span>
-<span id="cb837-23"><a href="basic-understanding.html#cb837-23" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true location is not equal to c(0,0)</span></span></code></pre></div>
+<div class="sourceCode" id="cb842"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb842-1"><a href="basic-understanding.html#cb842-1" tabindex="-1"></a><span class="co"># Data: Commercial vs. State Lab Waste Analysis</span></span>
+<span id="cb842-2"><a href="basic-understanding.html#cb842-2" tabindex="-1"></a>waste <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb842-3"><a href="basic-understanding.html#cb842-3" tabindex="-1"></a>    <span class="at">case =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>,</span>
+<span id="cb842-4"><a href="basic-understanding.html#cb842-4" tabindex="-1"></a>    <span class="at">com_y1 =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">18</span>, <span class="dv">8</span>, <span class="dv">11</span>, <span class="dv">34</span>, <span class="dv">28</span>, <span class="dv">71</span>, <span class="dv">43</span>, <span class="dv">33</span>, <span class="dv">20</span>),</span>
+<span id="cb842-5"><a href="basic-understanding.html#cb842-5" tabindex="-1"></a>    <span class="at">com_y2 =</span> <span class="fu">c</span>(<span class="dv">27</span>, <span class="dv">23</span>, <span class="dv">64</span>, <span class="dv">44</span>, <span class="dv">30</span>, <span class="dv">75</span>, <span class="dv">26</span>, <span class="dv">124</span>, <span class="dv">54</span>, <span class="dv">30</span>, <span class="dv">14</span>),</span>
+<span id="cb842-6"><a href="basic-understanding.html#cb842-6" tabindex="-1"></a>    <span class="at">state_y1 =</span> <span class="fu">c</span>(<span class="dv">25</span>, <span class="dv">28</span>, <span class="dv">36</span>, <span class="dv">35</span>, <span class="dv">15</span>, <span class="dv">44</span>, <span class="dv">42</span>, <span class="dv">54</span>, <span class="dv">34</span>, <span class="dv">29</span>, <span class="dv">39</span>),</span>
+<span id="cb842-7"><a href="basic-understanding.html#cb842-7" tabindex="-1"></a>    <span class="at">state_y2 =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">13</span>, <span class="dv">22</span>, <span class="dv">29</span>, <span class="dv">31</span>, <span class="dv">64</span>, <span class="dv">30</span>, <span class="dv">64</span>, <span class="dv">56</span>, <span class="dv">20</span>, <span class="dv">21</span>)</span>
+<span id="cb842-8"><a href="basic-understanding.html#cb842-8" tabindex="-1"></a>)</span>
+<span id="cb842-9"><a href="basic-understanding.html#cb842-9" tabindex="-1"></a></span>
+<span id="cb842-10"><a href="basic-understanding.html#cb842-10" tabindex="-1"></a><span class="co"># Compute differences between commercial and state labs</span></span>
+<span id="cb842-11"><a href="basic-understanding.html#cb842-11" tabindex="-1"></a>waste_diff <span class="ot">&lt;-</span> waste <span class="sc">%&gt;%</span></span>
+<span id="cb842-12"><a href="basic-understanding.html#cb842-12" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">y1_diff =</span> com_y1 <span class="sc">-</span> state_y1,</span>
+<span id="cb842-13"><a href="basic-understanding.html#cb842-13" tabindex="-1"></a>              <span class="at">y2_diff =</span> com_y2 <span class="sc">-</span> state_y2)</span>
+<span id="cb842-14"><a href="basic-understanding.html#cb842-14" tabindex="-1"></a></span>
+<span id="cb842-15"><a href="basic-understanding.html#cb842-15" tabindex="-1"></a><span class="co"># Perform Paired Hotelling’s T^2 test</span></span>
+<span id="cb842-16"><a href="basic-understanding.html#cb842-16" tabindex="-1"></a>paired_fit <span class="ot">&lt;-</span> <span class="fu">HotellingsT2</span>(waste_diff)</span>
+<span id="cb842-17"><a href="basic-understanding.html#cb842-17" tabindex="-1"></a><span class="fu">print</span>(paired_fit)</span>
+<span id="cb842-18"><a href="basic-understanding.html#cb842-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb842-19"><a href="basic-understanding.html#cb842-19" tabindex="-1"></a><span class="co">#&gt;  Hotelling&#39;s one sample T2-test</span></span>
+<span id="cb842-20"><a href="basic-understanding.html#cb842-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb842-21"><a href="basic-understanding.html#cb842-21" tabindex="-1"></a><span class="co">#&gt; data:  waste_diff</span></span>
+<span id="cb842-22"><a href="basic-understanding.html#cb842-22" tabindex="-1"></a><span class="co">#&gt; T.2 = 6.1377, df1 = 2, df2 = 9, p-value = 0.02083</span></span>
+<span id="cb842-23"><a href="basic-understanding.html#cb842-23" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true location is not equal to c(0,0)</span></span></code></pre></div>
 <ul>
 <li><p>Reject <span class="math inline">\(H_0\)</span>: Measurements from the two labs significantly differ.</p></li>
 <li><p>Fail to reject <span class="math inline">\(H_0\)</span>: No significant difference between the two labs.</p></li>
@@ -3551,54 +3546,54 @@ H_0: \mathbf{C}(\mu_1 - \mu_2) = \mathbf{0}_c,
 <li><strong>Independent-Sample Hotelling’s</strong> <span class="math inline">\(T^2\)</span> <strong>Test with Bartlett’s Test</strong></li>
 </ol>
 <p>Used when comparing two independent groups.</p>
-<div class="sourceCode" id="cb838"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb838-1"><a href="basic-understanding.html#cb838-1" tabindex="-1"></a><span class="co"># Read steel strength data</span></span>
-<span id="cb838-2"><a href="basic-understanding.html#cb838-2" tabindex="-1"></a>steel <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;images/steel.dat&quot;</span>)</span>
-<span id="cb838-3"><a href="basic-understanding.html#cb838-3" tabindex="-1"></a><span class="fu">names</span>(steel) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Temp&quot;</span>, <span class="st">&quot;Yield&quot;</span>, <span class="st">&quot;Strength&quot;</span>)</span>
-<span id="cb838-4"><a href="basic-understanding.html#cb838-4" tabindex="-1"></a></span>
-<span id="cb838-5"><a href="basic-understanding.html#cb838-5" tabindex="-1"></a><span class="co"># Scatter plot of Yield vs Strength</span></span>
-<span id="cb838-6"><a href="basic-understanding.html#cb838-6" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
-<div class="sourceCode" id="cb839"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb839-1"><a href="basic-understanding.html#cb839-1" tabindex="-1"></a><span class="fu">ggplot</span>(steel, <span class="fu">aes</span>(<span class="at">x =</span> Yield, <span class="at">y =</span> Strength)) <span class="sc">+</span></span>
-<span id="cb839-2"><a href="basic-understanding.html#cb839-2" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> Temp), <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
-<span id="cb839-3"><a href="basic-understanding.html#cb839-3" tabindex="-1"></a>    <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">33</span>, <span class="at">y =</span> <span class="fl">57.5</span>, <span class="at">xend =</span> <span class="dv">42</span>, <span class="at">yend =</span> <span class="dv">65</span>), <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb843"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb843-1"><a href="basic-understanding.html#cb843-1" tabindex="-1"></a><span class="co"># Read steel strength data</span></span>
+<span id="cb843-2"><a href="basic-understanding.html#cb843-2" tabindex="-1"></a>steel <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;images/steel.dat&quot;</span>)</span>
+<span id="cb843-3"><a href="basic-understanding.html#cb843-3" tabindex="-1"></a><span class="fu">names</span>(steel) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Temp&quot;</span>, <span class="st">&quot;Yield&quot;</span>, <span class="st">&quot;Strength&quot;</span>)</span>
+<span id="cb843-4"><a href="basic-understanding.html#cb843-4" tabindex="-1"></a></span>
+<span id="cb843-5"><a href="basic-understanding.html#cb843-5" tabindex="-1"></a><span class="co"># Scatter plot of Yield vs Strength</span></span>
+<span id="cb843-6"><a href="basic-understanding.html#cb843-6" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
+<div class="sourceCode" id="cb844"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb844-1"><a href="basic-understanding.html#cb844-1" tabindex="-1"></a><span class="fu">ggplot</span>(steel, <span class="fu">aes</span>(<span class="at">x =</span> Yield, <span class="at">y =</span> Strength)) <span class="sc">+</span></span>
+<span id="cb844-2"><a href="basic-understanding.html#cb844-2" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> Temp), <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb844-3"><a href="basic-understanding.html#cb844-3" tabindex="-1"></a>    <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">33</span>, <span class="at">y =</span> <span class="fl">57.5</span>, <span class="at">xend =</span> <span class="dv">42</span>, <span class="at">yend =</span> <span class="dv">65</span>), <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-22"></span>
 <img src="25-multivariate_files/figure-html/unnamed-chunk-22-1.png" alt="Scatter plot with red trend line showing positive correlation between yield and strength, with data points marked as 1 and 2." width="90%" />
 <p class="caption">
 Figure 2.22: Strength vs Yield
 </p>
 </div>
-<div class="sourceCode" id="cb840"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb840-1"><a href="basic-understanding.html#cb840-1" tabindex="-1"></a><span class="co"># Bartlett&#39;s test for equality of covariances</span></span>
-<span id="cb840-2"><a href="basic-understanding.html#cb840-2" tabindex="-1"></a>bart_test <span class="ot">&lt;-</span> <span class="fu">boxM</span>(steel[, <span class="sc">-</span><span class="dv">1</span>], steel<span class="sc">$</span>Temp)</span>
-<span id="cb840-3"><a href="basic-understanding.html#cb840-3" tabindex="-1"></a><span class="fu">print</span>(bart_test)  <span class="co"># If p &gt; 0.05, fail to reject equal covariances</span></span>
-<span id="cb840-4"><a href="basic-understanding.html#cb840-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb840-5"><a href="basic-understanding.html#cb840-5" tabindex="-1"></a><span class="co">#&gt;  Box&#39;s M-test for Homogeneity of Covariance Matrices</span></span>
-<span id="cb840-6"><a href="basic-understanding.html#cb840-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb840-7"><a href="basic-understanding.html#cb840-7" tabindex="-1"></a><span class="co">#&gt; data:  steel[, -1]</span></span>
-<span id="cb840-8"><a href="basic-understanding.html#cb840-8" tabindex="-1"></a><span class="co">#&gt; Chi-Sq (approx.) = 0.38077, df = 3, p-value = 0.9442</span></span>
-<span id="cb840-9"><a href="basic-understanding.html#cb840-9" tabindex="-1"></a></span>
-<span id="cb840-10"><a href="basic-understanding.html#cb840-10" tabindex="-1"></a><span class="co"># Multivariate analysis of variance (MANOVA) using Wilks&#39; Lambda</span></span>
-<span id="cb840-11"><a href="basic-understanding.html#cb840-11" tabindex="-1"></a>twosamp_fit <span class="ot">&lt;-</span></span>
-<span id="cb840-12"><a href="basic-understanding.html#cb840-12" tabindex="-1"></a>    <span class="fu">anova</span>(<span class="fu">lm</span>(<span class="fu">cbind</span>(Yield, Strength) <span class="sc">~</span> <span class="fu">factor</span>(Temp), <span class="at">data =</span> steel), </span>
-<span id="cb840-13"><a href="basic-understanding.html#cb840-13" tabindex="-1"></a>          <span class="at">test =</span> <span class="st">&quot;Wilks&quot;</span>)</span>
-<span id="cb840-14"><a href="basic-understanding.html#cb840-14" tabindex="-1"></a><span class="fu">print</span>(twosamp_fit)</span>
-<span id="cb840-15"><a href="basic-understanding.html#cb840-15" tabindex="-1"></a><span class="co">#&gt; Analysis of Variance Table</span></span>
-<span id="cb840-16"><a href="basic-understanding.html#cb840-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb840-17"><a href="basic-understanding.html#cb840-17" tabindex="-1"></a><span class="co">#&gt;              Df    Wilks approx F num Df den Df    Pr(&gt;F)    </span></span>
-<span id="cb840-18"><a href="basic-understanding.html#cb840-18" tabindex="-1"></a><span class="co">#&gt; (Intercept)   1 0.001177   3818.1      2      9 6.589e-14 ***</span></span>
-<span id="cb840-19"><a href="basic-understanding.html#cb840-19" tabindex="-1"></a><span class="co">#&gt; factor(Temp)  1 0.294883     10.8      2      9  0.004106 ** </span></span>
-<span id="cb840-20"><a href="basic-understanding.html#cb840-20" tabindex="-1"></a><span class="co">#&gt; Residuals    10                                              </span></span>
-<span id="cb840-21"><a href="basic-understanding.html#cb840-21" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb840-22"><a href="basic-understanding.html#cb840-22" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb840-23"><a href="basic-understanding.html#cb840-23" tabindex="-1"></a></span>
-<span id="cb840-24"><a href="basic-understanding.html#cb840-24" tabindex="-1"></a><span class="co"># Independent-Sample Hotelling&#39;s T^2 Test</span></span>
-<span id="cb840-25"><a href="basic-understanding.html#cb840-25" tabindex="-1"></a>twosamp_fit2 <span class="ot">&lt;-</span></span>
-<span id="cb840-26"><a href="basic-understanding.html#cb840-26" tabindex="-1"></a>    <span class="fu">HotellingsT2</span>(<span class="fu">cbind</span>(steel<span class="sc">$</span>Yield, steel<span class="sc">$</span>Strength) <span class="sc">~</span> <span class="fu">factor</span>(steel<span class="sc">$</span>Temp))</span>
-<span id="cb840-27"><a href="basic-understanding.html#cb840-27" tabindex="-1"></a><span class="fu">print</span>(twosamp_fit2)</span>
-<span id="cb840-28"><a href="basic-understanding.html#cb840-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb840-29"><a href="basic-understanding.html#cb840-29" tabindex="-1"></a><span class="co">#&gt;  Hotelling&#39;s two sample T2-test</span></span>
-<span id="cb840-30"><a href="basic-understanding.html#cb840-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb840-31"><a href="basic-understanding.html#cb840-31" tabindex="-1"></a><span class="co">#&gt; data:  cbind(steel$Yield, steel$Strength) by factor(steel$Temp)</span></span>
-<span id="cb840-32"><a href="basic-understanding.html#cb840-32" tabindex="-1"></a><span class="co">#&gt; T.2 = 10.76, df1 = 2, df2 = 9, p-value = 0.004106</span></span>
-<span id="cb840-33"><a href="basic-understanding.html#cb840-33" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true location difference is not equal to c(0,0)</span></span></code></pre></div>
+<div class="sourceCode" id="cb845"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb845-1"><a href="basic-understanding.html#cb845-1" tabindex="-1"></a><span class="co"># Bartlett&#39;s test for equality of covariances</span></span>
+<span id="cb845-2"><a href="basic-understanding.html#cb845-2" tabindex="-1"></a>bart_test <span class="ot">&lt;-</span> <span class="fu">boxM</span>(steel[, <span class="sc">-</span><span class="dv">1</span>], steel<span class="sc">$</span>Temp)</span>
+<span id="cb845-3"><a href="basic-understanding.html#cb845-3" tabindex="-1"></a><span class="fu">print</span>(bart_test)  <span class="co"># If p &gt; 0.05, fail to reject equal covariances</span></span>
+<span id="cb845-4"><a href="basic-understanding.html#cb845-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb845-5"><a href="basic-understanding.html#cb845-5" tabindex="-1"></a><span class="co">#&gt;  Box&#39;s M-test for Homogeneity of Covariance Matrices</span></span>
+<span id="cb845-6"><a href="basic-understanding.html#cb845-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb845-7"><a href="basic-understanding.html#cb845-7" tabindex="-1"></a><span class="co">#&gt; data:  steel[, -1]</span></span>
+<span id="cb845-8"><a href="basic-understanding.html#cb845-8" tabindex="-1"></a><span class="co">#&gt; Chi-Sq (approx.) = 0.38077, df = 3, p-value = 0.9442</span></span>
+<span id="cb845-9"><a href="basic-understanding.html#cb845-9" tabindex="-1"></a></span>
+<span id="cb845-10"><a href="basic-understanding.html#cb845-10" tabindex="-1"></a><span class="co"># Multivariate analysis of variance (MANOVA) using Wilks&#39; Lambda</span></span>
+<span id="cb845-11"><a href="basic-understanding.html#cb845-11" tabindex="-1"></a>twosamp_fit <span class="ot">&lt;-</span></span>
+<span id="cb845-12"><a href="basic-understanding.html#cb845-12" tabindex="-1"></a>    <span class="fu">anova</span>(<span class="fu">lm</span>(<span class="fu">cbind</span>(Yield, Strength) <span class="sc">~</span> <span class="fu">factor</span>(Temp), <span class="at">data =</span> steel), </span>
+<span id="cb845-13"><a href="basic-understanding.html#cb845-13" tabindex="-1"></a>          <span class="at">test =</span> <span class="st">&quot;Wilks&quot;</span>)</span>
+<span id="cb845-14"><a href="basic-understanding.html#cb845-14" tabindex="-1"></a><span class="fu">print</span>(twosamp_fit)</span>
+<span id="cb845-15"><a href="basic-understanding.html#cb845-15" tabindex="-1"></a><span class="co">#&gt; Analysis of Variance Table</span></span>
+<span id="cb845-16"><a href="basic-understanding.html#cb845-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb845-17"><a href="basic-understanding.html#cb845-17" tabindex="-1"></a><span class="co">#&gt;              Df    Wilks approx F num Df den Df    Pr(&gt;F)    </span></span>
+<span id="cb845-18"><a href="basic-understanding.html#cb845-18" tabindex="-1"></a><span class="co">#&gt; (Intercept)   1 0.001177   3818.1      2      9 6.589e-14 ***</span></span>
+<span id="cb845-19"><a href="basic-understanding.html#cb845-19" tabindex="-1"></a><span class="co">#&gt; factor(Temp)  1 0.294883     10.8      2      9  0.004106 ** </span></span>
+<span id="cb845-20"><a href="basic-understanding.html#cb845-20" tabindex="-1"></a><span class="co">#&gt; Residuals    10                                              </span></span>
+<span id="cb845-21"><a href="basic-understanding.html#cb845-21" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb845-22"><a href="basic-understanding.html#cb845-22" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb845-23"><a href="basic-understanding.html#cb845-23" tabindex="-1"></a></span>
+<span id="cb845-24"><a href="basic-understanding.html#cb845-24" tabindex="-1"></a><span class="co"># Independent-Sample Hotelling&#39;s T^2 Test</span></span>
+<span id="cb845-25"><a href="basic-understanding.html#cb845-25" tabindex="-1"></a>twosamp_fit2 <span class="ot">&lt;-</span></span>
+<span id="cb845-26"><a href="basic-understanding.html#cb845-26" tabindex="-1"></a>    <span class="fu">HotellingsT2</span>(<span class="fu">cbind</span>(steel<span class="sc">$</span>Yield, steel<span class="sc">$</span>Strength) <span class="sc">~</span> <span class="fu">factor</span>(steel<span class="sc">$</span>Temp))</span>
+<span id="cb845-27"><a href="basic-understanding.html#cb845-27" tabindex="-1"></a><span class="fu">print</span>(twosamp_fit2)</span>
+<span id="cb845-28"><a href="basic-understanding.html#cb845-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb845-29"><a href="basic-understanding.html#cb845-29" tabindex="-1"></a><span class="co">#&gt;  Hotelling&#39;s two sample T2-test</span></span>
+<span id="cb845-30"><a href="basic-understanding.html#cb845-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb845-31"><a href="basic-understanding.html#cb845-31" tabindex="-1"></a><span class="co">#&gt; data:  cbind(steel$Yield, steel$Strength) by factor(steel$Temp)</span></span>
+<span id="cb845-32"><a href="basic-understanding.html#cb845-32" tabindex="-1"></a><span class="co">#&gt; T.2 = 10.76, df1 = 2, df2 = 9, p-value = 0.004106</span></span>
+<span id="cb845-33"><a href="basic-understanding.html#cb845-33" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true location difference is not equal to c(0,0)</span></span></code></pre></div>
 <ul>
 <li><p>Reject <span class="math inline">\(H_0\)</span>: The two temperature groups have significantly different mean vectors.</p></li>
 <li><p>Fail to reject <span class="math inline">\(H_0\)</span>: No significant difference between groups.</p></li>
@@ -3607,8 +3602,8 @@ Figure 2.22: Strength vs Yield
 <caption>Summary of Repeated Measures Hypothesis Testing</caption>
 <colgroup>
 <col width="30%" />
-<col width="44%" />
-<col width="25%" />
+<col width="46%" />
+<col width="23%" />
 </colgroup>
 <thead>
 <tr class="header">

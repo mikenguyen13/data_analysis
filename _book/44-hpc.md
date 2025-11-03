@@ -477,20 +477,20 @@ plan(sequential)
 # Print table
 print(results)
 #>              Approach Data_Size Cores   Time_Sec Memory_MB
-#> 1          SingleCore     10000     1 0.01581287      0.00
-#> 2          SingleCore   1000000     1 1.43626785      0.00
-#> 3           parLapply     10000     2 0.01978612      0.01
-#> 4           parLapply   1000000     2 1.42945695      0.01
-#> 5           parLapply     10000     4 0.01906514      0.02
-#> 6           parLapply   1000000     4 1.46021295      0.02
-#> 7  foreach_doParallel     10000     2 0.06499314      0.01
-#> 8  foreach_doParallel   1000000     2 1.42544699      0.01
-#> 9  foreach_doParallel     10000     4 0.05926299      0.02
-#> 10 foreach_doParallel   1000000     4 1.43057013      0.02
-#> 11      future_lapply     10000     2 0.11854696      0.01
-#> 12      future_lapply   1000000     2 2.88425088      0.01
-#> 13      future_lapply     10000     4 0.22660494      0.02
-#> 14      future_lapply   1000000     4 5.74241900      0.02
+#> 1          SingleCore     10000     1 0.01586890      0.00
+#> 2          SingleCore   1000000     1 1.34883380      0.00
+#> 3           parLapply     10000     2 0.01907897      0.01
+#> 4           parLapply   1000000     2 1.33863306      0.01
+#> 5           parLapply     10000     4 0.01780701      0.02
+#> 6           parLapply   1000000     4 1.32461405      0.02
+#> 7  foreach_doParallel     10000     2 0.05314898      0.01
+#> 8  foreach_doParallel   1000000     2 1.33675098      0.01
+#> 9  foreach_doParallel     10000     4 0.06010795      0.02
+#> 10 foreach_doParallel   1000000     4 1.34139991      0.02
+#> 11      future_lapply     10000     2 0.09521294      0.01
+#> 12      future_lapply   1000000     2 2.73076987      0.01
+#> 13      future_lapply     10000     4 0.10914207      0.02
+#> 14      future_lapply   1000000     4 5.50541496      0.02
 
 # Save to CSV
 # write.csv(results, "HPC_parallel_results.csv", row.names = FALSE)

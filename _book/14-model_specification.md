@@ -81,7 +81,7 @@ $$
 The Wald statistic is calculated as:
 
 $$
-W = (R\hat{\boldsymbol{\beta}} - r)' \left[ R \, \hat{\text{Var}}(\hat{\boldsymbol{\beta}}) \, R' \right]^{-1} (R\hat{\boldsymbol{\beta}} - r)
+W = (R\hat{\boldsymbol{\beta}} - r)' \left[ R  \hat{\text{Var}}(\hat{\boldsymbol{\beta}})  R' \right]^{-1} (R\hat{\boldsymbol{\beta}} - r)
 $$
 
 Where:
@@ -438,7 +438,7 @@ $$
 The Vuong test statistic is:
 
 $$
-V = \frac{\sqrt{n} \, \bar{m}}{s_m}
+V = \frac{\sqrt{n}  \bar{m}}{s_m}
 $$
 
 Where:
@@ -874,7 +874,7 @@ summary(j_test_B_vs_A)
 **Heteroskedasticity** occurs when the variance of the error terms ($\epsilon_i$) in a regression model is **not constant** across observations. This violates the Classical [OLS Assumption](#ols-assumptions), specifically the assumption of **homoskedasticity** (Assumption [A4 Homoskedasticity] in the [Gauss-Markov Theorem]), which states:
 
 $$
-\text{Var}(\epsilon_i) = \sigma^2 \quad \forall \, i
+\text{Var}(\epsilon_i) = \sigma^2 \quad \forall  i
 $$
 
 When heteroskedasticity is present:
@@ -1642,7 +1642,7 @@ print(rainbow_test)
 The **Durbin--Watson (DW) Test** is the most widely used test for detecting **first-order autocorrelation**, where the current error term is correlated with the previous one:
 
 $$
-\epsilon_t = \rho \, \epsilon_{t-1} + u_t
+\epsilon_t = \rho  \epsilon_{t-1} + u_t
 $$
 
 Where:

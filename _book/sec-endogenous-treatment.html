@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>36.1 Endogenous Treatment | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.43 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
 
   <meta property="og:title" content="36.1 Endogenous Treatment | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2025-10-24" />
+<meta name="date" content="2025-11-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2460,77 +2460,77 @@ P(\rho) \propto (1 - \rho^2)^c
 <li>Combining evidence from multiple studies (meta-analytic context)</li>
 </ol>
 <p>By leveraging prior information and applying the Fisher transformation, researchers can obtain a more stable and accurate estimate of the true underlying correlation.</p>
-<div class="sourceCode" id="cb1109"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1109-1"><a href="sec-endogenous-treatment.html#cb1109-1" tabindex="-1"></a><span class="co"># Define inputs</span></span>
-<span id="cb1109-2"><a href="sec-endogenous-treatment.html#cb1109-2" tabindex="-1"></a>n_new  <span class="ot">&lt;-</span> <span class="dv">200</span></span>
-<span id="cb1109-3"><a href="sec-endogenous-treatment.html#cb1109-3" tabindex="-1"></a>r_new  <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb1109-4"><a href="sec-endogenous-treatment.html#cb1109-4" tabindex="-1"></a>alpha  <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
-<span id="cb1109-5"><a href="sec-endogenous-treatment.html#cb1109-5" tabindex="-1"></a></span>
-<span id="cb1109-6"><a href="sec-endogenous-treatment.html#cb1109-6" tabindex="-1"></a><span class="co"># Bayesian update function for correlation coefficient</span></span>
-<span id="cb1109-7"><a href="sec-endogenous-treatment.html#cb1109-7" tabindex="-1"></a>update_correlation <span class="ot">&lt;-</span> <span class="cf">function</span>(n_new, r_new, alpha) {</span>
-<span id="cb1109-8"><a href="sec-endogenous-treatment.html#cb1109-8" tabindex="-1"></a>  </span>
-<span id="cb1109-9"><a href="sec-endogenous-treatment.html#cb1109-9" tabindex="-1"></a>  <span class="co"># Prior (meta-analysis study)</span></span>
-<span id="cb1109-10"><a href="sec-endogenous-treatment.html#cb1109-10" tabindex="-1"></a>  n_meta <span class="ot">&lt;-</span> <span class="dv">50205</span></span>
-<span id="cb1109-11"><a href="sec-endogenous-treatment.html#cb1109-11" tabindex="-1"></a>  r_meta <span class="ot">&lt;-</span> <span class="fl">0.2765</span></span>
-<span id="cb1109-12"><a href="sec-endogenous-treatment.html#cb1109-12" tabindex="-1"></a>  </span>
-<span id="cb1109-13"><a href="sec-endogenous-treatment.html#cb1109-13" tabindex="-1"></a>  <span class="co"># Step 1: Posterior variance (in Fisher-z space)</span></span>
-<span id="cb1109-14"><a href="sec-endogenous-treatment.html#cb1109-14" tabindex="-1"></a>  var_xi <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (n_new <span class="sc">+</span> n_meta)</span>
-<span id="cb1109-15"><a href="sec-endogenous-treatment.html#cb1109-15" tabindex="-1"></a>  </span>
-<span id="cb1109-16"><a href="sec-endogenous-treatment.html#cb1109-16" tabindex="-1"></a>  <span class="co"># Step 2: Posterior mean (in Fisher-z space)</span></span>
-<span id="cb1109-17"><a href="sec-endogenous-treatment.html#cb1109-17" tabindex="-1"></a>  mu_xi <span class="ot">&lt;-</span> var_xi <span class="sc">*</span> (n_meta <span class="sc">*</span> <span class="fu">atanh</span>(r_meta) <span class="sc">+</span> n_new <span class="sc">*</span> <span class="fu">atanh</span>(r_new))</span>
-<span id="cb1109-18"><a href="sec-endogenous-treatment.html#cb1109-18" tabindex="-1"></a>  </span>
-<span id="cb1109-19"><a href="sec-endogenous-treatment.html#cb1109-19" tabindex="-1"></a>  <span class="co"># Step 3: Confidence interval in Fisher-z space</span></span>
-<span id="cb1109-20"><a href="sec-endogenous-treatment.html#cb1109-20" tabindex="-1"></a>  z_crit    <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>)</span>
-<span id="cb1109-21"><a href="sec-endogenous-treatment.html#cb1109-21" tabindex="-1"></a>  upper_xi  <span class="ot">&lt;-</span> mu_xi <span class="sc">+</span> z_crit <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
-<span id="cb1109-22"><a href="sec-endogenous-treatment.html#cb1109-22" tabindex="-1"></a>  lower_xi  <span class="ot">&lt;-</span> mu_xi <span class="sc">-</span> z_crit <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
-<span id="cb1109-23"><a href="sec-endogenous-treatment.html#cb1109-23" tabindex="-1"></a>  </span>
-<span id="cb1109-24"><a href="sec-endogenous-treatment.html#cb1109-24" tabindex="-1"></a>  <span class="co"># Step 4: Transform back to correlation scale</span></span>
-<span id="cb1109-25"><a href="sec-endogenous-treatment.html#cb1109-25" tabindex="-1"></a>  mean_rho  <span class="ot">&lt;-</span> <span class="fu">tanh</span>(mu_xi)</span>
-<span id="cb1109-26"><a href="sec-endogenous-treatment.html#cb1109-26" tabindex="-1"></a>  upper_rho <span class="ot">&lt;-</span> <span class="fu">tanh</span>(upper_xi)</span>
-<span id="cb1109-27"><a href="sec-endogenous-treatment.html#cb1109-27" tabindex="-1"></a>  lower_rho <span class="ot">&lt;-</span> <span class="fu">tanh</span>(lower_xi)</span>
-<span id="cb1109-28"><a href="sec-endogenous-treatment.html#cb1109-28" tabindex="-1"></a>  </span>
-<span id="cb1109-29"><a href="sec-endogenous-treatment.html#cb1109-29" tabindex="-1"></a>  <span class="co"># Return all values as a list</span></span>
-<span id="cb1109-30"><a href="sec-endogenous-treatment.html#cb1109-30" tabindex="-1"></a>  <span class="fu">list</span>(</span>
-<span id="cb1109-31"><a href="sec-endogenous-treatment.html#cb1109-31" tabindex="-1"></a>    <span class="at">mu_xi     =</span> mu_xi,</span>
-<span id="cb1109-32"><a href="sec-endogenous-treatment.html#cb1109-32" tabindex="-1"></a>    <span class="at">var_xi    =</span> var_xi,</span>
-<span id="cb1109-33"><a href="sec-endogenous-treatment.html#cb1109-33" tabindex="-1"></a>    <span class="at">upper_xi  =</span> upper_xi,</span>
-<span id="cb1109-34"><a href="sec-endogenous-treatment.html#cb1109-34" tabindex="-1"></a>    <span class="at">lower_xi  =</span> lower_xi,</span>
-<span id="cb1109-35"><a href="sec-endogenous-treatment.html#cb1109-35" tabindex="-1"></a>    <span class="at">mean_rho  =</span> mean_rho,</span>
-<span id="cb1109-36"><a href="sec-endogenous-treatment.html#cb1109-36" tabindex="-1"></a>    <span class="at">upper_rho =</span> upper_rho,</span>
-<span id="cb1109-37"><a href="sec-endogenous-treatment.html#cb1109-37" tabindex="-1"></a>    <span class="at">lower_rho =</span> lower_rho</span>
-<span id="cb1109-38"><a href="sec-endogenous-treatment.html#cb1109-38" tabindex="-1"></a>  )</span>
-<span id="cb1109-39"><a href="sec-endogenous-treatment.html#cb1109-39" tabindex="-1"></a>}</span>
-<span id="cb1109-40"><a href="sec-endogenous-treatment.html#cb1109-40" tabindex="-1"></a></span>
-<span id="cb1109-41"><a href="sec-endogenous-treatment.html#cb1109-41" tabindex="-1"></a></span>
-<span id="cb1109-42"><a href="sec-endogenous-treatment.html#cb1109-42" tabindex="-1"></a><span class="co"># Run update</span></span>
-<span id="cb1109-43"><a href="sec-endogenous-treatment.html#cb1109-43" tabindex="-1"></a>updated <span class="ot">&lt;-</span></span>
-<span id="cb1109-44"><a href="sec-endogenous-treatment.html#cb1109-44" tabindex="-1"></a>    <span class="fu">update_correlation</span>(<span class="at">n_new =</span> n_new,</span>
-<span id="cb1109-45"><a href="sec-endogenous-treatment.html#cb1109-45" tabindex="-1"></a>                       <span class="at">r_new =</span> r_new,</span>
-<span id="cb1109-46"><a href="sec-endogenous-treatment.html#cb1109-46" tabindex="-1"></a>                       <span class="at">alpha =</span> alpha)</span>
-<span id="cb1109-47"><a href="sec-endogenous-treatment.html#cb1109-47" tabindex="-1"></a></span>
-<span id="cb1109-48"><a href="sec-endogenous-treatment.html#cb1109-48" tabindex="-1"></a><span class="co"># Display updated posterior mean and confidence interval</span></span>
-<span id="cb1109-49"><a href="sec-endogenous-treatment.html#cb1109-49" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Posterior mean of rho:&quot;</span>, <span class="fu">round</span>(updated<span class="sc">$</span>mean_rho, <span class="dv">4</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb1109-50"><a href="sec-endogenous-treatment.html#cb1109-50" tabindex="-1"></a><span class="co">#&gt; Posterior mean of rho: 0.2775</span></span>
-<span id="cb1109-51"><a href="sec-endogenous-treatment.html#cb1109-51" tabindex="-1"></a><span class="fu">cat</span>(</span>
-<span id="cb1109-52"><a href="sec-endogenous-treatment.html#cb1109-52" tabindex="-1"></a>    <span class="st">&quot;95% CI for rho: (&quot;</span>,</span>
-<span id="cb1109-53"><a href="sec-endogenous-treatment.html#cb1109-53" tabindex="-1"></a>    <span class="fu">round</span>(updated<span class="sc">$</span>lower_rho, <span class="dv">4</span>),</span>
-<span id="cb1109-54"><a href="sec-endogenous-treatment.html#cb1109-54" tabindex="-1"></a>    <span class="st">&quot;,&quot;</span>,</span>
-<span id="cb1109-55"><a href="sec-endogenous-treatment.html#cb1109-55" tabindex="-1"></a>    <span class="fu">round</span>(updated<span class="sc">$</span>upper_rho, <span class="dv">4</span>),</span>
-<span id="cb1109-56"><a href="sec-endogenous-treatment.html#cb1109-56" tabindex="-1"></a>    <span class="st">&quot;)</span><span class="sc">\n</span><span class="st">&quot;</span></span>
-<span id="cb1109-57"><a href="sec-endogenous-treatment.html#cb1109-57" tabindex="-1"></a>)</span>
-<span id="cb1109-58"><a href="sec-endogenous-treatment.html#cb1109-58" tabindex="-1"></a><span class="co">#&gt; 95% CI for rho: ( 0.2694 , 0.2855 )</span></span>
-<span id="cb1109-59"><a href="sec-endogenous-treatment.html#cb1109-59" tabindex="-1"></a></span>
-<span id="cb1109-60"><a href="sec-endogenous-treatment.html#cb1109-60" tabindex="-1"></a><span class="co"># For comparison: Classical (frequentist) confidence interval around r_new</span></span>
-<span id="cb1109-61"><a href="sec-endogenous-treatment.html#cb1109-61" tabindex="-1"></a>se_r  <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">/</span> n_new)</span>
-<span id="cb1109-62"><a href="sec-endogenous-treatment.html#cb1109-62" tabindex="-1"></a>z_r   <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> se_r</span>
-<span id="cb1109-63"><a href="sec-endogenous-treatment.html#cb1109-63" tabindex="-1"></a>ci_lo <span class="ot">&lt;-</span> r_new <span class="sc">-</span> z_r</span>
-<span id="cb1109-64"><a href="sec-endogenous-treatment.html#cb1109-64" tabindex="-1"></a>ci_hi <span class="ot">&lt;-</span> r_new <span class="sc">+</span> z_r</span>
-<span id="cb1109-65"><a href="sec-endogenous-treatment.html#cb1109-65" tabindex="-1"></a></span>
-<span id="cb1109-66"><a href="sec-endogenous-treatment.html#cb1109-66" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Frequentist 95% CI for r:&quot;</span>,</span>
-<span id="cb1109-67"><a href="sec-endogenous-treatment.html#cb1109-67" tabindex="-1"></a>    <span class="fu">round</span>(ci_lo, <span class="dv">4</span>),</span>
-<span id="cb1109-68"><a href="sec-endogenous-treatment.html#cb1109-68" tabindex="-1"></a>    <span class="st">&quot;to&quot;</span>,</span>
-<span id="cb1109-69"><a href="sec-endogenous-treatment.html#cb1109-69" tabindex="-1"></a>    <span class="fu">round</span>(ci_hi, <span class="dv">4</span>),</span>
-<span id="cb1109-70"><a href="sec-endogenous-treatment.html#cb1109-70" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb1109-71"><a href="sec-endogenous-treatment.html#cb1109-71" tabindex="-1"></a><span class="co">#&gt; Frequentist 95% CI for r: 0.3614 to 0.6386</span></span></code></pre></div>
+<div class="sourceCode" id="cb1114"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1114-1"><a href="sec-endogenous-treatment.html#cb1114-1" tabindex="-1"></a><span class="co"># Define inputs</span></span>
+<span id="cb1114-2"><a href="sec-endogenous-treatment.html#cb1114-2" tabindex="-1"></a>n_new  <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb1114-3"><a href="sec-endogenous-treatment.html#cb1114-3" tabindex="-1"></a>r_new  <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb1114-4"><a href="sec-endogenous-treatment.html#cb1114-4" tabindex="-1"></a>alpha  <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb1114-5"><a href="sec-endogenous-treatment.html#cb1114-5" tabindex="-1"></a></span>
+<span id="cb1114-6"><a href="sec-endogenous-treatment.html#cb1114-6" tabindex="-1"></a><span class="co"># Bayesian update function for correlation coefficient</span></span>
+<span id="cb1114-7"><a href="sec-endogenous-treatment.html#cb1114-7" tabindex="-1"></a>update_correlation <span class="ot">&lt;-</span> <span class="cf">function</span>(n_new, r_new, alpha) {</span>
+<span id="cb1114-8"><a href="sec-endogenous-treatment.html#cb1114-8" tabindex="-1"></a>  </span>
+<span id="cb1114-9"><a href="sec-endogenous-treatment.html#cb1114-9" tabindex="-1"></a>  <span class="co"># Prior (meta-analysis study)</span></span>
+<span id="cb1114-10"><a href="sec-endogenous-treatment.html#cb1114-10" tabindex="-1"></a>  n_meta <span class="ot">&lt;-</span> <span class="dv">50205</span></span>
+<span id="cb1114-11"><a href="sec-endogenous-treatment.html#cb1114-11" tabindex="-1"></a>  r_meta <span class="ot">&lt;-</span> <span class="fl">0.2765</span></span>
+<span id="cb1114-12"><a href="sec-endogenous-treatment.html#cb1114-12" tabindex="-1"></a>  </span>
+<span id="cb1114-13"><a href="sec-endogenous-treatment.html#cb1114-13" tabindex="-1"></a>  <span class="co"># Step 1: Posterior variance (in Fisher-z space)</span></span>
+<span id="cb1114-14"><a href="sec-endogenous-treatment.html#cb1114-14" tabindex="-1"></a>  var_xi <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (n_new <span class="sc">+</span> n_meta)</span>
+<span id="cb1114-15"><a href="sec-endogenous-treatment.html#cb1114-15" tabindex="-1"></a>  </span>
+<span id="cb1114-16"><a href="sec-endogenous-treatment.html#cb1114-16" tabindex="-1"></a>  <span class="co"># Step 2: Posterior mean (in Fisher-z space)</span></span>
+<span id="cb1114-17"><a href="sec-endogenous-treatment.html#cb1114-17" tabindex="-1"></a>  mu_xi <span class="ot">&lt;-</span> var_xi <span class="sc">*</span> (n_meta <span class="sc">*</span> <span class="fu">atanh</span>(r_meta) <span class="sc">+</span> n_new <span class="sc">*</span> <span class="fu">atanh</span>(r_new))</span>
+<span id="cb1114-18"><a href="sec-endogenous-treatment.html#cb1114-18" tabindex="-1"></a>  </span>
+<span id="cb1114-19"><a href="sec-endogenous-treatment.html#cb1114-19" tabindex="-1"></a>  <span class="co"># Step 3: Confidence interval in Fisher-z space</span></span>
+<span id="cb1114-20"><a href="sec-endogenous-treatment.html#cb1114-20" tabindex="-1"></a>  z_crit    <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb1114-21"><a href="sec-endogenous-treatment.html#cb1114-21" tabindex="-1"></a>  upper_xi  <span class="ot">&lt;-</span> mu_xi <span class="sc">+</span> z_crit <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
+<span id="cb1114-22"><a href="sec-endogenous-treatment.html#cb1114-22" tabindex="-1"></a>  lower_xi  <span class="ot">&lt;-</span> mu_xi <span class="sc">-</span> z_crit <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
+<span id="cb1114-23"><a href="sec-endogenous-treatment.html#cb1114-23" tabindex="-1"></a>  </span>
+<span id="cb1114-24"><a href="sec-endogenous-treatment.html#cb1114-24" tabindex="-1"></a>  <span class="co"># Step 4: Transform back to correlation scale</span></span>
+<span id="cb1114-25"><a href="sec-endogenous-treatment.html#cb1114-25" tabindex="-1"></a>  mean_rho  <span class="ot">&lt;-</span> <span class="fu">tanh</span>(mu_xi)</span>
+<span id="cb1114-26"><a href="sec-endogenous-treatment.html#cb1114-26" tabindex="-1"></a>  upper_rho <span class="ot">&lt;-</span> <span class="fu">tanh</span>(upper_xi)</span>
+<span id="cb1114-27"><a href="sec-endogenous-treatment.html#cb1114-27" tabindex="-1"></a>  lower_rho <span class="ot">&lt;-</span> <span class="fu">tanh</span>(lower_xi)</span>
+<span id="cb1114-28"><a href="sec-endogenous-treatment.html#cb1114-28" tabindex="-1"></a>  </span>
+<span id="cb1114-29"><a href="sec-endogenous-treatment.html#cb1114-29" tabindex="-1"></a>  <span class="co"># Return all values as a list</span></span>
+<span id="cb1114-30"><a href="sec-endogenous-treatment.html#cb1114-30" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb1114-31"><a href="sec-endogenous-treatment.html#cb1114-31" tabindex="-1"></a>    <span class="at">mu_xi     =</span> mu_xi,</span>
+<span id="cb1114-32"><a href="sec-endogenous-treatment.html#cb1114-32" tabindex="-1"></a>    <span class="at">var_xi    =</span> var_xi,</span>
+<span id="cb1114-33"><a href="sec-endogenous-treatment.html#cb1114-33" tabindex="-1"></a>    <span class="at">upper_xi  =</span> upper_xi,</span>
+<span id="cb1114-34"><a href="sec-endogenous-treatment.html#cb1114-34" tabindex="-1"></a>    <span class="at">lower_xi  =</span> lower_xi,</span>
+<span id="cb1114-35"><a href="sec-endogenous-treatment.html#cb1114-35" tabindex="-1"></a>    <span class="at">mean_rho  =</span> mean_rho,</span>
+<span id="cb1114-36"><a href="sec-endogenous-treatment.html#cb1114-36" tabindex="-1"></a>    <span class="at">upper_rho =</span> upper_rho,</span>
+<span id="cb1114-37"><a href="sec-endogenous-treatment.html#cb1114-37" tabindex="-1"></a>    <span class="at">lower_rho =</span> lower_rho</span>
+<span id="cb1114-38"><a href="sec-endogenous-treatment.html#cb1114-38" tabindex="-1"></a>  )</span>
+<span id="cb1114-39"><a href="sec-endogenous-treatment.html#cb1114-39" tabindex="-1"></a>}</span>
+<span id="cb1114-40"><a href="sec-endogenous-treatment.html#cb1114-40" tabindex="-1"></a></span>
+<span id="cb1114-41"><a href="sec-endogenous-treatment.html#cb1114-41" tabindex="-1"></a></span>
+<span id="cb1114-42"><a href="sec-endogenous-treatment.html#cb1114-42" tabindex="-1"></a><span class="co"># Run update</span></span>
+<span id="cb1114-43"><a href="sec-endogenous-treatment.html#cb1114-43" tabindex="-1"></a>updated <span class="ot">&lt;-</span></span>
+<span id="cb1114-44"><a href="sec-endogenous-treatment.html#cb1114-44" tabindex="-1"></a>    <span class="fu">update_correlation</span>(<span class="at">n_new =</span> n_new,</span>
+<span id="cb1114-45"><a href="sec-endogenous-treatment.html#cb1114-45" tabindex="-1"></a>                       <span class="at">r_new =</span> r_new,</span>
+<span id="cb1114-46"><a href="sec-endogenous-treatment.html#cb1114-46" tabindex="-1"></a>                       <span class="at">alpha =</span> alpha)</span>
+<span id="cb1114-47"><a href="sec-endogenous-treatment.html#cb1114-47" tabindex="-1"></a></span>
+<span id="cb1114-48"><a href="sec-endogenous-treatment.html#cb1114-48" tabindex="-1"></a><span class="co"># Display updated posterior mean and confidence interval</span></span>
+<span id="cb1114-49"><a href="sec-endogenous-treatment.html#cb1114-49" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Posterior mean of rho:&quot;</span>, <span class="fu">round</span>(updated<span class="sc">$</span>mean_rho, <span class="dv">4</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1114-50"><a href="sec-endogenous-treatment.html#cb1114-50" tabindex="-1"></a><span class="co">#&gt; Posterior mean of rho: 0.2775</span></span>
+<span id="cb1114-51"><a href="sec-endogenous-treatment.html#cb1114-51" tabindex="-1"></a><span class="fu">cat</span>(</span>
+<span id="cb1114-52"><a href="sec-endogenous-treatment.html#cb1114-52" tabindex="-1"></a>    <span class="st">&quot;95% CI for rho: (&quot;</span>,</span>
+<span id="cb1114-53"><a href="sec-endogenous-treatment.html#cb1114-53" tabindex="-1"></a>    <span class="fu">round</span>(updated<span class="sc">$</span>lower_rho, <span class="dv">4</span>),</span>
+<span id="cb1114-54"><a href="sec-endogenous-treatment.html#cb1114-54" tabindex="-1"></a>    <span class="st">&quot;,&quot;</span>,</span>
+<span id="cb1114-55"><a href="sec-endogenous-treatment.html#cb1114-55" tabindex="-1"></a>    <span class="fu">round</span>(updated<span class="sc">$</span>upper_rho, <span class="dv">4</span>),</span>
+<span id="cb1114-56"><a href="sec-endogenous-treatment.html#cb1114-56" tabindex="-1"></a>    <span class="st">&quot;)</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb1114-57"><a href="sec-endogenous-treatment.html#cb1114-57" tabindex="-1"></a>)</span>
+<span id="cb1114-58"><a href="sec-endogenous-treatment.html#cb1114-58" tabindex="-1"></a><span class="co">#&gt; 95% CI for rho: ( 0.2694 , 0.2855 )</span></span>
+<span id="cb1114-59"><a href="sec-endogenous-treatment.html#cb1114-59" tabindex="-1"></a></span>
+<span id="cb1114-60"><a href="sec-endogenous-treatment.html#cb1114-60" tabindex="-1"></a><span class="co"># For comparison: Classical (frequentist) confidence interval around r_new</span></span>
+<span id="cb1114-61"><a href="sec-endogenous-treatment.html#cb1114-61" tabindex="-1"></a>se_r  <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">/</span> n_new)</span>
+<span id="cb1114-62"><a href="sec-endogenous-treatment.html#cb1114-62" tabindex="-1"></a>z_r   <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> se_r</span>
+<span id="cb1114-63"><a href="sec-endogenous-treatment.html#cb1114-63" tabindex="-1"></a>ci_lo <span class="ot">&lt;-</span> r_new <span class="sc">-</span> z_r</span>
+<span id="cb1114-64"><a href="sec-endogenous-treatment.html#cb1114-64" tabindex="-1"></a>ci_hi <span class="ot">&lt;-</span> r_new <span class="sc">+</span> z_r</span>
+<span id="cb1114-65"><a href="sec-endogenous-treatment.html#cb1114-65" tabindex="-1"></a></span>
+<span id="cb1114-66"><a href="sec-endogenous-treatment.html#cb1114-66" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Frequentist 95% CI for r:&quot;</span>,</span>
+<span id="cb1114-67"><a href="sec-endogenous-treatment.html#cb1114-67" tabindex="-1"></a>    <span class="fu">round</span>(ci_lo, <span class="dv">4</span>),</span>
+<span id="cb1114-68"><a href="sec-endogenous-treatment.html#cb1114-68" tabindex="-1"></a>    <span class="st">&quot;to&quot;</span>,</span>
+<span id="cb1114-69"><a href="sec-endogenous-treatment.html#cb1114-69" tabindex="-1"></a>    <span class="fu">round</span>(ci_hi, <span class="dv">4</span>),</span>
+<span id="cb1114-70"><a href="sec-endogenous-treatment.html#cb1114-70" tabindex="-1"></a>    <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1114-71"><a href="sec-endogenous-treatment.html#cb1114-71" tabindex="-1"></a><span class="co">#&gt; Frequentist 95% CI for r: 0.3614 to 0.6386</span></span></code></pre></div>
 <hr />
 </div>
 </div>
