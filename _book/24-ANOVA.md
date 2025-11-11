@@ -287,16 +287,28 @@ $$
 
 The mean squared error (MSE) is given by:
 
+
 $$
 \begin{aligned}
 MSE 
 &= \frac{1}{N - a} \sum_{i=1}^a \sum_{j=1}^{n_i} \bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2
-\\
+\\\\
 &= \frac{1}{N - a} \sum_{i=1}^a \Bigl[(n_i - 1) \underbrace{\frac{1}{n_i - 1}\sum_{j=1}^{n_i} \bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2}_{=s_i^2}\Bigr]
-\\
+\\\\
 &= \frac{1}{N - a} \sum_{i=1}^a (n_i - 1) s_i^2.
 \end{aligned}
 $$
+
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!-- MSE -->
+<!-- &= \frac{1}{N - a} \sum_{i=1}^a \sum_{j=1}^{n_i} \bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2 -->
+<!-- \\ -->
+<!-- &= \frac{1}{N - a} \sum_{i=1}^a \Bigl[(n_i - 1) \underbrace{\frac{1}{n_i - 1}\sum_{j=1}^{n_i} \bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2}_{=s_i^2}\Bigr] -->
+<!-- \\ -->
+<!-- &= \frac{1}{N - a} \sum_{i=1}^a (n_i - 1) s_i^2. -->
+<!-- \end{aligned} -->
+<!-- $$ -->
 
 
 where $s_i^2$ is the sample variance within the $i$-th treatment group.

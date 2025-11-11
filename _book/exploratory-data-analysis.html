@@ -6,16 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 41 Exploratory Data Analysis | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
-<meta name="description" content='# load to get txhousing data library(ggplot2) Data Report Feature Engineering Missing Data # install.packages("DataExplorer") library(DataExplorer) # creat a html file that contain all reports...'>
+<meta name="description" content="This section demonstrates a fast, business-oriented EDA workflow on ggplot2::txhousing. We’ll generate automated reports, engineer interpretable features for marketing/finance contexts, profile...">
 <meta name="generator" content="bookdown 0.45 with bs4_book()">
 <meta property="og:title" content="Chapter 41 Exploratory Data Analysis | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/exploratory-data-analysis.html">
 <meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
-<meta property="og:description" content='# load to get txhousing data library(ggplot2) Data Report Feature Engineering Missing Data # install.packages("DataExplorer") library(DataExplorer) # creat a html file that contain all reports...'>
+<meta property="og:description" content="This section demonstrates a fast, business-oriented EDA workflow on ggplot2::txhousing. We’ll generate automated reports, engineer interpretable features for marketing/finance contexts, profile...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 41 Exploratory Data Analysis | A Guide on Data Analysis">
-<meta name="twitter:description" content='# load to get txhousing data library(ggplot2) Data Report Feature Engineering Missing Data # install.packages("DataExplorer") library(DataExplorer) # creat a html file that contain all reports...'>
+<meta name="twitter:description" content="This section demonstrates a fast, business-oriented EDA workflow on ggplot2::txhousing. We’ll generate automated reports, engineer interpretable features for marketing/finance contexts, profile...">
 <meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
@@ -121,9 +121,9 @@
 <li><a class="" href="sec-directed-acyclic-graphs.html"><span class="header-section-number">38</span> Directed Acyclic Graphs</a></li>
 <li><a class="" href="sec-controls.html"><span class="header-section-number">39</span> Controls</a></li>
 <li class="book-part">V. MISCELLANEOUS</li>
-<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="reporting-your-analysis.html"><span class="header-section-number">40</span> Reporting Your Analysis</a></li>
 <li><a class="active" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
-<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="sensitivity-analysis-and-robustness-checks.html"><span class="header-section-number">42</span> Sensitivity Analysis and Robustness Checks</a></li>
 <li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
 <li><a class="" href="high-performance-computing.html"><span class="header-section-number">44</span> High-Performance Computing</a></li>
 <li class="book-part">APPENDIX</li>
@@ -141,73 +141,893 @@
 <h1>
 <span class="header-section-number">41</span> Exploratory Data Analysis<a class="anchor" aria-label="anchor" href="#exploratory-data-analysis"><i class="fas fa-link"></i></a>
 </h1>
-<div class="sourceCode" id="cb1234"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># load to get txhousing data</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
-<p>Data Report</p>
-<p>Feature Engineering</p>
-<p>Missing Data</p>
-<div class="sourceCode" id="cb1235"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("DataExplorer")</span></span>
+<p>This section demonstrates a fast, business-oriented EDA workflow on <code><a href="https://ggplot2.tidyverse.org/reference/txhousing.html">ggplot2::txhousing</a></code>. We’ll generate automated reports, engineer interpretable features for marketing/finance contexts, profile missingness, identify errors/outliers, and provide quick interactive tools your stakeholders will actually use. Where possible, we keep everything reproducible in code and easy to extend for your own datasets.</p>
+<div class="sourceCode" id="cb1263"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Core packages</span></span>
+<span><span class="co"># install.packages(c("tidyverse","lubridate","DataExplorer","dataReporter","skimr","rpivotTable","esquisse","dlookr"))</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org">lubridate</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://boxuancui.github.io/DataExplorer/">DataExplorer</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/skimr/">skimr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/choonghyunryu/dlookr/">dlookr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># creat a html file that contain all reports</span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">txhousing</span><span class="op">)</span></span>
+<span><span class="co"># Data: ggplot2 ships with txhousing</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"txhousing"</span>, package <span class="op">=</span> <span class="st">"ggplot2"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/introduce.html">introduce</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># see basic info</span></span>
+<span><span class="co"># Create a clean working copy with business-friendly engineered features</span></span>
+<span><span class="va">tx</span> <span class="op">&lt;-</span> <span class="va">txhousing</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
+<span>    date <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/make_datetime.html">make_date</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">month</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Average price per sale (proxy for ARPU-like metric in sales)</span></span>
+<span>    avg_price <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">sales</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="va">volume</span> <span class="op">/</span> <span class="va">sales</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Absorption-like metric: sales per listing (how fast inventory turns)</span></span>
+<span>    absorption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">listings</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="va">sales</span> <span class="op">/</span> <span class="va">listings</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Months of inventory is already provided as `inventory`</span></span>
+<span>    <span class="co"># Seasonal and calendar features</span></span>
+<span>    quarter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/quarter.html">quarter</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Q1"</span>, <span class="st">"Q2"</span>, <span class="st">"Q3"</span>, <span class="st">"Q4"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    ym <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/format.html">format</a></span><span class="op">(</span><span class="va">date</span>, <span class="st">"%Y-%m"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    city <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">city</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
+<span><span class="co"># A couple of quick sanity checks</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>        <span class="st">"city"</span>,</span>
+<span>        <span class="st">"year"</span>,</span>
+<span>        <span class="st">"month"</span>,</span>
+<span>        <span class="st">"sales"</span>,</span>
+<span>        <span class="st">"volume"</span>,</span>
+<span>        <span class="st">"median"</span>,</span>
+<span>        <span class="st">"listings"</span>,</span>
+<span>        <span class="st">"inventory"</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/dummify.html">dummify</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># create binary columns from discrete variables</span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/split_columns.html">split_columns</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># split data into discrete and continuous parts</span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_correlation.html">plot_correlation</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># heatmap for discrete var</span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_intro.html">plot_intro</a></span><span class="op">(</span><span class="op">)</span> </span>
-<span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_missing.html">plot_missing</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># plot missing value</span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/profile_missing.html">profile_missing</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># profile missing values</span></span>
-<span></span>
-<span></span>
-<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_prcomp.html">plot_prcomp</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># plot PCA</span></span></code></pre></div>
-<p>Error Identification</p>
-<div class="sourceCode" id="cb1236"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("dataReporter")</span></span>
+<span><span class="co"># Preview</span></span>
+<span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html">glimpse</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 8,602</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
+<span><span class="co">#&gt; $ city       &lt;fct&gt; Abilene, Abilene, Abilene, Abilene, Abilene, Abilene, Abile…</span></span>
+<span><span class="co">#&gt; $ year       &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000,…</span></span>
+<span><span class="co">#&gt; $ month      &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7,…</span></span>
+<span><span class="co">#&gt; $ sales      &lt;dbl&gt; 72, 98, 130, 98, 141, 156, 152, 131, 104, 101, 100, 92, 75,…</span></span>
+<span><span class="co">#&gt; $ volume     &lt;dbl&gt; 5380000, 6505000, 9285000, 9730000, 10590000, 13910000, 126…</span></span>
+<span><span class="co">#&gt; $ median     &lt;dbl&gt; 71400, 58700, 58100, 68600, 67300, 66900, 73500, 75000, 645…</span></span>
+<span><span class="co">#&gt; $ listings   &lt;dbl&gt; 701, 746, 784, 785, 794, 780, 742, 765, 771, 764, 721, 658,…</span></span>
+<span><span class="co">#&gt; $ inventory  &lt;dbl&gt; 6.3, 6.6, 6.8, 6.9, 6.8, 6.6, 6.2, 6.4, 6.5, 6.6, 6.2, 5.7,…</span></span>
+<span><span class="co">#&gt; $ date       &lt;date&gt; 2000-01-01, 2000-02-01, 2000-03-01, 2000-04-01, 2000-05-01…</span></span>
+<span><span class="co">#&gt; $ avg_price  &lt;dbl&gt; 74722.22, 66377.55, 71423.08, 99285.71, 75106.38, 89166.67,…</span></span>
+<span><span class="co">#&gt; $ absorption &lt;dbl&gt; 0.10271041, 0.13136729, 0.16581633, 0.12484076, 0.17758186,…</span></span>
+<span><span class="co">#&gt; $ quarter    &lt;fct&gt; Q1, Q1, Q1, Q2, Q2, Q2, Q3, Q3, Q3, Q4, Q4, Q4, Q1, Q1, Q1,…</span></span>
+<span><span class="co">#&gt; $ ym         &lt;fct&gt; 2000-01, 2000-02, 2000-03, 2000-04, 2000-05, 2000-06, 2000-…</span></span></code></pre></div>
+<hr>
+<div id="data-report" class="section level2" number="41.1">
+<h2>
+<span class="header-section-number">41.1</span> Data Report<a class="anchor" aria-label="anchor" href="#data-report"><i class="fas fa-link"></i></a>
+</h2>
+<p>Automate a first-pass profile to see dimensions, types, basic completeness, and distributions.</p>
+<div class="sourceCode" id="cb1264"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># High-level overview</span></span>
+<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/introduce.html">introduce</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1265"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Structural intro plots</span></span>
+<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_intro.html">plot_intro</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb1266"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Quick distribution sweep for numerics (great to spot skew and heavy tails)</span></span>
+<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_histogram.html">plot_histogram</a></span><span class="op">(</span><span class="va">tx</span>, ncol <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb1267"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Pairwise correlations (continuous); useful for multicollinearity hints</span></span>
+<span><span class="co"># Note: if your dataset has many numerics, set cor_args = list(use = "pairwise.complete.obs")</span></span>
+<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_correlation.html">plot_correlation</a></span><span class="op">(</span><span class="va">tx</span>, type <span class="op">=</span> <span class="st">"continuous"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb1268"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># If you want correlations/associations among discrete variables:</span></span>
+<span><span class="co"># (city and quarter here; may be high-cardinality)</span></span>
+<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_correlation.html">plot_correlation</a></span><span class="op">(</span><span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">city</span>, <span class="va">quarter</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"discrete"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb1269"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Quick PCA map for continuous variables (after standardizing)</span></span>
+<span><span class="fu">DataExplorer</span><span class="fu">::</span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_prcomp.html">plot_prcomp</a></span><span class="op">(</span><span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html">where</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="41-EDA_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;"><img src="41-EDA_files/figure-html/unnamed-chunk-6-2.png" width="90%" style="display: block; margin: auto;"></p>
+<p><em>Tip:</em> For very wide tables, use <code>maxcat</code> in <code>DataExplorer</code> functions to cap cardinality for cleaner plots.</p>
+<hr>
+</div>
+<div id="feature-engineering" class="section level2" number="41.2">
+<h2>
+<span class="header-section-number">41.2</span> Feature Engineering<a class="anchor" aria-label="anchor" href="#feature-engineering"><i class="fas fa-link"></i></a>
+</h2>
+<p>Business-minded transforms often beat fancy models. The goal is interpretability and better signal-to-noise.</p>
+<div class="sourceCode" id="cb1270"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fe_tx</span> <span class="op">&lt;-</span> <span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
+<span>    <span class="co"># Year-month numeric for time-aware models</span></span>
+<span>    t_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu">zoo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/zoo/man/yearmon.html">as.yearmon</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Price momentum: rolling median (by city) as a simple trend proxy</span></span>
+<span>    median_roll3 <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="fu">slider</span><span class="fu">::</span><span class="fu"><a href="https://slider.r-lib.org/reference/slide.html">slide_dbl</a></span><span class="op">(</span><span class="va">median</span>, <span class="va">mean</span>, .before <span class="op">=</span> <span class="fl">2</span>, .complete <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, </span>
+<span>    <span class="co"># Volume-per-listing: marketing pipeline proxy (dollars per active listing)</span></span>
+<span>    vol_per_listing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">listings</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="va">volume</span> <span class="op">/</span> <span class="va">listings</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Seasonality flags</span></span>
+<span>    is_peak_summer <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/month.html">month</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html">%in%</a></span> <span class="fl">6</span><span class="op">:</span><span class="fl">8</span>,</span>
+<span>    is_december <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/month.html">month</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">==</span> <span class="fl">12</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">fe_tx</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 6 × 18</span></span>
+<span><span class="co">#&gt;   city    year month sales volume median listings inventory date       avg_price</span></span>
+<span><span class="co">#&gt;   &lt;fct&gt;  &lt;int&gt; &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;date&gt;         &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 Abile…  2000     1    72 5.38e6  71400      701       6.3 2000-01-01    74722.</span></span>
+<span><span class="co">#&gt; 2 Abile…  2000     2    98 6.51e6  58700      746       6.6 2000-02-01    66378.</span></span>
+<span><span class="co">#&gt; 3 Abile…  2000     3   130 9.28e6  58100      784       6.8 2000-03-01    71423.</span></span>
+<span><span class="co">#&gt; 4 Abile…  2000     4    98 9.73e6  68600      785       6.9 2000-04-01    99286.</span></span>
+<span><span class="co">#&gt; 5 Abile…  2000     5   141 1.06e7  67300      794       6.8 2000-05-01    75106.</span></span>
+<span><span class="co">#&gt; 6 Abile…  2000     6   156 1.39e7  66900      780       6.6 2000-06-01    89167.</span></span>
+<span><span class="co">#&gt; # ℹ 8 more variables: absorption &lt;dbl&gt;, quarter &lt;fct&gt;, ym &lt;fct&gt;, t_index &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   median_roll3 &lt;dbl&gt;, vol_per_listing &lt;dbl&gt;, is_peak_summer &lt;lgl&gt;,</span></span>
+<span><span class="co">#&gt; #   is_december &lt;lgl&gt;</span></span></code></pre></div>
+<p>One-hot encode high-utility discrete features (keep top cities to avoid huge design matrices)</p>
+<p><strong>Note</strong>: <code><a href="http://boxuancui.github.io/DataExplorer/reference/dummify.html">dummify()</a></code> will create binary indicators and drop the original variable by default.</p>
+<p>To avoid exploding dimensions, we lump rare cities first.</p>
+<div class="sourceCode" id="cb1271"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fe_tx_small</span> <span class="op">&lt;-</span> <span class="va">fe_tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>city_lumped <span class="op">=</span> <span class="fu">forcats</span><span class="fu">::</span><span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_lump.html">fct_lump_n</a></span><span class="op">(</span><span class="va">city</span>, n <span class="op">=</span> <span class="fl">10</span>, other_level <span class="op">=</span> <span class="st">"Other"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tx_dummy</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/dummify.html">dummify</a></span><span class="op">(</span><span class="va">fe_tx_small</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">city</span><span class="op">)</span>, select <span class="op">=</span> <span class="st">"city_lumped"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tx_dummy</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">15</span><span class="op">]</span></span>
+<span><span class="co">#&gt;  [1] "year"            "month"           "sales"           "volume"         </span></span>
+<span><span class="co">#&gt;  [5] "median"          "listings"        "inventory"       "avg_price"      </span></span>
+<span><span class="co">#&gt;  [9] "absorption"      "t_index"         "median_roll3"    "vol_per_listing"</span></span>
+<span><span class="co">#&gt; [13] "date"            "quarter"         "ym"</span></span></code></pre></div>
+<div class="sourceCode" id="cb1272"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Separate continuous and discrete columns for targeted transformations/modeling</span></span>
+<span><span class="va">spl</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/split_columns.html">split_columns</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">spl</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "discrete"        "continuous"      "num_discrete"    "num_continuous" </span></span>
+<span><span class="co">#&gt; [5] "num_all_missing"</span></span></code></pre></div>
+<p><em>Rules of thumb:</em></p>
+<ul>
+<li>Normalize skewed monetary variables (e.g., <span class="math inline">\(\log(\text{volume}+1)\)</span>) before linear modeling.</li>
+<li>Group rare categories and avoid too many dummies relative to <span class="math inline">\(n\)</span>.</li>
+<li>Create business KPIs: <code>avg_price</code>, <code>absorption</code>, <code>vol_per_listing</code>, and simple momentum features.</li>
+</ul>
+<hr>
+</div>
+<div id="missing-data" class="section level2" number="41.3">
+<h2>
+<span class="header-section-number">41.3</span> Missing Data<a class="anchor" aria-label="anchor" href="#missing-data"><i class="fas fa-link"></i></a>
+</h2>
+<p>Missingness is information. First detect, then decide: delete, impute, or model it explicitly.</p>
+<div class="sourceCode" id="cb1273"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Counts by variable</span></span>
+<span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/profile_missing.html">profile_missing</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 13 × 3</span></span>
+<span><span class="co">#&gt;    feature    num_missing pct_missing</span></span>
+<span><span class="co">#&gt;    &lt;fct&gt;            &lt;int&gt;       &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 city                 0      0     </span></span>
+<span><span class="co">#&gt;  2 year                 0      0     </span></span>
+<span><span class="co">#&gt;  3 month                0      0     </span></span>
+<span><span class="co">#&gt;  4 sales              568      0.0660</span></span>
+<span><span class="co">#&gt;  5 volume             568      0.0660</span></span>
+<span><span class="co">#&gt;  6 median             616      0.0716</span></span>
+<span><span class="co">#&gt;  7 listings          1424      0.166 </span></span>
+<span><span class="co">#&gt;  8 inventory         1467      0.171 </span></span>
+<span><span class="co">#&gt;  9 date                 0      0     </span></span>
+<span><span class="co">#&gt; 10 avg_price          568      0.0660</span></span>
+<span><span class="co">#&gt; 11 absorption        1427      0.166 </span></span>
+<span><span class="co">#&gt; 12 quarter              0      0     </span></span>
+<span><span class="co">#&gt; 13 ym                   0      0</span></span></code></pre></div>
+<div class="sourceCode" id="cb1274"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/plot_missing.html">plot_missing</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb1275"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simple tidy summary (counts and proportions)</span></span>
+<span><span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>                     <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span></span>
+<span>                         <span class="st">"%d (%.1f%%)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span><span class="op">)</span>, <span class="fl">100</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span><span class="op">)</span></span>
+<span>                     <span class="op">)</span>,</span>
+<span>                     .names <span class="op">=</span> <span class="st">"{.col}"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"variable"</span>, values_to <span class="op">=</span> <span class="st">"n_pct_na"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">n_pct_na</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 12 × 2</span></span>
+<span><span class="co">#&gt;    variable   n_pct_na    </span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;      &lt;chr&gt;       </span></span>
+<span><span class="co">#&gt;  1 median     616 (7.2%)  </span></span>
+<span><span class="co">#&gt;  2 sales      568 (6.6%)  </span></span>
+<span><span class="co">#&gt;  3 volume     568 (6.6%)  </span></span>
+<span><span class="co">#&gt;  4 avg_price  568 (6.6%)  </span></span>
+<span><span class="co">#&gt;  5 inventory  1467 (17.1%)</span></span>
+<span><span class="co">#&gt;  6 absorption 1427 (16.6%)</span></span>
+<span><span class="co">#&gt;  7 listings   1424 (16.6%)</span></span>
+<span><span class="co">#&gt;  8 city       0 (0.0%)    </span></span>
+<span><span class="co">#&gt;  9 year       0 (0.0%)    </span></span>
+<span><span class="co">#&gt; 10 month      0 (0.0%)    </span></span>
+<span><span class="co">#&gt; 11 date       0 (0.0%)    </span></span>
+<span><span class="co">#&gt; 12 quarter    0 (0.0%)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1276"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Example: median imputation for a few numerics (for demonstration only)</span></span>
+<span><span class="co"># (In modeling, prefer imputations *within* resampling using recipes/caret/tidymodels.)</span></span>
+<span><span class="va">tx_imputed</span> <span class="op">&lt;-</span> <span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
+<span>    sales     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">sales</span><span class="op">)</span>,     <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">sales</span>,     na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="va">sales</span><span class="op">)</span>,</span>
+<span>    listings  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">listings</span><span class="op">)</span>,  <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">listings</span>,  na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="va">listings</span><span class="op">)</span>,</span>
+<span>    inventory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">inventory</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">inventory</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="va">inventory</span><span class="op">)</span>,</span>
+<span>    median    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">median</span><span class="op">)</span>,    <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">median</span>,    na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="va">median</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="fu">skimr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/skimr/reference/skim.html">skim</a></span><span class="op">(</span><span class="va">tx_imputed</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">sales</span>, <span class="va">listings</span>, <span class="va">inventory</span>, <span class="va">median</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:unnamed-chunk-13">Table 41.1: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">tx_imputed %&gt;% select(sal…</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">8602</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">4</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">4</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Variable type: numeric</strong></p>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="13%">
+<col width="9%">
+<col width="13%">
+<col width="9%">
+<col width="8%">
+<col width="5%">
+<col width="8%">
+<col width="8%">
+<col width="9%">
+<col width="8%">
+<col width="5%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">sales</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">524.44</td>
+<td align="right">1077.59</td>
+<td align="right">6</td>
+<td align="right">90.0</td>
+<td align="right">169.0</td>
+<td align="right">432.00</td>
+<td align="right">8945.0</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">listings</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2896.76</td>
+<td align="right">5499.11</td>
+<td align="right">0</td>
+<td align="right">756.0</td>
+<td align="right">1283.0</td>
+<td align="right">2527.75</td>
+<td align="right">43107.0</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">inventory</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">7.01</td>
+<td align="right">4.22</td>
+<td align="right">0</td>
+<td align="right">5.2</td>
+<td align="right">6.2</td>
+<td align="right">7.57</td>
+<td align="right">55.9</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">median</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">127821.26</td>
+<td align="right">36014.21</td>
+<td align="right">50000</td>
+<td align="right">101725.0</td>
+<td align="right">123800.0</td>
+<td align="right">147900.00</td>
+<td align="right">304200.0</td>
+<td align="left">▃▇▃▁▁</td>
+</tr>
+</tbody>
+</table></div>
+<div class="sourceCode" id="cb1277"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># dlookr helpers (diagnose and visualize NA concentration)</span></span>
+<span><span class="fu"><a href="https://choonghyunryu.github.io/dlookr/reference/diagnose.data.frame.html">diagnose</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 13 × 6</span></span>
+<span><span class="co">#&gt;    variables  types   missing_count missing_percent unique_count unique_rate</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;      &lt;chr&gt;           &lt;int&gt;           &lt;dbl&gt;        &lt;int&gt;       &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 city       factor              0            0              46    0.00535 </span></span>
+<span><span class="co">#&gt;  2 year       integer             0            0              16    0.00186 </span></span>
+<span><span class="co">#&gt;  3 month      integer             0            0              12    0.00140 </span></span>
+<span><span class="co">#&gt;  4 sales      numeric           568            6.60         1712    0.199   </span></span>
+<span><span class="co">#&gt;  5 volume     numeric           568            6.60         7495    0.871   </span></span>
+<span><span class="co">#&gt;  6 median     numeric           616            7.16         1538    0.179   </span></span>
+<span><span class="co">#&gt;  7 listings   numeric          1424           16.6          3703    0.430   </span></span>
+<span><span class="co">#&gt;  8 inventory  numeric          1467           17.1           296    0.0344  </span></span>
+<span><span class="co">#&gt;  9 date       Date                0            0             187    0.0217  </span></span>
+<span><span class="co">#&gt; 10 avg_price  numeric           568            6.60         7917    0.920   </span></span>
+<span><span class="co">#&gt; 11 absorption numeric          1427           16.6          6880    0.800   </span></span>
+<span><span class="co">#&gt; 12 quarter    factor              0            0               4    0.000465</span></span>
+<span><span class="co">#&gt; 13 ym         factor              0            0             187    0.0217</span></span>
+<span><span class="fu"><a href="https://choonghyunryu.github.io/dlookr/reference/plot_na_pareto.html">plot_na_pareto</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p><em>Best practice:</em> Impute inside a modeling pipeline (e.g., <code><a href="https://recipes.tidymodels.org/reference/step_impute_median.html">recipes::step_impute_median()</a></code>), and consider adding “was missing” flags to retain signal from missingness patterns.</p>
+<hr>
+</div>
+<div id="error-identification" class="section level2" number="41.4">
+<h2>
+<span class="header-section-number">41.4</span> Error Identification<a class="anchor" aria-label="anchor" href="#error-identification"><i class="fas fa-link"></i></a>
+</h2>
+<p>Catch anomalies early: impossible values, data entry glitches, or KPI mismatches.</p>
+<ol style="list-style-type: decimal">
+<li>Logical constraints</li>
+</ol>
+<div class="sourceCode" id="cb1278"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">violations</span> <span class="op">&lt;-</span> <span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
+<span>    v_sales_negative   <span class="op">=</span> <span class="va">sales</span> <span class="op">&lt;</span> <span class="fl">0</span>,</span>
+<span>    v_volume_negative  <span class="op">=</span> <span class="va">volume</span> <span class="op">&lt;</span> <span class="fl">0</span>,</span>
+<span>    v_listings_negative<span class="op">=</span> <span class="va">listings</span> <span class="op">&lt;</span> <span class="fl">0</span>,</span>
+<span>    v_inventory_negative <span class="op">=</span> <span class="va">inventory</span> <span class="op">&lt;</span> <span class="fl">0</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">starts_with</a></span><span class="op">(</span><span class="st">"v_"</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">.x</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">violations</span></span>
+<span><span class="co">#&gt; # A tibble: 1 × 4</span></span>
+<span><span class="co">#&gt;   v_sales_negative v_volume_negative v_listings_negative v_inventory_negative</span></span>
+<span><span class="co">#&gt;              &lt;int&gt;             &lt;int&gt;               &lt;int&gt;                &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1                0                 0                   0                    0</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Price coherence: median vs. average price (avg_price = volume/sales)</li>
+</ol>
+<p>Large gaps are not necessarily errors, but extreme ratios can flag data issues.</p>
+<div class="sourceCode" id="cb1279"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">coherence</span> <span class="op">&lt;-</span> <span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>avg_price <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">sales</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="va">volume</span> <span class="op">/</span> <span class="va">sales</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
+<span>         ratio <span class="op">=</span> <span class="va">median</span> <span class="op">/</span> <span class="va">avg_price</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">ratio</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/is.finite.html">is.finite</a></span><span class="op">(</span><span class="va">ratio</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
+<span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    ratio_p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">ratio</span>, <span class="fl">0.01</span><span class="op">)</span>,</span>
+<span>    ratio_p99 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">ratio</span>, <span class="fl">0.99</span><span class="op">)</span>,</span>
+<span>    extreme <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">ratio</span> <span class="op">&lt;</span> <span class="fl">0.25</span> <span class="op">|</span> <span class="va">ratio</span> <span class="op">&gt;</span> <span class="fl">4</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="va">coherence</span></span>
+<span><span class="co">#&gt; # A tibble: 1 × 4</span></span>
+<span><span class="co">#&gt;       n ratio_p01 ratio_p99 extreme</span></span>
+<span><span class="co">#&gt;   &lt;int&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1  7985     0.682     0.992       0</span></span></code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li>Outliers (univariate) with <code>dlookr</code>
+</li>
+</ol>
+<div class="sourceCode" id="cb1280"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">out_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://choonghyunryu.github.io/dlookr/reference/diagnose_outlier.data.frame.html">diagnose_outlier</a></span><span class="op">(</span><span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">sales</span>, <span class="va">volume</span>, <span class="va">median</span>, <span class="va">listings</span>, <span class="va">inventory</span>, <span class="va">avg_price</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">out_summary</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">outliers_cnt</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 6 × 6</span></span>
+<span><span class="co">#&gt;   variables outliers_cnt outliers_ratio outliers_mean    with_mean without_mean</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;            &lt;int&gt;          &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 volume            1116          13.0    563924698.  106858621.    33125498.  </span></span>
+<span><span class="co">#&gt; 2 sales              899          10.5         3057.        550.         234.  </span></span>
+<span><span class="co">#&gt; 3 listings           742           8.63       17522.       3217.        1568.  </span></span>
+<span><span class="co">#&gt; 4 inventory          437           5.08          20.8         7.17         6.29</span></span>
+<span><span class="co">#&gt; 5 median             147           1.71      248251.     128131.      125879.  </span></span>
+<span><span class="co">#&gt; 6 avg_price          143           1.66      300786.     153202.      150528.</span></span></code></pre></div>
+<div class="sourceCode" id="cb1281"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Full, human-readable data quality report (HTML) with dataReporter</span></span>
+<span><span class="co"># install.packages("dataReporter")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ekstroem/dataReporter">dataReporter</a></span><span class="op">)</span></span>
-<span><span class="fu">makeDataReport</span><span class="op">(</span><span class="op">)</span> <span class="co"># detailed report like DataExplorer</span></span></code></pre></div>
-<p>Summary statistics</p>
-<div class="sourceCode" id="cb1237"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/skimr/">skimr</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://docs.ropensci.org/skimr/reference/skim.html">skim</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># give only few quick summary stat, not as detailed as the other two packages</span></span></code></pre></div>
-<p>Not so code-y process</p>
-<p>Quick and dirty way to look at your data</p>
-<div class="sourceCode" id="cb1238"><pre class="downlit sourceCode r">
+<span><span class="fu">makeDataReport</span><span class="op">(</span><span class="va">tx</span><span class="op">)</span>  <span class="co"># Generates an HTML report in your working directory</span></span></code></pre></div>
+<hr>
+</div>
+<div id="summary-statistics-1" class="section level2" number="41.5">
+<h2>
+<span class="header-section-number">41.5</span> Summary statistics<a class="anchor" aria-label="anchor" href="#summary-statistics-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>Concise summaries for continuous and categorical variables, plus grouped business KPIs.</p>
+<div class="sourceCode" id="cb1282"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://docs.ropensci.org/skimr/reference/skim.html">skim</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:unnamed-chunk-19">Table 41.2: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">tx</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">8602</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">13</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Date</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">factor</td>
+<td align="left">3</td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">9</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Variable type: Date</strong></p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="17%">
+<col width="12%">
+<col width="17%">
+<col width="13%">
+<col width="13%">
+<col width="13%">
+<col width="11%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">min</th>
+<th align="left">max</th>
+<th align="left">median</th>
+<th align="right">n_unique</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td align="left">date</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">2000-01-01</td>
+<td align="left">2015-07-01</td>
+<td align="left">2007-10-01</td>
+<td align="right">187</td>
+</tr></tbody>
+</table></div>
+<p><strong>Variable type: factor</strong></p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="14%">
+<col width="10%">
+<col width="14%">
+<col width="8%">
+<col width="9%">
+<col width="41%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">city</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">46</td>
+<td align="left">Abi: 187, Ama: 187, Arl: 187, Aus: 187</td>
+</tr>
+<tr class="even">
+<td align="left">quarter</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">4</td>
+<td align="left">Q1: 2208, Q2: 2208, Q3: 2116, Q4: 2070</td>
+</tr>
+<tr class="odd">
+<td align="left">ym</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">187</td>
+<td align="left">200: 46, 200: 46, 200: 46, 200: 46</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Variable type: numeric</strong></p>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="10%">
+<col width="7%">
+<col width="10%">
+<col width="10%">
+<col width="10%">
+<col width="7%">
+<col width="9%">
+<col width="9%">
+<col width="9%">
+<col width="10%">
+<col width="4%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">year</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">2007.30</td>
+<td align="right">4.50</td>
+<td align="right">2000.00</td>
+<td align="right">2003.00</td>
+<td align="right">2007.00</td>
+<td align="right">2011.00</td>
+<td align="right">2.015000e+03</td>
+<td align="left">▇▆▆▆▅</td>
+</tr>
+<tr class="even">
+<td align="left">month</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">6.41</td>
+<td align="right">3.44</td>
+<td align="right">1.00</td>
+<td align="right">3.00</td>
+<td align="right">6.00</td>
+<td align="right">9.00</td>
+<td align="right">1.200000e+01</td>
+<td align="left">▇▅▅▅▇</td>
+</tr>
+<tr class="odd">
+<td align="left">sales</td>
+<td align="right">568</td>
+<td align="right">0.93</td>
+<td align="right">549.56</td>
+<td align="right">1110.74</td>
+<td align="right">6.00</td>
+<td align="right">86.00</td>
+<td align="right">169.00</td>
+<td align="right">467.00</td>
+<td align="right">8.945000e+03</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">volume</td>
+<td align="right">568</td>
+<td align="right">0.93</td>
+<td align="right">106858620.78</td>
+<td align="right">244933668.97</td>
+<td align="right">835000.00</td>
+<td align="right">10840000.00</td>
+<td align="right">22986824.00</td>
+<td align="right">75121388.75</td>
+<td align="right">2.568157e+09</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">median</td>
+<td align="right">616</td>
+<td align="right">0.93</td>
+<td align="right">128131.44</td>
+<td align="right">37359.58</td>
+<td align="right">50000.00</td>
+<td align="right">100000.00</td>
+<td align="right">123800.00</td>
+<td align="right">150000.00</td>
+<td align="right">3.042000e+05</td>
+<td align="left">▅▇▃▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">listings</td>
+<td align="right">1424</td>
+<td align="right">0.83</td>
+<td align="right">3216.90</td>
+<td align="right">5968.33</td>
+<td align="right">0.00</td>
+<td align="right">682.00</td>
+<td align="right">1283.00</td>
+<td align="right">2953.75</td>
+<td align="right">4.310700e+04</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">inventory</td>
+<td align="right">1467</td>
+<td align="right">0.83</td>
+<td align="right">7.17</td>
+<td align="right">4.61</td>
+<td align="right">0.00</td>
+<td align="right">4.90</td>
+<td align="right">6.20</td>
+<td align="right">8.15</td>
+<td align="right">5.590000e+01</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">avg_price</td>
+<td align="right">568</td>
+<td align="right">0.93</td>
+<td align="right">153202.38</td>
+<td align="right">48188.98</td>
+<td align="right">54782.61</td>
+<td align="right">118099.79</td>
+<td align="right">142510.87</td>
+<td align="right">181806.06</td>
+<td align="right">3.626882e+05</td>
+<td align="left">▃▇▃▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">absorption</td>
+<td align="right">1427</td>
+<td align="right">0.83</td>
+<td align="right">0.18</td>
+<td align="right">0.11</td>
+<td align="right">0.01</td>
+<td align="right">0.12</td>
+<td align="right">0.16</td>
+<td align="right">0.21</td>
+<td align="right">1.650000e+00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+</tbody>
+</table></div>
+<div class="sourceCode" id="cb1283"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># City-level yearly KPIs</span></span>
+<span><span class="va">city_year</span> <span class="op">&lt;-</span> <span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">city</span>, <span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
+<span>        n_months      <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>        sales_total   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sales</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>        volume_total  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">volume</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>        median_price  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">median</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>        avg_inventory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">inventory</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>        .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">city</span>, <span class="va">year</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">city_year</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 10 × 7</span></span>
+<span><span class="co">#&gt;    city     year n_months sales_total volume_total median_price avg_inventory</span></span>
+<span><span class="co">#&gt;    &lt;fct&gt;   &lt;int&gt;    &lt;int&gt;       &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;         &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 Abilene  2000       12        1375    108575000        67100          6.47</span></span>
+<span><span class="co">#&gt;  2 Abilene  2001       12        1431    114365000        70050          6.62</span></span>
+<span><span class="co">#&gt;  3 Abilene  2002       12        1516    118675000        67100          5.84</span></span>
+<span><span class="co">#&gt;  4 Abilene  2003       12        1632    135675000        71850          5.68</span></span>
+<span><span class="co">#&gt;  5 Abilene  2004       12        1830    159670000        73200          4.56</span></span>
+<span><span class="co">#&gt;  6 Abilene  2005       12        1977    198855000        92400          3.82</span></span>
+<span><span class="co">#&gt;  7 Abilene  2006       12        1997    227530000        99900          4.48</span></span>
+<span><span class="co">#&gt;  8 Abilene  2007       12        2003    232062585       102800          4.96</span></span>
+<span><span class="co">#&gt;  9 Abilene  2008       12        1651    192520335       106900          6.32</span></span>
+<span><span class="co">#&gt; 10 Abilene  2009       12        1634    202357756       109050          6.12</span></span></code></pre></div>
+<div class="sourceCode" id="cb1284"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Example visual: price over time for a few major cities</span></span>
+<span><span class="va">top_cities</span> <span class="op">&lt;-</span> <span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">city</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_head</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">city</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">city</span> <span class="op"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html">%in%</a></span> <span class="va">top_cities</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">date</span>, <span class="va">median</span>, color <span class="op">=</span> <span class="va">city</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar_format</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>        title <span class="op">=</span> <span class="st">"Median price over time"</span>,</span>
+<span>        x <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>        y <span class="op">=</span> <span class="st">"Median price"</span>,</span>
+<span>        color <span class="op">=</span> <span class="st">"City"</span></span>
+<span>    <span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb1285"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Volume vs. Sales (log-scale to reduce skew)</span></span>
+<span><span class="va">tx</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">sales</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="va">volume</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">sales</span>, <span class="va">volume</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_log10</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar_format</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>,</span>
+<span>                se <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                color <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Sales vs. Volume (log-log)"</span>,</span>
+<span>         x <span class="op">=</span> <span class="st">"Sales (transactions)"</span>,</span>
+<span>         y <span class="op">=</span> <span class="st">"Volume (USD)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="41-EDA_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;"></div>
+<hr>
+</div>
+<div id="not-so-code-y-process" class="section level2" number="41.6">
+<h2>
+<span class="header-section-number">41.6</span> Not so code-y process<a class="anchor" aria-label="anchor" href="#not-so-code-y-process"><i class="fas fa-link"></i></a>
+</h2>
+<div id="quick-and-dirty-way-to-look-at-your-data" class="section level3" number="41.6.1">
+<h3>
+<span class="header-section-number">41.6.1</span> Quick and dirty way to look at your data<a class="anchor" aria-label="anchor" href="#quick-and-dirty-way-to-look-at-your-data"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb1286"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("rpivotTable")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/smartinsightsfromdata">rpivotTable</a></span><span class="op">)</span></span>
-<span><span class="co"># give set up just like Excel table </span></span>
-<span><span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
-<span>    <span class="fu">rpivotTable</span><span class="fu">::</span><span class="fu">rpivotTable</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Code generation and wrangling</p>
-<p>Shiny-app based Tableu style</p>
-<div class="sourceCode" id="cb1239"><pre class="downlit sourceCode r">
+<span></span>
+<span><span class="co"># Works best in HTML output; drag-and-drop just like Excel PivotTables</span></span>
+<span><span class="fu">rpivotTable</span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">tx</span>,</span>
+<span>  rows <span class="op">=</span> <span class="st">"city"</span>,</span>
+<span>  cols <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>  vals <span class="op">=</span> <span class="st">"sales"</span>,</span>
+<span>  aggregatorName <span class="op">=</span> <span class="st">"Sum"</span>,</span>
+<span>  rendererName <span class="op">=</span> <span class="st">"Heatmap"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="code-generation-and-wrangling-visual" class="section level3" number="41.6.2">
+<h3>
+<span class="header-section-number">41.6.2</span> Code generation and wrangling (visual)<a class="anchor" aria-label="anchor" href="#code-generation-and-wrangling-visual"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb1287"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("esquisse")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dreamrs.github.io/esquisse/">esquisse</a></span><span class="op">)</span></span>
-<span><span class="fu">esquisse</span><span class="fu">::</span><span class="fu">esquisser</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Customized your daily/automatic report</p>
-<div class="sourceCode" id="cb1240"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("chronicle")</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">chronicle</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb1241"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("dlookr")</span></span>
-<span><span class="co"># install.packages("descriptr")</span></span></code></pre></div>
-
+<span><span class="co"># Launch the GUI to build ggplots and dplyr pipelines interactively</span></span>
+<span><span class="fu">esquisse</span><span class="fu">::</span><span class="fu">esquisser</span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
+</div>
+<div id="shiny-app-based-tableau-style" class="section level2" number="41.7">
+<h2>
+<span class="header-section-number">41.7</span> Shiny-app based Tableau style<a class="anchor" aria-label="anchor" href="#shiny-app-based-tableau-style"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb1288"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Minimal Shiny-style dashboard idea (skeleton)</span></span>
+<span><span class="co"># shinyApp(</span></span>
+<span><span class="co">#   ui = fluidPage(</span></span>
+<span><span class="co">#     titlePanel("TX Housing Explorer"),</span></span>
+<span><span class="co">#     sidebarLayout(</span></span>
+<span><span class="co">#       sidebarPanel(selectInput("city", "City", choices = sort(unique(tx$city)), selected = "Houston")),</span></span>
+<span><span class="co">#       mainPanel(plotOutput("trend"))</span></span>
+<span><span class="co">#     )</span></span>
+<span><span class="co">#   ),</span></span>
+<span><span class="co">#   server = function(input, output, session) {</span></span>
+<span><span class="co">#     output$trend &lt;- renderPlot({</span></span>
+<span><span class="co">#       tx %&gt;%</span></span>
+<span><span class="co">#         filter(city == input$city) %&gt;%</span></span>
+<span><span class="co">#         ggplot(aes(date, median)) + geom_line() +</span></span>
+<span><span class="co">#         labs(x = NULL, y = "Median Price") +</span></span>
+<span><span class="co">#         theme_minimal()</span></span>
+<span><span class="co">#     })</span></span>
+<span><span class="co">#   }</span></span>
+<span><span class="co"># )</span></span></code></pre></div>
+<hr>
+</div>
+<div id="customize-your-dailyautomatic-report" class="section level2" number="41.8">
+<h2>
+<span class="header-section-number">41.8</span> Customize your daily/automatic report<a class="anchor" aria-label="anchor" href="#customize-your-dailyautomatic-report"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb1289"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Option A: One-liner automated HTML report (DataExplorer)</span></span>
+<span><span class="fu">DataExplorer</span><span class="fu">::</span><span class="fu"><a href="http://boxuancui.github.io/DataExplorer/reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">tx</span>, y <span class="op">=</span> <span class="st">"median"</span><span class="op">)</span>  <span class="co"># sets target variable for focus</span></span>
+<span></span>
+<span><span class="co"># Option B: Knit this Rmd on a schedule (cron/Task Scheduler)</span></span>
+<span><span class="co"># rmarkdown::render("eda_txhousing.Rmd", output_format = "html_document")</span></span></code></pre></div>
+<div class="sourceCode" id="cb1290"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Optionally explore additional EDA helpers</span></span>
+<span><span class="co"># install.packages(c("chronicle","descriptr"))</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">chronicle</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://descriptr.rsquaredacademy.com/">descriptr</a></span><span class="op">)</span></span>
+<span><span class="co"># Tip: Use these packages selectively; their APIs evolve.</span></span>
+<span><span class="co"># Prefer stable verbs above; consult vignettes for current functions.</span></span></code></pre></div>
+<hr>
+<div id="appendix-small-gotchas-to-keep-in-mind" class="section level3" number="41.8.1">
+<h3>
+<span class="header-section-number">41.8.1</span> Appendix: Small “gotchas” to keep in mind<a class="anchor" aria-label="anchor" href="#appendix-small-gotchas-to-keep-in-mind"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>For correlation heatmaps, ensure you’re not mixing units without scaling; use <code>scale. = TRUE</code> in PCA.</li>
+<li>For discrete correlations, high-cardinality features (like many cities) can make matrices unwieldy. Thus, lump or select top-<span class="math inline">\(k\)</span> first.</li>
+<li>Imputation should be inside resampling to avoid leakage.</li>
+<li>KPI checks (e.g., <code>median</code> vs <code>volume/sales</code>) are <em>diagnostics</em>, not proofs of error. Hence, investigate outliers before removal.</li>
+</ul>
+</div>
+</div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="report.html"><span class="header-section-number">40</span> Report</a></div>
-<div class="next"><a href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></div>
+<div class="prev"><a href="reporting-your-analysis.html"><span class="header-section-number">40</span> Reporting Your Analysis</a></div>
+<div class="next"><a href="sensitivity-analysis-and-robustness-checks.html"><span class="header-section-number">42</span> Sensitivity Analysis and Robustness Checks</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#exploratory-data-analysis"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#exploratory-data-analysis"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="nav-link" href="#data-report"><span class="header-section-number">41.1</span> Data Report</a></li>
+<li><a class="nav-link" href="#feature-engineering"><span class="header-section-number">41.2</span> Feature Engineering</a></li>
+<li><a class="nav-link" href="#missing-data"><span class="header-section-number">41.3</span> Missing Data</a></li>
+<li><a class="nav-link" href="#error-identification"><span class="header-section-number">41.4</span> Error Identification</a></li>
+<li><a class="nav-link" href="#summary-statistics-1"><span class="header-section-number">41.5</span> Summary statistics</a></li>
+<li>
+<a class="nav-link" href="#not-so-code-y-process"><span class="header-section-number">41.6</span> Not so code-y process</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#quick-and-dirty-way-to-look-at-your-data"><span class="header-section-number">41.6.1</span> Quick and dirty way to look at your data</a></li>
+<li><a class="nav-link" href="#code-generation-and-wrangling-visual"><span class="header-section-number">41.6.2</span> Code generation and wrangling (visual)</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#shiny-app-based-tableau-style"><span class="header-section-number">41.7</span> Shiny-app based Tableau style</a></li>
+<li>
+<a class="nav-link" href="#customize-your-dailyautomatic-report"><span class="header-section-number">41.8</span> Customize your daily/automatic report</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#appendix-small-gotchas-to-keep-in-mind"><span class="header-section-number">41.8.1</span> Appendix: Small “gotchas” to keep in mind</a></li></ul>
+</li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
@@ -224,7 +1044,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-11-02.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-11-10.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -46,17 +46,17 @@ RD is not an island; it shares conceptual and methodological links with several 
 
 RD is not a one-size-fits-all approach. While the classic setup involves a binary treatment determined by a threshold-crossing rule, numerous extensions and variants exist, each tailored to different research contexts. Understanding these variations is essential for choosing the appropriate design and interpreting results correctly.
 
-1.  [Sharp RD](#sec-sharp-regression-discontinuity-design):The simplest and most intuitive form of RD:
+1.  [Sharp RD](#sec-sharp-regression-discontinuity-design): The simplest and most intuitive form of RD:
     -   **Definition**: Treatment assignment jumps **deterministically** from 0 to 1 at the cutoff.
     -   **Implication**: Individuals below the threshold are never treated; those above always are.
     -   **Identification**: The treatment effect is identified as the jump in the outcome at the cutoff.
     -   **Example**: A scholarship awarded strictly to students with test scores ≥ 85.
-2.  [Fuzzy RD](#sec-fuzzy-regression-discontinuity-design):A generalization of the sharp design:
+2.  [Fuzzy RD](#sec-fuzzy-regression-discontinuity-design): A generalization of the sharp design:
     -   **Definition**: The probability of treatment increases **discontinuously** at the cutoff, but does not jump from 0 to 1.
     -   **Implication**: Some individuals below the cutoff may receive the treatment, and some above may not.
     -   **Identification**: Requires instrumental variable methods to estimate the [local average treatment effects](#sec-local-average-treatment-effects) (LATE) for compliers.
     -   **Example**: A healthcare subsidy that is more likely, but not guaranteed, to be received by patients above a certain income level.
-3.  [Kink RD](#sec-regression-kink-design):A subtler variant based on a change in slope:
+3.  [Kink RD](#sec-regression-kink-design): A subtler variant based on a change in slope:
     -   **Definition**: The **first derivative** (slope) of the outcome changes at the cutoff, rather than its level.
     -   **Identification**: The treatment effect is identified from a discontinuity in the **marginal effect** of the running variable.
     -   **Example**: Tax incentives where the marginal benefit changes at a threshold income level.
@@ -107,7 +107,7 @@ RD designs have been extended in several directions to accommodate real-world co
 See Table \@ref(tab:rd-threat-validity) for examples of possible violations.
 
 | **Issue**                             | **Description**                                                                                                 | **Solution**                                                                                |
-|---------------------------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+|----------------|-------------------------------|-------------------------|
 | Violation of Continuity in Covariates | If other variables besides treatment exhibit a discontinuity at the cutoff, the estimated effect may be biased. | Conduct balance tests on pre-treatment covariates.                                          |
 | Multiple Discontinuities              | When multiple threshold effects exist, identification becomes more challenging.                                 | Use robustness checks with alternative model specifications.                                |
 | Manipulation of the Running Variable  | Subjects may manipulate $X_i$ to qualify for treatment (e.g., strategic behavior in test scores).               | Implement McCrary's density test to check for discontinuities in the distribution of $X_i$. |
@@ -272,7 +272,7 @@ Under RD, we assume that there is no manipulation in the running variable. Howev
 
 -   In a standard RD framework, this step is unnecessary because it assumes that the observed distribution and the counterfactual (manipulation-free) distribution are the same, implying no manipulation
 
-#### McCrary Sorting Test
+#### McCrary Sorting Test {#sec-mccrary-sorting-test}
 
 A widely used formal test is the McCrary density test [@mccrary2008manipulation], later refined by @cattaneo2019practical.
 
@@ -320,7 +320,7 @@ library(rdd)
 set.seed(1)
 ```
 
-Figure \@ref(fig:rd-local-polynomial-reg-wo-dis)
+Figure \@ref(fig:rd-local-polynomial-reg-wo-dis) shows simulated data without discontinuity.
 
 
 ``` r
@@ -338,6 +338,8 @@ DCdensity(x, 0)  # No discontinuity
 #> [1] 0.06355195
 ```
 
+Figure \@ref(fig:rd-local-polynomial-reg-w-dis) shows simulated data with discontinuity.
+
 
 ``` r
 # Simulated data with discontinuity
@@ -347,8 +349,8 @@ DCdensity(x, 0)  # Discontinuity detected
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-2-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-2)Local Polynomial Regression with Discontinuity at Cutoff</p>
+<img src="27-regression-discontinuity_files/figure-html/rd-local-polynomial-reg-w-dis-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%" />
+<p class="caption">(\#fig:rd-local-polynomial-reg-w-dis)Local Polynomial Regression with Discontinuity at Cutoff</p>
 </div>
 
 ```
@@ -401,6 +403,9 @@ summary(rdd)
 #> 0.922     + 0.713          38      25    0.1299
 
 # Plot requires customization (refer to package documentation)
+# rdplotdensity(rdd, x, 
+#               xlabel = "Running Variable",
+#               ylabel = "Density")
 ```
 
 ### Placebo Tests
@@ -492,7 +497,7 @@ print(bandwidth)
 Regression Discontinuity designs rely on the assumption that the running variable $X_i$ is not manipulable by agents in the study. However, @mccrary2008manipulation showed that a discontinuity in the density of $X_i$ at the cutoff may indicate manipulation, potentially invalidating RD estimates. The common approach to handling detected manipulation is:
 
 -   If no manipulation is detected, proceed with RD analysis.
--   If manipulation is detected, use the "doughnut-hole" method (i.e., excluding near-cutoff observations), but this contradicts the RD principles.
+-   If manipulation is detected, use the "doughnut-hole" method (i.e., excluding near-cutoff observations), but this contradicts the RD principles (Table \@ref(tab:rd-doughnut-hole)).
 
 However, strict adherence to this rule can lead to two problems:
 
@@ -567,19 +572,19 @@ The approach to bounding treatment effects consists of two key steps:
     -   The larger the discontinuity, the greater the fraction of always-assigned units.
 2.  **Computing Worst-Case Bounds on Treatment Effects**:
     -   If manipulation exists, treatment effects must be inferred using extreme-case scenarios.
-    -   For **sharp RD designs**, bounds are estimated by trimming extreme outcomes near the cutoff.
-    -   For **fuzzy RD designs**, additional adjustments are required to account for the presence of always-assigned units.
+    -   For [sharp RD designs](#sec-sharp-regression-discontinuity-design), bounds are estimated by trimming extreme outcomes near the cutoff.
+    -   For [fuzzy RD designs](#sec-fuzzy-regression-discontinuity-design), additional adjustments are required to account for the presence of always-assigned units.
 
 Extensions of this approach use covariates and economic behavior assumptions to refine bounds further.
 
 | **Manipulation-Robust RD**                        | **Doughnut-Hole RD**                         |
-|---------------------------------------------------|----------------------------------------------|
+|--------------------------------------|----------------------------------|
 | Uses actual observed data at the cutoff.          | Excludes observations near the cutoff.       |
 | Provides a direct estimate of causal effects.     | Relies on extrapolation from other regions.  |
 | Accounts for manipulation explicitly.             | Assumes a hypothetical counterfactual world. |
 | Less sensitive to assumptions about manipulation. | Requires strong assumptions about bias.      |
 
-: Comparison with Doughnut-Hole RD Designs
+: (#tab:rd-doughnut-hole) Comparison between Manipulation-Robust and Doughnut-Hole RD Designs
 
 #### Identification Challenges
 
@@ -735,19 +740,19 @@ rdbounds_est <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-10-31 13:58:24.879706 Estimating CDFs for point estimates"
-#> [1] "2025-10-31 13:58:25.141443 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-10-31 13:58:27.635615 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-10-31 13:58:27.714672 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-10-31 13:58:31.306173 Beginning parallelized output by bootstrap.."
-#> [1] "2025-10-31 13:58:36.075224 Computing Confidence Intervals"
-#> [1] "2025-10-31 13:58:52.152338 Time taken:0.46 minutes"
+#> [1] "2025-11-04 09:27:50.247255 Estimating CDFs for point estimates"
+#> [1] "2025-11-04 09:27:50.444951 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-11-04 09:27:52.273855 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-11-04 09:27:52.314649 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-11-04 09:27:55.210347 Beginning parallelized output by bootstrap.."
+#> [1] "2025-11-04 09:27:59.760454 Computing Confidence Intervals"
+#> [1] "2025-11-04 09:28:11.395259 Time taken:0.35 minutes"
 ```
 
 
 ``` r
 rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
-#> [1] "Time taken: 0.46 minutes"
+#> [1] "Time taken: 0.35 minutes"
 #> [1] "Sample size: 1000"
 #> [1] "Local Average Treatment Effect:"
 #> $tau_hat
@@ -853,19 +858,21 @@ rdbounds_est_tau <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-10-31 13:58:54.17367 Estimating CDFs for point estimates"
-#> [1] "2025-10-31 13:58:54.436424 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-10-31 13:58:56.913018 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-10-31 13:58:56.975517 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-10-31 13:59:00.420274 Beginning parallelized output by bootstrap.."
-#> [1] "2025-10-31 13:59:05.437279 Estimating CDFs with fixed tau value of: 0.025"
-#> [1] "2025-10-31 13:59:05.512843 Estimating CDFs with fixed tau value of: 0.05"
-#> [1] "2025-10-31 13:59:05.560217 Estimating CDFs with fixed tau value of: 0.1"
-#> [1] "2025-10-31 13:59:05.628925 Estimating CDFs with fixed tau value of: 0.2"
-#> [1] "2025-10-31 13:59:06.821819 Beginning parallelized output by bootstrap x fixed tau.."
-#> [1] "2025-10-31 13:59:11.881752 Computing Confidence Intervals"
-#> [1] "2025-10-31 13:59:28.592243 Time taken:0.57 minutes"
+#> [1] "2025-11-04 09:28:12.885175 Estimating CDFs for point estimates"
+#> [1] "2025-11-04 09:28:13.09748 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-11-04 09:28:14.953451 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-11-04 09:28:14.993297 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-11-04 09:28:17.846789 Beginning parallelized output by bootstrap.."
+#> [1] "2025-11-04 09:28:22.689488 Estimating CDFs with fixed tau value of: 0.025"
+#> [1] "2025-11-04 09:28:22.761353 Estimating CDFs with fixed tau value of: 0.05"
+#> [1] "2025-11-04 09:28:22.801681 Estimating CDFs with fixed tau value of: 0.1"
+#> [1] "2025-11-04 09:28:22.842152 Estimating CDFs with fixed tau value of: 0.2"
+#> [1] "2025-11-04 09:28:23.877805 Beginning parallelized output by bootstrap x fixed tau.."
+#> [1] "2025-11-04 09:28:26.637232 Computing Confidence Intervals"
+#> [1] "2025-11-04 09:28:37.92136 Time taken:0.42 minutes"
 ```
+
+Figure \@ref(fig:rd-ate-share-always-assigned) shows the average treatment effect across different shares of always-assigned units.
 
 
 ``` r
@@ -873,8 +880,8 @@ causalverse::plot_rd_aa_share(rdbounds_est_tau) # For SRD (default)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-9-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-9)Robustness of Average Treatment Effect to Share of Always-assigned Units</p>
+<img src="27-regression-discontinuity_files/figure-html/rd-ate-share-always-assigned-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%" />
+<p class="caption">(\#fig:rd-ate-share-always-assigned)Robustness of Average Treatment Effect to Share of Always-assigned Units</p>
 </div>
 
 ``` r
@@ -885,7 +892,7 @@ causalverse::plot_rd_aa_share(rdbounds_est_tau) # For SRD (default)
 
 A Fuzzy Regression Discontinuity Design occurs when the assignment rule at the cutoff does not perfectly determine treatment status but instead causes a discontinuity in the probability of treatment. Unlike a Sharp RD Design, where crossing the threshold fully determines treatment, in a fuzzy RD, some individuals on both sides of the threshold may or may not receive the treatment.
 
-If treatment is not strictly assigned at the cutoff, the usual RD estimator (which assumes deterministic assignment) **is not valid**. Instead, we use the cutoff as an **instrumental variable** to estimate the treatment effect for **compliers**, i.e., individuals whose treatment status depends on whether they cross the threshold.
+If treatment is not strictly assigned at the cutoff, the usual RD estimator (which assumes deterministic assignment) **is not valid**. Instead, we use the cutoff as an **instrumental variable** to estimate the treatment effect for **compliers** (i.e., individuals whose treatment status depends on whether they cross the threshold).
 
 Define an indicator variable $Z_i$ (i.e., instrument for treatment assignment) that captures whether an individual is above or below the cutoff:
 
@@ -970,9 +977,8 @@ There are two equivalent ways to estimate the [LATE](#sec-local-average-treatmen
 Mathematically:
 
 $$
-\widehat{\text{LATE}} = \frac{\widehat{E[Y | X = c^+]} - \widehat{E[Y | X = c^-]}}{\widehat{E[D | X = c^+]} - \widehat{E[D | X = c^-]}}.
+\widehat{\text{LATE}} = \frac{\widehat{E[Y \mid X = c^+]} - \widehat{E[Y \mid X = c^-]}}{\widehat{E[D \mid X = c^+]} - \widehat{E[D \mid X = c^-]}}
 $$
-
 **Approach 2: Instrumental Variables Regression**
 
 -   Subset the data to observations close to $c$.
@@ -1000,7 +1006,7 @@ $$
 -   **Bandwidth Selection**: Only observations near the cutoff should be used. Methods like **cross-validation** or @calonico2020optimal optimal bandwidth selection can help.
 -   **Polynomial Order**: A [local linear model](#sec-special-case-local-linear-regression) is typically preferred, but higher-order polynomials may be used cautiously.
 -   **Robust Inference**: Standard errors should be computed using heteroskedasticity-robust and clustered standard errors if necessary.
--   **Strong first-stage** (e.g., F-stat $\ge$ 16); no exclusion restriction violations; same model for both outcome and treatment take-up.
+-   **Strong first-stage** (e.g., $F$-stat $\ge$ 16); no exclusion restriction violations; same model for both outcome and treatment take-up.
 
 ### Steps for Fuzzy RD
 
@@ -1016,30 +1022,30 @@ $$
 
 2\. Estimation of Treatment Effect
 
-Use **Two-Stage Least Squares** to estimate the [Local Average Treatment Effect](#sec-local-average-treatment-effects):
+Use Two-Stage Least Squares to estimate the [Local Average Treatment Effect](#sec-local-average-treatment-effects):
 
-1.  **First Stage (Predict Treatment Using Cutoff Indicator** $Z_i$): $$
+1.  First Stage (Predict Treatment Using Cutoff Indicator $Z_i$): $$
     D_i = \alpha + \beta Z_i + \gamma X_i + \epsilon_i
     $$
     -   This regression captures how treatment probability changes at the cutoff.
     -   The coefficient $\beta$ measures the **jump in treatment probability** at $X = c$.
-2.  **Second Stage (Estimate Outcome Using Predicted Treatment)**: $$
+2.  Second Stage (Estimate Outcome Using Predicted Treatment): $$
     Y_i = \delta + \tau \widehat{D}_i + \lambda X_i + \nu_i
     $$
-    -   The coefficient $\tau$ gives the [LATE](#sec-local-average-treatment-effects), which estimates the treatment effect for **compliers**.
+    -   The coefficient $\tau$ gives the [LATE](#sec-local-average-treatment-effects), which estimates the treatment effect for compliers.
 
 3\. Robustness Checks
 
-1.  **Assess Possible Jumps in Other Covariates**:
+1.  Assess Possible Jumps in Other Covariates:
     -   Check whether other pre-determined covariates (e.g., age, income) exhibit discontinuities at the cutoff.
     -   If covariates jump, this may indicate endogenous sorting or omitted variable bias.
-2.  **Hypothesis Testing for Bunching (McCrary Test)**:
+2.  Hypothesis Testing for Bunching (McCrary Test):
     -   Test for manipulation of the running variable by examining whether the density of $X_i$ changes discontinuously at $c$.
     -   A significant density jump suggests sorting behavior, which could invalidate RD assumptions.
-3.  **Placebo Tests**:
+3.  Placebo Tests:
     -   Repeat the analysis at fake cutoffs (values of $X$ where no intervention occurs).
     -   If a treatment effect appears at a placebo cutoff, this suggests a spurious RD effect.
-4.  **Varying Bandwidth Sensitivity**:
+4.  Varying Bandwidth Sensitivity:
     -   Re-run the analysis using different bandwidths around the cutoff.
     -   Check whether estimates remain stable as the window narrows or expands.
 
@@ -1569,7 +1575,10 @@ To ensure valid causal inference, the multi-score RD framework extends the stand
 1.  **Continuity of Potential Outcomes in Both Running Variables**
     -   The expected potential outcomes $E[Y(0) | X_1, X_2]$ and $E[Y(1) | X_1, X_2]$ are smooth in both $X_1$ and $X_2$.
     -   Formally: $$
-        \lim_{(x_1, x_2) \to (C_1, C_2)^-} E[Y(0) | X_1 = x_1, X_2 = x_2] = \lim_{(x_1, x_2) \to (C_1, C_2)^+} E[Y(0) | X_1 = x_1, X_2 = x_2].
+        \begin{aligned}
+\lim_{(x_1, x_2) \to (C_1, C_2)^-} E[Y(0) | X_1 = x_1, X_2 = x_2] = \\
+\lim_{(x_1, x_2) \to (C_1, C_2)^+} E[Y(0) | X_1 = x_1, X_2 = x_2].
+\end{aligned}
         $$
     -   Ensures that any observed discontinuity in $E[Y | X_1, X_2]$ is attributable to treatment.
 2.  **No Manipulation of Running Variables**
@@ -1581,6 +1590,7 @@ To ensure valid causal inference, the multi-score RD framework extends the stand
     -   In some models, we assume that the effect of crossing $C_1$ does not depend on $C_2$ and vice versa.
 
 If these assumptions hold, the treatment effect is identified as the discontinuity in $E[Y | X_1, X_2]$ at $(C_1, C_2)$.
+
 
 ### Estimation Approaches
 
@@ -1726,15 +1736,9 @@ $$
 Y_i = \beta_0 + \beta_1 X_i + I(X_i \geq c) \beta_2 + \epsilon_i.
 $$
 
+Figure \@ref(fig:rd-simple-constant-slope) shows how to visualize the coefficients.
 
-``` r
-knitr::include_graphics('images/rd1.PNG')
-```
 
-<div class="figure" style="text-align: center">
-<img src="images/rd1.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-10)Regression Discontinuity Design: Constant Slope</p>
-</div>
 
 RD gives you $\beta_2$ (causal effect) of $X$ on $Y$ at the cutoff point
 
@@ -1742,17 +1746,9 @@ In practice, everyone does
 
 $$ Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i $$
 
-![](images/rd2.PNG){style="display: block; margin: 1em auto" width="600" height="300"}
+Figure \@ref(fig:rd-simple-dynamic-slop) shows how to visualize the coefficients when one uses dynamic slope.
 
 
-``` r
-knitr::include_graphics('images/rd2.PNG')
-```
-
-<div class="figure" style="text-align: center">
-<img src="images/rd2.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-11)Regression Discontinuity Design: Dynamic Slope</p>
-</div>
 
 where we estimate different slope on different sides of the line. And if you estimate $\alpha_3$ to be no different from 0 then we return to the simple case.
 
@@ -1852,7 +1848,7 @@ While RD provides strong internal validity, its generalizability is often limite
 
 ## Applications of RD Designs
 
-Regression Discontinuity (RD) designs have widespread applications in empirical research across **economics, political science, marketing, and public policy**. These applications leverage **threshold-based decision rules** to identify causal effects in real-world settings where **randomized experiments** are infeasible.
+Regression Discontinuity (RD) designs have widespread applications in empirical research across economics, political science, marketing, and public policy. These applications leverage threshold-based decision rules to identify causal effects in real-world settings where randomized experiments are infeasible.
 
 Key applications include:
 
@@ -1866,7 +1862,7 @@ Key applications include:
 
 ### Applications in Marketing
 
-RD has been widely applied in marketing research to estimate **causal effects of pricing, advertising, and product positioning**.
+RD has been widely applied in marketing research to estimate causal effects of pricing, advertising, and product positioning.
 
 1.  **Position Effects in Advertising**
 
@@ -1894,10 +1890,10 @@ By comparing firms just above and below an expenditure threshold, the RD framewo
 
 ### R Packages for RD Estimation
 
-**Key RD [Packages](https://rdpackages.github.io/) in R**
+Table \@ref(tab:rd-packages-in-r) shows key RD [Packages](https://rdpackages.github.io/) in R
 
 | **Feature**             | **rdd**                 | **rdrobust**                                                     | **rddtools**                                  |
-|-------------------------|-------------------------|------------------------------------------------------------------|-----------------------------------------------|
+|---------------|---------------|-------------------------|------------------|
 | **Estimator**           | Local linear regression | Local polynomial regression                                      | Local polynomial regression                   |
 | **Bandwidth Selection** | [@imbens2012optimal]    | [@calonico2014robust; @imbens2012optimal ; @calonico2020optimal] | [@imbens2012optimal]                          |
 | **Kernel Functions**    | Epanechnikov, Gaussian  | Epanechnikov                                                     | Gaussian                                      |
@@ -1905,11 +1901,11 @@ By comparing firms just above and below an expenditure threshold, the RD framewo
 | **Covariate Inclusion** | Yes                     | Yes                                                              | Yes                                           |
 | **Assumption Testing**  | McCrary Sorting Test    | No                                                               | McCrary Sorting, Covariate Distribution Tests |
 
-: Packages in R for RD Estimation
+: (#tab:rd-packages-in-r) Packages in R for RD Estimation
 
-For a detailed comparison, see [@thoemmes2017analysis] (Table 1, p. 347).
+For a detailed comparison, see @thoemmes2017analysis (Table 1, p. 347).
 
-#### Specialized RD Packages
+Specialized RD Packages
 
 -   `rddensity`: Tests for discontinuities in the density of the running variable (useful for manipulation/bunching detection).
 -   `rdlocrand`: Implements randomization-based inference for RD.
@@ -1968,6 +1964,8 @@ library(rddtools)
 data <- rdd_data(future_success, GPA, cutpoint = 3.5)
 ```
 
+Figure \@ref(fig:rd-plot-gpa-future-success) shows the scatter plot of GPA and Future Success.
+
 
 ``` r
 # Plot RD scatterplot
@@ -1975,8 +1973,8 @@ plot(data, col = "red", cex = 0.5, xlab = "GPA", ylab = "Future Success")
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-13-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-13)Binned Scatter Plot of GPA and Future Success with Threshold at 3.5</p>
+<img src="27-regression-discontinuity_files/figure-html/rd-plot-gpa-future-success-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%" />
+<p class="caption">(\#fig:rd-plot-gpa-future-success)Binned Scatter Plot of GPA and Future Success with Threshold at 3.5</p>
 </div>
 
 We estimate the Sharp RD treatment effect using [local linear regression](#sec-special-case-local-linear-regression):
@@ -2009,7 +2007,7 @@ summary(rdd_mod)
 #> F-statistic:  1863 on 2 and 97 DF,  p-value: < 2.2e-16
 ```
 
-Plot the RD regression line with binned observations:
+Figure \@ref(fig:rd-binned-rd-plot-gpa-future-success) plots the RD regression line with binned observations:
 
 
 ``` r
@@ -2018,8 +2016,8 @@ plot(rdd_mod, cex = 0.5, col = "red", xlab = "GPA", ylab = "Future Success")
 ```
 
 <div class="figure" style="text-align: center">
-<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-15-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-15)Coarse Binned Regression Discontinuity Plot of GPA and Future Success</p>
+<img src="27-regression-discontinuity_files/figure-html/rd-binned-rd-plot-gpa-future-success-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%" />
+<p class="caption">(\#fig:rd-binned-rd-plot-gpa-future-success)Coarse Binned Regression Discontinuity Plot of GPA and Future Success</p>
 </div>
 
 We verify whether results hold under different bandwidths and functional forms:
@@ -2154,7 +2152,7 @@ where:
 The OLS model is endogenous, so we implement a [Fuzzy RD Design](#sec-fuzzy-regression-discontinuity-design) that exploits a discontinuity in licensing requirements at 120 beds.
 
 $$
-Y_{ist} = \beta_0 + [I(Bed \geq 121)_{ist}]\beta_1 + f(Size_{ist}) \beta_2 + [f(Size_{ist}) \times I(Bed \geq 121)_{ist}] \beta_3 + X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+\begin{aligned}Y_{ist} = \beta_0 &+ \beta_1 \mathbb{1}(\text{Bed}_{ist} \geq 121) + \beta_2 f(\text{Size}_{ist}) \\&+ \beta_3 f(\text{Size}_{ist}) \times \mathbb{1}(\text{Bed}_{ist} \geq 121) \\&+ X_{it}'\delta + \gamma_s + \theta_t + \epsilon_{ist}\end{aligned}
 $$
 
 where:
@@ -2208,7 +2206,7 @@ To correct for endogeneity, we use a two-stage least squares IV approach, where 
 Estimate the probability of hiring licensed workers based on the 120-bed threshold:
 
 $$
-QSW_{ist} = \alpha_0 + [I(Bed \geq 121)_{ist}]\alpha_1 + f(Size_{ist}) \alpha_2 + [f(Size_{ist}) \times I(Bed \geq 121)_{ist}] \alpha_3 + X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+\begin{aligned}\text{QSW}_{ist} = \alpha_0 &+ \alpha_1 \mathbb{1}(\text{Bed}_{ist} \geq 121) + \alpha_2 f(\text{Size}_{ist}) \\&+ \alpha_3 f(\text{Size}_{ist}) \times \mathbb{1}(\text{Bed}_{ist} \geq 121) \\&+ X_{it}'\delta + \gamma_s + \theta_t + \epsilon_{ist}\end{aligned}
 $$
 
 where:
@@ -2220,7 +2218,7 @@ where:
 Estimate the causal effect of hiring licensed workers on quality of service:
 
 $$
-Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size_{ist}) \times I(Bed \geq 121)] \delta_3 + X_{it} \lambda + \eta_s + \tau_t + u_{ist}
+\begin{aligned}Y_{ist} = \gamma_0 &+ \gamma_1 \widehat{\text{QSW}}_{ist} + \delta_2 f(\text{Size}_{ist}) \\&+ \delta_3 f(\text{Size}_{ist}) \times \mathbb{1}(\text{Bed}_{ist} \geq 121) \\&+ X_{it}'\lambda + \eta_s + \tau_t + u_{ist}\end{aligned}
 $$
 
 where:
@@ -2257,10 +2255,10 @@ where:
 
 ------------------------------------------------------------------------
 
-### Additional RD Applications
+<!-- ### Additional RD Applications -->
 
-For a comprehensive empirical RD application, see @thoemmes2017analysis, where:
+<!-- For a comprehensive empirical RD application, see @thoemmes2017analysis, where: -->
 
--   Multiple RD packages (`rdd`, `rdrobust`, `rddtools`) are tested.
+<!-- -   Multiple RD packages (`rdd`, `rdrobust`, `rddtools`) are tested. -->
 
--   Robustness checks are performed across bandwidth selection and polynomial orders.
+<!-- -   Robustness checks are performed across bandwidth selection and polynomial orders. -->

@@ -121,9 +121,9 @@
 <li><a class="" href="sec-directed-acyclic-graphs.html"><span class="header-section-number">38</span> Directed Acyclic Graphs</a></li>
 <li><a class="active" href="sec-controls.html"><span class="header-section-number">39</span> Controls</a></li>
 <li class="book-part">V. MISCELLANEOUS</li>
-<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="reporting-your-analysis.html"><span class="header-section-number">40</span> Reporting Your Analysis</a></li>
 <li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
-<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="sensitivity-analysis-and-robustness-checks.html"><span class="header-section-number">42</span> Sensitivity Analysis and Robustness Checks</a></li>
 <li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
 <li><a class="" href="high-performance-computing.html"><span class="header-section-number">44</span> High-Performance Computing</a></li>
 <li class="book-part">APPENDIX</li>
@@ -142,7 +142,7 @@
 <span class="header-section-number">39</span> Controls<a class="anchor" aria-label="anchor" href="#sec-controls"><i class="fas fa-link"></i></a>
 </h1>
 <!--# This section follows the work of [@cinelli2022crash] and an associated Kaggle notebook. -->
-<div class="sourceCode" id="cb1156"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1155"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.dagitty.net">dagitty</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-causal/ggdag">ggdag</a></span><span class="op">)</span></span></code></pre></div>
 <p>Traditionally, adding more control variables in regression models is often considered harmless or even beneficial. The idea is simple: controlling for potential confounders (variables that influence both the treatment and the outcome) should help isolate the causal effect of the variable of interest. However, this intuition can be misleading, especially when it comes to overcontrolling—an issue often overlooked in both academic research and the review process.</p>
@@ -176,7 +176,7 @@
 <p>A common intuition in causal inference is to control for any variable that precedes the treatment. This logic underpins much of the guidance in traditional econometric texts <span class="citation">(<a href="references.html#ref-imbens2015causal">G. W. Imbens and Rubin 2015</a>; <a href="references.html#ref-angrist2009mostly">J. D. Angrist and Pischke 2009</a>)</span>, where pre-treatment variables like <span class="math inline">\(Z\)</span> are often recommended as controls if they correlate with both the treatment <span class="math inline">\(X\)</span> and the outcome <span class="math inline">\(Y\)</span>.</p>
 <p>This perspective is especially prevalent in <a href="sec-matching-methods.html#sec-matching-methods">Matching Methods</a>, where all observed pre-treatment covariates are typically included in the matching process. However, controlling for <em>every</em> pre-treatment variable can lead to <em>bad control bias</em>.</p>
 <p>One such example is <strong>M-bias</strong>, which arises when conditioning on a <em>collider</em> — a variable that is influenced by two unobserved causes. The DAG below illustrates a case where <span class="math inline">\(Z\)</span> appears to be a good control but actually opens a biasing path:</p>
-<div class="sourceCode" id="cb1157"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1156"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -204,7 +204,7 @@
 <p>In this structure, <span class="math inline">\(Z\)</span> is a <strong>collider</strong> on the path <span class="math inline">\(X \leftarrow U_1 \rightarrow Z \leftarrow U_2 \rightarrow Y\)</span>. Controlling for <span class="math inline">\(Z\)</span> opens this path, introducing a spurious association between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> even if none existed originally.</p>
 <p>Even though <span class="math inline">\(Z\)</span> is statistically correlated with both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, it is <strong>not a confounder</strong>, because it does not lie on a <em>back-door path</em> that needs to be blocked. Instead, adjusting for <span class="math inline">\(Z\)</span> biases the estimate of the causal effect of <span class="math inline">\(X \to Y\)</span>.</p>
 <p>Let’s illustrate this with a simulation:</p>
-<div class="sourceCode" id="cb1158"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1157"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
@@ -280,7 +280,7 @@
 <span class="header-section-number">39.1.1.1</span> Worse: M-bias with Direct Effect from Z to Y<a class="anchor" aria-label="anchor" href="#worse-m-bias-with-direct-effect-from-z-to-y"><i class="fas fa-link"></i></a>
 </h4>
 <p>A more difficult case arises when <span class="math inline">\(Z\)</span> also has a direct effect on <span class="math inline">\(Y\)</span>. Consider the DAG below:</p>
-<div class="sourceCode" id="cb1159"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1158"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -327,7 +327,7 @@
 </h3>
 <p>Bias amplification occurs when controlling for a variable that is not a confounder — in fact, controlling for it increases bias due to an unobserved confounder.</p>
 <p>In the DAG below, <span class="math inline">\(U\)</span> is an unobserved common cause of both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. <span class="math inline">\(Z\)</span> influences <span class="math inline">\(X\)</span> but has no causal relationship with <span class="math inline">\(Y\)</span>. Including <span class="math inline">\(Z\)</span> in the model does not block any back-door path but instead increases the bias from <span class="math inline">\(U\)</span> by amplifying its association with <span class="math inline">\(X\)</span>.</p>
-<div class="sourceCode" id="cb1160"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1159"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -353,7 +353,7 @@
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Even though <span class="math inline">\(Z\)</span> is a strong predictor of <span class="math inline">\(X\)</span>, it is <strong>not a confounder</strong>, because it is not a common cause of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. Controlling for <span class="math inline">\(Z\)</span> increases the portion of <span class="math inline">\(X\)</span>’s variation explained by <span class="math inline">\(U\)</span>, thus amplifying bias in estimating the effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>.</p>
 <p>Simulation:</p>
-<div class="sourceCode" id="cb1161"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1160"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -431,7 +431,7 @@
 <span class="header-section-number">39.1.3.1</span> Mediator Control<a class="anchor" aria-label="anchor" href="#mediator-control"><i class="fas fa-link"></i></a>
 </h4>
 <p>Controlling for a <strong>mediator</strong> — a variable that lies on the causal path between treatment and outcome — removes part of the effect we are trying to estimate.</p>
-<div class="sourceCode" id="cb1162"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1161"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -449,7 +449,7 @@
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>If we want to estimate the <strong>total effect</strong> of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>, controlling for <span class="math inline">\(Z\)</span> (a mediator) leads to <a href="sec-controls.html#sec-overcontrol-bias">overcontrol bias</a>.</p>
-<div class="sourceCode" id="cb1163"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1162"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -521,7 +521,7 @@
 <span class="header-section-number">39.1.3.2</span> Proxy for Mediator<a class="anchor" aria-label="anchor" href="#proxy-for-mediator"><i class="fas fa-link"></i></a>
 </h4>
 <p>In more complex scenarios, controlling for variables that <strong>proxy</strong> for mediators can introduce similar distortions.</p>
-<div class="sourceCode" id="cb1164"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1163"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -539,7 +539,7 @@
 <span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1165"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1164"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -611,7 +611,7 @@
 <span class="header-section-number">39.1.3.3</span> Overcontrol with Unobserved Confounding<a class="anchor" aria-label="anchor" href="#overcontrol-with-unobserved-confounding"><i class="fas fa-link"></i></a>
 </h4>
 <p>When <span class="math inline">\(Z\)</span> is influenced by both <span class="math inline">\(X\)</span> and a latent confounder <span class="math inline">\(U\)</span> that also affects <span class="math inline">\(Y\)</span>, controlling for <span class="math inline">\(Z\)</span> again biases the estimate.</p>
-<div class="sourceCode" id="cb1166"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1165"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -632,7 +632,7 @@
 <span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1167"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1166"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -721,7 +721,7 @@
 <span class="header-section-number">39.1.4.1</span> Classic Collider Bias<a class="anchor" aria-label="anchor" href="#classic-collider-bias"><i class="fas fa-link"></i></a>
 </h4>
 <p>In the DAG below, <span class="math inline">\(Z\)</span> is a collider between <span class="math inline">\(X\)</span> and a latent variable <span class="math inline">\(U\)</span>. Controlling for <span class="math inline">\(Z\)</span> opens a back-door path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span> through <span class="math inline">\(U\)</span>, introducing bias.</p>
-<div class="sourceCode" id="cb1168"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1167"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># DAG</span></span>
@@ -739,7 +739,7 @@
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Simulation:</p>
-<div class="sourceCode" id="cb1169"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1168"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -812,7 +812,7 @@
 <span class="header-section-number">39.1.4.2</span> Collider Between Treatment and Outcome<a class="anchor" aria-label="anchor" href="#collider-between-treatment-and-outcome"><i class="fas fa-link"></i></a>
 </h4>
 <p>In some cases, the collider is influenced directly by both the treatment and the outcome. This setting is also highly relevant in observational designs, particularly in retrospective or convenience sampling scenarios.</p>
-<div class="sourceCode" id="cb1170"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1169"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># DAG: X → Z ← Y</span></span>
@@ -828,7 +828,7 @@
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Simulation:</p>
-<div class="sourceCode" id="cb1171"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1170"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -902,7 +902,7 @@
 </h3>
 <p>Case-control studies often condition on the outcome (or its descendants), which can lead to collider bias if not properly accounted for.</p>
 <p>In the DAG below, <span class="math inline">\(Z\)</span> is a <strong>descendant of a collider</strong>. Controlling for it can again induce spurious correlations by opening non-causal paths.</p>
-<div class="sourceCode" id="cb1172"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1171"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># DAG: X → Y → Z</span></span>
@@ -917,7 +917,7 @@
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Simulation:</p>
-<div class="sourceCode" id="cb1173"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1172"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1055,7 +1055,7 @@
 <span class="header-section-number">39.2.1.1</span> Simple Confounder<a class="anchor" aria-label="anchor" href="#simple-confounder"><i class="fas fa-link"></i></a>
 </h4>
 <p>In this DAG, <span class="math inline">\(Z\)</span> is a common cause of both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, i.e., a <strong>confounder</strong>.</p>
-<div class="sourceCode" id="cb1174"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1173"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1070,7 +1070,7 @@
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Controlling for <span class="math inline">\(Z\)</span> removes the bias from the back-door path <span class="math inline">\(X \leftarrow Z \rightarrow Y\)</span>.</p>
-<div class="sourceCode" id="cb1175"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1174"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">causal_coef</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
@@ -1138,7 +1138,7 @@
 <span class="header-section-number">39.2.1.2</span> Confounding via a Latent Variable<a class="anchor" aria-label="anchor" href="#confounding-via-a-latent-variable"><i class="fas fa-link"></i></a>
 </h4>
 <p>In this structure, <span class="math inline">\(U\)</span> is unobserved but causes both <span class="math inline">\(Z\)</span> and <span class="math inline">\(Y\)</span>, and <span class="math inline">\(Z\)</span> affects <span class="math inline">\(X\)</span>. Even though <span class="math inline">\(U\)</span> is not observed, adjusting for <span class="math inline">\(Z\)</span> helps block the back-door path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span> that goes through <span class="math inline">\(U\)</span>.</p>
-<div class="sourceCode" id="cb1176"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1175"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1154,7 +1154,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1177"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1176"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1222,7 +1222,7 @@
 <span class="header-section-number">39.2.1.3</span> <span class="math inline">\(Z\)</span> is caused by <span class="math inline">\(U\)</span>, but also causes <span class="math inline">\(Y\)</span><a class="anchor" aria-label="anchor" href="#z-is-caused-by-u-but-also-causes-y"><i class="fas fa-link"></i></a>
 </h4>
 <p>This DAG illustrates a subtle case where <span class="math inline">\(Z\)</span> is on a non-causal path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span> and helps block bias through a shared cause <span class="math inline">\(U\)</span>.</p>
-<div class="sourceCode" id="cb1178"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1177"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1238,7 +1238,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1179"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1178"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1305,7 +1305,7 @@
 <h4>
 <span class="header-section-number">39.2.1.4</span> Summary of Omitted Variable Correction<a class="anchor" aria-label="anchor" href="#summary-of-omitted-variable-correction"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1180"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1179"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Model 1: Z is a confounder</span></span>
 <span><span class="va">model1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
 <span><span class="st">  x -&gt; y</span></span>
@@ -1362,10 +1362,10 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model1</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1181"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1180"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-25-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1182"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1181"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model3</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-25-3.png" width="90%" style="display: block; margin: auto;"></div>
 </div>
@@ -1379,7 +1379,7 @@
 <h4>
 <span class="header-section-number">39.2.2.1</span> Observed Confounder of Mediator and Treatment<a class="anchor" aria-label="anchor" href="#observed-confounder-of-mediator-and-treatment"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1183"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1182"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1404,7 +1404,7 @@
 <span>    <span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1184"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1183"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">z</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1470,7 +1470,7 @@
 <h4>
 <span class="header-section-number">39.2.2.2</span> Latent Common Cause of Mediator and Treatment<a class="anchor" aria-label="anchor" href="#latent-common-cause-of-mediator-and-treatment"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1185"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1184"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1499,7 +1499,7 @@
 <span>    <span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1186"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1185"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1566,7 +1566,7 @@
 <h4>
 <span class="header-section-number">39.2.2.3</span> Z Affects Mediator, U Affects Both X and Z<a class="anchor" aria-label="anchor" href="#z-affects-mediator-u-affects-both-x-and-z"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1187"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1186"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1595,7 +1595,7 @@
 <span>    <span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1188"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1187"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1662,7 +1662,7 @@
 <h4>
 <span class="header-section-number">39.2.2.4</span> Summary of Mediation Correction<a class="anchor" aria-label="anchor" href="#summary-of-mediation-correction"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1189"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1188"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Model 4</span></span>
 <span><span class="va">model4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
 <span><span class="st">  x -&gt; y</span></span>
@@ -1740,10 +1740,10 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model4</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1190"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1189"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model5</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-32-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1191"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1190"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model6</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-32-3.png" width="90%" style="display: block; margin: auto;"></div>
 <p>While <span class="math inline">\(Z\)</span> may be statistically significant, this <strong>does not imply a causal effect</strong> unless <span class="math inline">\(Z\)</span> is directly on the causal path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span>. In many valid control scenarios, <span class="math inline">\(Z\)</span> simply serves to isolate the causal effect of <span class="math inline">\(X\)</span>, not to be interpreted as a cause itself.</p>
@@ -1772,7 +1772,7 @@
 <h4>
 <span class="header-section-number">39.3.1.1</span> <span class="math inline">\(Z\)</span> predicts <span class="math inline">\(Y\)</span>, not <span class="math inline">\(X\)</span><a class="anchor" aria-label="anchor" href="#z-predicts-y-not-x"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1192"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1191"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean workspace</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1786,7 +1786,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1193"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1192"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1856,7 +1856,7 @@
 <h4>
 <span class="header-section-number">39.3.1.2</span> <span class="math inline">\(Z\)</span> predicts a mediator <span class="math inline">\(M\)</span><a class="anchor" aria-label="anchor" href="#z-predicts-a-mediator-m"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1194"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1193"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1871,7 +1871,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1195"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1194"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -1948,7 +1948,7 @@
 <h4>
 <span class="header-section-number">39.3.2.1</span> <span class="math inline">\(W\)</span> is a collider; <span class="math inline">\(Z\)</span> helps condition on selection<a class="anchor" aria-label="anchor" href="#w-is-a-collider-z-helps-condition-on-selection"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1196"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1195"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -1965,7 +1965,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-37-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1197"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1196"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -2070,7 +2070,7 @@
 <h4>
 <span class="header-section-number">39.3.3.1</span> <span class="math inline">\(Z\)</span> predicts <span class="math inline">\(X\)</span>, not <span class="math inline">\(Y\)</span><a class="anchor" aria-label="anchor" href="#z-predicts-x-not-y"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1198"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1197"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -2083,7 +2083,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1199"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1198"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -2153,7 +2153,7 @@
 <h4>
 <span class="header-section-number">39.3.3.2</span> <span class="math inline">\(Z\)</span> is a child of <span class="math inline">\(X\)</span><a class="anchor" aria-label="anchor" href="#z-is-a-child-of-x"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb1200"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1199"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -2166,7 +2166,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1201"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1200"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -2238,7 +2238,7 @@
 <span class="header-section-number">39.3.4</span> Bad Selection Bias<a class="anchor" aria-label="anchor" href="#bad-selection-bias"><i class="fas fa-link"></i></a>
 </h3>
 <p>Controlling for some post-treatment variables can hurt precision without affecting bias.</p>
-<div class="sourceCode" id="cb1202"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1201"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ls.html">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag{</span></span>
@@ -2251,7 +2251,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="39-controls_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1203"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1202"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1e4</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
@@ -2391,7 +2391,7 @@
 <li>Use software to identify minimal sufficient adjustment sets</li>
 </ul>
 <p>For example, using <code>dagitty</code>:</p>
-<div class="sourceCode" id="cb1204"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1203"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.dagitty.net">dagitty</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dag</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag {</span></span>
@@ -2530,7 +2530,7 @@
 
 <div class="chapter-nav">
 <div class="prev"><a href="sec-directed-acyclic-graphs.html"><span class="header-section-number">38</span> Directed Acyclic Graphs</a></div>
-<div class="next"><a href="report.html"><span class="header-section-number">40</span> Report</a></div>
+<div class="next"><a href="reporting-your-analysis.html"><span class="header-section-number">40</span> Reporting Your Analysis</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -2591,7 +2591,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-11-02.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-11-10.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

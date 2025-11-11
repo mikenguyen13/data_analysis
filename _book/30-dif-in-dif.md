@@ -80,6 +80,8 @@ head(base_stagg)
 
 ### Treatment Assignment Heatmap
 
+Figure \@ref(fig:did-treatment-assignment-heatmap) shows the heatmap of treatment status for each unit over 10 years.
+
 
 ``` r
 panelView::panelview(
@@ -95,11 +97,13 @@ panelView::panelview(
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" alt="Heatmap showing treatment status by unit over 10 years. The y-axis lists individual units, and the x-axis marks years. Units transition from light blue (under control) to dark blue (under treatment) at different years, illustrating staggered treatment adoption. A legend at the bottom labels the two status colors." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-2)Treatment Assignment Over Time by Unit</p>
+<img src="30-dif-in-dif_files/figure-html/did-treatment-assignment-heatmap-1.png" alt="Heatmap showing treatment status by unit over 10 years. The y-axis lists individual units, and the x-axis marks years. Units transition from light blue (under control) to dark blue (under treatment) at different years, illustrating staggered treatment adoption. A legend at the bottom labels the two status colors." width="90%" />
+<p class="caption">(\#fig:did-treatment-assignment-heatmap)Treatment Assignment Over Time by Unit</p>
 </div>
 
 The diagonal "step" confirms that **not all units adopt at once**. This would be a perfect for a staggered-DiD design. Horizontal segments without a color change indicate units that never adopt.
+
+Alternatively, specifying the outcome and treatment status will also return the exact figure (Figure \@ref(fig:did-treatment-assignment-heatmap-alt))
 
 
 ``` r
@@ -118,11 +122,13 @@ panelView::panelview(
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-1.png" alt="Heatmap of treatment status over 10 years. The x-axis shows years, and the y-axis lists individual units. Each unit transitions from light blue (under control) to dark blue (under treatment) at different points in time, forming a downward diagonal boundary that reflects staggered adoption. A legend identifies the two treatment states." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-3)Staggered Treatment Timing Across Units</p>
+<img src="30-dif-in-dif_files/figure-html/did-treatment-assignment-heatmap-alt-1.png" alt="Heatmap of treatment status over 10 years. The x-axis shows years, and the y-axis lists individual units. Each unit transitions from light blue (under control) to dark blue (under treatment) at different points in time, forming a downward diagonal boundary that reflects staggered adoption. A legend identifies the two treatment states." width="90%" />
+<p class="caption">(\#fig:did-treatment-assignment-heatmap-alt)Staggered Treatment Timing Across Units</p>
 </div>
 
 ### Raw Outcome Trajectories
+
+Figure \@ref(fig:did-treatment-status-overtime) shows the trajectories of different cohorts overtime.
 
 
 ``` r
@@ -141,15 +147,15 @@ panelView::panelview(
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-4-1.png" alt="Line plot showing individual outcome trajectories over time. Gray lines represent control units, orange lines show treated units before treatment, and red lines represent treated units after treatment. The y-axis measures outcome y, and the x-axis spans 10 years. Red lines tend to diverge upward or downward after year 5, indicating possible treatment effects." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-4)Raw Panel Data by Treatment Status Over Time</p>
+<img src="30-dif-in-dif_files/figure-html/did-treatment-status-overtime-1.png" alt="Line plot showing individual outcome trajectories over time. Gray lines represent control units, orange lines show treated units before treatment, and red lines represent treated units after treatment. The y-axis measures outcome y, and the x-axis spans 10 years. Red lines tend to diverge upward or downward after year 5, indicating possible treatment effects." width="90%" />
+<p class="caption">(\#fig:did-treatment-status-overtime)Raw Panel Data by Treatment Status Over Time</p>
 </div>
 
 If the red segments diverge immediately after treatment while the orange segments blend with gray beforehand, the visual evidence is supportive of a treatment effect and parallel pre-trends.
 
 ### Event-time Averages
 
-A more focused diagnostic is to plot the **average outcome in event time** (years relative to first treatment).
+A more focused diagnostic is to plot the **average outcome in event time** (years relative to first treatment) (Figure \@ref(fig:did-event-time-averages)).
 
 
 ``` r
@@ -170,8 +176,8 @@ base_stagg |>
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-5-1.png" alt="Event-study line plot showing mean outcome over event time. The horizontal axis runs from several years before to after treatment, with a dashed vertical line at zero marking treatment onset. A solid blue line traces the average outcome, and a light-blue ribbon around it depicts SE confidence bands. The viewer can compare flat pre-treatment values to any jump or slope change after zero to gauge treatment effects." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-5)Event Time Averages</p>
+<img src="30-dif-in-dif_files/figure-html/did-event-time-averages-1.png" alt="Event-study line plot showing mean outcome over event time. The horizontal axis runs from several years before to after treatment, with a dashed vertical line at zero marking treatment onset. A solid blue line traces the average outcome, and a light-blue ribbon around it depicts SE confidence bands. The viewer can compare flat pre-treatment values to any jump or slope change after zero to gauge treatment effects." width="90%" />
+<p class="caption">(\#fig:did-event-time-averages)Event Time Averages</p>
 </div>
 
 A flat pre-trend (negative event times) and a noticeable jump at event-time 0 support the identifying assumptions for staggered DiD.
@@ -196,22 +202,19 @@ By taking the *difference of differences*, we simultaneously:
 
 ### Basic Setup of DID
 
-Consider a simple setting with:
+Consider a simple setting in Table \@ref(tab:did-potential-outcomes-simple) with:
 
 -   **Treatment Group** ($D_i = 1$)
 -   **Control Group** ($D_i = 0$)
 -   **Pre-Treatment Period** ($T = 0$)
 -   **Post-Treatment Period** ($T = 1$)
 
-+---------------------+-----------------------------------+------------------------------------+
 |                     | **After Treatment (**$T = 1$**)** | **Before Treatment (**$T = 0$**)** |
-+=====================+===================================+====================================+
+|---------------------|-----------------------------------|------------------------------------|
 | Treated ($D_i = 1$) | $E[Y_{1i}(1)|D_i = 1]$            | $E[Y_{0i}(0)|D_i = 1]$             |
-+---------------------+-----------------------------------+------------------------------------+
 | Control ($D_i = 0$) | $E[Y_{0i}(1)|D_i = 0]$            | $E[Y_{0i}(0)|D_i = 0]$             |
-+---------------------+-----------------------------------+------------------------------------+
 
-: Potential Outcomes by Treatment Status and Time
+: (#tab:did-potential-outcomes-simple) Potential Outcomes by Treatment Status and Time
 
 The **fundamental challenge**: We cannot observe $E[Y_{0i}(1)|D_i = 1]$ (i.e., the **counterfactual outcome** for the treated group had they not received treatment).
 
@@ -307,6 +310,8 @@ print(results)
 #> treated:time         OLS Estimate 4.035895
 ```
 
+Figure \@ref(fig:did-simple-viz) shows a simple visualization of the DID in practice.
+
 
 ``` r
 # Visualization
@@ -333,8 +338,8 @@ ggplot(data,
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-7-1.png" alt="Scatter plot with two time points labeled 0 (pre) and 1 (post) on the x-axis and outcome values on the y-axis. The control group is shown in blue and the treated group in red. Both groups increase over time, but the treated group shows a larger rise. Dotted lines connect pre- and post-intervention points for each group, visually illustrating the DiD estimate. A legend distinguishes control and treated groups." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-7)DiD Visualization</p>
+<img src="30-dif-in-dif_files/figure-html/did-simple-viz-1.png" alt="Scatter plot with two time points labeled 0 (pre) and 1 (post) on the x-axis and outcome values on the y-axis. The control group is shown in blue and the treated group in red. Both groups increase over time, but the treated group shows a larger rise. Dotted lines connect pre- and post-intervention points for each group, visually illustrating the DiD estimate. A legend distinguishes control and treated groups." width="90%" />
+<p class="caption">(\#fig:did-simple-viz)DiD Visualization</p>
 </div>
 
 |              | Control (0)        | Treated (1)         |
@@ -342,9 +347,9 @@ ggplot(data,
 | **Pre (0)**  | $\bar{Y}_{00} = 5$ | $\bar{Y}_{10} = 8$  |
 | **Post (1)** | $\bar{Y}_{01} = 7$ | $\bar{Y}_{11} = 14$ |
 
-: DiD Table of Group-Time Average Outcomes
+: (#tab:did-group-time-average-outcomes) DiD Table of Group-Time Average Outcomes
 
-The table organizes the mean outcomes into four cells:
+Table \@ref(tab:did-group-time-average-outcomes) organizes the mean outcomes into four cells:
 
 1.  Control Group, Pre-period ($\bar{Y}_{00}$): Mean outcome for the control group before the intervention.
 
@@ -406,7 +411,7 @@ This is known as the [Two-Way Fixed Effects DID](#sec-two-way-fixed-effects) mod
 
 #### Examining Long-Term Effects (Dynamic DID)
 
-To examine the dynamic treatment effects (that are not under rollout/staggered design), we can create a centered time variable.
+To examine the dynamic treatment effects (that are not under rollout/staggered design), we can create a centered time variable (Table \@ref(tab:did-event-time-coding)).
 
 +------------------------+---------------------------------------------------------+
 | Centered Time Variable | Interpretation                                          |
@@ -424,7 +429,7 @@ To examine the dynamic treatment effects (that are not under rollout/staggered d
 | $t = 2$                | One period after treatment                              |
 +------------------------+---------------------------------------------------------+
 
-: Event Time Coding Around Treatment
+: (#tab:did-event-time-coding) Event Time Coding Around Treatment
 
 **Dynamic Treatment Model Specification**
 
@@ -460,9 +465,154 @@ where:
 
 #### DID on Relationships, Not Just Levels
 
-DID can also be applied to relationships between variables rather than just outcome levels.
+While DID is most commonly applied to examine treatment effects on outcome levels, it can also be used to estimate how treatment affects the **relationship between variables**. This approach treats estimated coefficients from first-stage regressions as outcomes in a second-stage DID analysis.
 
-For example, DID can be used to estimate treatment effects on regression coefficients by comparing relationships before and after a policy change.
+Standard DID examines whether treatment changes the level of an outcome $Y_{it}$. However, researchers may be interested in whether treatment changes how $Y$ responds to some predictor $X$, that is, whether treatment affects the coefficient $\beta$ in the relationship:
+
+$$ Y_{it} = \alpha + \beta X_{it} + \epsilon_{it} $$
+
+This requires a two-stage approach where regression coefficients themselves become the unit of analysis.
+
+**Two-Stage Estimation Procedure**
+
+**Stage 1: Estimate Group-Period-Specific Relationships**
+
+For each combination of group $g$ and time period $t$, estimate:
+
+$$ Y_{igt} = \alpha_{gt} + \beta_{gt} X_{igt} + \epsilon_{igt} $$
+
+This yields a set of estimated coefficients $\{\hat{\beta}_{gt}\}$, where each $\hat{\beta}_{gt}$ captures the relationship between $X$ and $Y$ for group $g$ in period $t$.
+
+**Stage 2: Apply DID to the Estimated Coefficients**
+
+Treat the estimated coefficients $\hat{\beta}_{gt}$ as the outcome variable in a standard DID framework:
+
+$$ \hat{\beta}_{gt} = \alpha_0 + \alpha_1 Treated_g + \alpha_2 Post_t + \delta (Treated_g \times Post_t) + u_{gt} $$
+
+where:
+
+-   $\hat{\beta}_{gt}$ = Estimated coefficient from Stage 1 (the "outcome").
+-   $Treated_g$ = Indicator for treatment group.
+-   $Post_t$ = Indicator for post-treatment period.
+-   $\delta$ = **DID estimate of treatment effect on the relationship**.
+
+The coefficient $\delta$ measures whether the relationship between $X$ and $Y$ changed differentially for the treated group after treatment.
+
+The DID estimator can be expressed as:
+
+$$ \begin{aligned}
+\hat{\delta} &= (\hat{\beta}_{Treated}^{Post} - \hat{\beta}_{Treated}^{Pre}) - (\hat{\beta}_{Control}^{Post} - \hat{\beta}_{Control}^{Pre}) \\
+&= \text{Change in relationship for treated} - \text{Change in relationship for control}
+\end{aligned} $$
+
+This captures the **causal effect of treatment on the structural parameter** $\beta$, controlling for secular trends that affect both groups.
+
+##### Example: Price Sensitivity Before and After a Policy Change
+
+Suppose we want to test whether a consumer protection law changes how price affects demand.
+
+**Stage 1:** For each state $s$ and year $t$, estimate:
+
+$$ \log(Quantity_{ist}) = \alpha_{st} + \beta_{st} \log(Price_{ist}) + \epsilon_{ist} $$
+
+where $i$ indexes individual transactions. This gives us state-year specific price elasticities $\{\hat{\beta}_{st}\}$.
+
+**Stage 2:** Use these elasticities as outcomes in a DID model:
+
+$$ \hat{\beta}_{st} = \alpha_0 + \alpha_1 Treated_s + \alpha_2 Post_t + \delta (Treated_s \times Post_t) + u_{st} $$
+
+If $\delta < 0$, the policy made consumers more price-sensitive (more elastic demand) in treated states. If $\delta > 0$, consumers became less price-sensitive.
+
+##### Standard Error Correction
+
+A critical issue is that Stage 2 uses estimated coefficients $\hat{\beta}_{gt}$ as the dependent variable, which introduces **generated regressor** problems. The standard errors from Stage 2 are incorrect because they don't account for estimation uncertainty in $\hat{\beta}_{gt}$.
+
+**Solutions:**
+
+1.  **Bootstrapping:** Resample at the individual level, re-estimate both stages, and calculate standard errors from the bootstrap distribution.
+
+2.  **Weighted Least Squares:** Weight Stage 2 observations by the inverse of the variance of $\hat{\beta}_{gt}$:
+
+$$ w_{gt} = \frac{1}{\text{Var}(\hat{\beta}_{gt})} = \frac{1}{SE(\hat{\beta}_{gt})^2} $$
+
+This gives more weight to precisely estimated relationships.
+
+3.  **Stacked Regression:** Pool all individual observations and include group-period fixed effects interacted with $X$:
+
+$$ Y_{igt} = \sum_{g,t} \beta_{gt} (I_{gt} \times X_{igt}) + \text{controls} + \epsilon_{igt} $$
+
+Then test whether $\{\beta_{gt}\}$ follow a DID pattern using an F-test or linear combinations.
+
+##### Dynamic Effects on Relationships
+
+The two-stage approach can be extended to examine how relationships evolve over time:
+
+**Stage 1:** Estimate period-specific coefficients:
+
+$$ Y_{igt} = \alpha_{gt} + \beta_{gt} X_{igt} + \epsilon_{igt} $$
+
+**Stage 2:** Event study specification:
+
+$$ \hat{\beta}_{gt} = \alpha_g + \gamma_t + \sum_{k \neq -1} \delta_k (Treated_g \times Period_{t=k}) + u_{gt} $$
+
+where $Period_{t=k}$ are indicators for time relative to treatment (with $k=-1$ as the reference period).
+
+**Key Observations:**
+
+-   Pre-treatment coefficients ($\delta_k$ for $k < -1$) should be near zero, indicating parallel trends in the relationship.
+-   Post-treatment coefficients ($\delta_k$ for $k \geq 0$) show how the relationship evolves after treatment.
+-   This reveals whether effects on relationships are immediate, delayed, or fade over time.
+
+##### Applications
+
+**1. Advertising Effectiveness:**
+
+Does a competitor's market entry change advertising elasticity?
+
+-   Stage 1: Estimate $\frac{\partial \log(Sales)}{\partial \log(Advertising)}$ for each market-period.
+-   Stage 2: DID on these elasticities comparing markets with/without competitor entry.
+
+**2. Labor Supply Elasticity:**
+
+Does a tax reform change labor supply responsiveness to wages?
+
+-   Stage 1: Estimate $\frac{\partial Hours}{\partial Wage}$ for each region-year.
+-   Stage 2: DID comparing regions with different tax policy changes.
+
+**3. Educational Returns:**
+
+Does a curriculum reform change the returns to study time?
+
+-   Stage 1: Estimate $\frac{\partial GPA}{\partial StudyHours}$ for each school-year.
+-   Stage 2: DID comparing schools that adopted vs. didn't adopt the reform.
+
+**4. Platform Network Effects:**
+
+Does a platform algorithm change affect network externalities?
+
+-   Stage 1: Estimate $\frac{\partial UserValue}{\partial NetworkSize}$ for each market-quarter.
+-   Stage 2: DID around the algorithm change.
+
+##### Advantages and Limitations
+
+**Advantages:**
+
+1.  **Causal inference on mechanisms:** Identifies how treatment changes behavioral responses, not just outcomes.
+2.  **Flexibility:** Can be applied to any estimable relationship (elasticities, marginal effects, coefficients).
+3.  **Policy-relevant:** Directly tests whether policies alter structural parameters of interest.
+
+**Limitations:**
+
+1.  **Two-stage uncertainty:** Standard errors require careful correction for generated regressors.
+2.  **Data requirements:** Needs sufficient observations within each group-period to estimate first-stage relationships precisely.
+3.  **Parallel trends in relationships:** Requires that relationships (not just levels) would have trended similarly absent treatment---a stronger assumption.
+4.  **Aggregation:** Loses individual-level variation when collapsing to group-period coefficients.
+
+##### Relationship to Heterogeneous Treatment Effects
+
+DID on relationships is conceptually related to, but distinct from, heterogeneous treatment effects. A three-way interaction $(X \times Treated \times Post)$ estimates whether treatment effects vary **across levels of** $X$. In contrast, DID on relationships estimates whether **the effect of** $X$ on $Y$ changes due to treatment, a fundamentally different question about structural parameters rather than treatment heterogeneity.
+
+This two-stage approach transforms DID into a tool for testing **structural change hypotheses**, enabling researchers to make causal claims about how treatments alter the fundamental relationships governing economic, social, or behavioral systems.
 
 ------------------------------------------------------------------------
 
@@ -519,15 +669,19 @@ etable(cali)
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
+Figure \@ref(fig:did-estimated-effect-on-rate-overtime) shows the fixed effects estimates over time.
+
 
 ``` r
 iplot(cali, pt.join = T)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" alt="Line plot of treatment effect estimates over time centered at the intervention point (time 0). The y-axis represents the effect on rate with confidence intervals, and the x-axis shows relative time periods from −2 to +3. Estimates before the intervention are close to zero, while those after show a negative trend, indicating a drop in the rate. Vertical error bars indicate 95% confidence intervals." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-9)Estimated Effect on Rate Over Time</p>
+<img src="30-dif-in-dif_files/figure-html/did-estimated-effect-on-rate-overtime-1.png" alt="Line plot of treatment effect estimates over time centered at the intervention point (time 0). The y-axis represents the effect on rate with confidence intervals, and the x-axis shows relative time periods from −2 to +3." width="90%" />
+<p class="caption">(\#fig:did-estimated-effect-on-rate-overtime)Estimated Effect on Rate Over Time</p>
 </div>
+
+Figure \@ref(fig:did-interaction-effect-on-rate) shows the same plot with a different plotting function.
 
 
 ``` r
@@ -535,8 +689,8 @@ coefplot(cali)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-10-1.png" alt="Line plot of estimated interaction effects between California and relative time periods from −2 to 3, excluding time 0. The y-axis shows effect estimates with vertical 95% confidence intervals. Pre-intervention estimates hover around zero; post-intervention estimates are negative, indicating a decline in the rate attributable to California-specific policy changes." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-10)Interaction Effect on Rate</p>
+<img src="30-dif-in-dif_files/figure-html/did-interaction-effect-on-rate-1.png" alt="Line plot of estimated interaction effects between California and relative time periods from −2 to 3, excluding time 0. The y-axis shows effect estimates with vertical 95% confidence intervals. Pre-intervention estimates hover around zero; post-intervention estimates are negative, indicating a decline in the rate attributable to California-specific policy changes." width="90%" />
+<p class="caption">(\#fig:did-interaction-effect-on-rate)Interaction Effect on Rate</p>
 </div>
 
 ## Empirical Research Walkthrough
@@ -643,7 +797,7 @@ Setting
 -   **Control group**: Pennsylvania (PA), which did not change its minimum wage.
 -   **Outcome variable**: Employment levels in fast-food restaurants.
 
-The study used a Difference-in-Differences approach to estimate the impact:
+The study used a Difference-in-Differences approach to estimate the impact (Table \@ref(tab:did-estimator-illustration-state-level)).
 
 |           | State | After (Post) | Before (Pre) | Difference        |
 |-----------|-------|--------------|--------------|-------------------|
@@ -651,7 +805,7 @@ The study used a Difference-in-Differences approach to estimate the impact:
 | Control   | PA    | C            | D            | C - D             |
 |           |       | A - C        | B - D        | (A - B) - (C - D) |
 
-: DiD Estimator Illustration Using State-Level Example
+: (#tab:did-estimator-illustration-state-level) DiD Estimator Illustration Using State-Level Example
 
 where:
 
@@ -780,19 +934,16 @@ where:
 
 ------------------------------------------------------------------------
 
-+-------------------+-----------------------+-----------------------+------------------+-------------------------+
 | Group             | Intercept ($\beta_0$) | Treatment ($\beta_2$) | Post ($\beta_1$) | Interaction ($\beta_3$) |
-+===================+=======================+=======================+==================+=========================+
+|-------------------|-----------------------|-----------------------|------------------|-------------------------|
 | **Treated, Pre**  | 1                     | 1                     | 0                | 0                       |
-+-------------------+-----------------------+-----------------------+------------------+-------------------------+
 | **Treated, Post** | 1                     | 1                     | 1                | 1                       |
-+-------------------+-----------------------+-----------------------+------------------+-------------------------+
 | **Control, Pre**  | 1                     | 0                     | 0                | 0                       |
-+-------------------+-----------------------+-----------------------+------------------+-------------------------+
 | **Control, Post** | 1                     | 0                     | 1                | 0                       |
-+-------------------+-----------------------+-----------------------+------------------+-------------------------+
 
-: Group-Level Design Matrix for Difference-in-Differences
+: (#tab:did-group-level-design-matrix) Group-Level Design Matrix for Difference-in-Differences
+
+Table \@ref(tab:did-group-level-design-matrix) shows how we can think about the design matrix for DID.
 
 -   The average pre-period outcome for the control group is given by $\beta_0$.
 -   The key coefficient of interest is $\beta_3$, which captures the difference in the post-treatment effect between treated and control groups.
@@ -1075,7 +1226,7 @@ tidy(fit_tw)
 
 ------------------------------------------------------------------------
 
-Visualizing the Decomposition
+Visualizing the Decomposition (Figure \@ref(fig:did-decomposition-treatment-effects-type-weight))
 
 
 ``` r
@@ -1097,8 +1248,8 @@ ggplot(df_bacon) +
 ```
 
 <div class="figure" style="text-align: center">
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" alt="Scatter plot of treatment effect estimates versus their weights. Points are colored by comparison type: red (earlier vs later treated), green (later vs earlier treated), and blue (treated vs untreated). Most comparisons cluster near zero weight, but a few blue points have large weights and high positive estimates, indicating that untreated comparisons drive much of the overall effect. A legend in the top right explains the color coding." width="90%" />
-<p class="caption">(\#fig:unnamed-chunk-14)Decomposition of Treatment Effects by Comparison Type and Weight</p>
+<img src="30-dif-in-dif_files/figure-html/did-decomposition-treatment-effects-type-weight-1.png" alt="Scatter plot of treatment effect estimates versus their weights. Points are colored by comparison type: red (earlier vs later treated), green (later vs earlier treated), and blue (treated vs untreated). Most comparisons cluster near zero weight, but a few blue points have large weights and high positive estimates, indicating that untreated comparisons drive much of the overall effect. A legend in the top right explains the color coding." width="90%" />
+<p class="caption">(\#fig:did-decomposition-treatment-effects-type-weight)Decomposition of Treatment Effects by Comparison Type and Weight</p>
 </div>
 
 > **Insight**: This plot shows the contribution of each 2×2 DiD comparison, highlighting how estimates with large weights dominate the overall TWFE coefficient.
@@ -1114,21 +1265,16 @@ Interpretation and Practical Implications
     -   Compute DiD for each 2×2 comparison (early vs. late, late vs. never, etc.).
     -   Evaluate how these contribute to the final TWFE estimate.
 
-When time-varying covariates are included that allow for identification within treatment timing groups, certain problematic comparisons (like "early vs. late") may no longer influence the TWFE estimator directly. These scenarios may collapse into simpler within-group estimates, improving identification.
+When time-varying covariates are included that allow for identification within treatment timing groups, certain problematic comparisons (like "early vs. late") may no longer influence the TWFE estimator directly. These scenarios may collapse into simpler within-group estimates, improving identification (Table \@ref(tab:did-goodman-bacon-comparison)).
 
-+---------------------+------------------------------------------------+-----------------------+
 | Comparison Type     | Description                                    | Common Issue          |
-+=====================+================================================+=======================+
+|---------------------|------------------------------------------------|-----------------------|
 | Treated vs. Never   | Clean comparisons if never-treated units exist | Often reliable        |
-+---------------------+------------------------------------------------+-----------------------+
 | Early vs. Late      | Later group is control in earlier period       | May introduce bias    |
-+---------------------+------------------------------------------------+-----------------------+
 | Late vs. Early      | Early group is control in later period         | May reverse causality |
-+---------------------+------------------------------------------------+-----------------------+
 | Treated vs. Treated | Within-treatment variation by timing           | Sensitive to dynamics |
-+---------------------+------------------------------------------------+-----------------------+
 
-: Goodman-Bacon Comparison Types
+: (#tab:did-goodman-bacon-comparison) Goodman-Bacon Comparison Types
 
 ------------------------------------------------------------------------
 
