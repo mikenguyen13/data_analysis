@@ -1,0 +1,580 @@
+Should be under Simpson's Paradox
+
+## Causation Does Not Imply Variation
+
+> "Causation does not imply variation"
+>
+> John H. Cochrane - [Grumpy Economist](https://www.grumpy-economist.com/p/causation-does-not-imply-variation). Tyler Muir suggested the catchphrase.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  fig.height = 4,
+  dpi = 120
+)
+
+
+suppressPackageStartupMessages({
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(broom)
+library(AER)     # ivreg
+library(fixest)  # feols
+})
+
+```
+
+Applied econometrics contains a persistent conceptual mistake: treating *what causes changes at the margin* as the same thing as *what explains most observed variation*. The mistake shows up in many forms:
+
+1.  Large causal effects are dismissed as "unimportant" because the regressor explains little of the outcome variance.
+2.  Highly predictive regressions are taken as evidence of causality, because they explain a large fraction of variance.
+3.  Identification is conflated with variance decomposition, and the phrase "drives variation" is used as if it were causal language.
+
+> A parameter can be causal and economically large even when it explains little variation, and a covariate can explain a lot of variation even when it is not causal.
+
+The key is that *causal estimands are counterfactual objects*, while *variance shares are properties of realized joint distributions*. These are different questions, with different inputs, and they move differently when the design or environment changes. There are four layers to these questions:
+
+1.  **Core probability identities**: how causal effects relate to variance, and why the relation is weak without strong structure.
+2.  **Regression algebra**: why identification by residualization is not the same as importance by variance contribution.
+3.  **Design based econometrics**: ATE, ATT, LATE, and why local identification can coexist with small variance shares.
+
+### Two questions that sound similar but are not
+
+#### Question A: What is the causal effect?
+
+A causal estimand compares counterfactual outcomes. In the potential outcomes framework, each unit has two potential outcomes $(Y_i(1), Y_i(0))$ for binary treatment $D_i \in {0,1}$. The observed outcome is $$
+Y_i = D_i Y_i(1) + (1 - D_i) Y_i(0).
+$$
+
+Common causal estimands include:
+
+-   Average treatment effect (ATE): $$
+    \tau_{\text{ATE}} = \mathbb{E}[Y(1) - Y(0)].
+    $$
+
+-   Average treatment effect on the treated (ATT): $$
+    \tau_{\text{ATT}} = \mathbb{E}[Y(1) - Y(0)\mid D=1].
+    $$
+
+-   Local average treatment effect (LATE), in an instrumental variables setting with monotonicity: $$
+    \tau_{\text{LATE}} = \mathbb{E}[Y(1)-Y(0)\mid \text{complier}],
+    $$ identified under assumptions formalized in the LATE framework. See @imbens_angrist_1994 and @angrist_imbens_rubin_1996.
+
+These objects are about *counterfactual differences*. They can be large even if the treatment rarely changes or moves only a little.
+
+#### Question B: How much of the observed variation is associated with the regressor?
+
+A variance share is a descriptive statement about the realized joint distribution of $(Y, D, X, \ldots)$ in a particular environment. For example, in a linear model
+
+$$
+Y = \beta D + \varepsilon,
+$$
+
+the contribution of the term $\beta D$ to the variance of $Y$ is
+
+$$
+\frac{\mathrm{Var}(\beta D)}{\mathrm{Var}(Y)} = \frac{\beta^2 \mathrm{Var}(D)}{\beta^2 \mathrm{Var}(D) + \mathrm{Var}(\varepsilon) + 2\beta,\mathrm{Cov}(D,\varepsilon)}.
+$$
+
+Even if $\beta$ is truly causal and large, the ratio can be small when $\mathrm{Var}(D)$ is small or when other sources of variation dominate $\mathrm{Var}(Y)$.
+
+Conversely, a large ratio can occur because $D$ is a proxy for omitted factors, that is, because $\mathrm{Cov}(D,\varepsilon)$ is large, not because $\beta$ is causal.
+
+#### A crucial asymmetry
+
+-   Causal effects are about the counterfactual mapping $d \mapsto Y(d)$, which is not directly observed.
+-   Variation shares are about the distribution of realized $(Y, D)$, which depends on institutional rules, constraints, equilibria, measurement error, selection, and policy regimes.
+
+Thus, the phrase "causes" is about the counterfactual mapping, while the phrase "explains variation" is about the realized distribution. They can coincide under strong structure, but they need not.
+
+This is consistent with the design based turn in empirical economics, which prioritizes identification and credible research designs over purely predictive regressions, as emphasized in @angrist_pischke_2010 and @athey_imbens_2017.
+
+### Why causation does not imply variation: probability identities
+
+The slogan becomes precise by using the law of total variance.
+
+Let $D$ be a treatment, and define the conditional mean function
+
+$$
+m(d) = \mathbb{E}[Y \mid D=d].
+$$ Then:
+
+$$
+\mathrm{Var}(Y) = \mathrm{Var}(\mathbb{E}[Y\mid D]) + \mathbb{E}[\mathrm{Var}(Y\mid D)].
+$$
+
+The term $\mathrm{Var}(\mathbb{E}[Y\mid D])$ measures how much the *conditional mean* varies with $D$ under the realized distribution of $D$. It does not automatically measure a causal effect because $m(d)$ is confounded unless $D$ is exogenous, but even in the ideal exogenous case it depends strongly on the support and dispersion of $D$.
+
+#### Binary treatment with additive causal effect
+
+Assume a structural model consistent with a constant effect:
+
+$$
+Y = Y(0) + \tau D,\quad \mathbb{E}[Y(0)\mid D] = \mathbb{E}[Y(0)].
+$$ Then
+
+$$
+\mathbb{E}[Y\mid D] = \mathbb{E}[Y(0)] + \tau D,
+$$
+
+so
+
+$$
+\mathrm{Var}(\mathbb{E}[Y\mid D]) = \tau^2 \mathrm{Var}(D).
+$$
+
+If $D$ is rare, $\mathrm{Var}(D) = p(1-p)$ is small. Therefore, even with very large $\tau$, the "between $D$ groups" variance can be small, while $\mathbb{E}[\mathrm{Var}(Y\mid D)]$ can dominate.
+
+This is the simplest mathematical reason that large causal effects can imply little variation.
+
+#### Continuous treatment with local identification
+
+If $D$ is continuous and the structural model is
+
+$$
+Y = g(D) + \varepsilon,\quad \mathbb{E}[\varepsilon \mid D]=0,
+$$
+
+then $\mathrm{Var}(\mathbb{E}[Y\mid D]) = \mathrm{Var}(g(D))$.
+
+A local causal derivative $g'(d_0)$ can be large, but $\mathrm{Var}(g(D))$ can still be small if the realized distribution of $D$ has narrow support near $d_0$, or if most mass is in regions where $g$ is flat. Causal derivatives are properties of the function, while variance shares depend on where the data live.
+
+#### A practical implication
+
+Any statement like "factor $D$ is not important because it explains little of the variation in $Y$" is incomplete unless it specifies:
+
+1.  The relevant policy counterfactual, that is, the size and direction of the contemplated shift in $D$.
+2.  The environment in which the variance share is computed, including the distribution of $D$ and the presence of other shocks.
+
+This is closely related to concerns about external validity and policy relevance, in particular, that the distribution of treatment variation and effect heterogeneity differ across settings and policies. See @deaton_2010 and @heckman_vytlacil_2001.
+
+### Regression algebra: identification is not importance
+
+Regression is the dominant language of empirical work, so the confusion often arrives through regression output.
+
+Consider the linear model: $$
+Y = \alpha + \beta D + W'\gamma + u,
+$$ where $W$ is a vector of controls.
+
+The Frisch-Waugh-Lovell theorem implies:
+
+-   Regress $Y$ on $W$ to get residuals $Y^\perp$.
+-   Regress $D$ on $W$ to get residuals $D^\perp$.
+-   Then $\hat\beta$ from the full regression equals the slope from regressing $Y^\perp$ on $D^\perp$.
+
+Thus, the coefficient is identified off *residualized variation in* $D$, not the total variation in $D$. The amount of variation in $D^\perp$ can be tiny even when the effect is large.
+
+This is the backbone of a common applied phenomenon: credible designs deliberately strip away most variation to isolate quasi random variation.
+
+Design based work often uses:
+
+-   fixed effects,
+-   narrow windows around discontinuities,
+-   event studies,
+-   instruments that move treatment only for a subset.
+
+These designs can be excellent for identification but necessarily restrict the relevant variation.
+
+#### Incremental variance and partial $R^2$
+
+A standard importance metric in linear models is the partial $R^2$ of $D$ conditional on $W$.
+
+It is the squared correlation between $Y^\perp$ and $D^\perp$:
+
+$$
+R^2_{Y,D\mid W} = \mathrm{Corr}(Y^\perp, D^\perp)^2.
+$$ This can be written in several equivalent ways, including: $$
+R^2_{Y,D\mid W} = \frac{R^2_{\text{full}} - R^2_{\text{restricted}}}{1 - R^2_{\text{restricted}}}.
+$$
+
+Even when $\beta$ is large, $R^2_{Y,D\mid W}$ can be small if:
+
+-   $D^\perp$ has small variance,
+-   $u$ has large variance,
+-   the causal effect is heterogeneous and averages out,
+-   measurement error inflates noise.
+
+This is a mechanical point, not a claim about policy importance.
+
+The distinction between causal magnitude and variance explanation is explicit in discussions of credibility and sensitivity analysis, see @leamer_1983, @oster_2019, and @cinelli_hazlett_2020.
+
+#### Predictive power can be noncausal
+
+A high partial $R^2$ can arise because $D^\perp$ remains correlated with unobservables.
+
+This is the classic omitted variable bias logic: if the true model is
+
+$$
+Y = \beta D + \delta U + \varepsilon,
+$$
+
+but $U$ is omitted and correlated with $D$, then the regression of $Y$ on $D$ is predictive and may have high $R^2$, even if the causal effect $\beta$ is zero.
+
+Therefore:
+
+-   "Explains variance" can reflect confounding, selection, or reverse causality.
+-   "Identified causal effect" can be large while "explains little variance".
+
+### Local identification and small variance: IV, LATE, and marginal policies
+
+Instrumental variables is a clean arena to see the difference.
+
+#### LATE is causal but local
+
+With an instrument $Z$ that shifts treatment take up, LATE is a causal effect for compliers under conditions in @imbens_angrist_1994 and @angrist_imbens_rubin_1996. A key feature is that the instrument may change treatment status for only a small subset of the population.
+
+In such cases:
+
+-   The causal effect on compliers can be large.
+-   The variance of realized treatment induced by the instrument can be small.
+-   The share of total outcome variance attributable to treatment changes induced by the instrument can be tiny.
+
+Yet policy relevance can still be high if the policy change resembles the instrument, or if scaling up is feasible, or if welfare weights prioritize the complier population. The mapping from an estimand to a policy counterfactual is a separate step, central to discussions of policy relevance, see @heckman_vytlacil_2001 and @heckman_vytlacil_2005.
+
+#### Weak instruments and variation
+
+Weak instruments are sometimes described as "not enough variation". The deeper point is that the first stage is weak, so the design provides little information about the causal effect. But again, the object of interest is the parameter, not the variance share.
+
+A strong first stage increases precision, not necessarily importance. A policy can be causally potent even when realized treatment variation is small.
+
+### Equilibrium, interference, and the limits of variance statements
+
+A further reason the slogan matters is that the mapping from $D$ to $Y$ can depend on general equilibrium and interference.
+
+#### Policy changes can shift the whole system
+
+In macroeconomics and many market settings, the effect of a policy intervention depends on expectations, constraints, and equilibrium adjustments. The Lucas critique formalizes why policy evaluation based on historical correlations can fail when agents change behavior under a new policy rule, see @lucas_1976.
+
+A covariance or variance decomposition computed from historical data is a property of one policy regime. It can be irrelevant for a new regime, even if the causal mechanism is real.
+
+#### Interference breaks unit level variance logic
+
+The potential outcome framework is often introduced with SUTVA, including no interference. When interference exists, one unit's outcome depends on other units' treatments, and unit level decompositions become misleading.
+
+Formal frameworks for interference in experiments are developed in @hudgens_halloran_2008 and applied perspectives appear in @sobel_2006. A canonical development economics example where treatment externalities matter is @miguel_kremer_2004.
+
+> Even defining "the variance contribution of $D$" can be ill posed when $D$ enters through network effects or spillovers.
+
+### A reporting standard: separate effect size, identification, and variance
+
+A production standard for empirical writing is to report three distinct objects:
+
+1.  **Estimand**: the causal parameter, for example ATE, ATT, LATE, or policy relevant treatment effect.
+2.  **Identification**: the design and assumptions that link observed data to that estimand.
+3.  **Magnitude**: effect sizes in interpretable units, plus robustness and uncertainty.
+4.  **Variation** (optional and clearly labeled): a descriptive decomposition, for example partial $R^2$ or variance share, computed under the realized distribution.
+
+Conflation occurs when item 4 is used as if it were item 3, or when item 4 is used as if it were item 1.
+
+Two journal articles that articulate the broader discipline wide movement toward explicit identification and design-based credibility are @angrist_pischke_2010 and @athey_imbens_2017. Concerns about the relationship between identification, external validity, and policy relevance, especially for development settings, are central in @deaton_2010.
+
+### Demonstrations
+
+#### Example 1: large causal effect, little variance explained
+
+A rare treatment can have a large effect, but explain little variance in the outcome.
+
+```{r}
+set.seed(123)
+
+n <- 200000
+p <- 0.01
+tau <- 10
+
+D <- rbinom(n, 1, p)
+eps <- rnorm(n, mean = 0, sd = 10)
+
+Y <- tau * D + eps
+
+var_share <- var(tau * D) / var(Y)
+
+tibble(
+  treatment_rate = mean(D),
+  tau = tau,
+  var_Y = var(Y),
+  var_tauD = var(tau * D),
+  variance_share_tauD = var_share
+)
+```
+
+A regression recovers the causal effect, but the variance share can be small.
+
+```{r}
+m <- lm(Y ~ D)
+tidy(m)
+```
+
+A useful reporting pair is:
+
+-   effect size: $\hat\tau$
+-   descriptive share: $\mathrm{Var}(\hat\tau D) / \mathrm{Var}(Y)$
+
+These address different questions.
+
+#### Example 2: large variance explained, no causal effect
+
+Now construct a confounded system where $D$ is predictive but not causal.
+
+```{r}
+set.seed(456)
+
+n <- 200000
+U <- rnorm(n)
+
+# Outcome depends on U, treatment depends on U
+
+Y <- 2 * U + rnorm(n, sd = 1)
+D <- 2 * U + rnorm(n, sd = 1)
+
+m_bad <- lm(Y ~ D)
+summary(m_bad)$coef
+summary(m_bad)$r.squared
+```
+
+The regression can be highly predictive, but the causal effect of intervening on $D$ is zero by construction, because $D$ does not enter the outcome equation. This is the archetype of why variance explanation is not causation.
+
+A control that blocks the confounder fixes the bias:
+
+```{r}
+m_good <- lm(Y ~ D + U)
+summary(m_good)$coef
+```
+
+The coefficient on $D$ collapses toward zero once the confounder is controlled.
+
+This illustrates the core asymmetry:
+
+-   Predictive variation can come from shared drivers, not causal pathways.
+-   Causal effects can be large while predictive variation is small.
+
+#### Example 3: partial $R^2$ in practice
+
+Compute the partial $R^2$ of $D$ controlling for $U$.
+
+```{r}
+partial_r2 <- function(full, restricted) {
+  r2_full <- summary(full)$r.squared
+  r2_rest <- summary(restricted)$r.squared
+  (r2_full - r2_rest) / (1 - r2_rest)
+}
+
+full <- lm(Y ~ D + U)
+rest <- lm(Y ~ U)
+
+partial_r2(full, rest)
+```
+
+In applied work, partial $R^2$ is useful as a descriptive metric, and it is also central in sensitivity analysis frameworks, see @cinelli_hazlett_2020 and @oster_2019. It is not a substitute for a causal estimand.
+
+#### Example 4: IV and local variation
+
+Construct a simple IV design where the instrument moves treatment for only a small group.
+
+```{r}
+set.seed(789)
+
+n <- 200000
+
+Z <- rbinom(n, 1, 0.5)
+
+# Compliance is rare: only a small subset changes D when Z changes
+
+complier <- rbinom(n, 1, 0.05)
+D <- ifelse(complier == 1, Z, 0)
+
+tau <- 8
+Y <- tau * D + rnorm(n, sd = 10)
+
+ols <- lm(Y ~ D)
+iv  <- ivreg(Y ~ D | Z)
+
+tibble(
+estimand = c("OLS", "2SLS"),
+estimate = c(coef(ols)[["D"]], coef(iv)[["D"]])
+)
+```
+
+Compute how much outcome variance is mechanically attributable to the treatment term under this realized distribution.
+
+```{r}
+var_share_iv <- var(tau * D) / var(Y)
+tibble(mean_D = mean(D),
+       var_D = var(D),
+       var_share_tauD = var_share_iv)
+```
+
+Even though the causal effect is large and identified by design, the induced treatment variation can be small and the variance share can be tiny. This is normal in LATE settings.
+
+The broader lesson is that identification strategies often focus on narrow movements that are informative about causality. This can reduce variance contributions without reducing causal importance.
+
+#### Example 5: fixed effects, residualized variation, and small within variance
+
+Fixed effects regressions identify effects from within unit variation. If within unit variation is limited, the effect can be identified but the within component can explain little of total variance.
+
+```{r}
+set.seed(1011)
+
+n_id <- 2000
+t_per <- 10
+n <- n_id * t_per
+
+id <- rep(seq_len(n_id), each = t_per)
+t  <- rep(seq_len(t_per), times = n_id)
+
+alpha_i <- rnorm(n_id, sd = 5)
+alpha <- alpha_i[id]
+
+# Treatment changes rarely within id
+
+D <- rbinom(n, 1, 0.05) * rbinom(n, 1, 0.2)  # sparse and sporadic
+
+tau <- 3
+Y <- alpha + tau * D + rnorm(n, sd = 10)
+
+fe <- feols(Y ~ D | id, data = data.frame(Y, D, id))
+
+coef(fe)
+```
+
+Compute variance shares in two ways:
+
+1.  Total variance share of $\hat\tau D$ in $Y$.
+2.  Within variance share using residualized variables.
+
+```{r}
+dat <- data.frame(Y, D, id)
+
+# Total share
+
+tau_hat <- coef(fe)[["D"]]
+share_total <- var(tau_hat * dat$D) / var(dat$Y)
+
+# Within share: residualize Y and D on id fixed effects
+
+Y_within <- resid(feols(Y ~ 1 | id, data = dat))
+D_within <- resid(feols(D ~ 1 | id, data = dat))
+
+share_within <- var(tau_hat * D_within) / var(Y_within)
+
+tibble(
+  tau_hat = tau_hat,
+  share_total = share_total,
+  share_within = share_within,
+  var_D_total = var(dat$D),
+  var_D_within = var(D_within)
+)
+```
+
+The within variation can be tiny even when the causal effect is estimable.
+
+### Applied interpretation: what should be said, and what should not be said
+
+#### Acceptable statements
+
+-   "The estimated causal effect is large in level terms, but the policy variable moves rarely in this sample, so it accounts for little of the observed outcome variance."
+-   "The instrument identifies a LATE for compliers; compliers represent a small share of the population, so variance explained by induced treatment variation is limited, even though the causal effect is economically meaningful."
+-   "The covariate is highly predictive, but the design does not justify a causal interpretation."
+
+These statements separate causal meaning from distributional descriptives.
+
+#### Statements that should not appear in a research paper
+
+-   "Variable $D$ is not important because it explains little variation."
+-   "Because $R^2$ is high, the relationship is causal."
+-   "Most of the variation is driven by $D$, therefore $D$ is the main cause."
+
+These statements confuse counterfactual causality with realized variance.
+
+### Connection to policy evaluation and external validity
+
+The confusion often becomes acute when moving from an identified parameter to a policy recommendation.
+
+-   Causal identification typically delivers a parameter for a particular environment and a particular kind of marginal variation.
+-   Policy analysis requires mapping that parameter to a contemplated intervention, often with different equilibrium responses.
+
+This is precisely why econometric policy evaluation emphasizes policy invariance concerns, see @lucas_1976, and why development debates stress mechanisms and transportability, see @deaton_2010.
+
+The same parameter can have:
+
+-   little realized variance share historically,
+-   but large welfare impact under a feasible counterfactual,
+-   or large realized variance share historically,
+-   but little policy relevance if the relationship is not invariant.
+
+### Checklist for writing
+
+A robust write up can follow this checklist.
+
+1.  **Define the estimand**: ATE, ATT, LATE, or a clearly defined causal derivative.
+
+2.  **State the identification assumptions**: random assignment, conditional ignorability, exclusion restriction and monotonicity, parallel trends, or other design specific conditions.
+
+3.  **Name the identifying variation**: within unit timing, discontinuity, instrument induced take up, policy shocks, or experimental assignment.
+
+4.  **Report effect sizes in natural units**: levels, percent changes, elasticities, or welfare metrics.
+
+5.  **Report uncertainty**: standard errors, confidence intervals, and sensitivity analysis when relevant, see @oster_2019 and @cinelli_hazlett_2020.
+
+6.  **If reporting variance shares**, label them as descriptive:
+
+    -   report $\mathrm{Var}(\hat\beta D^\perp) / \mathrm{Var}(Y^\perp)$ for the design relevant residualized variables,
+    -   report the underlying dispersion of $D^\perp$,
+    -   do not interpret variance shares as causal importance.
+
+<!-- ### Exercises -->
+
+<!-- 1. In Example 1, vary $p$ from 0.01 to 0.50 holding $\tau$ fixed. Plot the variance share as a function of $p$. Explain the shape using $\mathrm{Var}(D)=p(1-p)$. -->
+
+<!-- 2. In Example 2, keep the causal effect at zero, and increase the correlation between $D$ and $U$. Show how the $R^2$ and the estimated coefficient change, and interpret in terms of omitted variable bias. -->
+
+<!-- 3. In Example 4, increase compliance from 0.05 to 0.50 while keeping $\tau$ fixed. Track how the first stage, the standard error of 2SLS, and the variance share change. -->
+
+<!-- 4. Construct a setting with heterogeneous treatment effects. Show that the ATE can be near zero while the variance share of $D$ in $Y$ is large, and explain why. -->
+
+# References
+
+@article{angrist_pischke_2010, title = {The Credibility Revolution in Empirical Economics: How Better Research Design Is Taking the Con out of Econometrics}, author = {Angrist, Joshua D. and Pischke, J{"o}rn-Steffen}, journal = {Journal of Economic Perspectives}, year = {2010}, volume = {24}, number = {2}, pages = {3--30}, doi = {10.1257/jep.24.2.3} }
+
+@article{athey_imbens_2017, title = {The State of Applied Econometrics: Causality and Policy Evaluation}, author = {Athey, Susan and Imbens, Guido W.}, journal = {Journal of Economic Perspectives}, year = {2017}, volume = {31}, number = {2}, pages = {3--32}, doi = {10.1257/jep.31.2.3} }
+
+@article{imbens_angrist_1994, title = {Identification and Estimation of Local Average Treatment Effects}, author = {Imbens, Guido W. and Angrist, Joshua D.}, journal = {Econometrica}, year = {1994}, volume = {62}, number = {2}, pages = {467--475} }
+
+@article{angrist_imbens_rubin_1996, title = {Identification of Causal Effects Using Instrumental Variables}, author = {Angrist, Joshua D. and Imbens, Guido W. and Rubin, Donald B.}, journal = {Journal of the American Statistical Association}, year = {1996}, volume = {91}, number = {434}, pages = {444--455}, doi = {10.1080/01621459.1996.10476902} }
+
+@article{imbens_2020, title = {Potential Outcome and Directed Acyclic Graph Approaches to Causality: Relevance for Empirical Practice in Economics}, author = {Imbens, Guido W.}, journal = {Journal of Economic Literature}, year = {2020}, volume = {58}, number = {4}, pages = {1129--1179}, doi = {10.1257/jel.20191597} }
+
+@article{leamer_1983, title = {Let's Take the Con out of Econometrics}, author = {Leamer, Edward E.}, journal = {American Economic Review}, year = {1983}, volume = {73}, number = {1}, pages = {31--43} }
+
+@article{lucas_1976, title = {Econometric Policy Evaluation: A Critique}, author = {Lucas, Robert E.}, journal = {Carnegie-Rochester Conference Series on Public Policy}, year = {1976}, volume = {1}, pages = {19--46}, doi = {10.1016/S0167-2231(76)80003-6} }
+
+@article{deaton_2010, title = {Instruments, Randomization, and Learning about Development}, author = {Deaton, Angus}, journal = {Journal of Economic Literature}, year = {2010}, volume = {48}, number = {2}, pages = {424--455}, doi = {10.1257/jel.48.2.424} }
+
+@article{oster_2019, title = {Unobservable Selection and Coefficient Stability: Theory and Evidence}, author = {Oster, Emily}, journal = {Journal of Business & Economic Statistics}, year = {2019}, volume = {37}, number = {2}, pages = {187--204}, doi = {10.1080/07350015.2016.1227711} }
+
+@article{heckman_vytlacil_2001, title = {Policy-Relevant Treatment Effects}, author = {Heckman, James J. and Vytlacil, Edward}, journal = {American Economic Review}, year = {2001}, volume = {91}, number = {2}, pages = {107--111}, doi = {10.1257/aer.91.2.107} }
+
+@article{heckman_vytlacil_2005, title = {Structural Equations, Treatment Effects, and Econometric Policy Evaluation}, author = {Heckman, James J. and Vytlacil, Edward}, journal = {Econometrica}, year = {2005}, volume = {73}, number = {3}, pages = {669--738} }
+
+@article{hudgens_halloran_2008, title = {Toward Causal Inference With Interference}, author = {Hudgens, Michael G. and Halloran, M. Elizabeth}, journal = {Journal of the American Statistical Association}, year = {2008}, volume = {103}, number = {482}, pages = {832--842}, doi = {10.1198/016214508000000292} }
+
+@article{sobel_2006, title = {What Do Randomized Studies of Housing Mobility Demonstrate?: Causal Inference in the Face of Interference}, author = {Sobel, Michael E.}, journal = {Journal of the American Statistical Association}, year = {2006}, volume = {101}, number = {476}, pages = {1398--1407}, doi = {10.1198/016214506000000636} }
+
+@article{miguel_kremer_2004, title = {Worms: Identifying Impacts on Education and Health in the Presence of Treatment Externalities}, author = {Miguel, Edward and Kremer, Michael}, journal = {Econometrica}, year = {2004}, volume = {72}, number = {1}, pages = {159--217}, doi = {10.1111/j.1468-0262.2004.00481.x} }
+
+@article{romer_romer_2004, title = {A New Measure of Monetary Shocks: Derivation and Implications}, author = {Romer, Christina D. and Romer, David H.}, journal = {American Economic Review}, year = {2004}, volume = {94}, number = {4}, pages = {1055--1084}, doi = {10.1257/0002828042002651} }
+
+@article{lalonde_1986, title = {Evaluating the Econometric Evaluations of Training Programs with Experimental Data}, author = {LaLonde, Robert J.}, journal = {American Economic Review}, year = {1986}, volume = {76}, number = {4}, pages = {604--620} }
+
+@article{holland_1986, title = {Statistics and Causal Inference}, author = {Holland, Paul W.}, journal = {Journal of the American Statistical Association}, year = {1986}, volume = {81}, number = {396}, pages = {945--960}, doi = {10.1080/01621459.1986.10478354} }
+
+@article{durbin_1954, title = {Errors in Variables}, author = {Durbin, J.}, journal = {Revue de l'Institut International de Statistique}, year = {1954}, volume = {22}, number = {1/3}, pages = {23--32}, doi = {10.2307/1401917} }
+
+@article{manski_1993, title = {Identification of Endogenous Social Effects: The Reflection Problem}, author = {Manski, Charles F.}, journal = {Review of Economic Studies}, year = {1993}, volume = {60}, number = {3}, pages = {531--542} }
+
+@article{rubin_1974, title = {Estimating Causal Effects of Treatments in Randomized and Nonrandomized Studies}, author = {Rubin, Donald B.}, journal = {Journal of Educational Psychology}, year = {1974}, volume = {66}, number = {5}, pages = {688--701} }
+
+@article{cinelli_hazlett_2020, title = {Making Sense of Sensitivity: Extending Omitted Variable Bias}, author = {Cinelli, Carlos and Hazlett, Chad}, journal = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)}, year = {2020}, volume = {82}, number = {1}, pages = {39--67}, doi = {10.1111/rssb.12348} }

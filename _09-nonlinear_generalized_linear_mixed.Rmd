@@ -1,0 +1,1233 @@
+# Nonlinear and Generalized Linear Mixed Models {#sec-nonlinear-and-generalized-linear-mixed-models}
+
+This chapter fuses the flexibility of nonlinear and generalized models with random-effects structures, yielding NLMMs and GLMMs. We articulate their marginal and conditional interpretations, describe approximation strategies, and address identifiability in high-level random coefficients. The chapter systematically compares NLMMs and GLMMs, illustrating when each is preferred, and provides a full estimation workflow---model building, convergence assessment, and inferential reporting.
+
+Nonlinear Mixed Models (NLMMs) and Generalized Linear Mixed Models (GLMMs) extend traditional models by incorporating both fixed effects and random effects, allowing for greater flexibility in modeling complex data structures.
+
+-   NLMMs extend nonlinear models to include both fixed and random effects, accommodating nonlinear relationships in the data.
+-   GLMMs extend generalized linear models to include random effects, allowing for correlated data and non-constant variance structures.
+
+------------------------------------------------------------------------
+
+## Nonlinear Mixed Models {#sec-nonlinear-mixed-models}
+
+A general form of a nonlinear mixed model is:
+
+$$
+Y_{ij} = f(\mathbf{x}_{ij}, \boldsymbol{\theta}, \boldsymbol{\alpha}_i) + \epsilon_{ij}
+$$
+
+for the $j$-th response from the $i$-th cluster (or subject), where:
+
+-   $i = 1, \ldots, n$ (number of clusters/subjects),
+-   $j = 1, \ldots, n_i$ (number of observations per cluster),
+-   $\boldsymbol{\theta}$ represents the fixed effects,
+-   $\boldsymbol{\alpha}_i$ are the random effects for cluster $i$,
+-   $\mathbf{x}_{ij}$ are the regressors or design variables,
+-   $f(\cdot)$ is a nonlinear mean response function,
+-   $\epsilon_{ij}$ represents the residual error, often assumed to be normally distributed with mean 0.
+
+NLMMs are particularly useful when the relationship between predictors and the response cannot be adequately captured by a linear model.
+
+------------------------------------------------------------------------
+
+## Generalized Linear Mixed Models {#sec-generalized-linear-mixed-models}
+
+GLMMs extend GLMs by incorporating random effects, which allows for modeling data with hierarchical or clustered structures.
+
+The conditional distribution of $y_i$ given the random effects $\boldsymbol{\alpha}_i$ is:
+
+$$
+y_i \mid \boldsymbol{\alpha}_i \sim \text{independent } f(y_i \mid \boldsymbol{\alpha})
+$$
+
+where $f(y_i \mid \boldsymbol{\alpha})$ belongs to the exponential family of distributions:
+
+$$
+f(y_i \mid \boldsymbol{\alpha}) = \exp \left( \frac{y_i \theta_i - b(\theta_i)}{a(\phi)} - c(y_i, \phi) \right)
+$$
+
+-   $\theta_i$ is the canonical parameter,
+-   $a(\phi)$ is a dispersion parameter,
+-   $b(\theta_i)$ and $c(y_i, \phi)$ are specific functions defining the exponential family.
+
+The conditional mean of $y_i$ is related to $\theta_i$ by:
+
+$$
+\mu_i = \frac{\partial b(\theta_i)}{\partial \theta_i}
+$$
+
+Applying a link function $g(\cdot)$, we relate the mean response to both fixed and random effects:
+
+$$
+\begin{aligned}
+E(y_i \mid \boldsymbol{\alpha}) &= \mu_i \\
+g(\mu_i) &= \mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha}
+\end{aligned}
+$$
+
+-   $g(\cdot)$ is a known link function,
+-   $\mathbf{x}_i$ and $\mathbf{z}_i$ are design matrices for fixed and random effects, respectively,
+-   $\boldsymbol{\beta}$ represents fixed effects, and $\boldsymbol{\alpha}$ represents random effects.
+
+We also specify the distribution of the random effects:
+
+$$
+\boldsymbol{\alpha} \sim f(\boldsymbol{\alpha})
+$$
+
+This distribution is often assumed to be multivariate normal (Law of large Number applies to fixed effects) but can be chosen (subjectively) based on the context.
+
+------------------------------------------------------------------------
+
+## Relationship Between NLMMs and GLMMs
+
+NLMMs can be viewed as a special case of GLMMs when the inverse link function corresponds to a nonlinear transformation of the linear predictor:
+
+$$
+\begin{aligned}
+\mathbf{Y}_i &= \mathbf{f}(\mathbf{x}_i, \boldsymbol{\theta}, \boldsymbol{\alpha}_i) + \boldsymbol{\epsilon}_i \\
+\mathbf{Y}_i &= g^{-1}(\mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha}_i) + \boldsymbol{\epsilon}_i
+\end{aligned}
+$$
+
+Here, $g^{-1}(\cdot)$ represents the inverse link function, corresponding to a nonlinear transformation of the fixed and random effects.
+
+Note:\
+We can't derive the analytical formulation of the marginal distribution because nonlinear combination of normal variables is not normally distributed, even in the case of additive error ($\epsilon_i$) and random effects ($\alpha_i$) are both normal.
+
+------------------------------------------------------------------------
+
+## Marginal Properties of GLMMs
+
+### Marginal Mean of $y_i$
+
+The marginal mean is obtained by integrating over the distribution of the random effects:
+
+$$
+E(y_i) = E_{\boldsymbol{\alpha}}(E(y_i \mid \boldsymbol{\alpha})) = E_{\boldsymbol{\alpha}}(\mu_i) = E\left(g^{-1}(\mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha})\right)
+$$
+
+Since $g^{-1}(\cdot)$ is nonlinear, this expectation cannot be simplified further without specific distributional assumptions.
+
+#### Special Case: Log Link Function
+
+For a log-link function, $g(\mu) = \log(\mu)$, the inverse link is the exponential function:
+
+$$
+E(y_i) = E\left(\exp(\mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha})\right)
+$$
+
+Using properties of the moment-generating function (MGF):
+
+$$
+E(y_i) = \exp(\mathbf{x}_i' \boldsymbol{\beta}) \cdot E\left(\exp(\mathbf{z}_i' \boldsymbol{\alpha})\right)
+$$
+
+Here, $E(\exp(\mathbf{z}_i' \boldsymbol{\alpha}))$ is the MGF of $\boldsymbol{\alpha}$ evaluated at $\mathbf{z}_i$.
+
+------------------------------------------------------------------------
+
+### Marginal Variance of $y_i$
+
+The variance decomposition formula applies:
+
+$$
+\begin{aligned}
+\operatorname{Var}(y_i) &= \operatorname{Var}_{\boldsymbol{\alpha}}\left(E(y_i \mid \boldsymbol{\alpha})\right) + E_{\boldsymbol{\alpha}}\left(\operatorname{Var}(y_i \mid \boldsymbol{\alpha})\right) \\
+&= \operatorname{Var}(\mu_i) + E\left(a(\phi) V(\mu_i)\right)
+\end{aligned}
+$$
+
+Expressed explicitly:
+
+$$
+\operatorname{Var}(y_i) = \operatorname{Var}\left(g^{-1}(\mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha})\right) + E\left(a(\phi) V\left(g^{-1}(\mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha})\right)\right)
+$$
+
+Without specific assumptions about $g(\cdot)$ and the distribution of $\boldsymbol{\alpha}$, this is the most general form.
+
+------------------------------------------------------------------------
+
+### Marginal Covariance of $\mathbf{y}$
+
+Random effects induce correlation between observations within the same cluster. The covariance between $y_i$ and $y_j$ is:
+
+$$
+\begin{aligned}
+\operatorname{Cov}(y_i, y_j) &= \operatorname{Cov}_{\boldsymbol{\alpha}}\left(E(y_i \mid \boldsymbol{\alpha}), E(y_j \mid \boldsymbol{\alpha})\right) + E_{\boldsymbol{\alpha}}\left(\operatorname{Cov}(y_i, y_j \mid \boldsymbol{\alpha})\right) \\
+&= \operatorname{Cov}(\mu_i, \mu_j) + E(0) \\
+&= \operatorname{Cov}\left(g^{-1}(\mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha}), g^{-1}(\mathbf{x}_j' \boldsymbol{\beta} + \mathbf{z}_j' \boldsymbol{\alpha})\right)
+\end{aligned}
+$$
+
+The second term vanishes when $y_i$ and $y_j$ are conditionally independent given $\boldsymbol{\alpha}$. This dependency structure is a hallmark of mixed models.
+
+------------------------------------------------------------------------
+
+Example: Repeated Measurements with a Poisson GLMM
+
+Consider repeated count measurements for subjects:
+
+-   Let $y_{ij}$ be the $j$-th count for subject $i$.
+-   Assume $y_{ij} \mid \alpha_i \sim \text{independent } \text{Poisson}(\mu_{ij})$.
+
+The model is specified as:
+
+$$
+\log(\mu_{ij}) = \mathbf{x}_{ij}' \boldsymbol{\beta} + \alpha_i
+$$
+
+where:
+
+-   $\alpha_i \sim \text{i.i.d. } N(0, \sigma^2_{\alpha})$ represents subject-specific random effects,
+-   This is a log-link GLMM with random intercepts for subjects.
+
+The inclusion of $\alpha_i$ accounts for subject-level heterogeneity, capturing unobserved variability across individuals.
+
+------------------------------------------------------------------------
+
+## Estimation in Nonlinear and Generalized Linear Mixed Models
+
+In [Linear Mixed Models](#sec-linear-mixed-models), the marginal likelihood of the observed data $\mathbf{y}$ is derived by integrating out the random effects from the hierarchical formulation:
+
+$$
+f(\mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha})  f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
+$$
+
+For LMMs, both component distributions---
+
+-   the conditional distribution $f(\mathbf{y} \mid \boldsymbol{\alpha})$, and
+
+-   the random effects distribution $f(\boldsymbol{\alpha})$---
+
+are typically assumed to be Gaussian with linear relationships. These assumptions imply that the marginal distribution of $\mathbf{y}$ is also Gaussian, allowing the integral to be solved analytically using properties of the multivariate normal distribution.
+
+In contrast:
+
+-   For GLMMs, the conditional distribution $f(\mathbf{y} \mid \boldsymbol{\alpha})$ belongs to the exponential family but is not Gaussian in general.
+
+-   For NLMMs, the relationship between the mean response and the random (and fixed) effects is nonlinear, complicating the integral.
+
+In both cases, the marginal likelihood integral:
+
+$$
+L(\boldsymbol{\beta}; \mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}) f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
+$$
+
+cannot be solved analytically. Consequently, estimation requires:
+
+-   [Numerical Integration](#estimation-by-numerical-integration)
+-   [Linearization of the Model](#sec-estimation-by-linearization-glmm)
+-   [Bayesian](#estimation-by-bayesian-hierarchical-models)
+
+------------------------------------------------------------------------
+
+### Estimation by Numerical Integration {#estimation-by-numerical-integration}
+
+The marginal likelihood for parameter estimation is given by:
+
+$$
+L(\boldsymbol{\beta}; \mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha})  f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
+$$
+
+To estimate the fixed effects $\boldsymbol{\beta}$, we often maximize the log-likelihood:
+
+$$
+\ell(\boldsymbol{\beta}) = \log L(\boldsymbol{\beta}; \mathbf{y})
+$$
+
+Optimization requires the score function (gradient):
+
+$$
+\frac{\partial \ell(\boldsymbol{\beta})}{\partial \boldsymbol{\beta}}
+$$
+
+Since the integral in $L(\boldsymbol{\beta}; \mathbf{y})$ is generally intractable, we rely on numerical techniques to approximate it.
+
+------------------------------------------------------------------------
+
+#### Methods for Numerical Integration
+
+1.  Gaussian Quadrature
+
+    -   Suitable for low-dimensional random effects ($\dim(\boldsymbol{\alpha})$ is small).
+    -   Approximates the integral using weighted sums of function evaluations at specific points (nodes).
+    -   Gauss-Hermite quadrature is commonly used when random effects are normally distributed.
+
+    Limitation: Computational cost grows exponentially with the dimension of $\boldsymbol{\alpha}$ (curse of dimensionality).
+
+2.  Laplace Approximation
+
+    -   Approximates the integral by expanding the log-likelihood around the mode of the integrand (i.e., the most likely value of $\boldsymbol{\alpha}$).
+    -   Provides accurate results for moderate-sized random effects and large sample sizes.
+    -   First-order Laplace approximation is commonly used; higher-order versions improve accuracy but increase complexity.
+
+    Key Idea: Approximate the integral as:
+
+    $$
+    \int e^{h(\boldsymbol{\alpha})} d\boldsymbol{\alpha} \approx e^{h(\hat{\boldsymbol{\alpha}})} \sqrt{\frac{(2\pi)^q}{|\mathbf{H}|}}
+    $$
+
+    where:
+
+    -   $\hat{\boldsymbol{\alpha}}$ is the mode of $h(\boldsymbol{\alpha})$,
+    -   $\mathbf{H}$ is the Hessian matrix of second derivatives at $\hat{\boldsymbol{\alpha}}$,
+    -   $q$ is the dimension of $\boldsymbol{\alpha}$.
+
+3.  Monte Carlo Integration
+
+    -   Uses random sampling to approximate the integral.
+    -   Importance Sampling improves efficiency by sampling from a distribution that better matches the integrand.
+    -   Markov Chain Monte Carlo methods, such as Gibbs sampling or Metropolis-Hastings, are used when the posterior distribution is complex.
+
+    Advantage: Scales better with high-dimensional random effects compared to quadrature methods.
+
+    Limitation: Computationally intensive, and variance of estimates can be high without careful tuning.
+
+------------------------------------------------------------------------
+
+#### Choosing an Integration Method
+
+| Method                | Dimensionality               | Accuracy                          | Computational Cost                 |
+|:-----------------|:------------------|:-----------------|:-----------------|
+| Gaussian Quadrature   | Low-dimensional ($q \leq 3$) | High (with sufficient nodes)      | High (exponential growth with $q$) |
+| Laplace Approximation | Moderate-dimensional         | Moderate to High                  | Moderate                           |
+| Monte Carlo Methods   | High-dimensional             | Variable (depends on sample size) | High (but scalable)                |
+
+: Comparison of Numerical Integration Methods in Bayesian and Likelihood-Based Estimation
+
+-   For small random effect dimensions, quadrature methods are effective.
+-   For moderate dimensions, Laplace approximation offers a good balance.
+-   For high dimensions or complex models, Monte Carlo techniques are often the method of choice.
+
+------------------------------------------------------------------------
+
+### Estimation by Linearization {#sec-estimation-by-linearization-glmm}
+
+When estimating parameters in [NLMMs](#sec-nonlinear-mixed-models) and [GLMMs](#sec-generalized-linear-mixed-models), one common and effective approach is linearization. This technique approximates the nonlinear or non-Gaussian components with linear counterparts, enabling the use of standard LMM estimation methods. Linearization not only simplifies the estimation process but also allows for leveraging well-established statistical tools and methods developed for linear models.
+
+#### Concept of Linearization
+
+The core idea is to create a linearized version of the response variable, known as the *working response* or *pseudo-response*, denoted as $\tilde{y}_i$. This pseudo-response is designed to approximate the original nonlinear relationship in a linear form, facilitating easier estimation of model parameters. The conditional mean of this pseudo-response is expressed as:
+
+$$
+E(\tilde{y}_i \mid \boldsymbol{\alpha}) = \mathbf{x}_i' \boldsymbol{\beta} + \mathbf{z}_i' \boldsymbol{\alpha}
+$$
+
+Here:
+
+-   $\mathbf{x}_i$ is the design matrix for fixed effects,
+
+-   $\boldsymbol{\beta}$ represents the fixed effect parameters,
+
+-   $\mathbf{z}_i$ is the design matrix for random effects,
+
+-   $\boldsymbol{\alpha}$ denotes the random effects.
+
+In addition to the conditional mean, it is essential to estimate the conditional variance of the pseudo-response to fully characterize the linearized model:
+
+$$
+\operatorname{Var}(\tilde{y}_i \mid \boldsymbol{\alpha})
+$$
+
+This variance estimation ensures that the model accounts for the inherent variability in the data, maintaining the integrity of statistical inferences.
+
+#### Application of Linearization
+
+Once linearized, the model structure closely resembles that of a [linear mixed model]((#sec-linear-mixed-models)), allowing us to apply standard estimation techniques from [LMMs](#sec-linear-mixed-models). These techniques include methods such as MLE and REML, which are computationally efficient and statistically robust.
+
+The primary difference between various linearization-based methods lies in how the linearization is performed. This often involves expanding the nonlinear function $f(\mathbf{x}, \boldsymbol{\theta}, \boldsymbol{\alpha})$ or the inverse link function $g^{-1}(\cdot)$. The goal is to approximate these complex functions with simpler linear expressions while retaining as much of the original model's characteristics as possible.
+
+##### Taylor Series Expansion
+
+A widely used method for linearization is the Taylor series expansion. This approach approximates the nonlinear mean function around initial estimates of the random effects. The first-order Taylor series expansion of the nonlinear function is given by:
+
+$$
+ f(\mathbf{x}_{ij}, \boldsymbol{\theta}, \boldsymbol{\alpha}_i) \approx f(\mathbf{x}_{ij}, \boldsymbol{\theta}, \hat{\boldsymbol{\alpha}}_i) + \frac{\partial f}{\partial \boldsymbol{\alpha}_i} \bigg|_{\hat{\boldsymbol{\alpha}}_i} (\boldsymbol{\alpha}_i - \hat{\boldsymbol{\alpha}}_i)
+$$
+
+In this expression:
+
+-   $f(\mathbf{x}_{ij}, \boldsymbol{\theta}, \hat{\boldsymbol{\alpha}}_i)$ is the function evaluated at the initial estimates of the random effects $\hat{\boldsymbol{\alpha}}_i$,
+
+-   $\frac{\partial f}{\partial \boldsymbol{\alpha}_i} \big|_{\hat{\boldsymbol{\alpha}}_i}$ represents the gradient (or derivative) of the function with respect to the random effects, evaluated at $\hat{\boldsymbol{\alpha}}_i$,
+
+-   $(\boldsymbol{\alpha}_i - \hat{\boldsymbol{\alpha}}_i)$ captures the deviation from the initial estimates.
+
+The initial estimates $\hat{\boldsymbol{\alpha}}_i$ are often set to zero for simplicity, especially in the early stages of model fitting. This approximation reduces the model to a linear form, making it amenable to standard LMM estimation techniques.
+
+##### Advantages and Considerations
+
+Linearization offers several advantages:
+
+1.  Simplified Computation: By transforming complex nonlinear relationships into linear forms, linearization reduces computational complexity.
+2.  Flexibility: Despite the simplification, linearized models retain the ability to capture key features of the original data structure.
+3.  Statistical Robustness: The use of established LMM estimation techniques ensures robust parameter estimation.
+
+However, linearization also comes with considerations:
+
+-   Approximation Error: The accuracy of the linearized model depends on how well the linear approximation captures the original nonlinear relationship.
+
+-   Choice of Expansion Point: The selection of initial estimates $\hat{\boldsymbol{\alpha}}_i$ can influence the quality of the approximation.
+
+-   Higher-Order Terms: In cases where the first-order approximation is insufficient, higher-order Taylor series terms may be needed, increasing model complexity.
+
+------------------------------------------------------------------------
+
+#### Penalized Quasi-Likelihood {#penalized-quasi-likelihood}
+
+Penalized Quasi-Likelihood (PQL) is one of the most popular linearization-based estimation methods for [GLMMs](#sec-generalized-linear-mixed-models).
+
+The linearization is achieved through a first-order Taylor expansion of the inverse link function around current estimates of the parameters. The working response at the $k$-th iteration is given by:
+
+$$
+\tilde{y}_i^{(k)} = \hat{\eta}_i^{(k-1)} + \left(y_i - \hat{\mu}_i^{(k-1)}\right) \cdot \left.\frac{d \eta}{d \mu}\right|_{\hat{\eta}_i^{(k-1)}}
+$$
+
+Where:
+
+-   $\eta_i = g(\mu_i)$ is the linear predictor,\
+-   $\hat{\eta}_i^{(k-1)}$ and $\hat{\mu}_i^{(k-1)}$ are the estimates from the previous iteration $(k-1)$,\
+-   $g(\cdot)$ is the link function, and $\mu_i = g^{-1}(\eta_i)$.
+
+PQL Estimation Algorithm
+
+1.  Initialization:\
+    Start with initial estimates of $\boldsymbol{\beta}$ and $\boldsymbol{\alpha}$ (commonly set to zeros).
+
+2.  Compute the Working Response:\
+    Use the formula above to compute $\tilde{y}_i^{(k)}$ based on current parameter estimates.
+
+3.  Fit a [Linear Mixed Model](#sec-linear-mixed-models):\
+    Apply standard LMM estimation techniques to the pseudo-response $\tilde{y}_i^{(k)}$ to update estimates of $\boldsymbol{\beta}$ and $\boldsymbol{\alpha}$.
+
+4.  Update Variance Components:\
+    Estimate $\operatorname{Var}(\tilde{y}_i \mid \boldsymbol{\alpha})$ based on updated parameter estimates.
+
+5.  Iteration:\
+    Repeat steps 2--4 until the estimates converge.
+
+Comments on PQL:
+
+-   Advantages:
+    -   Easy to implement using existing LMM software.
+    -   Fast convergence for many practical datasets.
+-   Limitations:
+    -   Inference is only asymptotically correct due to the linearization approximation.
+    -   Biased estimates are common, especially:
+        -   For binomial responses with small group sizes,
+        -   In Bernoulli models (worst-case scenario),
+        -   In Poisson models with small counts. [@faraway2016extending]
+    -   Hypothesis testing and confidence intervals can be unreliable.
+
+------------------------------------------------------------------------
+
+#### Generalized Estimating Equations {#generalized-estimating-equations}
+
+Generalized Estimating Equations (GEE) offer an alternative approach to parameter estimation in models with correlated data, particularly for marginal models where the focus is on population-averaged effects rather than subject-specific effects.
+
+GEE estimates are obtained by solving estimating equations rather than maximizing a likelihood function.
+
+Consider a marginal generalized linear model:
+
+$$
+\operatorname{logit}(E(\mathbf{y})) = \mathbf{X} \boldsymbol{\beta}
+$$
+
+Assuming a working covariance matrix $\mathbf{V}$ for the elements of $\mathbf{y}$, the estimating equation for $\boldsymbol{\beta}$ is:
+
+$$
+\mathbf{X}' \mathbf{V}^{-1} (\mathbf{y} - E(\mathbf{y})) = 0
+$$
+
+If $\mathbf{V}$ correctly specifies the covariance structure, the estimator is unbiased. In practice, we often assume a simple structure (e.g., independence) and obtain robust standard errors even when the covariance is misspecified.
+
+------------------------------------------------------------------------
+
+##### GEE for Repeated Measures
+
+Let $y_{ij}$ denote the $j$-th measurement on the $i$-th subject, with:
+
+$$
+\mathbf{y}_i = 
+\begin{pmatrix}
+y_{i1} \\
+\vdots \\
+y_{in_i}
+\end{pmatrix},
+\quad
+\boldsymbol{\mu}_i =
+\begin{pmatrix}
+\mu_{i1} \\
+\vdots \\
+\mu_{in_i}
+\end{pmatrix},
+\quad
+\mathbf{x}_{ij} =
+\begin{pmatrix}
+X_{ij1} \\
+\vdots \\
+X_{ijp}
+\end{pmatrix}
+$$
+
+Define the working covariance matrix of $\mathbf{y}_i$ as:
+
+$$
+\mathbf{V}_i = \operatorname{Cov}(\mathbf{y}_i)
+$$
+
+Following [@liang1986longitudinal], the GEE for estimating $\boldsymbol{\beta}$ is:
+
+$$
+S(\boldsymbol{\beta}) = \sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}}  \mathbf{V}_i^{-1} (\mathbf{y}_i - \boldsymbol{\mu}_i) = 0
+$$
+
+Where:
+
+-   $K$ is the number of subjects (or clusters),
+
+-   $\boldsymbol{\mu}_i = E(\mathbf{y}_i)$,
+
+-   $\mathbf{V}_i$ is the working covariance matrix.
+
+------------------------------------------------------------------------
+
+##### Working Correlation Structures
+
+The covariance matrix $\mathbf{V}_i$ is modeled as:
+
+$$
+\mathbf{V}_i = a(\phi) \mathbf{B}_i^{1/2}  \mathbf{R}(\boldsymbol{c})  \mathbf{B}_i^{1/2}
+$$
+
+-   $a(\phi)$ is a dispersion parameter,
+-   $\mathbf{B}_i$ is a diagonal matrix with variance functions $V(\mu_{ij})$ on the diagonal,
+-   $\mathbf{R}(\boldsymbol{c})$ is the working correlation matrix, parameterized by $\boldsymbol{c}$. If $\mathbf{R}(\boldsymbol{c})$ is the true correlation matrix of $\mathbf{y}_i$, then $\mathbf{V}_i$ is the true covariance matrix.
+
+Common Working Correlation Structures:
+
+-   Independence: $\mathbf{R} = \mathbf{I}$ (simplest, but ignores correlation).
+-   Exchangeable: Constant correlation between all pairs within a cluster.
+-   Autoregressive (AR(1)): Correlation decreases with time lag.
+-   Unstructured: Each pair has its own correlation parameter.
+
+------------------------------------------------------------------------
+
+##### Iterative Algorithm for GEE Estimation
+
+1.  Initialization:
+
+    -   Compute an initial estimate of $\boldsymbol{\beta}$ using a GLM under the independence assumption ($\mathbf{R} = \mathbf{I}$).
+
+2.  Estimate the Working Correlation Matrix:
+
+    -   Based on residuals from the initial fit, estimate $\mathbf{R}(\boldsymbol{c})$.
+
+3.  Update the Covariance Matrix:
+
+    -   Calculate $\hat{\mathbf{V}}_i$ using the updated working correlation matrix.
+
+4.  Update $\boldsymbol{\beta}$:
+
+    $$
+    \boldsymbol{\beta}^{(r+1)} = \boldsymbol{\beta}^{(r)} + \left(\sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}}  \hat{\mathbf{V}}_i^{-1}  \frac{\partial \boldsymbol{\mu}_i}{\partial \boldsymbol{\beta}} \right)^{-1}
+    \left( \sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}}  \hat{\mathbf{V}}_i^{-1} (\mathbf{y}_i - \boldsymbol{\mu}_i) \right)
+    $$
+
+5.  Iteration:
+
+    -   Repeat steps 2--4 until convergence (i.e., when changes in $\boldsymbol{\beta}$ are negligible).
+
+------------------------------------------------------------------------
+
+Comments on GEE:
+
+-   Advantages:
+    -   Provides consistent estimates of $\boldsymbol{\beta}$ even if the working correlation matrix is misspecified.
+    -   Robust standard errors (also known as "sandwich" estimators) account for potential misspecification.
+-   Limitations:
+    -   Not a likelihood-based method, so likelihood-ratio tests are not appropriate.
+    -   Efficiency loss if the working correlation matrix is poorly specified.
+    -   Estimation of random effects is not possible---GEE focuses on marginal (population-averaged) effects.
+
+------------------------------------------------------------------------
+
+### Estimation by Bayesian Hierarchical Models {#estimation-by-bayesian-hierarchical-models}
+
+Bayesian methods provide a flexible framework for estimating parameters in [NLMMs](#sec-nonlinear-mixed-models) and [GLMMs](#sec-generalized-linear-mixed-models). Unlike frequentist approaches that rely on MLE or linearization techniques, Bayesian estimation fully incorporates prior information and naturally accounts for uncertainty in both parameter estimation and predictions.
+
+In the Bayesian context, we are interested in the posterior distribution of the model parameters, given the observed data $\mathbf{y}$:
+
+$$
+f(\boldsymbol{\alpha}, \boldsymbol{\beta} \mid \mathbf{y}) \propto f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta})  f(\boldsymbol{\alpha})  f(\boldsymbol{\beta})
+$$
+
+Where:
+
+-   $f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta})$ is the likelihood of the data,
+-   $f(\boldsymbol{\alpha})$ is the prior distribution for the random effects,
+-   $f(\boldsymbol{\beta})$ is the prior distribution for the fixed effects,
+-   $f(\boldsymbol{\alpha}, \boldsymbol{\beta} \mid \mathbf{y})$ is the posterior distribution, which combines prior beliefs with observed data.
+
+**Advantages of Bayesian Estimation**
+
+-   **No Need for Simplifying Approximations:** Bayesian methods do not require linearization or asymptotic approximations.
+-   **Full Uncertainty Quantification:** Provides credible intervals for parameters and predictive distributions for new data.
+-   **Flexible Modeling:** Easily accommodates complex hierarchical structures, non-standard distributions, and prior information.
+
+**Computational Challenges**
+
+Despite its advantages, Bayesian estimation can be computationally intensive and complex, especially for high-dimensional models. Key implementation issues include:
+
+1.  **Non-Valid Joint Distributions:**\
+    In some hierarchical models, specifying valid joint distributions for the data, random effects, and parameters can be challenging.
+
+2.  **Constraints from Mean-Variance Relationships:**\
+    The inherent relationship between the mean and variance in GLMMs, combined with random effects, imposes constraints on the marginal covariance structure.
+
+3.  **Computational Intensity:**\
+    Fitting Bayesian models often requires advanced numerical techniques like Markov Chain Monte Carlo, which can be slow to converge, especially for large datasets or complex models.
+
+------------------------------------------------------------------------
+
+#### Bayesian Estimation Methods
+
+Bayesian estimation can proceed through two general approaches:
+
+1.  **Approximating the Objective Function (Marginal Likelihood)**
+
+The marginal likelihood is typically intractable because it requires integrating over random effects:
+
+$$
+f(\mathbf{y} \mid \boldsymbol{\beta}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta})  f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
+$$
+
+Since this integral cannot be solved analytically, we approximate it using the following methods:
+
+-   **Laplace Approximation**
+
+    -   Approximates the integral by expanding the log-likelihood around the mode of the integrand.
+
+    -   Provides an efficient, asymptotically accurate approximation when the posterior is approximately Gaussian near its mode.
+
+-   **Quadrature Methods**
+
+    -   **Gaussian quadrature** (e.g., Gauss-Hermite quadrature) is effective for low-dimensional random effects.
+
+    -   Approximates the integral by summing weighted evaluations of the function at specific points.
+
+-   **Monte Carlo Integration**
+
+    -   Uses random sampling to approximate the integral.
+
+    -   **Importance sampling** improves efficiency by drawing samples from a distribution that closely resembles the target distribution.
+
+2.  **Approximating the Model (Linearization)**
+
+Alternatively, we can approximate the model itself using **Taylor series linearization** around current estimates of the parameters. This approach simplifies the model, making Bayesian estimation computationally more feasible, though at the cost of some approximation error.
+
+------------------------------------------------------------------------
+
+#### Markov Chain Monte Carlo Methods
+
+The most common approach for fully Bayesian estimation is **MCMC**, which generates samples from the posterior distribution through iterative simulation. Popular MCMC algorithms include:
+
+-   **Gibbs Sampling:**\
+    Efficient when full conditional distributions are available in closed form.
+
+-   **Metropolis-Hastings Algorithm:**\
+    More general and flexible, used when full conditionals are not easily sampled.
+
+-   **Hamiltonian Monte Carlo (HMC):**\
+    Implemented in packages like `Stan`, provides faster convergence for complex models by leveraging gradient information.
+
+The posterior distribution is then approximated using the generated samples:
+
+$$
+f(\boldsymbol{\alpha}, \boldsymbol{\beta} \mid \mathbf{y}) \approx \frac{1}{N} \sum_{i=1}^N \delta(\boldsymbol{\alpha} - \boldsymbol{\alpha}^{(i)}, \boldsymbol{\beta} - \boldsymbol{\beta}^{(i)})
+$$
+
+Where $N$ is the number of MCMC samples and $\delta(\cdot)$ is the Dirac delta function.
+
+------------------------------------------------------------------------
+
+### Practical Implementation in R
+
+Several R packages facilitate Bayesian estimation for GLMMs and NLMMs:
+
+-   **GLMM Estimation:**
+    -   `MASS::glmmPQL` --- Penalized Quasi-Likelihood for GLMMs.
+    -   `lme4::glmer` --- Frequentist estimation for GLMMs using Laplace approximation.
+    -   `glmmTMB` --- Handles complex random effects structures efficiently.
+-   **NLMM Estimation:**
+    -   `nlme::nlme` --- Nonlinear mixed-effects modeling.
+    -   `lme4::nlmer` --- Extends `lme4` for nonlinear mixed models.
+    -   `brms::brm` --- Bayesian estimation via `Stan`, supporting NLMMs.
+-   **Bayesian Estimation:**
+    -   `MCMCglmm` --- Implements MCMC algorithms for GLMMs.
+    -   `brms::brm` --- High-level interface for Bayesian regression models, leveraging `Stan` for efficient MCMC sampling.
+
+------------------------------------------------------------------------
+
+**Example: Non-Gaussian Repeated Measurements**
+
+Consider the case of **repeated measurements**:
+
+-   **If the data are Gaussian:** Use [Linear Mixed Models](#sec-linear-mixed-models).
+-   **If the data are non-Gaussian:** Use [Nonlinear and Generalized Linear Mixed Models](#sec-nonlinear-and-generalized-linear-mixed-models).
+
+------------------------------------------------------------------------
+
+## Application: Nonlinear and Generalized Linear Mixed Models
+
+### Binomial Data: CBPP Dataset
+
+We will use the **CBPP dataset** from the `lme4` package to demonstrate different estimation approaches for binomial mixed models.
+
+```{r}
+library(lme4)
+data(cbpp, package = "lme4")
+head(cbpp)
+```
+
+The data contain information about contagious bovine pleuropneumonia (CBPP) cases across different herds and periods.
+
+1.  **Penalized Quasi-Likelihood**
+
+**Pros:**
+
+-   Linearizes the response to create a pseudo-response, similar to linear mixed models.
+
+-   Computationally efficient.
+
+**Cons:**
+
+-   Biased for binary or Poisson data with small counts.
+
+-   Random effects must be interpreted on the link scale.
+
+-   AIC/BIC values are not interpretable since PQL does not rely on full likelihood.
+
+```{r}
+library(MASS)
+pql_cbpp <- glmmPQL(
+    cbind(incidence, size - incidence) ~ period,
+    random  = ~ 1 | herd,
+    data    = cbpp,
+    family  = binomial(link = "logit"),
+    verbose = FALSE
+)
+summary(pql_cbpp)
+```
+
+Interpretation
+
+```{r}
+exp(0.556)
+```
+
+The above result shows how herd-specific odds vary, accounting for random effects.
+
+The fixed effects are interpreted similarly to logistic regression. For example, with the logit link:
+
+-   The **log odds** of having a case in **period 2** are **-1.016** less than in **period 1** (baseline).
+
+```{r}
+summary(pql_cbpp)$tTable
+```
+
+2.  **Numerical Integration with `glmer`**
+
+**Pros:**
+
+-   More accurate estimation since the method directly integrates over random effects.
+
+**Cons:**
+
+-   Computationally more expensive, especially with high-dimensional random effects.
+
+-   May struggle with convergence for complex models.
+
+```{r}
+numint_cbpp <- glmer(
+    cbind(incidence, size - incidence) ~ period + (1 | herd),
+    data = cbpp,
+    family = binomial(link = "logit")
+)
+summary(numint_cbpp)
+```
+
+**Comparing PQL and Numerical Integration**
+
+For small datasets, the difference between PQL and numerical integration may be minimal.
+
+```{r}
+library(rbenchmark)
+benchmark(
+    "PQL (MASS)" = {
+        glmmPQL(
+            cbind(incidence, size - incidence) ~ period,
+            random = ~ 1 | herd,
+            data = cbpp,
+            family = binomial(link = "logit"),
+            verbose = FALSE
+        )
+    },
+    "Numerical Integration (lme4)" = {
+        glmer(
+            cbind(incidence, size - incidence) ~ period + (1 | herd),
+            data = cbpp,
+            family = binomial(link = "logit")
+        )
+    },
+    replications = 50,
+    columns = c("test", "replications", "elapsed", "relative"),
+    order = "relative"
+)
+```
+
+**Improving Accuracy with Gauss-Hermite Quadrature**
+
+Setting `nAGQ > 1` increases the accuracy of the likelihood approximation:
+
+```{r}
+numint_cbpp_GH <- glmer(
+    cbind(incidence, size - incidence) ~ period + (1 | herd),
+    data = cbpp,
+    family = binomial(link = "logit"),
+    nAGQ = 20
+)
+summary(numint_cbpp_GH)$coefficients[, 1] - 
+    summary(numint_cbpp)$coefficients[, 1]
+```
+
+3.  **Bayesian Approach with `MCMCglmm`**
+
+**Pros:**
+
+-   Incorporates prior information and handles complex models with intractable likelihoods.
+
+-   Provides full posterior distributions for parameters.
+
+**Cons:**
+
+-   Computationally intensive, especially with large datasets or complex hierarchical structures.
+
+```{r}
+library(MCMCglmm)
+Bayes_cbpp <- MCMCglmm(
+    cbind(incidence, size - incidence) ~ period,
+    random = ~ herd,
+    data = cbpp,
+    family = "multinomial2",
+    verbose = FALSE
+)
+summary(Bayes_cbpp)
+```
+
+-   `MCMCglmm` fits a residual variance component (useful with dispersion issues).
+
+Variance Component Analysis
+
+```{r}
+# explains less variability
+apply(Bayes_cbpp$VCV, 2, sd)
+```
+
+Posterior Summaries
+
+```{r}
+summary(Bayes_cbpp)$solutions
+```
+
+MCMC Diagnostics
+
+```{r fig-mcmc-diag-period, fig.cap="MCMC Diagnostic", fig.alt="Four panel XY chart displaying time series data for different variables over iterations. Each panel represents a variable: period3, period4, Intercept, and period2. The x-axis shows iteration numbers from 4000 to 12000. The y-axis varies by panel, with values between -4 and 1. The data appears as fluctuating lines showing variability across iterations", out.width="100%", fig.align="center"}
+library(lattice)
+xyplot(as.mcmc(Bayes_cbpp$Sol), layout = c(2, 2))
+```
+
+There is no trend (i.e., well-mixed).
+
+```{r fig-var-iter-diag, fig.cap="Variable MCMC Diagnostic", fig.alt="Two panel XY chart showing data trends over iteration numbers. The left panel labeled herd displays a line graph with values from 0.0 to 1.0, showing sporadic peaks and long periods of low values. The right panel labeled units shows a line graph with values from 0 to 4, exhibiting frequent fluctuations. Both panels share the x-axis labeled Iteration number, with values from 4000 to 12000", out.width="100%", fig.align="center"}
+xyplot(as.mcmc(Bayes_cbpp$VCV), layout = c(2, 1))
+```
+
+For the herd variable, many of the values are 0, which suggests a problem. To address the instability in the herd effect sampling, we can either:
+
+-   Modify prior distributions,
+
+-   Increase the number of iterations
+
+```{r fig-var-iter-diag-alter, fig.cap="Variable MCMC Diagnostic (Alternative)", fig.alt="Two panel XY chart showing data trends over iterations. The left panel labeled herd displays fluctuating values between 0 and 1.5 across iteration numbers from 10000 to 20000. The right panel labeled units shows values ranging from 0 to 3 with a noticeable dip around the middle of the iteration range. Both panels share the x-axis labeled Iteration number", out.width="100%", fig.align="center"}
+Bayes_cbpp2 <- MCMCglmm(
+    cbind(incidence, size - incidence) ~ period,
+    random = ~ herd,
+    data = cbpp,
+    family = "multinomial2",
+    nitt = 20000,
+    burnin = 10000,
+    prior = list(G = list(list(V = 1, nu = 0.1))),
+    verbose = FALSE
+)
+xyplot(as.mcmc(Bayes_cbpp2$VCV), layout = c(2, 1))
+
+```
+
+To change the shape of priors, in `MCMCglmm` use:
+
+-   `V` controls for the location of the distribution (default = 1)
+
+-   `nu` controls for the concentration around V (default = 0)
+
+------------------------------------------------------------------------
+
+### Count Data: Owl Dataset
+
+We'll now model count data using the **Owl dataset**
+
+```{r}
+library(glmmTMB)
+library(dplyr)
+data(Owls, package = "glmmTMB")
+Owls <- Owls %>% rename(Ncalls = SiblingNegotiation)
+```
+
+1.  **Poisson GLMM**
+
+Modeling call counts with a Poisson distribution:
+
+In a typical Poisson model, the Poisson mean $\lambda$ is modeled as: $$
+\log(\lambda) = x' \beta
+$$ However, if the response variable represents a rate (e.g., counts per **BroodSize**), we can model it as: $$
+\log\left(\frac{\lambda}{b}\right) = x' \beta
+$$ This is equivalent to: $$
+\log(\lambda) = \log(b) + x' \beta
+$$ where $b$ represents **BroodSize**. In this formulation, we "offset" the mean by including the logarithm of $b$ as an offset term in the model. This adjustment accounts for the varying exposure or denominator in rate-based responses.
+
+```{r}
+owls_glmer <- glmer(
+    Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent + (1 | Nest),
+    family = poisson,
+    data = Owls
+)
+summary(owls_glmer)
+```
+
+-   Nest explains a relatively large proportion of the variability (its standard deviation is larger than some coefficients).
+-   The model fit isn't great (deviance of 5202 on 594 df).
+
+2.  **Negative Binomial Model**
+
+Addressing overdispersion using the negative binomial distribution:
+
+```{r}
+owls_glmerNB <- glmer.nb(
+    Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent + (1 | Nest),
+    data = Owls
+)
+summary(owls_glmerNB)
+```
+
+There is an improvement using negative binomial considering over-dispersion
+
+```{r fig-hist-owl-call, fig.cap="Distribution of Owl Call Counts", fig.alt="Histogram titled Distribution of Owl Call Counts showing the frequency distribution of owl calls. The x-axis represents the number of calls, ranging from 0 to 30. The y-axis shows frequency, peaking at over 150 for the lowest call range. The histogram shows a right-skewed distribution with most data concentrated at lower call numbers", out.width="100%", fig.align="center"}
+library(ggplot2)
+ggplot(Owls, aes(x = Ncalls)) +
+  geom_histogram(
+    bins = 30,
+    fill = "steelblue",
+    color = "white",
+    alpha = 0.8
+  ) +
+  labs(title = "Distribution of Owl Call Counts",
+       x = "Number of Calls",
+       y = "Frequency") +
+  theme_minimal(base_size = 14)
+```
+
+3.  **Zero-Inflated Model**
+
+Handling excess zeros with a zero-inflated Poisson model:
+
+```{r}
+library(glmmTMB)
+owls_glmm <-
+    glmmTMB(
+        Ncalls ~ FoodTreatment * SexParent + offset(log(BroodSize)) +
+            (1 | Nest),
+        ziformula =  ~ 0,
+        family = nbinom2(link = "log"),
+        data = Owls
+    )
+owls_glmm_zi <-
+    glmmTMB(
+        Ncalls ~ FoodTreatment * SexParent + offset(log(BroodSize)) +
+            (1 | Nest),
+        ziformula =  ~ 1,
+        family = nbinom2(link = "log"),
+        data = Owls
+    )
+
+# Scale Arrival time to use as a covariate for zero-inflation parameter
+Owls$ArrivalTime <- scale(Owls$ArrivalTime)
+owls_glmm_zi_cov <- glmmTMB(
+    Ncalls ~ FoodTreatment * SexParent +
+        offset(log(BroodSize)) +
+        (1 | Nest),
+    ziformula =  ~ ArrivalTime,
+    family = nbinom2(link = "log"),
+    data = Owls
+)
+
+as.matrix(anova(owls_glmm, owls_glmm_zi))
+
+
+as.matrix(anova(owls_glmm_zi, owls_glmm_zi_cov))
+
+
+summary(owls_glmm_zi_cov)
+```
+
+`glmmTMB` can handle ZIP GLMMs since it adds automatic differentiation to existing estimation strategies.
+
+We can see ZIP GLMM with an arrival time covariate on the zero is best.
+
+-   Arrival time has a positive effect on observing a nonzero number of calls
+
+-   Interactions are non significant, the food treatment is significant (fewer calls after eating)
+
+-   Nest variability is large in magnitude (without this, the parameter estimates change)
+
+### Binomial Example: Gotway Hessian Fly Data
+
+We will analyze the **Gotway Hessian Fly** dataset from the `agridat` package to model binomial outcomes using both frequentist and Bayesian approaches.
+
+#### Data Visualization
+
+```{r}
+library(agridat)
+library(ggplot2)
+library(lme4)
+library(spaMM)
+
+data(gotway.hessianfly)
+dat <- gotway.hessianfly
+dat$prop <- dat$y / dat$n  # Proportion of successes
+```
+
+```{r fig-hessian-fly, fig.cap="Gotway Hessian Fly: Proportion of Infestation", fig.alt="Heatmap titled Gotway Hessian Fly Proportion of Infestation displaying infestation levels across a grid. The x-axis is labeled lat and the y-axis long. Each cell is labeled with codes like G14, G09, and G12 representing different data points. The color gradient from white to black indicates infestation proportion, with a legend on the right showing values from 0.00 to 1.00. Blocks are categorized into B1, B2, B3, and B4, each represented by different colors", out.width="100%", fig.align="center"}
+ggplot(dat, aes(x = lat, y = long, fill = prop)) +
+    geom_tile() +
+    scale_fill_gradient(low = 'white', high = 'black') +
+    geom_text(aes(label = gen, color = block)) +
+    ggtitle('Gotway Hessian Fly: Proportion of Infestation')
+```
+
+#### Model Specification
+
+-   Fixed Effects ($\boldsymbol{\beta}$): Genotype (`gen`)
+
+-   Random Effects ($\boldsymbol{\alpha}$): Block (`block`), accounting for spatial or experimental design variability
+
+1.  **Frequentist Approach with `glmer`**
+
+```{r}
+flymodel <- glmer(
+    cbind(y, n - y) ~ gen + (1 | block),
+    data   = dat,
+    family = binomial,
+    nAGQ   = 5  # Using adaptive Gauss-Hermite quadrature for accuracy
+)
+summary(flymodel)
+```
+
+**Interpretation**:
+
+-   The **fixed effects** (`gen`) indicate how different genotypes influence the infestation probability.
+
+-   The **random effect** for `block` captures variability due to experimental blocks, improving model robustness.
+
+-   **Odds Ratios:** Exponentiating coefficients helps interpret the impact on infestation odds.
+
+2.  **Bayesian Approach with `MCMCglmm`**
+
+```{r}
+library(MCMCglmm)
+library(coda)
+
+Bayes_flymodel <- MCMCglmm(
+    cbind(y, n - y) ~ gen,
+    random  = ~ block,
+    data    = dat,
+    family  = "multinomial2",
+    verbose = FALSE
+)
+summary(Bayes_flymodel)
+```
+
+**MCMC Diagnostics**
+
+-   **Trace Plot:** Checks for chain mixing and convergence.
+
+-   **Autocorrelation Plot:** Evaluates dependency between MCMC samples.
+
+```{r fig-trace-plot, fig.cap='Trace Plot', fig.alt='Two-panel figure showing data related to the intercept. The left panel is a time series plot displaying the intercept values over iterations ranging from 4000 to 12000, with values fluctuating between 0 and 4. The right panel is a density plot of the intercept, with a peak around 2 and a range from -1 to 5. The density plot includes a note: "N = 1000 Bandwidth = 0.1907."'}
+# Trace plot for the first fixed effect
+plot(Bayes_flymodel$Sol[, 1],
+     main = colnames(Bayes_flymodel$Sol)[1])
+```
+
+```{r fig-autocor-plot, fig.cap="Autocorrelation Plot", fig.alt="Line chart titled Intercept showing autocorrelation on the y-axis from -1.0 to 1.0 and lag on the x-axis from 0 to 300. The chart shows a significant spike at lag 0, with values decreasing and stabilizing around zero as lag increases",    out.width="100%", fig.align="center"}
+# Autocorrelation plot
+autocorr.plot(Bayes_flymodel$Sol[, 1],
+              main = colnames(Bayes_flymodel$Sol)[1])
+```
+
+Bayesian Interpretation:
+
+-   **Posterior Means:** Represent the central tendency of the parameter estimates.
+
+-   **Credible Intervals:** Unlike frequentist confidence intervals, they can be interpreted directly as the probability that the parameter lies within the interval.
+
+------------------------------------------------------------------------
+
+### Nonlinear Mixed Model: Yellow Poplar Data
+
+This dataset comes from @Schabenberger_2001
+
+#### Data Preparation
+
+```{r}
+dat2 <- read.table("images/YellowPoplarData_r.txt")
+names(dat2) <-
+    c('tn', 'k', 'dbh', 'totht', 'dob', 'ht', 'maxd', 'cumv')
+dat2$t <- dat2$dob / dat2$dbh
+dat2$r <- 1 - dat2$dob / dat2$totht
+```
+
+#### Data Visualization
+
+```{r}
+library(dplyr)
+
+dat2 <- dat2 %>% group_by(tn) %>% mutate(
+    z = case_when(
+        totht < 74 ~ 'a: 0-74ft',
+        totht < 88 ~ 'b: 74-88',
+        totht < 95 ~ 'c: 88-95',
+        totht < 99 ~ 'd: 95-99',
+        totht < 104 ~ 'e: 99-104',
+        totht < 109 ~ 'f: 104-109',
+        totht < 115 ~ 'g: 109-115',
+        totht < 120 ~ 'h: 115-120',
+        totht < 140 ~ 'i: 120-150',
+        TRUE ~ 'j: 150+'
+    )
+)
+```
+
+```{r fig-scatter-plot-cumul, fig.cap="Cumulative Volume vs. Relative Height by Tree Height Group", fig.alt='Scatter plot panels showing cumulative volume versus relative height, categorized by tree height groups labeled a to i. Each panel displays data points with varying density and distribution patterns. The x-axis represents relative height (r) ranging from 0.7 to 1.0, and the y-axis represents cumulative volume (cumv) from 0 to 200. Tree height groups are: a: 0–74ft, b: 74–88, c: 88–95, d: 95–99, e: 99–104, f: 104–109, g: 109–115, h: 115–120, i: 120–150.'}
+ggplot(dat2, aes(x = r, y = cumv)) +
+  geom_point(size = 0.5) +
+  facet_wrap(vars(z)) +
+  labs(title = "Cumulative Volume vs. Relative Height by Tree Height Group")
+```
+
+#### Model Specification
+
+The proposed [Nonlinear Mixed Model](#sec-nonlinear-mixed-models) is: $$
+V_{ij} = \left(\beta_0 + (\beta_1 + b_{1i})\frac{D_i^2 H_i}{1000}\right) \exp\left[-(\beta_2 + b_{2i}) t_{ij} \exp(\beta_3 t_{ij})\right] + e_{ij}
+$$ Where:
+
+-   $b_{1i}, b_{2i}$ are random effects for tree $i$.
+
+-   $e_{ij}$ are residual errors.
+
+#### Fitting the Nonlinear Mixed Model
+
+```{r}
+library(nlme)
+
+tmp <- nlme(
+    cumv ~ (b0 + (b1 + u1) * (dbh^2 * totht / 1000)) * 
+        exp(-(b2 + u2) * (t / 1000) * exp(b3 * t)), 
+    data = dat2,
+    fixed = b0 + b1 + b2 + b3 ~ 1,
+    random = pdDiag(u1 + u2 ~ 1),  # Uncorrelated random effects
+    groups = ~ tn,                 # Grouping by tree
+    start = list(fixed = c(b0 = 0.25, b1 = 2.3, b2 = 2.87, b3 = 6.7))
+)
+summary(tmp)
+nlme::intervals(tmp)
+```
+
+#### Interpretation:
+
+-   **Fixed Effects** ($\beta$): Describe the average growth pattern across all trees.
+
+-   **Random Effects** ($b_i$): Capture tree-specific deviations from the average trend.
+
+This result is a bit different from the original study because of different implementation of nonlinear mixed models.
+
+#### Visualizing Model Predictions
+
+```{r}
+library(cowplot)
+
+# Prediction function
+nlmmfn <- function(fixed, rand, dbh, totht, t) {
+    (fixed[1] + (fixed[2] + rand[1]) * (dbh ^ 2 * totht / 1000)) *
+        exp(-(fixed[3] + rand[2]) * (t / 1000) * exp(fixed[4] * t))
+}
+
+# Function to generate plots for selected trees
+plot_tree <- function(tree_id) {
+    pred <- data.frame(dob = seq(1, max(dat2$dob), length.out = 100))
+    pred$tn <- tree_id
+    pred$dbh <- unique(dat2$dbh[dat2$tn == tree_id])
+    pred$t <- pred$dob / pred$dbh
+    pred$totht <- unique(dat2$totht[dat2$tn == tree_id])
+    pred$r <- 1 - pred$dob / pred$totht
+    
+    pred$with_random <- predict(tmp, pred)
+    pred$without_random <-
+        nlmmfn(tmp$coefficients$fixed,
+               c(0, 0),
+               pred$dbh,
+               pred$totht,
+               pred$t)
+    
+    ggplot(pred) +
+        geom_line(aes(x = r, y = with_random, color = 'With Random Effects')) +
+        geom_line(aes(x = r, y = without_random, color = 'Without Random Effects')) +
+        geom_point(data = dat2[dat2$tn == tree_id,], aes(x = r, y = cumv)) +
+        labs(title = paste('Tree', tree_id), colour = "") +
+        theme(legend.position = "bottom")
+}
+
+# Plotting for selected trees
+p1 <- plot_tree(1)
+p2 <- plot_tree(151)
+p3 <- plot_tree(279)
+```
+
+```{r fig-random-per-tree-plot, fig.cap="Individual Tree Scatter Plot", fig.alt="Three XY charts labeled Tree 1, Tree 151, and Tree 279 display data points and lines. The x-axis is labeled r and the y-axis is labeled with_random. Each chart shows a curve with data points transitioning from low to high values. Two lines are present: one labeled With Random Effects in red and another Without Random Effects in teal. The charts illustrate the effect of random variables on the data", out.width="100%",   fig.align="center"}
+plot_grid(p1, p2, p3)
+```
+
+-   **Red Line:** Model predictions with tree-specific random effects.
+
+-   **Teal Line:** Model predictions based only on fixed effects (ignoring tree-specific variation).
+
+-   **Dots:** Observed cumulative volume for each tree.
+
+## Summary
+
+```{r fig-regression-model-hierarchy, echo=FALSE, fig.cap="Taxonomy of Regression Models", fig.alt="A flowchart showing the hierarchy of regression models. At the top is 'Generalized Linear Mixed Model,' which branches into 'Non-linear Mixed Model,' 'Linear Mixed Model,' and 'Generalized Linear Model.' These in turn connect to simpler models: 'Non-linear Regression' and 'Linear Regression.' Arrows indicate derivation or conceptual specialization.", out.width="90%", fig.align="center"}
+knitr::include_graphics("images/umbrella_of_models.PNG")
+```
+
+------------------------------------------------------------------------

@@ -12,7 +12,7 @@ Before diving into specific techniques, it's worth understanding why robustness 
 
 A robust finding is one that persists across multiple plausible specifications. This doesn't necessarily mean the coefficient estimate must be identical across all specifications, some variation is expected and often informative. Rather, robustness means that the key substantive conclusion (e.g., the sign, statistical significance, or economic magnitude of an effect) remains consistent despite reasonable variation in modeling choices.
 
-## Specification Curve Analysis
+## Specification Curve Analysis {#sec-specification-curve-analysis}
 
 Specification curve analysis (also known as multiverse analysis or the specification robustness graph) provides a systematic way to examine how results vary across a large set of defensible specifications. Rather than reporting a single "preferred" specification, this approach acknowledges that multiple specifications may be equally justifiable and examines the distribution of estimates across all of them.
 
@@ -229,7 +229,10 @@ plots = stability_plot(
 plots
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-specification-curve-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-specification-curve-1.png" alt="Specification curve: top panel shows point estimates and 95 percent confidence ribbons across model specifications; bottom panel shows a binary grid indicating included controls and fixed effects for each specification." width="90%" />
+<p class="caption">(\#fig:robustness-specification-curve)Specification curve for the effect of carat on price</p>
+</div>
 
 The specification curve uses color coding to indicate statistical significance:
 
@@ -566,7 +569,10 @@ logit_curve = stability_plot(
 logit_curve
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-logit-curve-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-logit-curve-1.png" alt="Coefficient plot showing the estimated effects of various diamond characteristics (depth, table width, and clarity) on diamond price. Points represent coefficient estimates with error bars indicating 95% confidence intervals. Different colors distinguish between different levels or interactions of the variables. The y-axis shows coefficient values ranging from approximately -5 to 50, while the x-axis displays different combinations of diamond dimension variables." width="90%" />
+<p class="caption">(\#fig:robustness-logit-curve)Specification Curve (Logit Curve)</p>
+</div>
 
 #### Marginal Effects for Non-Linear Models
 
@@ -645,11 +651,14 @@ ame_curve = stability_plot(
 ame_curve
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-ame-curve-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-ame-curve-1.png" alt="Specification curve displaying average marginal effects of diamond characteristics including depth, table width, and clarity on diamond price across different model specifications. Points represent marginal effect estimates with error bars indicating confidence intervals. Different colors distinguish between different levels or interactions of the variables. The y-axis shows marginal effect values ranging from approximately negative 0.5 to 1.5, while the x-axis displays different combinations of diamond dimension variables tested across specifications." width="90%" />
+<p class="caption">(\#fig:robustness-ame-curve)Robustness of diamond dimension effects with average marginal effects</p>
+</div>
 
 #### Fully Customized Specification Curve Visualizations
 
-When you need complete control over the appearance of your specification curve, you can extract the underlying data and create custom ggplot visualizations:
+When you need complete control over the appearance of your specification curve, you can extract the underlying data and create custom ggplot visualizations (Figure \@ref(fig:fully-customized-spec-curve)).
 
 
 ``` r
@@ -796,7 +805,10 @@ cowplot::plot_grid(
 )
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/fully-customized-spec-curve-1.png" alt="Specification curve displaying the effect of diamond carat weight on the probability of being priced above the median across eight different model specifications. The top panel shows average marginal effect estimates represented by different colored shapes including triangles, diamonds, circles, and squares, with error bars indicating confidence intervals. The y-axis ranges from 0 to 1.5, with a dotted horizontal line at zero. The bottom panel uses a matrix of filled and unfilled diamonds to indicate which control variables including diamond dimensions, depth, table width, and clarity are included in each of the eight specifications numbered along the x-axis." width="90%" />
+<p class="caption">(\#fig:fully-customized-spec-curve)Specification curve showing the effect of carat on above-median diamond price</p>
+</div>
 
 #### Comparing Multiple Model Types
 
@@ -933,7 +945,10 @@ control_plot_combined = panels[[2]] +
     alpha = 0.8,
     size = 1
   )
+```
 
+
+``` r
 # Display combined plot
 cowplot::plot_grid(
     coef_plot_combined,
@@ -945,23 +960,197 @@ cowplot::plot_grid(
 )
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-cowplot-plotgrid-1.png" alt="Side-by-side specification curves comparing average marginal effects from logit models on the left and probit models on the right, separated by a vertical dashed line. Both panels show the effects of diamond characteristics including depth, table width, and clarity on diamond price across multiple model specifications. Points represent marginal effect estimates with error bars indicating confidence intervals, with different colors distinguishing between variable levels or interactions. The y-axis shows marginal effect values ranging from approximately negative 0.5 to 2.0, while the x-axis displays different combinations of diamond dimension variables. The bottom portion uses gray boxes to indicate which control variables are included in each specification for both model types." width="90%" />
+<p class="caption">(\#fig:robustness-cowplot-plotgrid)Comparison of average marginal effects across logit and probit model specifications</p>
+</div>
+
+### The `specr` Package
+
+The `specr` package provides an alternative implementation of specification curve analysis that focuses on concise specifications of the model space. Instead of defining a custom estimation function, the analyst specifies the sets of possible outcomes, focal predictors, controls, and sample restrictions. The package then enumerates all admissible specifications, estimates them, and offers summary and plotting methods.
+
+In contrast to `starbility`, which is designed around user-supplied estimation functions and highly customized plotting, `specr` aims for a compact workflow that covers a broad range of standard models.
 
 
 ``` r
-cowplot::plot_grid(
-    coef_plot_combined,
-    control_plot_combined,
-    rel_heights = c(1, 0.5),
-    align = 'v',
-    ncol = 1,
-    axis = 'b'
+# Load packages
+library(specr)
+library(tidyverse)   # Data manipulation and plotting
+```
+
+#### Preparing the Diamonds Example
+
+To keep the exposition comparable to the `starbility` example, the same `diamonds` data are used. A subsample is created for speed, and log transformed variables are added to illustrate how `specr` can handle multiple outcomes and focal predictors.
+
+
+``` r
+library(tidyverse)
+library(specr)
+
+# Load data
+data("diamonds", package = "ggplot2")
+
+set.seed(43)
+
+# Subsample for computational convenience
+indices = sample(
+  x       = seq_len(nrow(diamonds)),
+  size    = round(nrow(diamonds) / 20),
+  replace = FALSE
+)
+
+diamonds_specr = diamonds[indices, ] |>
+  mutate(
+    high_clarity = clarity %in% c("VS1", "VVS2", "VVS1", "IF"),
+    log_price    = log(price),
+    log_carat    = log(carat)
+  )
+```
+
+The key idea is now to describe the *specification universe* in terms of:
+
+-   possible outcome variables,
+-   possible focal predictors,
+-   a set of optional controls that may or may not enter the model, and
+-   optional sample restrictions.
+
+`specr` will then traverse this design and estimate all corresponding models.
+
+#### Defining and Running the Specification Curve
+
+The central function in the package is typically called via
+
+``` r
+specr::specr(
+  data,
+  y,
+  x,
+  model,
+  controls,
+  subsets,
+  ...
 )
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-cowplot-plotgrid-1.png" width="90%" style="display: block; margin: auto;" />
+where
 
-### Alternative Approaches: The `rdfanalysis` Package
+-   `y` is a vector of outcome variable names,
+-   `x` is a vector of focal predictor names,
+-   `model` specifies the estimation method (for example `"lm"` for linear regression),
+-   `controls` is a vector of candidate control variables, and
+-   `subsets` is an optional list that encodes sample restrictions.
+
+The example below sets up a relatively rich specification universe:
+
+-   outcomes: either `price` or `log_price`,
+-   focal predictor: either `carat` or `log_carat`,
+-   controls: any subset of seven potential covariates.
+
+This already yields a sizable number of specifications and illustrates how quickly the design space expands.
+
+
+``` r
+specs_diamonds <- specr::setup(
+  data     = diamonds_specr,
+  y        = c("price", "log_price"),
+  x        = c("carat", "log_carat"),
+  model    = "lm",
+  controls = c("x", "y", "z", "cut", "color")
+) |> 
+  specr::specr()
+
+# Inspect the resulting object
+summary(specs_diamonds)
+#> Results of the specification curve analysis
+#> -------------------
+#> Technical details:
+#> 
+#>   Class:                          specr.object -- version: 1.0.0 
+#>   Cores used:                     1 
+#>   Duration of fitting process:    2.73 sec elapsed 
+#>   Number of specifications:       128 
+#> 
+#> Descriptive summary of the specification curve:
+#> 
+#>  median    mad       min      max   q25     q75
+#>    1.49 171.55 -15162.63 11362.39 -0.91 6432.23
+#> 
+#> Descriptive summary of sample sizes: 
+#> 
+#>  median  min  max
+#>    2697 2697 2697
+#> 
+#> Head of the specification results (first 6 rows): 
+#> 
+#> # A tibble: 6 × 24
+#>   x     y     model controls      subsets formula   estimate std.error statistic
+#>   <chr> <chr> <chr> <chr>         <chr>   <glue>       <dbl>     <dbl>     <dbl>
+#> 1 carat price lm    no covariates all     price ~ …    7710.      62.3     124. 
+#> 2 carat price lm    x             all     price ~ …   10340.     286.       36.2
+#> 3 carat price lm    y             all     price ~ …    9815.     282.       34.8
+#> 4 carat price lm    z             all     price ~ …    9345.     230.       40.6
+#> 5 carat price lm    cut           all     price ~ …    7816.      62.7     125. 
+#> 6 carat price lm    color         all     price ~ …    8018.      63.2     127. 
+#> # ℹ 15 more variables: p.value <dbl>, conf.low <dbl>, conf.high <dbl>,
+#> #   fit_r.squared <dbl>, fit_adj.r.squared <dbl>, fit_sigma <dbl>,
+#> #   fit_statistic <dbl>, fit_p.value <dbl>, fit_df <dbl>, fit_logLik <dbl>,
+#> #   fit_AIC <dbl>, fit_BIC <dbl>, fit_deviance <dbl>, fit_df.residual <dbl>,
+#> #   fit_nobs <dbl>
+```
+
+The `specs_diamonds` object stores one row per estimated specification, including the estimated coefficient for the focal predictor, its standard error, confidence interval, and associated $p$ value, plus a record of which modeling choices generated that estimate.
+
+#### Visualizing the Specification Curve
+
+`specr` provides a plot method that produces a specification curve directly from the results object. The exact appearance depends on the package version and plotting options, but the default is typically a curve where each point corresponds to one specification, the vertical axis shows the estimated coefficient, and uncertainty intervals are plotted around each point (Figure \@ref(fig:diamonds-specr-specification-curve)).
+
+
+``` r
+# Basic specification curve plot
+plot(specs_diamonds)
+```
+
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/diamonds-specr-specification-curve-1.png" alt="Two-panel specification curve showing the robustness of diamond price effect estimates across different model specifications. Panel A displays coefficient estimates on the y-axis ranging from negative 10000 to positive 10000, plotted against specification number on the x-axis from 0 to approximately 120. Points are colored red for negative estimates, gray for near-zero estimates, and blue for positive estimates. Panel B shows the analytical choices made for each specification, including the dependent variable transformations at the top (log carat, log price, and linear model indicated by vertical lines), and control variables in the middle section showing various combinations of x, y, z variables with cut, clarity, and color controls. The bottom row indicates whether all controls were included. Red and blue vertical lines in Panel B correspond to the red and blue estimates in Panel A, showing which analytical choices produced negative versus positive results." width="90%" />
+<p class="caption">(\#fig:diamonds-specr-specification-curve)Caption: Specification curve analysis of diamond price effects with model choices</p>
+</div>
+
+In this visualization (Figure \@ref(fig:diamonds-specr-specification-curve)), the user can typically read off:
+
+-   the range of estimates across all admissible specifications,
+-   how often the effect is statistically significant (for example, $p < 0.05$),
+-   whether sign changes occur as controls are added or removed, and
+-   how sensitive the effect size is to modeling choices.
+
+Additional plotting options in `specr` generally allow the user to:
+
+-   show separate panels for different outcomes or focal predictors,
+-   display heatmaps of significance patterns,
+-   or summarize the distribution of coefficients.
+
+The exact arguments are version dependent, so it is good practice to consult `?plot` for the `specr` object to see the current capabilities and defaults.
+
+#### Relation to the `starbility` Workflow
+
+Both `starbility` and `specr` implement the same methodological idea: documenting the full set of defensible specifications and showing how the estimated effect of interest behaves across that universe.
+
+From a practical perspective:
+
+-   `specr` is convenient when:
+
+    -   the relevant models are standard (for example linear regression, generalized linear models),
+    -   the specification universe is naturally described in terms of outcome, focal predictor, controls, and simple subsets, and
+    -   a concise, high level interface is preferred.
+
+-   `starbility` is preferable when:
+
+    -   fully custom estimation routines are needed,
+    -   specialist estimators or complex clustering and weighting schemes are central to the analysis,
+    -   or the user wants complete control over how coefficients, $p$ values, and confidence intervals are computed.
+
+In empirical work, it is entirely reasonable to begin with `specr` to get a quick overview of robustness patterns, then move to `starbility` when the analysis requires more specialized modeling choices than `specr` natively supports.
+
+### The `rdfanalysis` Package
 
 While `starbility` is recommended for most applications, the `rdfanalysis` package by Joachim Gassen offers an alternative implementation with some unique features, particularly for research that follows a researcher degrees of freedom (RDF) framework.
 
@@ -995,15 +1184,18 @@ plot_rdf_spec_curve(
 )
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-rdf-spec-curve-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-rdf-spec-curve-1.png" alt="Two-panel specification curve displaying results from a multiverse analysis across thousands of analytical protocols. The top panel shows effect estimates on the y-axis ranging from approximately negative 0.25 to 0.75, plotted against protocol number on the x-axis from 0 to over 12000. Individual estimates are shown as gray points with a smoothed trend line transitioning from red (negative) through black (zero) to blue (positive). The bottom panel shows the analytical choices made for each protocol using horizontal colored lines and dots. Y-axis labels indicate various methodological choices including missing data handling (na.omit with yes or no), variable transformations (idv and dv options), outlier treatment methods, model types (including lmer and various cutoff options), random effects specifications, and clustering approaches (cluster county and cluster city-year). The dense patterns of colored lines and dots show which combinations of analytical choices were used across the many protocols tested." width="90%" />
+<p class="caption">(\#fig:robustness-rdf-spec-curve)Specification curve with multiverse analysis across analytical protocols</p>
+</div>
 
 This level of transparency is particularly valuable for addressing concerns about p-hacking and researcher degrees of freedom.
 
 ------------------------------------------------------------------------
 
-## Coefficient Stability
+## Coefficient Stability {#sec-coefficient-stability}
 
-Beyond specification curve analysis, another crucial aspect of sensitivity analysis is assessing whether your estimates are robust to potential omitted variable bias. Even with comprehensive controls, unobserved confounders may threaten causal inference.
+Beyond specification curve analysis, another crucial aspect of sensitivity analysis is assessing whether your estimates are robust to potential omitted variable bias [@altonji2005selection]. Even with comprehensive controls, unobserved confounders may threaten causal inference.
 
 ### Theoretical Foundation: The Oster (2019) Approach
 
@@ -1153,7 +1345,10 @@ ggplot(stability_df, aes(x = delta, y = beta_adjusted)) +
   theme_minimal()
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-ovb-stability-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-ovb-stability-1.png" alt="Line plot showing the relationship between coefficient stability and the strength of potential confounding due to omitted variables. The x-axis represents delta, measuring the strength of confounding from 0.0 to 2.0, while the y-axis shows the bias-adjusted coefficient (beta*) ranging from approximately negative 6.5 to 0. A horizontal dashed red line is positioned at zero. The black solid line starts at approximately negative 4.5 when delta equals zero, gradually increases to approach negative 1 as delta approaches 1.0, then drops sharply to approximately negative 6.5 just after delta equals 1.0, before leveling off at approximately negative 6.3 for the remainder of the plot. This discontinuity illustrates a critical threshold in confounding strength where coefficient stability changes dramatically." width="90%" />
+<p class="caption">(\#fig:robustness-ovb-stability)Coefficient stability under omitted variable bias</p>
+</div>
 
 For more sophisticated applications with multiple treatments or different model types:
 
@@ -1224,12 +1419,12 @@ mplot::vis(
   lm(mpg ~ wt + hp + qsec + gear + carb, data = mtcars),
   B = 100  # Number of bootstrap samples
 )
-#>                    name prob logLikelihood
-#>                   mpg~1 1.00       -102.38
-#>                  mpg~wt 0.99        -80.01
-#>             mpg~wt+qsec 0.48        -74.36
-#>               mpg~wt+hp 0.42        -74.33
-#>  mpg~wt+hp+gear+carb+RV 0.39        -71.77
+#>                      name prob logLikelihood
+#>                     mpg~1 1.00       -102.38
+#>                    mpg~wt 0.97        -80.01
+#>                 mpg~wt+hp 0.45        -74.33
+#>               mpg~wt+qsec 0.36        -74.36
+#>  mpg~wt+qsec+gear+carb+RV 0.39        -71.46
 ```
 
 This creates plots showing:
@@ -1322,7 +1517,10 @@ pkonfound(
 )
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-threshold-plot-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-threshold-plot-1.png" alt="Stacked area chart showing the estimated effect size in relation to a robustness threshold. The y-axis displays the absolute value of the effect ranging from 0 to 5, while the x-axis represents the estimated effect." width="90%" />
+<p class="caption">(\#fig:robustness-threshold-plot)Estimated effect size relative to robustness threshold</p>
+</div>
 
 Interpretation of the plot:
 
@@ -1352,7 +1550,10 @@ pkonfound(
 )
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-correlation-plot-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-correlation-plot-1.png" alt="Path diagram illustrating the requirements to invalidate a causal inference through omitted variable bias. The diagram shows relationships between four variables arranged in a roughly triangular pattern." width="90%" />
+<p class="caption">(\#fig:robustness-correlation-plot)Sensitivity analysis showing conditions to invalidate a causal inference</p>
+</div>
 
 This plot shows:
 
@@ -1379,94 +1580,6 @@ konfound(model, wt)  # Assess robustness for the 'wt' coefficient
 ------------------------------------------------------------------------
 
 ## Advanced Topics in Sensitivity Analysis
-
-### Sensitivity to Functional Form
-
-Beyond omitted variables, your results may be sensitive to functional form choices (Figure \@ref(fig:robustness-sen-functional-form)). Here are approaches to assess this:
-
-
-``` r
-# Test sensitivity to log transformations
-models_functional_form = list(
-  "Linear-Linear" = lm(mpg ~ wt + hp, data = mtcars),
-  "Log-Linear"    = lm(log(mpg) ~ wt + hp, data = mtcars),
-  "Linear-Log"    = lm(mpg ~ log(wt) + log(hp), data = mtcars),
-  "Log-Log"       = lm(log(mpg) ~ log(wt) + log(hp), data = mtcars)
-)
-
-# Compare coefficients across functional forms
-# Note: Coefficients need to be made comparable (e.g., via standardization or elasticities)
-
-# Test sensitivity to polynomial terms
-model_linear = lm(mpg ~ wt + hp, data = mtcars)
-model_quad = lm(mpg ~ wt + I(wt^2) + hp + I(hp^2), data = mtcars)
-model_cubic = lm(mpg ~ wt + I(wt^2) + I(wt^3) + hp + I(hp^2) + I(hp^3), data = mtcars)
-
-# Compare using AIC/BIC
-AIC(model_linear, model_quad, model_cubic)
-#>              df      AIC
-#> model_linear  4 156.6523
-#> model_quad    6 145.9102
-#> model_cubic   8 147.4138
-BIC(model_linear, model_quad, model_cubic)
-#>              df      BIC
-#> model_linear  4 162.5153
-#> model_quad    6 154.7047
-#> model_cubic   8 159.1397
-
-# Test sensitivity to splines/GAMs
-library(mgcv)
-model_gam = gam(mpg ~ s(wt) + s(hp), data = mtcars)
-
-# Visualize functional form
-plot(model_gam, pages = 1)
-```
-
-<img src="42-sensitivity-robustness_files/figure-html/robustness-sen-functional-form-1.png" width="90%" style="display: block; margin: auto;" />
-
-### Sensitivity to Sample Selection
-
-Robustness to different subsamples can reveal whether your findings generalize (Figure \@ref(fig:robustness-sen-sample-selection))
-
-
-``` r
-# Define meaningful subsamples
-subsamples = list(
-  "Full sample"    = mtcars,
-  "High cylinders" = mtcars[mtcars$cyl >= 6, ],
-  "Low cylinders"  = mtcars[mtcars$cyl < 6, ],
-  "Automatic"      = mtcars[mtcars$am == 0, ],
-  "Manual"         = mtcars[mtcars$am == 1, ]
-)
-
-# Estimate model on each subsample
-subsample_results = lapply(subsamples, function(data) {
-  model = lm(mpg ~ wt + hp + qsec, data = data)
-  summary(model)$coefficients["wt", ]
-})
-
-# Create forest plot of results
-subsample_df = do.call(rbind, subsample_results) %>%
-  as.data.frame() %>%
-  mutate(
-    subsample = names(subsamples),
-    lower = Estimate - 1.96 * `Std. Error`,
-    upper = Estimate + 1.96 * `Std. Error`
-  )
-
-ggplot(subsample_df, aes(x = Estimate, y = subsample)) +
-  geom_point(size = 3) +
-  geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
-  theme_minimal() +
-  labs(
-    title = "Coefficient Estimates Across Subsamples",
-    x = "Effect of Weight on MPG",
-    y = NULL
-  )
-```
-
-<img src="42-sensitivity-robustness_files/figure-html/robustness-sen-sample-selection-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Sensitivity to Outliers and Influential Observations
 
@@ -1561,23 +1674,23 @@ summary(simex_model)
 #> 
 #> Residuals: 
 #>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -3.930016 -1.593084 -0.185632  0.007452  1.076194  5.848556 
+#> -3.931701 -1.603200 -0.225173 -0.007991  1.066691  5.806683 
 #> 
 #> Coefficients: 
 #> 
 #> Asymptotic variance: 
 #>              Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) 37.256223   1.965061  18.959  < 2e-16 ***
-#> wt          -3.896363   0.630915  -6.176 9.85e-07 ***
-#> hp          -0.031615   0.006864  -4.606 7.57e-05 ***
+#> (Intercept) 37.376807   1.987465  18.806  < 2e-16 ***
+#> wt          -3.974826   0.644667  -6.166 1.01e-06 ***
+#> hp          -0.030611   0.006577  -4.654 6.63e-05 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Jackknife variance: 
 #>              Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) 37.256223   1.629969  22.857  < 2e-16 ***
-#> wt          -3.896363   0.647648  -6.016 1.52e-06 ***
-#> hp          -0.031615   0.009153  -3.454  0.00172 ** 
+#> (Intercept) 37.376807   1.583219  23.608  < 2e-16 ***
+#> wt          -3.974826   0.636895  -6.241 8.24e-07 ***
+#> hp          -0.030611   0.009077  -3.372  0.00213 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1588,14 +1701,14 @@ data.frame(
   SIMEX_Corrected = coef(simex_model)
 )
 #>             Coefficient       Naive SIMEX_Corrected
-#> (Intercept) (Intercept) 37.22727012     37.25622314
-#> wt                   wt -3.87783074     -3.89636334
-#> hp                   hp -0.03177295     -0.03161466
+#> (Intercept) (Intercept) 37.22727012     37.37680699
+#> wt                   wt -3.87783074     -3.97482594
+#> hp                   hp -0.03177295     -0.03061053
 
 # SIMEX extrapolates back to zero ME, giving corrected estimate
 ```
 
-Figure \@ref(fig:robustnees-simex) plots SIMEX extrapolation.
+Figure \@ref(fig:robustness-simex) plots SIMEX extrapolation.
 
 
 ``` r
@@ -1604,7 +1717,10 @@ par(mfrow = c(1, 3))
 plot(simex_model)
 ```
 
-<img src="42-sensitivity-robustness_files/figure-html/robustness-simex-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="42-sensitivity-robustness_files/figure-html/robustness-simex-1.png" alt="Three-panel diagnostic plot showing SIMEX (Simulation Extrapolation) results for correcting measurement error in regression coefficients." width="90%" />
+<p class="caption">(\#fig:robustness-simex)SIMEX extrapolation plots for measurement error correction</p>
+</div>
 
 ``` r
 par(mfrow = c(1, 1))

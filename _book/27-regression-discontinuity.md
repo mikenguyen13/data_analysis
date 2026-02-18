@@ -1746,7 +1746,7 @@ In practice, everyone does
 
 $$ Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i $$
 
-Figure \@ref(fig:rd-simple-dynamic-slop) shows how to visualize the coefficients when one uses dynamic slope.
+Figure \@ref(fig:rd-simple-dynamic-slope) shows how to visualize the coefficients when one uses dynamic slope.
 
 
 

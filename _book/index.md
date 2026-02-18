@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2025-11-10"
+date: "2026-02-17"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -46,43 +46,186 @@ I hope this book provides a valuable starting point for aspiring statisticians, 
 
 
 
-## How to cite this book {.unnumbered}
+------------------------------------------------------------------------
 
-> **1. APA (7th edition):**
->
-> Nguyen, M. (2020). *A Guide on Data Analysis*. Bookdown.
->
-> [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
->
-> **2. MLA (8th edition):**
->
-> Nguyen, Mike. *A Guide on Data Analysis*. Bookdown, 2020. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
->
-> **3. Chicago (17th edition):**
->
-> Nguyen, Mike. 2020. *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
->
-> **4. Harvard:**
->
-> Nguyen, M. (2020) *A Guide on Data Analysis*. Bookdown. Available at: [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+## How to cite these books {.unnumbered}
+
+### **Volume 1: Foundations of Data Analysis**
+
+**1. APA (7th edition)**
+
+Nguyen, M. (2025). *Foundations of data analysis* (Vol. 1). Springer Cham. [https://doi.org/10.1007/978-3-032-01858-8](https://tidd.ly/4oL3N2X)
+
+**2. MLA (8th edition)**
+
+Nguyen, Mike. *Foundations of Data Analysis*. Vol. 1, Springer Cham, 2025. DOI: [10.1007/978-3-032-01858-8](https://tidd.ly/4oL3N2X).
+
+**3. Chicago (17th edition)**
+
+Nguyen, Mike. 2025. *Foundations of Data Analysis*. Vol. 1. Cham: Springer. [https://doi.org/10.1007/978-3-032-01858-8](https://tidd.ly/4oL3N2X).
+
+**4. Harvard**
+
+Nguyen, M. (2025) *Foundations of Data Analysis*. Vol. 1. Springer Cham. Available at: [https://doi.org/10.1007/978-3-032-01858-8](https://tidd.ly/4oL3N2X)
 
 
 ``` r
-@book{nguyen2020guide,
-  title={A Guide on Data Analysis},
-  author={Nguyen, Mike},
-  year={2020},
-  publisher={Bookdown},
-  url={https://bookdown.org/mike/data_analysis/}
+@book{Nguyen2025Vol1,
+  author    = {Nguyen, Mike},
+  title     = {Foundations of Data Analysis},
+  volume    = {1},
+  year      = {2025},
+  publisher = {Springer Cham},
+  doi       = {10.1007/978-3-032-01858-8},
+  url       = {https://doi.org/10.1007/978-3-032-01858-8}
 }
 ```
+
+------------------------------------------------------------------------
+
+### **Volume 2: Regression Techniques for Data Analysis**
+
+**1. APA (7th edition)**
+
+Nguyen, M. (2025). *Regression techniques for data analysis* (Vol. 2). Springer Cham. [https://link.springer.com/book/9783032018342](https://tidd.ly/47PJ7kB)
+
+**2. MLA (8th edition)**
+
+Nguyen, Mike. *Regression Techniques for Data Analysis*. Vol. 2, Springer Cham, 2025. [https://link.springer.com/book/9783032018342](https://tidd.ly/47PJ7kB).
+
+**3. Chicago (17th edition)**
+
+Nguyen, Mike. 2025. *Regression Techniques for Data Analysis*. Vol. 2. Cham: Springer. [https://link.springer.com/book/9783032018342](https://tidd.ly/47PJ7kB).
+
+**4. Harvard**
+
+Nguyen, M. (2025) *Regression Techniques for Data Analysis*. Vol. 2. Springer Cham. Available at: [https://link.springer.com/book/9783032018342](https://tidd.ly/47PJ7kB)
+
+
+``` r
+@book{Nguyen2025Vol2,
+  author    = {Nguyen, Mike},
+  title     = {Regression Techniques for Data Analysis},
+  volume    = {2},
+  year      = {2025},
+  publisher = {Springer Cham},
+  isbn      = {978-3-032-01834-2},
+  url       = {https://link.springer.com/book/9783032018342}
+}
+```
+
+------------------------------------------------------------------------
+
+### **Volume 3: Advanced Modeling and Data Challenges**
+
+**1. APA (7th edition)**
+
+Nguyen, M. (2025). *Advanced modeling and data challenges* (Vol. 3). Springer Cham. [https://link.springer.com/book/9783032017185](https://tidd.ly/3JrB3xm)
+
+**2. MLA (8th edition)**
+
+Nguyen, Mike. *Advanced Modeling and Data Challenges*. Vol. 3, Springer Cham, 2025. [https://link.springer.com/book/9783032017185](https://tidd.ly/3JrB3xm).
+
+**3. Chicago (17th edition)**
+
+Nguyen, Mike. 2025. *Advanced Modeling and Data Challenges*. Vol. 3. Cham: Springer. [https://link.springer.com/book/9783032017185](https://tidd.ly/3JrB3xm).
+
+**4. Harvard**
+
+Nguyen, M. (2025) *Advanced Modeling and Data Challenges*. Vol. 3. Springer Cham. Available at: [https://link.springer.com/book/9783032017185](https://tidd.ly/3JrB3xm)
+
+
+``` r
+@book{Nguyen2025Vol3,
+  author    = {Nguyen, Mike},
+  title     = {Advanced Modeling and Data Challenges},
+  volume    = {3},
+  year      = {2025},
+  publisher = {Springer Cham},
+  isbn      = {978-3-032-01718-5},
+  url       = {https://link.springer.com/book/9783032017185}
+}
+```
+
+------------------------------------------------------------------------
+
+### **Volume 4: Experimental Design**
+
+**1. APA (7th edition)**
+
+Nguyen, M. (2025). *Experimental design* (Vol. 4). Springer Cham. [https://link.springer.com/book/9783032018380](https://tidd.ly/4oFridQ)
+
+**2. MLA (8th edition)**
+
+Nguyen, Mike. *Experimental Design*. Vol. 4, Springer Cham, 2025. [https://link.springer.com/book/9783032018380](https://tidd.ly/4oFridQ).
+
+**3. Chicago (17th edition)**
+
+Nguyen, Mike. 2025. *Experimental Design*. Vol. 4. Cham: Springer. [https://link.springer.com/book/9783032018380](https://tidd.ly/4oFridQ).
+
+**4. Harvard**
+
+Nguyen, M. (2025) *Experimental Design*. Vol. 4. Springer Cham. Available at: [https://link.springer.com/book/9783032018380](https://tidd.ly/4oFridQ)
+
+
+``` r
+@book{Nguyen2025Vol4,
+  author    = {Nguyen, Mike},
+  title     = {Experimental Design},
+  volume    = {4},
+  year      = {2025},
+  publisher = {Springer Cham},
+  isbn      = {978-3-032-01838-0},
+  url       = {https://link.springer.com/book/9783032018380}
+}
+```
+
+------------------------------------------------------------------------
+
+<!-- > **1. APA (7th edition):** -->
+
+<!-- > -->
+
+<!-- > Nguyen, M. (2020). *A Guide on Data Analysis*. Bookdown. -->
+
+<!-- > -->
+
+<!-- > [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/) -->
+
+<!-- > -->
+
+<!-- > **2. MLA (8th edition):** -->
+
+<!-- > -->
+
+<!-- > Nguyen, Mike. *A Guide on Data Analysis*. Bookdown, 2020. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/) -->
+
+<!-- > -->
+
+<!-- > **3. Chicago (17th edition):** -->
+
+<!-- > -->
+
+<!-- > Nguyen, Mike. 2020. *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/) -->
+
+<!-- > -->
+
+<!-- > **4. Harvard:** -->
+
+<!-- > -->
+
+<!-- > Nguyen, M. (2020) *A Guide on Data Analysis*. Bookdown. Available at: [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/) -->
+
+
 
 <!-- ## More books {.unnumbered} -->
 
 <!-- More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/): -->
 
 <!-- -   [Advanced Data Analysis](https://bookdown.org/mike/advanced_data_analysis/): the second book in the data analysis series, which covers machine learning models (with a focus on prediction) -->
+
 <!-- -   [Marketing Research](https://bookdown.org/mike/marketing_research/) -->
+
 <!-- -   [Communication Theory](https://bookdown.org/mike/comm_theory/) -->
 
 # Introduction
@@ -154,7 +297,7 @@ This book was built with R version 4.4.3 (2025-02-28 ucrt) and the following pac
 
 
 
-Table: (\#tab:unnamed-chunk-7)R packages and versions used
+Table: (\#tab:unnamed-chunk-11)R packages and versions used
 
 |package      |version    |source         |
 |:------------|:----------|:--------------|
@@ -304,7 +447,7 @@ Table: (\#tab:unnamed-chunk-7)R packages and versions used
 #>  collate  English_United States.utf8
 #>  ctype    English_United States.utf8
 #>  tz       America/Los_Angeles
-#>  date     2025-10-31
+#>  date     2025-11-16
 #>  pandoc   3.1.1 @ C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 #>  quarto   NA @ C:\\PROGRA~1\\Quarto\\bin\\quarto.exe
 #> 
