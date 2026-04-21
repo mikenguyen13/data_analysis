@@ -1023,7 +1023,7 @@ ggplot(methods, aes(x = Position, y = 1)) +
   scale_x_continuous(limits = c(-0.05, 1.05), breaks = NULL) +  # Adjust x-axis limits
   scale_y_continuous(limits = c(0.5, 1.5), breaks = NULL) +  # Remove y-axis ticks
   labs(title = "Continuum of Methods", 
-       x = "Design-Based ←——————————————→ Model-Based", 
+       x = "Design-Based <-------------> Model-Based",
        y = "") +
   theme_minimal() +
   theme(axis.text.y = element_blank(), 
@@ -1248,3 +1248,61 @@ Most real-world applications lie somewhere in the middle, combining aspects of b
 | **Examples**                           | RD, DiD, IV, Synthetic Control.                                   | PSM, DAGs, Regression-Based, ML-Based Causal Inference. |
 
 : (#tab:quasi-exp-model-vs-design) Model-Based vs. Design-Based Causal Inference: Key Differences
+
+------------------------------------------------------------------------
+
+## Notation Used in This Part {#sec-notation-quasi-experimental}
+
+The following notation is used consistently across Chapters 26-35 (Table \@ref(tab:quasi-exp-notation)). Individual chapters may add subscripts (e.g., time $t$, group $g$) where needed.
+
+| **Symbol**              | **Meaning**                                                                                         |
+|------------------------|----------------------------------------------------------------------|
+| $i$                     | Unit index (individual, firm, state, country, etc.)                                                 |
+| $t$                     | Time index (period, year, calendar month)                                                           |
+| $D_i$, $D_{it}$         | Treatment indicator: $1$ if unit $i$ is treated (at time $t$), $0$ otherwise                        |
+| $Y_i$, $Y_{it}$         | Observed outcome for unit $i$ (at time $t$)                                                         |
+| $Y_i(d)$, $Y_{it}(d)$   | Potential outcome of unit $i$ (at time $t$) under treatment status $d \in \{0, 1\}$                 |
+| $X_i$                   | Covariates (or the running variable in [RD](#sec-regression-discontinuity))                         |
+| $Z_i$                   | Instrument (in [IV](#sec-instrumental-variables)); sometimes a running variable in RDiT             |
+| $G_i$                   | Group/cohort assignment: the first period in which unit $i$ is treated (staggered DiD)              |
+| $C_i$                   | Never-treated indicator                                                                             |
+| $\alpha_i$, $\lambda_t$ | Unit and time fixed effects                                                                         |
+| $c$                     | Cutoff value in RD designs                                                                          |
+| $\beta$, $\tau$         | Estimand of interest (treatment effect)                                                             |
+
+: (#tab:quasi-exp-notation) Notation Conventions Across the Quasi-Experimental Part
+
+**Estimand shorthand used in this part:**
+
+- **ATE**, Average Treatment Effect: $E[Y_i(1) - Y_i(0)]$
+- **ATT**, Average Treatment Effect on the Treated: $E[Y_i(1) - Y_i(0) \mid D_i = 1]$
+- **ATU**, Average Treatment Effect on the Untreated: $E[Y_i(1) - Y_i(0) \mid D_i = 0]$
+- **LATE**, Local Average Treatment Effect (for compliers, under monotonicity): $E[Y_i(1) - Y_i(0) \mid D_i(1) > D_i(0)]$
+- **CATE**, Conditional ATE: $E[Y_i(1) - Y_i(0) \mid X_i = x]$
+- **QTT / QTE**, Quantile Treatment Effect (on the Treated): difference in quantiles of $Y(1)$ and $Y(0)$ at a given $\theta$
+
+------------------------------------------------------------------------
+
+## Choosing a Method: A Decision Framework {#sec-choosing-a-quasi-experimental-method}
+
+No single quasi-experimental method dominates all others. The right choice depends on the structure of your data, the nature of the treatment, and the identifying assumption you are willing to defend. Table \@ref(tab:quasi-exp-method-selection) maps common research settings to the methods introduced in this part, ordered roughly by identification credibility.
+
+| **Research setting**                                                                       | **Recommended first choice**                                       | **Key identifying assumption**                                    | **Chapter** |
+|-------------------------------------------------|------------------------|-----------------------|----------|
+| Sharp policy cutoff on a continuous score; units just above/below are comparable           | [Regression Discontinuity](#sec-regression-discontinuity) (Sharp)  | Continuity of potential outcomes at the cutoff                    | 27          |
+| Policy cutoff with imperfect compliance (score → eligibility → take-up)                    | Fuzzy RD (IV-style)                                                | Continuity + monotonicity in treatment take-up                    | 27          |
+| A single known intervention date; no cross-sectional control group                         | [Interrupted Time Series](#sec-interrupted-time-series)            | No contemporaneous confounding events                             | 28          |
+| Running variable is time; sharp date-based treatment                                       | [RDiT](#sec-regression-discontinuity-in-time)                      | Continuity in time-indexed potential outcomes                     | 28          |
+| Panel data; treated and untreated groups; simple 2-period design                           | [DiD](#sec-difference-in-differences)                              | Parallel trends in untreated potential outcomes                   | 30          |
+| Panel data with *staggered* treatment adoption                                             | Callaway-Sant'Anna / Sun-Abraham                                   | Parallel trends + no anticipation                                 | 30.1        |
+| Panel data, but parallel trends is shaky *or* donor convex-hull fit is good                | [Synthetic DiD](#sec-synthetic-difference-in-differences)          | Either parallel trends OR pre-treatment convex-hull fit holds     | 29          |
+| Panel data; interested in distributional (not just mean) effects                           | [Changes-in-Changes](#sec-changes-in-changes)                      | Rank invariance across groups/time                                | 31          |
+| Single treated unit; large pool of untreated "donors"                                      | [Synthetic Control](#sec-synthetic-control)                        | Treated unit lies inside donor convex hull                        | 32          |
+| Stock/financial outcomes; precise event date                                               | [Event Study](#sec-event-studies)                                  | EMH + no confounding events + event date unanticipated            | 33          |
+| Endogenous treatment; exogenous shifter available                                          | [Instrumental Variables](#sec-instrumental-variables)              | Relevance + exclusion + independence (+ monotonicity for LATE)    | 34          |
+| Endogenous treatment; quasi-random assignment of decision-makers (judges, examiners, reps) | [Examiner Design](#sec-examiner-design)                            | As-good-as-random examiner + exclusion + monotonicity in leniency | 34.2        |
+| Observational data; rich covariates; selection on observables is plausible                 | [Matching](#sec-matching-methods) (often as preprocessing)         | Unconfoundedness + overlap                                        | 35          |
+
+: (#tab:quasi-exp-method-selection) Decision Framework, Matching Research Settings to Methods
+
+Three design principles cut across the table. The first is to prefer sharper designs over softer ones when both are plausible: an RD with a real cutoff is almost always more credible than a DiD, and a DiD with genuine exogenous timing is almost always more credible than matching alone. The second is that methods combine more often than they compete. Matching is frequently used to preprocess data before DiD or IV, event-study plots visualize DiD or RD dynamics, and sensitivity analysis should accompany any design that rests on an untestable assumption. The third is to let the data structure discipline the choice: staggered treatment adoption calls for the modern estimators of Chapter 30.1 rather than static TWFE, a single treated unit rules out DiD and points to Synthetic Control, and a first-stage F below 20 calls for weak-instrument-robust inference rather than standard 2SLS.
