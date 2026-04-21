@@ -37,6 +37,19 @@ These conditions ensure that $Z$ provides exogenous variation in $X$, allowing u
 
 These conditions ensure that $Z$ provides exogenous variation in $X$, allowing us to estimate the causal effect of $X$ on $Y$. [Random assignment](#sec-the-gold-standard-randomized-controlled-trials) of $Z$ helps ensure exogeneity, but we must also confirm that $Z$ influences $Y$ *only* through $X$ to satisfy the exclusion restriction.
 
+::: {.rmdcaution}
+A note on weak instruments before we go further. Relevance is a quantitative requirement, not a binary one: a statistically significant first stage is not sufficient evidence that the instrument is strong enough. Even a mildly weak instrument can produce 2SLS estimates that are severely biased toward OLS, with confidence intervals that undercover dramatically in finite samples.
+
+The conventional rules of thumb you will encounter later in this chapter are:
+
+-   A first-stage F-statistic below 10 (the Staiger-Stock threshold) indicates a weak instrument and unreliable 2SLS estimates.
+-   F-statistics between 10 and 20 were historically considered adequate, but @lee2022valid show the conventional critical values are too permissive in this range. Weak-instrument-robust inference (Anderson-Rubin, CLR) is preferable to reading the 2SLS t-statistic directly.
+-   F-statistics above 20 are a safer threshold under modern guidance.
+-   With multiple instruments (overidentified models), use the Montiel Olea-Pflueger effective F-statistic rather than the standard first-stage F. See the weak-instruments section later in this chapter for implementation details.
+
+One point is worth internalizing now: weak-instrument bias does not vanish with larger sample sizes. It is a property of first-stage strength, not of sampling noise. When the instrument is weak, the remedies are weak-instrument-robust methods (Anderson-Rubin, LIML, CLR) or partial identification bounds, not a larger $N$.
+:::
+
 The IV approach dates back to early econometric research in the 1920s and 1930s, with a significant role in Cowles Commission studies on simultaneous equations. Key contributions include:
 
 -   @wright1928tariff: One of the earliest applications, studying supply and demand for pig iron.
@@ -3376,5 +3389,25 @@ $$
 where $w_j$ are weights determined by the distribution of the instrument and treatment intensity.
 
 -   This LATE interpretation means that TSLS estimates apply to compliers whose treatment intensity changes in response to the instrument. If there is heterogeneity in treatment effects across units, the interpretation of $\rho$ becomes instrument-dependent and may not generalize to the entire population.
+
+------------------------------------------------------------------------
+
+## IV and Matching: Design-Based vs. Model-Based Approaches
+
+IV (this chapter) and [matching](#sec-matching-methods) (Chapter 35) are the two remaining strategies when neither a cutoff nor panel structure is available. They rest on very different identifying assumptions, and they answer slightly different questions:
+
+| **Feature**                     | **IV (Ch. 34)**                                                      | **Matching (Ch. 35)**                                                          |
+|------------------------|-----------------------|-------------------------|
+| **What it solves**              | Endogeneity from unobserved confounding                              | Selection bias from observed confounding                                       |
+| **Key assumption**              | Exclusion + relevance + independence (+ monotonicity for LATE)       | Unconfoundedness + overlap (a.k.a. selection on observables)                   |
+| **Testable?**                   | Relevance is testable (first-stage F); exclusion is not testable     | Overlap is testable; unconfoundedness is not testable                          |
+| **Estimand**                    | LATE for compliers                                                   | ATT or ATE, depending on the match target                                      |
+| **When it shines**              | Clear exogenous shifter of treatment is available                    | Rich covariate set; no credible instrument or design-based alternative         |
+| **When it fails quietly**       | Weak first stage; exclusion violated through a backdoor              | Unobserved confounder drives selection; poor overlap hidden in aggregate stats |
+| **Relationship to each other**  | Often combined: match on observables, then use IV for residual endogeneity                  | Often used as preprocessing before IV, [DiD](#sec-difference-in-differences), or other designs |
+
+In practice the two are often stacked. Matching is used first to impose common support and strip out gross observable imbalances, and then IV is applied on the matched sample to address residual endogeneity. IV also combines naturally with [DiD](#sec-difference-in-differences) (difference-in-differences with an instrumented treatment), with [RD](#sec-regression-discontinuity) (where Fuzzy RD is itself a local IV), and with [event studies](#sec-event-studies) where the event serves as an instrument.
+
+The methods are complements rather than rivals. They address different threats, unobserved confounding on the one hand and observed confounding on the other, and a credible empirical paper often uses both.
 
 ------------------------------------------------------------------------
