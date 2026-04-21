@@ -244,3 +244,36 @@ jt.cic <- CiC(
     panel = T
 )
 ```
+
+------------------------------------------------------------------------
+
+## CiC vs. QDiD: A More Detailed Contrast
+
+CiC and QDiD both deliver quantile treatment effects in panel settings, but they rest on *different* identifying assumptions and answer *different* counterfactual questions. The distinction matters in applied work:
+
+| **Aspect**                          | **QDiD (Quantile DiD)**                                                                                                     | **CiC (Athey-Imbens)**                                                                                                              |
+|-----------------------------------|-----------------------------|-----------------------------|
+| **Target estimand**                 | QTT at each quantile $\theta$                                                                                               | QTT at each quantile $\theta$                                                                                                       |
+| **Identifying assumption**          | Differences in quantiles of untreated potential outcomes are constant across groups (a distributional parallel-trends form) | Rank invariance / rank similarity: an individual's rank in the untreated-outcome distribution is stable across groups and over time |
+| **Treatment of time vs. group**     | Symmetric (the roles of the two dimensions are interchangeable)                                                             | Asymmetric (explicit monotone production function in an unobserved scalar)                                                          |
+| **Scale-invariance**                | Not invariant to monotone outcome transforms; results depend on whether you use $Y$, $\log Y$, or $\sqrt{Y}$               | Invariant to monotone transformations of the outcome (a major advantage in applied work)                                            |
+| **Additional structure**            | Requires a copula-stability assumption (the dependence between outcome ranks across periods is stable)                      | Requires that the distribution of the unobserved heterogeneity in the treated group is contained in that of the control            |
+| **Interpretation of heterogeneity** | Captures differences in quantile shifts                                                                                      | Captures shifts in the latent outcome-generating function                                                                           |
+
+Which to pick? CiC is the natural choice when three things hold: the outcome can reasonably be modeled as a monotone function of an unobserved scalar (productivity → wages is the canonical example), scale-invariance matters (you do not want results to flip when you log the outcome), and the treated group's pre-treatment support is contained in the control group's. QDiD is preferable when the distributional parallel-trends assumption is defensible (pre-treatment quantiles for treated and control track each other closely) and the outcome has a natural scale that need not be robust to monotone reparameterization.
+
+When feasible, report both estimates alongside the standard DiD point estimate. Concordance across CiC, QDiD, and DiD increases credibility; divergence is a signal that distributional heterogeneity is doing real work in the data and deserves explicit discussion.
+
+------------------------------------------------------------------------
+
+## Practical Guidance on CiC
+
+CiC becomes interesting in applications where the whole distribution of outcomes, not just the mean, carries policy weight. Income support programs often fit this description, because the effect at the bottom of the distribution is more important to a welfare analyst than the effect at the median. Job-training programs similarly can concentrate their gains in the middle of the ability distribution, with little or no effect at the tails. Marketing interventions where response is concentrated in a heavy upper tail (big spenders reacting strongly to a price promotion) are another case where the ATT masks the substantive story.
+
+Before reaching for CiC, check three things. First, is the underlying outcome plausibly a monotone function of an unobserved scalar (ability, latent demand, willingness-to-pay)? The Athey-Imbens derivation relies on exactly that production-function structure. Second, is the treated group's pre-treatment outcome support contained inside the control group's support? If not, some quantiles are not identified and the estimator extrapolates. Third, will scale-invariance buy you something? CiC's main operational advantage over QDiD is that its output does not change if you log, square-root, or otherwise monotonically reparameterize the outcome, a useful feature when reviewers push back on functional-form choices.
+
+The single strongest assumption is rank invariance: an individual's position in the untreated outcome distribution would have been the same in the post-period as in the pre-period, had they not been treated. It is an assumption that needs to be argued in context, not asserted from a template. In some settings (short panels, relatively stable populations) it is plausible; in others (long panels, high mobility across the distribution) it is hard to defend.
+
+Two practical limitations to keep in mind. Confidence intervals come from the bootstrap and are often wide at extreme quantiles where density is low, do not chase statistical significance into the tails of a thin sample. And CiC identifies the marginal distribution of potential outcomes, not individual-level effects; a headline of the form "the treatment raised the 90th percentile by $X$" should not be read as "the 90th-percentile units gained $X$ from the treatment."
+
+A complete CiC writeup has four elements: a plot of estimated QTT across quantiles with bootstrap bands, the corresponding DiD/ATT for comparison, overlap diagnostics showing pre-treatment outcome densities for treated and control, and, wherever feasible, both CiC and QDiD estimates side-by-side. Concordance across estimators builds credibility; divergence is itself a finding worth discussing.
