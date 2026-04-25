@@ -344,6 +344,8 @@ Understanding the mechanism behind missing data is critical to choosing the appr
 
 Visualization tools are essential for detecting patterns in missing data. Heatmaps and correlation plots can help identify systematic missingness and provide insights into the underlying mechanism.
 
+Figure \@ref(fig:fig-missing-data-heatmap1) uses `Amelia::missmap` to highlight the location of missing cells across the airquality variables.
+
 
 ``` r
 # Example: Visualizing missing data
@@ -386,6 +388,8 @@ print(missing_proportions)
 library(naniar)
 ```
 
+Figure \@ref(fig:fig-missing-data-heatmap2) reports the proportion of missing cells per variable using the naniar package.
+
 
 ``` r
 vis_miss(airquality)
@@ -395,6 +399,8 @@ vis_miss(airquality)
 <img src="13-imputation_files/figure-html/fig-missing-data-heatmap2-1.png" alt="Heatmap showing missing data across different variables. The x-axis lists variables: Ozone (24% missing), Solar.R (5% missing), Wind, Temp, Month, and Day, with the percentage of missing data indicated. The y-axis represents observations. A legend indicates missing data in black (4.8%) and present data in gray (95.2%)." width="90%" />
 <p class="caption">(\#fig:fig-missing-data-heatmap2)Missing Data Heatmap</p>
 </div>
+
+Figure \@ref(fig:fig-missing-data-barchart) summarises the overlap of missingness between Ozone and Solar with an upset plot.
 
 
 ``` r
@@ -1113,6 +1119,8 @@ head(anscombe)
 #> 6 14 14 14  8 9.96 8.10  8.84 7.04
 ```
 
+Figure \@ref(fig:fig-missing-data-pattern) tabulates the missingness patterns present in the modified Anscombe dataset.
+
 
 ``` r
 ## check missing data patterns
@@ -1187,6 +1195,8 @@ p
 -   `rm` = the number of observations where both variables are missing values
 -   `mr` = the number of observations where the first variable's value (e.g. the row variable) is observed and second (or column) variable is missing
 -   `mm` = the number of observations where the second variable's value (e.g. the col variable) is observed and first (or row) variable is missing
+
+Figure \@ref(fig:fig-marginal-scatter) combines a bivariate scatter of y4 against y1 with marginal boxplots that flag observations available only in one variable.
 
 
 ``` r
@@ -1489,6 +1499,8 @@ data_het_pmm <- mice::complete(imp_het_pmm)
 ```
 
 Comparison between predictive mean matching and stochastic regression imputation
+
+Figure \@ref(fig:fig-heteroskedastic-imputation-comparison) places the stochastic regression and predictive mean matching imputations side by side on the heteroskedastic example.
 
 
 ``` r
@@ -2211,6 +2223,8 @@ library(naniar)
 library(ggplot2)
 ```
 
+Figure \@ref(fig:fig-missing-data-heatmap3) gives a compact overview of the share of missing and observed entries in the airquality data.
+
 
 ``` r
 # Visualizing missing data
@@ -2221,6 +2235,8 @@ vis_miss(airquality)
 <img src="13-imputation_files/figure-html/fig-missing-data-heatmap3-1.png" alt="Heatmap showing missing data across different variables. The x-axis lists variables. The y-axis represents observations. Dark bars indicate missing data, with a legend showing 4.1% missing and 95.9% present data." width="90%" />
 <p class="caption">(\#fig:fig-missing-data-heatmap3)Heatmap</p>
 </div>
+
+Figure \@ref(fig:fig-missingness-pattern-barchart) breaks down the co-occurring missingness between Solar and Ozone using an upset plot.
 
 
 ``` r
@@ -2416,6 +2432,8 @@ library(mice)
 library(VIM)
 ```
 
+Figure \@ref(fig:fig-sepal-heatmap) shows the missing-data pattern for the iris sepal variables after injecting NAs.
+
 
 ``` r
 # Check missing values pattern
@@ -2442,6 +2460,8 @@ md.pattern(iris.mis, rotate.names = T)
 #> 1             0            0            1           1  2
 #>              11           15           15          19 60
 ```
+
+Figure \@ref(fig:fig-barplot-and-matrix-missingness) pairs a bar chart of per-variable missingness with a matrix plot of the observation-level patterns.
 
 
 ``` r
@@ -2506,6 +2526,8 @@ summary(imputed_Data)
 #> Petal.Length            1           1            0           1
 #> Petal.Width             1           1            1           0
 ```
+
+Figure \@ref(fig:fig-density-plot-imputation) overlays the density of each imputed dataset against the observed distribution to diagnose imputation quality.
 
 
 ``` r

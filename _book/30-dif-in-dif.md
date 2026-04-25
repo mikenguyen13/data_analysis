@@ -229,6 +229,18 @@ E[Y_1(1) - Y_0(1) | D = 1] &= \{E[Y(1)|D = 1] - E[Y(1)|D = 0] \} \\
 \end{aligned}
 $$
 
+::: {.rmdnote}
+What parallel trends really says. The identifying assumption is a statement about the *untreated potential outcome* of the treated group, an object we never observe post-treatment:
+
+$$
+E[Y(0)_{t=1} - Y(0)_{t=0} \mid D = 1] = E[Y(0)_{t=1} - Y(0)_{t=0} \mid D = 0].
+$$
+
+That is, had the treated group not been treated, its average outcome would have evolved in parallel with the control group's. This is intrinsically counterfactual and therefore untestable in the post-treatment period.
+
+What pre-trend plots and placebo tests check is whether the *observed* pre-treatment trends were parallel. A clean pre-trend is supportive evidence for, but not proof of, the identifying assumption. @roth2022pretest shows that conventional pre-trend tests often have low power, so "failing to reject" is weak evidence at best. Modern practice couples pre-trend diagnostics with formal sensitivity analysis (e.g., @rambachan2023more; see Chapter 30.5 on modern DiD concerns).
+:::
+
 This formulation differences out time-invariant unobserved factors, assuming the [parallel trends assumption](#prior-parallel-trends-test) holds.
 
 -   For the treated group, we isolate the difference between being treated and not being treated.

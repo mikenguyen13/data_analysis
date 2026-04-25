@@ -3669,6 +3669,8 @@ fixedEffects$Month
 #>  3.218876  8.287899 34.260812 40.122257 12.130971
 ```
 
+Figure \@ref(fig:fig-centered-fe-plot) visualises the centred fixed-effect estimates extracted from the fitted model.
+
 
 ``` r
 # Plot fixed effects

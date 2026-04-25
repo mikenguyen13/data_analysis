@@ -2,6 +2,8 @@
 
 This chapter develops the classical linear model as the cornerstone of regression methodology. It presents [Ordinary Least Squares](#ordinary-least-squares), its geometric and probabilistic interpretations, and the [Gauss-Markov theorem](#gauss-markov-theorem). Diagnostics for multicollinearity, heteroskedasticity, and influential observations are paired with remedies such as [Generalized Least Squares](#sec-generalized-least-squares) and robust variance estimation. Extensions to [maximum-likelihood estimation](#maximum-likelihood-estimator) unify treatment of continuous and discrete outcomes, while [penalized approaches](#penalized-regularized-estimators)---including ridge, lasso, and elastic-net---address high-dimensional feature spaces. Finally, we introduce [Partial Least Squares](#sec-partial-least-squares) for dimension reduction and demonstrate applications in marketing analytics, experimental psychology, and economic forecasting.
 
+Figure \@ref(fig:fig-inference-framework) sketches the overall pipeline from population observations through identification assumptions to sample-based estimators.
+
 <div class="figure" style="text-align: center">
 <img src="images/econometrics.PNG" alt="A flowchart illustrating the framework for statistical estimation. It begins with the population distribution of observations, which flows into two paths: one toward population parameters via identification assumptions, and the other toward sample-based estimators. The framework highlights consistency, assumptions, and causal interpretation." width="90%" />
 <p class="caption">(\#fig:fig-inference-framework)Framework for Statistical Inference and Causal Interpretation</p>
@@ -1312,6 +1314,8 @@ ellipse_df <- as.data.frame(ellipse_points)
 colnames(ellipse_df) <- c("beta_0", "beta_1")
 ```
 
+Figure \@ref(fig:fig-bonferroni-region) overlays the marginal Bonferroni intervals on the joint confidence ellipse for the intercept and slope.
+
 
 ``` r
 
@@ -1624,6 +1628,8 @@ The value of $\lambda$ can be selected using one of the following methods:
 3.  **Numerical Search**:
     -   Use computational optimization techniques to minimize the residual sum of squares (RSS) or another goodness-of-fit criterion.
 
+Figure \@ref(fig:fig-loglikelihood-ci) traces the profile log-likelihood across candidate values of lambda and highlights the 95% confidence bounds.
+
 
 ``` r
 # Install and load the necessary library
@@ -1784,6 +1790,8 @@ $$
 
 This transformation is widely used in Poisson regression to stabilize the variance of the response variable.
 
+Figure \@ref(fig:fig-residual-transform) displays the residuals from the raw Poisson response and reveals the expected funnel shape.
+
 
 ``` r
 # Simulate Poisson data
@@ -1817,6 +1825,8 @@ abline(h = 0, col = "red", lty = 2)
 <img src="05-linear-regression_files/figure-html/fig-residual-transform-1.png" alt="Scatter plot titled 'Residuals Raw Data' showing residuals on the y-axis and fitted values on the x-axis. Data points are scattered around a horizontal red dashed line at zero, indicating the residuals' distribution. The x-axis ranges from -10 to 40, and the y-axis ranges from -10 to 20." width="80%" />
 <p class="caption">(\#fig:fig-residual-transform)Residuals Raw Data</p>
 </div>
+
+Figure \@ref(fig:fig-residual-transform-data) shows the residuals after applying the square root transformation, with the variance now stabilized around zero.
 
 
 ``` r

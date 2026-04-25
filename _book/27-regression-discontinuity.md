@@ -2262,3 +2262,21 @@ where:
 <!-- -   Multiple RD packages (`rdd`, `rdrobust`, `rddtools`) are tested. -->
 
 <!-- -   Robustness checks are performed across bandwidth selection and polynomial orders. -->
+
+------------------------------------------------------------------------
+
+## When RD Works and When It Fails
+
+Among the quasi-experimental designs covered in this book, RD stands out for how little it asks of the analyst. Given a sharp, institutionally enforced cutoff on a continuous running variable, local randomization comes essentially for free, and a reviewer can evaluate the design with very little prior familiarity with the setting. The transparency is part of the appeal.
+
+The flip side is that RD is easy to misapply in ways that are hard to detect once the analysis is written up. The design rewards care in three places in particular: the running variable, the cutoff, and the neighborhood around it.
+
+The running variable must be genuinely continuous and measured on both sides of the cutoff with similar density. A pileup of observations just below or just above $c$ is the classic sign that subjects are manipulating their scores to sort themselves onto one side, grade inflation to clear a scholarship threshold, income shading to qualify for a benefit, strategic timing around a program start date. When manipulation is present, the continuity assumption does not hold, and any RD estimate is contaminated by selection. A density test (McCrary or Cattaneo-Jansson-Ma) is the first diagnostic; a placebo analysis on pre-determined covariates is the second.
+
+The cutoff must be institutional, not analyst-chosen. If the threshold was picked after looking at the outcome, the design collapses into specification search.
+
+The neighborhood, the bandwidth $h$, is where most disputes live. A very narrow window gives precise local identification but noisy estimates. A wider window pulls in heterogeneity from units far from the cutoff. Report multiple bandwidths (the data-driven optimum plus narrower and wider windows), multiple polynomial orders, and the @calonico2014robust bias-corrected standard errors. A coefficient that is stable across these choices is much more credible than one that flips sign when the window widens.
+
+Two further warnings. First, the RD estimand is a LATE *at* the cutoff. Extrapolating to units far from $c$ requires either additional assumptions (constant treatment effect) or parametric specifications that reintroduce exactly the modeling dependence RD was designed to avoid. Second, Fuzzy RD inherits every weak-instrument pathology from [Chapter 34](#sec-instrumental-variables): if the jump in treatment probability at the cutoff is small, the ratio estimator becomes unstable no matter how precise the reduced form looks.
+
+When RD fits the application, it is often the most credible design available. When the cutoff is blurry, manipulable, or weakly predictive of treatment, reach instead for a design that makes its assumptions work harder, [DiD](#sec-difference-in-differences) if panel structure is available, [matching](#sec-matching-methods) if covariate richness is the main asset.

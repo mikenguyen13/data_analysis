@@ -1,5 +1,9 @@
 # Synthetic Difference-in-Differences {#sec-synthetic-difference-in-differences}
 
+::: {.rmdnote}
+A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes [Difference-in-Differences](#sec-difference-in-differences) and [Synthetic Control](#sec-synthetic-control), reweighting both units and time periods so that the estimator remains well-behaved whenever either the parallel-trends assumption (needed for DiD) or the convex-hull pre-treatment match (needed for SC) holds. In practice that gives SDID a larger envelope of credibility than either parent method. Readers who are new to DiD or SC may want to skim Chapters [30](#sec-difference-in-differences) and [32](#sec-synthetic-control) first for the respective intuitions, then return here.
+:::
+
 Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on **panel data**, which tracks multiple units over time, to assess how outcomes change before and after a policy is implemented. However, estimating causal effects in this setting is complicated by the fact that policies are often adopted non-randomly, where certain units may be more likely to receive treatment based on their characteristics, prior trends, or external factors. If treatment assignment correlates with unit-specific or time-specific factors, **selection bias** can invalidate causal conclusions, even when observed covariates are accounted for [@imbens2015causal].
 
 A well-established approach to dealing with this challenge is the [Difference-in-Differences](#sec-difference-in-differences) (DID) method, which compares changes in outcomes between treated and untreated groups. However, [DID](#sec-difference-in-differences) relies on the crucial **parallel trends assumption** (the idea that, in the absence of treatment, treated and untreated units would have followed similar trajectories). When this assumption is violated, [DID](#sec-difference-in-differences) can produce biased estimates.
@@ -12,7 +16,7 @@ To address the shortcomings of both [DID](#sec-difference-in-differences) and [S
 -   Adjusts for differences in pre-treatment trends through reweighting (like [SC](#sec-synthetic-control)).
 -   Remains invariant to additive unit-level shifts and is valid for large panels (like [DID](#sec-difference-in-differences)).
 
-The key advantage of SDID is that it achieves double robustness: it performs well when [DID](#sec-difference-in-differences) assumptions hold but also corrects for deviations from parallel trends by using synthetic weights (Table \@ref(tab:synthdid-key-diff-did-sc)). This makes SDID particularly useful in situations where treatment assignment is correlated with latent factors that affect outcomes over time.
+The key advantage of SDID is that it is **robust in a "double" sense** (not to be confused with the formal *doubly robust* property of augmented inverse-propensity-weighting estimators, which requires only one of the outcome or propensity models to be correctly specified). SDID is "doubly robust" in the operational sense that it remains consistent under either the [DID](#sec-difference-in-differences) identifying assumption (parallel trends) or the [Synthetic Control](#sec-synthetic-control) identifying assumption (pre-treatment fit inside the donor convex hull), and it corrects for deviations from parallel trends by using synthetic weights (Table \@ref(tab:synthdid-key-diff-did-sc)). This makes SDID particularly useful in situations where treatment assignment is correlated with latent factors that affect outcomes over time.
 
 -   SDID explicitly accounts for systematic unit-level effects that influence treatment assignment.
 -   This is especially valuable when treatment is non-randomly assigned based on persistent unit characteristics.
@@ -272,7 +276,7 @@ $$
 where
 
 $$
-\hat{\sigma}^2 = \frac{1}{N_c(T_{pre}- 1)} \sum_{i = 1}^{N_c} \sum_{t = 1}^{T_{re}-1}(\Delta_{it} - \hat{\Delta})^2
+\hat{\sigma}^2 = \frac{1}{N_c(T_{pre}- 1)} \sum_{i = 1}^{N_c} \sum_{t = 1}^{T_{pre}-1}(\Delta_{it} - \hat{\Delta})^2
 $$
 
 -   $\Delta_{it} = Y_{i(t + 1)} - Y_{it}$
@@ -704,3 +708,25 @@ plots <- lapply(seq_along(estimates), function(i) {
 
 gridExtra::grid.arrange(grobs = plots, ncol = 2)
 ```
+
+------------------------------------------------------------------------
+
+## Practical Guidance on SDID
+
+SDID occupies an unusual position in the panel-data toolkit. It borrows the unit- and time-reweighting logic from [Synthetic Control](#sec-synthetic-control), the additive double-differencing structure from [DiD](#sec-difference-in-differences), and ends up with an estimator that inherits the best properties of both parents in most realistic applications.
+
+The @arkhangelsky2021synthetic paper recommends SDID in settings with $N_{tr} < \sqrt{N_{ctr}}$, a moderate number of treated units relative to the available control pool. In practice, this covers many applied research designs: state-level policy rollouts (a handful of treated states, dozens of untreated ones), firm-level entry events (a few firms treated, many in the comparison group), regional interventions (one or two regions treated, tens of controls). What matters more than the exact count is that the pre-treatment time series is long enough to stabilize the time weights, typically five pre-periods or more, though shorter panels can work when the outcome is well-behaved.
+
+The payoff is clearest when pre-treatment trends are visibly non-parallel. Standard DiD fails in exactly that scenario; SC alone can be unstable when the donor convex hull is a poor fit to the treated unit. SDID reweights units to repair the trend gap and reweights time periods to stabilize inference, which is why it tends to dominate in horse-race comparisons on simulated data.
+
+A few caveats are worth absorbing before you commit.
+
+The "double robustness" language in this chapter is operational, not formal. SDID is consistent under either the parallel-trends assumption (needed for DiD) or the convex-hull fit assumption (needed for SC), but it does not satisfy the classical doubly-robust property of augmented inverse-propensity-weighting estimators, where either the outcome or the treatment model can be wrong. If a referee pushes on this distinction, concede it, the operational robustness is the real point.
+
+Inference is not OLS-style. Standard errors for SDID come from a block bootstrap or a jackknife, not from a sandwich formula. The `synthdid` package defaults to the bootstrap; always check which inference option your code is using, since mis-reporting can happen silently.
+
+Donor weights identify a comparison group, they do not identify a mechanism. A donor that loads heavily on the synthetic control is merely statistically similar in pre-treatment characteristics; substantive interpretation of those weights should be limited.
+
+And SDID does not rescue every failed DiD. If treatment is endogenous to a time-varying shock that affects all donors similarly, SDID will still misattribute the shock to the treatment effect. In that case, the design-level failure is upstream of whichever estimator you choose, [IV](#sec-instrumental-variables) or [RD](#sec-regression-discontinuity) is the appropriate move.
+
+For reporting, a clean SDID writeup includes the pre-treatment fit plot (treated series vs. synthetic treated series), the ATT estimate with its block-bootstrap or jackknife standard error, a side-by-side comparison against DiD and SC on the same panel, leave-one-out robustness to donor composition, and whichever placebo tests (in-time, in-space) the data support.

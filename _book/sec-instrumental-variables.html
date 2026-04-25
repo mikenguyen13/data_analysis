@@ -170,6 +170,17 @@ Y = \beta_0 + \beta_1 X + \varepsilon.
 </ol>
 <p>These conditions ensure that <span class="math inline">\(Z\)</span> provides exogenous variation in <span class="math inline">\(X\)</span>, allowing us to isolate the causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>.</p>
 <p>These conditions ensure that <span class="math inline">\(Z\)</span> provides exogenous variation in <span class="math inline">\(X\)</span>, allowing us to estimate the causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>. <a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">Random assignment</a> of <span class="math inline">\(Z\)</span> helps ensure exogeneity, but we must also confirm that <span class="math inline">\(Z\)</span> influences <span class="math inline">\(Y\)</span> <em>only</em> through <span class="math inline">\(X\)</span> to satisfy the exclusion restriction.</p>
+<div class="rmdcaution">
+<p>A note on weak instruments before we go further. Relevance is a quantitative requirement, not a binary one: a statistically significant first stage is not sufficient evidence that the instrument is strong enough. Even a mildly weak instrument can produce 2SLS estimates that are severely biased toward OLS, with confidence intervals that undercover dramatically in finite samples.</p>
+<p>The conventional rules of thumb you will encounter later in this chapter are:</p>
+<ul>
+<li>A first-stage F-statistic below 10 (the Staiger-Stock threshold) indicates a weak instrument and unreliable 2SLS estimates.</li>
+<li>F-statistics between 10 and 20 were historically considered adequate, but <span class="citation">Lee et al. (<a href="references.html#ref-lee2022valid">2022</a>)</span> show the conventional critical values are too permissive in this range. Weak-instrument-robust inference (Anderson-Rubin, CLR) is preferable to reading the 2SLS t-statistic directly.</li>
+<li>F-statistics above 20 are a safer threshold under modern guidance.</li>
+<li>With multiple instruments (overidentified models), use the Montiel Olea-Pflueger effective F-statistic rather than the standard first-stage F. See the weak-instruments section later in this chapter for implementation details.</li>
+</ul>
+<p>One point is worth internalizing now: weak-instrument bias does not vanish with larger sample sizes. It is a property of first-stage strength, not of sampling noise. When the instrument is weak, the remedies are weak-instrument-robust methods (Anderson-Rubin, LIML, CLR) or partial identification bounds, not a larger <span class="math inline">\(N\)</span>.</p>
+</div>
 <p>The IV approach dates back to early econometric research in the 1920s and 1930s, with a significant role in Cowles Commission studies on simultaneous equations. Key contributions include:</p>
 <ul>
 <li>
@@ -434,7 +445,7 @@ Y_i = \beta_0 + \beta_1 \hat{X}_i + \varepsilon_i.
 </ul>
 </li>
 </ol>
-<div class="sourceCode" id="cb472"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb473"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">base</span> <span class="op">=</span> <span class="va">iris</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"x1"</span>, <span class="st">"x_endo_1"</span>, <span class="st">"x_inst_1"</span>, <span class="st">"fe"</span><span class="op">)</span></span>
@@ -464,7 +475,7 @@ Y_i = \beta_0 + \beta_1 \hat{X}_i + \varepsilon_i.
 <span><span class="co">#&gt;                   Wu-Hausman: stat =   6.7918, p = 0.001518, on 2 and 144 DoF.</span></span></code></pre></div>
 <p>Diagnostic Tests</p>
 <p>To assess instrument validity:</p>
-<div class="sourceCode" id="cb473"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb474"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/fitstat.html">fitstat</a></span><span class="op">(</span><span class="va">est_iv</span>, type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"f"</span>, <span class="st">"ivf"</span>, <span class="st">"ivf1"</span>, <span class="st">"ivf2"</span>, <span class="st">"ivwald"</span>, <span class="st">"cd"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                 Observations: 150</span></span>
 <span><span class="co">#&gt;                       F-test: stat = 131.9612, p &lt; 2.2e-16 , on 3 and 146 DoF.</span></span>
@@ -475,12 +486,12 @@ Y_i = \beta_0 + \beta_1 \hat{X}_i + \varepsilon_i.
 <span><span class="co">#&gt; Wald (1st stage), x_endo_2  : stat =   3.2583, p = 0.041268, on 2 and 146 DoF, VCOV: IID.</span></span>
 <span><span class="co">#&gt;                 Cragg-Donald: 3.11162</span></span></code></pre></div>
 <p>To set default printing</p>
-<div class="sourceCode" id="cb474"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb475"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># always add second-stage Wald test</span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/print.fixest.html">setFixest_print</a></span><span class="op">(</span>fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">ivwald2</span><span class="op">)</span></span>
 <span><span class="va">est_iv</span></span></code></pre></div>
 <p>To see results from different stages</p>
-<div class="sourceCode" id="cb475"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb476"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># first-stage</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">est_iv</span>, stage <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
@@ -626,7 +637,7 @@ S = E[Z' u u' Z] = \lim_{N \to \infty} N^{-1} [Z' \Omega Z].
 <li>2SLS is a special case of IV-GMM when the weighting matrix is proportional to the identity matrix.</li>
 <li>IV-GMM improves efficiency by optimally weighting the moment conditions.</li>
 </ul>
-<div class="sourceCode" id="cb476"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb477"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Standard approach</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gmm</span><span class="op">)</span></span>
@@ -684,7 +695,7 @@ J = N \bar{g}(\hat{\beta}_{GMM})' \hat{S}^{-1} \bar{g} (\hat{\beta}_{GMM}),
 </ul>
 <p>Using this robust weighting matrix, we compute a clustered GMM estimator that remains consistent and improves inference when clustering is present.</p>
 <hr>
-<div class="sourceCode" id="cb477"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb478"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gmm</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
@@ -834,7 +845,7 @@ J = N \bar{g}(\hat{\beta}_{GMM})' \hat{S}^{-1} \bar{g} (\hat{\beta}_{GMM}),
 \hat{\beta}_{JIVE} &amp;= (X^{(-i)'}X^{(-i)})^{-1}X^{(-i)'} Y
 \end{aligned}
 \]</span></p>
-<div class="sourceCode" id="cb478"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb479"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span></span>
 <span><span class="va">jive_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/AER/man/ivreg.html">ivreg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x_endo_1</span> <span class="op">|</span> <span class="va">x_inst_1</span>, data <span class="op">=</span> <span class="va">base</span>, method <span class="op">=</span> <span class="st">"jive"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jive_model</span><span class="op">)</span></span>
@@ -939,7 +950,7 @@ Y_i = X_i \beta + \gamma \hat{v}_i + \varepsilon_i.
 </ul>
 </li>
 </ol>
-<div class="sourceCode" id="cb479"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb480"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://modelsummary.com">modelsummary</a></span><span class="op">)</span></span>
@@ -1027,7 +1038,7 @@ Y_i = X_i \beta + \gamma \hat{v}_i + \varepsilon_i.
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
 <p>Linear in parameter and linear in endogenous variable</p>
-<div class="sourceCode" id="cb480"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb481"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># manual</span></span>
 <span><span class="co"># 2SLS</span></span>
 <span><span class="va">first_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">endogenous</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
@@ -1208,7 +1219,7 @@ Y_i = X_i \beta + \gamma \hat{v}_i + \varepsilon_i.
 </div>
 <!-- hack to avoid NA insertion in last line -->
 <p>Nonlinear in endogenous variable</p>
-<div class="sourceCode" id="cb481"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb482"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 2SLS</span></span>
 <span><span class="va">first_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">endogenous_nonlinear</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
 <span></span>
@@ -1390,7 +1401,7 @@ Y_i = X_i \beta + \gamma \hat{v}_i + \varepsilon_i.
 </div>
 <!-- hack to avoid NA insertion in last line -->
 <p>Nonlinear in parameters</p>
-<div class="sourceCode" id="cb482"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb483"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 2SLS</span></span>
 <span><span class="va">first_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">endogenous</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
 <span></span>
@@ -1578,7 +1589,7 @@ Y_i = X_i \beta + \gamma \hat{v}_i + \varepsilon_i.
 <span class="header-section-number">34.3.6</span> Fuller and Bias-Reduced IV<a class="anchor" aria-label="anchor" href="#fuller-and-bias-reduced-iv"><i class="fas fa-link"></i></a>
 </h3>
 <p>Fuller adjusts LIML for bias reduction.</p>
-<div class="sourceCode" id="cb483"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb484"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fuller_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/AER/man/ivreg.html">ivreg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x_endo_1</span> <span class="op">|</span> <span class="va">x_inst_1</span>, data <span class="op">=</span> <span class="va">base</span>, method <span class="op">=</span> <span class="st">"fuller"</span>, k <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fuller_model</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -2064,7 +2075,7 @@ AR(\beta_0) = \frac{R^2 \cdot n}{q}
 <ol start="5" style="list-style-type: decimal">
 <li>Compare <span class="math inline">\(AR(\beta_0)\)</span> to the <span class="math inline">\(\chi^2(q)\)</span> distribution to determine significance.</li>
 </ol>
-<div class="sourceCode" id="cb484"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb485"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/ivDiag/">ivDiag</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># AR test (robust to weak instruments)</span></span>
@@ -2365,7 +2376,7 @@ t^2 = f + t_{AR} + \rho f t_{AR}
 <li>Published studies can be re-evaluated with the tF method using only the reported first-stage F-statistics, without requiring access to the underlying microdata.</li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb485"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb486"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/ivDiag/">ivDiag</a></span><span class="op">)</span></span>
 <span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu">ivDiag</span><span class="fu">::</span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/ivDiag.html">ivDiag</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">rueda</span>,</span>
@@ -2380,7 +2391,7 @@ t^2 = f + t_{AR} + \rho f t_{AR}
 <span><span class="va">g</span><span class="op">$</span><span class="va">tF</span></span>
 <span><span class="co">#&gt;         F        cF      Coef        SE         t    CI2.5%   CI97.5%   p-value </span></span>
 <span><span class="co">#&gt; 8598.3264    1.9600   -0.9835    0.1424   -6.9071   -1.2626   -0.7044    0.0000</span></span></code></pre></div>
-<div class="sourceCode" id="cb486"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb487"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># example in fixest package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
@@ -2741,7 +2752,7 @@ CD = n \times (R_{ur}^2 - R_r^2)
 <li><p><span class="math inline">\(n\)</span> is the number of observations.</p></li>
 </ul>
 <p>For one endogenous variable, the Cragg-Donald test results should align closely with those from Stock and Yogo. The Anderson canonical correlation test, a likelihood ratio test, also works under similar conditions, contrasting with Cragg-Donald’s Wald statistic approach. Both are valid with one endogenous variable and at least one instrument.</p>
-<div class="sourceCode" id="cb487"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb488"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cragg</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span> <span class="co"># for dataaset</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"WeakInstrument"</span><span class="op">)</span></span>
@@ -2781,7 +2792,7 @@ S = \frac{1}{n} (Z' X) (X'Z)
 </ul>
 <p><span class="math inline">\(H_0:\)</span> Instruments are weak</p>
 <p><span class="math inline">\(H_1:\)</span> Instruments are not weak</p>
-<div class="sourceCode" id="cb488"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb489"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cragg</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span> <span class="co"># for dataaset</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"WeakInstrument"</span><span class="op">)</span></span>
@@ -2893,7 +2904,7 @@ AR(\beta_0) \sim \chi^2_m
 <li>Include all <span class="math inline">\(\beta\)</span> values for which <span class="math inline">\(AR(\beta)\)</span> does not reject <span class="math inline">\(H_0\)</span> at the chosen significance level.</li>
 </ol>
 <p>These confidence sets are robust to weak instruments and can be disconnected or unbounded if identification is weak.</p>
-<div class="sourceCode" id="cb489"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb490"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulate data</span></span>
@@ -3031,7 +3042,7 @@ S(\beta_0) \sim \chi^2_m
 <li>The confidence region consists of all <span class="math inline">\(\beta\)</span> values where <span class="math inline">\(S(\beta)\)</span> does not reject <span class="math inline">\(H_0\)</span> at the chosen significance level.</li>
 </ol>
 <p>These regions are robust to weak instruments, and can be disconnected or unbounded if the instruments are too weak to deliver informative inference.</p>
-<div class="sourceCode" id="cb490"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb491"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulate data</span></span>
@@ -3194,7 +3205,7 @@ KP_{rk} \sim \chi^2_{k(m - k)}
 </tr>
 </tbody>
 </table></div>
-<div class="sourceCode" id="cb491"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb492"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://sandwich.R-Forge.R-project.org/">sandwich</a></span><span class="op">)</span>  <span class="co"># For robust covariance estimators</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">lmtest</span><span class="op">)</span>    <span class="co"># For testing</span></span>
@@ -3357,7 +3368,7 @@ X_2(Z = 1) \ge X_2(Z = 0) \quad \text{for all individuals}
 <li>First-Stage Regression</li>
 </ol>
 <p>Estimate the impact of the instrument on the treatment. A strong, consistent sign across subgroups supports monotonicity.</p>
-<div class="sourceCode" id="cb492"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb493"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Sample size</span></span>
@@ -3406,7 +3417,7 @@ X_2(Z = 1) \ge X_2(Z = 0) \quad \text{for all individuals}
 <ol start="2" style="list-style-type: decimal">
 <li>Density Plot of First-Stage Residuals</li>
 </ol>
-<div class="sourceCode" id="cb493"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb494"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract residuals</span></span>
 <span><span class="va">residuals_first_stage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">first_stage</span><span class="op">)</span></span>
 <span></span>
@@ -3428,7 +3439,7 @@ X_2(Z = 1) \ge X_2(Z = 0) \quad \text{for all individuals}
 <li>Subgroup Analysis</li>
 </ol>
 <p>Split the sample into subgroups (e.g., by market segment or region) and compare the first-stage coefficients.</p>
-<div class="sourceCode" id="cb494"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb495"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create two random subgroups</span></span>
 <span><span class="va">df</span><span class="op">$</span><span class="va">subgroup</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0.5</span>, <span class="st">"Group A"</span>, <span class="st">"Group B"</span><span class="op">)</span></span>
 <span></span>
@@ -3507,7 +3518,7 @@ Y = X \beta + \epsilon
 \rho = \phi \times \text{LATE}
 \]</span></p>
 <p>Thus, if the first stage (<span class="math inline">\(\phi\)</span>) is 0, the reduced form (<span class="math inline">\(\rho\)</span>) should also be 0.</p>
-<div class="sourceCode" id="cb495"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb496"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/">shiny</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span>  <span class="co"># for ivreg</span></span>
@@ -3904,7 +3915,7 @@ J = n \hat{g}' W \hat{g},
 </tbody>
 </table></div>
 <hr>
-<div class="sourceCode" id="cb496"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb497"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span>  <span class="co"># Provides ivreg function</span></span>
 <span></span>
@@ -3970,7 +3981,7 @@ J = n \hat{g}' W \hat{g},
 <li><p>If different instruments identify different segments of the population, each instrument can yield a <em>distinct</em> causal effect.</p></li>
 <li><p>This discrepancy can trigger a J-test rejection, not because the instruments are invalid, but because they don’t agree on a <em>single</em> parameter value.</p></li>
 </ul>
-<div class="sourceCode" id="cb497"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb498"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -4837,17 +4848,75 @@ Y = \gamma_0 + \gamma_1 X_1 + \rho \hat{S} + \nu
 <hr>
 </div>
 </div>
-<div id="decision-maker-iv" class="section level3" number="34.8.2">
+</div>
+<div id="iv-and-matching-design-based-vs.-model-based-approaches" class="section level2" number="34.9">
+<h2>
+<span class="header-section-number">34.9</span> IV and Matching: Design-Based vs. Model-Based Approaches<a class="anchor" aria-label="anchor" href="#iv-and-matching-design-based-vs.-model-based-approaches"><i class="fas fa-link"></i></a>
+</h2>
+<p>IV (this chapter) and <a href="sec-matching-methods.html#sec-matching-methods">matching</a> (Chapter 35) are the two remaining strategies when neither a cutoff nor panel structure is available. They rest on very different identifying assumptions, and they answer slightly different questions:</p>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="33%">
+<col width="31%">
+<col width="34%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Feature</strong></th>
+<th><strong>IV (Ch. 34)</strong></th>
+<th><strong>Matching (Ch. 35)</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>What it solves</strong></td>
+<td>Endogeneity from unobserved confounding</td>
+<td>Selection bias from observed confounding</td>
+</tr>
+<tr class="even">
+<td><strong>Key assumption</strong></td>
+<td>Exclusion + relevance + independence (+ monotonicity for LATE)</td>
+<td>Unconfoundedness + overlap (a.k.a. selection on observables)</td>
+</tr>
+<tr class="odd">
+<td><strong>Testable?</strong></td>
+<td>Relevance is testable (first-stage F); exclusion is not testable</td>
+<td>Overlap is testable; unconfoundedness is not testable</td>
+</tr>
+<tr class="even">
+<td><strong>Estimand</strong></td>
+<td>LATE for compliers</td>
+<td>ATT or ATE, depending on the match target</td>
+</tr>
+<tr class="odd">
+<td><strong>When it shines</strong></td>
+<td>Clear exogenous shifter of treatment is available</td>
+<td>Rich covariate set; no credible instrument or design-based alternative</td>
+</tr>
+<tr class="even">
+<td><strong>When it fails quietly</strong></td>
+<td>Weak first stage; exclusion violated through a backdoor</td>
+<td>Unobserved confounder drives selection; poor overlap hidden in aggregate stats</td>
+</tr>
+<tr class="odd">
+<td><strong>Relationship to each other</strong></td>
+<td>Often combined: match on observables, then use IV for residual endogeneity</td>
+<td>Often used as preprocessing before IV, <a href="sec-difference-in-differences.html#sec-difference-in-differences">DiD</a>, or other designs</td>
+</tr>
+</tbody>
+</table></div>
+<p>In practice the two are often stacked. Matching is used first to impose common support and strip out gross observable imbalances, and then IV is applied on the matched sample to address residual endogeneity. IV also combines naturally with <a href="sec-difference-in-differences.html#sec-difference-in-differences">DiD</a> (difference-in-differences with an instrumented treatment), with <a href="sec-regression-discontinuity.html#sec-regression-discontinuity">RD</a> (where Fuzzy RD is itself a local IV), and with <a href="sec-event-studies.html#sec-event-studies">event studies</a> where the event serves as an instrument.</p>
+<p>The methods are complements rather than rivals. They address different threats, unobserved confounding on the one hand and observed confounding on the other, and a credible empirical paper often uses both.</p>
+<hr>
+<div id="sec-examiner-design" class="section level3" number="34.9.1">
 <h3>
-<span class="header-section-number">34.8.2</span> Decision-Maker IV<a class="anchor" aria-label="anchor" href="#decision-maker-iv"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1</span> Decision-Maker IV<a class="anchor" aria-label="anchor" href="#sec-examiner-design"><i class="fas fa-link"></i></a>
 </h3>
 <p><strong>Examiner designs</strong>, <strong>judge IV designs</strong>, and <strong>leniency IV</strong> refer to a family of instrumental variable strategies that exploit quasi-random assignment of decision-makers (such as judges or examiners) to observational units. These designs are used to identify causal effects in settings where controlled experiments are not feasible.</p>
 <p><strong>Examiner/judge IV design</strong> is an approach where the instrument is the identity or behavior of an assigned decision-maker (an “examiner” or a judge). The classic setup arises in courts: cases are typically assigned to judges in a manner that is as good as random (often conditional on timing or location), and different judges have systematically different propensities to rule harshly or leniently. This means that, purely by the luck of the draw, otherwise-similar individuals may receive different treatments (e.g. a longer vs. shorter sentence) depending on which judge they happen to get. In such a design, the judge assignment (or a function of it) serves as an instrumental variable for the treatment of interest (like sentence length). The key insight is that <em>who</em> the examiner/judge is can be treated as an exogenous shock that influences the treatment but is (ideally) unrelated to the person’s own characteristics.</p>
 <p>The term <strong>judge IV design</strong> specifically refers to using judges in legal settings as instruments. This approach rose to prominence through studies of the criminal justice system; a well-known early example is <span class="citation">Kling (<a href="references.html#ref-kling2006incarceration">2006</a>)</span>, who used randomly assigned judges to instrument for incarceration length when studying its effect on later earnings. More generally, the literature often calls this the <strong>“judge leniency” design</strong>, because it leverages differences in judges’ leniency/harshness. Importantly, the same idea extends beyond literal judges. <em>Examiners</em> in various administrative or medical contexts can play an analogous role. For instance, bureaucrats evaluating benefit claims, patent examiners reviewing applications, or physicians making discretionary treatment decisions can all act like “judges” whose assignment is as-good-as-random and whose leniency varies. In these non-court contexts, researchers sometimes use the term <strong>examiner design</strong> as a more general label, but it is essentially the same IV strategy. In summary, whether we say <em>examiner design</em>, <em>judge IV</em>, or <em>judge leniency IV</em>, we are usually referring to the same identification strategy – using the quasi-random assignment of a decision-maker with varying tendencies as an instrument.</p>
 <p><strong>How the design is structured:</strong> In practice, one can implement this IV in a couple of ways. One method is to include dummy variables for each judge/examiner as instruments (since each judge is a distinct source of variation). Another common approach is to construct a <strong>leniency measure</strong> for each decision-maker – for example, the judge’s historical rate of granting the treatment – and use that as a single continuous instrument. The latter approach (using a summary measure of leniency) is popular because it reduces dimensionality and mitigates weak-instrument concerns when there are many judges. For instance, instead of having 50 separate judge dummies, one can calculate each judge’s leave-one-out approval or sentencing rate and use that number as the instrument. This “leave-one-out” or jackknife approach ensures the measure for each judge is calculated excluding the case in question (avoiding mechanical endogeneity). Overall, the examiner/judge IV design turns the naturally occurring randomness in examiner assignment into a source of exogenous variation: who you were randomly assigned to becomes the instrument for the treatment you received.</p>
-<div id="achieving-identification-with-a-leniency-iv" class="section level4" number="34.8.2.1">
+<div id="achieving-identification-with-a-leniency-iv" class="section level4" number="34.9.1.1">
 <h4>
-<span class="header-section-number">34.8.2.1</span> Achieving Identification with a Leniency IV<a class="anchor" aria-label="anchor" href="#achieving-identification-with-a-leniency-iv"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.1</span> Achieving Identification with a Leniency IV<a class="anchor" aria-label="anchor" href="#achieving-identification-with-a-leniency-iv"><i class="fas fa-link"></i></a>
 </h4>
 <p>The examiner/judge design is a powerful way to achieve identification in observational data. It rests on the core requirements for a valid instrumental variable:</p>
 <ul>
@@ -4863,16 +4932,16 @@ Y = \gamma_0 + \gamma_1 X_1 + \rho \hat{S} + \nu
 </ul>
 <p>By meeting these conditions, examiner/judge IV designs create a natural experiment. Essentially, they compare outcomes between individuals who, by random luck, received different treatment assignments (e.g. one was incarcerated, another not) due to differing examiner leniency, despite those individuals being comparable in expectation. This helps isolate the causal impact of the treatment from confounding factors. Notably, the estimates from such designs often correspond to a <strong>local average treatment effect (LATE)</strong> for those cases whose treatment status is swayed by the examiner’s leniency – for example, the “marginal” defendants who would be incarcerated by a strict judge but released by a lenient judge. In sum, these designs allow researchers to <strong>mimic a randomized experiment</strong> within observational data by leveraging institutional randomness (who gets assigned to whom) as an instrument.</p>
 </div>
-<div id="leniency-iv-clarifying-the-terminology" class="section level4" number="34.8.2.2">
+<div id="leniency-iv-clarifying-the-terminology" class="section level4" number="34.9.1.2">
 <h4>
-<span class="header-section-number">34.8.2.2</span> Leniency IV: Clarifying the Terminology<a class="anchor" aria-label="anchor" href="#leniency-iv-clarifying-the-terminology"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.2</span> Leniency IV: Clarifying the Terminology<a class="anchor" aria-label="anchor" href="#leniency-iv-clarifying-the-terminology"><i class="fas fa-link"></i></a>
 </h4>
 <p>The term <strong>leniency IV</strong> refers to this same instrumental variable strategy, emphasizing the role of the examiner’s <em>leniency</em> (or strictness). In many studies, the instrument is literally a measure of how lenient the assigned judge or examiner tends to be. For example, in a Social Security Disability study, researchers <em>“exploit variation in examiners’ allowance rates as an instrument for benefit receipt.”</em> <span class="citation">(<a href="references.html#ref-maestas2013does">Maestas, Mullen, and Strand 2013</a>)</span>. Here, an examiner’s <em>allowance rate</em> (the fraction of cases they approve) is a direct quantification of their leniency, and this serves as the instrumental variable. Similarly, one can define a judge’s leniency as the percentage of past defendants that judge jailed or the average sentence length they give, and use that as the IV. The phrase “leniency design” or <strong>leniency instrument</strong> simply underscores that it’s the lenient vs. strict tendencies of the decision-maker that provide the exogenous variation.</p>
 <p>A leniency IV design typically involves constructing an instrument like <em>“the leave-out mean decision rate of the assigned examiner.”</em> This could be, for instance, the fraction of previous similar cases that the examiner approved (excluding the current case). That number captures how lenient or strict they generally are. Because assignment is random, some individuals get a high-leniency examiner and others a low-leniency examiner, creating exogenous variation in treatment. By comparing outcomes across these, one can identify the causal effect of the treatment. The term “leniency” highlights that it’s the discretionary toughness of the examiner that we’re leveraging.</p>
 </div>
-<div id="examples-in-economics" class="section level4" number="34.8.2.3">
+<div id="examples-in-economics" class="section level4" number="34.9.1.3">
 <h4>
-<span class="header-section-number">34.8.2.3</span> Examples in Economics<a class="anchor" aria-label="anchor" href="#examples-in-economics"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.3</span> Examples in Economics<a class="anchor" aria-label="anchor" href="#examples-in-economics"><i class="fas fa-link"></i></a>
 </h4>
 <p>Many influential studies across economics and related fields have employed examiner or judge IV designs to answer causal questions. Below are several prominent examples illustrating the range of applications and findings:</p>
 <ul>
@@ -4886,9 +4955,9 @@ Y = \gamma_0 + \gamma_1 X_1 + \rho \hat{S} + \nu
 <p>These examples illustrate how examiner/judge (leniency) IV designs have been used in a wide array of empirical settings: from judicial decisions about bail, sentencing, and juvenile detention, to administrative adjudications on disability and bankruptcy, to regulatory approvals like patents, to evaluation panels in business or education contexts. In each case, the randomness of assignment and the differing “strictness” of the decision-makers create a natural experiment that researchers harness to estimate causal effects.</p>
 <p><strong>Why are these designs so valuable?</strong> They allow analysts to address the problem of unobserved heterogeneity or selection bias in observational data. Normally, people who receive a treatment (go to prison, get a benefit, win an award) may differ systematically from those who don’t, confounding simple comparisons. But if an outside examiner’s quasi-random decision determines who gets the treatment, we have a credible instrument to break that link. As one article notes, this approach has become quite popular as a reliable way to recover causal effects, even as many other attempted instruments face skepticism. The trade-off is that one must have a context where such random examiner assignment occurs and must carefully check the assumptions (e.g. truly random assignment, no direct effect of the examiner on outcomes aside from via treatment). When those conditions are met, examiner and judge IV designs provide compelling evidence on causal relationships that would be hard to identify otherwise.</p>
 </div>
-<div id="examples-in-marketing" class="section level4" number="34.8.2.4">
+<div id="examples-in-marketing" class="section level4" number="34.9.1.4">
 <h4>
-<span class="header-section-number">34.8.2.4</span> Examples in Marketing<a class="anchor" aria-label="anchor" href="#examples-in-marketing"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.4</span> Examples in Marketing<a class="anchor" aria-label="anchor" href="#examples-in-marketing"><i class="fas fa-link"></i></a>
 </h4>
 <p>In marketing research, analogous setups can be constructed by identifying quasi-random sources of variation in decision-makers’ behaviors—such as sales representatives, regional managers, or customer service agents—who differ systematically in their tendency to approve discounts, upgrade customers, or resolve complaints favorably. These agents’ “leniency” can serve as an instrument for treatment assignment, enabling researchers to isolate causal effects in observational data where randomization is infeasible.</p>
 <p>This analogical use of judge leniency introduces a powerful framework for addressing endogeneity in business contexts, allowing us to disentangle the effect of marketing actions (e.g., discounts, loyalty offers) from the confounding influence of customer selection or targeting bias.</p>
@@ -4962,9 +5031,9 @@ Y = \gamma_0 + \gamma_1 X_1 + \rho \hat{S} + \nu
 <hr>
 <!-- #### Illustrative Examples --><!-- **Example 1: Bail Setting in Philadelphia** --><!-- The pretrial release decision in Philadelphia illustrates a decision maker IV design [@stevenson2018distortion]: --><!-- -   After arrest, a defendant may: --><!--     -   Be held in jail, --><!--     -   Released on bail (money required), --><!--     -   Or released on recognizance (no money required). --><!-- -   This decision is made by one of six magistrates during preliminary hearings. --><!-- -   Magistrate assignment depends on a **rotating schedule**, and the **time of arrest** introduces random variation in which magistrate a defendant faces. --><!-- **Example 2: Bankruptcy Judges in Chapter 13** --><!-- Another example arises in the Chapter 13 bankruptcy process [@dobbie2017consumer]: --><!-- -   When filing for Chapter 13, a debtor submits a repayment plan that must be approved by a judge. --><!-- -   Judge assignment is random within location and filing day, producing quasi-random variation in outcomes. --><!-- -   Judge leniency toward discharging debts creates the necessary heterogeneity. -->
 </div>
-<div id="formal-setup-and-notation" class="section level4" number="34.8.2.5">
+<div id="formal-setup-and-notation" class="section level4" number="34.9.1.5">
 <h4>
-<span class="header-section-number">34.8.2.5</span> Formal Setup and Notation<a class="anchor" aria-label="anchor" href="#formal-setup-and-notation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.5</span> Formal Setup and Notation<a class="anchor" aria-label="anchor" href="#formal-setup-and-notation"><i class="fas fa-link"></i></a>
 </h4>
 <p>We define the setup formally as follows:</p>
 <ul>
@@ -5089,9 +5158,9 @@ Z_i = \hat{D}_i^\perp
 </ul>
 <hr>
 </div>
-<div id="assumptions-5" class="section level4" number="34.8.2.6">
+<div id="assumptions-5" class="section level4" number="34.9.1.6">
 <h4>
-<span class="header-section-number">34.8.2.6</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-5"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.6</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-5"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>
@@ -5119,9 +5188,9 @@ Z_i = \hat{D}_i^\perp
 <p><strong>Note</strong>: The <strong>exclusion</strong> and <strong>monotonicity</strong> assumptions are not directly testable and can be controversial. We’ll return to this in more depth later.</p>
 <hr>
 </div>
-<div id="one-vs.-many-instruments" class="section level4" number="34.8.2.7">
+<div id="one-vs.-many-instruments" class="section level4" number="34.9.1.7">
 <h4>
-<span class="header-section-number">34.8.2.7</span> One vs. Many Instruments<a class="anchor" aria-label="anchor" href="#one-vs.-many-instruments"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.7</span> One vs. Many Instruments<a class="anchor" aria-label="anchor" href="#one-vs.-many-instruments"><i class="fas fa-link"></i></a>
 </h4>
 <p>In many applied papers, researchers use the <strong>leniency score</strong> <span class="math inline">\(Z_i = \hat{D}_i^\perp\)</span> rather than judge dummies directly.</p>
 <p>Why?</p>
@@ -5209,9 +5278,9 @@ Z_i = \hat{D}_i^\perp
 </ul>
 <hr>
 </div>
-<div id="testing-the-exclusion-restriction" class="section level4" number="34.8.2.8">
+<div id="testing-the-exclusion-restriction" class="section level4" number="34.9.1.8">
 <h4>
-<span class="header-section-number">34.8.2.8</span> Testing the Exclusion Restriction<a class="anchor" aria-label="anchor" href="#testing-the-exclusion-restriction"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.8</span> Testing the Exclusion Restriction<a class="anchor" aria-label="anchor" href="#testing-the-exclusion-restriction"><i class="fas fa-link"></i></a>
 </h4>
 <p>The exclusion restriction requires that judge assignment affects the outcome only through treatment—i.e., <span class="math inline">\(Q_i\)</span> affects <span class="math inline">\(Y_i\)</span> only through <span class="math inline">\(D_i\)</span>.</p>
 <p>This is challenging to test directly, but we can probe its plausibility using tools familiar from RCTs and observational causal inference: <strong>covariate balance checks</strong>.</p>
@@ -5236,9 +5305,9 @@ Z_i = \hat{D}_i^\perp
 </blockquote>
 <hr>
 </div>
-<div id="testing-the-monotonicity-assumption" class="section level4" number="34.8.2.9">
+<div id="testing-the-monotonicity-assumption" class="section level4" number="34.9.1.9">
 <h4>
-<span class="header-section-number">34.8.2.9</span> Testing the Monotonicity Assumption<a class="anchor" aria-label="anchor" href="#testing-the-monotonicity-assumption"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.1.9</span> Testing the Monotonicity Assumption<a class="anchor" aria-label="anchor" href="#testing-the-monotonicity-assumption"><i class="fas fa-link"></i></a>
 </h4>
 <p>The <strong>monotonicity assumption</strong> requires that if one judge is more lenient than another, they are more lenient <strong>for everyone</strong>—i.e., no individual who is treated by a strict judge would have been untreated by a lenient one.</p>
 <p>This is subtle and particularly hard to test in multi-judge (non-binary instrument) designs.</p>
@@ -5296,10 +5365,85 @@ P(B, 0) - Q(B, 0) &amp;\ge 0
 </ul>
 <hr>
 </div>
+<div id="a-worked-simulation-judge-leniency-iv" class="section level4" number="34.9.1.10">
+<h4>
+<span class="header-section-number">34.9.1.10</span> A Worked Simulation: Judge-Leniency IV<a class="anchor" aria-label="anchor" href="#a-worked-simulation-judge-leniency-iv"><i class="fas fa-link"></i></a>
+</h4>
+<p>The snippet below simulates a canonical judge/examiner design with quasi-random judge assignment, heterogeneous judge leniency, a binary treatment (e.g., pre-trial detention), and a continuous outcome (e.g., employment). It constructs the <strong>leave-one-out leniency instrument</strong> <span class="math inline">\(Z_i\)</span> and then recovers the causal effect via 2SLS. The simulation is small but illustrates the full workflow: (1) quasi-random assignment, (2) LOO leniency construction, (3) 2SLS with judge fixed effects netted out.</p>
+<div class="sourceCode" id="cb499"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- 1. Simulate data ---------------------------------------------------</span></span>
+<span><span class="va">N_judges</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">N_cases</span>  <span class="op">&lt;-</span> <span class="fl">5000</span></span>
+<span></span>
+<span><span class="co"># Judge-level leniency (propensity to assign treatment D = 1)</span></span>
+<span><span class="va">judge_leniency</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N_judges</span>, <span class="fl">0.2</span>, <span class="fl">0.8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cases are as-good-as-randomly assigned to judges</span></span>
+<span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
+<span>    case_id  <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">N_cases</span>,</span>
+<span>    judge_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">N_judges</span>, <span class="va">N_cases</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    U        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">N_cases</span><span class="op">)</span>                    <span class="co"># unobserved confounder</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="va">cases</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
+<span>        prop   <span class="op">=</span> <span class="va">judge_leniency</span><span class="op">[</span><span class="va">judge_id</span><span class="op">]</span>,       <span class="co"># judge leniency</span></span>
+<span>        D      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">N_cases</span>, <span class="fl">1</span>, <span class="va">prop</span><span class="op">)</span>,       <span class="co"># treatment from judge</span></span>
+<span>        <span class="co"># True causal effect of treatment = -0.5; U confounds OLS</span></span>
+<span>        Y      <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="va">D</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="va">U</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">N_cases</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- 2. Leave-one-out judge leniency instrument -------------------------</span></span>
+<span><span class="va">judge_totals</span> <span class="op">&lt;-</span> <span class="va">cases</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">judge_id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>sum_D <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span>, n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="va">cases</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">judge_totals</span>, by <span class="op">=</span> <span class="st">"judge_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Z <span class="op">=</span> <span class="op">(</span><span class="va">sum_D</span> <span class="op">-</span> <span class="va">D</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">n</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>            <span class="co"># leave-one-out leniency</span></span>
+<span></span>
+<span><span class="co"># --- 3. OLS is biased; 2SLS with judge FE is consistent -----------------</span></span>
+<span><span class="va">ols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">D</span>, data <span class="op">=</span> <span class="va">cases</span><span class="op">)</span></span>
+<span><span class="va">iv</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">judge_id</span> <span class="op">|</span> <span class="va">D</span> <span class="op">~</span> <span class="va">Z</span>, data <span class="op">=</span> <span class="va">cases</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compare OLS and 2SLS</span></span>
+<span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span><span class="va">ols</span>, <span class="va">iv</span>,</span>
+<span>       headers  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Biased OLS"</span>, <span class="st">"Judge-IV (2SLS)"</span><span class="op">)</span>,</span>
+<span>       dict     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>D <span class="op">=</span> <span class="st">"Treatment (D)"</span><span class="op">)</span>,</span>
+<span>       fitstat  <span class="op">=</span> <span class="op">~</span> <span class="va">n</span> <span class="op">+</span> <span class="va">r2</span> <span class="op">+</span> <span class="va">ivf</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                                                   ols                  iv</span></span>
+<span><span class="co">#&gt;                                            Biased OLS     Judge-IV (2SLS)</span></span>
+<span><span class="co">#&gt; Dependent Var.:                                     Y                   Y</span></span>
+<span><span class="co">#&gt;                                                                          </span></span>
+<span><span class="co">#&gt; Constant                             -0.0012 (0.0188)                    </span></span>
+<span><span class="co">#&gt; Treatment (D)                     -0.5004*** (0.0268) -0.5051*** (0.0294)</span></span>
+<span><span class="co">#&gt; Fixed-Effects:                    ------------------- -------------------</span></span>
+<span><span class="co">#&gt; judge_id                                           No                 Yes</span></span>
+<span><span class="co">#&gt; _________________________________ ___________________ ___________________</span></span>
+<span><span class="co">#&gt; S.E. type                                         IID                 IID</span></span>
+<span><span class="co">#&gt; Observations                                    5,000               5,000</span></span>
+<span><span class="co">#&gt; R2                                            0.06527             0.08596</span></span>
+<span><span class="co">#&gt; F-test (1st stage), Treatment (D)                  --           143,432.2</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<p>Interpretation: OLS is biased because <span class="math inline">\(U\)</span> drives both <span class="math inline">\(D\)</span> and <span class="math inline">\(Y\)</span>. The LOO leniency instrument isolates variation in <span class="math inline">\(D\)</span> that comes purely from which judge a case was assigned to, variation that is orthogonal to <span class="math inline">\(U\)</span> by the quasi-random-assignment assumption. The 2SLS estimate should recover the true causal effect (<span class="math inline">\(-0.5\)</span>) up to sampling noise, while OLS will be biased toward the sign of <span class="math inline">\(\text{Cov}(U, D)\)</span>.</p>
+<p><strong>Caveats that would apply in real data:</strong></p>
+<ul>
+<li>Check first-stage strength, the LOO leniency instrument can be weak if within-judge variation in the sample is small.</li>
+<li>Monotonicity should be probed with a covariate-balance regression: <span class="math inline">\(X_i\)</span> on predicted treatment.</li>
+<li>If judge assignment is conditional on observables (e.g., by courthouse × calendar quarter), include those fixed effects in both stages.</li>
+</ul>
+<hr>
 </div>
-<div id="sec-proxy-variables" class="section level3" number="34.8.3">
+</div>
+<div id="sec-proxy-variables" class="section level3" number="34.9.2">
 <h3>
-<span class="header-section-number">34.8.3</span> Proxy Variables<a class="anchor" aria-label="anchor" href="#sec-proxy-variables"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2</span> Proxy Variables<a class="anchor" aria-label="anchor" href="#sec-proxy-variables"><i class="fas fa-link"></i></a>
 </h3>
 <p>In applied business and economic analysis, we often confront a frustrating reality: the variables we truly care about—like <em>brand loyalty</em>, <em>employee ability</em>, or <em>investor sentiment</em>—are not directly observable. Instead, we rely on <strong>proxy variables</strong>, which are observable measures that stand in for these latent or omitted variables. Though useful, proxy variables must be used with care, as they introduce their own risks, most notably <strong>measurement error</strong> and <strong>incomplete control of endogeneity</strong>.</p>
 <p>A <strong>proxy variable</strong> is an observed variable used in place of a variable that is either unobservable or omitted from a model. It is typically used under the assumption that it is correlated with the latent variable and explains some of its variation.</p>
@@ -5316,9 +5460,9 @@ Y = \beta_0 + \beta_1 X^* + \varepsilon,
 Y = \beta_0 + \beta_1 X + u.
 \]</span></p>
 <p>The effectiveness of this approach hinges on whether <span class="math inline">\(X\)</span> can validly stand in for <span class="math inline">\(X^*\)</span>.</p>
-<div id="proxy-use-and-omitted-variable-bias" class="section level4" number="34.8.3.1">
+<div id="proxy-use-and-omitted-variable-bias" class="section level4" number="34.9.2.1">
 <h4>
-<span class="header-section-number">34.8.3.1</span> Proxy Use and Omitted Variable Bias<a class="anchor" aria-label="anchor" href="#proxy-use-and-omitted-variable-bias"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.1</span> Proxy Use and Omitted Variable Bias<a class="anchor" aria-label="anchor" href="#proxy-use-and-omitted-variable-bias"><i class="fas fa-link"></i></a>
 </h4>
 <p>Proxy variables are sometimes used as <strong>substitutes</strong> for omitted variables that cause <a href="sec-endogeneity.html#sec-endogeneity">endogeneity</a>. Including a proxy can <strong>reduce</strong> endogeneity, but it will <strong>not</strong> generally eliminate bias, unless strict conditions are met.</p>
 <blockquote>
@@ -5345,11 +5489,18 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <strong>No direct effect</strong>: <span class="math inline">\(Z_p\)</span> affects <span class="math inline">\(Y\)</span> only through <span class="math inline">\(Z\)</span> (or at least not directly).</li>
 </ol>
 <p>Violation of these conditions can lead to <strong>biased</strong> or <strong>inconsistent</strong> estimates.</p>
+<div class="rmdcaution">
+<p>The residual-independence condition is strong, and often violated in practice. Condition 2 above requires that the part of <span class="math inline">\(Z\)</span> <em>not</em> captured by the proxy <span class="math inline">\(Z_p\)</span> (i.e., <span class="math inline">\(\nu\)</span>) be uncorrelated with both the proxy and every other regressor. There are three common ways this fails.</p>
+<p>The first is reverse causation. If the unobserved construct <span class="math inline">\(Z\)</span> is a cause of the proxy <span class="math inline">\(Z_p\)</span> (the usual story: ability causes IQ scores), then <span class="math inline">\(Z = \gamma_0 + \gamma_1 Z_p + \nu\)</span> is a misspecified regression. The structural model runs the other direction, and <span class="math inline">\(\text{Cov}(\nu, Z_p) = 0\)</span> is not guaranteed.</p>
+<p>The second is an endogenous proxy. If <span class="math inline">\(Z_p\)</span> is correlated with <span class="math inline">\(X\)</span> for reasons unrelated to <span class="math inline">\(Z\)</span> (e.g., IQ scores themselves respond to education), plugging it in induces a new bias rather than removing an old one.</p>
+<p>The third is multiplicity of omitted variables. If <span class="math inline">\(Z\)</span> is one of several unobserved confounders, even a clean proxy for <span class="math inline">\(Z\)</span> leaves the others uncontrolled.</p>
+<p>Because Condition 2 is untestable without additional structure, proxy variables <em>reduce</em> rather than <em>eliminate</em> omitted-variable bias. A sensible workflow is to report estimates with and without the proxy and to treat the proxy-adjusted estimate as a bound rather than a point identification.</p>
+</div>
 <hr>
 </div>
-<div id="example-iq-as-a-proxy-for-ability-in-wage-regressions" class="section level4" number="34.8.3.2">
+<div id="example-iq-as-a-proxy-for-ability-in-wage-regressions" class="section level4" number="34.9.2.2">
 <h4>
-<span class="header-section-number">34.8.3.2</span> Example: IQ as a Proxy for Ability in Wage Regressions<a class="anchor" aria-label="anchor" href="#example-iq-as-a-proxy-for-ability-in-wage-regressions"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.2</span> Example: IQ as a Proxy for Ability in Wage Regressions<a class="anchor" aria-label="anchor" href="#example-iq-as-a-proxy-for-ability-in-wage-regressions"><i class="fas fa-link"></i></a>
 </h4>
 <p>In labor economics, researchers often study the effect of education on wages. But ability—an unobservable factor—also affects both education and wages, leading to omitted variable bias.</p>
 <p>Let:</p>
@@ -5370,9 +5521,9 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <p>This inclusion of IQ helps reduce <a href="sec-endogeneity.html#sec-endogeneity">endogeneity</a> but does <strong>not</strong> identify the pure effect of ability unless all variation in ability is captured by IQ.</p>
 <hr>
 </div>
-<div id="pros-and-cons-of-proxy-variables" class="section level4" number="34.8.3.3">
+<div id="pros-and-cons-of-proxy-variables" class="section level4" number="34.9.2.3">
 <h4>
-<span class="header-section-number">34.8.3.3</span> Pros and Cons of Proxy Variables<a class="anchor" aria-label="anchor" href="#pros-and-cons-of-proxy-variables"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.3</span> Pros and Cons of Proxy Variables<a class="anchor" aria-label="anchor" href="#pros-and-cons-of-proxy-variables"><i class="fas fa-link"></i></a>
 </h4>
 <p><strong>Advantages</strong></p>
 <ul>
@@ -5395,11 +5546,11 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <li><p><strong>Insufficient control</strong>: Proxies only partially reduce omitted variable bias unless they meet strict independence conditions.</p></li>
 </ul>
 </div>
-<div id="empirical-illustration-simulating-attenuation-bias" class="section level4" number="34.8.3.4">
+<div id="empirical-illustration-simulating-attenuation-bias" class="section level4" number="34.9.2.4">
 <h4>
-<span class="header-section-number">34.8.3.4</span> Empirical Illustration: Simulating Attenuation Bias<a class="anchor" aria-label="anchor" href="#empirical-illustration-simulating-attenuation-bias"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.4</span> Empirical Illustration: Simulating Attenuation Bias<a class="anchor" aria-label="anchor" href="#empirical-illustration-simulating-attenuation-bias"><i class="fas fa-link"></i></a>
 </h4>
-<div class="sourceCode" id="cb498"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb500"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2025</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
 <span><span class="va">ability</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>                   <span class="co"># latent variable</span></span>
@@ -5454,9 +5605,9 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <span><span class="co">#&gt; F-statistic:  2558 on 2 and 997 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>Observe how including the proxy reduces the bias in the coefficient on education, even if it doesn’t eliminate it entirely.</p>
 </div>
-<div id="example-marketing-brand-loyalty" class="section level4" number="34.8.3.5">
+<div id="example-marketing-brand-loyalty" class="section level4" number="34.9.2.5">
 <h4>
-<span class="header-section-number">34.8.3.5</span> Example: Marketing — Brand Loyalty<a class="anchor" aria-label="anchor" href="#example-marketing-brand-loyalty"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.5</span> Example: Marketing — Brand Loyalty<a class="anchor" aria-label="anchor" href="#example-marketing-brand-loyalty"><i class="fas fa-link"></i></a>
 </h4>
 <p>Suppose you’re modeling the effect of brand loyalty (<span class="math inline">\(X^*\)</span>) on repeat purchase (<span class="math inline">\(Y\)</span>). Since loyalty is latent, we might use:</p>
 <ul>
@@ -5465,7 +5616,7 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <li>Membership in loyalty programs.</li>
 </ul>
 <p>These proxies are likely to be correlated with true loyalty, but none is a perfect substitute.</p>
-<div class="sourceCode" id="cb499"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb501"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Simulating attenuation bias with a proxy</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
@@ -5498,9 +5649,9 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <p>Observe that the estimated coefficient on <code>proxy</code> is less than the true coefficient (2), due to <a href="sec-endogeneity.html#sec-measurement-error">measurement error</a>.</p>
 <hr>
 </div>
-<div id="example-finance-investor-sentiment" class="section level4" number="34.8.3.6">
+<div id="example-finance-investor-sentiment" class="section level4" number="34.9.2.6">
 <h4>
-<span class="header-section-number">34.8.3.6</span> Example: Finance — Investor Sentiment<a class="anchor" aria-label="anchor" href="#example-finance-investor-sentiment"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.6</span> Example: Finance — Investor Sentiment<a class="anchor" aria-label="anchor" href="#example-finance-investor-sentiment"><i class="fas fa-link"></i></a>
 </h4>
 <p>Investor sentiment affects market movements but cannot be directly measured. Proxies include:</p>
 <ul>
@@ -5512,9 +5663,9 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <p>These capture different dimensions of sentiment, and their effectiveness varies by context.</p>
 <hr>
 </div>
-<div id="strategies-to-improve-proxy-use" class="section level4" number="34.8.3.7">
+<div id="strategies-to-improve-proxy-use" class="section level4" number="34.9.2.7">
 <h4>
-<span class="header-section-number">34.8.3.7</span> Strategies to Improve Proxy Use<a class="anchor" aria-label="anchor" href="#strategies-to-improve-proxy-use"><i class="fas fa-link"></i></a>
+<span class="header-section-number">34.9.2.7</span> Strategies to Improve Proxy Use<a class="anchor" aria-label="anchor" href="#strategies-to-improve-proxy-use"><i class="fas fa-link"></i></a>
 </h4>
 <ul>
 <li><p><strong>Multiple proxies</strong>: Use several proxies and combine them via factor analysis or PCA</p></li>
@@ -5619,10 +5770,12 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#types-of-iv"><span class="header-section-number">34.8</span> Types of IV</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#treatment-intensity"><span class="header-section-number">34.8.1</span> Treatment Intensity</a></li>
-<li><a class="nav-link" href="#decision-maker-iv"><span class="header-section-number">34.8.2</span> Decision-Maker IV</a></li>
-<li><a class="nav-link" href="#sec-proxy-variables"><span class="header-section-number">34.8.3</span> Proxy Variables</a></li>
+<a class="nav-link" href="#types-of-iv"><span class="header-section-number">34.8</span> Types of IV</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#treatment-intensity"><span class="header-section-number">34.8.1</span> Treatment Intensity</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#iv-and-matching-design-based-vs.-model-based-approaches"><span class="header-section-number">34.9</span> IV and Matching: Design-Based vs. Model-Based Approaches</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-examiner-design"><span class="header-section-number">34.9.1</span> Decision-Maker IV</a></li>
+<li><a class="nav-link" href="#sec-proxy-variables"><span class="header-section-number">34.9.2</span> Proxy Variables</a></li>
 </ul>
 </li>
 </ul>
@@ -5642,7 +5795,7 @@ Z = \gamma_0 + \gamma_1 Z_p + \nu, \quad \text{where } \text{Cov}(\nu, X) = \tex
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2026-02-17.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2026-04-24.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

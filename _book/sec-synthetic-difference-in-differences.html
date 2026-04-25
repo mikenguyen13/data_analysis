@@ -6,16 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 29 Synthetic Difference-in-Differences | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
-<meta name="description" content="Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on panel data, which tracks multiple units over time, to assess how...">
+<meta name="description" content="A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes...">
 <meta name="generator" content="bookdown 0.45 with bs4_book()">
 <meta property="og:title" content="Chapter 29 Synthetic Difference-in-Differences | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-synthetic-difference-in-differences.html">
 <meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
-<meta property="og:description" content="Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on panel data, which tracks multiple units over time, to assess how...">
+<meta property="og:description" content="A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 29 Synthetic Difference-in-Differences | A Guide on Data Analysis">
-<meta name="twitter:description" content="Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on panel data, which tracks multiple units over time, to assess how...">
+<meta name="twitter:description" content="A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes...">
 <meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
@@ -140,6 +140,9 @@
 <h1>
 <span class="header-section-number">29</span> Synthetic Difference-in-Differences<a class="anchor" aria-label="anchor" href="#sec-synthetic-difference-in-differences"><i class="fas fa-link"></i></a>
 </h1>
+<div class="rmdnote">
+<p>A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes <a href="sec-difference-in-differences.html#sec-difference-in-differences">Difference-in-Differences</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">Synthetic Control</a>, reweighting both units and time periods so that the estimator remains well-behaved whenever either the parallel-trends assumption (needed for DiD) or the convex-hull pre-treatment match (needed for SC) holds. In practice that gives SDID a larger envelope of credibility than either parent method. Readers who are new to DiD or SC may want to skim Chapters <a href="sec-difference-in-differences.html#sec-difference-in-differences">30</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">32</a> first for the respective intuitions, then return here.</p>
+</div>
 <p>Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on <strong>panel data</strong>, which tracks multiple units over time, to assess how outcomes change before and after a policy is implemented. However, estimating causal effects in this setting is complicated by the fact that policies are often adopted non-randomly, where certain units may be more likely to receive treatment based on their characteristics, prior trends, or external factors. If treatment assignment correlates with unit-specific or time-specific factors, <strong>selection bias</strong> can invalidate causal conclusions, even when observed covariates are accounted for <span class="citation">(<a href="references.html#ref-imbens2015causal">G. W. Imbens and Rubin 2015</a>)</span>.</p>
 <p>A well-established approach to dealing with this challenge is the <a href="sec-difference-in-differences.html#sec-difference-in-differences">Difference-in-Differences</a> (DID) method, which compares changes in outcomes between treated and untreated groups. However, <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> relies on the crucial <strong>parallel trends assumption</strong> (the idea that, in the absence of treatment, treated and untreated units would have followed similar trajectories). When this assumption is violated, <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> can produce biased estimates.</p>
 <p>An alternative approach, <a href="sec-synthetic-control.html#sec-synthetic-control">Synthetic Control</a> (SC), is particularly useful when only a few units receive treatment. Instead of assuming parallel trends, <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> constructs a weighted combination of untreated units that best approximates the pre-treatment behavior of the treated group. This method improves comparability but has limitations, including sensitivity to extrapolation and instability when there are many control units.</p>
@@ -149,7 +152,7 @@
 <li>Adjusts for differences in pre-treatment trends through reweighting (like <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>).</li>
 <li>Remains invariant to additive unit-level shifts and is valid for large panels (like <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a>).</li>
 </ul>
-<p>The key advantage of SDID is that it achieves double robustness: it performs well when <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> assumptions hold but also corrects for deviations from parallel trends by using synthetic weights (Table <a href="sec-synthetic-difference-in-differences.html#tab:synthdid-key-diff-did-sc">29.1</a>). This makes SDID particularly useful in situations where treatment assignment is correlated with latent factors that affect outcomes over time.</p>
+<p>The key advantage of SDID is that it is <strong>robust in a “double” sense</strong> (not to be confused with the formal <em>doubly robust</em> property of augmented inverse-propensity-weighting estimators, which requires only one of the outcome or propensity models to be correctly specified). SDID is “doubly robust” in the operational sense that it remains consistent under either the <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> identifying assumption (parallel trends) or the <a href="sec-synthetic-control.html#sec-synthetic-control">Synthetic Control</a> identifying assumption (pre-treatment fit inside the donor convex hull), and it corrects for deviations from parallel trends by using synthetic weights (Table <a href="sec-synthetic-difference-in-differences.html#tab:synthdid-key-diff-did-sc">29.1</a>). This makes SDID particularly useful in situations where treatment assignment is correlated with latent factors that affect outcomes over time.</p>
 <ul>
 <li>SDID explicitly accounts for systematic unit-level effects that influence treatment assignment.</li>
 <li>This is especially valuable when treatment is non-randomly assigned based on persistent unit characteristics.</li>
@@ -559,7 +562,7 @@ Y_{it} = X_{it} \beta + \varepsilon_{it}
 \]</span></p>
 <p>where</p>
 <p><span class="math display">\[
-\hat{\sigma}^2 = \frac{1}{N_c(T_{pre}- 1)} \sum_{i = 1}^{N_c} \sum_{t = 1}^{T_{re}-1}(\Delta_{it} - \hat{\Delta})^2
+\hat{\sigma}^2 = \frac{1}{N_c(T_{pre}- 1)} \sum_{i = 1}^{N_c} \sum_{t = 1}^{T_{pre}-1}(\Delta_{it} - \hat{\Delta})^2
 \]</span></p>
 <ul>
 <li><p><span class="math inline">\(\Delta_{it} = Y_{i(t + 1)} - Y_{it}\)</span></p></li>
@@ -686,7 +689,7 @@ Y_{it} = X_{it} \beta + \varepsilon_{it}
 <span class="header-section-number">29.2.1</span> Block Treatment<a class="anchor" aria-label="anchor" href="#block-treatment"><i class="fas fa-link"></i></a>
 </h3>
 <p>Code provided by the <code>synthdid</code> package</p>
-<div class="sourceCode" id="cb315"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb316"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/synth-inference/synthdid">synthdid</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span></span>
@@ -699,7 +702,7 @@ Y_{it} = X_{it} \beta + \varepsilon_{it}
 <span></span>
 <span><span class="co"># se = sqrt(vcov(tau.hat, method = 'placebo'))</span></span></code></pre></div>
 <p>Figure <a href="sec-synthetic-difference-in-differences.html#fig:synthdid-treat-synthetic-counterfactual">29.1</a> shows the trajectories between treated units and synthetic control counterfactual units.</p>
-<div class="sourceCode" id="cb316"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb317"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">tau.hat</span><span class="op">)</span> <span class="op">+</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:synthdid-treat-synthetic-counterfactual"></span>
@@ -707,7 +710,7 @@ Y_{it} = X_{it} \beta + \varepsilon_{it}
 Figure 29.1: Synthetic Control Method: Treated vs. Synthetic Counterfactual Over Time
 </p>
 </div>
-<div class="sourceCode" id="cb317"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb318"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">setup</span> <span class="op">=</span> <span class="fu">synthdid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/synthdid/man/panel.matrices.html">panel.matrices</a></span><span class="op">(</span><span class="fu">synthdid</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/synthdid/man/california_prop99.html">california_prop99</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Run for specific estimators</span></span>
@@ -886,7 +889,7 @@ Figure 29.1: Synthetic Control Method: Treated vs. Synthetic Counterfactual Ove
 </tr>
 </tbody>
 </table></div>
-<div class="sourceCode" id="cb318"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb319"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">fixest</span><span class="fu">::</span><span class="va"><a href="https://lrberge.github.io/fixest/reference/base_stagg.html">base_stagg</a></span> <span class="op">|&gt;</span></span>
 <span>   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>treatvar <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">time_to_treatment</span> <span class="op">&gt;=</span> <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -927,7 +930,7 @@ Figure 29.1: Synthetic Control Method: Treated vs. Synthetic Counterfactual Ove
 <span><span class="co">#&gt; 7 cumul.1 -4.87 0.55</span></span>
 <span><span class="co">#&gt; 8 cumul.2 -4.48 0.53</span></span></code></pre></div>
 <p>Figure <a href="sec-synthetic-difference-in-differences.html#fig:synthdid-ate-event-study">29.2</a> shows the average treatment effect over time.</p>
-<div class="sourceCode" id="cb319"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb320"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_plot_ate.html">synthdid_plot_ate</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:synthdid-ate-event-study"></span>
@@ -935,7 +938,7 @@ Figure 29.1: Synthetic Control Method: Treated vs. Synthetic Counterfactual Ove
 Figure 29.2: Event Study Plot of Average Treatment Effect Over Time
 </p>
 </div>
-<div class="sourceCode" id="cb320"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb321"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">est_sub</span> <span class="op">&lt;-</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_est_ate.html">synthdid_est_ate</a></span><span class="op">(</span></span>
 <span>  data               <span class="op">=</span> <span class="va">df</span>,</span>
@@ -977,7 +980,7 @@ Figure 29.2: Event Study Plot of Average Treatment Effect Over Time
 <span><span class="co">#&gt; 7 cumul.1 -4.14 1.52</span></span>
 <span><span class="co">#&gt; 8 cumul.2 -3.91 1.82</span></span></code></pre></div>
 <p>Figure <a href="sec-synthetic-difference-in-differences.html#fig:synthdid-ate-event-study-subgroup">29.3</a> shows the average treatment effect for a subgroup.</p>
-<div class="sourceCode" id="cb321"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb322"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_plot_ate.html">synthdid_plot_ate</a></span><span class="op">(</span><span class="va">est_sub</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:synthdid-ate-event-study-subgroup"></span>
@@ -986,7 +989,7 @@ Figure 29.3: Event Study Plot of Average Treatment Effect Over Time (Subgroup)
 </p>
 </div>
 <p>Plot different estimators</p>
-<div class="sourceCode" id="cb322"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb323"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">causalverse</span><span class="op">)</span></span>
 <span><span class="va">methods</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"synthdid"</span>, <span class="st">"did"</span>, <span class="st">"sc"</span>, <span class="st">"sc_ridge"</span>, <span class="st">"difp"</span>, <span class="st">"difp_ridge"</span><span class="op">)</span></span>
 <span></span>
@@ -1012,8 +1015,23 @@ Figure 29.3: Event Study Plot of Average Treatment Effect Over Time (Subgroup)
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">gridExtra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html">grid.arrange</a></span><span class="op">(</span>grobs <span class="op">=</span> <span class="va">plots</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-
+<hr>
 </div>
+</div>
+<div id="practical-guidance-on-sdid" class="section level2" number="29.3">
+<h2>
+<span class="header-section-number">29.3</span> Practical Guidance on SDID<a class="anchor" aria-label="anchor" href="#practical-guidance-on-sdid"><i class="fas fa-link"></i></a>
+</h2>
+<p>SDID occupies an unusual position in the panel-data toolkit. It borrows the unit- and time-reweighting logic from <a href="sec-synthetic-control.html#sec-synthetic-control">Synthetic Control</a>, the additive double-differencing structure from <a href="sec-difference-in-differences.html#sec-difference-in-differences">DiD</a>, and ends up with an estimator that inherits the best properties of both parents in most realistic applications.</p>
+<p>The <span class="citation">Arkhangelsky et al. (<a href="references.html#ref-arkhangelsky2021synthetic">2021</a>)</span> paper recommends SDID in settings with <span class="math inline">\(N_{tr} &lt; \sqrt{N_{ctr}}\)</span>, a moderate number of treated units relative to the available control pool. In practice, this covers many applied research designs: state-level policy rollouts (a handful of treated states, dozens of untreated ones), firm-level entry events (a few firms treated, many in the comparison group), regional interventions (one or two regions treated, tens of controls). What matters more than the exact count is that the pre-treatment time series is long enough to stabilize the time weights, typically five pre-periods or more, though shorter panels can work when the outcome is well-behaved.</p>
+<p>The payoff is clearest when pre-treatment trends are visibly non-parallel. Standard DiD fails in exactly that scenario; SC alone can be unstable when the donor convex hull is a poor fit to the treated unit. SDID reweights units to repair the trend gap and reweights time periods to stabilize inference, which is why it tends to dominate in horse-race comparisons on simulated data.</p>
+<p>A few caveats are worth absorbing before you commit.</p>
+<p>The “double robustness” language in this chapter is operational, not formal. SDID is consistent under either the parallel-trends assumption (needed for DiD) or the convex-hull fit assumption (needed for SC), but it does not satisfy the classical doubly-robust property of augmented inverse-propensity-weighting estimators, where either the outcome or the treatment model can be wrong. If a referee pushes on this distinction, concede it, the operational robustness is the real point.</p>
+<p>Inference is not OLS-style. Standard errors for SDID come from a block bootstrap or a jackknife, not from a sandwich formula. The <code>synthdid</code> package defaults to the bootstrap; always check which inference option your code is using, since mis-reporting can happen silently.</p>
+<p>Donor weights identify a comparison group, they do not identify a mechanism. A donor that loads heavily on the synthetic control is merely statistically similar in pre-treatment characteristics; substantive interpretation of those weights should be limited.</p>
+<p>And SDID does not rescue every failed DiD. If treatment is endogenous to a time-varying shock that affects all donors similarly, SDID will still misattribute the shock to the treatment effect. In that case, the design-level failure is upstream of whichever estimator you choose, <a href="sec-instrumental-variables.html#sec-instrumental-variables">IV</a> or <a href="sec-regression-discontinuity.html#sec-regression-discontinuity">RD</a> is the appropriate move.</p>
+<p>For reporting, a clean SDID writeup includes the pre-treatment fit plot (treated series vs. synthetic treated series), the ATT estimate with its block-bootstrap or jackknife standard error, a side-by-side comparison against DiD and SC on the same panel, leave-one-out robustness to donor composition, and whichever placebo tests (in-time, in-space) the data support.</p>
+
 </div>
 </div>
 <div style="
@@ -1066,6 +1084,7 @@ Figure 29.3: Event Study Plot of Average Treatment Effect Over Time (Subgroup)
 <li><a class="nav-link" href="#staggered-adoption"><span class="header-section-number">29.2.2</span> Staggered Adoption</a></li>
 </ul>
 </li>
+<li><a class="nav-link" href="#practical-guidance-on-sdid"><span class="header-section-number">29.3</span> Practical Guidance on SDID</a></li>
 </ul>
 
       <div class="book-extra">
@@ -1083,7 +1102,7 @@ Figure 29.3: Event Study Plot of Average Treatment Effect Over Time (Subgroup)
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2026-02-17.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2026-04-24.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

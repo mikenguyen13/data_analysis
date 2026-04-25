@@ -70,9 +70,10 @@ SCM has been applied in various marketing and business contexts:
     -   Control units in the donor pool do not receive treatment.
 3.  No Other Major Changes
     -   The treatment is the only significant event affecting the treated unit.
-4.  Linearity Assumption
-    -   The counterfactual outcome of the treated unit can be constructed as a weighted sum of the control units.
-5.  Exlusion Restriction (Identification Assumption):
+4.  Convex-Hull (Linearity) Assumption
+    -   The counterfactual outcome of the treated unit can be constructed as a weighted sum of the control units, with weights that are **non-negative and sum to one**. Equivalently, the treated unit's pre-treatment characteristics must lie within the **convex hull** of the donor units' pre-treatment characteristics.
+    -   This is stronger than a purely linear combination: it rules out extrapolation outside the donor pool. When the treated unit is on the boundary of, or outside, the convex hull, pre-treatment fit deteriorates and bias can be severe. Relaxations (ridge-penalized SCM, augmented SCM) allow limited negative weights to accommodate treated units that fall outside the hull, at the cost of a bias-variance trade-off.
+5.  Exclusion Restriction (Identification Assumption):
     -   The exclusion restriction holds conditional on pre-treatment outcomes.
 
 The `Synth` package provides an algorithm to determine the optimal weight for each control unit such that the synthetic control best resembles the treated unit before treatment.
@@ -679,6 +680,8 @@ Common MCMC techniques used:
 -   Gibbs Sampling for latent factors and regression coefficients.
 
 -   Hamiltonian Monte Carlo (HMC) for high-dimensional posteriors.
+
+> **Build note:** the Bayesian SCM example below uses `rstan`, which requires a working C++ toolchain. On Windows install [Rtools](https://cran.r-project.org/bin/windows/Rtools/); on macOS install the Xcode command-line tools. First-time compilation can take 5-10 minutes. The chunk is set to `eval = FALSE` for exactly this reason, run it manually if you want to reproduce the output.
 
 
 ``` r

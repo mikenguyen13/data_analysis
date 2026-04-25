@@ -555,6 +555,8 @@ print(fit$par)
     -   `fn = function(theta) y - nonlinear_model(theta, x)` is the residual function, i.e., observed minus predicted.
 4.  The `fit$par` provides the estimated parameters after the algorithm converges.
 
+Figure \@ref(fig:fig-gauss-newton-levenberg-marquardt) compares the simulated observations with the curve recovered by the Gauss-Newton / Levenberg-Marquardt solver.
+
 
 ``` r
 # Visualize the data and the fitted model
@@ -752,6 +754,8 @@ print(estimated_theta)
 #> [2,] 0.3008742
 ```
 
+Figure \@ref(fig:fig-modified-gauss-newton) visualizes the fit obtained after applying the modified Gauss-Newton update rule.
+
 
 ``` r
 # Plot data and fitted curve
@@ -931,6 +935,8 @@ cat("Estimated parameters (A, B) using Gradient Descent:\n")
 print(estimated_theta)
 #> [1] 1.0 0.1
 ```
+
+Figure \@ref(fig:fig-gradient-descent-convergence) charts how the sum of squared errors drops as gradient descent iterates toward the minimum.
 
 
 ``` r
@@ -1124,6 +1130,8 @@ print(estimated_theta)
 #> [1,] -6.473440e-09
 #> [2,]  1.120637e+01
 ```
+
+Figure \@ref(fig:fig-lv-convergence) shows the SSE trajectory under Levenberg-Marquardt, including the transient spike before the damping parameter adjusts.
 
 
 ``` r
@@ -1321,6 +1329,8 @@ print(estimated_theta)
 #> [1,] 1.9934188
 #> [2,] 0.3008742
 ```
+
+Figure \@ref(fig:fig-nr-convergence) demonstrates the rapid quadratic convergence characteristic of Newton-Raphson when the initial guess is close to the optimum.
 
 
 ``` r
@@ -1635,6 +1645,8 @@ result <- trust_region_reflective(theta_init, x, y)
 estimated_theta <- result$theta
 sse_values <- result$sse_values
 ```
+
+Figure \@ref(fig:fig-trust-region-convergence) plots the SSE path for the trust-region reflective method, which shrinks the step when progress stalls.
 
 
 ``` r
