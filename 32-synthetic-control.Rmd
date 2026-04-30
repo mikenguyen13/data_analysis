@@ -2,61 +2,23 @@
 
 The Synthetic Control Method (SCM) is a powerful causal inference tool used when only one treated unit exists, and researchers must construct a synthetic comparison group from a donor pool of untreated units. Introduced by @abadie2003economic and later extended by @abadie2010synthetic, SCM has become a widely used method in policy evaluation and business analytics. See @abadie2021using for a review of the method.
 
-Why Use SCM?
+## Why the method exists
 
--   A data-driven method for constructing a comparable control group (i.e., "black box" approach).
--   Avoids large bias when covariate distributions do not match between treated and control groups.
--   Natural alternative to [Difference-in-Differences](#sec-difference-in-differences) when:
-    -   No perfect untreated comparison group exists.
-    -   Treatment is applied to a single unit or a small number of units.
+The motivating problem is awkwardly common. A single state passes a tax reform, a single firm rolls out a new pricing policy, a single country adopts a peg — and you want to know what would have happened in the absence of the intervention. With one treated unit, the comparison-group machinery of [difference-in-differences](#sec-difference-in-differences) is brittle: there is no obvious "control state" or "control firm" that is a clean counterfactual, and any single donor you pick is as much a research-design choice as the analysis itself. Synthetic control responds by replacing the *judgment* of a control with a *construction*: rather than picking one comparable unit, build a weighted average of many, where the weights are chosen so that the synthetic unit tracks the treated unit's outcome and characteristics during the pre-treatment period as closely as possible. The treatment effect is then read off as the gap between the treated unit and its synthetic shadow after the intervention.
 
-SCM is recommended in settings where:
+The setting where this earns its keep is one where (i) you have a clear and discrete policy event to evaluate — a minimum wage law, a tax reform, a major advertising campaign — and (ii) there is essentially one unit on the treated side and several plausible controls on the other. Marketing and business applications have multiplied in exactly these settings. @tirunillai2017 use SCM to isolate the effect of offline TV advertising on online chatter; @wang2019mobile estimate how mobile hailing technology shifted drivers' hourly earnings; @guo2020let evaluate the Massachusetts Open Payment Law's effect on physician prescription behavior; and @adalja2023gmo exploit Vermont's GMO-labeling law to ask whether mandatory disclosure changed consumer demand. Each of these has the SCM signature: one treated case, several donor candidates, and a sharp moment of intervention.
 
-1.  A major policy or social event is being evaluated (e.g., minimum wage laws, tax reforms, advertising campaigns).
-2.  Only one treated case exists, with several potential controls (e.g., a state enacts a new law, while others do not).
+## What the method buys you
 
-## Marketing Applications
+The interesting thing about SCM is not just that it provides an answer in this awkward setting, but *what kind* of answer it provides. Three properties are worth highlighting because they help explain the method's appeal.
 
-SCM has been applied in various marketing and business contexts:
+First, the construction is data-driven rather than judgment-driven. The donor pool's weights are chosen by an optimization that minimizes pre-treatment fit; the analyst does not get to nudge the comparison unit toward a preferred outcome. As @arkhangelsky2023large show, when the pre-treatment period is long enough, the resulting estimator delivers asymptotically normal parameters in linear panel models, putting it on the same theoretical footing as DiD.
 
--   Impact of Offline TV Advertising on Online Chatter [@tirunillai2017]
--   Effect of Mobile Hailing Technology Adoption on Drivers' Hourly Earnings [@wang2019mobile]
--   Impact of Payment Disclosure Laws on Physician Prescription Behavior (Massachusetts Open Payment Law) [@guo2020let]
--   Effect of Mandatory GMO Labels on Consumer Demand (Vermont as a case study) [@adalja2023gmo]
+Second, SCM matches on something stronger than covariates: it matches on pre-treatment *outcomes*. This is what distinguishes it from ordinary [matching methods], which align units on $X$ and hope the unobservables cooperate. By forcing the synthetic unit to track the treated unit's outcome trajectory before treatment, SCM absorbs whatever combination of observed and unobserved factors generated that trajectory — at least to the extent they were operating in the donor pool. A Bayesian variant ([Bayesian Synthetic Control]) avoids the restrictive priors of the original formulation [@kim2020bayesian].
 
-## Key Features of SCM
+Third, the weights are transparent. Every dollar of the synthetic unit comes from an identifiable donor, and the weights themselves carry economic content: they tell you which units the algorithm found most useful for reconstructing the treated unit's pre-period. Compared with DiD, this maximizes similarity between treated and control on both observables and (implicitly) unobservables, and removes the discretion of picking a single comparison group. Compared with a regression-based counterfactual, the convex-combination structure rules out extrapolation: weights live in $[0,1]$ and sum to one, so the synthetic unit cannot wander outside the donor pool's convex hull. And because post-intervention outcomes of the donors are never used in constructing the weights, SCM is structurally protected from the kind of p-hacking that bedevils more flexible estimators.
 
--   SCM estimates asymptotically normal parameters in linear panel models when the pre-treatment period is sufficiently long, making it a natural alternative to the [Difference-in-Differences](#sec-difference-in-differences) model [@arkhangelsky2023large].
--   SCM is superior to [Matching Methods], as it matches not only on pre-treatment covariates but also on pre-treatment outcomes. SCM differs from [Matching Methods] because:
-    -   Matching methods focus on covariates.
-    -   SCM constructs a synthetic unit by matching on pre-treatment outcomes.
--   SCM can be implemented under a Bayesian framework ([Bayesian Synthetic Control]) to avoid restrictive priors [@kim2020bayesian].
-
-## Advantages of SCM
-
-### Compared to DiD
-
-1.  Maximizes similarity between control and treated units (including unobservables).
-2.  Useful when no untreated unit closely matches the treated unit.
-3.  Objective selection of control units, reducing researcher bias.
-
-### Compared to Linear Regression
-
-1.  Avoids extrapolation (no regression weights outside of [0,1]).
-2.  Provides transparent weights, explicitly showing control unit contributions.
-3.  Does not require post-treatment outcomes of the control group (reducing risk of p-hacking).
-
-### Additional Advantages
-
-1.  Selection criteria provide insights into the relative importance of each donor unit.
-2.  Prevents overfitting, since post-intervention outcomes are not used when constructing the synthetic control.
-3.  Enhances interpretability, since the synthetic unit is constructed using observable pre-treatment characteristics.
-
-## Disadvantages of SCM
-
-1.  Interpretability of Weights: It can be difficult to justify the exact weights assigned to control units.
-2.  Strong Assumptions: Assumes the counterfactual outcome of the treated unit can be expressed as a linear combination of control units.
-3.  Limited in Small Samples: Requires a large set of pre-treatment periods and a sufficiently large donor pool.
+The price for these properties is a familiar set of trade-offs. The weights, while transparent, can be difficult to defend on substantive grounds — why this 17% from Idaho and 23% from Maine? The convex-hull structure assumes the treated unit's pre-treatment characteristics actually lie inside the donor pool's hull; when the treated unit is on the boundary or outside, the method strains and bias creeps in. And SCM is data-hungry: a long pre-treatment period and a rich donor pool are not luxuries but requirements. In small samples, those assumptions bite hard.
 
 ------------------------------------------------------------------------
 

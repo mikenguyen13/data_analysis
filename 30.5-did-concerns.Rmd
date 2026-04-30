@@ -6,12 +6,8 @@ Roth, Sant'Anna, Bilinski, and Poe (2023), in their review article *"What's tren
 
 ### Multiple Treatments
 
-In some settings, researchers encounter **two (or more) treatments** rather than a single treatment and control group. This complicates standard DiD estimation, but a properly structured model ensures accurate identification.
-
-**Additional References**
-
--   [@fricke2017identification]: Discusses identification challenges in multiple treatment settings.
-<!-- -   [@de2023two]: Provides a **video tutorial** ([YouTube](https://www.youtube.com/watch?v=UHeJoc27qEM&ab_channel=TaylorWright)) and **code** ([Google Drive](https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view)) for implementing multiple-treatment DiD models. -->
+In some settings, researchers encounter **two (or more) treatments** rather than a single treatment-and-control comparison. This is more than a notational nuisance: with multiple treatments operating on overlapping populations, the standard DiD machinery can collapse identification onto contrasts the analyst did not intend, and the apparent treatment effect can shift depending on which group is implicitly used as a control. @fricke2017identification provides a careful treatment of the identification challenges that arise in this setting, and the principles below distil the practical implications.
+<!-- @de2023two provides a **video tutorial** ([YouTube](https://www.youtube.com/watch?v=UHeJoc27qEM&ab_channel=TaylorWright)) and **code** ([Google Drive](https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view)) for implementing multiple-treatment DiD models. -->
 
 **Key Principles When Dealing with Multiple Treatments**
 
@@ -1004,16 +1000,13 @@ Overall, selecting the appropriate correction method depends on the sample size 
 
 Classical DiD delivers a **point‑identified** estimate of the [average treatment effect on the treated](#sec-average-treatment-effect-on-the-treated) (ATT) only when the [parallel‑trends assumption](#prior-parallel-trends-test) is exact. Yet in practice pre‑trends often deviate or post‑treatment shocks differ across groups (e.g., the famous @ashenfelter1978estimating). Partial‑identification (PI) methods shift the question from *"Is the estimate unbiased?"* to *"How much would the identifying assumption have to fail before I reverse my conclusion?"*
 
-PI approaches for DiD
+The partial-identification literature that has grown up around DiD reflects a series of distinct philosophical bets about how to make the "how much could parallel trends fail?" question precise. It is helpful to walk through them in order, because each one chooses a different lever to constrain.
 
--   @manski2018right propose bounding the treatment effect parameter $\delta$ across time and space in the presence of violations to the parallel trends assumption.
--   @keele2019patterns introduce a Rosenbaum-style sensitivity parameter that quantifies the magnitude of hidden bias necessary to reverse the sign of the estimated effect.
--   @keele2019bracketing extends this framework to settings where the treated group may be simultaneously exposed to another event, using the Rosenbaum-style sensitivity analysis to assess the robustness of causal claims under such compound treatments.
--   @ye2024negative utilize two control groups subjected to negatively correlated shocks to non-parametrically bracket the counterfactual trend, offering bounds on treatment effects without relying on the parallel trends assumption.
--   @leavitt2020beyond adopts an Empirical Bayes approach that places a hierarchical prior over $\delta$, shrinking extreme violations of parallel trends while providing posterior credible intervals that explicitly account for trend heterogeneity.
--   Two bounding strategies in @rambachan2023more
-    -   [Relative magnitude bounds](#sec-relative-magnitude-restriction-honestdid): $|\delta| \leq M \cdot \max$ pre-period jumps
-    -   [Smoothness bounds](#sec-smoothness-restriction-honestdid): allow $\delta$'s slope to shift by at most $M$ per period.
+The starting point is @manski2018right, who simply ask the analyst to commit to *any* substantively credible bounds on $\delta$ — across time, across space, or both — and then propagate those bounds through to the ATT. The approach is conceptually clean but requires the researcher to defend the bounds from outside the data. @keele2019patterns sharpen the question into something more empirically tractable by importing Rosenbaum-style sensitivity analysis from the matching literature: rather than bounding $\delta$ directly, fix a single sensitivity parameter that measures how much hidden bias one would need to reverse the estimated sign. @keele2019bracketing extend this machinery to compound treatments, where the treated group is simultaneously exposed to another event, asking whether the causal claim survives under that more demanding scenario.
+
+A different strategy is to lean on auxiliary control groups rather than auxiliary parameters. @ye2024negative use two control groups exposed to *negatively correlated* shocks to non-parametrically bracket the counterfactual trend, sidestepping parallel trends without committing to a specific bound on $\delta$. @leavitt2020beyond goes Bayesian: a hierarchical prior shrinks extreme violations of parallel trends and yields credible intervals that account for trend heterogeneity directly.
+
+The most influential synthesis is @rambachan2023more, which collapses the question into a researcher-chosen smoothness or magnitude restriction and then reports the *breakdown threshold* — the value of the restriction at which the confidence set first touches zero. Two bounding strategies fall out of this framework, both implemented in the `honestdid` package and discussed in detail later in this section: [relative-magnitude bounds](#sec-relative-magnitude-restriction-honestdid), which constrain $|\delta|$ to be no larger than $M$ times the worst pre-period jump, and [smoothness bounds](#sec-smoothness-restriction-honestdid), which allow the slope of $\delta$ to shift by at most $M$ per period.
 
 ------------------------------------------------------------------------
 
