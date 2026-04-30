@@ -583,7 +583,7 @@ ITS is appropriate when:
 1.  Longitudinal data is available: The outcome must be observed over time, with multiple data points before and after the intervention.
 2.  A population-wide intervention occurs at a specific time: The intervention should affect all units simultaneously or be structured in a way that allows stacking based on intervention timing.
 
-**Notes**
+### Notes
 
 -   For analyzing **subgroup effects** (heterogeneity in treatment impact), see [@harper2017did].
 -   For interpreting ITS results **with control variables**, see [@bottomley2019analysing].
@@ -865,6 +865,66 @@ Notes on Real-World Usage:
 
 -   In practice, also run diagnostics or conduct robustness checks, e.g., removing overlapping interventions or investigating delayed effects.
 
+### Handling Autocorrelation: HAC and ARIMA Models
+
+ITS chapters typically flag autocorrelation as the central threat to inference --- residuals tend to be serially correlated even after controlling for level and slope changes, so HC1-style sandwich errors (used in the simulated examples above) can still understate true uncertainty. Two complementary remedies are widely used in applied ITS practice:
+
+1.  **Heteroskedasticity- and autocorrelation-consistent (HAC) standard errors** via the Newey-West estimator [@newey1986simple], which adjusts the OLS variance for arbitrary serial correlation up to a user-specified lag.
+2.  **Explicit time-series error models**, in which the regression is fit jointly with an autoregressive (or ARMA) error process, e.g., `nlme::gls()` with `corAR1()` or `forecast::Arima()` with regression terms.
+
+Both approaches stabilize inference relative to plain HC1 when the residual autocorrelation function decays slowly. The HAC route is simpler and stays within the OLS point-estimate framework; the GLS/ARIMA route models the autocorrelation directly and can be more efficient when the AR(1) (or higher-order) assumption is approximately correct.
+
+```{r, eval=FALSE}
+# Newey-West HAC standard errors
+library(sandwich)
+library(lmtest)
+
+fit <- lm(outcome ~ time + intervention + time_after, data = its_data)
+
+# Choose lag based on series frequency; lag = 4 is a sensible default for
+# quarterly data, larger for monthly/weekly with longer-memory residuals.
+coeftest(fit, vcov = NeweyWest(fit, lag = 4, prewhite = FALSE))
+```
+
+A commonly recommended automatic lag selector (Newey-West, 1994) is `floor(4 * (T/100)^(2/9))`, available via `NeweyWest(fit)` with default arguments. Always check the residual ACF/PACF (`acf(residuals(fit))`) to confirm that the chosen lag adequately covers the dependence horizon.
+
+```{r, eval=FALSE}
+# Segmented regression with AR(1) errors (Cochrane-Orcutt-style GLS)
+library(nlme)
+
+gls_fit <- gls(
+    outcome ~ time + intervention + time_after,
+    data        = its_data,
+    correlation = corAR1(form = ~ time)
+)
+summary(gls_fit)
+
+# Inspect the estimated AR(1) coefficient (Phi) and standardized residuals
+intervals(gls_fit, which = "var-cov")
+```
+
+If diagnostics indicate residual autocorrelation beyond AR(1) --- e.g., seasonality at lag 12 in monthly data --- two extensions are natural:
+
+```{r, eval=FALSE}
+# Higher-order ARMA errors via Arima() with exogenous regressors (xreg)
+library(forecast)
+
+X <- model.matrix(~ time + intervention + time_after, data = its_data)[, -1]
+
+arima_fit <- Arima(
+    y     = its_data$outcome,
+    xreg  = X,
+    order = c(1, 0, 1)   # ARMA(1,1) errors; tune via auto.arima(...)
+)
+summary(arima_fit)
+```
+
+For exploratory model selection, `forecast::auto.arima(y, xreg = X)` will search over `(p, d, q)` orders and seasonal terms via AICc.
+
+> **Cross-reference**: This subsection extends the autocorrelation discussion that motivated the HC1-based examples earlier in the chapter (search for "autocorrelation" near Section [Interrupted Time Series]). When the residual ACF shows persistent dependence, prefer Newey-West or `gls()`/`Arima()` over HC1; report both for transparency where space allows.
+
+------------------------------------------------------------------------
+
 ## Combining both RDiT and ITS
 
 Combining [Regression Discontinuity in Time](#sec-regression-discontinuity-in-time) and [Interrupted Time Series](#sec-interrupted-time-series) in a single regression framework is not standard, but hybrid or augmented approaches can capture both:
@@ -917,7 +977,7 @@ $$
 
 This approach leverages the entire time series for **trend estimation** (ITS), while also including local (RDiT-like) estimation of an immediate discontinuity around $T^*$.
 
-**Cautions**:
+#### Cautions
 
 -   You need sufficient data **globally** (for the ITS) and **locally** near $T^*$ (for the RDiT terms).
 -   Extra parameters can lead to complexity and potential overfitting.
@@ -1183,13 +1243,13 @@ Applying conditional logistic regression, we estimate the odds ratio (OR) indica
 
 **Implementation** in R: @zhang2016case and `season` package
 
-**Advantages**
+### Advantages
 
 -   **Self-Matching:** Controls individual-level confounding, including genetics, demographics, and chronic health status [@maclure1991case].
 -   **Efficiency:** Requires fewer subjects due to within-person matching [@mittleman1995control].
 -   **Applicability:** Highly suitable for studying acute triggers (e.g., air pollution, physical exertion, drug use) [@lumley2000bias].
 
-**Limitations**
+### Limitations
 
 -   **Carryover Effects:** Difficulties arise if exposure has prolonged effects [@maclure2000should].
 -   **Time-Varying Confounding:** Cannot inherently control for confounders changing within short timeframes unless explicitly modeled [@navidi1998bidirectional].

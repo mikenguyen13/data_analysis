@@ -276,7 +276,7 @@ grid1 = stability_plot(
 )
 
 # Examine the grid structure
-knitr::kable(grid1 %>% head(10))
+head(grid1, 10)
 # Each row represents a different specification
 # Columns indicate which controls/FEs are included (1 = yes, 0 = no)
 
@@ -294,7 +294,7 @@ grid2 = stability_plot(
 )
 
 # View the formulas
-knitr::kable(grid2 %>% head(10))
+head(grid2, 10)
 # Now each row has an 'expr' column with the full model formula
 
 # Step 3: Estimate all models
@@ -311,7 +311,7 @@ grid3 = stability_plot(
 )
 
 # View estimation results
-knitr::kable(grid3 %>% head(10))
+head(grid3, 10)
 # Now includes coefficient estimates, p-values, and confidence intervals
 
 # Step 4: Prepare data for plotting
@@ -330,7 +330,7 @@ dfs = stability_plot(
 coef_grid = dfs[[1]]      # Data for coefficient panel
 control_grid = dfs[[2]]   # Data for control specification panel
 
-knitr::kable(coef_grid %>% head(10))
+head(coef_grid, 10)
 
 # Step 5: Create the plot panels
 # This generates the two ggplot objects
@@ -411,7 +411,7 @@ grid1$expr = apply(
 # Complete formula with LHS and RHS variables
 grid1$expr = paste(lhs_var, '~', rhs_var, '+', grid1$expr, sep = '')
 
-knitr::kable(grid1 %>% head(10))
+head(grid1, 10)
 
 # Step 3: Create custom logit estimation function
 # This function estimates a logistic regression and extracts results
@@ -1297,6 +1297,169 @@ model = lm(mpg ~ wt + hp + qsec, data = mtcars)
 # This automatically extracts the necessary statistics
 konfound(model, wt)  # Assess robustness for the 'wt' coefficient
 ```
+
+------------------------------------------------------------------------
+
+## Cinelli–Hazlett Robustness Value (`sensemakr`)
+
+While Oster's $\delta$ summarizes selection on unobservables relative to observables, and `konfound` rephrases the question in terms of the share of cases that would need to be replaced, @cinelli2020making provide a complementary and now widely adopted answer. They ask: *how strong would an unobserved confounder need to be, in terms of partial $R^2$ with both the treatment and the outcome, before the estimated effect would lose statistical significance, or be reduced to zero?* Their `sensemakr` package operationalizes this question with two interpretable summaries that can be reported alongside any regression-based effect estimate.
+
+### Motivation and the Two Key Statistics
+
+The framework is built around partial $R^2$ values rather than abstract selection ratios. For a hypothesized confounder $Z$, two quantities matter:
+
+-   $R^2_{Y \sim Z \mid D, \mathbf{X}}$, the partial $R^2$ of the confounder with the outcome, given treatment and observed covariates, and
+-   $R^2_{D \sim Z \mid \mathbf{X}}$, the partial $R^2$ of the confounder with the treatment, given observed covariates.
+
+A confounder is dangerous only if it is reasonably well associated with *both*. From these two ingredients, @cinelli2020making derive two headline summaries:
+
+1.  **Robustness Value (RV)**. The smallest value $\mathrm{RV}_q$ such that a confounder with partial $R^2$ at least $\mathrm{RV}_q$ on *both* the treatment and the outcome would be sufficient to reduce the estimated coefficient by a fraction $q$. With $q = 1$ this is the strength needed to drive the point estimate to zero; with $q = q^\star$ chosen so that the bound coincides with the conventional $t$-statistic threshold (typically $1.96$), the RV is the strength needed to make the estimate statistically insignificant.
+2.  **Partial $R^2$ of treatment with outcome**. This is the worst-case bound: even a confounder that explains *all* residual variation in the treatment can only bias the estimate by an amount governed by $R^2_{Y \sim D \mid \mathbf{X}}$. If this number is small, no plausible confounder, however strong, can flip the sign.
+
+A useful rule of thumb is that an RV above $0.1$–$0.2$ already represents a fairly demanding bar: an unobserved confounder would need to explain at least 10–20% of the residual variation in *both* the treatment and the outcome, after netting out everything in the model.
+
+### The Extreme-Scenario Interpretation
+
+A common objection to sensitivity analysis is that the bounds feel abstract: *what does $R^2 = 0.15$ on the treatment actually mean?* `sensemakr` provides two natural answers.
+
+-   **Benchmarking against an observed covariate**. The analyst picks a covariate (or set of covariates) already in the model and asks what would happen if the unobserved confounder were $kd \times$ as strong as that covariate, where $kd \in \{1, 2, 3\}$ is a multiplier. This converts an abstract partial $R^2$ into the concrete statement *"a confounder $3\times$ as predictive as gender"*.
+-   **Extreme-confounding scenario**. The procedure also reports what the estimate becomes under a worst-case confounder that explains *all* residual variation in the outcome, varying only its association with treatment. If the estimate survives this stress test, the result is essentially impervious to omitted variable bias of that variety.
+
+### Worked Example: The `darfur` Study
+
+The canonical illustration in @cinelli2020making uses the `darfur` data shipped with `sensemakr`, drawn from a study of attitudes toward peace among survivors of violence in Darfur. The treatment `directlyharmed` indicates whether the respondent was directly attacked, and the outcome `peacefactor` is a measure of pro-peace attitudes.
+
+```{r}
+library(sensemakr)
+
+data(darfur)
+
+# Fit the regression
+darfur_model <- lm(
+  peacefactor ~ directlyharmed + village + female + age +
+                farmer_dar + herder_dar + pastvoted + hhsize_darfur,
+  data = darfur
+)
+
+# Run the sensitivity analysis, benchmarking against `female`
+darfur_sens <- sensemakr(
+  model                = darfur_model,
+  treatment            = "directlyharmed",
+  benchmark_covariates = "female",
+  kd                   = 1:3
+)
+
+summary(darfur_sens)
+```
+
+The summary output reports the unadjusted point estimate and standard error, the robustness value to bring the estimate to zero, the robustness value to bring the $t$-statistic below the conventional significance threshold, and the partial $R^2$ of treatment with outcome. It then tabulates the bias-adjusted estimate, $t$-statistic, and lower confidence bound under hypothetical confounders that are $1\times$, $2\times$, and $3\times$ as strong as the chosen benchmark covariate (`female` in this example).
+
+For the Darfur data, the RV is on the order of $0.14$, meaning that a confounder would need a partial $R^2$ of about 14% with both treatment and outcome to drive the estimate to zero. That is substantially stronger than the role played by `female` in this regression, which lends credibility to the original conclusion.
+
+### The Sensitivity Contour Plot
+
+The most informative output of `sensemakr` is a contour plot in the partial-$R^2$ plane (Fig. \@ref(fig:robustness-sensemakr-contour)). The horizontal axis represents the partial $R^2$ of the confounder with the treatment; the vertical axis represents the partial $R^2$ of the confounder with the outcome. Contour lines show the bias-adjusted estimate (or $t$-statistic) for every combination of the two. Points labeled $1\times$, $2\times$, $3\times$ indicate where confounders of the corresponding multiples of the benchmark covariate would land in this plane. If those points sit far inside the region of "estimates that remain significant", the result is robust.
+
+```{r robustness-sensemakr-contour, fig.cap="Cinelli and Hazlett sensitivity contour plot for the darfur regression.", fig.alt="Contour plot in the partial R squared plane. The horizontal axis is the partial R squared of an unobserved confounder with the treatment, and the vertical axis is the partial R squared of the same confounder with the outcome. Contour lines indicate the bias-adjusted estimated effect for every combination of the two strengths. Three labeled points show where confounders that are one, two, and three times as strong as the benchmark covariate female would lie."}
+plot(darfur_sens)
+```
+
+The same machinery can be used to plot the bias-adjusted $t$-statistic instead of the point estimate, by passing `sensitivity.of = "t-value"` to `plot`. This is convenient when the practical question is whether a confounder of a given strength would cause the result to lose statistical significance.
+
+### Practical Recommendations
+
+A few practical points are worth keeping in mind:
+
+1.  **Pick benchmarks that are substantively informative**. Choose covariates that are strong predictors of both treatment and outcome and whose role in the system is well understood, so that the $kd$-multiplier statements are meaningful.
+2.  **Report RV alongside the point estimate**. A coefficient of `0.10` with `RV = 0.20` and `RV (alpha = 0.05) = 0.13` tells the reader much more than a coefficient and a $p$-value alone.
+3.  **Combine with other tools**. RV/`sensemakr` is complementary to Oster's $\delta$ (which gives a single scalar), `konfound` (which expresses the threshold as a share of biased cases), and the matching-based Rosenbaum bounds described next.
+
+------------------------------------------------------------------------
+
+## Rosenbaum Bounds
+
+The methods discussed so far are designed for regression-based estimators. In matched observational studies, where the analyst has explicitly paired treated units with similar controls on observed covariates, a different and arguably even more natural sensitivity tool is available: the @rosenbaum2002overt sensitivity bound. It asks how much the matched pairs would have to differ on an *unobserved* covariate before the conclusions would be overturned.
+
+### Motivation and the $\Gamma$ Parameter
+
+After matching, two units in the same matched set look identical on observed covariates $\mathbf{X}$. If the matching were perfect and treatment assignment were ignorable given $\mathbf{X}$, then within each matched set treatment would be assigned by a coin flip. Rosenbaum's framework asks: *what if the coin is biased, and the bias comes from an unobserved covariate $U$ that we did not match on?*
+
+Formally, for two units $i$ and $j$ in the same matched set with treatment probabilities $\pi_i$ and $\pi_j$, the odds ratio is bounded by
+
+$$
+\frac{1}{\Gamma} \;\le\; \frac{\pi_i / (1 - \pi_i)}{\pi_j / (1 - \pi_j)} \;\le\; \Gamma.
+$$
+
+The parameter $\Gamma \ge 1$ measures the maximum departure from random assignment that an unobserved confounder could induce.
+
+-   $\Gamma = 1$ corresponds to a randomized experiment: matched units are equally likely to be treated.
+-   $\Gamma = 2$ means that, within a matched pair, one unit could be up to twice as likely as its partner to be treated, on the basis of some unobserved difference.
+-   $\Gamma = 5$ would mean the unobserved confounder has *enormous* leverage over treatment assignment.
+
+The sensitivity analysis proceeds by computing, at each value of $\Gamma$, an upper bound on the $p$-value (or a lower bound on the test statistic) for the treatment effect under the worst-case allocation of $U$ across pairs. The *critical $\Gamma$* is the value at which the bound first crosses the chosen significance threshold.
+
+A widely cited rule of thumb is that critical $\Gamma$ values above about $2$ generally indicate a robust finding for a binary treatment in social-science contexts: an unobserved confounder would need to roughly double the odds of treatment to overturn the result. Examples of $\Gamma$ thresholds in published studies are tabulated in Table \@ref(tab:rosenbaum-gamma-marketing) of Chapter \@ref(matching-methods).
+
+### Worked Example: Lalonde Job-Training Data
+
+The `lalonde` dataset packaged with `MatchIt` is a standard testbed for matching methods. The treatment is participation in a job-training program, and the outcome `re78` is real earnings in 1978. We construct a nearest-neighbor match on a small set of pre-treatment covariates and then compute Rosenbaum bounds on the matched pairs.
+
+```{r}
+library(MatchIt)
+library(rbounds)
+
+data("lalonde", package = "MatchIt")
+
+# 1:1 nearest-neighbor matching on observed covariates
+m_out <- matchit(
+  treat ~ age + educ + race + married + nodegree + re74 + re75,
+  data    = lalonde,
+  method  = "nearest"
+)
+
+matched <- match.data(m_out)
+
+# Wilcoxon signed-rank Rosenbaum bounds
+psens(
+  matched$re78[matched$treat == 1],
+  matched$re78[matched$treat == 0],
+  Gamma    = 2,
+  GammaInc = 0.1
+)
+```
+
+The `psens()` function returns, for each value of $\Gamma$ between $1$ and the supplied upper limit, a lower and upper $p$-value bound for the Wilcoxon signed-rank test under the worst-case unobserved confounder. The critical $\Gamma$ is the smallest value at which the upper $p$-value bound exceeds the chosen significance level (often $0.05$).
+
+For Hodges–Lehmann point and interval estimates of the treatment effect under the same family of bounds, `rbounds::hlsens()` provides the analogous sensitivity table:
+
+```{r}
+hlsens(
+  matched$re78[matched$treat == 1],
+  matched$re78[matched$treat == 0],
+  Gamma    = 2,
+  GammaInc = 0.1
+)
+```
+
+### Interpreting and Reporting
+
+When reporting Rosenbaum bounds, three numbers are typically of interest:
+
+-   the *unadjusted* test statistic and $p$-value (corresponding to $\Gamma = 1$),
+-   the *critical $\Gamma$* at which the upper $p$-value bound reaches the chosen significance threshold, and
+-   the bias-adjusted point and interval estimates from `hlsens()` at one or two interpretable values of $\Gamma$ (for example $\Gamma = 1.5$ and $\Gamma = 2$).
+
+It is good practice to interpret the critical $\Gamma$ in domain-specific language: *"to overturn this conclusion, an unobserved confounder would need to make program participants up to $\Gamma$ times more likely to be matched into the treatment group than their observably similar controls, even after conditioning on age, education, race, marital status, schooling, and prior earnings."* Whether such a confounder is plausible is a substantive judgment that the bound itself cannot settle.
+
+### Extensions
+
+The basic Rosenbaum bound has been extended in several directions that are increasingly relevant in modern observational work:
+
+-   **Clustered Rosenbaum bounds** [@hansen2014clustered] adapt the framework to settings where treatment is assigned at a higher level than the unit of analysis (for example, treatment at the school level with student outcomes), so that biases need to be evaluated at the cluster level rather than pair by pair.
+-   **Amplification and the $(\Lambda, \Delta)$ parameterization**, due to Rosenbaum and Silber (2009), decomposes the single sensitivity parameter $\Gamma$ into two more interpretable pieces: $\Lambda$, the maximum impact of $U$ on treatment, and $\Delta$, the maximum impact of $U$ on the outcome. A given $\Gamma$ corresponds to a one-dimensional curve in the $(\Lambda, \Delta)$ plane, which can be plotted alongside the Cinelli–Hazlett contour from the previous section.
+-   **Sensitivity for matched comparative studies with multiple control groups, instruments, or regression discontinuity-style designs** is implemented in `sensitivitymv`, `sensitivitymw`, and related packages, which generalize `rbounds` to weighted M-estimators and to studies with more than one matched control per treated unit.
+
+In practice, the Rosenbaum framework and the Cinelli–Hazlett RV framework are usually run side by side. They probe overlapping but distinct aspects of unmeasured confounding: $\Gamma$ speaks the language of treatment-assignment odds within matched sets, while RV speaks the language of partial $R^2$ in the regression that produced the point estimate. Reporting both gives the reader a much more complete picture of how fragile or robust a causal claim really is.
 
 ------------------------------------------------------------------------
 

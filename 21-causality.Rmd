@@ -103,27 +103,28 @@ Each level requires more cognitive ability and data. Classical statistics operat
 
 ## The Formal Notation of Causality
 
-A common mistake is defining causation using probability:
+A common mistake is to define causation using ordinary conditional probability:
 
 $$
-X \text{ causes } Y \text{ if } P(Y | X) > P(Y).
+X \text{ causes } Y \text{ if } P(Y \mid X) \ne P(Y).
 $$
 
-Seeing $X$ (1st level) **doesn't mean** the probability of $Y$ increases.
+This statement only says $X$ and $Y$ are *associated* (1st-rung). The association can arise for several reasons:
 
-It could be either that
+1.  $X$ causes $Y$,
+2.  $Y$ causes $X$ (reverse causality),
+3.  a common cause $Z$ affects both $X$ and $Y$ (confounding), or
+4.  conditioning on a common effect of $X$ and $Y$ (selection / collider bias).
 
-1.  $X$ causes Y, or
-2.  $Z$ affects both $X$ and $Y$. We might be able use **control variables** - $P(Y|X, Z = z) > P(Y|Z = z)$. But then the question becomes
-    1.  How to choose $Z$?
-    2.  Did you choose enough $Z$?
-    3.  Did you choose the right $Z$?
+Adjusting for an observed set of variables $Z$ — that is, comparing $P(Y \mid X, Z = z)$ across values of $X$ — only resolves (3), and only if (a) we knew which $Z$ to choose, (b) all relevant confounders are observed, and (c) we condition only on non-descendants of $X$. In practice this is rarely guaranteed.
 
-Hence, the previous statement is incorrect. The correct causal statement is:
+The correct causal statement separates *seeing* from *doing*. Pearl's $do$-operator denotes a hypothetical intervention that sets $X$ to a specific value, breaking any incoming arrows into $X$. We then say $X$ has a causal effect on $Y$ if
 
 $$
-P(Y | do(X)) > P(Y).
+P(Y \mid do(X = x)) \ne P(Y \mid do(X = x')) \quad \text{for some } x \neq x',
 $$
+
+which in general is *not* the same as $P(Y \mid X = x) \neq P(Y \mid X = x')$.
 
 With **causal diagrams** and **do-calculus**, we can formally express interventions and answer questions at the 2nd level (Intervention).
 
@@ -174,7 +175,7 @@ Simpson's Paradox occurs when a trend in an overall dataset **reverses** when br
 
 While this often resembles **omitted variable bias (OVB)**---where missing confounders lead to misleading conclusions---Simpson's Paradox is not just a causal inference problem. It is a **mathematical phenomenon** that can arise purely from **improper weighting of data**, even in descriptive statistics.
 
-**Similarities Between Simpson's Paradox and OVB**:
+#### Similarities Between Simpson's Paradox and OVB
 
 1.  Both involve a missing variable:
 
@@ -188,7 +189,7 @@ While this often resembles **omitted variable bias (OVB)**---where missing confo
 
 -   Simpson's Paradox flips statistical relationships when controlling for a confounder.
 
-**Differences Between Simpson's Paradox and OVB**:
+#### Differences Between Simpson's Paradox and OVB
 
 1.  Not all OVB cases show Simpson's Paradox:
 
@@ -208,13 +209,13 @@ While this often resembles **omitted variable bias (OVB)**---where missing confo
 
 -   Simpson's Paradox arises from incorrect data aggregation when groups are not properly analyzed separately.
 
-**The Right Way to Think About It**
+#### The Right Way to Think About It
 
 -   Simpson's Paradox is often *caused* by omitted variable bias, but they are not the same thing.
 
 -   OVB is a problem in causal inference models; Simpson's Paradox is a problem in raw data interpretation.
 
-**How to Fix These Issues?**
+#### How to Fix These Issues?
 
 -   For OVB: Use causal diagrams, add control variables, and use regression adjustments.
 
@@ -228,11 +229,11 @@ While this often resembles **omitted variable bias (OVB)**---where missing confo
 
 Let's explore this paradox using a practical business example.
 
-**Scenario: Marketing Campaign Performance**
+#### Scenario: Marketing Campaign Performance
 
 Imagine a company running two marketing campaigns, Campaign A and Campaign B, to attract new customers. We analyze which campaign has a higher conversion rate.
 
-**Step 1: Creating the Data**
+##### Step 1: Creating the Data
 
 We will simulate conversion rates for two different customer segments:
 
@@ -279,7 +280,7 @@ Interpreting This Data
 
 Thus, **B** outperforms **A** in each **individual** segment.
 
-**Step 2: Aggregating Data (Ignoring Customer Segments)**
+##### Step 2: Aggregating Data (Ignoring Customer Segments)
 
 Now, let's calculate the overall conversion rate for each campaign without considering customer segments.
 
@@ -297,7 +298,7 @@ overall_rates <- marketing_data %>%
 print(overall_rates)
 ```
 
-**Step 3: Observing Simpson's Paradox**
+##### Step 3: Observing Simpson's Paradox
 
 Let's determine which campaign appears to have a higher conversion rate.
 
@@ -313,7 +314,7 @@ print(best_campaign_overall)
 
 Even though **Campaign B** is **better** in each **segment**, you should see that **Campaign A** has a **higher** aggregated (overall) conversion rate!
 
-**Step 4: Conversion Rates Within Customer Segments**
+##### Step 4: Conversion Rates Within Customer Segments
 
 We now analyze the conversion rates separately for high-value and low-value customers.
 
@@ -334,7 +335,7 @@ Yet, overall, A \> B.
 
 This **reversal** is the hallmark of **Simpson's Paradox**.
 
-**Step 5: Visualizing the Paradox**
+##### Step 5: Visualizing the Paradox
 
 Fig. \@ref(fig:simpson-paradox) makes this clearer by visualizing the results.
 
@@ -781,7 +782,7 @@ The following table summarizes how different types of individuals respond to tre
 
 : Classification of Individuals Based on Treatment Assignment
 
-**Key Takeaways:**
+#### Key Takeaways
 
 1.  **Compliers** are the only group that allows us to estimate causal effects using **randomized or quasi-experimental designs**.
 2.  **Always-Takers and Never-Takers** do not provide meaningful variation in treatment status, making them less useful for causal inference.
@@ -796,7 +797,7 @@ By correctly identifying and accounting for these different subject types, resea
 
 When evaluating the causal impact of an intervention, different estimands (quantities of interest) can be used to measure treatment effects, depending on the study design and assumptions about compliance.
 
-**Terminology:**
+### Terminology
 
 -   **Estimands**: The causal effect parameters we seek to measure.
 -   **Estimators**: The statistical procedures used to estimate those parameters.
@@ -836,7 +837,7 @@ In practice, all three sources of bias and uncertainty can coexist to varying de
 
 The [Average Treatment Effect](#sec-average-treatment-effect) (ATE) is the expected difference in outcomes between individuals who receive treatment and those who do not.
 
-**Definition**
+#### Definition
 
 Let:
 
@@ -856,7 +857,7 @@ $$
 ATE = E[Y(1)] - E[Y(0)]
 $$
 
-**Identification Under Randomization**
+#### Identification Under Randomization
 
 If treatment assignment is randomized (under [Experimental Design]), then the observed difference in means between treatment and control groups provides an unbiased estimator of ATE:
 
@@ -999,12 +1000,12 @@ $$
 CATE = E[Y(1) - Y(0) | X_i]
 $$
 
-**Why is CATE Useful?**
+#### Why is CATE Useful?
 
 -   **Heterogeneous Treatment Effects**: Certain groups may benefit more from treatment than others.
 -   **Policy Targeting**: Understanding who benefits the most allows for better resource allocation.
 
-**Example**
+#### Example
 
 -   Policy Intervention: A job training program may have different effects on younger vs. older workers.
 -   Medical Treatments: Drug effectiveness may differ by gender, age, or genetic factors.
@@ -1017,7 +1018,7 @@ Estimating CATE allows policymakers and researchers to **identify who benefits m
 
 A key issue in empirical research is **non-compliance**, where individuals do not always follow their assigned treatment (i.e., either people who are supposed to receive treatment don't receive it, or people who are supposed to be in the control group receive the treatment). The **Intention-to-Treat (ITT) effect** measures the impact of offering treatment, regardless of whether individuals actually receive it.
 
-**Definition**
+#### Definition
 
 The ITT effect is the observed difference in means between groups assigned to treatment and control:
 
@@ -1025,12 +1026,12 @@ $$
 ITT = E[Y | D = 1] - E[Y | D = 0]
 $$
 
-**Why Use ITT?**
+#### Why Use ITT?
 
 -   **Policy Evaluation**: ITT reflects the real-world effectiveness of an intervention, accounting for incomplete take-up.
 -   **Randomized Trials**: ITT preserves randomization, even when compliance is imperfect.
 
-**Example: Vaccination**
+#### Example: Vaccination
 
 -   A government offers a vaccine (ITT), but not everyone actually takes it.
 -   The true treatment effect depends on those who receive the vaccine, which differs from the effect measured under ITT.
@@ -1091,7 +1092,7 @@ where:
 
 One-sided noncompliance occurs when we observe only compliers and never-takers in the sample (i.e., no always-takers).
 
-**Key assumptions:**
+##### Key assumptions
 
 -   **Exclusion Restriction (Excludability)**: Never-takers have the same outcomes regardless of assignment (i.e., treatment has no effect on them because they never receive it).
 
@@ -1111,7 +1112,7 @@ Since the never-takers do not receive treatment, this simplifies estimation.
 
 Two-sided noncompliance occurs when we observe **compliers, never-takers, and always-takers** in the sample.
 
-**Key assumptions:**
+##### Key assumptions
 
 -   **Exclusion Restriction (Excludability)**: Never-takers and always-takers have the same outcome **regardless of treatment assignment**.
 
@@ -1386,7 +1387,7 @@ ATT &= E[Y_i(1) - Y_i(0) | D_i = 1] \\
 \end{aligned}
 $$
 
-**Key Interpretation:**
+##### Key Interpretation
 
 -   ATT tells us how much better (or worse) off treated individuals are compared to their hypothetical counterfactual outcome (had they not been treated).
 
@@ -1403,7 +1404,7 @@ ATC &= E[Y_i(1) - Y_i(0) | D_i = 0] \\
 \end{aligned}
 $$
 
-**Key Interpretation:**
+##### Key Interpretation
 
 -   ATC answers the question: "What would have been the effect of treatment if it had been given to those who were not treated?"
 
@@ -1535,13 +1536,13 @@ where:
 
 -   $Q_{\tau} (Y_0)$ is the $\tau$-th quantile of the outcome distribution **under control**.
 
-**When to Use QTE?**
+#### When to Use QTE?
 
 -   **Heterogeneous Treatment Effects**: If treatment effects differ across individuals, ATE may be misleading.
 -   **Policy Targeting**: Policymakers may care more about low-income individuals (e.g., bottom 25%) rather than the average effect.
 -   **Distributional Changes**: QTE allows us to assess whether treatment increases inequality (e.g., benefits the rich more than the poor).
 
-**Estimation of QTE**
+#### Estimation of QTE
 
 QTE can be estimated using:
 
@@ -1549,7 +1550,7 @@ QTE can be estimated using:
 
 -   **[Instrumental Variables] for QTE**: Requires additional assumptions to estimate causal effects in the presence of endogeneity [@abadie2002instrumental; @chernozhukov2005iv].
 
-**Example: Wage Policy Impact**
+#### Example: Wage Policy Impact
 
 -   Suppose a minimum wage increase is introduced.
 -   The ATE might show a small positive effect on earnings.
@@ -1590,13 +1591,13 @@ $$
 
 This captures how treatment **affects the relative likelihood** of success in a nonlinear way.
 
-**When to Use Log-Odds Treatment Effects?**
+#### When to Use Log-Odds Treatment Effects?
 
 -   **Binary Outcomes**: When the treatment outcome is 0 or 1 (e.g., employed/unemployed).
 -   **Nonlinear Treatment Effects**: Log-odds help handle situations where effects are multiplicative rather than additive.
 -   **Rare Events**: Useful in cases where the outcome probability is very small or very large.
 
-**Estimation of Log-Odds Treatment Effects**
+#### Estimation of Log-Odds Treatment Effects
 
 -   **Logistic Regression with Treatment Indicator**: $$
     \log \left( \frac{P(Y = 1 | D = 1)}{1 - P(Y = 1 | D = 1)} \right) = \beta_0 + \beta_1 D

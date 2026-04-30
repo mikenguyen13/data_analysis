@@ -189,3 +189,54 @@ These capture different dimensions of sentiment, and their effectiveness varies 
 Proxy variables are valuable tools in empirical research when used with caution. They offer a bridge between theory and data when important variables are unobservable. However, this bridge is built on assumptions---especially regarding correlation, measurement error, and residual independence---that must be carefully justified.
 
 > **Key Takeaway**: A proxy can reduce bias from omitted variables but introduces its own risks---especially measurement error and interpretive ambiguity. The best practice is to use proxies transparently, test assumptions when possible, and consider alternative solutions such as instruments or structural models.
+
+------------------------------------------------------------------------
+
+#### Negative Controls and Proximal Causal Inference
+
+The classical proxy-for-omitted-variable framework assumes the analyst can plausibly substitute an observed variable for a latent confounder. In modern epidemiology, biostatistics, and applied econometrics, two related ideas push this logic further: **negative controls** for confounding *detection* and **proximal causal inference** for confounding *correction* under unmeasured confounding.
+
+**Negative outcome controls** (Lipsitch, Tchetgen Tchetgen, and Cohen, 2010) are outcomes that, by subject-matter knowledge, should *not* be causally affected by the treatment but *are* plausibly affected by the same unmeasured confounder $U$ that contaminates the primary outcome. The logic is diagnostic: if the estimated treatment effect on the negative outcome is far from zero, residual confounding is unlikely to be negligible for the primary outcome either.
+
+> **Example**: In a study of statin use and dementia risk, mortality from accidents is a candidate negative outcome --- statins should not causally affect accident mortality, but unmeasured healthy-user effects could. A non-zero estimated effect on accident mortality flags residual confounding in the dementia analysis.
+
+**Negative exposure controls** are treatment-like variables that, again by domain knowledge, are known to have no causal effect on the outcome of interest, but share confounders with the actual treatment. They serve the symmetric role of the negative outcome control: a non-zero estimated effect of the negative exposure on the outcome signals that the confounding-control strategy is incomplete.
+
+**Common settings**: pharmacoepidemiology (healthy-user / sick-stopper effects), labor economics (estimating returns to education with placebo "treatments" assigned outside the policy window), marketing (brand-exposure studies with unrelated outcomes), and climate-and-health research where seasonality is a known confounder.
+
+**Proximal causal inference** (Miao, Geng, and Tchetgen Tchetgen, 2018; Tchetgen Tchetgen, Ying, Cui, Shi, and Miao, *introductory review*, 2024 working-paper / book-length treatments) goes beyond detection: under stronger conditions, a *pair* of proxies --- one tied to the treatment-side confounder ("treatment-inducing proxy" $Z$) and one tied to the outcome-side confounder ("outcome-inducing proxy" $W$) --- can identify and consistently estimate the causal effect of $A$ on $Y$ even when the confounder $U$ is *entirely unmeasured*.
+
+The key structural assumption is that $Z$ and $W$ are independent of each other given $(A, U, X)$ and that each is informative about $U$ in a specific direction (the so-called *bridge function* or *completeness* condition). Estimation proceeds by solving an integral equation for an *outcome confounding bridge function* $h(W, A, X)$ such that $E[Y \mid A, U, X] = E[h(W, A, X) \mid A, U, X]$; the average causal effect is then identified by
+
+$$
+E[Y(a)] = E\bigl[\, h(W, a, X)\, \bigr].
+$$
+
+A schematic implementation looks like:
+
+```{r, eval=FALSE}
+# Pseudocode --- proximal two-stage least squares (P2SLS) for a binary treatment
+#   A: treatment, Y: outcome, W: outcome-inducing proxy,
+#   Z: treatment-inducing proxy, X: measured covariates
+
+# Stage 1: regress W on (A, Z, X) using only the control sample to estimate
+#          the bridge function h(W, A, X).
+stage1 <- lm(W ~ A + Z + X)               # or a flexible learner
+
+# Stage 2: project Y onto fitted bridge values; this is the proximal analogue
+#          of an IV second stage.
+What  <- predict(stage1)
+fit   <- lm(Y ~ A + What + X)             # coef on A is the proximal ATE
+
+# In practice, use the proximal-IV estimator implemented in:
+#   - the `proximalde` R package (Cui, Pu, Shi, Miao, Tchetgen Tchetgen)
+#   - or Python `proximalcausal` for nonparametric kernel-bridge variants.
+```
+
+**Caveats and scope conditions**:
+
+1.  Both $Z$ and $W$ must be *more than* simple proxies for $U$ --- they need to satisfy *completeness* (a strong identifying condition akin to relevance in IV).
+2.  Misclassifying a true post-treatment variable as a proxy can re-introduce bias, just as in IV designs.
+3.  Negative-control validity often rests on subject-matter argument; pre-registering the set of negative controls before unblinding helps prevent post-hoc selection.
+
+> **Key Takeaway**: Proxies have evolved from a single observed substitute for a latent confounder into a *system* of proxies (treatment-inducing, outcome-inducing, and negative controls) that, jointly, can both *detect* and *correct* unmeasured confounding. When a credible classical-proxy argument is unavailable, negative controls supply a sanity check, and proximal causal inference supplies a constructive identification strategy.

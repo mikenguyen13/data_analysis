@@ -117,7 +117,7 @@ From these plots, you can see the relationship at the individual level, with eac
 
 Simpson's Paradox, also known as the Yule-Simpson effect, is a phenomenon in probability and statistics where a trend that appears in different groups of data disappears or reverses when the groups are combined. It's a striking example of how aggregated data can sometimes provide a misleading representation of the actual situation.
 
-**Illustration of Simpson's Paradox:**
+#### Illustration of Simpson's Paradox
 
 Consider a hypothetical scenario involving two hospitals: Hospital A and Hospital B. We want to analyze the success rates of treatments at both hospitals. When we break the data down by the severity of the cases (i.e., minor cases vs. major cases):
 
@@ -143,7 +143,7 @@ However, let's consider the overall success rates without considering case sever
 
 Suddenly, Hospital B seems better overall. This surprising reversal happens because the two hospitals might handle very different proportions of minor and major cases. For example, if Hospital A treats many more major cases (which have lower success rates) than Hospital B, it can drag down its overall success rate.
 
-**Causes**:
+#### Causes
 
 Simpson's Paradox can arise due to:
 
@@ -151,11 +151,11 @@ Simpson's Paradox can arise due to:
 
 2.  Different group sizes, where one group might be much larger than the other, influencing the aggregate results.
 
-**Implications**:
+#### Implications
 
 Simpson's Paradox highlights the dangers of interpreting aggregated data without considering potential underlying sub-group structures. It underscores the importance of disaggregating data and being aware of the context in which it's analyzed.
 
-**Relation to Aggregation Bias**
+#### Relation to Aggregation Bias
 
 In the most extreme case, aggregation bias can reverse the coefficient sign of the relationship of interest (i.e., Simpson's Paradox).
 
@@ -280,7 +280,7 @@ Survivorship bias refers to the logical error of concentrating on the entities t
 
 **Example**: If you were to analyze the success of companies based only on the ones that are still in business today, you'd miss out on the insights from all those that failed. This would give you a distorted view of what makes a successful company, as you wouldn't account for all those that had those same attributes but didn't succeed.
 
-**Relation to Other Biases**:
+### Relation to Other Biases
 
 1.  **Sample Selection Bias**: Survivorship bias is a specific form of sample selection bias. While survivorship bias focuses on entities that "survive", sample selection bias broadly deals with any non-random sample.
 
@@ -344,7 +344,7 @@ print(p)
 
 In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating that by only looking at the survivors, we overestimate the average earnings.
 
-**Remedies**:
+### Remedies
 
 1.  **Awareness**: Recognizing the potential for survivorship bias is the first step.
 
@@ -358,13 +358,70 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 
 ------------------------------------------------------------------------
 
+## Attrition Bias {#sec-attrition-bias}
+
+**Attrition bias** arises in longitudinal or panel studies when units drop out of the sample non-randomly --- and in particular when dropout is correlated with the outcome or with treatment status. Even a randomized experiment with perfect baseline balance will yield biased treatment-effect estimates if, for example, sicker patients in the control arm are more likely to be lost to follow-up than sicker patients in the treatment arm.
+
+**Example**: In a multi-year clinical trial of a weight-loss drug, participants who fail to lose weight are more likely to disengage and drop out. If dropout is heavier in the placebo arm, the per-protocol estimate overstates the drug's effect because the remaining placebo subjects are atypically successful.
+
+**Common settings**: longitudinal panel surveys (PSID, NLSY, HRS), randomized field experiments with multi-wave follow-ups, cohort studies in epidemiology, customer-retention analytics, and online-experiment platforms where users abandon the funnel before the outcome is recorded.
+
+### Standard remediations
+
+1.  **Inverse-probability-of-attrition weighting (IPAW)**: Model the probability of remaining in the sample at each wave conditional on baseline covariates, then up-weight retained observations by the inverse of their estimated retention probability. Valid under the *missing-at-random given observables* assumption.
+2.  **Lee bounds** [@lee2009training]: Construct sharp non-parametric bounds on the treatment effect for *always-responders* by trimming the upper or lower tail of the over-represented arm by the differential attrition rate. Robust to arbitrary selection on unobservables, at the cost of width.
+3.  **Selection / Heckman models**: When a credible exclusion restriction is available, jointly model the dropout process and the outcome.
+4.  **Sensitivity analyses**: Re-run primary estimates under best-case / worst-case imputation of dropouts (e.g., last-observation-carried-forward; tipping-point analyses).
+
+> **Key Takeaway**: Attrition bias is selection bias *induced post-randomization*. Pre-registered IPAW or Lee bounds, plus tabulated baseline characteristics of dropouts vs. completers, are the de facto reporting standard.
+
+------------------------------------------------------------------------
+
+## Recall Bias {#sec-recall-bias}
+
+**Recall bias** is a form of [measurement error](#sec-measurement-error) that arises when the accuracy or completeness of a respondent's memory is systematically related to their outcome or exposure status. Unlike classical, mean-zero measurement error --- which generally attenuates regression coefficients --- recall bias is *differential*, meaning it shifts coefficients in unpredictable directions and can manufacture spurious associations.
+
+**Example**: In a case-control study of diet and cancer, cancer patients (cases) may scrutinize their pre-diagnosis diet more carefully than healthy controls, recalling specific high-risk items that controls forget. The retrospective association between diet and cancer is then exaggerated, not because of true causation but because *recall is correlated with case status*.
+
+**Common settings**: retrospective epidemiological case-control studies, customer-survey self-reports of past purchase behavior, retrospective wage and labor-history surveys, post-event evaluations of policy or marketing exposures, and any setting where a salient outcome makes prior events more "rememberable" for one group.
+
+### Standard remediations
+
+1.  **Contemporaneous logging**: Replace retrospective self-report with prospectively collected administrative records, transaction logs, or wearable-sensor data --- removing the memory channel entirely.
+2.  **Biomarker or behavioral triangulation**: Pair self-reports with an objective measure (e.g., serum nicotine for smoking, scanner data for purchases, server-side click logs for ad exposure) and treat the discrepancy as a measurement-error model.
+3.  **Blinded data collection**: Where retrospective questions are unavoidable, blind interviewers (and ideally respondents) to the case/control status to remove differential probing.
+4.  **Validation substudies**: Calibrate self-report instruments against a gold-standard subsample and apply regression calibration or simulation-extrapolation (SIMEX).
+
+> **Key Takeaway**: Recall bias is most dangerous when it is *differential*, because it breaks the standard "attenuation" intuition for measurement error. Whenever feasible, prefer contemporaneous administrative or sensor-based records to retrospective self-report.
+
+------------------------------------------------------------------------
+
+## Regression to the Mean {#sec-regression-to-the-mean}
+
+**Regression to the mean** (RTM) describes the statistical phenomenon by which extreme observations on a noisy measurement tend, on re-measurement, to lie closer to the population mean. It is *not* a causal effect of any intervention --- it is an artifact of selecting on a noisy realization. Mistaking RTM for a treatment effect is one of the most common applied-statistics errors in pre/post designs.
+
+**Example**: A school district enrolls the *worst-performing 10%* of students from last year's standardized test in a tutoring program. Even with a *completely ineffective* tutor, those students will, on average, score higher this year --- their selection was driven partly by transient bad-day noise, which does not repeat. Naively comparing pre- to post-test scores credits the tutor for an effect that is mechanical.
+
+**Common settings**: selection of units for an intervention based on extreme baseline values (e.g., highest-cost patients, lowest-revenue stores, highest-error regions), pre/post analyses without a comparison group, sports performance ("rookie of the year" sophomore slumps), and managerial evaluation systems that promote on the basis of one extreme review.
+
+### Standard remediations
+
+1.  **Comparison-group designs**: Include an untreated comparison group selected on the *same* extreme criterion. RTM operates equally on both groups, so the difference in changes (a [difference-in-differences](#sec-difference-in-differences) contrast) nets it out.
+2.  **Avoid selection on the pre-test**: Where possible, randomize within the eligible pool rather than treating the extreme tail; or pre-specify entry on a *time-invariant* characteristic instead of a noisy realization.
+3.  **Use multiple baseline measurements**: Average several pre-period observations to reduce the noise variance that fuels RTM, then condition on the average rather than a single realization.
+4.  **Model the measurement process explicitly**: A simple errors-in-variables or random-effects model that separates true score from noise will recover an RTM-corrected expected post-period value.
+
+> **Key Takeaway**: Whenever units are selected because they were extreme, expect movement toward the mean in the next period --- whether or not anything was done to them. Always benchmark against a similarly-selected control group; never report a pre/post change as a treatment effect when units were chosen on the pre-period value.
+
+------------------------------------------------------------------------
+
 ## Publication Bias {#sec-publication-bias}
 
 Publication bias occurs when the results of studies influence the likelihood of their being published. Typically, studies with significant, positive, or sensational results are more likely to be published than those with non-significant or negative results. This can skew the perceived effectiveness or results when researchers conduct meta-analyses or literature reviews, leading them to draw inaccurate conclusions.
 
 **Example**: Imagine pharmaceutical research. If 10 studies are done on a new drug, and only 2 show a positive effect while 8 show no effect, but only the 2 positive studies get published, a later review of the literature might erroneously conclude the drug is effective.
 
-**Relation to Other Biases**:
+### Relation to Other Biases
 
 1.  **Selection Bias**: Publication bias is a form of selection bias, where the selection (publication in this case) isn't random but based on the results of the study.
 
@@ -439,7 +496,7 @@ print(p)
 
 The plot might show that the "True Avg Effect" is around zero, while the "Published Avg Effect" is likely higher or lower, depending on which studies happen to have significant results in the simulation.
 
-**Remedies**:
+### Remedies
 
 1.  **Awareness**: Understand and accept that publication bias exists, especially when conducting literature reviews or meta-analyses.
 
@@ -1049,7 +1106,7 @@ For a table of summary, refer to Table \@ref(tab:p-hacking-discourse).
 
 : (#tab:p-hacking-discourse) Discourse on p-hacking and publication bias literature
 
-**Key takeaways**:
+#### Key takeaways
 
 -   **p-curve**: Great at diagnosing evidential value; controversial as a meta-analytic estimator (especially under heterogeneity/dependence).
 -   **z-curve**: Powerful heterogeneity-aware diagnostics (EDR/ERR); interpret with sensitivity to mixture choices.

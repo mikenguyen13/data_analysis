@@ -290,7 +290,7 @@ A widely used formal test is the McCrary density test [@mccrary2008manipulation]
 -   Manipulation is often **one-sided**, meaning subjects shift only in one direction relative to the cutoff. In rare cases, two-sided manipulation may occur but often cancels out.
 -   We could also observe partial manipulation in reality (e.g., when subjects can only imperfectly manipulate). However, since we typically treat it like a fuzzy RD, we would not encounter identification problems. In contrast, complete manipulation would lead to serious identification issues.
 
-**Bunching Methodology**
+#### Bunching Methodology
 
 -   Bunching occurs when individuals self-select into specific values of the running variable (e.g., policy thresholds). See @kleven2016bunching for a review.
 -   The method helps estimate the counterfactual distribution (what the density would have been without manipulation).
@@ -311,7 +311,7 @@ If the bunching test fails to detect manipulation, we proceed to the [Placebo Te
 
 ------------------------------------------------------------------------
 
-**McCrary Density Test (Discontinuity in Forcing Variable)**
+#### McCrary Density Test (Discontinuity in Forcing Variable)
 
 ```{r}
 library(rdd)
@@ -336,7 +336,7 @@ x <- x + 2 * (runif(1000, -1, 1) > 0 & x < 0)
 DCdensity(x, 0)  # Discontinuity detected
 ```
 
-**Cattaneo Density Test (Improved Version)**
+#### Cattaneo Density Test (Improved Version)
 
 ```{r}
 library(rddensity)
@@ -432,6 +432,46 @@ bandwidth <-
 # Print the bandwidth
 print(bandwidth)
 ```
+
+------------------------------------------------------------------------
+
+#### Modern Bandwidth Selection and Robust Inference with `rdrobust`
+
+The `rdd` package has been effectively unmaintained on CRAN since 2016. The de facto modern standard for both bandwidth selection and point estimation in sharp and fuzzy RD designs is the `rdrobust` package [@calonico2014robust; @calonico2020optimal], which implements:
+
+- **MSE- and CER-optimal bandwidth selectors** for sharp, fuzzy, and kink RD designs (`rdbwselect()`).
+- **Bias-corrected point estimates** with **robust confidence intervals** that explicitly account for the bias introduced by the optimal bandwidth (`rdrobust()`).
+
+The `rdd` example above is retained for backward reference and pedagogical continuity; for new applied work, the workflow below is preferred.
+
+```{r, eval=FALSE}
+# install.packages("rdrobust")
+library(rdrobust)
+
+# Use the same simulated data: outcome_var, running_var, cutpoint = 0
+# Step 1: CCT (Calonico-Cattaneo-Titiunik) optimal bandwidth selection
+bw_cct <- rdbwselect(
+    y         = outcome_var,
+    x         = running_var,
+    c         = 0,
+    bwselect  = "mserd",   # MSE-optimal common bandwidth
+    kernel    = "triangular"
+)
+summary(bw_cct)
+
+# Step 2: Bias-corrected point estimate with robust CIs
+rd_fit <- rdrobust(
+    y      = outcome_var,
+    x      = running_var,
+    c      = 0,
+    kernel = "triangular"
+)
+summary(rd_fit)
+```
+
+The `summary(rd_fit)` output reports three rows: a **conventional** estimate (no bias correction), a **bias-corrected** estimate, and the **robust** estimate whose confidence interval is the recommended object for inference. For an alternative design with two-sided MSE-optimal bandwidths or the coverage-error-rate (CER) optimal selector, change `bwselect` to `"msetwo"` or `"cerrd"`. For fuzzy designs, supply the treatment indicator via the `fuzzy` argument.
+
+> **Practical note**: `rdrobust` is the de facto modern standard; the `rdd` package is retained here for backward reference, but new work should rely on `rdrobust` for both bandwidth selection and inference.
 
 ------------------------------------------------------------------------
 
@@ -600,7 +640,7 @@ The method to obtain sharp bounds on $\Gamma$ follows three steps:
 3.  Deriving Bounds on $\Gamma$:
     -   Using the bounds from Steps 1 and 2, compute sharp upper and lower bounds on the [local average treatment effect](#sec-local-average-treatment-effects).
 
-**Extreme Value Consideration:**
+##### Extreme Value Consideration
 
 -   The bounds account for worst-case scenarios by considering extreme assumptions about the distribution of potential outcomes.
 -   These bounds are sharp (i.e., they cannot be tightened further without additional assumptions) but remain empirically relevant.
@@ -783,7 +823,7 @@ where $Z$ is the instrument (indicator for being above the cutoff). This approac
 
 There are two equivalent ways to estimate the [LATE](#sec-local-average-treatment-effects) in practice:
 
-**Approach 1: Two-Step Estimation**
+#### Approach 1: Two-Step Estimation
 
 1.  **Estimate Sharp RD for the Outcome** $Y$:
     -   Regress $Y$ on $X$ using a local linear regression on either side of $c$.
@@ -799,7 +839,7 @@ Mathematically:
 $$
 \widehat{\text{LATE}} = \frac{\widehat{E[Y \mid X = c^+]} - \widehat{E[Y \mid X = c^-]}}{\widehat{E[D \mid X = c^+]} - \widehat{E[D \mid X = c^-]}}
 $$
-**Approach 2: Instrumental Variables Regression**
+#### Approach 2: Instrumental Variables Regression
 
 -   Subset the data to observations close to $c$.
 
@@ -1062,7 +1102,7 @@ where:
 
 If $b(X)$ is known and deterministic, the denominator is non-random, allowing for precise estimation of $\alpha_{KRD}$.
 
-**Assumptions for Identification**
+#### Assumptions for Identification
 
 1.  **Continuity of Potential Outcomes**
     -   The expected potential outcomes $E[Y(d)|X]$ are smooth in $X$ (no jumps).
@@ -1097,7 +1137,7 @@ where:
 
 -   The ratio provides a local instrumental variable estimate of the causal effect for compliers.
 
-**Identification Assumptions**
+#### Identification Assumptions
 
 In addition to the Sharp RKD assumptions, Fuzzy RKD requires:
 
@@ -1112,7 +1152,7 @@ If these assumptions hold, the Fuzzy RKD estimator identifies a local treatment 
 
 RKD estimation involves three main steps:
 
-**Step 1: Estimating the Kink in the Outcome Function**
+#### Step 1: Estimating the Kink in the Outcome Function
 
 Estimate the left- and right-hand derivatives of $E[Y | X]$:
 
@@ -1126,7 +1166,7 @@ This can be done using:
 
 -   Higher-order polynomial regression for improved flexibility.
 
-**Step 2: Estimating the Kink in the Treatment Function**
+#### Step 2: Estimating the Kink in the Treatment Function
 
 For [Sharp RKD](#sec-identification-in-sharp-regression-kink-design), the kink in $b(X)$ is known.
 
@@ -1138,7 +1178,7 @@ $$
 
 Use local regression or piecewise polynomials to estimate this slope.
 
-**Step 3: Compute RKD Estimator**
+#### Step 3: Compute RKD Estimator
 
 For [Sharp RKD](#sec-identification-in-sharp-regression-kink-design):
 
@@ -1183,7 +1223,7 @@ $$
 \tau (x,c)= E[Y_{1i} - Y_{0i}|X_i = x, C_i = c].
 $$
 
-**Why Use Multi-Cutoff RD?**
+### Why Use Multi-Cutoff RD?
 
 -   **Policy Variation**: Policies often implement different cutoffs across regions or institutions (e.g., different states setting different minimum test scores for scholarship eligibility).
 -   **Generalizability**: Allows estimation of treatment effects across multiple populations instead of relying on a single threshold.
@@ -1736,7 +1776,7 @@ Specialized RD Packages
 -   `rdmulti`: Extends RD to multiple cutoffs and multiple scores.
 -   `rdpower`: Conducts power calculations and sample selection for RD designs.
 
-**Why Use `rdrobust`?**
+#### Why Use `rdrobust`?
 
 -   Implements local polynomial regression, providing bias correction and robust standard errors.
 -   Uses state-of-the-art bandwidth selection methods.
@@ -1942,7 +1982,7 @@ Thus, the RD framework must be modified:
 
 To correct for endogeneity, we use a two-stage least squares IV approach, where the running variable serves as an instrument for treatment intensity.
 
-**Stage 1: First-Stage Regression**
+##### Stage 1: First-Stage Regression
 
 Estimate the probability of hiring licensed workers based on the 120-bed threshold:
 
@@ -1954,7 +1994,7 @@ where:
 
 -   $QSW_{ist}$ = Predicted proportion of licensed workers at facility $i$ in state $s$ at time $t$.
 
-**Stage 2: Second-Stage Regression**
+##### Stage 2: Second-Stage Regression
 
 Estimate the causal effect of hiring licensed workers on quality of service:
 
@@ -1968,7 +2008,7 @@ where:
 
 -   $\gamma_1$ = Causal effect of certified staffing on quality outcomes.
 
-**Key Observations**
+##### Key Observations
 
 -   The larger the discontinuity at 120 beds, the closer $\gamma_1 \approx \beta_1$.
 -   The ITT effect ($\beta_1$) will always be weaker than the [local average treatment effect](#sec-local-average-treatment-effects) ($\gamma_1$).

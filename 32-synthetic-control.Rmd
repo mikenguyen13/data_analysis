@@ -196,7 +196,7 @@ Bias Considerations:
 
 -   The accuracy of SCM depends on the ratio of transitory shocks ($\epsilon_{it}$) to pre-treatment periods ($T_0$). In other words, you should have good fit for $Y_{1t}$ for pre-treatment period (i.e., $T_0$ should be large while small variance in $\epsilon_{it}$)
 -   Good fit in pre-treatment periods (large $T_0$) is crucial.
--   If the pre-treatment fit is poor, bias correction methods are required [@arkhangelsky2019synthetic, @abadie2021using, @ben2020varying].
+-   If the pre-treatment fit is poor, bias correction methods are required [@arkhangelsky2021synthetic; @abadie2021using; @ben2020varying].
 
 ------------------------------------------------------------------------
 
@@ -868,6 +868,54 @@ gaps.plot(synth.res    = synth.out,
 abline(v   = 15, lty = 2)
 
 ```
+
+#### Modern alternatives: `tidysynth` and `augsynth`
+
+The classic `Synth` workflow above relies on building a `dataprep` matrix of predictors, treated/donor identifiers, and time windows before invoking `synth()`. Two more recent packages streamline this pipeline:
+
+- **`tidysynth`** (Dunford) provides a tidyverse-style API in which the synthetic-control workflow is expressed as a chained sequence of verbs --- `synthetic_control()` initializes the object, `generate_predictor()` defines pre-treatment matching variables, `generate_weights()` solves for donor weights, and `generate_control()` constructs the synthetic counterfactual. Diagnostics, plots, and placebo tests are dispatched on the resulting object via S3 methods (`plot_trends()`, `plot_placebos()`, `grab_significance()`), avoiding the matrix bookkeeping required by `Synth::dataprep()`.
+- **`augsynth`** (Ben-Michael, Feller, and Rothstein), already used elsewhere in this chapter (see Section [Augmented Synthetic Control Method]), implements ridge-augmented synthetic control with explicit bias correction and is the recommended package when pre-treatment fit is poor.
+
+A minimal `tidysynth` skeleton, parallel to the `Synth` example above, is:
+
+```{r, eval=FALSE}
+# install.packages("tidysynth")
+library(tidysynth)
+library(dplyr)
+
+# `df` is a long-format panel with state, year, Y, X1, X2;
+# state == "State A" is treated, intervention at year 15.
+sc_out <- df %>%
+    synthetic_control(
+        outcome      = Y,
+        unit         = state,
+        time         = year,
+        i_unit       = "State A",
+        i_time       = 15,
+        generate_placebos = TRUE
+    ) %>%
+    generate_predictor(
+        time_window = 1:14,
+        X1_mean     = mean(X1, na.rm = TRUE),
+        X2_mean     = mean(X2, na.rm = TRUE)
+    ) %>%
+    generate_weights(
+        optimization_window = 1:14,
+        margin_ipop         = 0.02,
+        sigf_ipop           = 7,
+        bound_ipop          = 6
+    ) %>%
+    generate_control()
+
+sc_out %>% plot_trends()
+sc_out %>% plot_placebos()
+sc_out %>% grab_significance()
+# See https://github.com/edunford/tidysynth for full examples.
+```
+
+The conceptual model is identical to `Synth` --- a convex combination of donor units that minimizes pre-treatment outcome (and predictor) discrepancies --- but the chained pipeline keeps the data, weights, and synthetic counterfactual bound to a single tibble-like object, which is convenient for embedding inside `dplyr`/`purrr` workflows and for batch placebo inference.
+
+------------------------------------------------------------------------
 
 Step 2: Estimating Generalized Synthetic Control with `gsynth`
 
