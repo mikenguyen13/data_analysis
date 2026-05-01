@@ -35,7 +35,7 @@ Recent research has applied SDID to evaluate marketing interventions and policy 
 | [SC](#sec-synthetic-control)          | Reweighting to match pre-treatment trends | Few treated units  | More flexible, compensates for lack of parallel trends | Sensitive to outliers, does not scale well with large treated groups |
 +---------------------------------------+-------------------------------------------+--------------------+--------------------------------------------------------+----------------------------------------------------------------------+
 
-: (#tab:synthdid-key-diff-did-sc) Key Differences Between [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control)
+: (#tab:synthdid-key-diff-did-sc) Key differences between [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control).
 
 **Attractive Features of SDID**
 
@@ -62,6 +62,8 @@ Recent research has applied SDID to evaluate marketing interventions and policy 
 ------------------------------------------------------------------------
 
 ## Understanding
+
+Having seen *why* SDID hybridises DiD and synthetic control, we now look at *how*. The core construction is to layer two sets of weights — one over units, one over time — onto a standard two-way fixed-effects regression, so that the comparison group ends up tracking the treated trajectory before treatment and the inference is anchored on the most informative post-treatment periods.
 
 To formally define the SDID estimator, we begin by considering a balanced panel dataset with $N$ units observed over $T$ time periods. Our goal is to estimate the causal effect of a treatment intervention while accounting for both unit-specific and time-specific confounders.
 
@@ -126,7 +128,7 @@ Table \@ref(tab:synthdid-comparison-methods) summarizes key differences between 
 | **Goal with Reweighting**     | N/A (doesn't use reweighting).                                     | To match treated state as closely as possible before the intervention.          | Make trends of control units parallel (not necessarily identical) to the treated pre-intervention. |
 +-------------------------------+--------------------------------------------------------------------+---------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------+
 
-: (#tab:synthdid-comparison-methods) Comparison of Methods
+: (#tab:synthdid-comparison-methods) Comparison of methods.
 
 An alternative formulation of the SDID treatment effect is:\
 $$
@@ -147,7 +149,7 @@ where:
 | SDID                                  | $(\hat{w}_0, \hat{w}^{sdid}) = \min l_{unit}(w_0, w)$ | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it} - \sum_{t = 1}^{T_{pre}} \hat{\lambda}_t^{sdid} Y_{it}$ | Weighted differences between average treatment period and pretreatment outcome   |
 +---------------------------------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
 
-: (#tab:synthdid-sc-did-sdid-estimators) Summary of SC, DID, and SDID Estimators
+: (#tab:synthdid-sc-did-sdid-estimators) Summary of SC, DID, and SDID estimators.
 
 A key innovation in Synthetic Difference-in-Differences is its use of unit and time weights to refine causal estimates. By applying weights, SDID essentially localizes a standard two-way fixed effects regression, making it more robust and precise.
 
@@ -405,7 +407,7 @@ tau.hat = synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
 
 Figure \@ref(fig:synthdid-treat-synthetic-counterfactual) shows the trajectories between treated units and synthetic control counterfactual units.
 
-```{r synthdid-treat-synthetic-counterfactual, fig.cap='Synthetic Control Method: Treated vs. Synthetic Counterfactual Over Time', fig.alt='Line plot from 1970 to 2000 comparing two trajectories: a red line for synthetic control and a blue line for the treated unit. A vertical line around 1989 marks the intervention. After this point, the treated unit drops sharply compared to the synthetic control. A shaded area and dashed lines emphasize the gap between the two series, representing the estimated treatment effect. A legend identifies the treated and synthetic control lines.'}
+```{r synthdid-treat-synthetic-counterfactual, fig.cap='Synthetic control method: treated vs. synthetic counterfactual over time.', fig.alt='Line plot from 1970 to 2000 comparing two trajectories: a red line for synthetic control and a blue line for the treated unit. A vertical line around 1989 marks the intervention. After this point, the treated unit drops sharply compared to the synthetic control. A shaded area and dashed lines emphasize the gap between the two series, representing the estimated treatment effect. A legend identifies the treated and synthetic control lines.'}
 plot(tau.hat) + causalverse::ama_theme()
 ```
 
@@ -462,7 +464,7 @@ To explore heterogeneity of treatment effect, we can do subgroup analysis [@berm
 |                                                                    |                                                                   |                                                                                                                                                      | 2.  Compute treatment effects using only the treated subgroup units as the treatment units.    |
 +--------------------------------------------------------------------+-------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+
 
-: (#tab:synthdid-subgroup-analysis) Subgroup Analysis Strategies for Exploring Treatment Effect Heterogeneity
+: (#tab:synthdid-subgroup-analysis) Subgroup-analysis strategies for exploring treatment-effect heterogeneity.
 
 ```{r}
 library(tidyverse)
@@ -493,7 +495,7 @@ data.frame(
 
 Figure \@ref(fig:synthdid-ate-event-study) shows the average treatment effect over time.
 
-```{r synthdid-ate-event-study, fig.cap='Event Study Plot of Average Treatment Effect Over Time', fig.alt='Line plot of ATE against relative time periods from −2 to +2. The ATE remains near zero before the event, then drops sharply at time 0, indicating a strong negative treatment effect. A gradual increase follows in post-treatment periods. Shaded gray bands show confidence intervals, and a red horizontal line at zero provides a visual reference for significance.'}
+```{r synthdid-ate-event-study, fig.cap='Event study plot of average treatment effect over time.', fig.alt='Line plot of ATE against relative time periods from −2 to +2. The ATE remains near zero before the event, then drops sharply at time 0, indicating a strong negative treatment effect. A gradual increase follows in post-treatment periods. Shaded gray bands show confidence intervals, and a red horizontal line at zero provides a visual reference for significance.'}
 causalverse::synthdid_plot_ate(est)
 ```
 
@@ -527,7 +529,7 @@ data.frame(
 
 Figure \@ref(fig:synthdid-ate-event-study-subgroup) shows the average treatment effect for a subgroup.
 
-```{r synthdid-ate-event-study-subgroup, fig.cap='Event Study Plot of Average Treatment Effect Over Time (Subgroup)', fig.alt='Line plot of ATE against relative time periods from −2 to +2. The ATE remains near zero before the event, then drops sharply at time 0, indicating a strong negative treatment effect. A gradual increase follows in post-treatment periods. Shaded gray bands show confidence intervals, and a red horizontal line at zero provides a visual reference for significance.'}
+```{r synthdid-ate-event-study-subgroup, fig.cap='Event study plot of average treatment effect over time (subgroup).', fig.alt='Line plot of ATE against relative time periods from −2 to +2. The ATE remains near zero before the event, then drops sharply at time 0, indicating a strong negative treatment effect. A gradual increase follows in post-treatment periods. Shaded gray bands show confidence intervals, and a red horizontal line at zero provides a visual reference for significance.'}
 causalverse::synthdid_plot_ate(est_sub)
 ```
 
