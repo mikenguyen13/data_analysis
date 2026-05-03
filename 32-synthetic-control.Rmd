@@ -400,7 +400,7 @@ To estimate the [Average Treatment Effect on the Treated](#sec-notation-quasi-ex
 \text{ATT}_t = \frac{1}{N_T} \sum_{i \in T} \left[ Y_{it}(1) - Y_{it}(0) \right]
 $$ where $N_T$ is the number of treated units. The challenge is that $Y_{it}(0)$ for treated units is counterfactual and must be estimated.
 
-Step 1: Estimating Factor Loadings and Latent Factors
+#### Step 1: Estimating Factor Loadings and Latent Factors
 
 Using only control units, we estimate the latent factors and factor loadings: $$
 Y_{it} = X_{it} \beta + \lambda_i' f_t + \varepsilon_{it}, \quad i \in C
@@ -408,7 +408,7 @@ $$ which can be rewritten in matrix form: $$
 Y_C = X_C \beta + \Lambda_C F' + E_C.
 $$ The key assumption is that factor loadings and latent factors apply to both treated and control units, ensuring valid counterfactual estimation.
 
-Step 2: Imputing Counterfactual Outcomes
+#### Step 2: Imputing Counterfactual Outcomes
 
 For treated units, we estimate: $$
 \hat{\lambda}_i = (F_0'F_0)^{-1} F_0' (Y_{i,0} - X_{i,0} \beta)
@@ -794,7 +794,7 @@ str(df)
 
 ```
 
-Step 1: Estimating Synthetic Control with `Synth`
+#### Step 1: Estimating Synthetic Control with `Synth`
 
 The `Synth` package creates a synthetic control by matching pre-treatment trends of the treated unit (`State A`) with a weighted combination of donor states.
 
@@ -909,7 +909,7 @@ The conceptual model is identical to `Synth`, a convex combination of donor unit
 
 ------------------------------------------------------------------------
 
-Step 2: Estimating Generalized Synthetic Control with `gsynth`
+#### Step 2: Estimating Generalized Synthetic Control with `gsynth`
 
 Unlike `Synth`, the `gsynth` package supports:
 
@@ -972,7 +972,7 @@ head(basque)
 
 ```
 
-Step 1: Preparing Data for `Synth`
+#### Step 1: Preparing Data for `Synth`
 
 We define predictors and specify pre-treatment (1960--1969) and post-treatment (1975--1997) periods.
 
@@ -1014,7 +1014,7 @@ dataprep.out <- dataprep(
 
 ```
 
-Step 2: Estimating the Synthetic Control
+#### Step 2: Estimating the Synthetic Control
 
 We now estimate the synthetic control weights using `synth()`. This solves for weights that best match the pre-treatment economic indicators of the Basque Country.
 
@@ -1023,7 +1023,7 @@ synth.out = synth(data.prep.obj = dataprep.out, method = "BFGS")
 
 ```
 
-Step 3: Evaluating Treatment Effects
+#### Step 3: Evaluating Treatment Effects
 
 Calculate the GDP Gap Between Real and Synthetic Basque Country
 
@@ -1051,7 +1051,7 @@ synth.tables$tab.w[8:14, ]
 
 ```
 
-Step 4: Visualizing Results
+#### Step 4: Visualizing Results
 
 Plot Real vs. Synthetic GDP Per Capita
 
@@ -1097,14 +1097,14 @@ This example evaluates the Seattle Drug Market Initiative, a policing interventi
 
 ------------------------------------------------------------------------
 
-Step 1: Load the Required Package and Data
+#### Step 1: Load the Required Package and Data
 
 ```{r, eval = FALSE}
 library(microsynth)
 data("seattledmi")
 ```
 
-Step 2: Define Predictors and Outcome Variables
+#### Step 2: Define Predictors and Outcome Variables
 
 We specify:
 
@@ -1128,7 +1128,7 @@ match.out <- c("i_felony", "i_misdemea", "i_drugs", "any_crime")
 
 ```
 
-Step 3: Fit the Micro-Synthetic Control Model
+#### Step 3: Fit the Micro-Synthetic Control Model
 
 We first estimate treatment effects using a single follow-up period.
 
@@ -1151,7 +1151,7 @@ sea1 <- microsynth(
 
 ```
 
-Step 4: Summarize Results
+#### Step 4: Summarize Results
 
 ```{r, eval = FALSE}
 summary(sea1)
@@ -1165,7 +1165,7 @@ This output provides:
 
 -   p-values from permutation tests.
 
-Step 5: Visualize the Treatment Effect
+#### Step 5: Visualize the Treatment Effect
 
 We generate a treatment effect plot comparing actual vs. synthetic trends.
 
@@ -1173,7 +1173,7 @@ We generate a treatment effect plot comparing actual vs. synthetic trends.
 plot_microsynth(sea1)
 ```
 
-Step 6: Incorporating Multiple Follow-Up Periods
+#### Step 6: Incorporating Multiple Follow-Up Periods
 
 We extend the analysis by adding multiple post-treatment periods (`end.post = c(14, 16)`) and permutation-based placebo tests (`perm = 250`, `jack = TRUE`).
 
@@ -1197,27 +1197,18 @@ sea2 <- microsynth(
 )
 ```
 
-Step 7: Placebo Testing and Robustness Checks
+#### Step 7: Placebo Testing and Robustness Checks
 
 Permutation and jackknife tests assess whether observed treatment effects are statistically significant or due to random fluctuations.
 
 Key robustness checks:
 
-1.  Permutation Tests (`perm = 250`)
-
-```         
-1.  Reassigns treatment randomly and estimates placebo effects
-
-2.  If true effects exceed placebo effects, they are likely causal.
-```
-
-2.  Jackknife Resampling (`jack = TRUE`)
-
-```         
-1.  Removes one control unit at a time and re-estimates effects.
-
-2.  Ensures no single control dominates the synthetic match.
-```
+1.  **Permutation Tests** (`perm = 250`)
+    -   Reassigns treatment randomly and estimates placebo effects.
+    -   If true effects exceed placebo effects, they are likely causal.
+2.  **Jackknife Resampling** (`jack = TRUE`)
+    -   Removes one control unit at a time and re-estimates effects.
+    -   Ensures no single control dominates the synthetic match.
 
 ```{r, eval = FALSE}
 summary(sea2)  # Compare estimates with multiple follow-up periods
