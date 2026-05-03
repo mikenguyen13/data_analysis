@@ -7,26 +7,19 @@ library(dagitty)
 library(ggdag)
 ```
 
-Traditionally, adding more control variables in regression models is often considered harmless or even beneficial. The idea is simple: controlling for potential confounders (variables that influence both the treatment and the outcome) should help isolate the causal effect of the variable of interest. However, this intuition can be misleading, especially when it comes to overcontrolling---an issue often overlooked in both academic research and the review process.
+Adding more control variables in regression models is often considered harmless or even beneficial. The idea is simple: controlling for potential confounders (variables that influence both the treatment and the outcome) should help isolate the causal effect of the variable of interest. This intuition can be misleading, however, especially when it comes to overcontrolling, an issue that is easy to overlook in applied work.
 
-In many fields, the peer review process frequently encourages the addition of more control variables. Reviewers often ask authors to add variables to "control" for potential confounding. While this seems reasonable on the surface, it's important to note that the practice of adding controls without a solid theoretical justification can lead to erroneous conclusions.
+A common default in applied practice is to add control variables in order to "control" for potential confounding. Without a solid theoretical justification, this practice can lead to erroneous conclusions: irrelevant or inappropriate controls can obscure the true causal relationship between the treatment (e.g., a marketing campaign) and the outcome (e.g., sales) rather than clarify it. The symmetric problem also matters: variables that distort the analysis are sometimes left in the model when they should be removed. This is a subtle issue that connects to the concept of [Coefficient Stability](#sec-coefficient-stability-bounds).
 
--   **Question**: Why are reviewers often quick to suggest adding more controls?
+Overcontrolling occurs when we include control variables that do not truly affect the causal relationship between the exposure (e.g., treatment) and the outcome. This practice can introduce **bias** into the estimated causal effect. The central issue is **overcontrol bias**: when a control variable is a **collider** (as described in [Directed Acyclic Graphs](#sec-directed-acyclic-graphs)), conditioning on it can induce a spurious correlation between the exposure and the outcome.
 
-    -   **Answer**: It is often assumed that more control variables lead to more accurate models, but this assumption does not hold in many situations. The true causal relationship between the treatment (e.g., marketing campaign) and outcome (e.g., sales) may become obscured if irrelevant or inappropriate variables are controlled for.
-
--   **Counterpoint**: Rarely will a reviewer suggest removing variables that could distort the analysis, even though doing so may be more appropriate in some cases. This is a subtle issue that is often connected to the concept of [Coefficient Stability](#sec-coefficient-stability-bounds).
-
-Overcontrolling occurs when we include control variables that do not truly affect the causal relationship between the exposure (e.g., treatment) and the outcome. This practice can introduce **bias** into the estimated causal effect. There are two main issues with overcontrolling:
-
-1.  **Overcontrol Bias**: When a control variable is a **collider** (as described in [Directed Acyclic Graphs](#sec-directed-acyclic-graphs)), conditioning on it can induce a spurious correlation between the exposure and the outcome.
-2.  **Loss of Variability**: Including too many control variables can lead to multicollinearity, which reduces the variability available to estimate the relationship between the treatment and outcome.
+Multicollinearity, by contrast, is a separate concern about *precision*, not *bias*: including highly correlated regressors inflates standard errors but leaves OLS estimates unbiased, and it is treated under the regression diagnostics in [Linear Regression] rather than under the bad-controls framework here.
 
 ------------------------------------------------------------------------
 
 ## Bad Controls
 
-The label *bad control* covers a surprisingly varied family of pre-treatment or post-treatment variables that look like sensible adjustments but actively distort the estimate. The clearest cases — collider conditioning (M-bias and selection bias) and overcontrol (conditioning on a mediator) — share a common diagnosis: they open or block paths in the DAG that the analyst did not mean to touch. We work through them in order of how often they appear in published work, starting with M-bias, which is also the trap most often baked into a textbook recommendation to "control for everything pre-treatment."
+The label *bad control* covers a surprisingly varied family of pre-treatment or post-treatment variables that look like sensible adjustments but actively distort the estimate. The clearest cases, collider conditioning (M-bias and selection bias) and overcontrol (conditioning on a mediator), share a common diagnosis: they open or block paths in the DAG that the analyst did not mean to touch. We work through them in order of how often they appear in published work, starting with M-bias, which is also the trap most often baked into a textbook recommendation to "control for everything pre-treatment."
 
 ### M-bias
 
@@ -335,6 +328,8 @@ In business contexts, this often arises when analysts include *intermediate* var
 
 Selection bias --- also known as **collider stratification bias** --- occurs when conditioning on a variable that is a *collider* (a common effect of two or more variables). This inadvertently opens non-causal paths, inducing spurious associations between variables that are otherwise independent or unconfounded.
 
+Selection bias matters because it is rarely framed as a "control" decision in the first place. It often enters silently through sample restrictions, survey eligibility filters, or the way an outcome was operationalized, which means an analyst who never adds a single covariate to the regression can still be conditioning on a collider through the data they chose to observe. Recognizing the situation in practice usually starts with two questions: was a unit's *presence* in the sample affected by the treatment or outcome, and does the dataset contain a variable that is a downstream consequence of both? When the answer is yes, the standard back-door adjustment intuition (see the [Conditional Ignorability Assumption](#sec-conditional-ignorability-assumption)) breaks down even though every "confounder" appears to be controlled. Several of the cleanest fixes for this problem live outside the regression toolkit and instead exploit design-based identification, including [Instrumental Variables](#sec-instrumental-variables) and [Quasi-Experimental](#sec-quasi-experimental) approaches.
+
 #### Classic Collider Bias
 
 In the DAG below, $Z$ is a collider between $X$ and a latent variable $U$. Controlling for $Z$ opens a back-door path from $X$ to $Y$ through $U$, introducing bias.
@@ -418,14 +413,14 @@ Even though $Z$ is associated with both $X$ and \$Y\$, it **should not be contro
 
 ### Case-Control Bias
 
-Case-control studies often condition on the outcome (or its descendants), which can lead to collider bias if not properly accounted for.
+Case-control studies often condition on the outcome itself or on a *descendant* of the outcome, which can bias the estimated effect of the treatment on the outcome through several distinct mechanisms.
 
-In the DAG below, $Z$ is a **descendant of a collider**. Controlling for it can again induce spurious correlations by opening non-causal paths.
+In the DAG below, $Z$ is a **descendant of the outcome** $Y$ (not a descendant of a collider). Controlling for $Z$ blocks part of the variation in $Y$ that the treatment $X$ induces and can attenuate or bias the estimated $X \to Y$ effect.
 
 ```{r}
 rm(list = ls())
 
-# DAG: X → Y → Z
+# DAG: X -> Y -> Z (Z is a descendant of the outcome Y)
 model <- dagitty("dag{
   x -> y
   y -> z
@@ -454,7 +449,7 @@ jtools::export_summs(
 
 ```
 
-Note the subtlety: if $X$ has a **true causal effect** on $Y$, then controlling for $Z$ biases the estimate. However, if $X$ has **no causal effect** on $Y$, then $X$ is *d-separated* from $Y$, even when adjusting for $Z$. In that special case, controlling for $Z$ will not falsely suggest an effect.
+Note the subtlety: if $X$ has a **true causal effect** on $Y$, then controlling for $Z$ (a descendant of $Y$) biases the estimate, because $Z$ inherits the treatment-induced variation in $Y$ and adjusting for it removes part of the channel $X \to Y$ we are trying to measure. However, if $X$ has **no causal effect** on $Y$, then $X$ remains *d-separated* from $Y$ even when adjusting for $Z$. In that special case, controlling for $Z$ will not falsely suggest an effect.
 
 > **Key Insight:** Whether or not adjustment induces bias depends on the presence or absence of a true causal path. This highlights the importance of DAGs in clarifying assumptions and guiding valid statistical inference.
 
@@ -466,7 +461,7 @@ Note the subtlety: if $X$ has a **true causal effect** on $Y$, then controlling 
 | Bias Amplification | Controlling for a non-confounder               | Amplifies unobserved confounding              | Larger bias than before        |
 | Overcontrol Bias   | Controlling for a mediator or proxy            | Blocks part of causal effect                  | Underestimates total effect    |
 | Selection Bias     | Conditioning on a collider or its descendant   | $X \to Z \leftarrow Y$ or similar             | Induced non-causal correlation |
-| Case-Control Bias  | Conditioning on a variable affected by outcome | $X \to Y \to Z$                               | Collider-induced associatio    |
+| Case-Control Bias  | Conditioning on a descendant of the outcome    | $X \to Y \to Z$                               | Attenuated $X \to Y$ effect    |
 
 ------------------------------------------------------------------------
 
@@ -871,6 +866,8 @@ Not all covariates used in regression adjustment are necessary for identificatio
 
 When a variable is correlated with the outcome $Y$, but not a cause of the treatment $X$, controlling for it is optional for identification but may increase precision.
 
+Good predictive controls matter because they are often the easiest free lunch in an applied analysis: they tighten standard errors without altering the point estimate or threatening identification. Recognizing them in practice means asking whether a candidate covariate has any plausible *causal* link back to the treatment. If the answer is no, and the variable independently moves the outcome, it acts like a baseline covariate in a randomized trial, soaking up residual variance in $Y$ and shrinking the standard error on the treatment coefficient. The same logic underwrites the use of pre-treatment outcome levels in [Difference-in-Differences](#sec-difference-in-differences) and lagged covariates in [Event Studies](#sec-event-studies), where strong predictors of the outcome trajectory are routinely included for precision rather than identification.
+
 #### $Z$ predicts $Y$, not $X$
 
 ```{r}
@@ -990,6 +987,8 @@ jtools::export_summs(
 ### Bad Predictive Controls
 
 Not all predictive variables are useful --- some may reduce precision by soaking up degrees of freedom or increasing multicollinearity.
+
+Bad predictive controls matter because they masquerade as good ones: they look statistically related to the treatment, they often improve in-sample fit, and a reviewer can reasonably ask why they were left out. Recognizing the situation in practice means flipping the question and asking what the variable predicts. A covariate that strongly predicts the *treatment* but adds nothing to explaining the outcome (beyond what the treatment already captures) competes with the treatment for variance and inflates the standard error on the causal coefficient. This is the same intuition that motivates the relevance condition in [Instrumental Variables](#sec-instrumental-variables): a variable can be powerfully associated with $X$ without being a useful adjustment, and the closer such a variable lies to a perfect predictor of $X$, the more a regression that conditions on it begins to resemble a near-multicollinear specification.
 
 #### $Z$ predicts $X$, not $Y$
 
@@ -1174,15 +1173,17 @@ Fusion implements algorithms that go beyond standard adjustment and allow for no
 
 <!-- > \"Control for common causes of exposure and outcome. Avoid adjusting for variables that are consequences of the exposure.\" -->
 
+When the DAG is ambiguous or the analyst lacks software, a few theoretical principles do most of the work. They are essentially decision rules that translate the formal back-door criterion into questions an analyst can answer at the whiteboard. Each guideline below corresponds to a recurring pitfall already documented earlier in this chapter and to a chapter elsewhere in the book that handles the situation more carefully when adjustment alone is not enough.
+
 Key guidelines include:
 
--   Do not control for mediators if estimating the total effect
+-   Do not control for mediators if estimating the total effect (see [Mediation Analysis](#sec-mediation-analysis-explaining-the-causal-pathway) for direct/indirect-effect decomposition)
 
--   Control for pre-treatment confounders (common causes of treatment and outcome)
+-   Control for pre-treatment confounders (common causes of treatment and outcome), which corresponds to [Selection on Observables](#sec-selection-on-observables)
 
--   Avoid colliders and their descendants
+-   Avoid colliders and their descendants, which trigger the [Overcontrol Bias](#sec-overcontrol-bias) discussed earlier
 
--   Consider the use of instrumental variables when no suitable adjustment set exists
+-   Consider the use of [Instrumental Variables](#sec-instrumental-variables) when no suitable adjustment set exists, or related design-based fixes such as [Regression Discontinuity](#sec-regression-discontinuity), [Difference-in-Differences](#sec-difference-in-differences), or [Synthetic Control](#sec-synthetic-control)
 
 ### Step 4: Consider Sensitivity Analysis
 

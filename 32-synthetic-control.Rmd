@@ -4,41 +4,57 @@ The Synthetic Control Method (SCM) is a powerful causal inference tool used when
 
 ## Why the method exists
 
-The motivating problem is awkwardly common. A single state passes a tax reform, a single firm rolls out a new pricing policy, a single country adopts a peg — and you want to know what would have happened in the absence of the intervention. With one treated unit, the comparison-group machinery of [difference-in-differences](#sec-difference-in-differences) is brittle: there is no obvious "control state" or "control firm" that is a clean counterfactual, and any single donor you pick is as much a research-design choice as the analysis itself. Synthetic control responds by replacing the *judgment* of a control with a *construction*: rather than picking one comparable unit, build a weighted average of many, where the weights are chosen so that the synthetic unit tracks the treated unit's outcome and characteristics during the pre-treatment period as closely as possible. The treatment effect is then read off as the gap between the treated unit and its synthetic shadow after the intervention.
+The motivating problem is common in applied work. A single state passes a tax reform, a single firm rolls out a new pricing policy, a single country adopts a peg, and the analyst needs to estimate what would have happened in the absence of the intervention. With one treated unit, the comparison-group machinery of [difference-in-differences](#sec-difference-in-differences) is brittle: there is no obvious "control state" or "control firm" that constitutes a clean counterfactual, and any single donor selected is as much a research-design choice as the analysis itself. Synthetic control responds by replacing the *judgment* of a control with a *construction*: rather than selecting one comparable unit, the method builds a weighted average of many, where the weights are chosen so that the synthetic unit tracks the treated unit's outcome and characteristics during the pre-treatment period as closely as possible. The treatment effect is then read off as the gap between the treated unit and its synthetic counterpart after the intervention.
 
-The setting where this earns its keep is one where (i) you have a clear and discrete policy event to evaluate — a minimum wage law, a tax reform, a major advertising campaign — and (ii) there is essentially one unit on the treated side and several plausible controls on the other. Marketing and business applications have multiplied in exactly these settings. @tirunillai2017 use SCM to isolate the effect of offline TV advertising on online chatter; @wang2019mobile estimate how mobile hailing technology shifted drivers' hourly earnings; @guo2020let evaluate the Massachusetts Open Payment Law's effect on physician prescription behavior; and @adalja2023gmo exploit Vermont's GMO-labeling law to ask whether mandatory disclosure changed consumer demand. Each of these has the SCM signature: one treated case, several donor candidates, and a sharp moment of intervention.
+The setting where this approach is most valuable is one in which (i) a clear and discrete policy event is to be evaluated, such as a minimum wage law, a tax reform, or a major advertising campaign, and (ii) there is essentially one unit on the treated side and several plausible controls on the other. Marketing and business applications have multiplied in exactly these settings. @tirunillai2017 use SCM to isolate the effect of offline TV advertising on online chatter; @wang2019mobile estimate how mobile hailing technology shifted drivers' hourly earnings; @guo2020let evaluate the Massachusetts Open Payment Law's effect on physician prescription behavior; and @adalja2023gmo exploit Vermont's GMO-labeling law to ask whether mandatory disclosure changed consumer demand. Each of these has the SCM signature: one treated case, several donor candidates, and a sharp moment of intervention.
 
 ## What the method buys you
 
-The interesting thing about SCM is not just that it provides an answer in this awkward setting, but *what kind* of answer it provides. Three properties are worth highlighting because they help explain the method's appeal.
+The distinctive feature of SCM is not just that it provides an answer in this awkward setting, but *what kind* of answer it provides. Three properties are worth highlighting because they help explain the method's appeal.
 
-First, the construction is data-driven rather than judgment-driven. The donor pool's weights are chosen by an optimization that minimizes pre-treatment fit; the analyst does not get to nudge the comparison unit toward a preferred outcome. As @arkhangelsky2023large show, when the pre-treatment period is long enough, the resulting estimator delivers asymptotically normal parameters in linear panel models, putting it on the same theoretical footing as DiD.
+First, the construction is data-driven rather than judgment-driven. The donor pool's weights are chosen by an optimization that minimizes pre-treatment fit; the analyst cannot tilt the comparison unit toward a preferred outcome. As @arkhangelsky2023large show, when the pre-treatment period is long enough, the resulting estimator delivers asymptotically normal parameters in linear panel models, putting it on the same theoretical footing as DiD.
 
-Second, SCM matches on something stronger than covariates: it matches on pre-treatment *outcomes*. This is what distinguishes it from ordinary [matching methods], which align units on $X$ and hope the unobservables cooperate. By forcing the synthetic unit to track the treated unit's outcome trajectory before treatment, SCM absorbs whatever combination of observed and unobserved factors generated that trajectory — at least to the extent they were operating in the donor pool. A Bayesian variant ([Bayesian Synthetic Control]) avoids the restrictive priors of the original formulation [@kim2020bayesian].
+Second, SCM matches on something stronger than covariates: it matches on pre-treatment *outcomes*. This is what distinguishes it from ordinary [matching methods](#sec-matching-methods), which align units on $X$ and rely on the unobservables to balance implicitly. By forcing the synthetic unit to track the treated unit's outcome trajectory before treatment, SCM absorbs whatever combination of observed and unobserved factors generated that trajectory, at least to the extent they were operating in the donor pool. A Bayesian variant ([Bayesian Synthetic Control]) avoids the restrictive priors of the original formulation [@kim2020bayesian].
 
-Third, the weights are transparent. Every dollar of the synthetic unit comes from an identifiable donor, and the weights themselves carry economic content: they tell you which units the algorithm found most useful for reconstructing the treated unit's pre-period. Compared with DiD, this maximizes similarity between treated and control on both observables and (implicitly) unobservables, and removes the discretion of picking a single comparison group. Compared with a regression-based counterfactual, the convex-combination structure rules out extrapolation: weights live in $[0,1]$ and sum to one, so the synthetic unit cannot wander outside the donor pool's convex hull. And because post-intervention outcomes of the donors are never used in constructing the weights, SCM is structurally protected from the kind of p-hacking that bedevils more flexible estimators.
+Third, the weights are transparent. Every unit of the synthetic comparison comes from an identifiable donor, and the weights themselves carry economic content: they identify which units the algorithm found most useful for reconstructing the treated unit's pre-period. Compared with DiD, this maximizes similarity between treated and control on both observables and (implicitly) unobservables, and removes the discretion of selecting a single comparison group. Compared with a regression-based counterfactual, the convex-combination structure rules out extrapolation: weights live in $[0,1]$ and sum to one, so the synthetic unit cannot exceed the donor pool's convex hull. And because post-intervention outcomes of the donors are never used in constructing the weights, SCM is structurally protected from the kind of specification search that affects more flexible estimators.
 
-The price for these properties is a familiar set of trade-offs. The weights, while transparent, can be difficult to defend on substantive grounds — why this 17% from Idaho and 23% from Maine? The convex-hull structure assumes the treated unit's pre-treatment characteristics actually lie inside the donor pool's hull; when the treated unit is on the boundary or outside, the method strains and bias creeps in. And SCM is data-hungry: a long pre-treatment period and a rich donor pool are not luxuries but requirements. In small samples, those assumptions bite hard.
+The price for these properties is a familiar set of trade-offs. The weights, while transparent, can be difficult to defend on substantive grounds: justifying, say, a 17% contribution from one donor and 23% from another is rarely straightforward. The convex-hull structure assumes the treated unit's pre-treatment characteristics actually lie inside the donor pool's hull; when the treated unit is on the boundary or outside, the method strains and bias can be substantial. And SCM is data-hungry: a long pre-treatment period and a rich donor pool are requirements rather than conveniences. In small samples, those assumptions bind tightly.
 
 ------------------------------------------------------------------------
 
 ## Assumptions
 
-The synthetic-control machinery rests on a small set of assumptions that, taken together, justify treating a weighted donor pool as a credible counterfactual for the treated unit. Most of these are familiar siblings of the assumptions behind DiD and matching, but the convex-hull requirement is genuinely particular to SCM and tends to be the one that bites in practice.
+The synthetic-control machinery rests on a small set of assumptions that, taken together, justify treating a weighted donor pool as a credible counterfactual for the treated unit. Most of these are familiar siblings of the assumptions behind [difference-in-differences](#sec-difference-in-differences) and [matching methods](#sec-matching-methods), and several echo the [SUTVA](#sec-sutva) and [overlap](#sec-overlap-positivity-assumption) requirements that govern observational designs more broadly. The convex-hull requirement, however, is genuinely particular to SCM and tends to be the one that bites in practice. Importantly, these assumptions are not independent; a violation of one usually erodes another, and the diagnostic signatures often overlap.
+
+The first requirement, *good donor pool matching*, is the operational heart of the method.
 
 1.  Good Donor Pool Matching
     -   The synthetic control should closely resemble the treated unit in pre-treatment periods.
     -   The gap between pre-treatment outcomes of the treated unit and synthetic control should be zero (or very small).
+
+A useful way to read this assumption is as a falsifiable hypothesis rather than a maintained belief: if the pre-treatment fit is visibly poor, the analyst learns immediately that the donor pool cannot reconstruct the treated trajectory, and any post-treatment "effect" is then a mixture of treatment and pre-existing imbalance. The empirical signature is straightforward, namely a non-trivial root mean squared prediction error in the pre-period, frequently visible as parallel-but-shifted paths on a path plot. When the fit is poor, analysts typically reach for one of the [augmented synthetic control](#sec-augmented-synthetic-control) variants or for the [matrix completion estimator](#sec-matrix-completion-estimator), both of which trade some of SCM's transparency for additional bias correction.
+
 2.  No Contamination
     -   Only the treated unit experiences the intervention.
     -   Control units in the donor pool do not receive treatment.
+
+The no-contamination requirement is SCM's version of [SUTVA](#sec-sutva): the donor pool must consist of units that are genuinely untreated and that are not absorbing spillover from the intervention itself. In practice it fails in two distinct ways. The first is the obvious one, namely that some donor units are themselves treated by similar policies, sometimes even at the same time, which biases the synthetic counterfactual toward the treated trajectory and attenuates the estimated effect. The second is subtler: even if donors are formally untreated, the intervention may leak across borders (think of a state-level minimum wage law that reshapes labor flows in neighboring states, or an advertising campaign whose spillovers contaminate adjacent media markets). When contamination is suspected, the standard hygiene practice is to drop the suspected donors from the pool and re-estimate, comparing the weights and the implied effect to the original specification.
+
 3.  No Other Major Changes
     -   The treatment is the only significant event affecting the treated unit.
+
+The "no other major changes" condition is closely related to the exclusion-style assumptions discussed in [quasi-experimental settings](#sec-quasi-experimental) more generally: SCM cannot tell apart the policy of interest from any other shock that hits the treated unit at roughly the same time. This is why a credible application typically pairs the synthetic-control estimate with a careful narrative ruling out coincident interventions, and why post-period gaps that grow steadily for years should be read with caution as the window for confounding events widens.
+
 4.  Convex-Hull (Linearity) Assumption
     -   The counterfactual outcome of the treated unit can be constructed as a weighted sum of the control units, with weights that are **non-negative and sum to one**. Equivalently, the treated unit's pre-treatment characteristics must lie within the **convex hull** of the donor units' pre-treatment characteristics.
     -   This is stronger than a purely linear combination: it rules out extrapolation outside the donor pool. When the treated unit is on the boundary of, or outside, the convex hull, pre-treatment fit deteriorates and bias can be severe. Relaxations (ridge-penalized SCM, augmented SCM) allow limited negative weights to accommodate treated units that fall outside the hull, at the cost of a bias-variance trade-off.
-5.  Exclusion Restriction (Identification Assumption):
+
+The convex-hull assumption is the one most likely to fail without the analyst noticing, because failure is masked by the optimizer, which simply returns whatever convex combination minimizes pre-treatment loss even when no good combination exists. The classic empirical signature is a treated unit with extreme pre-treatment values (the wealthiest region, the largest firm, the longest-running campaign) for which all feasible weighted averages fall systematically below or above the treated trajectory. Note how this ties back to assumption (1): poor pre-treatment fit can be a *consequence* of a convex-hull violation rather than a separate problem, which is why "fix the fit" often means "expand or reshape the donor pool" rather than "tune the optimizer". When reshaping is not enough, the [augmented synthetic control](#sec-augmented-synthetic-control) approach allows limited negative weights, while the [synthetic difference-in-differences](#sec-synthetic-difference-in-differences) estimator hybridizes SCM weights with two-way fixed effects to relax both the convex hull and the parallel trends assumptions simultaneously.
+
+5.  Exclusion Restriction (Identification Assumption)
     -   The exclusion restriction holds conditional on pre-treatment outcomes.
+
+The exclusion restriction is the formal counterpart to assumption (3): once the pre-treatment outcome path is matched, the only remaining channel through which donor outcomes inform the treated counterfactual is via the latent factor structure described below, not via residual policy shocks specific to the treated unit. This is what justifies reading the post-period gap as a treatment effect rather than as an unmodeled common shock; it is also what fails when the treated unit and its highest-weight donors share an idiosyncratic exposure that the pre-period happened to absorb.
 
 The `Synth` package provides an algorithm to determine the optimal weight for each control unit such that the synthetic control best resembles the treated unit before treatment.
 
@@ -134,7 +150,7 @@ where $Y_{jt}$ is the outcome for unit $j$ at time $t$.
 
 ## Theoretical Considerations
 
-SCM assumes that the counterfactual outcome follows a factor model [@abadie2010synthetic]:
+The assumptions in the previous section can feel like a checklist, but they are tied together by a single underlying data-generating story. SCM assumes that the counterfactual outcome follows a factor model [@abadie2010synthetic]:
 
 $$
 Y_{it}^N = \mathbf{\theta}_t \mathbf{Z}_i + \mathbf{\lambda}_t \mathbf{\mu}_i + \epsilon_{it}
@@ -146,6 +162,8 @@ where:
 -   $\mathbf{\mu}_i$ = Unobserved factors.
 -   $\epsilon_{it}$ = Transitory shocks (random noise).
 
+The factor structure is doing most of the conceptual work here. The term $\mathbf{\theta}_t \mathbf{Z}_i$ collects time-varying returns to observed characteristics, while $\mathbf{\lambda}_t \mathbf{\mu}_i$ encodes the kind of unobserved heterogeneity that ordinarily wrecks comparisons of trends. SCM's appeal relative to [difference-in-differences](#sec-difference-in-differences) flows from this representation: rather than insisting on parallel trends (a constant $\mathbf{\lambda}_t \mathbf{\mu}_i$ differential between treated and control), the method allows time-varying loadings and recovers the counterfactual by matching enough pre-treatment outcomes that the implied $\mathbf{\mu}_i$ of the treated unit equals a weighted average of the donors' loadings. This is why SCM is sometimes positioned as a strict generalization of DiD when the latent-factor representation holds.
+
 To ensure a valid synthetic control, the weights $\mathbf{W}^*$ must satisfy:
 
 $$
@@ -156,7 +174,7 @@ $$
 \sum_{j=2}^{J+1} w_j^* Y_{j1} = Y_{11}, \quad \dots, \quad \sum_{j=2}^{J+1} w_j^* Y_{jT_0} = Y_{1T_0}
 $$
 
-This guarantees that the synthetic control closely matches the treated unit in pre-treatment periods.
+This guarantees that the synthetic control closely matches the treated unit in pre-treatment periods. The matching conditions on $\mathbf{Z}$ and on the pre-treatment outcomes are not redundant: matching outcomes alone can be achieved by spurious combinations of donors with offsetting $\mathbf{\mu}_i$, and matching covariates alone leaves the unobserved factors uncontrolled. Together they pin down both the observed-characteristic projection and the latent-factor loading. When this dual matching is feasible, the post-treatment gap identifies $\tau_{1t}$; when it is not, the bias persists into the post-period and contaminates the estimate.
 
 Bias Considerations:
 
@@ -164,14 +182,18 @@ Bias Considerations:
 -   Good fit in pre-treatment periods (large $T_0$) is crucial.
 -   If the pre-treatment fit is poor, bias correction methods are required [@arkhangelsky2021synthetic; @abadie2021using; @ben2020varying].
 
+The intuition behind the bias bound is that with finite $T_0$ the estimated weights are themselves random, and noisy pre-treatment outcomes can be matched by a noisy combination of donors that does not in fact equate the latent loadings $\mathbf{\mu}_i$. As $T_0$ grows and the noise variance shrinks, the probability of such a spurious match falls, which is why long pre-periods are not merely desirable but structural to identification. This is also where the connection to other modern panel-data tools becomes most visible: when pre-treatment fit is poor, the [augmented synthetic control](#sec-augmented-synthetic-control) method bolts on an outcome model to absorb the residual bias, the [matrix completion estimator](#sec-matrix-completion-estimator) imputes the entire treated path under a low-rank restriction, and [synthetic difference-in-differences](#sec-synthetic-difference-in-differences) blends weighting with two-way fixed effects to obtain a doubly robust estimator. Each of these can be read as a different answer to the same question: what should one do when the factor model is right in spirit but the standard SCM weights cannot find a clean match?
+
 ------------------------------------------------------------------------
 
 ## Inference in SCM
 
-Unlike traditional methods, SCM does not rely on standard statistical inference due to:
+Inference in SCM looks unfamiliar to anyone trained on standard regression standard errors, and that is because the usual sampling story does not apply. With one treated unit and a handful of donors, there is no large-sample limit to invoke and no obvious population from which the data were drawn; the design is closer in spirit to the [design-based](#sec-design-based) tradition than to model-based inference. Two facts in particular make the textbook machinery awkward:
 
 1.  Undefined sampling mechanism (e.g., only one treated unit).
 2.  SCM is deterministic, making p-values difficult to interpret.
+
+The first point reflects the structural feature that the analyst typically has the *only* treated case rather than a sample drawn from a population of treated cases. The second is more subtle: given the data, the optimization that produces $\mathbf{W}^*$ is deterministic, so there is no estimation noise of the conventional kind to feed into a sandwich variance estimator. Inference therefore has to come from a different source, namely the comparison of the realized treatment effect against a reference distribution of effects that *could* have been observed under a null of no treatment.
 
 ### Permutation (Placebo) Inference
 
@@ -181,12 +203,16 @@ To perform inference:
 2.  Estimate placebo treatment effects for each synthetic control.
 3.  Compare the actual treatment effect to the placebo distribution.
 
-The treatment effect is considered statistically significant if it is extreme relative to the placebo distribution.
+The treatment effect is considered statistically significant if it is extreme relative to the placebo distribution. The logic is the same as the [DiD placebo test](#sec-placebo-test-did): if the realized post-period gap is just one draw from the distribution one obtains by pretending each donor was treated, then there is no special evidence for an effect. If, instead, the realized gap is a tail event in that distribution, the null of no effect is implausible.
+
+In practice, two refinements are essential. First, placebo gaps for donors with poor pre-treatment fit dominate the right tail mechanically and need to be filtered out, typically by trimming on the pre-period root mean squared prediction error or by reporting the ratio of post- to pre-period RMSPE rather than the raw gap. Second, the test depends on the donor pool being exchangeable with the treated unit under the null; a donor that is wildly different from the treated unit produces an uninformative placebo even when its fit is acceptable. This connects directly back to the convex-hull discussion in the assumptions section, the same donor-pool composition that drives identification also drives the credibility of inference.
 
 ### One-Sided Inference
 
 -   Recommended due to the limited number of treated cases.
 -   The permutation test is more robust than standard p-values.
+
+A one-sided test is usually the honest choice because the analyst typically has a directional hypothesis (the policy reduced crime, the campaign raised sales) and the placebo distribution is sparse in the relevant tail. Two-sided tests require effectively doubling the placebo sample to retain the same power, which is rarely practical with donor pools of fewer than a few dozen units. The permutation test also tends to be more robust than asymptotic p-values precisely because it sidesteps the deterministic-weights problem flagged above; it asks how unusual the observed gap is given the configuration of the data, rather than how unusual it is under a hypothetical sampling distribution. See the broader discussion of [robustness checks](#sec-robustness-checks-quasi-exp) for additional sensitivity analyses that complement the placebo test.
 
 For benchmark distributions (e.g., uniform permutation distributions), see [@firpo2018synthetic].
 
@@ -288,7 +314,7 @@ In staggered adoption designs, policy implementation occurs over multiple time p
 
 -   Traditional SCM limitations: SCM was designed for a single treated unit and does not naturally accommodate multiple adoption times.
 -   Heterogeneous treatment effects: The impact of the intervention may vary over time or across units.
--   Estimation bias: Common approaches such as [Two-Way Fixed Effects] can yield biased results when treatment effects are heterogeneous.
+-   Estimation bias: Common approaches such as [Two-Way Fixed Effects](#sec-two-way-fixed-effects) can yield biased results when treatment effects are heterogeneous.
 
 ### Partially Pooled Synthetic Control
 
@@ -345,7 +371,7 @@ To address these limitations, GSC builds on the interactive fixed effects model,
 ### Generalized Synthetic Control Model
 
 Let $Y_{it}$ represent the observed outcome of unit $i$ at time $t$, and define the potential outcomes framework: $$
-Y_{it}(d) = \mu_{it} + \delta_{it} d + \varepsilon_{it}, \quad d \in \{0,1\}
+Y_{it}(d) = \mu_{it} + \delta_{it} d + \varepsilon_{it}, \quad d \in {0,1}
 $$ where:
 
 -   $\mu_{it}$ represents the latent factor structure of untreated outcomes.
@@ -370,7 +396,7 @@ The presence of $\lambda_i' f_t$ allows GSC to control for unobserved confounder
 
 ### Identification and Estimation
 
-To estimate the [Average Treatment Effect on the Treated], we define: $$
+To estimate the [Average Treatment Effect on the Treated](#sec-notation-quasi-experimental), we define: $$
 \text{ATT}_t = \frac{1}{N_T} \sum_{i \in T} \left[ Y_{it}(1) - Y_{it}(0) \right]
 $$ where $N_T$ is the number of treated units. The challenge is that $Y_{it}(0)$ for treated units is counterfactual and must be estimated.
 
@@ -624,7 +650,7 @@ In their work, @sun2023using propose a novel extension of SCM that leverages mul
 Let $Y_{itk}$ denote the observed outcome for unit $i$ at time $t$ for outcome $k$, where $i = 1, \dots, N$, $t = 1, \dots, T$, and $k = 1, \dots, K$. The potential outcomes framework assumes:
 
 $$
-Y_{itk}(d) = \mu_{itk} + \delta_{itk} d + \varepsilon_{itk}, \quad d \in \{0,1\}
+Y_{itk}(d) = \mu_{itk} + \delta_{itk} d + \varepsilon_{itk}, \quad d \in {0,1}
 $$
 
 where:
@@ -839,7 +865,7 @@ abline(v   = 15, lty = 2)
 
 The classic `Synth` workflow above relies on building a `dataprep` matrix of predictors, treated/donor identifiers, and time windows before invoking `synth()`. Two more recent packages streamline this pipeline:
 
-- **`tidysynth`** (Dunford) provides a tidyverse-style API in which the synthetic-control workflow is expressed as a chained sequence of verbs --- `synthetic_control()` initializes the object, `generate_predictor()` defines pre-treatment matching variables, `generate_weights()` solves for donor weights, and `generate_control()` constructs the synthetic counterfactual. Diagnostics, plots, and placebo tests are dispatched on the resulting object via S3 methods (`plot_trends()`, `plot_placebos()`, `grab_significance()`), avoiding the matrix bookkeeping required by `Synth::dataprep()`.
+- **`tidysynth`** (Dunford) provides a tidyverse-style API in which the synthetic-control workflow is expressed as a chained sequence of verbs, `synthetic_control()` initializes the object, `generate_predictor()` defines pre-treatment matching variables, `generate_weights()` solves for donor weights, and `generate_control()` constructs the synthetic counterfactual. Diagnostics, plots, and placebo tests are dispatched on the resulting object via S3 methods (`plot_trends()`, `plot_placebos()`, `grab_significance()`), avoiding the matrix bookkeeping required by `Synth::dataprep()`.
 - **`augsynth`** (Ben-Michael, Feller, and Rothstein), already used elsewhere in this chapter (see Section [Augmented Synthetic Control Method]), implements ridge-augmented synthetic control with explicit bias correction and is the recommended package when pre-treatment fit is poor.
 
 A minimal `tidysynth` skeleton, parallel to the `Synth` example above, is:
@@ -879,7 +905,7 @@ sc_out %>% grab_significance()
 # See https://github.com/edunford/tidysynth for full examples.
 ```
 
-The conceptual model is identical to `Synth` --- a convex combination of donor units that minimizes pre-treatment outcome (and predictor) discrepancies --- but the chained pipeline keeps the data, weights, and synthetic counterfactual bound to a single tibble-like object, which is convenient for embedding inside `dplyr`/`purrr` workflows and for batch placebo inference.
+The conceptual model is identical to `Synth`, a convex combination of donor units that minimizes pre-treatment outcome (and predictor) discrepancies, but the chained pipeline keeps the data, weights, and synthetic counterfactual bound to a single tibble-like object, which is convenient for embedding inside `dplyr`/`purrr` workflows and for batch placebo inference.
 
 ------------------------------------------------------------------------
 

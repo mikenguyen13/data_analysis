@@ -81,7 +81,7 @@ With Matching:
 
 : Degree of Balance Across Designs
 
-Fully blocked or exactly matched designs are not just *as good as* a complete randomization on these criteria — they dominate it. Imbalance is reduced because covariates are forced into alignment rather than left to chance; model dependence falls because the analyst is no longer using regression to paper over baseline differences; efficiency and statistical power rise because residual variation is no longer eaten by group differences; bias from observable heterogeneity is eliminated by construction rather than averaged away; the resulting estimates are more robust to specification choices; and the up-front design cost typically pays itself back in cleaner inference and a smaller required sample.
+Fully blocked or exactly matched designs are not just *as good as* a complete randomization on these criteria, they dominate it. Imbalance is reduced because covariates are forced into alignment rather than left to chance; model dependence falls because the analyst is no longer using regression to paper over baseline differences; efficiency and statistical power rise because residual variation is no longer eaten by group differences; bias from observable heterogeneity is eliminated by construction rather than averaged away; the resulting estimates are more robust to specification choices; and the up-front design cost typically pays itself back in cleaner inference and a smaller required sample.
 
 ------------------------------------------------------------------------
 
@@ -189,7 +189,7 @@ $$
 \tau(x) = R_1(x) - R_0(x), \quad \text{where } R_1(x) = E[Y(1) \mid X = x], \quad R_0(x) = E[Y(0) \mid X = x]
 $$
 
-If we assume **constant treatment effects (parallel trends)**, then $\tau(x) = \tau$ for all $x$. If this assumption is relaxed, we can still estimate an **average** effect over the distribution of $X$.
+If we assume **homogeneous treatment effects**, then $\tau(x) = \tau$ for all $x$ (this is a homogeneity assumption on the treatment effect, not the parallel-trends assumption from [DiD](#sec-difference-in-differences), which is a separate restriction on counterfactual *time trends*). If the homogeneity assumption is relaxed, we can still estimate an **average** effect over the distribution of $X$.
 
 ### Common Estimands
 
@@ -200,7 +200,7 @@ If we assume **constant treatment effects (parallel trends)**, then $\tau(x) = \
 
 ## Steps for Matching
 
-Implementing a matching analysis is a four-step pipeline: pick a way to measure how close two units are, choose an algorithm to pair them up, check that the resulting comparison group is actually balanced, and only then estimate the treatment effect. The three ingredients below — a propensity score, a distance metric, and a covariate set assumed to satisfy ignorability — recur across the steps that follow.
+Implementing a matching analysis is a four-step pipeline: pick a way to measure how close two units are, choose an algorithm to pair them up, check that the resulting comparison group is actually balanced, and only then estimate the treatment effect. The three ingredients below, a propensity score, a distance metric, and a covariate set assumed to satisfy ignorability, recur across the steps that follow.
 
 -   **Propensity score**: summarizes $P(T=1|X)$
 -   **Distance metric**: measures similarity
@@ -244,7 +244,11 @@ Advanced methods for longitudinal setting:
 
 ### Step 2: Matching Algorithms
 
+The choice of matching algorithm shapes a familiar trade-off. Aggressive algorithms that demand near-exact agreement on every covariate (for instance, exact matching or fine [Coarsened Exact Matching](#sec-cem)) deliver sharp balance but can prune away most of the sample, leaving an estimand that applies to a narrow slice of the population and inflating variance. Permissive algorithms (such as nearest-neighbor matching on a single propensity score) retain more units and yield estimates with smaller standard errors, but residual imbalance can leak into bias. Researchers should think of each algorithm as picking a point on this balance versus sample retention frontier; the [`MatchingFrontier`](#sec-matching-methods) tooling discussed later makes that frontier explicit. The algorithms below differ chiefly in how they navigate that frontier.
+
 1.  Nearest Neighbor Matching
+
+Nearest-neighbor matching is the workhorse default. Each treated unit is paired with the closest available control under a chosen distance metric, producing an intuitive matched sample that mimics a pair-randomized experiment. It is easy to implement and analyze, but its quality depends entirely on the underlying distance metric and the supply of controls. When controls are scarce or covariates are many, "closest" can still be far, and the bias-variance trade-off becomes acute.
 
 -   **Greedy matching**: Fast, but suboptimal under competition for controls.
 -   **Optimal matching**: Minimizes global distance across all pairs.
@@ -255,7 +259,7 @@ Advanced methods for longitudinal setting:
 
 2.  Subclassification, Full Matching, and Weighting
 
-These methods generalize nearest-neighbor approaches by assigning **fractional weights**.
+These methods generalize nearest-neighbor approaches by assigning **fractional weights**. Rather than discarding controls that fail to find a partner, every unit receives a weight that reflects its similarity to units in the other group. The result is a softer form of pruning that often retains the entire sample, trading some interpretability of "matched pairs" for efficiency. Weighting estimators are particularly attractive when the target estimand is the [ATE](#sec-counterfactual-estimators) rather than the [ATT](#sec-counterfactual-estimators), since they use information from both treated and control units symmetrically.
 
 -   **Subclassification**: Partition into strata based on propensity score (e.g., quintiles).
 -   **Full Matching**: Each treated unit is matched to a weighted group of controls (and vice versa) to minimize average within-set distance.
@@ -348,6 +352,8 @@ Strategies when unobservables bias treatment:
 
 ## Choosing a Matching Strategy
 
+No single matching algorithm dominates across applications. The right choice depends on the target estimand (see [counterfactual estimators](#sec-counterfactual-estimators)), the ratio of treated to control units, the dimensionality and type of covariates, and where the analyst wants to land on the balance versus sample retention trade-off. The guidance below sketches sensible defaults and is best read alongside the [balance checks](#sec-balance-checks) used to validate any choice.
+
 ### Based on Estimand
 
 -   **ATE**: Use IPTW or full matching
@@ -368,6 +374,8 @@ Strategies when unobservables bias treatment:
 -   Minimize number of covariates with large ($>0.25$) imbalance [@diamond2013genetic]
 
 Matching is not one-size-fits-all. Choose methods based on the target estimand, data structure, and diagnostic results.
+
+A short translation of the algorithmic choices into applied guidance: reach for [propensity score](#sec-propensity-scores) methods when covariates are many but the propensity model is plausibly well specified and the target is a population estimand; reach for [Mahalanobis distance](#sec-mahalanobis) when covariates are few, continuous, and well measured, and when emulating a fully blocked design is the priority; reach for [Coarsened Exact Matching](#sec-cem) when the analyst wants transparent, ex ante control over imbalance and is willing to coarsen continuous covariates into substantively meaningful bins; reach for [Genetic Matching](#sec-genetic-matching) when distance-metric specification is itself uncertain and the dataset is large enough to absorb its computational cost; reach for entropy balancing or weighting when treated units are few and discarding any of them would be unacceptable. Sensitivity to unobserved confounding (covered in [Rosenbaum bounds](#sec-rosenbaum-bounds) and the broader discussion of [selection on unobservables](#sec-selection-on-unobservables)) should accompany any matching analysis, since none of these algorithms can rescue a violation of [conditional ignorability](#sec-conditional-ignorability-assumption).
 
 ------------------------------------------------------------------------
 
@@ -565,7 +573,7 @@ In practice, the choice of software and methods hinges on the study design, the 
 
 In observational studies, treatment assignment is typically not randomized. This poses a challenge when estimating causal effects, as treated and control groups may differ systematically. A central assumption that allows us to estimate causal effects from such data is **selection on observables**, also known as **unconfoundedness** or **conditional independence**.
 
-Suppose we observe a binary treatment indicator $T_i \in \{0, 1\}$ and an outcome $Y_i$. Each unit $i$ has two potential outcomes:
+Suppose we observe a binary treatment indicator $T_i \in {0, 1}$ and an outcome $Y_i$. Each unit $i$ has two potential outcomes:
 
 -   $Y_i(1)$: outcome if treated
 -   $Y_i(0)$: outcome if untreated
@@ -907,7 +915,9 @@ matched.data <- generateDataset(L1.frontier, N = 400)
 
 ### Propensity Scores {#sec-propensity-scores}
 
-Propensity score methods are widely used for estimating causal effects in observational studies, where random assignment to treatment and control groups is not feasible. The core idea is to mimic a randomized experiment by adjusting for confounding variables that predict treatment assignment. Formally, the **propensity score** is defined as the probability of assignment to treatment conditional on observed covariates [@rosenbaum1983central; @rosenbaum1985bias]:
+Propensity score methods are widely used for estimating causal effects in observational studies, where random assignment to treatment and control groups is not feasible. Conceptually, the propensity score collapses a high-dimensional vector of covariates into a single scalar (the conditional probability of treatment), and matching, weighting, or stratifying on that scalar is sufficient to remove confounding from the *observed* covariates. The appeal is dimensional: instead of searching for control units that look similar across many variables at once, the analyst searches along a one-dimensional probability axis. The cost is that two units sharing the same propensity score can still differ markedly in covariate space, which is why propensity score methods trade balance on the joint distribution of $X$ for tractability. They are most defensible when the propensity model is well specified, the covariate set is rich enough to make [conditional ignorability](#sec-conditional-ignorability-assumption) credible, and [overlap](#sec-overlap-positivity-assumption) is strong.
+
+The core idea is to mimic a randomized experiment by adjusting for confounding variables that predict treatment assignment. Formally, the **propensity score** is defined as the probability of assignment to treatment conditional on observed covariates [@rosenbaum1983central; @rosenbaum1985bias]:
 
 $$
 e_i(X_i) = P(T_i = 1 \mid X_i)
@@ -915,7 +925,7 @@ $$
 
 where:
 
--   $T_i \in \{0, 1\}$ is the binary treatment indicator for unit $i$,
+-   $T_i \in {0, 1}$ is the binary treatment indicator for unit $i$,
 -   $X_i$ is a vector of observed pre-treatment covariates for unit $i$.
 
 The key insight from @rosenbaum1983central is that conditioning on the propensity score is sufficient to remove bias due to confounding from observed covariates, under certain assumptions.
@@ -1238,6 +1248,8 @@ How to implement Dynamic LA-PSM:
 
 ### Mahalanobis Distance Matching {#sec-mahalanobis}
 
+Where [propensity score matching](#sec-propensity-scores) compresses covariates into a single scalar, Mahalanobis Distance Matching takes the opposite tack: it works in the full multivariate covariate space and asks which control units are jointly close to each treated unit on every covariate at once. The trade-off is straightforward. Mahalanobis matching tends to deliver better joint covariate balance when it succeeds, because two units close in Mahalanobis distance are close on each variable individually; but as the number of covariates grows, "close on every variable at once" becomes scarce, and matches deteriorate. In the bias-variance language of the previous section, Mahalanobis matching pushes hard on bias reduction (assuming the matches succeed) and pays for it in sample retention as dimensionality grows.
+
 Mahalanobis Distance Matching is a method for matching units in observational studies based on the **multivariate similarity** of covariates. Unlike propensity score matching, which reduces the covariate space to a single scalar, Mahalanobis distance operates in the full multivariate space. As a result, Mahalanobis matching can be interpreted as approximating a **fully blocked design**, where each treated unit is paired with a control unit that has nearly identical covariate values.
 
 -   In the ideal case: $X_t = X_c$, implying a perfect match.
@@ -1335,6 +1347,8 @@ These hybrid methods aim to preserve the robustness of Mahalanobis matching whil
 
 ### Coarsened Exact Matching (CEM) {#sec-cem}
 
+Coarsened Exact Matching addresses a different question than [propensity score](#sec-propensity-scores) or [Mahalanobis](#sec-mahalanobis) matching. Rather than letting an algorithm decide what counts as "close," CEM asks the analyst to declare it: how finely should age be binned? Should education be split into four categories or eight? Once the analyst makes those substantive choices, exact matching within the resulting strata is straightforward, and the maximum imbalance is bounded by construction. This makes CEM transparent and tunable, with the trade-off being explicit. Coarser bins keep more of the sample but allow more residual imbalance within each stratum; finer bins guarantee tight balance but discard strata that lack both treated and control units. CEM is often the right choice when the covariate set is moderate, when the analyst has substantive intuition about meaningful cut points, and when a non-parametric procedure that does not lean on a treatment-assignment model is preferred.
+
 Coarsened Exact Matching (CEM) is a **monotonic imbalance bounding** matching method designed to improve covariate balance between treated and control units in observational studies. CEM operates by **coarsening** continuous or high-cardinality covariates into discrete bins and then applying **exact matching** on this coarsened space. The result is a non-parametric method that prioritizes covariate balance and robustness over modeling assumptions.
 
 Introduced and formalized in @iacus2012causal, CEM is well-suited for causal inference when covariates are noisy or when traditional modeling-based approaches (e.g., propensity scores) are unstable or hard to interpret.
@@ -1391,7 +1405,7 @@ CEM respects the congruence principle, which asserts that analysis should not be
 -   **Robust to measurement error**: Discretization makes matching less sensitive to noise in covariates.
 -   **Works with missing data**: The `cem` R package supports partial handling of missingness.
 -   **Multiple imputation**: CEM can be applied within imputation routines to preserve matching structure across imputed datasets.
--   **Supports multi-valued treatments**: Matching can be extended to treatments beyond binary $T \in \{0, 1\}$.
+-   **Supports multi-valued treatments**: Matching can be extended to treatments beyond binary $T \in {0, 1}$.
 
 ------------------------------------------------------------------------
 
@@ -1519,6 +1533,8 @@ Coarsened Exact Matching offers a powerful, transparent, and theoretically princ
 
 ### Genetic Matching {#sec-genetic-matching}
 
+Genetic Matching extends the algorithms above by recognizing that the choice of distance metric is itself a researcher degree of freedom. Standard [Mahalanobis distance](#sec-mahalanobis) implicitly assigns weights via the inverse covariance matrix, which is a sensible default but is not optimized for balance on the specific covariates the analyst cares about. Genetic Matching instead searches over the space of weight matrices to find the one that best balances a user-specified set of covariates and transformations, using a stochastic optimizer modeled on natural selection. The method shines when conventional distance metrics leave residual imbalance on substantively important covariates, and when the analyst is willing to pay the computational cost of a population-based search. The trade-offs are familiar: relative to nearest-neighbor matching on a propensity score, Genetic Matching usually delivers better balance and lower bias, at the price of longer run times and an estimand that depends on which covariates the analyst chose to balance.
+
 Genetic Matching (GM) is a generalization of [propensity score](#sec-propensity-scores) and [Mahalanobis distance matching](#sec-mahalanobis), leveraging a search algorithm inspired by evolutionary biology to optimize covariate balance. Unlike classical matching techniques, which rely on pre-specified distance metrics, Genetic Matching *learns* an optimal distance metric through an iterative process aimed at minimizing imbalance between treated and control groups.
 
 Genetic Matching was introduced by @diamond2013genetic and is designed to improve balance on observed covariates by selecting optimal weights for each covariate. The core idea is to define a generalized Mahalanobis distance metric, where the weights used in the distance calculation are chosen by a **genetic search algorithm**. This process adaptively explores the space of possible weighting matrices and evolves toward a set of weights that result in optimal covariate balance across treatment groups.
@@ -1543,7 +1559,7 @@ In empirical settings, this often results in superior balance on observed covari
 
 Let:
 
--   $T_i \in \{0, 1\}$ be the binary treatment indicator for unit $i$.
+-   $T_i \in {0, 1}$ be the binary treatment indicator for unit $i$.
 
 -   $\mathbf{X}_i \in \mathbb{R}^p$ be the covariate vector for unit $i$, where $p$ is the number of observed covariates.
 
@@ -1657,6 +1673,8 @@ Entropy balancing fits naturally into modern workflows for causal inference, and
 
 ### Entropy Balancing
 
+Entropy balancing departs from the matching paradigm in an instructive way. Rather than picking which control units to keep and which to drop, it keeps every control unit and instead chooses weights that, by construction, force the reweighted control group to match the treated group on a set of pre-specified moments (means, variances, and so on). Because no unit is discarded, the method is attractive when treated units are scarce or when sample size cannot be sacrificed. Because balance is achieved exactly on the chosen moments, no iterative diagnostic loop is needed. The trade-offs run in two directions. Entropy balancing avoids the model dependence of [propensity score](#sec-propensity-scores) estimation but transfers that dependence to the analyst's choice of which moments to balance: if a relevant interaction or non-linear function of covariates is omitted from the constraints, residual imbalance there can still bias the effect estimate. Extreme weights, while less common than under inverse probability weighting, can still inflate variance.
+
 Entropy balancing is a data preprocessing technique for causal inference in observational studies. Introduced by @hainmueller2012entropy, it is particularly useful in settings with binary treatments where covariate imbalance between treated and control groups threatens the validity of causal estimates.
 
 The method applies a **maximum entropy reweighting** scheme to assign **unit weights** to control group observations such that the **reweighted covariate distribution** in the control group matches the **sample moments** (e.g., means, variances) of the treated group.
@@ -1685,7 +1703,7 @@ Entropy balancing is especially useful in high-dimensional settings or when work
 
 ------------------------------------------------------------------------
 
-Suppose we have $n_1$ treated units and $n_0$ control units, with covariates $\mathbf{X}_i \in \mathbb{R}^p$ for each unit $i$. Let $T_i \in \{0,1\}$ be the treatment indicator.
+Suppose we have $n_1$ treated units and $n_0$ control units, with covariates $\mathbf{X}_i \in \mathbb{R}^p$ for each unit $i$. Let $T_i \in {0,1}$ be the treatment indicator.
 
 Let the treatment group's sample moment vector be:
 
@@ -1763,7 +1781,9 @@ In high-dimensional settings, where the number of covariates is large (potential
 
 #### Dimensionality Reduction Techniques
 
-A variety of dimensionality reduction techniques can be employed prior to matching. Each method has distinct assumptions and use cases:
+A variety of dimensionality reduction techniques can be employed prior to matching. The methods below cluster into several conceptual families: supervised approaches (such as Lasso and penalized logistic regression) that select or shrink covariates using their relationship to treatment or outcome; unsupervised linear projections (PCA and random projection) that compress the covariate space without reference to the treatment; locality-aware methods (LPP) that try to preserve neighborhood structure; and nonlinear representation learners (autoencoders and joint causal-representation models) that capture complex covariate geometry at the cost of interpretability. The bias-variance trade-off here mirrors the rest of this chapter. Aggressive compression yields tractable matching but risks discarding information that confounds the treatment-outcome relationship; light compression preserves information but leaves the curse of dimensionality largely intact. As a rule of thumb, supervised sparse methods are sensible defaults when interpretability matters, while nonlinear methods earn their keep only when covariate relationships are genuinely non-linear and the sample is large.
+
+Each method has distinct assumptions and use cases:
 
 -   **Lasso Regression (Least Absolute Shrinkage and Selection Operator)**\
     Lasso imposes an $L_1$ penalty on the regression coefficients, effectively shrinking some coefficients to zero. This property is particularly useful in high-dimensional settings, as it performs both regularization and variable selection.\
@@ -1829,7 +1849,7 @@ This is exemplified by *representation learning for causal inference* approaches
 
 In many applied settings, researchers face the challenge of estimating causal effects for **more than two treatment levels**. For example, a marketing campaign may have three variants (e.g., control, light exposure, heavy exposure), or a policy evaluation may involve multiple interventions. Standard binary treatment matching methods fall short in these cases, necessitating methodological extensions.
 
-Suppose a dataset includes $T$ distinct treatment groups: $\mathcal{T} = \{0, 1, ..., T-1\}$. Here, $T = 0$ typically denotes the control group, and $T \in \{1, ..., T-1\}$ are active treatments. The goal is to estimate the [Average Treatment Effect] or **Pairwise Treatment Effects**, such as $\text{ATE}_{j,k} = \mathbb{E}[Y(j) - Y(k)]$ for any $j, k \in \mathcal{T}$.
+Suppose a dataset includes $T$ distinct treatment groups: $\mathcal{T} = \{0, 1, \ldots, T-1\}$. Here, $T = 0$ typically denotes the control group, and $T \in \{1, \ldots, T-1\}$ are active treatments. The goal is to estimate the [Average Treatment Effect] or **Pairwise Treatment Effects**, such as $\text{ATE}_{j,k} = \mathbb{E}[Y(j) - Y(k)]$ for any $j, k \in \mathcal{T}$.
 
 Key challenges in this setting include:
 
@@ -1841,7 +1861,7 @@ Key challenges in this setting include:
 
 #### Matching Approaches for Multiple Treatments
 
-Several strategies exist for matching in the presence of multiple treatments:
+Several strategies exist for matching in the presence of multiple treatments, and they differ in how they handle the explosion of pairwise comparisons. Generalized propensity score methods extend the binary scalar logic to a vector of treatment probabilities, which is parsimonious but more demanding on the [overlap](#sec-overlap-positivity-assumption) assumption: every treatment level must have a positive probability of being received at every covariate value. Pairwise matching ignores the multinomial structure and runs a sequence of binary matches, which is simple to implement but can yield matched samples that are inconsistent across pairs. Direct multivariate matching using the full GPS vector preserves the joint structure but is harder to balance. The right choice depends on the number of treatment levels, the available sample within each, and whether the estimand of interest is a single contrast or the full set of pairwise effects.
 
 1.  **Generalized Propensity Scores (GPS)**
 
@@ -2361,7 +2381,7 @@ mcontrol_res
 
 Alternative Sensitivity Analysis Tools
 
-`sensitivitymw` is faster than `sensitivitymw`. But `sensitivitymw` can match where matched sets can have differing numbers of controls [@rosenbaum2015two].
+`sensitivitymv` is faster than `sensitivitymw`. But `sensitivitymw` can match where matched sets can have differing numbers of controls [@rosenbaum2015two].
 
 ```{r}
 library(sensitivitymv)
@@ -2530,7 +2550,7 @@ $$
 \boxed{
 \beta_{\text{long}}
 =\beta_{\text{med}}
-+\bigl(\beta_{\text{med}}-\beta_{\text{short}}\bigr)
++(\beta_{\text{med}}-\beta_{\text{short}})
      \frac{R^2_{\text{long}}-R^2_{\text{med}}}
           {R^2_{\text{med}}-R^2_{\text{short}}}
 }
@@ -2550,7 +2570,7 @@ $$ where "short" means no controls, "med" means with $W_1$, and "long" is the un
     $$
     \delta^{\text{EA}}
     =
-    \inf\bigl\{\delta:\beta^*(\delta,R^2_{\max})=0\bigr\}.
+    \inf\{\delta:\beta^*(\delta,R^2_{\max})=0\}.
     \tag{6}
     $$
 
@@ -2562,8 +2582,8 @@ When $\delta^{\text{EA}}>1$, unobservables must be *more* predictive of $X$ than
 
 $$
 \delta^{\text{SC}}
-=\inf\bigl\{\delta:\operatorname{sign}\beta^*(\delta,R^2_{\max})
-                \neq \operatorname{sign}\beta_{\text{med}}\bigr\}
+=\inf\{\delta:\operatorname{sign}\beta^*(\delta,R^2_{\max})
+                \neq \operatorname{sign}\beta_{\text{med}}\}
 \tag{7}
 $$
 

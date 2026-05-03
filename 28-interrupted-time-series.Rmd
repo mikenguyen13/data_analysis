@@ -82,7 +82,7 @@ Regression Discontinuity in Time is a special case of a [Regression Discontinuit
 Using a local polynomial approach near $T^*$:
 
 $$
-Y_t = \alpha_0 + \alpha_1 \bigl(T_t - T^*\bigr) + \tau D_t + \alpha_2 \bigl(T_t - T^*\bigr) D_t + \epsilon_t,
+Y_t = \alpha_0 + \alpha_1 (T_t - T^*) + \tau D_t + \alpha_2 (T_t - T^*) D_t + \epsilon_t,
 $$
 
 for $|T_t - T^*| < h$, where:
@@ -107,21 +107,27 @@ Because RDiT focuses on a local window around $T^*$, it is best when you expect 
 
 ### Estimation and Model Selection
 
-In [Regression Discontinuity in Time](#sec-regression-discontinuity-in-time), model selection is critical to accurately estimate the causal effect at the cutoff $T^*$. Unlike [Interrupted Time Series](#sec-interrupted-time-series), which models long-term trends before and after an intervention, RDiT relies on local comparisons around the cutoff. This means that:
+In [Regression Discontinuity in Time](#sec-regression-discontinuity-in-time), model selection is critical to accurately estimate the causal effect at the cutoff $T^*$. Unlike [Interrupted Time Series](#sec-interrupted-time-series), which models long-term trends before and after an intervention, RDiT relies on local comparisons around the cutoff. The job of the analyst, then, is to choose a window narrow enough that the comparison is genuinely local but wide enough that there are sufficient observations on each side to identify the jump. Two knobs govern that trade-off, and the choices interact: a narrower bandwidth puts less weight on functional-form assumptions but limits the polynomial order that can be reliably estimated, while a wider bandwidth lets you fit more flexible curves but reintroduces the long-run trends RDiT is supposed to sidestep. The default starting point is a narrow window with a low-order polynomial, expanded only if visual inspection or sensitivity checks demand it.
 
 -   A narrow bandwidth ($h$) should be chosen to focus on observations just before and after $T^*$.
 -   Polynomial order selection should be guided by the Bayesian Information Criterion to avoid overfitting.
 -   Higher-order polynomials can introduce spurious curvature, so local linear or quadratic models are preferred.
 
-Because RDiT uses time-series data, it is essential to correct for serial correlation in errors:
+Because RDiT uses time-series data, the second concern is serial correlation in the residuals. Standard OLS errors will understate sampling variability whenever shocks at one time point spill into the next, which is the rule rather than the exception in environmental, financial, and behavioral series. Two corrections are commonly used, and the right choice depends on the suspected structure of the dependence:
 
 1.  Clustered Standard Errors: Adjusts for within-time correlation, ensuring valid inference.
 2.  Newey-West HAC Standard Errors: Corrects for heteroskedasticity and serial correlation over time.
+
+The harder problem is that serial correlation can arise in two distinct places, and the diagnostics differ accordingly:
 
 -   If serial dependence exists in $\epsilon_{it}$ (the error term), there is no straightforward fix (introducing a lagged dependent variable may mis-specify the model).
 -   If serial dependence exists in $y_{it}$ (the outcome variable):
     -   With long windows, identifying the precise treatment effect becomes challenging.
     -   **Including a lagged dependent variable can help**, though bias may still arise from time-varying treatment effects or over-fitting.
+
+In practice, the boundary between these two cases is rarely clean, which is why HAC inference (described more fully in Section \@ref(sec-interrupted-time-series) under Handling Autocorrelation) tends to be the safer default for reporting, with parametric error models reserved for cases where the dependence structure is strong and well understood.
+
+The three model variants below progress from the simplest credible specification to richer forms that buy flexibility at the cost of additional assumptions. They are best read as a ladder rather than a menu: most applied work starts at the bottom rung and only climbs when the data warrant it.
 
 ------------------------------------------------------------------------
 
@@ -153,7 +159,7 @@ where:
 
 -   $\alpha_2 (T_t - T^*) D_t$ captures any differential time trends post-treatment.
 
-This model ensures that the treatment effect is identified from the discontinuity at $T^*$, rather than long-term trends.
+This model ensures that the treatment effect is identified from the discontinuity at $T^*$, rather than long-term trends. It is the workhorse specification for most RDiT applications: it is transparent, easy to estimate, and the coefficient $\tau$ has a direct interpretation as the level shift at the cutoff. The price of that transparency is that any residual curvature in the underlying trend will be absorbed into $\tau$, which is why the local linear form is most credible when the bandwidth is narrow enough that a straight line is a defensible approximation on each side.
 
 ------------------------------------------------------------------------
 
@@ -168,13 +174,13 @@ $$
 -   $\alpha_2 (T_t - T^*)^2$ accounts for **nonlinear pre-treatment trends**.
 -   $\alpha_4 (T_t - T^*)^2 D_t$ allows for **nonlinear post-treatment effects**.
 
-This model is useful if visual inspection suggests a **curved relationship** near the cutoff.
+This model is useful if visual inspection suggests a **curved relationship** near the cutoff. The quadratic form is best understood as a hedge: it relaxes the linearity assumption of the baseline model in exchange for two additional parameters per side. That hedge becomes attractive when the bandwidth has to be widened (because the data are sparse near $T^*$) or when pre-existing trajectories are visibly curved. It becomes dangerous when the bandwidth is narrow, because a quadratic fit on too few points can latch onto noise and create or erase a discontinuity that has nothing to do with the policy. As a rule of thumb, do not move beyond the linear specification unless residual plots from the baseline model show systematic curvature, and avoid going beyond quadratic terms entirely; high-order polynomials in RDiT are notorious for generating spurious effects, a concern amplified in the literature on [regression discontinuity](#sec-regression-discontinuity).
 
 ------------------------------------------------------------------------
 
 3.  **Augmented Local Linear Model (Robust Control for Confounders)**
 
-Following @hausman2018, an augmented approach helps control for omitted variables:
+The previous two specifications rely on time alone to soak up trends. When credible covariates are available (for instance, weather variables in a pollution study, or macroeconomic controls in a marketing study), one can do better by partialing out their influence first. Following @hausman2018, an augmented approach helps control for omitted variables:
 
 1.  **First-stage regression:** Estimate the outcome with all relevant control variables and compute the residuals.
 
@@ -193,13 +199,15 @@ Following @hausman2018, an augmented approach helps control for omitted variable
 -   This approach removes variation explained by covariates before estimating the treatment effect.
 -   Bootstrap methods should be used to correct for first-stage estimation variance.
 
+The augmented design is the natural choice when one suspects that residual variation in $Y_t$ is mostly driven by observable factors that themselves trend smoothly through the cutoff. In that setting, partialing out covariates in the full sample sharpens the local comparison without forcing the analyst to fit a high-order polynomial. The augmented model also connects naturally to the broader logic of [selection on observables](#sec-selection-on-observables): residualizing on $X$ buys you something only to the extent that $X$ captures the time-varying confounding you would otherwise mistake for a treatment effect. Where the relevant confounders are unobserved, no amount of first-stage residualizing will rescue identification; that case calls for a different design, such as [instrumental variables](#sec-instrumental-variables) or a [synthetic control](#sec-synthetic-control) comparison.
+
 ------------------------------------------------------------------------
 
 ### Strengths of RDiT
 
 One of the key advantages of **Regression Discontinuity in Time** is its ability to handle cases where standard [Difference-in-Differences](#sec-difference-in-differences) approaches are infeasible. This typically occurs when treatment implementation lacks cross-sectional variation, meaning that all units receive treatment at the same time, leaving no untreated control group for comparison. In such cases, RDiT provides a viable alternative by exploiting temporal discontinuities in treatment assignment.
 
-In practice, the most credible studies often combine RDiT with DiD rather than choosing between them (Table \@ref(tab:its-comparison-other-methods)). @auffhammer2011clearing layer the two designs to examine how treatment effects vary across individuals and geographic space, using each method's identifying variation to interrogate the other's. @gallego2013effect take this further, deliberately contrasting the RDiT and DiD estimates when the validity of the DiD control group is in doubt — the discrepancy between estimators becomes itself a diagnostic for hidden bias.
+In practice, the most credible studies often combine RDiT with DiD rather than choosing between them (Table \@ref(tab:its-comparison-other-methods)). @auffhammer2011clearing layer the two designs to examine how treatment effects vary across individuals and geographic space, using each method's identifying variation to interrogate the other's. @gallego2013effect take this further, deliberately contrasting the RDiT and DiD estimates when the validity of the DiD control group is in doubt, the discrepancy between estimators becomes itself a diagnostic for hidden bias.
 
 Beyond being an alternative to DiD, RDiT also offers advantages over simpler **pre/post comparisons**. Unlike naive before-and-after analyses, RDiT can incorporate flexible controls for time trends, reducing the risk of spurious results due to temporal confounders.
 
@@ -219,11 +227,11 @@ Event study methods, particularly modern implementations, have improved signific
 
 ### Limitations and Challenges of RDiT
 
-Despite its strengths, RDiT comes with several methodological challenges that researchers must carefully address.
+Despite its strengths, RDiT comes with several methodological challenges that researchers must carefully address. The challenges below are not independent: they reinforce each other, and a single application is usually exposed to several at once. Reading them as a cluster, rather than as a checklist, helps clarify why robustness checks (introduced in the next subsection) are so central to credible RDiT practice.
 
 #### Selection Bias at the Time Threshold
 
-A major concern in RDiT is **bias from selecting observations too close to the threshold**. Unlike cross-sectional RD designs, where observations on either side of the cutoff are assumed to be comparable, time-based designs introduce complications:
+A major concern in RDiT is **bias from selecting observations too close to the threshold**. Unlike cross-sectional RD designs, where observations on either side of the cutoff are assumed to be comparable, time-based designs introduce complications. Time has structure that a randomly assigned score does not, and that structure tends to fail the comparability assumption in subtle ways:
 
 -   The data-generating process may exhibit time-dependent structure.
 
@@ -231,17 +239,19 @@ A major concern in RDiT is **bias from selecting observations too close to the t
 
 -   Seasonal or cyclical trends may drive changes at the discontinuity rather than the treatment itself.
 
+This is why dense, high-frequency data are not a luxury but a requirement: when observations are sparse, the analyst is essentially asking the data to distinguish a policy jump from one realization of a noisy process, which is not a question the data can answer.
+
 #### Inapplicability of the McCrary Test
 
-A key diagnostic tool in standard RD designs is the McCrary test [@mccrary2008manipulation], which checks for discontinuities in the density of the running variable to detect manipulation. Unfortunately, this test is not feasible in RDiT because time itself is uniformly distributed. This limitation makes it more challenging to rule out sorting, anticipation, or other forms of manipulation (Section \@ref(sec-sorting-bunching-and-manipulation)) around the threshold.
+A key diagnostic tool in standard RD designs is the [McCrary test](#sec-mccrary-sorting-test) [@mccrary2008manipulation], which checks for discontinuities in the density of the running variable to detect manipulation. Unfortunately, this test is not feasible in RDiT because time itself is uniformly distributed. The loss of this diagnostic is more consequential than it sounds, because in cross-sectional RD the McCrary plot serves as a visible falsification check that anyone can read at a glance. Without it, the analyst leans more heavily on indirect arguments about behavior near the cutoff. This limitation makes it more challenging to rule out sorting, anticipation, or other forms of manipulation (Section \@ref(sec-sorting-bunching-and-manipulation)) around the threshold.
 
 #### Potential Discontinuities in Unobservables
 
-Even if the treatment is assigned exogenously at a specific time, **time-varying unobserved factors** can still introduce discontinuities in the dependent variable. If these unobservable factors coincide with the threshold, they may be mistakenly attributed to the treatment effect, leading to biased conclusions.
+Even if the treatment is assigned exogenously at a specific time, **time-varying unobserved factors** can still introduce discontinuities in the dependent variable. If these unobservable factors coincide with the threshold, they may be mistakenly attributed to the treatment effect, leading to biased conclusions. Policymakers do not legislate in a vacuum: regulations are often enacted at the start of a fiscal year, alongside other administrative changes, or in response to a salient event that itself shifts behavior. Each of these creates a co-located shock that RDiT cannot distinguish from the policy of interest, which is closely related to broader concerns about [omitted variable bias](#sec-omitted-variable-bias) and [endogeneity](#sec-endogeneity) in observational designs.
 
 #### Challenges in Modeling Time-Varying Treatment Effects
 
-RDiT does not naturally accommodate **time-varying treatment effects**, which can lead to specification issues. When choosing a time window:
+RDiT does not naturally accommodate **time-varying treatment effects**, which can lead to specification issues. The design is built to estimate a single number, the jump at $T^*$, and so it is unforgiving of treatments whose effect grows, decays, or oscillates over the window. When choosing a time window:
 
 -   **A narrow window** improves the local approximation but may reduce statistical power.
 
@@ -252,11 +262,11 @@ To address these concerns, researchers must assume:
 1.  **The model is correctly specified**, meaning it includes all relevant confounders or that the polynomial approximation accurately captures time trends.
 2.  **The treatment effect is correctly specified**, whether assumed to be smooth, constant, or varying over time.
 
-Additionally, these two assumptions **must not interact**. In other words, the polynomial control should not be correlated with unobserved variation in the treatment effect. If this condition fails, bias from misspecification and treatment heterogeneity can compound [@hausman2018, p. 544].
+Additionally, these two assumptions **must not interact**. In other words, the polynomial control should not be correlated with unobserved variation in the treatment effect. If this condition fails, bias from misspecification and treatment heterogeneity can compound [@hausman2018, p. 544]. This non-interaction requirement is easy to state and surprisingly hard to verify. A simple symptom is that the estimated $\tau$ moves around as the polynomial order or bandwidth changes; when that happens, the analyst typically faces a choice between accepting a more flexible specification (and the variance that comes with it) or pivoting to a design that handles dynamics more naturally, such as an [event study](#sec-event-studies) or the [interrupted time series](#sec-interrupted-time-series) framework introduced below.
 
 #### Sorting and Anticipation Effects
 
-Unlike traditional RD designs, where individuals cannot manipulate their assignment to treatment, time-based cutoffs introduce **potential sorting, anticipation, or avoidance behaviors**.
+Unlike traditional RD designs, where individuals cannot manipulate their assignment to treatment, time-based cutoffs introduce **potential sorting, anticipation, or avoidance behaviors**. The mechanism is straightforward: future policy dates are usually announced in advance, which gives agents time to adjust. Firms accelerate purchases before a tax hike, drivers shift trips before a congestion charge, and consumers stockpile before a regulation takes effect. Each of these adjustments leaves a fingerprint near $T^*$ that looks for all the world like a treatment effect, but is in fact the residue of strategic timing. The relevant analogue in cross-sectional RD is the literature on [sorting and bunching](#sec-sorting-bunching-and-manipulation), although the mechanism in time differs: agents cannot move themselves across the threshold, but they can move their actions.
 
 While the McCrary test cannot be applied to detect manipulation, researchers can perform robustness checks:
 
@@ -344,7 +354,7 @@ The cleanest applications come from environmental economics, where emissions reg
 
 A second cluster sits in transportation policy. Subway openings, congestion charges, and traffic-safety laws all share the feature that they "switch on" at a particular moment, and behavior on either side of that moment is plausibly comparable. @bento2014effects and @anderson2014subways use this logic to estimate how new transit infrastructure shifts congestion, while @de2013deterrent and @burger2014did do the same for traffic-safety regulations and accident rates. The COVID-19 lockdowns provided perhaps the most dramatic example of a time-based discontinuity in recent memory; @brodeur2021covid exploit it to study the welfare effects of lockdowns on psychological well-being and economic activity.
 
-Marketing has been a more recent adopter, drawn to RDiT for the same reason as the policy literature: clean dates, dense outcome data, and a question about immediate response. The automotive market has been a particularly fertile testbed. @busse20061, @busse2010best, and @busse2013estimating study how promotional campaigns and policy changes ripple through vehicle prices, and @davis2010international does the same for changes in international trade policy. @chen2009learning applies the design to a different question — how customer satisfaction evolves after a firm makes an abrupt change to its service — and uses the discontinuity to separate the short-term shock from the longer process of consumer adaptation.
+Marketing has been a more recent adopter, drawn to RDiT for the same reason as the policy literature: clean dates, dense outcome data, and a question about immediate response. The automotive market has been a particularly fertile testbed. @busse20061, @busse2010best, and @busse2013estimating study how promotional campaigns and policy changes ripple through vehicle prices, and @davis2010international does the same for changes in international trade policy. @chen2009learning applies the design to a different question, how customer satisfaction evolves after a firm makes an abrupt change to its service, and uses the discontinuity to separate the short-term shock from the longer process of consumer adaptation.
 
 What unites these applications is less the substantive question than the empirical setting: a sharp date, a frequently-measured outcome, and a trend that the analyst is willing to commit to a functional form. When those three ingredients are present, RDiT can deliver credible causal estimates; when any one of them is missing, the design starts to lean heavily on assumptions the data cannot test.
 
@@ -540,6 +550,8 @@ ITS is appropriate when:
 -   For analyzing **subgroup effects** (heterogeneity in treatment impact), see [@harper2017did].
 -   For interpreting ITS results **with control variables**, see [@bottomley2019analysing].
 
+The threats listed below tend to operate together rather than separately, and a careful ITS analysis is one that addresses them as a system. Each threat corresponds to a different way the no-intervention counterfactual (the trajectory the series would have followed in the absence of the policy) can fail to be identified by the pre-period data alone. Several connect to broader topics covered elsewhere in the book: anticipation and avoidance map onto [sorting and manipulation](#sec-sorting-bunching-and-manipulation), confounding events to [omitted variable bias](#sec-omitted-variable-bias), and the regression-to-the-mean concern to its own dedicated treatment in Section \@ref(sec-regression-to-the-mean).
+
 Possible Threats to the Validity of ITS Analysis [@baicker2019testing]
 
 -   **Delayed effects** [@rodgers2005did]\
@@ -560,7 +572,7 @@ Possible Threats to the Validity of ITS Analysis [@baicker2019testing]
 -   **Selection bias**\
     If only certain individuals or settings receive the intervention, pre-existing differences may confound the results. Designs with multiple groups or comparison series can help mitigate this bias.
 
-After an intervention, an outcome can exhibit four distinct patterns showing in Table \@ref(tab:its-scenarios):
+The four scenarios in Table \@ref(tab:its-scenarios) describe the qualitative patterns an outcome can take after an intervention, and the choice of model should be informed by which pattern the analyst expects. A specification that allows only an immediate level shift (a single dummy on $D_t$) will mechanically miss any sustained or gradual response, while a richer segmented specification can flexibly capture all four. The cost of flexibility is that more parameters demand more data: with sparse pre- and post-periods, the segmented model can absorb noise into the slope-change and sustained-effect coefficients.
 
 | **Scenario**                           | **Description**                                                      |
 |---------------------------|---------------------------------------------|
@@ -571,10 +583,14 @@ After an intervention, an outcome can exhibit four distinct patterns showing in 
 
 : (#tab:its-scenarios) Scenarios for ITS.
 
+The first row is the null result the design is supposed to be able to detect. The second is the canonical "policy turns on, outcome jumps" story. The third corresponds to gradual diffusion, learning, or compliance ramps. The fourth is the most realistic for many real interventions but also the most demanding in terms of data, because identifying both an immediate jump and a slope change requires that the pre-period trend be estimated cleanly enough to project forward.
+
 Key assumptions for ITS:
 
 -   The **pre-intervention trend** would remain stable if the intervention never occurred (i.e., no major time-varying confounders coinciding with the intervention).
 -   Data is available for **multiple time points before and after** the intervention to estimate trends.
+
+The first assumption is the load-bearing one and is closely analogous to the parallel-trends assumption in [difference-in-differences](#sec-difference-in-differences): the pre-period trajectory has to be a credible stand-in for what would have happened in its absence. It tends to fail when the intervention is enacted in response to a recent change in the series itself (a phenomenon sometimes referred to as Ashenfelter's dip, or more generally as [regression to the mean](#sec-regression-to-the-mean)) or when other factors that affect the outcome are themselves trending in ways the model does not capture. The second assumption is data-quality more than identification, but it bites in practice: with only a handful of pre-period observations, the slope of the counterfactual trajectory is poorly estimated, and small differences in slope translate into large differences in projected counterfactual at long post-period horizons.
 
 The following model integrates both immediate and sustained intervention effects (i.e., segmented regression):
 
@@ -601,6 +617,8 @@ This model allows us to:
 2.  Capture the immediate effect of the intervention ($\beta_2$).
 3.  Identify if the slope changes post-intervention ($\beta_3$).
 4.  Examine long-term effects using $P_t$ ($\beta_4$).
+
+A practical note on parameterization: $\beta_2$ and $\beta_4$ are not always separately identified in finite samples. Both pick up post-intervention level differences, and when the post-period is short or noisy, they trade off against each other. Some authors drop $P_t$ and rely on the interaction $T_t \times D_t$ alone; others keep $P_t$ to give the model a clean slot for a lagged or delayed response. The right choice depends on what the policy is plausibly doing. If the response is expected to be immediate and persistent, $\beta_2$ alone is sufficient. If the expected effect grows with exposure (cumulative learning, gradual rollout, dose-response), $P_t$ earns its place.
 
 ITS does not require a purely immediate or discontinuous effect; the effect can be gradual or delayed, which can be captured with additional terms (e.g., lags or non-linear structures).
 
@@ -819,7 +837,7 @@ Notes on Real-World Usage:
 
 ### Handling Autocorrelation: HAC and ARIMA Models
 
-ITS chapters typically flag autocorrelation as the central threat to inference --- residuals tend to be serially correlated even after controlling for level and slope changes, so HC1-style sandwich errors (used in the simulated examples above) can still understate true uncertainty. Two complementary remedies are widely used in applied ITS practice:
+ITS chapters typically flag autocorrelation as the central threat to inference, residuals tend to be serially correlated even after controlling for level and slope changes, so HC1-style sandwich errors (used in the simulated examples above) can still understate true uncertainty. Two complementary remedies are widely used in applied ITS practice:
 
 1.  **Heteroskedasticity- and autocorrelation-consistent (HAC) standard errors** via the Newey-West estimator [@newey1986simple], which adjusts the OLS variance for arbitrary serial correlation up to a user-specified lag.
 2.  **Explicit time-series error models**, in which the regression is fit jointly with an autoregressive (or ARMA) error process, e.g., `nlme::gls()` with `corAR1()` or `forecast::Arima()` with regression terms.
@@ -855,7 +873,7 @@ summary(gls_fit)
 intervals(gls_fit, which = "var-cov")
 ```
 
-If diagnostics indicate residual autocorrelation beyond AR(1) --- e.g., seasonality at lag 12 in monthly data --- two extensions are natural:
+If diagnostics indicate residual autocorrelation beyond AR(1), e.g., seasonality at lag 12 in monthly data, two extensions are natural:
 
 ```{r, eval=FALSE}
 # Higher-order ARMA errors via Arima() with exogenous regressors (xreg)
@@ -884,7 +902,7 @@ Combining [Regression Discontinuity in Time](#sec-regression-discontinuity-in-ti
 1.  A **sharp local discontinuity** at the cutoff ($T^*$).
 2.  **Longer-term trend changes** before and after the intervention.
 
-Below are some conceptual strategies for merging RDiT and ITS ideas.
+The two designs answer different but adjacent questions. RDiT asks "what happened at the cutoff?", while ITS asks "what changed about the trajectory?". When a policy is plausibly doing both (an immediate response that is layered on top of a slower structural shift), neither design on its own is fully satisfying: ITS will average the local jump into a smoother slope change, while RDiT will treat the longer-run drift as part of the residual. The strategies below differ in how aggressively they attempt to identify both objects at once. Below are some conceptual strategies for merging RDiT and ITS ideas, ordered roughly from most parsimonious to most ambitious.
 
 ------------------------------------------------------------------------
 
@@ -893,7 +911,7 @@ Below are some conceptual strategies for merging RDiT and ITS ideas.
 A more **comprehensive ITS** can be written using the following form:
 
 $$
-Y_t = \beta_0 + \beta_1 T_t + \beta_2 D_t + \beta_3 \bigl(T_t \times D_t\bigr) + \beta_4 P_t + \epsilon_t,
+Y_t = \beta_0 + \beta_1 T_t + \beta_2 D_t + \beta_3 (T_t \times D_t) + \beta_4 P_t + \epsilon_t,
 $$
 
 where:
@@ -902,7 +920,7 @@ where:
     -   $\beta_1$ is the baseline slope (pre-intervention).
 -   $D_t = 1$ if $t \geq T^*$ (0 otherwise)
     -   $\beta_2$ is the immediate jump (level change) at $T^*$.
--   $\bigl(T_t \times D_t\bigr)$ is the interaction term that allows the slope to differ after $T^*$
+-   $(T_t \times D_t)$ is the interaction term that allows the slope to differ after $T^*$
     -   $\beta_3$ is the difference in slope post-$T^*$.
 -   $P_t$ is the time elapsed since $T^*$ (0 before $T^*$)
     -   $\beta_4$ captures the sustained effect of the intervention.
@@ -915,10 +933,10 @@ $$
 Y_t =& \beta_0 
        + \beta_1 T_t 
        + \beta_2 D_t 
-       + \beta_3 \bigl(T_t \times D_t\bigr)
+       + \beta_3 (T_t \times D_t)
        + \beta_4 P_t \\
-     &\quad + \alpha_1 \bigl(T_t - T^*\bigr)\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr)
-       + \alpha_2 \bigl(T_t - T^*\bigr) D_t \mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr) 
+     &\quad + \alpha_1 (T_t - T^*)\mathbf{1}(\lvert T_t - T^* \rvert < h)
+       + \alpha_2 (T_t - T^*) D_t \mathbf{1}(\lvert T_t - T^* \rvert < h) 
        + \epsilon_t.
 \end{aligned}
 $$
@@ -927,18 +945,20 @@ $$
 -   The $\beta$ terms capture the **global** pre/post trends, level changes, and sustained effects.
 -   The $\alpha$ terms capture **local curvature** or a sharper jump within the $\pm h$ region of $T^*$.
 
-This approach leverages the entire time series for **trend estimation** (ITS), while also including local (RDiT-like) estimation of an immediate discontinuity around $T^*$.
+This approach leverages the entire time series for **trend estimation** (ITS), while also including local (RDiT-like) estimation of an immediate discontinuity around $T^*$. It is the most direct way to let one model do both jobs, and it is well suited to settings where the analyst has a clear prior that the policy generates both an immediate spike and a slower structural change. The interpretation, however, becomes more delicate: $\beta_2$ and $\alpha$ both measure something happening at the cutoff, and disentangling "global level shift" from "local jump" depends on how cleanly the bandwidth $h$ separates the two.
 
 #### Cautions
 
 -   You need sufficient data **globally** (for the ITS) and **locally** near $T^*$ (for the RDiT terms).
 -   Extra parameters can lead to complexity and potential overfitting.
 
+The danger is most acute when $h$ is small relative to the post-period: in that case, the local terms can be near-collinear with the global terms, and the standard errors blow up even as the point estimates look reasonable. As a sanity check, fit the model with and without the local terms and confirm that the global $\beta$ coefficients move only modestly. Large movements indicate that the two sets of parameters are competing for the same variation, which is a warning sign that the data cannot support both.
+
 ------------------------------------------------------------------------
 
 ### Two-Stage (or Multi-Stage) Modeling
 
-An ad hoc but sometimes practical workflow is:
+When fitting a single unified model is too ambitious (or when collinearity between local and global terms makes the joint estimation unstable), a sequential approach can sidestep some of the difficulty by separating the questions in time. An ad hoc but sometimes practical workflow is:
 
 **Stage 1**: **Local RDiT**
 
@@ -960,28 +980,28 @@ $$
 and then fit the augmented model:
 
 $$
-Y_t^* = \beta_0 + \beta_1 T_t + \beta_2 D_t + \beta_3 \bigl(T_t \times D_t\bigr) + \beta_4 P_t + \nu_t.
+Y_t^* = \beta_0 + \beta_1 T_t + \beta_2 D_t + \beta_3 (T_t \times D_t) + \beta_4 P_t + \nu_t.
 $$
 
-Here, $Y_t^*$ is the outcome after removing the locally estimated jump from Stage 1. This is not a single unified regression, but a two-step approach combining local (RDiT) and global (ITS) analyses.
+Here, $Y_t^*$ is the outcome after removing the locally estimated jump from Stage 1. This is not a single unified regression, but a two-step approach combining local (RDiT) and global (ITS) analyses. The main appeal is conceptual clarity: each stage answers a clean question with the tool best suited to it, and the analyst can report both estimates without forcing them into a single equation. The main weakness is that standard errors at Stage 2 ignore the uncertainty in $\hat{\tau}$ from Stage 1, so a bootstrap (or analytic correction) is needed for honest inference. The two-stage workflow is most useful when the analyst is comfortable defending a single number for the local jump and primarily wants the ITS to characterize the longer-run trajectory net of that jump.
 
 ------------------------------------------------------------------------
 
 ### Hierarchical or Multi-Level Modeling
 
-A more unified, Bayesian hierarchical approach can also combine RDiT and ITS:
+When the data have natural grouping structure (multiple regions adopting the same policy at the same time, or repeated measurements within units), the previous strategies can be lifted into a hierarchical framework that pools information across groups while still allowing local and global parameters to vary. A more unified, Bayesian hierarchical approach can also combine RDiT and ITS:
 
 $$
 \begin{aligned}
 Y_{t} &= \underbrace{\beta_0 
            + \beta_1 T_t 
            + \beta_2 D_t 
-           + \beta_3 \bigl(T_t \times D_t\bigr)
+           + \beta_3 (T_t \times D_t)
            + \beta_4 P_t}_{\text{Global ITS component}}
            \\
        &\quad+
-       \underbrace{\alpha_1 \bigl(T_t - T^*\bigr)\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr) 
-           + \alpha_2 \bigl(T_t - T^*\bigr) D_t\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr)}_{\text{Local RDiT component}}
+       \underbrace{\alpha_1 (T_t - T^*)\mathbf{1}(\lvert T_t - T^* \rvert < h) 
+           + \alpha_2 (T_t - T^*) D_t\mathbf{1}(\lvert T_t - T^* \rvert < h)}_{\text{Local RDiT component}}
            + \epsilon_t.
 \end{aligned}
 $$
@@ -990,7 +1010,9 @@ $$
 -   **Local RDiT component** captures a sharp jump or local polynomial shape around $T^*$.
 -   Additional hierarchical layers (e.g., group-level effects) can handle multiple groups or multiple cutoffs.
 
-Using one of these strategies ensures you capture both the **global** pre/post-intervention trends (ITS) and any **local** discontinuities near $T^*$ (RDiT).
+The hierarchical formulation is most attractive when the analyst wants to estimate heterogeneous treatment effects across groups, when prior information about the magnitude of the jump or trend change is available, or when the number of post-period observations is small enough that partial pooling materially improves precision. The cost is the usual one for hierarchical models: more modeling decisions (priors, variance components), more diagnostics, and a steeper communication burden when reporting results to non-technical audiences.
+
+Using one of these strategies ensures you capture both the **global** pre/post-intervention trends (ITS) and any **local** discontinuities near $T^*$ (RDiT). For a broader discussion of how to choose among quasi-experimental designs in general, see Section \@ref(sec-choosing-a-quasi-experimental-method).
 
 ### Empirical Example
 
@@ -1174,11 +1196,13 @@ print(res_its_adjusted)
 
 ### Practical Guidance
 
+A few considerations cut across all three combination strategies, and they are worth keeping in view before committing to any particular hybrid form:
+
 -   **Data Requirements**: You must have enough data in the local window around $T^*$ for RDiT and enough pre- and post-intervention observations for ITS.
 -   **Avoid Over-Parameterization**: Adding many interaction and polynomial terms can quickly increase complexity.
 -   **Interpretation**: A single unified model that merges local jumps with global trends may be difficult to interpret. Distinguish clearly which parameters capture the sharp discontinuity versus the long-run trend.
 
-In practice, a hybrid approach can work if you truly believe there is both a local immediate jump and a longer-run trend change that standard ITS alone may not fully capture. However, weigh the added complexity against the quality and richness of your data.
+In practice, a hybrid approach can work if you truly believe there is both a local immediate jump and a longer-run trend change that standard ITS alone may not fully capture. However, weigh the added complexity against the quality and richness of your data. A sensible default is to estimate the simpler RDiT and ITS specifications separately first, compare what each one finds, and only move to a combined model when there is a substantive reason (and enough data) to expect both pieces. Where the analyst is choosing among alternative quasi-experimental designs more broadly (rather than between flavors of temporal-discontinuity analysis), Section \@ref(sec-choosing-a-quasi-experimental-method) and Section \@ref(sec-limitations-of-quasi-experiments) provide a wider lens.
 
 ------------------------------------------------------------------------
 

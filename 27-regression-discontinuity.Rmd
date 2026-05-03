@@ -36,15 +36,17 @@ One of the most compelling validations of RD comes from empirical comparisons wi
 RD is not an island; it shares conceptual and methodological links with several other causal inference frameworks. Understanding these connections helps clarify when RD is appropriate and how it complements alternative approaches.
 
 -   [Randomized Experiment](#sec-the-gold-standard-randomized-controlled-trials): RD can be seen as a **local randomization design** (treatment is "as-if" randomly assigned near the cutoff).
--   [Instrumental Variables]: RD can be framed as a special case of a structural IV model [@angrist1999using], where the running variable induces exogenous variation in treatment at the threshold.
--   [Matching Methods]: RD resembles a highly targeted form of matching (matching units just above and below a single threshold) [@heckman1999economics].
--   [Interrupted Time Series] (ITS): RD outperforms ITS when the running variable is finely measured and continuous. However, in settings with highly discrete or temporally aggregated data (e.g., quarterly revenues or annual crime rates), ITS may be more suitable. Still, when the data are dense or effectively continuous, RD offers a more precise and defensible design.
+-   [Instrumental Variables](#sec-instrumental-variables): RD can be framed as a special case of a structural IV model [@angrist1999using], where the running variable induces exogenous variation in treatment at the threshold.
+-   [Matching Methods](#sec-matching-methods): RD resembles a highly targeted form of matching (matching units just above and below a single threshold) [@heckman1999economics].
+-   [Interrupted Time Series](#sec-interrupted-time-series) (ITS): RD outperforms ITS when the running variable is finely measured and continuous. However, in settings with highly discrete or temporally aggregated data (e.g., quarterly revenues or annual crime rates), ITS may be more suitable. Still, when the data are dense or effectively continuous, RD offers a more precise and defensible design.
 
 ------------------------------------------------------------------------
 
 ## Types of Regression Discontinuity Designs
 
 RD is not a one-size-fits-all approach. While the classic setup involves a binary treatment determined by a threshold-crossing rule, numerous extensions and variants exist, each tailored to different research contexts. Understanding these variations is essential for choosing the appropriate design and interpreting results correctly.
+
+The starting point for organizing these variants is the assignment rule itself. Sharp designs treat the cutoff as deterministic; fuzzy designs allow imperfect compliance; kink designs shift attention from a jump in the level of treatment to a change in its slope; and time-based designs reinterpret the running variable as a calendar date. The four canonical types below trace this progression from the simplest sharp rule to settings where the threshold is temporal rather than scalar. As the rule weakens, the burden on assumptions grows: sharp RD demands only continuity of potential outcomes, while fuzzy and time-based variants layer on instrument relevance, monotonicity, and (in RDiT) careful trend modeling.
 
 1.  [Sharp RD](#sec-sharp-regression-discontinuity-design): The simplest and most intuitive form of RD:
     -   **Definition**: Treatment assignment jumps **deterministically** from 0 to 1 at the cutoff.
@@ -61,16 +63,16 @@ RD is not a one-size-fits-all approach. While the classic setup involves a binar
     -   **Identification**: The treatment effect is identified from a discontinuity in the **marginal effect** of the running variable.
     -   **Example**: Tax incentives where the marginal benefit changes at a threshold income level.
     -   **References**: See theoretical foundations in [@card2015inference] and empirical applications in [@bockerman2018kink; @nielsen2010estimating].
-4.  Regression Discontinuity in Time (RDiT): Also known as a special case of [Interrupted Time Series]:
-    1.  **Definition**: The running variable is **time**, and the cutoff corresponds to a policy implementation date or event.
-    2.  **Application**: Evaluates the immediate impact of an intervention that begins at a known point in time.
-    3.  **Caveat**: Since time trends are often confounded by other events, careful modeling of pre- and post-trends is essential.
+4.  [Regression Discontinuity in Time (RDiT)](#sec-regression-discontinuity-in-time): A special case of [Interrupted Time Series](#sec-interrupted-time-series):
+    -   **Definition**: The running variable is **time**, and the cutoff corresponds to a policy implementation date or event.
+    -   **Application**: Evaluates the immediate impact of an intervention that begins at a known point in time.
+    -   **Caveat**: Since time trends are often confounded by other events, careful modeling of pre- and post-trends is essential.
 
 > **Note**: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).
 
 ------------------------------------------------------------------------
 
-RD designs have been extended in several directions to accommodate real-world complexities:
+Beyond these canonical types, applied work has pushed RD into settings the original framework did not anticipate: policies with subgroup-specific thresholds, treatments determined jointly by several scores, geographic boundaries, treatments whose effects unfold over time, and dose-response settings where intensity rather than indicator status varies with the running variable. The list that follows surveys these extensions in the order they are most often encountered. Each extension preserves the core RD logic of comparing units near a discontinuity, but each also introduces design choices (pooling across thresholds, defining a boundary in two-dimensional score space, modeling lags) that the analyst must justify explicitly. Treat the entries below as a menu of options to consult once the basic sharp-or-fuzzy decision has been made.
 
 -   [Multiple Cutoffs](#sec-multi-cutoff-regression-discontinuity-design):
     -   **Use case**: Different treatment thresholds apply to different subgroups (e.g., age groups, regions).
@@ -91,6 +93,8 @@ RD designs have been extended in several directions to accommodate real-world co
 ------------------------------------------------------------------------
 
 ### Assumptions for RD Validity
+
+Whichever variant the analyst adopts, RD identification rests on a small set of conditions that together rationalize the local-randomization interpretation. The four assumptions below are best read as a single coherent story: assignment must depend only on the running variable, the conditional expectation of potential outcomes must not jump at the cutoff for reasons unrelated to treatment, the threshold itself must be exogenous to the unit, and other determinants of the outcome must be smooth across the boundary. When any of these conditions fails, the discontinuity at the cutoff conflates the treatment effect with whatever else is changing there, and credible inference collapses.
 
 1.  **Independent Assignment:** The treatment is assigned solely based on the running variable.
 
@@ -238,7 +242,7 @@ This method ensures that estimation remains local, capturing the treatment effec
 
 ## Specification Checks
 
-An RD design lives or dies by whether the assumptions actually hold in the data, so a credible application is expected to run a battery of specification checks. The most consequential is the manipulation/sorting check: if units can move themselves across the threshold, the design simply collapses, and no amount of bandwidth tuning will save it. Balance checks come next, because a discontinuity in baseline covariates indicates that something other than the policy jumps at the cutoff. The remaining checks — placebo tests at fake cutoffs, robustness to bandwidth choice, and partial-identification bounds when manipulation cannot be ruled out — are best read as confirmatory evidence rather than gatekeepers.
+An RD design lives or dies by whether the assumptions actually hold in the data, so a credible application is expected to run a battery of specification checks. The most consequential is the manipulation/sorting check: if units can move themselves across the threshold, the design simply collapses, and no amount of bandwidth tuning will save it. Balance checks come next, because a discontinuity in baseline covariates indicates that something other than the policy jumps at the cutoff. The remaining checks, placebo tests at fake cutoffs, robustness to bandwidth choice, and partial-identification bounds when manipulation cannot be ruled out, are best read as confirmatory evidence rather than gatekeepers.
 
 1.  [Balance Checks](#sec-balance-checks)
 2.  [Sorting, Bunching, and Manipulation](#sec-sorting-bunching-and-manipulation)
@@ -522,6 +526,8 @@ If no always-assigned units exist ($M_i = 1$ for no units), the standard RD mode
 
 #### Key Assumptions
 
+The manipulation-robust framework replaces the standard RD assumption of no sorting with a weaker condition that explicitly tolerates one-sided manipulation. Rather than insisting that the density of the running variable be continuous at the cutoff, it permits a discontinuity but restricts its source: only "always-assigned" units may bunch on one side of the threshold, and the smooth subpopulation continues to satisfy the usual continuity requirements. The conditions below formalize this split. They are stronger than they first appear, since identification of bounds rests jointly on local independence among the smooth units, smoothness of their marginal density, and a one-sided restriction on where the manipulators can land.
+
 1.  **Local Independence and Continuity**:
     -   Treatment probability jumps at $c$ among potentially-assigned units: $$
         P(D = 1|X = c^+, M = 0) > P(D = 1|X = c^-, M = 0).
@@ -550,7 +556,7 @@ This parameter represents the [local average treatment effect](#sec-local-averag
 
 #### Bounding Treatment Effects
 
-The approach to bounding treatment effects consists of two key steps:
+When point identification fails, the manipulation-robust strategy retreats to sharp bounds: rather than recovering a single causal estimate, the analyst constructs the tightest possible interval consistent with the data and the relaxed assumptions. The two steps below trace this logic. The first quantifies how much manipulation is present by reading it off the density discontinuity, and the second uses worst-case reasoning over the unobserved mixture of always-assigned and potentially-assigned units to deliver a defensible range for the treatment effect.
 
 1.  **Estimating the Proportion of Always-Assigned Units**:
     -   This is done by measuring the discontinuity in the density of $X$ at $c$.
@@ -774,7 +780,7 @@ This variable $Z_i$ serves as an instrument for the treatment variable $D_i$ bec
 
 ### Compliance Types
 
-Since treatment assignment is no longer deterministic, individuals can be classified into four groups based on how they respond to the cutoff:
+Once treatment assignment is allowed to deviate from the cutoff rule, the population splits into behaviorally distinct groups defined by how each unit's treatment status would change as it crossed the threshold. This taxonomy, borrowed from the [instrumental-variables](#sec-instrumental-variables) literature, is what makes fuzzy RD an IV estimator rather than a pure regression-based one. The four types below partition the population by their counterfactual response to the cutoff, and only one of them, the compliers, is actually identified by the discontinuity. The estimator says nothing about always-takers or never-takers because their treatment status does not move with the instrument, and defiers are ruled out by the monotonicity assumption.
 
 1.  Compliers ($C_0$): Individuals who receive treatment if and only if $X_i \geq c$.
 2.  Always-Takers ($A_0$): Individuals who always receive treatment, regardless of whether $X_i \geq c$.
@@ -803,7 +809,7 @@ where:
 
 -   The denominator captures the jump in the probability of treatment at the cutoff.
 
-This ratio is valid under three key assumptions:
+This ratio is valid under several key assumptions, each of which mirrors a condition familiar from IV identification but is now imposed locally at the cutoff. Continuity rules out other determinants of the outcome jumping at the threshold; monotonicity rules out defiers and so guarantees that the LATE has a coherent interpretation; and first-stage relevance ensures the denominator of the ratio is bounded away from zero so the estimator is well-defined. Together, these conditions are what convert the descriptive jumps in the numerator and denominator into a causal quantity for the complier subpopulation.
 
 1.  **Continuity in potential outcomes:** $E[Y(d)|X]$ is continuous at $X = c$ for both $d \in \{0,1\}$.
 2.  **Monotonicity:** There are no defiers ($P(D^+ \geq D^- | X = c) = 1$).
@@ -872,7 +878,9 @@ $$
 
 ### Steps for Fuzzy RD
 
-1\. Visualization
+A complete fuzzy RD analysis proceeds through three connected stages: visual diagnosis, two-stage estimation, and a battery of robustness checks. Treating these as a sequence rather than a checklist matters, because each stage informs the next. The visual stage builds intuition about whether a discontinuity exists in the outcome and whether the cutoff actually shifts the probability of treatment, the estimation stage formalizes that intuition through two-stage least squares, and the robustness stage stress-tests the resulting estimate against the most common threats to RD validity. Skipping the visualization stage in particular tends to mask cases where the first stage is too weak for IV inference to be credible.
+
+#### Visualization
 
 1.  Graph the Outcome Variable:
     -   Compute the average outcome within bins of the running variable $X_i$.
@@ -882,7 +890,7 @@ $$
     -   Compute the average treatment probability within the same bins.
     -   Plot $E[D|X]$ to check for a discontinuity at $X = c$, confirming the first-stage relevance of the instrument.
 
-2\. Estimation of Treatment Effect
+#### Estimation of Treatment Effect
 
 Use Two-Stage Least Squares to estimate the [Local Average Treatment Effect](#sec-local-average-treatment-effects):
 
@@ -896,7 +904,9 @@ Use Two-Stage Least Squares to estimate the [Local Average Treatment Effect](#se
     $$
     -   The coefficient $\tau$ gives the [LATE](#sec-local-average-treatment-effects), which estimates the treatment effect for compliers.
 
-3\. Robustness Checks
+#### Robustness Checks
+
+The robustness battery serves a different purpose from the point estimation above: it probes whether the assumptions underlying that estimate are credible in the data at hand. Each check below targets a specific failure mode. Covariate jumps speak to the no-confounding-discontinuity assumption, the McCrary density test addresses manipulation of the running variable (see \@ref(sec-mccrary-sorting-test)), placebo cutoffs guard against spurious patterns that look like discontinuities, and bandwidth sensitivity exposes overreliance on a particular window. A fuzzy RD estimate that survives all of these checks is far more defensible than one that simply emerges from a single specification.
 
 1.  Assess Possible Jumps in Other Covariates:
     -   Check whether other pre-determined covariates (e.g., age, income) exhibit discontinuities at the cutoff.
@@ -1013,7 +1023,7 @@ where $K_h$ is a kernel function (e.g., Epanechnikov), and $h$ is the bandwidth.
 
 ### Steps for Sharp RD
 
-1.  **Visualization**
+#### Visualization
 
 -   **Graph the outcome variable**:
     -   Compute binned averages of $Y_i$ over intervals of $X$.
@@ -1023,7 +1033,7 @@ where $K_h$ is a kernel function (e.g., Epanechnikov), and $h$ is the bandwidth.
     -   Use histograms to check for manipulation.
     -   Conduct a McCrary density test to detect discontinuities.
 
-2.  **Estimation of the Treatment Effect**
+#### Estimation of the Treatment Effect
 
 -   Run local linear regression separately on both sides of the cutoff.
 -   Use [nonparametric methods](#sec-nonparametric-regression) (e.g., kernel regression) for robustness.
@@ -1031,9 +1041,7 @@ where $K_h$ is a kernel function (e.g., Epanechnikov), and $h$ is the bandwidth.
     \hat{\tau} = \hat{E}[Y | X = c^+] - \hat{E}[Y | X = c^-].
     $$
 
-3.  **Robustness Checks**
-
-<!-- -->
+#### Robustness Checks
 
 1.  Check for Jumps in Other Covariates
 
@@ -1225,7 +1233,7 @@ $$
 \tau (x,c)= E[Y_{1i} - Y_{0i}|X_i = x, C_i = c].
 $$
 
-### Why Use Multi-Cutoff RD?
+### Motivation for Multi-Cutoff RD
 
 -   **Policy Variation**: Policies often implement different cutoffs across regions or institutions (e.g., different states setting different minimum test scores for scholarship eligibility).
 -   **Generalizability**: Allows estimation of treatment effects across multiple populations instead of relying on a single threshold.
@@ -1352,7 +1360,7 @@ where:
 
 -   A significant $\gamma$ suggests that RD assumptions are violated.
 
-3.  **McCrary Density Test**
+2.  **McCrary Density Test**
 
 -   Perform a McCrary test separately at each cutoff to check for manipulation:
 
@@ -1778,7 +1786,7 @@ Specialized RD Packages
 -   `rdmulti`: Extends RD to multiple cutoffs and multiple scores.
 -   `rdpower`: Conducts power calculations and sample selection for RD designs.
 
-#### Why Use `rdrobust`?
+#### Strengths of `rdrobust`
 
 -   Implements local polynomial regression, providing bias correction and robust standard errors.
 -   Uses state-of-the-art bandwidth selection methods.
@@ -1907,7 +1915,7 @@ Occupational licensing is a form of labor market regulation that requires worker
 
 #### OLS Estimation: Naïve Approach and Its Bias
 
-A simple [Ordinary Least Squares] regression can be used to estimate the effect of licensed workers on quality of service:
+A simple ordinary least squares regression can be used to estimate the effect of licensed workers on quality of service:
 
 $$
 Y_i = \alpha_0 + X_i \alpha_1 + LW_i \alpha_2 + \epsilon_i
@@ -2060,6 +2068,6 @@ The cutoff must be institutional, not analyst-chosen. If the threshold was picke
 
 The neighborhood, the bandwidth $h$, is where most disputes live. A very narrow window gives precise local identification but noisy estimates. A wider window pulls in heterogeneity from units far from the cutoff. Report multiple bandwidths (the data-driven optimum plus narrower and wider windows), multiple polynomial orders, and the @calonico2014robust bias-corrected standard errors. A coefficient that is stable across these choices is much more credible than one that flips sign when the window widens.
 
-Two further warnings. First, the RD estimand is a LATE *at* the cutoff. Extrapolating to units far from $c$ requires either additional assumptions (constant treatment effect) or parametric specifications that reintroduce exactly the modeling dependence RD was designed to avoid. Second, Fuzzy RD inherits every weak-instrument pathology from [Chapter 34](#sec-instrumental-variables): if the jump in treatment probability at the cutoff is small, the ratio estimator becomes unstable no matter how precise the reduced form looks.
+Two further warnings. First, the RD estimand is a LATE *at* the cutoff. Extrapolating to units far from $c$ requires either additional assumptions (constant treatment effect) or parametric specifications that reintroduce exactly the modeling dependence RD was designed to avoid. Second, Fuzzy RD inherits every weak-instrument pathology from [Instrumental Variables chapter](#sec-instrumental-variables): if the jump in treatment probability at the cutoff is small, the ratio estimator becomes unstable no matter how precise the reduced form looks.
 
 When RD fits the application, it is often the most credible design available. When the cutoff is blurry, manipulable, or weakly predictive of treatment, reach instead for a design that makes its assumptions work harder, [DiD](#sec-difference-in-differences) if panel structure is available, [matching](#sec-matching-methods) if covariate richness is the main asset.

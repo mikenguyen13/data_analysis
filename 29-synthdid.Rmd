@@ -1,7 +1,7 @@
 # Synthetic Difference-in-Differences {#sec-synthetic-difference-in-differences}
 
 ::: {.rmdnote}
-A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes [Difference-in-Differences](#sec-difference-in-differences) and [Synthetic Control](#sec-synthetic-control), reweighting both units and time periods so that the estimator remains well-behaved whenever either the parallel-trends assumption (needed for DiD) or the convex-hull pre-treatment match (needed for SC) holds. In practice that gives SDID a larger envelope of credibility than either parent method. Readers who are new to DiD or SC may want to skim Chapters [30](#sec-difference-in-differences) and [32](#sec-synthetic-control) first for the respective intuitions, then return here.
+A note on why SDID appears before DiD and Synthetic Control in this book. We sequence the panel-data chapters in order of design credibility rather than chronology of development. SDID hybridizes [Difference-in-Differences](#sec-difference-in-differences) and [Synthetic Control](#sec-synthetic-control), reweighting both units and time periods so that the estimator remains well-behaved whenever either the parallel-trends assumption (needed for DiD) or the convex-hull pre-treatment match (needed for SC) holds. In practice that gives SDID a larger envelope of credibility than either parent method. Readers who are new to DiD or SC may want to skim the [Difference-in-Differences](#sec-difference-in-differences) and [Synthetic Control](#sec-synthetic-control) chapters first for the respective intuitions, then return here.
 :::
 
 Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on **panel data**, which tracks multiple units over time, to assess how outcomes change before and after a policy is implemented. However, estimating causal effects in this setting is complicated by the fact that policies are often adopted non-randomly, where certain units may be more likely to receive treatment based on their characteristics, prior trends, or external factors. If treatment assignment correlates with unit-specific or time-specific factors, **selection bias** can invalidate causal conclusions, even when observed covariates are accounted for [@imbens2015causal].
@@ -63,7 +63,7 @@ Recent research has applied SDID to evaluate marketing interventions and policy 
 
 ## Understanding
 
-Having seen *why* SDID hybridises DiD and synthetic control, we now look at *how*. The core construction is to layer two sets of weights — one over units, one over time — onto a standard two-way fixed-effects regression, so that the comparison group ends up tracking the treated trajectory before treatment and the inference is anchored on the most informative post-treatment periods.
+Having seen *why* SDID hybridises DiD and synthetic control, we now look at *how*. The core construction is to layer two sets of weights, one over units, one over time, onto a standard two-way fixed-effects regression, so that the comparison group ends up tracking the treated trajectory before treatment and the inference is anchored on the most informative post-treatment periods.
 
 To formally define the SDID estimator, we begin by considering a balanced panel dataset with $N$ units observed over $T$ time periods. Our goal is to estimate the causal effect of a treatment intervention while accounting for both unit-specific and time-specific confounders.
 
@@ -77,15 +77,15 @@ Let:
 
 ### Steps in SDID Estimation
 
-SDID combines ideas from both [SC](#sec-synthetic-control) and [DID](#sec-difference-in-differences) by introducing unit weights and time weights:
+SDID combines ideas from both [SC](#sec-synthetic-control) and [DID](#sec-difference-in-differences) by introducing unit weights and time weights. Reading the steps below, it helps to keep one mental picture in mind: standard [two-way fixed effects](#sec-two-way-fixed-effects) gives every unit and every period the same vote in the regression, whereas SDID quietly redistributes those votes so that the comparison group looks like the treated group before treatment, and the comparison periods look like the post-treatment periods. Everything else is bookkeeping.
 
 1.  **Find unit weights** $\hat{w}_i^{sdid}$ to ensure that pre-treatment outcomes of the weighted control group match the pre-treatment outcomes of the treated units:\
     $$
     \sum_{i = 1}^{N_c} \hat{w}_i^{sdid} Y_{it} \approx \frac{1}{N_t} \sum_{i = N_c + 1}^{N} Y_{it}, \quad \forall t = 1, \dots, T_{pre}
     $$\
-    This ensures that pre-treatment trends of treated and control units are similar, just as in [SC](#sec-synthetic-control).
+    This ensures that pre-treatment trends of treated and control units are similar, just as in [SC](#sec-synthetic-control). Intuitively, the weights pick out the subset of donors whose pre-treatment trajectory, taken as a weighted average, traces the same shape as the treated trajectory. A donor that was already moving in lockstep with the treated unit gets a large weight; a donor that was drifting in a different direction gets a small one or zero. The procedure does not demand that the weighted donor sits exactly on top of the treated series in levels (the unit fixed effects in the final regression will absorb a constant gap), only that the two series move in parallel.
 
-2.  **Find time weights** $\hat{\lambda}_t^{sdid}$ to balance post-treatment deviations from pre-treatment outcomes, stabilizing the inference.
+2.  **Find time weights** $\hat{\lambda}_t^{sdid}$ to balance post-treatment deviations from pre-treatment outcomes, stabilizing the inference. The asymmetry with unit weights is deliberate: unit weights ask which donors look like the treated unit, while time weights ask which pre-treatment periods look like the post-treatment period. A pre-period that resembles the post-period (in terms of seasonal pattern, business-cycle position, or any other persistent factor that the donors share) is more informative for forecasting the missing counterfactual and accordingly receives a larger weight. Periods that are wildly atypical (an outlier recession year, a one-off shock) get down-weighted because they would otherwise pull the implied counterfactual toward something the post-period is not.
 
 3.  **Estimate the treatment effect** $\hat{\tau}^{sdid}$ by solving the following minimization problem:\
     $$
@@ -98,19 +98,23 @@ SDID combines ideas from both [SC](#sec-synthetic-control) and [DID](#sec-differ
     -   $\beta_t$ captures time-specific fixed effects.
     -   $\tau$ represents the treatment effect.
 
-Unlike the standard [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control) estimators, SDID incorporates both unit and time weights, making it less sensitive to violations of parallel trends.
+    The objective is a weighted [two-way fixed effects](#sec-two-way-fixed-effects) regression, with each cell of the panel weighted by the product $\hat{w}_i^{sdid} \hat{\lambda}_t^{sdid}$. That product collapses to ordinary [DID](#sec-difference-in-differences) when both sets of weights are uniform, and to [SC](#sec-synthetic-control) when only the unit weights are non-uniform and the unit fixed effects are dropped. SDID lives between those two limits.
+
+Unlike the standard [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control) estimators, SDID incorporates both unit and time weights, making it less sensitive to violations of parallel trends. The conceptual gain is that the [parallel-trends assumption](#sec-difference-in-differences) is no longer asked to hold for the raw panel, where it routinely fails, but only after the data have been reweighted into a configuration where it is much more plausible. This is the same logic that motivates [matching methods](#sec-matching-methods) in cross-sectional designs: rather than insisting that [conditional ignorability](#sec-conditional-ignorability-assumption) holds across the entire sample, restrict attention to the subset where the implied comparison is credible.
+
+It is illuminating to write the three estimators as variations on a single objective function and read off what each one is doing.
 
 [DID](#sec-difference-in-differences) solves:\
 $$
 (\hat{\tau}^{did}, \hat{\mu}, \hat{\alpha}, \hat{\beta}) = \arg \min_{\tau, \mu, \alpha, \beta} \sum_{i=1}^{N} \sum_{t=1}^{T} (Y_{it} - \mu - \alpha_i - \beta_t - W_{it} \tau)^2
 $$\
-However, [DID](#sec-difference-in-differences) does not use unit or time weights, making it unreliable if treatment assignment correlates with unobserved factors.
+However, [DID](#sec-difference-in-differences) does not use unit or time weights, making it unreliable if treatment assignment correlates with unobserved factors. Every observation enters the regression with equal weight, which is fine when the panel is roughly homogeneous and trends are flat, and exactly the wrong thing when one or two donors are dragging the comparison group's trajectory in a direction the treated unit was never on.
 
 [SC](#sec-synthetic-control) minimizes:\
 $$
 (\hat{\tau}^{sc}, \hat{\mu}, \hat{\beta}) = \arg \min_{\tau, \mu, \beta} \sum_{i=1}^{N} \sum_{t=1}^{T} (Y_{it} - \mu - \beta_t - W_{it} \tau)^2 \hat{w}_i^{sdid}
 $$\
-[SC](#sec-synthetic-control) does not include unit fixed effects ($\alpha_i$) or time weights ($\hat{\lambda}_t$), which can introduce bias when unmeasured confounders vary over time.
+[SC](#sec-synthetic-control) does not include unit fixed effects ($\alpha_i$) or time weights ($\hat{\lambda}_t$), which can introduce bias when unmeasured confounders vary over time. The omission of unit fixed effects is also why classical SC has to match the treated unit in *levels*, not merely in trend, since there is no $\alpha_i$ left to soak up a residual gap. SDID restores both the unit fixed effects and the time weights, recovering the bias control of [DID](#sec-difference-in-differences) and the comparability of [SC](#sec-synthetic-control) in the same objective.
 
 ### Comparison of Methods
 
@@ -130,7 +134,7 @@ Table \@ref(tab:synthdid-comparison-methods) summarizes key differences between 
 
 : (#tab:synthdid-comparison-methods) Comparison of methods.
 
-An alternative formulation of the SDID treatment effect is:\
+A second, more transparent formulation of the SDID treatment effect makes the connection to ordinary [DID](#sec-difference-in-differences) almost mechanical:\
 $$
 \hat{\tau} = \hat{\delta}_t - \sum_{i = 1}^{N_c} \hat{w}_i^{sdid} \hat{\delta}_i
 $$\
@@ -138,6 +142,8 @@ where:
 
 -   $\hat{\delta}_t = \frac{1}{N_t} \sum_{i = N_c + 1}^{N} \hat{\delta}_i$ represents the average deviation in treated units post-treatment (Table \@ref(tab:synthdid-sc-did-sdid-estimators)).
 -   $\sum_{i = 1}^{N_c} \hat{w}_i^{sdid} \hat{\delta}_i$ adjusts for differences using weighted control unit deviations.
+
+Read this as a difference-in-differences, except that "the control group's change" is computed using the synthetic donor weights and "the change" itself is computed using the synthetic time weights (rather than a flat pre-period average). Table \@ref(tab:synthdid-sc-did-sdid-estimators) makes the family resemblance explicit: every estimator in the SC, DID, and SDID lineage takes the same generic shape (treated change minus weighted control change), and they differ only in *which* weights are used and *how* the change is summarized over time.
 
 +---------------------------------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
 | Method                                | Sample Weight                                         | Adjusted outcomes ($\hat{\delta}_i$)                                                                        | Interpretation                                                                   |
@@ -151,13 +157,15 @@ where:
 
 : (#tab:synthdid-sc-did-sdid-estimators) Summary of SC, DID, and SDID estimators.
 
-A key innovation in Synthetic Difference-in-Differences is its use of unit and time weights to refine causal estimates. By applying weights, SDID essentially localizes a standard two-way fixed effects regression, making it more robust and precise.
+A key innovation in Synthetic Difference-in-Differences is its use of unit and time weights to refine causal estimates. By applying weights, SDID essentially localizes a standard [two-way fixed effects](#sec-two-way-fixed-effects) regression, making it more robust and precise. The word "localize" is doing real work here: rather than running one global regression on the full panel and hoping that the [parallel-trends assumption](#sec-difference-in-differences) holds across every donor and every period, SDID zooms in on the slice of the panel where parallel trends is most defensible.
 
 ### Why Use Weights?
 
--   Unit weights ($\hat{w}_i^{sdid}$) emphasize control units that are most similar to the treated units based on pre-treatment trends.
--   Time weights ($\hat{\lambda}_t^{sdid}$) prioritize time periods most comparable to the post-treatment period.
--   This approach improves parallel trends validity without requiring a perfect match in raw data.
+The weighting strategy is best understood as two complementary localizations of the regression, one over units and one over time.
+
+-   Unit weights ($\hat{w}_i^{sdid}$) emphasize control units that are most similar to the treated units based on pre-treatment trends. They answer the question "if the treated unit had not been treated, which donors would have predicted its trajectory?" and hand more vote to those donors.
+-   Time weights ($\hat{\lambda}_t^{sdid}$) prioritize time periods most comparable to the post-treatment period. They answer a closely related question, "which pre-periods are the right baseline for measuring the post-period?", and they discount pre-periods that look like a different regime entirely.
+-   This approach improves parallel trends validity without requiring a perfect match in raw data. It is the same spirit as covariate balancing in [matching methods](#sec-matching-methods), but operating on the panel structure itself rather than on cross-sectional covariates.
 
 ### Benefits of Localization in SDID
 
@@ -172,29 +180,33 @@ A key innovation in Synthetic Difference-in-Differences is its use of unit and t
 
 ### Designing SDID Weights
 
+The two sets of weights are designed to solve related but distinct problems, which is why they are estimated separately and with different penalties. Unit weights are about *who* you compare against; time weights are about *when* the comparison is anchored.
+
 #### Unit Weights: Balancing Pre-Treatment Trends
 
 Unit weights $\hat{w}_i^{sdid}$ ensure that the weighted control group mimics the treated group's pre-treatment trends, similar to [SC](#sec-synthetic-control) but with greater flexibility:\
 $$
 \sum_{i = 1}^{N_c} \hat{w}_i^{sdid} Y_{it} \approx \frac{1}{N_t} \sum_{i = N_c + 1}^{N} Y_{it}, \quad \forall t = 1, \dots, T_{pre}
 $$\
-This helps achieve parallel pre-treatment trends rather than requiring an exact match in levels.
+This helps achieve parallel pre-treatment trends rather than requiring an exact match in levels. The relaxation from level-matching to trend-matching is what makes SDID feasible in panels where classical [SC](#sec-synthetic-control) struggles, because it is much easier to find a weighted donor whose *changes* track the treated unit's changes than one whose *levels* coincide with the treated unit's levels. The unit fixed effects in the final regression carry the residual level difference for free.
 
 #### Time Weights: Stabilizing Post-Treatment Inference
 
-Time weights $\hat{\lambda}_t^{sdid}$ ensure that post-treatment deviations are balanced relative to pre-treatment trends. This minimizes bias by down-weighting time periods that are vastly different from the post-treatment period.
+Time weights $\hat{\lambda}_t^{sdid}$ ensure that post-treatment deviations are balanced relative to pre-treatment trends. This minimizes bias by down-weighting time periods that are vastly different from the post-treatment period. The motivation is straightforward: if you want to know what the treated unit's post-period would have looked like absent treatment, you should anchor the counterfactual on pre-periods that resemble the post-period along whatever latent factors govern the donors' outcomes, not on a generic average of all pre-periods.
 
--   Unlike unit weights, time weights do not require regularization because outcomes within the same time period are highly correlated across units.
--   Time weights improve the precision of SDID estimates by preventing certain periods from dominating the estimation process.
+-   Unlike unit weights, time weights do not require regularization because outcomes within the same time period are highly correlated across units. The cross-sectional correlation structure already pins the solution down, so the regularizer would be solving a problem that does not exist.
+-   Time weights improve the precision of SDID estimates by preventing certain periods from dominating the estimation process. This is the source of the variance reduction relative to ordinary [DID](#sec-difference-in-differences): noisy pre-periods that would have inflated the residual variance get demoted, and the estimator is left with a cleaner baseline against which to measure the post-treatment shift.
 
 ------------------------------------------------------------------------
 
 ### How SDID Enhances DID's Plausibility
 
-DID assumes parallel trends, but raw data often violates this assumption. SDID corrects for non-parallel trends by weighting both units and time periods.
+DID assumes parallel trends, but raw data often violates this assumption. SDID corrects for non-parallel trends by weighting both units and time periods. The practical question that applied researchers have always asked when faced with a failing pre-trends test is "which donors and which periods should I trim, and on what principled basis?" The traditional answers have ranged from inspection by eye to robustness checks across alternative comparison groups, with all the discretion that implies.
 
 -   Similar techniques have been used before to adjust [DID](#sec-difference-in-differences) assumptions, such as controlling for covariates or selecting specific time periods [@callaway2021difference].
 -   SDID automates this process, applying a systematic weighting approach for both units and time periods.
+
+The systematization matters: because the weights come out of an explicit optimization problem rather than analyst judgment, the resulting estimator is reproducible and the inference machinery can be derived without ad hoc adjustments. This puts SDID into the same family as the other [modern DiD estimators](#sec-modern-estimators-for-staggered-adoption) that try to discipline the comparison group rather than trust the raw panel.
 
 ------------------------------------------------------------------------
 
@@ -227,7 +239,7 @@ Including unit fixed effects ($\alpha_i$) in SDID has two main advantages:
 SDID weights resemble those used in @abadie2010synthetic but have two key modifications:
 
 1.  **Inclusion of an Intercept Term**
-    -   Unlike [SC](#sec-synthetic-control), SDID does not force the control pre-trends to exactly match the treated pre-trends. Iit only ensures they are parallel.
+    -   Unlike [SC](#sec-synthetic-control), SDID does not force the control pre-trends to exactly match the treated pre-trends. It only ensures they are parallel.
     -   This flexibility arises from unit fixed effects, which absorb any systematic level differences.
 2.  **Regularization Penalty**
     -   Borrowed from @doudchenko2016balancing.
@@ -269,6 +281,8 @@ This residualized outcome ($Y_{it}^{res}$) ensures that the weighting process ac
 
 **SDID Algorithm**
 
+The SDID algorithm runs in several stages, computed in a deliberate order: first set the regularization scale, then solve for unit weights, then solve for time weights, then plug both into the weighted regression. The reason the regularizer is computed first is that it depends only on the donors' own pre-treatment volatility, which is a property of the data, not of the treated unit, so it can be estimated once and reused.
+
 1.  Compute regularization parameter $\zeta$
 
 $$
@@ -285,6 +299,8 @@ $$
 
 -   $\hat{\Delta} = \frac{1}{N_c(T_{pre} - 1)}\sum_{i = 1}^{N_c}\sum_{t = 1}^{T_{pre}-1} \Delta_{it}$
 
+The quantity $\hat{\sigma}$ is just the standard deviation of one-period changes in the control panel, so $\zeta$ scales with the natural noise level of the donors' own dynamics. Penalizing weights at this scale prevents the optimizer from concentrating mass on a single donor that happened to track the treated unit perfectly by chance, which would be the cross-sectional analog of overfitting.
+
 2.  Compute unit weights $\hat{w}^{sdid}$
 
 $$
@@ -296,6 +312,8 @@ where
 -   $l_{unit} (w_0, w) = \sum_{t = 1}^{T_{pre}}(w_0 + \sum_{i = 1}^{N_c}w_i Y_{it} - \frac{1}{N_t}\sum_{i = N_c + 1}^NY_{it})^2 + \zeta^2 T_{pre}||w||_2^2$
 
 -   $\Omega = \{w \in R_+^N: \sum_{i = 1}^{N_c} w_i = 1, w_i = N_t^{-1} \forall i = N_c + 1, \dots, N \}$
+
+The first term in $l_{unit}$ is a least-squares pre-trend match: across pre-treatment periods, push the weighted donor outcome (plus a free intercept $w_0$) toward the treated average. The intercept is what frees SDID from [SC](#sec-synthetic-control)'s level-matching constraint. The second term is the ridge-style penalty $\zeta^2 T_{pre} \|w\|_2^2$, which pushes the weights away from corner solutions and toward a more diffuse set of donors. The simplex restriction in $\Omega$ keeps the weights non-negative and summing to one, preserving the convex-combination interpretation of [SC](#sec-synthetic-control).
 
 3.  Compute time weights $\hat{\lambda}^{sdid}$
 
@@ -309,15 +327,21 @@ where
 
 -   $\Lambda = \{ \lambda \in R_+^T: \sum_{t = 1}^{T_{pre}} \lambda_t = 1, \lambda_t = T_{post}^{-1} \forall t = T_{pre} + 1, \dots, T\}$
 
+The structure mirrors the unit-weight problem, but with the roles of units and time swapped: each donor's weighted pre-period outcome is pushed toward that donor's post-period average, again with a free intercept $\lambda_0$ to absorb level differences. There is no penalty term, which is the asymmetry mentioned earlier; cross-sectional correlation across donors within a period gives the time problem enough structure that regularization is not needed to obtain a stable solution.
+
 4.  Compute the SDID estimator
 
 $$
 (\hat{\tau}^{sdid}, \hat{\mu}, \hat{\alpha}, \hat{\beta}) = \arg \min_{\tau, \mu, \alpha, \beta}\{ \sum_{i = 1}^N \sum_{t = 1}^T (Y_{it} - \mu - \alpha_i - \beta_t - W_{it} \tau)^2 \hat{w}_i^{sdid}\hat{\lambda}_t^{sdid}
 $$
 
+With both sets of weights in hand, the final stage is just a weighted [two-way fixed effects](#sec-two-way-fixed-effects) regression. The treatment indicator $W_{it}$ enters linearly, and its coefficient $\hat{\tau}^{sdid}$ is the average treatment effect on the treated. Because the weights are *plugged in* rather than re-optimized jointly with $\tau$, inference does not need to account for their estimation in the leading-order asymptotics, which is why the closed-form variance and bootstrap procedures below are valid. Interpretation is then exactly what one expects from a [DiD](#sec-difference-in-differences) coefficient: the estimated change in the treated outcome attributable to treatment, holding the (now reweighted) comparison group as the counterfactual.
+
 ------------------------------------------------------------------------
 
 **SE Estimation**
+
+Inference for SDID looks superficially familiar (asymptotic normality, plug-in confidence intervals) but the variance estimator is not the OLS sandwich. The reason is the same one that complicates inference for [SC](#sec-synthetic-control) and other [counterfactual estimators](#sec-counterfactual-estimators): the estimator depends on data-dependent weights, the panel is small in at least one dimension, and the residual structure has nontrivial cross-sectional correlation. The asymptotic theory in @arkhangelsky2021synthetic gives a clean limit distribution, but estimating the variance in finite samples requires resampling.
 
 -   Under certain assumptions (errors, samples, and interaction properties between time and unit fixed effects) detailed in [@arkhangelsky2021synthetic, p. 4107], SDID is asymptotically normal and zero-centered
 
@@ -327,7 +351,7 @@ $$
 \tau \in \hat{\tau}^{sdid} \pm z_{\alpha/2}\sqrt{\hat{V}_\tau}
 $$
 
--   There are 3 approaches for variance estimation in confidence intervals:
+-   There are several approaches for variance estimation in confidence intervals, each tuned to a different panel size and sampling regime:
 
     1.  **Clustered Bootstrap [@efron1992bootstrap]:**
 
@@ -389,7 +413,7 @@ All algorithms are from @arkhangelsky2021synthetic, p. 4109:
 
 ### Block Treatment
 
-Code provided by the `synthdid` package
+The block-treatment case (one treated unit, or several treated units that all adopt at the same time) is the cleanest setting for SDID and the one analyzed in @arkhangelsky2021synthetic. The canonical example is California Proposition 99, the same panel used to introduce [synthetic control](#sec-synthetic-control); using it again here lets the reader directly compare what SDID does on top of classical SC. Code is provided by the `synthdid` package.
 
 ```{r}
 library(synthdid)
@@ -405,7 +429,7 @@ tau.hat = synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
 # se = sqrt(vcov(tau.hat, method = 'placebo'))
 ```
 
-Figure \@ref(fig:synthdid-treat-synthetic-counterfactual) shows the trajectories between treated units and synthetic control counterfactual units.
+Figure \@ref(fig:synthdid-treat-synthetic-counterfactual) shows the trajectories between treated units and synthetic control counterfactual units. The vertical bar marks the intervention; before that point, the synthetic series should track the treated series closely (this is what the unit weights buy us), and after the intervention, the gap between the two is the visual representation of $\hat{\tau}^{sdid}$. The shaded band along the horizontal axis encodes the time weights, which is a useful diagnostic in its own right: a sharply concentrated band signals that only a few pre-periods are doing the inference work, which is worth knowing before quoting the point estimate.
 
 ```{r synthdid-treat-synthetic-counterfactual, fig.cap='Synthetic control method: treated vs. synthetic counterfactual over time.', fig.alt='Line plot from 1970 to 2000 comparing two trajectories: a red line for synthetic control and a blue line for the treated unit. A vertical line around 1989 marks the intervention. After this point, the treated unit drops sharply compared to the synthetic control. A shaded area and dashed lines emphasize the gap between the two series, representing the estimated treatment effect. A legend identifies the treated and synthetic control lines.'}
 plot(tau.hat) + causalverse::ama_theme()
@@ -428,7 +452,7 @@ causalverse::process_panel_estimate(results_selected)
 
 ### Staggered Adoption
 
-To apply to staggered adoption settings using the SDID estimator (see examples in @arkhangelsky2021synthetic, p. 4115 similar to @ben2022synthetic), we can:
+Staggered adoption breaks the clean block structure of the canonical SDID setup, since different units adopt treatment in different periods, the same problem that motivates the [staggered DiD](#sec-staggered-difference-in-differences) literature and the broader catalog of [modern DiD estimators](#sec-modern-estimators-for-staggered-adoption). The fix is conceptually straightforward: partition the panel into block-treatment subproblems where SDID can be applied directly, then aggregate. To apply SDID in staggered adoption settings (see examples in @arkhangelsky2021synthetic, p. 4115 similar to @ben2022synthetic), several routes are available:
 
 1.  Apply the SDID estimator repeatedly, once for every adoption date.
 

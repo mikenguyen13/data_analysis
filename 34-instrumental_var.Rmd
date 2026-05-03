@@ -50,21 +50,25 @@ The conventional rules of thumb you will encounter later in this chapter are:
 One point is worth internalizing now: weak-instrument bias does not vanish with larger sample sizes. It is a property of first-stage strength, not of sampling noise. When the instrument is weak, the remedies are weak-instrument-robust methods (Anderson-Rubin, LIML, CLR) or partial identification bounds, not a larger $N$.
 :::
 
-It is worth a brief detour through the history, because the trajectory of the IV idea explains a great deal about how the method is used today. The technique dates back to early econometric work in the 1920s and 1930s, when researchers grappling with simultaneous-equations models needed a way to disentangle systems in which prices and quantities — or any pair of jointly determined variables — were chasing each other. One of the earliest applications was @wright1928tariff's study of supply and demand for pig iron, an exemplar that would resurface a generation later in the Cowles Commission programme on identification. For decades thereafter IV remained a specialist's tool, used mostly in macroeconomics and demand estimation.
+It is worth a brief detour through the history, because the trajectory of the IV idea explains a great deal about how the method is used today. The technique dates back to early econometric work in the 1920s and 1930s, when researchers grappling with simultaneous-equations models needed a way to disentangle systems in which prices and quantities, or any pair of jointly determined variables, were chasing each other. One of the earliest applications was @wright1928tariff's study of supply and demand for pig iron, an exemplar that would resurface a generation later in the Cowles Commission programme on identification. For decades thereafter IV remained a specialist's tool, used mostly in macroeconomics and demand estimation.
 
-The method's modern centrality dates from the *credibility revolution* of the 1990s and 2000s, which reframed identification as a research-design problem rather than a modelling one. @angrist1991sources's use of quarter-of-birth as an instrument for years of schooling is the canonical example: a clever, almost incidental source of variation that arguably has no business affecting earnings except through its effect on education. That paper, along with a wave of similar designs, repositioned IV as a workhorse for applied research in economics, political science, and epidemiology — wherever a credible exogenous shock to the variable of interest could be located in nature, in policy, or in institutional accident.
+The method's modern centrality dates from the *credibility revolution* of the 1990s and 2000s, which reframed identification as a research-design problem rather than a modelling one. @angrist1991sources's use of quarter-of-birth as an instrument for years of schooling is the canonical example: a clever, almost incidental source of variation that arguably has no business affecting earnings except through its effect on education. That paper, along with a wave of similar designs, repositioned IV as a workhorse for applied research in economics, political science, and epidemiology, wherever a credible exogenous shock to the variable of interest could be located in nature, in policy, or in institutional accident.
 
 ## Challenges with Instrumental Variables
 
-While IVs can provide a solution to endogeneity, the practical difficulties roughly cluster into three families: assumption failures (an exclusion restriction that does not actually hold, or an instrument that is too weak to identify anything reliably), interpretation traps (LATE applies only to compliers, not to the population the reader probably has in mind), and design hygiene (the same instrument used many times across literatures eventually becomes implausible). The list below details each in turn; in any given application, the exclusion restriction and weak-instrument concerns are usually the ones that decide whether the analysis is publishable.
+While IVs can provide a solution to endogeneity, the practical difficulties cluster into three families: assumption failures (an exclusion restriction that does not actually hold, or an instrument that is too weak to identify anything reliably), interpretation traps (the [LATE](#sec-instrumental-variables) applies only to compliers, not to the population the reader probably has in mind), and design hygiene (the same instrument used many times across literatures eventually becomes implausible). In any given application, the exclusion restriction and weak-instrument concerns are usually the ones that decide whether the analysis is publishable, but each of the points below has historically been the issue that broke a published result.
 
--   Exclusion Restriction Violations: If $Z$ affects $Y$ through any channel other than $X$, the IV estimate is biased.
--   Repeated Use of Instruments: Common instruments, such as weather or policy changes, may be invalid due to their widespread application across studies [@gallen2020broken]. One needs to test for invalid instruments (Hausman-like test).
-    -   A notable example is @mellon2021rain, who documents that *289 social sciences studies* have used weather as an instrument for 195 variables, raising concerns about exclusion violations.
--   Heterogeneous Treatment Effects: The Local Average Treatment Effect (LATE) estimated by IV applies only to *compliers*---units whose treatment status is affected by the instrument.
--   Weak Instruments: Too little correlation with the endogenous regressor yields unstable estimates.
--   Invalid Instruments: If the instrument violates exogeneity, your results are inconsistent.
--   Interpretation Mistakes: The IV identifies *only* the effect for those "marginal" units whose treatment status is driven by the instrument.
+-   **[Exclusion-restriction violations](#sec-exogeneity-assumption).** If the instrument $Z$ affects $Y$ through any channel other than $X$, the IV estimate is biased. The bias is not signed in general: a backdoor channel that pushes $Y$ in the same direction as the treatment makes IV overstate the effect, while a channel that pushes the other way makes IV understate it. The exclusion restriction is fundamentally untestable, so the discipline here is to argue it explicitly from institutional knowledge and to probe it with falsification tests on placebo outcomes.
+
+-   **Repeated use of instruments.** Common instruments such as weather, distance to a regulator, or sweeping policy changes can be invalidated by their widespread application across studies [@gallen2020broken]: an instrument that has been shown to predict many outcomes is one that almost certainly violates the exclusion restriction for at least some of them. The canonical illustration is @mellon2021rain, who documents that *289 social-science studies* have used weather as an instrument for 195 distinct variables, an aggregate pattern that is hard to reconcile with the exclusion restriction holding for any single application. The defensive moves are to argue for the exclusion in your specific setting rather than relying on the literature's collective use of the instrument, to use formal tests for invalid instruments (Hausman-like tests, overidentification tests, the Conley-Hansen-Rossi plausibly exogenous bounds), and to run sensitivity analyses across the modest violations of exclusion that the most plausible alternative channels would imply.
+
+-   **Heterogeneous treatment effects and the LATE.** The Local Average Treatment Effect estimated by IV applies only to *compliers*: units whose treatment status is shifted by the instrument. The complier subpopulation is rarely the one a policymaker has in mind, and it is *unobservable* to the analyst, so the estimate corresponds to a weighted average of unit-level effects with weights the analyst cannot directly inspect. When the treatment effect is constant across units, the LATE coincides with the ATE and the distinction does not matter; when effects are heterogeneous, the LATE can be substantively different from the ATE, and reporting the LATE without flagging the distinction misleads readers.
+
+-   **Weak instruments.** Insufficient correlation between the instrument and the endogenous regressor produces unstable 2SLS estimates with confidence intervals that undercover the truth in finite samples. The standard test is the [first-stage F-statistic](#sec-first-stage-f-statistic), with thresholds discussed at length in the [weak-instruments section](#sec-weak-instruments-problem) later in this chapter; the standard remedies are weak-instrument-robust methods (Anderson-Rubin, CLR, LIML) or partial-identification approaches when robust inference is too imprecise to be useful.
+
+-   **Invalid instruments more broadly.** Even when the first stage is strong and the instrument has not been used elsewhere, it can fail the exogeneity assumption for institution-specific reasons that the analyst missed. The best safeguard is a careful institutional argument paired with placebo and balance tests: an instrument that predicts pre-treatment outcomes or covariates that should be unaffected by it is an instrument that has not survived scrutiny.
+
+-   **Interpretation mistakes.** Even when everything else is correct, the IV result identifies only the effect for the marginal units whose treatment status is shifted by the instrument. A policy that rolls out a treatment to a different subpopulation will not, in general, have the LATE-implied effect. Reporting the estimand explicitly, distinguishing it from the ATE and from the ATT, and discussing the share of compliers in the sample are the disciplines that keep the interpretation honest.
 
 ------------------------------------------------------------------------
 
@@ -162,7 +166,7 @@ Y_{0i} &= Y_i (0,1) = Y_i (0,0)
 \end{aligned}
 $$
 
-Under this assumption (and assume $Y_{1i, Y_{0i}}$ already satisfy the independence assumption), the observed outcome $Y_i$ can be rewritten as:
+Under this assumption (and assume $Y_{1i}, Y_{0i}$ already satisfy the independence assumption), the observed outcome $Y_i$ can be rewritten as:
 
 $$
 \begin{aligned}
@@ -224,11 +228,11 @@ Table: (\#tab:iv-compliance-types) Compliance types in IV: switchers (compliers)
 
 $$
 \begin{aligned}
-\frac{E[Y_i |Z_i = 1] - E[Y_i |Z_i = 0]}{E[D_i |Z_i = 1]} = \frac{\text{Intent-to-Treat Effect}}{\text{Compliance Rate}} = E[Y_{1i} - Y_{0i} |D_i = 1].
+\frac{E[Y_i \mid Z_i = 1] - E[Y_i \mid Z_i = 0]}{E[D_i \mid Z_i = 1] - E[D_i \mid Z_i = 0]} \;=\; \frac{\text{Intent-to-Treat Effect}}{\text{Compliance Rate}} \;=\; E[Y_{1i} - Y_{0i} \mid \text{compliers}].
 \end{aligned}
 $$
 
-Under full compliance, LATE = Treatment Effect on the Treated (TOT).
+The Wald-form denominator is the *difference* in treatment uptake between the two instrument arms, which equals the share of compliers under monotonicity. Some treatments of the formula write only $E[D_i \mid Z_i = 1]$ in the denominator; that simplification is correct only under one-sided non-compliance (no always-takers), in which case $E[D_i \mid Z_i = 0] = 0$. Under full compliance the LATE further coincides with the [Average Treatment Effect on the Treated](#sec-notation-quasi-experimental).
 
 ------------------------------------------------------------------------
 
@@ -1718,7 +1722,7 @@ $$
 -   $n$: Number of observations.
 -   $k$: Number of control variables.
 
-Interpretation has accumulated layers of guidance over the years, and it is worth tracing them rather than treating the F-statistic as a single-number verdict. The original rule of thumb is @staiger1997instrumental: if $F < 10$, declare the instruments weak and treat the 2SLS estimates with suspicion. That heuristic has held up culturally but has worn poorly statistically. @lee2022valid show that the conventional threshold is too permissive — confidence intervals built around 2SLS estimates with $F$ in the 10–20 range can undercover badly — and they advocate model-specific diagnostics in place of the universal cutoff. When weakness is a serious concern, the recommended remedy is to switch from the 2SLS $t$-statistic to weak-instrument-robust inference; the Conditional Likelihood Ratio test of @moreira2003conditional [@andrews2008efficient] is the standard tool for this and should be the default whenever the first-stage strength is in doubt.
+Interpretation has accumulated layers of guidance over the years, and it is worth tracing them rather than treating the F-statistic as a single-number verdict. The original rule of thumb is @staiger1997instrumental: if $F < 10$, declare the instruments weak and treat the 2SLS estimates with suspicion. That heuristic has held up culturally but has worn poorly statistically. @lee2022valid show that the conventional threshold is too permissive, confidence intervals built around 2SLS estimates with $F$ in the 10-20 range can undercover badly, and they advocate model-specific diagnostics in place of the universal cutoff. When weakness is a serious concern, the recommended remedy is to switch from the 2SLS $t$-statistic to weak-instrument-robust inference; the Conditional Likelihood Ratio test of @moreira2003conditional [@andrews2008efficient] is the standard tool for this and should be the default whenever the first-stage strength is in doubt.
 
 Use `linearHypothesis()` in R to test instrument relevance.
 
@@ -2485,23 +2489,7 @@ To test the validity of the exogeneity assumption, we can use a sanity test:
 
 -   New advances: endogeneity robust inference in finite sample and sensitivity analysis of inference [@kiviet2020testing]
 
-These tests that can provide evidence fo the validity of the over-identifying restrictions is not sufficient or necessary for the validity of the moment conditions (i.e., this assumption cannot be tested). [@deaton2010instruments; @parente2012cautionary]
-
--   The over-identifying restriction can still be valid even when the instruments are correlated with the error terms, but then in this case, what you're estimating is no longer your parameters of interest.
-
--   Rejection of the over-identifying restrictions can also be the result of parameter heterogeneity [@angrist2000interpretation]
-
-Why overid tests hold no value/info?
-
--   Overidentifying restrictions are valid irrespective of the instruments' validity
-
-    -   Whenever instruments have the same motivation and are on the same scale, the estimated parameter of interests will be very close [@parente2012cautionary, p. 316]
-
--   Overidentifying restriction are invalid when each instrument is valid
-
-    -   When the effect of your parameter of interest is heterogeneous (e.g., you have two groups with two different true effects), your first instrument can be correlated with your variable of interest only for the first group and your second interments can be correlated with your variable of interest only for the second group (i.e., each instrument is valid), and if you use each instrument, you can still identify the parameter of interest. However, if you use both of them, what you estimate is a mixture of the two groups. Hence, the overidentifying restriction will be invalid (because no single parameters can make the errors of the model orthogonal to both instruments). The result may seem confusing at first because if each subset of overidentifying restrictions is valid, the full set should also be valid. However, this interpretation is flawed because the residual's orthogonality to the instruments depends on the chosen set of instruments, and therefore the set of restrictions tested when using two sets of instruments together is not the same as the union of the sets of restrictions tested when using each set of instruments separately [@parente2012cautionary, p. 316]
-
-These tests (of overidentifying restrictions) should be used to check whether different instruments identify the same parameters of interest, not to check their validity [@hausman1983specification; @parente2012cautionary]
+These tests can provide evidence on the validity of the over-identifying restrictions but are neither sufficient nor necessary for the validity of the moment conditions (i.e., this assumption cannot be directly tested) [@deaton2010instruments; @parente2012cautionary]. The over-identifying restriction can still be valid even when the instruments are correlated with the error terms, in which case what you are estimating is no longer your parameter of interest. Conversely, rejection of the over-identifying restrictions can also be the result of parameter heterogeneity [@angrist2000interpretation]. The strongest framing is that these tests should be used to check whether different instruments identify the same parameter of interest, not to check their validity [@hausman1983specification; @parente2012cautionary]. The full deconstruction of why this matters appears in the [Standard Interpretation of the J-Test for Overidentifying Restrictions Is Misleading] subsection below.
 
 ##### Wald Test
 
@@ -2536,7 +2524,7 @@ If you have more than one endogenous variable with more than one instrument, $\d
 
 If you reject this hypothesis, it means that $X_2$ is not endogenous. Hence, for this test, we do not want to reject the null hypothesis.
 
-If the test is not sacrificially significant, we might just don't have enough information to reject the null.
+If the test is not statistically significant, we might just not have enough information to reject the null.
 
 When you have a valid instrument $Z$, whether $X_2$ is endogenous or exogenous, your coefficient estimates of $X_2$ should still be consistent. But if $X_2$ is exogenous, then 2SLS will be inefficient (i.e., larger standard errors).
 
@@ -2585,7 +2573,7 @@ Similar to [Hansen's J](#hansens-j), but it assumes homoskedasticity
 
 -   Have to be careful when sample is not collected exogenously. As such, when you have choice-based sampling design, the sampling weights have to be considered to have consistent estimates. However, even if we apply sampling weights, the tests are not suitable because the iid assumption off errors are already violated. Hence, the test is invalid in this case [@pitt2011overidentification].
 
--   If one has heteroskedasticity in its design, the Sargan test is invalid [@pitt2011overidentification}]
+-   If one has heteroskedasticity in its design, the Sargan test is invalid [@pitt2011overidentification].
 
 ------------------------------------------------------------------------
 
@@ -2638,6 +2626,10 @@ Why the "J-Test as a Validity Test" Is the Wrong Way to Think About It
 5.  **Overidentification Itself Does Not Guarantee a Validity Check**
     -   The J-test is only available if $m > k$. If $m = k$ (exact identification), no J-test is possible.
     -   Ironically, exactly-identified models often go "unquestioned" because we *cannot* run a J-test---yet that does not mean they are more valid.
+6.  **The Test Implicitly Assumes Homogeneous Treatment Effects, So It Can Reject Even When All Instruments Are Valid**
+    -   The J-test treats the structural parameter $\beta$ as a single number. When different instruments identify *different* local average treatment effects (each instrument moving a different complier subpopulation), the moment conditions $\mathbb{E}[Z'u] = 0$ implicitly require these distinct parameters to coincide [@angrist2000interpretation; @parente2012cautionary].
+    -   Concretely, if instrument $Z_1$ identifies a LATE for one complier group and $Z_2$ identifies a LATE for another, each instrument used alone is valid, but the over-identified system imposes a single $\beta$ on both, and the residuals cannot be made simultaneously orthogonal to both instruments. The J-test then rejects, not because exogeneity fails, but because no single parameter can make the errors orthogonal to both instruments [@parente2012cautionary, p. 316]. Conversely, when instruments share the same motivation and scale, the estimated parameters tend to coincide and the J-test holds little additional information.
+    -   The result may seem confusing at first: if each subset of overidentifying restrictions is valid, the full set ought to be too. But the residual's orthogonality to the instruments depends on the chosen set of instruments, so the restrictions tested when using two sets of instruments together are not the union of the restrictions tested with each set separately [@parente2012cautionary, p. 316]. A rejection therefore signals heterogeneity (or misspecification) rather than invalidity per se.
 
 ------------------------------------------------------------------------
 
@@ -2720,17 +2712,9 @@ summary(iv_model, diagnostics = TRUE)
 
 -   Always pair this with theory-based justifications for $Z$.
 
-#### J-Test Rejects Even with Valid Instruments (Heterogeneous Treatment Effects)
+**Worked Example: J-Test Rejects Even with Valid Instruments**
 
-A more subtle point: The J-test can reject *even if all instruments truly are exogenous* when the **treatment effect is heterogeneous**---i.e., each instrument identifies a *different* local average treatment effect.
-
-**The Core Issue: Inconsistent LATEs**
-
--   The J-test implicitly assumes a single (homogeneous) treatment effect $\beta$.
-
--   If different instruments identify different segments of the population, each instrument can yield a *distinct* causal effect.
-
--   This discrepancy can trigger a J-test rejection, not because the instruments are invalid, but because they don't agree on a *single* parameter value.
+The following simulation illustrates point 6 above. Two binary instruments $Z_1$ and $Z_2$ each identify a distinct LATE on a different complier subpopulation. Each instrument, used alone, recovers its own true LATE. Used together in an overidentified specification, the J-test rejects, even though every instrument is exogenous.
 
 ```{r}
 library(AER)
@@ -2774,55 +2758,31 @@ summary(iv_both, diagnostics = TRUE)
 
 ```
 
-**Expected Results**
-
--   IV via Z1 only should yield an estimate $\approx 1.0$.
-
--   IV via Z2 only should yield $\approx 2.0$.
-
--   IV via Z1 and Z2 together yields a 2SLS estimate that is some *weighted average* of 1.0 and 2.0.
-
--   The J-test often *rejects* because the data do not support a *single* $\beta$ across both instruments.
-
-**Key Takeaways**
-
-1.  **The J-Test Assumes Homogeneity**
-
--   If treatment effects vary with the subpopulation that each instrument induces into treatment, the J-test can reject even when all instruments are *exogenous*.
-
-2.  **A Rejection May Signal Heterogeneity, Not Invalidity**
-
--   The test cannot distinguish invalid exogeneity from different underlying causal parameters.
-
-3.  **Practical Implications**
-
--   Be aware of the [Local Average Treatment Effect] interpretation of your instruments.
-
--   If multiple instruments target different "complier" groups, the standard J-test lumps them into one homogenous $\beta$.
-
--   Consider reporting separate IV estimates or using methods that explicitly account for treatment-effect heterogeneity (e.g., Marginal Treatment Effects or other advanced frameworks).
+IV using $Z_1$ only should yield an estimate $\approx 1.0$, IV using $Z_2$ only should yield $\approx 2.0$, and the overidentified model returns a weighted average of the two. The J-test typically rejects, not because either instrument fails the exclusion restriction, but because no single $\beta$ can make the residuals orthogonal to both instruments simultaneously. The practical takeaway: when multiple instruments target different complier groups, consider reporting separate IV estimates or methods that explicitly accommodate treatment-effect heterogeneity (e.g., the [Local Average Treatment Effect] interpretation, or marginal-treatment-effect frameworks).
 
 ------------------------------------------------------------------------
 
 ## Cautions in IV
 
+A handful of issues recur in IV practice often enough that referees flag them by reflex. The list below is not exhaustive (specific applications surface their own concerns), but each entry has been the source of mistaken conclusions in published work and is worth checking before any IV result leaves the desk.
+
 ### Negative $R^2$ in IV
 
-In IV estimation, particularly 2SLS and 3SLS, it is common and not problematic to encounter negative $R^2$ values in the second stage regression. Unlike [Ordinary Least Squares], where $R^2$ is often used to assess the fit of the model, in IV regression the primary concern is consistency and unbiased estimation of the coefficients of interest, not the goodness-of-fit.
+In IV estimation, particularly 2SLS and 3SLS, it is common and not problematic to encounter negative $R^2$ values in the second-stage regression. Where ordinary least squares uses $R^2$ as a measure of in-sample fit, IV is targeting consistency of the coefficient on the endogenous regressor, not goodness-of-fit. The two objectives are not aligned, and a negative $R^2$ is what you get when 2SLS deliberately throws away variation that OLS would have used to drive up $R^2$. Reviewers occasionally interpret a negative $R^2$ as evidence that "the model fits poorly", which is the wrong frame; the right frame is that the IV estimate has *traded* in-sample fit for the exogeneity that licenses a causal interpretation.
 
-What Should You Look At Instead of $R^2$ in IV?
+The diagnostics that *do* matter in IV regression line up with the assumptions the estimator depends on.
 
-1.  **Instrument Relevance** (First-stage $F$-statistics, Partial $R^2$)
-2.  **Weak Instrument Tests** (Kleibergen-Paap, Anderson-Rubin tests)
-3.  **Validity of Instruments** (Overidentification tests like Sargan/Hansen J-test)
-4.  **Endogeneity Tests** (Durbin-Wu-Hausman test for endogeneity)
-5.  [Confidence Intervals and Standard Errors](#sec-inference-iv), focusing on inference for $\hat{\beta}$.
+-   **Instrument relevance.** Report the first-stage $F$-statistic and the partial $R^2$ of the instrument in the first stage; these speak to whether the instrument has enough power to identify the second-stage coefficient. The thresholds and modern guidance are covered in the [weak-instruments section](#sec-weak-instruments-problem).
 
-**Geometric Intuition**
+-   **Weak-instrument robust tests.** When the first stage is suspect, the [Kleibergen-Paap rk statistic](#sec-kleibergen-paap-rk-statistic), the [Anderson-Rubin test](#sec-anderson-rubin-test), the [Stock-Wright test](#sec-stock-wright-test), and the [Cragg-Donald test](#sec-cragg-donald-test) provide inference that does not depend on the instrument being strong.
 
--   In OLS, the fitted values $\hat{y}$ are the orthogonal projection of $y$ onto the column space of $X$.
--   In 2SLS, $\hat{y}$ is the projection onto the space spanned by $Z$, not $X$.
--   As a result, the angle between $y$ and $\hat{y}$ may not minimize the residual variance, and RSS can be larger than in OLS.
+-   **Instrument validity.** Overidentification tests (Sargan-Hansen $J$) check whether the multiple instruments are consistent with one another in identifying the same parameter. They reject when at least one instrument violates the exclusion restriction, but they are silent when all instruments are biased in the same direction.
+
+-   **Endogeneity tests.** The Durbin-Wu-Hausman test compares the OLS and IV estimates and rejects when the two diverge significantly, which is evidence that the regressor in question is in fact endogenous.
+
+-   **Inference on $\hat{\beta}$.** Confidence intervals and standard errors for the structural coefficient are the right summary of what the data say, and the [inference chapter](#sec-inference-iv) discusses the modern weak-instrument-robust approaches.
+
+The geometric intuition explains the negative-$R^2$ phenomenon directly. In OLS, the fitted values $\hat{y}$ are the orthogonal projection of $y$ onto the column space of $X$, so they are the closest possible point to $y$ within that space. In 2SLS, $\hat{y}$ is the projection of $y$ onto the column space of $Z$ (or rather, of the predicted values from the first stage), which is a different and typically smaller subspace. The 2SLS fit is not optimizing distance from $y$ in any sense; it is targeting the parameter that the instrument identifies. The angle between $y$ and the resulting $\hat{y}$ can be larger than in OLS, producing a residual sum of squares larger than the total sum of squares and a negative $R^2$. This is a feature of the estimator, not a bug.
 
 ------------------------------------------------------------------------
 
@@ -2854,112 +2814,7 @@ Key Properties in OLS:
 
 ------------------------------------------------------------------------
 
-#### Why Does $R^2$ Lose Its Meaning in IV Regression?
-
-In IV regression, the second stage regression replaces the endogenous variable $X_2$ with its predicted values from the first stage:
-
-Stage 1:
-
-$$
-X_2 = Z \pi + v
-$$
-
-Stage 2:
-
-$$
-Y = X_1 \beta_1 + \hat{X}_2 \beta_2 + \epsilon
-$$
-
--   $\hat{X}_2$ is not the observed $X_2$, but a proxy constructed from $Z$.
--   $\hat{X}_2$ isolates the exogenous variation in $X_2$ that is independent of $\epsilon$.
--   This reduces bias, but comes at a cost:
-    -   The variation in $\hat{X}_2$ is typically less than that in $X_2$.
-    -   The predicted values $\hat{y}_i$ from the second stage are not necessarily close to $y_i$.
-
-#### Why $R^2$ Can Be Negative:
-
-1.  $R^2$ is calculated using: $$
-    R^2 = 1 - \frac{RSS}{TSS}
-    $$ But in IV:
-
--   The predicted values of $Y$ are not chosen to minimize RSS, because IV is not minimizing the residuals in the second stage.
--   Unlike OLS, 2SLS chooses $\hat{\beta}$ to satisfy moment conditions rather than minimizing the sum of squared errors.
-
-2.  It is possible (and common in IV) for the residual sum of squares to be greater than the total sum of squares: $$
-    RSS > TSS
-    $$ Which makes: $$
-    R^2 = 1 - \frac{RSS}{TSS} < 0
-    $$
-
-3.  This happens because:
-
-    -   The predicted values $\hat{y}_i$ in IV are not optimized to fit the observed $y_i$.
-    -   The residuals can be larger, because IV focuses on identifying causal effects, not prediction.
-
-For example, assume we have:
-
--   $TSS = 100$
-
--   $RSS = 120$
-
-Then: $$ R^2 = 1 - \frac{120}{100} = -0.20 $$
-
-This happens because the IV procedure does not minimize RSS. It prioritizes solving the endogeneity problem over explaining the variance in $Y$.
-
-------------------------------------------------------------------------
-
-#### Why We Don't Care About $R^2$ in IV
-
-1.  IV Estimates Focus on **Consistency**, Not **Prediction**
-
--   The goal of IV is to obtain a consistent estimate of $\beta_2$.
--   IV sacrifices fit (higher variance in $\hat{y}_i$) to remove endogeneity bias.
-
-2.  $R^2$ Does Not Reflect the Quality of an IV Estimator
-
--   A high $R^2$ in IV may be misleading (for instance, when instruments are weak or invalid).
--   A negative $R^2$ does not imply a bad IV estimator if the assumptions of instrument validity are met.
-
-3.  IV Regression Is About Identification, Not In-Sample Fit
-
--   IV relies on relevance and exogeneity of instruments, not residual minimization.
-
-------------------------------------------------------------------------
-
-#### Technical Details on $R^2$
-
-In OLS: $$
-\hat{\beta}^{OLS} = (X'X)^{-1} X'Y
-$$ Minimizes: $$
-RSS = (Y - X \hat{\beta}^{OLS})'(Y - X \hat{\beta}^{OLS})
-$$
-
-In IV: $$
-\hat{\beta}^{IV} = (X'P_Z X)^{-1} X'P_Z Y
-$$
-
-where:
-
--   $P_Z = Z (Z'Z)^{-1} Z'$ is the projection matrix onto $Z$.
-
--   The IV estimator solves: $$
-    Z'(Y - X\hat{\beta}) = 0
-    $$
-
--   No guarantee that this minimizes RSS.
-
-Residuals:
-
-$$
-e^{IV} = Y - X \hat{\beta}^{IV}
-$$
-
-The norm of $e^{IV}$ is typically larger than in OLS because IV uses fewer effective degrees of freedom (constrained variation via $Z$).
-
-A Note on $R^2$ in 3SLS and GMM
-
--   In 3SLS or GMM IV, $R^2$ can be similarly misleading.
--   These methods often operate under moment conditions or system estimation, not residual minimization.
+Algebraically, OLS solves $\hat{\beta}^{OLS} = (X'X)^{-1} X'Y$ and minimizes $RSS = (Y - X\hat{\beta}^{OLS})'(Y - X\hat{\beta}^{OLS})$ by construction, so its $R^2$ is bounded in $[0,1]$. The 2SLS estimator instead solves $\hat{\beta}^{IV} = (X'P_Z X)^{-1} X'P_Z Y$ where $P_Z = Z(Z'Z)^{-1}Z'$ is the projection matrix onto the column space of $Z$. Equivalently, the IV estimator satisfies the moment condition $Z'(Y - X\hat{\beta}) = 0$, which carries no guarantee that the resulting $RSS$ is minimized. The residual vector $e^{IV} = Y - X\hat{\beta}^{IV}$ typically has larger norm than its OLS counterpart, because IV uses only the variation in $X$ that is spanned by $Z$. When $RSS > TSS$, the formula $R^2 = 1 - RSS/TSS$ delivers a negative number; for instance, $TSS = 100$ and $RSS = 120$ gives $R^2 = -0.20$. The same caveat carries over to 3SLS and GMM IV, which operate under moment conditions or system estimation rather than residual minimization, so their reported $R^2$ values are similarly uninformative as goodness-of-fit summaries.
 
 ------------------------------------------------------------------------
 
@@ -3113,8 +2968,8 @@ $$
 Y_i = \beta_0 + \beta_{1i} D_i + u_i
 $$
 
--   $D_i \in \{0, 1\}$: The treatment indicator.
--   $Z_i \in \{0, 1\}$: The binary instrument.
+-   $D_i \in {0, 1}$: The treatment indicator.
+-   $Z_i \in {0, 1}$: The binary instrument.
 
 Assumptions for the LATE Interpretation
 
@@ -3415,9 +3270,9 @@ where $w_j$ are weights determined by the distribution of the instrument and tre
 
 ## IV and Matching: Design-Based vs. Model-Based Approaches
 
-IV (this chapter) and [matching](#sec-matching-methods) (Chapter 35) are the two remaining strategies when neither a cutoff nor panel structure is available. They rest on very different identifying assumptions, and they answer slightly different questions; Table \@ref(tab:iv-vs-matching) lays them side by side.
+IV (this chapter) and [matching](#sec-matching-methods) are the two remaining strategies when neither a cutoff nor panel structure is available. They rest on very different identifying assumptions, and they answer slightly different questions; Table \@ref(tab:iv-vs-matching) lays them side by side.
 
-| **Feature**                     | **IV (Ch. 34)**                                                      | **Matching (Ch. 35)**                                                          |
+| **Feature**                     | **IV**                                                               | **Matching**                                                                   |
 |------------------------|-----------------------|-------------------------|
 | **What it solves**              | Endogeneity from unobserved confounding                              | Selection bias from observed confounding                                       |
 | **Key assumption**              | Exclusion + relevance + independence (+ monotonicity for LATE)       | Unconfoundedness + overlap (a.k.a. selection on observables)                   |

@@ -61,60 +61,35 @@ Endogeneity violates one of the core assumptions of regression, and it has serio
 
 ------------------------------------------------------------------------
 
-There are several common sources of endogeneity [@hill2021endogeneity]. However, most problems fall into two broad categories:
+There are several common sources of endogeneity [@hill2021endogeneity]. However, most problems fall into two broad categories, treated in turn below: [Endogenous Treatment](#sec-endogenous-treatment) and [Endogenous Sample Selection](#sec-endogenous-sample-selection).
 
-1.  [Endogenous Treatment](#sec-endogenous-treatment)
+### Endogenous Treatment
 
-<!-- -->
+The treatment variable is correlated with the error term. The four canonical mechanisms below all reduce to a violation of $Cov(\mathbf{X}, \epsilon) = 0$, but they differ in the direction of the bias and the kind of remedy that helps.
 
-a.  [**Omitted Variable Bias (OVB)**](#sec-omitted-variable-bias)
+-   [**Omitted Variable Bias (OVB)**](#sec-omitted-variable-bias). This occurs when a relevant variable is left out of the model and is correlated with both the explanatory variable(s) and the outcome. OVB is a problem when the omitted variable is correlated with an included regressor *and* also affects the dependent variable; if either condition fails, there is no bias.
 
-This occurs when a relevant variable is:
+    Example (Economics): We want to estimate the effect of school on earnings, but typical unobservables (e.g., motivation, ability/talent, or self-selection) pose a threat to our identification strategy.
 
--   Left out of the model (i.e., omitted),
--   Correlated with both the explanatory variable(s) and the outcome.
+    Example (Marketing): Suppose we regress sales on advertising spend, but omit product quality. If higher-quality products get more advertising and also generate more sales, the ad spend coefficient picks up some of the effect of quality, resulting in an upward bias.
 
-When is OVB a problem?
+    Example (Finance): Regressing firm performance on executive compensation might omit executive ability. If more able executives both command higher compensation and deliver better results, OVB leads to biased inferences.
 
--   The omitted variable is correlated with an included regressor.
--   It also affects the dependent variable.
+-   [**Simultaneity (Feedback Effects)**](#sec-simultaneity). Simultaneity arises when the dependent variable and an explanatory variable are determined **jointly**, in equilibrium.
 
-If either condition fails, there's no bias.
+    Example (Economics): Price and quantity demanded are determined together in supply-and-demand models. A regression of quantity on price without modeling supply will yield a biased estimate of demand sensitivity.
 
-Example (Economics): We want to estimate the effect of school on earnings, but typical unobservables (e.g., motivation, ability/talent, or self-selection) pose a threat to our identification strategy.
+-   [**Reverse Causality**](#sec-reverse-causality). A special case of simultaneity where the causation runs opposite to what the model assumes.
 
-Example (Marketing): Suppose we regress sales on advertising spend, but omit product quality. If higher-quality products get more advertising and also generate more sales, the ad spend coefficient picks up some of the effect of quality---resulting in an upward bias.
+    Example (Health Policy): A naive model might regress health outcomes on insurance coverage. But it is plausible that people in poor health are more likely to purchase insurance, causing reverse causality.
 
-Example (Finance): Regressing firm performance on executive compensation might omit executive ability. If more able executives both command higher compensation and deliver better results, OVB leads to biased inferences.
+    Over longer time intervals (e.g., yearly business data), reverse causality can look just like simultaneity in terms of its effect on regression estimates.
 
-b.  [**Simultaneity (Feedback Effects)**](#sec-simultaneity)
+-   [**Measurement Errors**](#sec-measurement-error). Even if a relevant variable is included, **imprecise measurement** introduces bias. Classical measurement error in $X$ leads to **attenuation bias**, estimated coefficients are biased toward zero, and occurs frequently in survey data, behavioral measures, and administrative records.
 
-Simultaneity arises when the dependent variable and an explanatory variable are determined **jointly**, in equilibrium.
+    Example (Digital Marketing): Click-through rates or exposure to ads may be tracked with browser cookies or device IDs, but such identifiers are imperfect. The resulting measurement error biases the estimated effect of advertising downward.
 
-Example (Economics): Price and quantity demanded are determined together in supply-and-demand models. A regression of quantity on price without modeling supply will yield a biased estimate of demand sensitivity.
-
-c.  [**Reverse Causality**](#sec-reverse-causality)
-
-A special case of simultaneity where the causation runs opposite to what the model assumes.
-
-Example (Health Policy): A naive model might regress health outcomes on insurance coverage. But it's plausible that people in poor health are more likely to purchase insurance, causing reverse causality.
-
-Over longer time intervals (e.g., yearly business data), reverse causality can look just like simultaneity in terms of its effect on regression estimates.
-
-d.  [**Measurement Errors**](#sec-measurement-error)
-
-Even if a relevant variable is included, **imprecise measurement** introduces bias.
-
-Classical Measurement Error (in $X$):
-
--   Leads to **attenuation bias**---estimated coefficients are biased toward zero.
--   Occurs frequently in survey data, behavioral measures, and administrative records.
-
-Example (Digital Marketing): Click-through rates or exposure to ads may be tracked with browser cookies or device IDs, but such identifiers are imperfect. The resulting measurement error biases the estimated effect of advertising downward.
-
-------------------------------------------------------------------------
-
-2.  [Endogenous Sample Selection](#sec-endogenous-sample-selection)
+### Endogenous Sample Selection
 
 Sample selection becomes a source of endogeneity when inclusion in the sample is related to the outcome variable.
 
@@ -171,13 +146,19 @@ This section focuses on how [measurement errors](#sec-measurement-error), especi
 
 ### Measurement Errors {#sec-measurement-error}
 
-Measurement error refers to the difference between the **true value** of a variable and its **observed (measured) value**.
+Measurement error refers to the difference between the **true value** of a variable and its **observed (measured) value**. Almost every empirical dataset contains some discrepancy between what the researcher records and what actually occurred, and the size of that gap controls how much of an estimate reflects the underlying causal relationship versus the recording process itself. In observational settings, the problem is rarely a single rogue data point: it is a systematic feature of how variables are collected, transcribed, and reported.
+
+The most common pathways through which mismeasurement enters a dataset can be grouped into a few broad sources:
 
 -   Sources of measurement error:
     -   **Coding errors**: Manual or software-induced data entry mistakes.
     -   **Reporting errors**: Self-report bias, recall issues, or strategic misreporting.
 
+These mechanical sources matter because they shape the *statistical structure* of the noise, and that structure determines whether the resulting bias is benign or destructive.
+
 Two Broad Types of Measurement Error
+
+For analytical purposes, it is helpful to separate measurement error into two regimes that have very different consequences for OLS. The first behaves like ordinary noise that washes out in large samples; the second introduces structure that survives even in the limit and can flip the sign of an estimate.
 
 1.  **Random (Stochastic) Error** --- [*Classical Measurement Error*](#sec-classical-measurement-error)
     -   Noise is unpredictable and averages out in expectation.
@@ -190,10 +171,14 @@ Two Broad Types of Measurement Error
         -   **Method error**: poor sampling, survey design flaws.
         -   **Human error**: judgment errors, social desirability bias.
 
+The distinction between the two regimes is not just bookkeeping. It dictates which remedy is appropriate and how much we can hope to recover. Random error preserves the direction of the estimated effect, just dampening its magnitude, whereas systematic error can pull estimates in either direction depending on the correlation pattern.
+
 **Key insight**:
 
 -   *Random error* adds **noise**, pushing estimates toward zero.
 -   *Systematic error* introduces **bias**, pushing estimates either upward or downward.
+
+The remainder of this section formalizes each regime, beginning with the [classical case](#sec-classical-measurement-error) where standard derivations yield clean attenuation results, before turning to the [non-classical case](#sec-non-classical-measurement-error) where remedies typically require an [instrumental variable](#sec-instrumental-variables) or a validation sample.
 
 ------------------------------------------------------------------------
 
@@ -331,8 +316,8 @@ To address attenuation bias caused by classical measurement error, consider the 
     -   Is correlated with the true variable $X$,
     -   Is uncorrelated with the regression error $\epsilon$, and
     -   Is uncorrelated with the measurement error $e$.
-3.  **Abandon your project**\
-    If no good instruments or validation data exist, and the attenuation bias is too severe, it may be prudent to reconsider the analysis or research question. (Said with love and academic humility.)
+3.  **Reconsider the analysis**\
+    If no good instruments or validation data exist, and the attenuation bias is too severe, it may be prudent to reconsider the analysis or research question.
 
 ------------------------------------------------------------------------
 
@@ -407,11 +392,11 @@ so the estimator remains **consistent** and only its variance rises.
 
     This is because measurement error in the [left-hand side](#sec-left-hand-side-variable) does **not** induce endogeneity. The zero conditional mean assumption is preserved.
 
--   **Interpretation (Why Econometricians Don't Panic)**:
+-   **Interpretation (Identification of the Causal Effect)**:
 
     Econometricians and causal researchers often focus on **consistent estimation** of causal effects under strict exogeneity. Since $v_i$ just adds noise to the outcome and doesn't systematically relate to $X_i$, the slope estimate $\hat{\beta}$ remains a valid estimate of the causal effect $\beta$.
 
--   **Statistical Implications (Why Statisticians Might Worry)**:
+-   **Statistical Implications (Inference and Precision)**:
 
     Although $\hat{\beta}$ is consistent, the variance of the error term increases due to the added noise $v_i$. Specifically:
 
@@ -1123,9 +1108,11 @@ There are no mechanical tests that definitively detect reverse causality, but re
 
 #### Solutions to Reverse Causality
 
-The following methods can mitigate reverse causality:
+Because reverse causality is a special case of [endogeneity](#sec-endogeneity), the toolkit overlaps substantially with the methods used elsewhere in this chapter. The strategies below differ mainly in *how* they break the feedback loop: by finding variation that flows only one way, by removing the unobserved drivers of the loop, or by modelling both directions explicitly. The right choice depends on what data and identifying variation are available.
 
 1.  [Instrumental Variables](#sec-instrumental-variables)
+
+The IV approach isolates the variation in $X$ that comes from a source plausibly outside the loop, then uses only that variation to estimate the effect on $Y$.
 
 -   Find a variable $Z$ that affects $X$ but is not affected by $Y$, nor correlated with $u_i$.
 -   First stage: $X_i = \pi_0 + \pi_1 Z_i + e_i$
@@ -1133,18 +1120,26 @@ The following methods can mitigate reverse causality:
 
 2.  [Randomized Controlled Trials](#sec-the-gold-standard-randomized-controlled-trials) (RCTs)
 
+When researchers can intervene directly, randomization severs the reverse arrow by construction.
+
 -   In experiments, the treatment (e.g., $X$) is assigned randomly and therefore exogenous by design.
 
 3.  Natural Experiments / [Quasi-Experimental Designs](#sec-quasi-experimental)
 
--   Use external shocks or policy changes that affect $X$ but not $Y$ directly (e.g., difference-in-differences, regression discontinuity).
+When direct experimentation is infeasible, quasi-experiments substitute a policy or shock that mimics random assignment.
+
+-   Use external shocks or policy changes that affect $X$ but not $Y$ directly (e.g., [difference-in-differences](#sec-difference-in-differences), [regression discontinuity](#sec-regression-discontinuity)).
 
 4.  Panel Data Methods
+
+Repeated observations on the same units allow researchers to net out time-invariant unobservables that might otherwise be driving both $X$ and $Y$.
 
 -   Use fixed-effects or difference estimators to eliminate time-invariant confounders.
 -   Lag independent variables to examine delayed effects and improve causal direction inference.
 
 5.  Structural Equation Modeling
+
+When feedback is genuinely two-directional and theoretically informed, modelling the full system avoids the need to take sides on which equation is "the" causal one.
 
 -   Estimate a full system of equations to explicitly model feedback.
 
@@ -1277,11 +1272,17 @@ $$
 
 #### Remedies for OVB
 
+The remedies below are ordered roughly from least to most demanding in terms of identifying assumptions. The simplest case, where the offending variable is observed, requires only a richer regression specification. As the omitted variable becomes harder to measure or fundamentally unobservable, researchers must lean on auxiliary variation: an external instrument, repeated observations on the same units, or random assignment.
+
 1.  Include the omitted variable
+
+The most direct fix is to stop omitting it. When $Z$ is measured (or a credible proxy is available), simply adding it to the regression closes the back-door path that creates the bias. This is the [selection-on-observables](#sec-selection-on-observables) strategy.
 
 -   If $Z$ is observed, include it in the regression model.
 
 2.  Use [Instrumental Variables](#sec-instrumental-variables)
+
+When $Z$ cannot be measured directly, an instrument $W$ provides a workaround: it isolates a slice of the variation in $X$ that is unrelated to the omitted confounder, allowing consistent estimation even though $Z$ remains unobserved.
 
 -   If $Z$ is unobserved but $X$ is endogenous, find an instrument $W$:
 
@@ -1290,10 +1291,14 @@ $$
 
 3.  Use Panel Data Methods
 
+If the omitted variable is fixed within units over time (such as managerial talent or innate ability), longitudinal variation lets researchers difference it out without ever observing it.
+
 -   **Fixed Effects**: eliminate time-invariant omitted variables.
--   **Difference-in-Differences**: exploit temporal variation to isolate effects.
+-   [**Difference-in-Differences**](#sec-difference-in-differences): exploit temporal variation to isolate effects.
 
 4.  [Experimental Designs](#sec-the-gold-standard-randomized-controlled-trials)
+
+When feasible, randomization is the cleanest remedy because it makes the omitted variable irrelevant by construction: assignment is independent of every confounder, observed or not.
 
 -   **Randomization** ensures omitted variables are orthogonal to treatment, avoiding bias.
 
@@ -1301,7 +1306,7 @@ $$
 
 ## Endogenous Sample Selection {#sec-endogenous-sample-selection}
 
-Endogenous sample selection arises in **observational** or **non-experimental** research whenever the inclusion of observations (or assignment to treatment) is **not random**, and the same unobservable factors influencing selection also affect the outcome of interest. This scenario leads to **biased and inconsistent** estimates of causal parameters (e.g., [Average Treatment Effect]) if not properly addressed.
+Endogenous sample selection arises in **observational** or **non-experimental** research whenever the inclusion of observations (or assignment to treatment) is **not random**, and the same unobservable factors influencing selection also affect the outcome of interest. This scenario leads to **biased and inconsistent** estimates of causal parameters (e.g., [Average Treatment Effect](#sec-notation-quasi-experimental)) if not properly addressed.
 
 This problem was first formalized in the econometric literature by @heckman1974shadow, @heckman1976common, and @heckman1979sample, whose work addressed the issue in the context of labor force participation among women. Later, @amemiya1984tobit generalize the method. Now, it has since been applied widely across social sciences, epidemiology, marketing, and finance.
 
@@ -1420,9 +1425,9 @@ Because $w_i = 1$ exactly when $w_i^* > 0$, this event occurs if $u_i \ge -z_i' 
 $$
 \begin{aligned} 
 P(w_i = 1) 
-&= P\bigl(u_i \ge -z_i' \gamma\bigr),\\ 
-&= 1 - \Phi\bigl(-z_i'\gamma\bigr), \\ 
-&= \Phi\bigl(z_i'\gamma\bigr),
+&= P(u_i \ge -z_i' \gamma),\\ 
+&= 1 - \Phi(-z_i'\gamma), \\ 
+&= \Phi(z_i'\gamma),
 \end{aligned}
 $$
 
@@ -1482,18 +1487,18 @@ In this figure, the gray‐shaded area represents $u_i > -z_i'\gamma$. Observati
 A core insight of the Heckman model is the conditional expectation of $y_i$ given $w_i=1$:
 
 $$
-E\bigl(y_i \mid w_i = 1\bigr)
+E(y_i \mid w_i = 1)
 =
-E\bigl(y_i \mid w_i^*>0\bigr)
+E(y_i \mid w_i^*>0)
 =
-E\bigl(x_i'\beta + \varepsilon_i \mid u_i > -z_i'\gamma\bigr).
+E(x_i'\beta + \varepsilon_i \mid u_i > -z_i'\gamma).
 $$
 
 Since $x_i'\beta$ is nonrandom (conditional on $x_i$), we get
 
 $$
-E\bigl(y_i \mid w_i=1\bigr)
-= x_i'\beta + E\bigl(\varepsilon_i \mid u_i > -z_i'\gamma\bigr).
+E(y_i \mid w_i=1)
+= x_i'\beta + E(\varepsilon_i \mid u_i > -z_i'\gamma).
 $$
 
 From bivariate normal properties:
@@ -1505,10 +1510,10 @@ $$
 Thus,
 
 $$
-E\bigl(\varepsilon_i \mid u_i > -z_i'\gamma\bigr)
+E(\varepsilon_i \mid u_i > -z_i'\gamma)
 =
 \rho\sigma_{\varepsilon}
-E\bigl(u_i \mid u_i > -z_i'\gamma\bigr).
+E(u_i \mid u_i > -z_i'\gamma).
 $$
 
 If $U\sim N(0,1)$, then
@@ -1520,7 +1525,7 @@ E(U \mid U>a)
 $$ where $\phi$ is the standard normal pdf, $\Phi$ is the cdf. By symmetry, $\phi(-a)=\phi(a)$ and $\Phi(-a)=1-\Phi(a)$. Letting $a = -z_i'\gamma$ yields
 
 $$
-E\bigl(U \mid U > -z_i'\gamma\bigr) 
+E(U \mid U > -z_i'\gamma) 
 = \frac{\phi(-z_i'\gamma)}{1-\Phi(-z_i'\gamma)}
 = \frac{\phi(z_i'\gamma)}{\Phi(z_i'\gamma)}.
 $$
@@ -1535,17 +1540,17 @@ $$
 Hence,
 
 $$
-E\bigl(\varepsilon_i \mid u_i > -z_i'\gamma\bigr)
-= \rho\sigma_{\varepsilon}\lambda\bigl(z_i'\gamma\bigr),
+E(\varepsilon_i \mid u_i > -z_i'\gamma)
+= \rho\sigma_{\varepsilon}\lambda(z_i'\gamma),
 $$ and therefore
 
 $$
 \boxed{
-E\bigl(y_i \mid w_i=1\bigr)
+E(y_i \mid w_i=1)
 = x_i'\beta 
 +
 \rho\sigma_{\varepsilon}
-\frac{\phi\bigl(z_i'\gamma\bigr)}{\Phi\bigl(z_i'\gamma\bigr)}.
+\frac{\phi(z_i'\gamma)}{\Phi(z_i'\gamma)}.
 }
 $$
 
@@ -1725,13 +1730,19 @@ You can compare the coefficient estimates on `x` from `heck2` vs. `heckFIML`. In
 
 #### CF and IV Approaches
 
+When the joint-normality assumption underlying [Heckman's two-step procedure](#sec-heckman-type-control-function) is uncomfortable, researchers often turn to two closely related strategies that exploit the same identifying variation but ask less of the error distribution. Both rely on an exclusion restriction, a variable that shifts selection or treatment without entering the outcome equation directly.
+
 1.  **Control Function**
+
+The [control-function approach](#sec-control-function-approach) reframes endogeneity as an omitted-variable problem and then plugs the omitted piece back in: it estimates a first-stage residual that captures the unobserved component driving selection, and includes that residual as an extra regressor in the outcome equation.
 
 -   Residual-based approach: Regress the selection (or treatment) variable on excluded instruments and included controls. Obtain the predicted residual. Include that residual in the main outcome regression.
 -   If correlated residual is significant, that indicates endogeneity; adjusting for it can correct bias.
 -   Often used in the context of treatment effect models or simultaneously with IV logic.
 
 2.  [Instrumental Variables](#sec-instrumental-variables)
+
+The IV strategy is more familiar from the broader endogeneity toolkit: rather than absorbing the unobserved component, it isolates the slice of variation that is orthogonal to it.
 
 -   In the pure treatment effect context, an IV must affect treatment assignment but not the outcome directly.
 -   For sample selection, an exclusion restriction ("instrument") must shift selection but not outcomes.
@@ -1789,12 +1800,16 @@ Table: (\#tab:endog-selection-methods) Methods for handling endogenous sample se
 
 #### Concerns
 
+The selection-correction machinery is powerful, but every assumption it leans on becomes a potential point of failure in applied work. The concerns below are not abstract worries: each one has been documented to materially change conclusions in published applications, and together they explain why selection-correction estimates are often reported alongside, rather than in place of, naive OLS results. They split into roughly two camps: problems with the *data* (small samples, weak exclusion restrictions) and problems with the *model* (distributional assumptions, generated regressors, choice of estimator).
+
 1.  **Small Samples**: Two-step procedures can be unstable in smaller datasets.
 2.  **Exclusion Restrictions**: Without a credible variable that predicts selection but not outcomes, identification depends purely on functional form (bivariate normal + nonlinearity of probit).
 3.  **Distributional Assumption**: If normality is seriously violated, neither 2-step nor FIML may reliably remove bias.
 4.  **Measurement Error in IMR**: The second-stage includes an *estimated* regressor $\hat{\lambda}_i$, which can add noise.
-5.  **Connection to IV**: If a strong instrument exists, one could proceed with a control function or standard IV in a treatment effect setup. But for sample selection (lack of data on unselected), the Heckman approach is more common.
-6.  **Presence of Correlation between the Error Terms**: The Heckman treatment effect model outperforms OLS when $\rho \neq 0$ because it corrects for selection bias due to unobserved factors. However, when $\rho = 0$, the correction is unnecessary and can introduce inefficiency, making simpler methods more accurate.
+5.  **Connection to IV**: If a strong instrument exists, one could proceed with a [control function](#sec-control-function-approach) or standard [IV](#sec-instrumental-variables) in a treatment effect setup. But for sample selection (lack of data on unselected), the Heckman approach is more common.
+6.  **Presence of Correlation between the Error Terms**: The [Heckman treatment effect model](#sec-heckman-type-control-function) outperforms OLS when $\rho \neq 0$ because it corrects for selection bias due to unobserved factors. However, when $\rho = 0$, the correction is unnecessary and can introduce inefficiency, making simpler methods more accurate.
+
+Taken together, these caveats argue for treating selection-correction estimates as one input into a robustness exercise rather than as a definitive answer. When the corrected and uncorrected estimates agree, the case is strong; when they diverge dramatically and the exclusion restriction is thin, neither point estimate should be trusted on its own.
 
 ------------------------------------------------------------------------
 

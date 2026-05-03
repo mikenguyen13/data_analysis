@@ -1,8 +1,10 @@
 ### Panel Match DiD Estimator with In-and-Out Treatment Conditions {#sec-panel-match-did-estimator-with-in-and-out-treatment-conditions}
 
-As noted in @imai2021use, the [TWFE](#sec-two-way-fixed-effects) regression model is widely used but fundamentally relies on strong modeling assumptions, particularly **linearity** and **additivity**. It does not constitute a fully nonparametric estimation method and may yield biased results under model misspecification.
+The Panel Match estimator is the natural choice when treatment is genuinely a switch rather than an absorbing event: countries democratize and then revert, firms adopt and later abandon a marketing channel, regulators turn a policy on and then off. Estimators built for [staggered adoption](#sec-staggered-difference-in-differences), such as the cohort approach in Section \@ref(sec-cohort-average-treatment-effects-sun2021estimating) and the group-time framework in Section \@ref(sec-group-time-average-treatment-effects-callaway2021difference), assume treatment is monotone (once on, always on), an assumption that quietly fails in many political-economy and managerial panels. Panel Match relaxes monotonicity, accommodates carryover, and replaces functional-form discipline with explicit matching on treatment history. The cost, as we will see, is statistical efficiency and analyst effort: matched sets shrink quickly as the lag window grows, so every assumption relaxed has to be paid for in variance.
 
-Researchers often prefer [TWFE](http://127.0.0.1:27683/#0) due to its ability to control for both unit- and time-specific unobserved confounders:
+As noted in @imai2021use, the [TWFE](#sec-two-way-fixed-effects) regression model is widely used but fundamentally relies on strong modeling assumptions, particularly **linearity** and **additivity**. It does not constitute a fully nonparametric estimation method and may yield biased results under model misspecification. Section \@ref(sec-modern-concerns-in-did) catalogues the failure modes that motivate a [design-based](#sec-design-based) alternative.
+
+Researchers often prefer [TWFE](#sec-two-way-fixed-effects) due to its ability to control for both unit- and time-specific unobserved confounders:
 
 -   $\alpha_i = h(\mathbf{U}_i)$ accounts for unit-level confounders.
 -   $\gamma_t = f(\mathbf{V}_t)$ adjusts for time-level confounders.
@@ -19,9 +21,9 @@ for $i = 1, \dots, N$, and $t = 1, \dots, T$. However, this formulation requires
 
 #### Matching and the Panel Match DiD Estimator
 
-To mitigate model dependence and improve causal inference validity, @imai2021use propose a matching-based framework for panel data. This method is implemented via the `wfe` and `PanelMatch` R packages and offers **design-based identification** under relaxed assumptions.
+To mitigate model dependence and improve causal inference validity, @imai2021use propose a matching-based framework for panel data. This method is implemented via the `wfe` and `PanelMatch` R packages and offers **design-based identification** (Section \@ref(sec-design-based)) under relaxed assumptions. Conceptually, Panel Match takes the logic of cross-sectional [matching](#sec-matching-methods) and lifts it into time, treating each treated unit-period as a small case study with its own bespoke control group.
 
-This setting generalizes [staggered adoption](#sec-staggered-difference-in-differences), allowing units to transition in and out of treatment. The core idea is to construct matched control groups that share the same **treatment history** as treated units and then apply a [Difference-in-Differences](#sec-simple-difference-in-differences) logic. This is better than [synthetic controls]((#sec-synthetic-control)) (e.g., @xu2017generalized) because it requires less data to achieve good performance and can adapt to contexts where units switch treatment status multiple times.
+This setting generalizes [staggered adoption](#sec-staggered-difference-in-differences), allowing units to transition in and out of treatment. The core idea is to construct matched control groups that share the same **treatment history** as treated units and then apply a [Difference-in-Differences](#sec-simple-difference-in-differences) logic. This is better than [synthetic controls](#sec-synthetic-control) (e.g., @xu2017generalized) because it requires less data to achieve good performance and can adapt to contexts where units switch treatment status multiple times. Compared with the [synthetic DiD](#sec-synthetic-difference-in-differences) and [matrix completion](#sec-matrix-completion-estimator) approaches, Panel Match trades a global low-rank model of the outcome for local matched comparisons, an attractive bargain when the analyst trusts treatment-history matching but is uncomfortable specifying a factor structure.
 
 **Key Properties** of PM-DiD [@imai2021matching]
 
@@ -47,9 +49,13 @@ This setting generalizes [staggered adoption](#sec-staggered-difference-in-diffe
 
 The method is well suited to long-running political-economy panels in which units repeatedly enter and exit treatment regimes. @scheve2012democracy's study of democratization and its effect on top-income taxation, and @acemoglu2019democracy's panel analysis of democracy and economic growth, are two influential examples of exactly this structure: a binary treatment switching on and off across countries over a long horizon, with a research question that demands a credible counterfactual for each treated country at each treated moment.
 
+In choosing among modern estimators surveyed in Section \@ref(sec-modern-estimators-for-staggered-adoption), the practical question is rarely "which is correct?" but rather "which assumptions are tolerable in this dataset?" Panel Match dominates the alternatives when several conditions co-occur: the treatment switches on and off, the analyst suspects nonlinear or nonadditive confounding, and the panel is long enough that requiring identical histories over $L$ lags still leaves a workable matched set. When treatment is monotone and cohorts are well populated, the [Callaway and Sant'Anna group-time estimator](#sec-group-time-average-treatment-effects-callaway2021difference) or [Sun and Abraham cohort estimator](#sec-cohort-average-treatment-effects-sun2021estimating) typically deliver tighter inference. When matching across unit-time pairs is too thin to support a credible matched set, [counterfactual estimators](#sec-counterfactual-estimators) such as the matrix completion approach in Section \@ref(sec-matrix-completion-estimator) borrow strength from the full control panel and may be preferable. In short, Panel Match is the right tool for treatment patterns that other estimators were not built to accommodate, but the price is paid in efficiency and in a heavier diagnostic burden.
+
 ------------------------------------------------------------------------
 
 #### Two-Way Matching Interpretation of TWFE
+
+Before introducing Panel Match's matched sets, it helps to see exactly what TWFE is already doing under the hood. Reframing TWFE as an implicit matching estimator clarifies both why it works in textbook two-period settings and why it goes off the rails in the staggered, switching designs that motivate Panel Match. The Goodman-Bacon decomposition (Section \@ref(sec-goodman-bacon-decomposition)) tells the same story in the language of weighted DiD comparisons.
 
 The least squares estimate of $\beta$ in the TWFE model can be re-expressed as a **matching estimator** that compares each treated unit to observations within:
 
@@ -66,11 +72,13 @@ In the simple two-period, two-group DiD setting, the [TWFE](#sec-two-way-fixed-e
 -   The **unweighted TWFE** is not equivalent to multi-period DiD.
 -   The [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) is equivalent to a **weighted TWFE**, but some weights are **negative**, which is a problematic feature from a design-based perspective.
 
-This means that justifying TWFE via DiD logic is incorrect unless the linearity assumption is satisfied.
+This means that justifying TWFE via DiD logic is incorrect unless the linearity assumption is satisfied. The same warning surfaces in the broader literature on negative weighting: see the [switching DiD](#sec-switching-difference-in-differences-estimator-de2020two) discussion and the [reshaped IPW](#sec-reshaped-inverse-probability-weighting-twfe-estimator) construction below.
 
 ------------------------------------------------------------------------
 
 #### Estimation Using Panel Match DiD
+
+The estimation procedure can be read as a sequence of four conceptual moves. First, restrict attention to units whose recent past resembles the treated unit, so that any remaining outcome difference cannot plausibly be attributed to an earlier treatment. Second, refine within that history-matched pool using the standard cross-sectional matching toolkit so that observable covariates also balance. Third, run the simplest possible DiD on the resulting pair to read off the post-treatment effect. Fourth, audit the construction by examining whether covariates are in fact balanced after refinement. Each step echoes a familiar move from the matching literature, but the discipline of also matching on treatment history is what carries the design through staggered onset and treatment reversal.
 
 **Core Estimation Steps** [@imai2021matching]:
 
@@ -97,15 +105,17 @@ The estimator also allows for estimation of the **Average Reversal Treatment Eff
 
 #### Model Assumptions
 
--   **No spillover effects** across units (i.e., SUTVA holds)
+The assumption ledger looks lighter than TWFE's, but each item carries a practical cost:
 
--   **Carryover effects** allowed up to $L$ periods.
+-   **No spillover effects** across units (i.e., [SUTVA](#sec-sutva) holds). When the units of analysis are countries or large markets, this assumption is rarely innocuous and has to be defended substantively.
 
--   After $L$ lags, prior treatments are assumed to have no effect on $Y_{i,t+F}$.
+-   **Carryover effects** allowed up to $L$ periods. The analyst must specify how long the past of treatment is allowed to matter; this transfers a modeling decision into a window choice.
 
--   The potential outcome at $t + F$ is independent of treatment assignments beyond $t - L$.
+-   After $L$ lags, prior treatments are assumed to have no effect on $Y_{i,t+F}$. Persistent treatment dynamics that exceed the chosen window are forced to live inside the residual.
 
--   The key identifying assumption is a conditional parallel trends assumption. Outcome trends are assumed parallel across treated and matched control units, conditional on:
+-   The potential outcome at $t + F$ is independent of treatment assignments beyond $t - L$. This is the formal restriction that lets the analyst stop at $L$.
+
+-   The key identifying assumption is a conditional [parallel trends](#sec-difference-in-differences) assumption. Outcome trends are assumed parallel across treated and matched control units, conditional on:
 
     -   Past treatment,
 
@@ -113,17 +123,21 @@ The estimator also allows for estimation of the **Average Reversal Treatment Eff
 
     -   Lagged outcomes (excluding the most recent).
 
-    Unlike standard [TWFE](#sec-simple-difference-in-differences), strong ignorability is not required.
+    Unlike standard [TWFE](#sec-simple-difference-in-differences), strong ignorability (Section \@ref(sec-conditional-ignorability-assumption)) is not required, and the [overlap](#sec-overlap-positivity-assumption) requirement is satisfied automatically by the matched-set construction whenever a match exists.
+
+The cost of trading parametric structure for matching is straightforward but easily underestimated. Each additional lag in $L$ multiplies the number of distinct treatment histories that must be matched exactly, so matched sets shrink geometrically with the lag window. In the empirical illustrations below, a four-year history requirement already eliminates a sizeable share of treated observations from the analysis. Carryover and parallel-trends violations beyond the chosen $L$ are absorbed silently into the estimator. In return, the analyst is freed from the linearity and additivity assumptions that drive [TWFE](#sec-two-way-fixed-effects) bias under heterogeneous effects.
 
 ------------------------------------------------------------------------
 
 #### Covariate Balance Assessment
 
+Balance diagnostics earn their keep here in a way they do not in cross-sectional matching, because they are the principal evidence that the conditional parallel-trends assumption is plausible. Where regression-based DiD asks the reader to trust the parametric model, Panel Match exposes the comparison directly. The diagnostics are therefore not a final cosmetic check but a first-class identification argument.
+
 Assessing balance before estimating ATT is critical:
 
 -   Compute the mean standardized difference between treated and matched control units.
 -   Check balance across covariates and lagged outcomes for all $L$ pretreatment periods.
--   Imbalanced covariates may indicate violations of the parallel trends assumption.
+-   Imbalanced covariates may indicate violations of the parallel trends assumption; the same diagnostic logic underpins the [placebo tests](#sec-placebo-test-did) and the broader [robustness checks](#sec-robustness-checks-quasi-exp) used in [quasi-experimental](#sec-quasi-experimental) work.
 
 ------------------------------------------------------------------------
 
@@ -158,6 +172,8 @@ DisplayTreatment(
 
 ##### Setting Parameters $F$ and $L$
 
+The two tuning parameters $F$ and $L$ encode the substantive question. $F$ asks how far after treatment the analyst wants to look, which is a question about post-treatment dynamics. $L$ asks how much of the past should be allowed to differ between treated and control units before the comparison becomes uninterpretable, which is a question about pretreatment confounding. In practice analysts try several pairs and report results under each, the same sensitivity philosophy used elsewhere in the [robustness checks](#sec-robustness-checks-quasi-exp) literature.
+
 1.  **Select** $F$: the number of leads, or time periods after treatment, for which the effect is measured.
 
 -   $F = 0$: contemporaneous (short-term) treatment effect.
@@ -184,9 +200,11 @@ $$
 
 -   It is also robust to treatment reversals (i.e., treatment switching back to control).
 
-A related estimand, the **Average Reversal Treatment Effect (ART)**, measures the causal effect of switching from treatment to control.
+A related estimand, the **Average Reversal Treatment Effect (ART)**, measures the causal effect of switching from treatment to control. The ART has no clean analogue in monotone-adoption frameworks, and its availability is one of the practical reasons to choose Panel Match over the [cohort](#sec-cohort-average-treatment-effects-sun2021estimating) and [group-time](#sec-group-time-average-treatment-effects-callaway2021difference) estimators when policy reversals are themselves of interest.
 
 ##### Choosing $F$ and $L$
+
+Choosing $F$ and $L$ is an instance of the bias-variance tradeoff in its most concrete form. A larger $L$ buys identification by ruling out more confounding from past treatment, at the price of fewer matched controls and so wider standard errors. A larger $F$ pushes the analysis toward long-run effects, where treatment may be more meaningful but the matched control may itself have switched status by the time the outcome is measured. Sensitivity to both choices should be reported.
 
 -   **Large** $L$:
 
@@ -205,6 +223,8 @@ Researchers should select $F$ and $L$ based on substantive context, theoretical 
 ------------------------------------------------------------------------
 
 ##### Constructing and Refining Matched Sets
+
+Matched-set construction proceeds in two stages, and the distinction is conceptually important. The first stage does the heavy lifting required by the panel structure: it forces every control to share the treated unit's recent treatment history, which is what neutralizes carryover bias. The second stage applies the cross-sectional [matching](#sec-matching-methods) toolkit to refine within that pool. If only one of these stages were performed, the estimator would lose either its design-based identification or its efficiency, and Panel Match's comparative advantage would evaporate.
 
 1.  **Initial Matching**
 
@@ -242,7 +262,7 @@ Purpose
 
 ##### Difference-in-Differences Estimation
 
-Once matched sets are constructed:
+Once matched sets are constructed, the rest of the estimator is the simple two-period [DiD](#sec-simple-difference-in-differences) applied separately to each treated unit-period and then averaged. The aggregation step echoes the logic of the [Callaway and Sant'Anna group-time framework](#sec-group-time-average-treatment-effects-callaway2021difference), with the difference that here each "group" is a single matched set rather than a treatment cohort.
 
 -   The counterfactual for each treated unit is a weighted average of outcomes from its matched control set.
 
@@ -287,6 +307,8 @@ Balance checks provide indirect validation of the [parallel trends assumption](#
 ------------------------------------------------------------------------
 
 ##### Standard Error Estimation
+
+The standard errors quoted by `PanelMatch` should be read with care. They quantify sampling uncertainty conditional on the matched design, in the same spirit as conditional variance in a regression model. They do not propagate uncertainty about which controls were chosen, so reported intervals are best treated as a lower bound on true uncertainty when matching pools are thin.
 
 -   Analogous to the conditional variance seen in regression models.
 
@@ -1494,6 +1516,8 @@ knitr::include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 
 ### Counterfactual Estimators {#sec-counterfactual-estimators}
 
+Where Panel Match (Section \@ref(sec-panel-match-did-estimator-with-in-and-out-treatment-conditions)) attacks model dependence by replacing the regression with local matched comparisons, counterfactual estimators take the opposite philosophical route: they keep an explicit outcome model but fit it only on control observations, then use it to impute the missing treated counterfactual. The two strategies are complements rather than substitutes. Counterfactual estimators dominate when the analyst is willing to model $Y(0)$ but unwilling to extrapolate from treated units; Panel Match dominates when even the $Y(0)$ model feels suspect and exact treatment-history matches are available.
+
 Counterfactual (or **imputation**) estimators treat the *treated* outcome as missing and **impute** it using information from the control units [@liu2024practical]. Formally, let
 
 $$Y_{it}(1) \text{ and } Y_{it}(0)$$
@@ -1542,7 +1566,7 @@ using **only** control units when fitting $(\hat{\alpha}_i,\hat{\gamma}_t)$. The
 $$
 \widehat{\tau}_{FEct}
   = \frac{1}{| \mathcal{T} |}\sum_{(i,t)\in\mathcal T}
-    \bigl\{Y_{it}(1)-\widehat{Y}_{it}(0)\bigr\},
+    \{Y_{it}(1)-\widehat{Y}_{it}(0)\},
 $$
 
 where $\mathcal T$ indexes treated unit--time pairs. FEct fixes the improper weighting of [TWFE](#sec-two-way-fixed-effects) by comparing within each matched pair (where each pair is the treated observation and its predicted counterfactual that is the weighted sum of all untreated observations).
@@ -1560,7 +1584,7 @@ $$
 
 estimated via iterative principal components [@gobillon2016regional, @xu2017generalized]. When we suspect unobserved time-varying confounder, FEct fails. Instead, IFEct uses the factor-augmented models to relax the strict exogeneity assumption where the effects of unobservables can be decomposed to unit FE + time FE + unit x time FE.
 
-Setting $R=0$ recovers FEct. **Generalized Synthetic Control** (GSC) [@xu2017generalized] is an IFEct implementation with ridge penalization when $R>0$ (This estimator assumes treatments dont' revert).
+Setting $R=0$ recovers FEct. **Generalized Synthetic Control** (GSC) [@xu2017generalized] is an IFEct implementation with ridge penalization when $R>0$ (This estimator assumes treatments don't revert).
 
 ------------------------------------------------------------------------
 
@@ -1583,7 +1607,7 @@ SC is best viewed as a *case-study* tool (single or few treated units, single tr
 **Identifying Assumptions**:
 
 1.  **Function Form**: Additive separability of observables, unobservables, and idiosyncratic error term.
-    -   Hence, these models are scale dependent [@athey2006identification] (e.g., log-transform outcome can invadiate this assumption).
+    -   Hence, these models are scale dependent [@athey2006identification] (e.g., log-transform outcome can invalidate this assumption).
 2.  **Strict Exogeneity**: Conditional on observables and unobservables, potential outcomes are independent of treatment assignment (i.e., baseline quasi-randomization)
     -   In DiD, where unobservables = unit + time FEs, this assumption is the parallel trends assumption
 3.  **Low-dimensional Decomposition (Feasibility Assumption)**: Unobservable effects can be decomposed in low-dimension.
@@ -1606,7 +1630,7 @@ Notes:
 
 Other imputation estimators include
 
--   [Two-stage DiD Estimator] [@gardner2022two; @borusyak2021revisiting]
+-   [Two-stage DiD Estimator] [@gardner2022two; @borusyak2024revisiting]
 
 -   [@brown2023simple]
 
@@ -1696,7 +1720,7 @@ We have evidence of carryover effects.
 
 ### Matrix Completion Estimator {#sec-matrix-completion-estimator}
 
-Matrix completion methods have become increasingly influential in causal inference for panel data, particularly when estimating [average treatment effects](#sec-average-treatment-effect) in business settings such as marketing experiments, customer behavior modeling, and pricing interventions. These settings often feature [staggered adoption](#sec-staggered-difference-in-differences)of treatments across units and time, leading to **structured missing data**. @athey2021matrix develop a matrix completion framework that subsumes methods based on **unconfoundedness** and [**synthetic controls**](#sec-synthetic-control), by leveraging the low-rank structure of potential outcomes matrices.
+Matrix completion methods have become increasingly influential in causal inference for panel data, particularly when estimating [average treatment effects](#sec-average-treatment-effect) in business settings such as marketing experiments, customer behavior modeling, and pricing interventions. These settings often feature [staggered adoption](#sec-staggered-difference-in-differences) of treatments across units and time, leading to **structured missing data**. @athey2021matrix develop a matrix completion framework that subsumes methods based on **unconfoundedness** and [**synthetic controls**](#sec-synthetic-control), by leveraging the low-rank structure of potential outcomes matrices.
 
 An important empirical context is consumer choice data in marketing, where missing outcomes can arise due to **intermittent treatment**, e.g., promotional campaigns delivered at varying times across different stores or consumer segments. One illustrative application is provided by @bronnenberg2020consumer, who investigates **consumer response to targeted marketing campaigns** using panel data that naturally contains missing counterfactual outcomes for treated units.
 
@@ -1951,7 +1975,7 @@ Setting and Notation
 -   **Treatment assignment path** for unit $i$:
 
     $$
-    \mathbf{W}_i = (W_{i1}, \dots, W_{iT}) \in \{0,1\}^T
+    \mathbf{W}_i = (W_{i1}, \dots, W_{iT}) \in {0,1}^T
     $$
 
 -   **Generalized Propensity Score (GPS)**: For unit $i$, the probability distribution over treatment paths:
@@ -1966,7 +1990,7 @@ Setting and Notation
 
 **Assumptions**
 
-1.  **Binary Treatment**: $W_{it} \in \{0,1\}$ for all $i$ and $t$.
+1.  **Binary Treatment**: $W_{it} \in {0,1}$ for all $i$ and $t$.
 
 2.  **No Dynamic Effects**: Current outcomes depend only on current treatment, not past treatments.
 
@@ -2182,7 +2206,7 @@ This feature is particularly valuable in [quasi-experimental designs](#sec-quasi
 
 [TWFE](#sec-two-way-fixed-effects) hinges on restrictive assumptions (e.g., the homogeneity of treatment effects across time and groups). When this assumption is violated, TWFE can yield misleading results, including estimates with signs opposite to all underlying effects.
 
-We consider a standard panel data setup with $G$ groups and $T$ time periods. Each observation belongs to a group-period cell $(g, t)$, and treatment $D_{g,t} \in \{0,1\}$ is assigned at the group-time level.
+We consider a standard panel data setup with $G$ groups and $T$ time periods. Each observation belongs to a group-period cell $(g, t)$, and treatment $D_{g,t} \in {0,1}$ is assigned at the group-time level.
 
 Let $Y_{i,g,t}$ be the outcome of individual $i$ in group $g$ at time $t$, with potential outcomes $Y_{i,g,t}(1)$ and $Y_{i,g,t}(0)$. Observed outcomes satisfy:
 
@@ -2380,7 +2404,7 @@ Under suitable conditions, the proposed doubly robust estimators not only exhibi
 
 -   **Two-time-period design.** We consider a setting with two time periods: $t = 0$ (pre-treatment) and $t = 1$ (post-treatment). A subset of units receives the treatment only at $t = 1$. Hence for a unit $i$:
 
-    -   $D_i = D_{i1} \in \{0, 1\}$ is an indicator for receiving treatment by time 1 (so $D_{i0} = 0$ for all $i$).
+    -   $D_i = D_{i1} \in {0, 1}$ is an indicator for receiving treatment by time 1 (so $D_{i0} = 0$ for all $i$).
     -   $Y_{it}$ is the observed outcome at time $t$.
 
 -   **Potential outcomes.** We adopt the potential outcomes framework. Let $$
@@ -2394,12 +2418,12 @@ Under suitable conditions, the proposed doubly robust estimators not only exhibi
 -   **Data structures.**
 
     1.  **Panel data.** We observe $\{(Y_{i0}, Y_{i1}, D_i, X_i)\}_{i=1}^n$, a sample of size $n$ drawn i.i.d. from an underlying population.
-    2.  **Repeated cross-sections.** In period $t$, we observe a fresh random sample of units. Let $T_i\in \{0,1\}$ be an indicator for whether an observation is drawn in the post-treatment period $(T_i=1)$ or the pre-treatment period $(T_i=0)$. Write $\{(Y_i, D_i, X_i, T_i)\}_{i=1}^n$. Here, if $T_i=1$, then $Y_i \equiv Y_{i1}$; if $T_i=0$, then $Y_i \equiv Y_{i0}$. We typically assume a stationarity condition, namely that the distribution of $(D, X)$ is stable across the two periods.
+    2.  **Repeated cross-sections.** In period $t$, we observe a fresh random sample of units. Let $T_i\in {0,1}$ be an indicator for whether an observation is drawn in the post-treatment period $(T_i=1)$ or the pre-treatment period $(T_i=0)$. Write $\{(Y_i, D_i, X_i, T_i)\}_{i=1}^n$. Here, if $T_i=1$, then $Y_i \equiv Y_{i1}$; if $T_i=0$, then $Y_i \equiv Y_{i0}$. We typically assume a stationarity condition, namely that the distribution of $(D, X)$ is stable across the two periods.
 
 Let $n_1$ and $n_0$ be the respective sample sizes for the post- and pre-treatment periods, so $n_1 + n_0 = n$. Often we let $\lambda = P(T=1)\approx n_1/n.$
 
 The focus is on the ATT: $$
-    \tau = \mathbb{E}\bigl[Y_{i1}(1) - Y_{i1}(0)\big| D_i=1\bigr].
+    \tau = \mathbb{E}[Y_{i1}(1) - Y_{i1}(0)\big| D_i=1].
 $$ Because we only observe $Y_{i1}(1)$ for the treated group, the central challenge is to recover $\mathbb{E}[Y_{i1}(0)\mid D_i=1]$. Under standard DID assumptions, we identify $\tau$ by comparing the treated group's evolution in outcomes to the comparison group's evolution in outcomes.
 
 We require two key assumptions:
@@ -2516,7 +2540,7 @@ where
 $$
    w_{1}^{\mathrm{p}}(D)=\frac{D}{\mathbb{E}[D]},
    \quad\quad
-   w_{0}^{\mathrm{p}}(D,X;\pi)=\frac{\pi(X)(1-D)}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)}{1-\pi(X)}\bigr]}.
+   w_{0}^{\mathrm{p}}(D,X;\pi)=\frac{\pi(X)(1-D)}{(1-\pi(X))\mathbb{E}[\tfrac{\pi(X)(1-D)}{1-\pi(X)}]}.
 $$
 
 It can be shown that $\tau^{\mathrm{dr,p}} = \tau$ provided *either* $\pi(x)=p(x)$ almost surely (a.s.) *or* $\mu_{0,\Delta}(x)=m_{0,\Delta}(x)$ a.s. (the latter meaning that at least the regression for the comparison group is correct).
@@ -2530,17 +2554,17 @@ When we only have repeated cross-sections, the DR construction must account for 
     $$ where $$
       w_{1}^{\mathrm{rc}}(D,T)
       =
-      \frac{D1\{T=1\}}
-           {\mathbb{E}[D1\{T=1\}]}
+      \frac{D1{T=1}}
+           {\mathbb{E}[D1{T=1}]}
       -
-      \frac{D1\{T=0\}}
-           {\mathbb{E}[D1\{T=0\}]},
+      \frac{D1{T=0}}
+           {\mathbb{E}[D1{T=0}]},
     $$ and $$
       w_{0}^{\mathrm{rc}}(D,T,X;\pi)
       =
-      \frac{\pi(X)(1-D)1\{T=1\}}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)1\{T=1\}}{(1-\pi(X))}\bigr]}
+      \frac{\pi(X)(1-D)1{T=1}}{(1-\pi(X))\mathbb{E}[\tfrac{\pi(X)(1-D)1{T=1}}{(1-\pi(X))}]}
       -
-      \frac{\pi(X)(1-D)1\{T=0\}}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)1\{T=0\}}{(1-\pi(X))}\bigr]},
+      \frac{\pi(X)(1-D)1{T=0}}{(1-\pi(X))\mathbb{E}[\tfrac{\pi(X)(1-D)1{T=0}}{(1-\pi(X))}]},
     $$ and $\mu_{0,Y}(T,X)=T\cdot\mu_{0,1}(X)+(1-T)\cdot\mu_{0,0}(X)$.
 
 2.  $$
@@ -2577,7 +2601,7 @@ $$
 where $\Delta Y = Y_1 - Y_0$ and $m_{d,\Delta}(X) \equiv m_{d,1}(X) - m_{d,0}(X)$.
 
 The associated **semiparametric efficiency bound** is $$
-   \mathbb{E}\bigl[\eta^{e,\mathrm{p}}(Y_1,Y_0,D,X)^2\bigr].
+   \mathbb{E}[\eta^{e,\mathrm{p}}(Y_1,Y_0,D,X)^2].
 $$ It can be shown that a DR DID estimator can *attain* this bound if (1) the propensity score is correctly modeled, and (2) the comparison-group outcome regressions are correctly modeled.
 
 2.  **Efficient influence function for repeated cross-sections**
@@ -2592,7 +2616,7 @@ $$
 \end{aligned}
 $$
 
-with $m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)$. The resulting efficiency bound is $\mathbb{E}\bigl[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2\bigr]$.
+with $m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)$. The resulting efficiency bound is $\mathbb{E}[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2]$.
 
 One can further show that having access to *panel* data can be strictly more informative (i.e., yields a *smaller* semiparametric variance bound) than repeated cross-sections. This difference can grow if the pre- and post-treatment samples are highly unbalanced.
 
@@ -2646,9 +2670,9 @@ Assume mild regularity conditions for consistency and asymptotic normality (e.g.
 
 2.  **Asymptotic Normality.**\
     $$
-        \sqrt{n}\bigl(\hat{\tau}^{\mathrm{dr}} - \tau \bigr)
+        \sqrt{n}(\hat{\tau}^{\mathrm{dr}} - \tau )
         \xrightarrow{d}
-        N\bigl(0,\mathrm{Var}(\text{IF})\bigr),
+        N(0,\mathrm{Var}(\text{IF})),
     $$ where $\mathrm{Var}(\text{IF})$ depends on which part(s) of the nuisance models are consistently estimated. In general, one must account for the variance contribution of the first-stage estimation. But under certain special constructions (the "improved DR" approaches with inverse probability tilting and specialized weighting), the first-stage does not contribute additional variance, making inference simpler.
 
 3.  **Local Semiparametric Efficiency.**\

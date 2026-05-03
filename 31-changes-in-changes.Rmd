@@ -1,106 +1,121 @@
 # Changes-in-Changes {#sec-changes-in-changes}
 
-The Changes-in-Changes (CiC) estimator, introduced by @athey2006identification, is an alternative to the [Difference-in-Differences](#sec-difference-in-differences) strategy. While traditional DiD estimates the [Average Treatment Effect on the Treated] (ATT), CiC focuses on the **Quantile Treatment Effect on the Treated (QTT)**.
+The Changes-in-Changes (CiC) estimator, introduced by @athey2006identification, is the natural extension of [Difference-in-Differences](#sec-difference-in-differences) when the question of interest is no longer "what was the average effect of the treatment?" but "how did the treatment shift the *distribution* of outcomes?" Where standard DiD estimates the [Average Treatment Effect on the Treated](#sec-notation-quasi-experimental) (ATT), CiC estimates the **Quantile Treatment Effect on the Treated** (QTT) at each quantile $\theta$ of the outcome distribution. Two policies that move the same average can have radically different distributional effects; CiC is the estimator that lets you see the difference.
 
-Policymakers and analysts often look beyond average program impacts to understand how benefits are distributed across different subgroups. The QTT approach is particularly useful in cases where:
+The motivation is most easily appreciated by counter-example. Imagine two job-training programs that each leave the average earnings of participants unchanged. The first program raises the earnings of low-wage workers and lowers the earnings of high-wage workers. The second leaves low-wage workers unaffected and lowers everyone above the median. To a welfare analyst these are completely different policies, yet a regression of earnings on a treatment indicator returns the same number for both. Quantile-based methods like CiC restore the distributional structure that the conditional mean throws away, so that policy decisions which hinge on *who* gains and *who* loses can be made on the relevant evidence.
 
--   **Policy decisions depend on distributional effects:**
-    -   For instance, consider two job training programs with the same negative average effect.
-    -   If one program harms high-income earners while benefiting low-income earners, it might still be considered valuable, whereas a program that negatively affects low-income earners might be rejected.
--   **Limitations of traditional methods:**
-    -   Methods such as linear regression assume uniform treatment effects across the population, which may mask important distributional differences.
--   **Advantages of QTE methods:**
-    -   Quantile treatment effects (QTEs) allow for a more detailed examination of how treatment effects vary across different segments of a population.
-    -   While QTEs provide distributional insights, they can also be used to recover ATEs under weaker assumptions.
+The same point applies wherever the policy or theoretical question concerns distributional shape rather than average level. Income-support programs are evaluated for their effects at the bottom of the distribution; technology shocks are studied for their effects on inequality, not just average productivity; marketing interventions in heavy-tailed settings (a small number of high-spending customers driving most revenue) often have effects that concentrate at one end of the distribution and not in the middle. In all of these settings, methods that assume a uniform treatment effect, including standard linear regression and conventional DiD, can be silent on the very feature of the data that the analyst cares most about. Quantile treatment effects make the distributional heterogeneity visible, and under the right conditions they can also be aggregated to recover the average treatment effect, often under assumptions weaker than those required by mean-based methods.
 
-<!-- -->
+The remainder of the chapter develops CiC and its companions in detail. We begin with the underlying definitions and the assumptions that license a quantile-level interpretation, then walk through the estimator itself, contrast it with Quantile DiD (QDiD) and standard DiD, and close with applied examples and practical guidance.
 
--   **References**
-
-    -   @athey2006identification
-    -   @frolich2013unconditional: IV-based
-    -   @callaway2019quantile: panel data
-    -   @huber2022direct
-
--   **Additional Resources**
-
-    -   Code examples available in [Stata](https://sites.google.com/site/blaisemelly/home/computer-programs/cic_stata).
-
-## Key Concepts
-
--   **Quantile Treatment Effect on the Treated (QTT):**
-    -   Measures the difference in quantiles of the potential outcome distributions for treated units.
--   **Rank Preservation:**
-    -   Assumes that the rank of an individual remains unchanged across different potential outcome distributions.
-    -   This is a **strong assumption** and should be considered carefully in empirical applications.
--   **Counterfactual Distribution:**
-    -   The main estimation challenge in CiC is constructing the **counterfactual distribution** of outcomes for treated units in period 1.
-
-## Estimating QTT with CiC
-
-The estimation logic mirrors DiD's, with one twist: instead of differencing means, CiC differences entire *distributions*. The recipe maps each treated unit's pre-treatment rank in the treated distribution to the corresponding rank in the control distribution, then asks how that rank's outcome would have evolved over time, had the treatment not occurred.
-
-CiC relies on four distributions from a 2 × 2 Difference-in-Differences (DiD) setup:
-
-1.  $F_{Y(0),00}$: CDF of $Y(0)$ for control units in period 0.
-2.  $F_{Y(0),10}$: CDF of $Y(0)$ for treatment units in period 0.
-3.  $F_{Y(0),01}$: CDF of $Y(0)$ for control units in period 1.
-4.  $F_{Y(1),11}$: CDF of $Y(1)$ for treatment units in period 1.
-
-The Quantile Treatment Effect on the Treated (QTT) at quantile $\theta$ is:
-
-$$
-\Delta_\theta^{QTT} = F_{Y(1), 11}^{-1} (\theta) - F_{Y (0), 11}^{-1} (\theta)
-$$
-
-To estimate the counterfactual CDF:
-
-$$
-\hat{F}_{Y(0),11}(y) = F_{y,01}\left(F^{-1}_{y,00}\left(F_{y,10}(y)\right)\right)
-$$
-
-This leads to the estimation of the inverse counterfactual CDF:
-
-$$
-\hat{F}^{-1}_{Y(0),11}(\theta) = F^{-1}_{y,01}\left(F_{y,00}\left(F^{-1}_{y,10}(\theta)\right)\right)
-$$
-
-Finally, the treatment effect estimate is:
-
-$$
-\hat{\Delta}^{CIC}_{\theta} = F^{-1}_{Y(1),11}(\theta) - \hat{F}^{-1}_{Y(0),11}(\theta)
-$$
-
-Alternatively, CiC can be expressed as the difference between two QTE estimates:
-
-$$
-\Delta^{CIC}_{\theta} = \Delta^{QTT}_{\theta,1} - \Delta^{QTC}_{\theta',0}
-$$
-
-where:
-
--   $\Delta^{QTT}_{\theta,1}$ represents the change over time at quantile $\theta$ for the treated group ($D=1$).
--   $\Delta^{QTC}_{\theta',0}$ represents the change over time at quantile $\theta'$ for the control group ($D=0$).
-    -   The quantile $\theta'$ is selected to match the value of $y$ at quantile $\theta$ in the treated group's period 0 distribution.
+::: {.rmdnote}
+**Reading guide and reference papers.** The original development of CiC is @athey2006identification, which derives the estimator and its identifying assumptions in a cross-sectional and short-panel setting. @frolich2013unconditional extends the framework to instrumental-variable settings and is the natural companion when the underlying treatment is endogenous (see also the [Instrumental Variables](#sec-instrumental-variables) chapter). @callaway2019quantile generalizes the panel-data setup, including longer panels and time-varying covariates. @huber2022direct provides a useful synthesis and a practitioner-oriented framing. A complementary set of code examples in Stata is maintained at <https://sites.google.com/site/blaisemelly/home/computer-programs/cic_stata>.
+:::
 
 ------------------------------------------------------------------------
 
-**Marketing Example**
+## Key Concepts
 
-Suppose a company introduces a new online marketing strategy aimed at improving customer retention rates. The goal is to analyze how this strategy affects retention at different quantiles of the customer base.
+CiC reorganizes the basic DiD logic around three concepts. Each is straightforward in isolation, but the combination is what allows the estimator to recover quantile-level counterfactuals from observational data.
 
-1.  **QTT Interpretation:**
-    -   Instead of looking at the average effect of the marketing strategy, CiC allows the company to examine how retention rates change across different quantiles (e.g., low vs. high-retention customers).
-2.  **Rank Preservation Assumption:**
-    -   This approach assumes that customers' rank in the retention distribution remains unchanged, regardless of whether they received the new strategy.
-3.  **Counterfactual Distribution:**
-    -   CiC helps estimate how retention rates would have evolved without the new strategy, by comparing trends in the control group.
+The first is the **Quantile Treatment Effect on the Treated (QTT)**, the difference between the $\theta$-quantile of the treated group's potential-outcome distribution under treatment and the $\theta$-quantile of the same group's potential-outcome distribution under no treatment. Where the ATT collapses the entire distributional comparison into a single number, the QTT preserves it as a function of $\theta \in (0,1)$. The reader gets a curve, not a point estimate, and the curve answers the question "by how much did the treatment shift the $\theta$-th percentile of the outcome distribution among the treated?"
+
+The second is **rank preservation** (sometimes phrased as rank similarity), the assumption that an individual's rank in the untreated outcome distribution is stable across counterfactual states. A worker who would have been at the 70th percentile of earnings in the absence of treatment continues to be at the 70th percentile under the counterfactual we use to construct the comparison. This is a strong assumption, often defensible in short panels with relatively stable populations and harder to defend in long panels with substantial mobility across the distribution. It is the price of admission to quantile-level identification, and it should be argued in context rather than asserted from a template.
+
+The third is the **counterfactual distribution** of the treated group's untreated outcomes in the post-period. This is the central object the estimator must construct, and it is where CiC differs sharply from DiD. Where DiD constructs a counterfactual *mean* by adding the control group's pre-to-post change to the treated group's pre-period mean, CiC constructs a counterfactual entire *distribution* by mapping treated-group pre-period ranks through the control group's distributional shift. The mapping is what gives CiC its scale-invariance and what distinguishes it from QDiD.
+
+------------------------------------------------------------------------
+
+## Identification: The Structural Logic Behind CiC
+
+CiC is more than a clever rearrangement of CDFs. It is grounded in a structural model of how outcomes are produced, and the identification result follows from properties of that model. Working through the structural setup once makes the rest of the chapter much easier to read.
+
+The starting point is to write the untreated potential outcome as a function of an unobserved scalar $U_i$ (interpretable as ability, latent demand, productivity, willingness-to-pay, or any other one-dimensional summary of unobservables) and a time-specific *production function* $h_t(\cdot)$:
+
+$$
+Y_{it}(0) \;=\; h_t(U_i),
+$$
+
+where $h_t$ is strictly increasing in $U_i$ for every $t$. The strict monotonicity is what licenses thinking of $U_i$ as a rank in the outcome distribution: a unit with a higher $U_i$ has a higher untreated outcome at every period, by construction.
+
+Two assumptions complete the setup. First, the distribution of $U_i$ is constant over time within each group, so any pre-to-post change in the outcome distribution within the control group is attributable entirely to a change in the production function $h_t$, not to the population of units. Second, the support of $U_i$ in the treated group must be contained in the support of $U_i$ in the control group, so that for every value of $U$ that shows up among the treated, there is a corresponding control unit that maps the same $U$ through $h_t$ in both periods. This is the **support-containment assumption**, and it is the structural counterpart of the [overlap](#sec-overlap-positivity-assumption) condition we encountered in the foundations chapter.
+
+Under these assumptions, the counterfactual untreated CDF for the treated group in the post-period can be expressed as a composition of three observed CDFs, exactly the formula that the estimator will use. The intuition is direct: a treated post-period unit with outcome $y$ has some unobserved $U = h_{1}^{-1}(y)$. The strict monotonicity of $h_1$ means $U$ is uniquely identified by the rank of $y$ in the *treated* pre-period distribution (because the treated group's $U$-distribution is constant over time). That rank can then be carried through to the *control* pre-period distribution, where it identifies a control unit with the same $U$. Finally, that control unit's post-period outcome is observed, and it equals $h_1(U)$, which is exactly the counterfactual untreated outcome we want for the treated unit. Composing the three CDFs in the right order delivers the entire counterfactual distribution.
+
+The structural reading clarifies a few things at once. **Rank invariance** is not an arbitrary statistical assumption but a direct consequence of the monotone production-function structure. **Scale invariance** to monotone outcome transformations follows because applying $g$ to $Y$ leaves the underlying $U$ untouched and just composes with $h_t$. **Failure modes** become visible: if $h_t$ is not monotone in $U$ (because two distinct $U$ values can produce the same outcome through different channels), if the $U$-distribution shifts over time within the control group (because of compositional change), or if the support-containment assumption fails (because the treated group has $U$-values that simply do not appear among the controls), CiC is no longer point-identified, and the analyst must fall back on bounds or alternative estimators.
+
+The structural model is also what distinguishes CiC from QDiD at the level of identification. QDiD imposes a distributional parallel-trends condition that has no structural interpretation in terms of unobserved heterogeneity; it is purely a statement about the evolution of marginal CDFs. CiC instead builds the parallel-trends-like behavior into the population of units (a stable $U$-distribution) and lets the time-variation operate entirely through the production function $h_t$. The two assumptions are non-nested: each can hold while the other fails. That is why reporting both estimates and discussing their concordance or divergence is more informative than committing to one.
+
+------------------------------------------------------------------------
+
+## Estimating QTT with CiC
+
+The estimation logic mirrors that of [DiD](#sec-difference-in-differences) but with one essential twist: instead of differencing means, CiC differences entire *distributions*. The recipe maps each treated unit's pre-treatment rank in the treated distribution to the corresponding value in the control pre-period distribution, then carries that value forward through the control group's pre-to-post distributional shift to construct the counterfactual treated post-period distribution. The treatment effect at any quantile $\theta$ is then read off as the difference between the observed treated post-period quantile and this constructed counterfactual quantile.
+
+The setup uses the four distributions of a $2 \times 2$ DiD design:
+
+1.  $F_{Y(0),00}$: CDF of $Y(0)$ for control units in period $0$.
+2.  $F_{Y(0),10}$: CDF of $Y(0)$ for treatment units in period $0$.
+3.  $F_{Y(0),01}$: CDF of $Y(0)$ for control units in period $1$.
+4.  $F_{Y(1),11}$: CDF of $Y(1)$ for treatment units in period $1$.
+
+The first three are CDFs of the *untreated* potential outcome and are observed directly because the units in question were untreated at the time. The fourth is the CDF of the *treated* potential outcome, also observed directly. The challenge is that we never observe $F_{Y(0),11}$, the counterfactual untreated CDF for the treated group in the post-period, and the entire estimator is built around constructing a credible estimate of it.
+
+The Quantile Treatment Effect on the Treated (QTT) at quantile $\theta$ is the difference between the observed and counterfactual quantiles:
+
+$$
+\Delta_\theta^{QTT} \;=\; F_{Y(1),11}^{-1}(\theta) \;-\; F_{Y(0),11}^{-1}(\theta).
+$$
+
+The first term is observed; the second is the object the estimator must construct. CiC builds the counterfactual CDF by composing three observed CDFs in a way that the rank-preservation assumption justifies:
+
+$$
+\hat{F}_{Y(0),11}(y) \;=\; F_{Y,01}(F_{Y,00}^{-1}(F_{Y,10}(y))).
+$$
+
+The intuition is a three-step ladder. Start with a treated post-period value $y$ and ask what its rank would have been in the *treated pre-period* distribution; that rank is $F_{Y,10}(y)$. Carry that rank into the *control pre-period* distribution by computing the value at the same rank, $F_{Y,00}^{-1}(F_{Y,10}(y))$. Finally, ask what rank that value occupies in the *control post-period* distribution, $F_{Y,01}(F_{Y,00}^{-1}(F_{Y,10}(y)))$. Under rank invariance, this rank is also the rank that the treated unit at $y$ would have occupied in the counterfactual treated post-period distribution. The resulting CDF is the counterfactual we wanted, and it inherits its scale-invariance directly from the rank-based construction.
+
+Inverting the composition gives the counterfactual quantile function:
+
+$$
+\hat{F}_{Y(0),11}^{-1}(\theta) \;=\; F_{Y,10}^{-1}(F_{Y,00}(F_{Y,01}^{-1}(\theta))).
+$$
+
+The estimator of the QTT at quantile $\theta$ is then the difference between the observed treated quantile and this constructed counterfactual:
+
+$$
+\hat{\Delta}_\theta^{\text{CiC}} \;=\; F_{Y(1),11}^{-1}(\theta) \;-\; \hat{F}_{Y(0),11}^{-1}(\theta).
+$$
+
+There is an equivalent and sometimes more intuitive way to write this. The CiC effect at quantile $\theta$ is the difference between (i) the treated group's pre-to-post change at quantile $\theta$ and (ii) the control group's pre-to-post change at the *matched* quantile $\theta'$, where $\theta'$ is the rank in the control distribution of the value the treated group attained at quantile $\theta$ in the pre-period:
+
+$$
+\Delta_\theta^{\text{CiC}} \;=\; \Delta_{\theta,1}^{\text{QTT}} \;-\; \Delta_{\theta',0}^{\text{QTC}}.
+$$
+
+Here $\Delta_{\theta,1}^{\text{QTT}}$ is the change over time at quantile $\theta$ in the treated group ($D=1$) and $\Delta_{\theta',0}^{\text{QTC}}$ is the change over time at quantile $\theta'$ in the control group ($D=0$). The matched quantile $\theta'$ is chosen so that the *value* at quantile $\theta'$ in the control pre-period equals the value at quantile $\theta$ in the treated pre-period. The expression makes plain that CiC is a "differences-in-changes-along-distributions" estimator: at each quantile of interest, we subtract the change that the matched quantile of the comparison group experienced.
+
+------------------------------------------------------------------------
+
+**A Worked Marketing Example**
+
+Suppose a company rolls out a new online retention strategy and wants to understand its effect on customer retention rates across the customer base, not just on average. The CiC framing of this question proceeds in three steps.
+
+The QTT interpretation is the most direct payoff. Rather than producing a single "average effect on retention", CiC produces a curve of estimated effects across the retention distribution: an estimate at the 10th percentile (the customers least likely to renew), at the 50th (the median customer), and at the 90th (the most loyal customers). A retention strategy that lifts the lower tail without affecting the upper tail (because high-retention customers were already going to renew) tells a substantively different story than one with a uniform effect, even when the two have the same average impact.
+
+The rank-preservation assumption is what makes the curve interpretable. We assume that, in the absence of the new strategy, a customer who would have been at the 30th percentile of retention in the pre-period would still have been at the 30th percentile in the post-period. This is plausible when the customer base is relatively stable over the period of analysis and when retention propensity is driven by persistent characteristics rather than churning random factors. In a setting with high mobility across the retention distribution (rapid acquisition of new customers, frequent shifts in usage patterns), the assumption is harder to defend and the QTT estimates should be interpreted with corresponding caution.
+
+The counterfactual-distribution construction is the empirical machinery that delivers the result. We use the control group's pre-to-post distributional shift to estimate how the *treated* group's retention distribution would have evolved without the new strategy, then compare this counterfactual to what the treated group actually exhibited under the new strategy. The quantile-by-quantile difference is the QTT at each percentile of interest.
 
 ------------------------------------------------------------------------
 
 ## Application
 
-### ECIC package
+This section walks through the two main R packages for CiC-style estimation. The `ecic` package implements the panel-data extension of @callaway2019quantile and is the natural choice when treatment is staggered across cohorts. The `qte` package supports a broader menu of quantile-based estimators, including QTE, QTET, panel QTET under the distributional DiD assumption, partial-identification bounds, and direct CiC. We work through both because the right choice depends on the structure of the data and the assumption the analyst is willing to defend.
+
+### Estimation with the `ecic` Package
+
+The `ecic` package implements an event-study version of CiC for staggered-adoption panel data. The interface mirrors the modern DiD packages: the user supplies the dependent variable, a group (cohort) indicator, a time indicator, a unit identifier, and a bootstrap specification, and the package returns QTT estimates by event time. The example below uses the package's bundled dataset of county-level employment outcomes.
 
 ```{r}
 library(ecic)
@@ -112,8 +127,8 @@ mod =
     tvar  = year,         # time indicator
     ivar  = countyreal,   # unit ID
     dat   = dat,          # dataset
-    boot  = "weighted",   # bootstrap proceduce ("no", "normal", or "weighted")
-    nReps = 3            # number of bootstrap runs
+    boot  = "weighted",   # bootstrap procedure ("no", "normal", or "weighted")
+    nReps = 3             # number of bootstrap runs
     )
 mod_res <- summary(mod)
 mod_res
@@ -121,14 +136,21 @@ mod_res
 ecic_plot(mod_res)
 ```
 
-### QTE package
+The `boot = "weighted"` argument selects the weighted bootstrap, which is more robust than the standard normal bootstrap when the underlying distribution is heavy-tailed or asymmetric. In a real application, the number of bootstrap replications should be much larger than the `nReps = 3` used here for demonstration; common choices range from $500$ to $2{,}000$ depending on compute budget and the precision needed for inference at extreme quantiles.
+
+### Estimation with the `qte` Package
+
+The `qte` package collects a range of quantile-based estimators in a unified interface. We illustrate four of them: QTET in a randomized setting, QTE and QTET under a [conditional independence assumption (CIA)](#sec-conditional-ignorability-assumption), QTET under a distributional DiD assumption, and partial-identification bounds when the distributional DiD is the only assumption available.
+
+#### Quantile Treatment Effects in a Randomized Setting
+
+When treatment is randomly assigned, the QTE and QTET coincide because the treated and untreated subpopulations are exchangeable. The following call uses the experimental sub-sample of the well-known LaLonde job-training data.
 
 ```{r}
 library(qte)
 data(lalonde)
 
-# randomized setting
-# qte is identical to qtet
+# randomized setting: QTE and QTET coincide
 jt.rand <-
     ci.qtet(
         re78 ~ treat,
@@ -139,8 +161,14 @@ summary(jt.rand)
 ggqte(jt.rand)
 ```
 
+The `iters = 10` argument is again the bootstrap replication count, kept low for speed; a published analysis would use several hundred to several thousand iterations.
+
+#### QTE and QTET under Conditional Independence
+
+Outside of randomized experiments, identification of quantile effects requires an additional assumption. The [conditional independence assumption (CIA)](#sec-conditional-ignorability-assumption), discussed in detail in the [foundations chapter](#sec-quasi-experimental), says that treatment is as good as random conditional on a vector of observed covariates. Under CIA, both QTE and QTET are identified.
+
 ```{r}
-# conditional independence assumption (CIA)
+# QTE under CIA: population-level quantile effect
 jt.cia <- ci.qte(
     re78 ~ treat,
     xformla =  ~ age + education,
@@ -150,6 +178,7 @@ jt.cia <- ci.qte(
 summary(jt.cia)
 ggqte(jt.cia)
 
+# QTET under CIA: quantile effect within the treated subpopulation
 jt.ciat <- ci.qtet(
     re78 ~ treat,
     xformla =  ~ age + education,
@@ -160,16 +189,16 @@ summary(jt.ciat)
 ggqte(jt.ciat)
 ```
 
--   **QTE** compares quantiles of the entire population under treatment and control, whereas **QTET** compares quantiles within the treated group itself. This difference means that QTE reflects the overall population-level impact, while QTET focuses on the treated group's specific impact.
+The distinction between QTE and QTET is worth pausing on. **QTE** compares quantiles of the entire population's potential outcomes under treatment versus under control, so it answers a population-level question: how does treatment shift the $\theta$-th quantile of outcomes if applied to everyone? **QTET** compares quantiles *within the treated subpopulation*, so it answers a subgroup question: among the people who actually received treatment, how does it shift the $\theta$-th quantile of their outcome distribution?
 
--   **CIA** enables identification of both QTE and QTET, but since QTET is conditional on treatment, it might reflect different effects than QTE, especially when the treatment effect is heterogeneous across different subpopulations. For example, the QTE could show a more generalized effect across all individuals, while the QTET may reveal stronger or weaker effects for the subgroup that actually received the treatment.
+The two estimands need not agree, and their disagreement is informative. When treatment effects are uniform across subpopulations, QTE and QTET will be close. When effects concentrate in a particular slice of the population (and that slice is over-represented or under-represented among the treated), QTE and QTET diverge, and the gap reveals the selection structure of the design. CIA identifies both estimands but does not equate them.
 
-These are DID-like models
+#### Panel-Data QTET under Distributional DiD
 
-1.  With the distributional difference-in-differences assumption [@fan2012partial, @callaway2019quantile], which is an extension of the parallel trends assumption, we can estimate QTET.
+Several DiD-style extensions of quantile estimation are available when the data are panel rather than cross-sectional. The first is panel QTET under the *distributional DiD assumption* [@fan2012partial; @callaway2019quantile], a quantile-level analogue of the parallel-trends assumption: in the absence of treatment, the entire untreated outcome distribution would have evolved identically across the treated and control groups. Under this assumption, panel QTET is point-identified.
 
 ```{r}
-# distributional DiD assumption
+# QTET under the distributional DiD assumption
 jt.pqtet <- panel.qtet(
     re ~ treat,
     t = 1978,
@@ -184,9 +213,12 @@ summary(jt.pqtet)
 ggqte(jt.pqtet)
 ```
 
-2.  With 2 periods, the distributional DiD assumption can partially identify QTET with bounds [@fan2012partial]
+#### Partial Identification Bounds with Two Periods
+
+When only two periods are available, the distributional DiD assumption is no longer enough to point-identify QTET, but it does deliver bounds [@fan2012partial]. The `bounds()` function reports a range of QTET estimates consistent with the assumption rather than a single point. Reporting bounds is the honest move whenever full identification is not credible: the headline result is a feasible interval rather than a tight estimate that hides modeling commitments.
 
 ```{r}
+# Partial identification of QTET under distributional DiD
 res_bound <-
     bounds(
         re ~ treat,
@@ -200,9 +232,12 @@ summary(res_bound)
 plot(res_bound)
 ```
 
-3.  With a restrictive assumption that difference in the quantiles of the distribution of potential outcomes for the treated and untreated groups be the same for all values of quantiles, we can have the mean DiD model
+#### Mean DiD as a Special Case
+
+A more restrictive assumption recovers a mean DiD model: that the difference in quantiles of the untreated potential-outcome distribution between treated and untreated groups is the same at every quantile. The `ddid2()` function implements this estimator. It is a useful benchmark to report alongside CiC, because divergence between the mean DiD and quantile-level estimators signals that the data carry distributional heterogeneity that the mean comparison hides.
 
 ```{r}
+# Mean DiD as a benchmark
 jt.mdid <- ddid2(
     re ~ treat,
     t = 1978,
@@ -216,14 +251,21 @@ summary(jt.mdid)
 plot(jt.mdid)
 ```
 
-On top of the distributional DiD assumption, we need **copula stability** assumption (i.e., If, before the treatment, the units with the highest outcomes were improving the most, we would expect to see them improving the most in the current period too.) for these models:
+#### QDiD versus CiC
+
+Both QDiD and CiC can be implemented in the `qte` package. Both rest on the distributional DiD assumption, but they differ in a second assumption: QDiD additionally requires **copula stability**, the assumption that the dependence between outcome ranks across periods is stable. Intuitively, if before the treatment the units with the highest outcomes were also the units improving the most, we expect that pattern to hold in the current period as well. CiC instead relies on rank invariance and on a containment condition between the treated and control distributions of the unobserved heterogeneity. Table \@ref(tab:cic-vs-qdid-summary) summarizes the high-level contrast between the two; a more detailed comparison appears in the [next section](#sec-cic-vs-qdid).
 
 | **Aspect**                      | **QDiD**                       | **CiC**                          |
 |---------------------------------|--------------------------------|----------------------------------|
 | **Treatment of Time and Group** | Symmetric                      | Asymmetric                       |
-| **QTET Computation**            | Not inherently scale-invariant | Outcome Variable Scale-Invariant |
+| **QTET Computation**            | Not inherently scale-invariant | Outcome variable scale-invariant |
+
+: (#tab:cic-vs-qdid-summary) High-level contrast between QDiD and CiC.
+
+The code below illustrates both calls. They are not evaluated in the build (set `eval = FALSE`) because they require additional setup, but the syntax mirrors the panel QTET call above.
 
 ```{r, eval = FALSE}
+# QDiD
 jt.qdid <- QDiD(
     re ~ treat,
     t = 1978,
@@ -235,6 +277,7 @@ jt.qdid <- QDiD(
     panel = T
 )
 
+# CiC
 jt.cic <- CiC(
     re ~ treat,
     t = 1978,
@@ -249,9 +292,49 @@ jt.cic <- CiC(
 
 ------------------------------------------------------------------------
 
-## CiC vs. QDiD: A More Detailed Contrast
+## Aggregating QTT to ATT and Other Summaries
 
-CiC and QDiD both deliver quantile treatment effects in panel settings, but they rest on *different* identifying assumptions and answer *different* counterfactual questions. The distinction matters in applied work:
+Producing a curve of estimates across quantiles is informative, but it leaves a question that policymakers and editors keep asking: what is the single number? The answer is that any summary of the QTT curve is itself a perfectly valid causal estimand, and several are useful in practice.
+
+The most common is the **average treatment effect on the treated (ATT)**, recoverable as the integral of the QTT over $\theta$:
+
+$$
+\text{ATT} \;=\; \int_0^1 \Delta_\theta^{\text{QTT}}\, d\theta.
+$$
+
+In words, the area under the QTT curve, with respect to the uniform distribution on $\theta$, is the ATT. This identity is mechanical when the QTT is correctly identified: averaging quantile-level effects is the same as averaging unit-level effects under the structural model. Empirically, the integral is approximated by averaging the bootstrap-estimated QTT values across a fine grid of $\theta$. Reporting the bootstrap-aggregated ATT alongside the [DiD](#sec-difference-in-differences) ATT is a useful internal-consistency check: large divergence implies that one of the two estimators is leaning on an assumption that the data will not support.
+
+Other summaries are tailored to specific policy questions:
+
+-   **Tail-conditional averages.** $\mathbb{E}[\Delta \mid \text{below the median}]$ or $\mathbb{E}[\Delta \mid \text{below the 25th percentile}]$ summarizes the effect on the lower tail of the distribution, which is what a welfare analyst typically cares about. A symmetric upper-tail summary speaks to questions about inequality or top-end concentration.
+
+-   **Distributional inequality measures.** Changes in standard inequality measures (the Gini coefficient, percentile ratios such as P90/P10, P50/P10, P90/P50) before and after treatment can be computed from the estimated counterfactual and observed distributions. Each is a specific functional of the QTT curve, and each gives a quantitative answer to a question about distributional shape.
+
+-   **Stochastic dominance comparisons.** Plotting the observed and counterfactual CDFs reveals whether the treatment shifts the distribution in a way that is unambiguous (first-order stochastic dominance) or ambiguous (crossing CDFs). When the CDFs cross, the headline question of whether the treatment "improves" the outcome distribution depends on the welfare criterion, and CiC delivers exactly the input needed for a Sen-style or Atkinson-style welfare comparison.
+
+The takeaway is that the QTT curve is not a substitute for the ATT but a generalization of it. Once the curve is in hand, aggregating to any policy-relevant summary is straightforward, and the user can present whichever combination of curve, point summary, and inequality measure best matches the audience for the analysis.
+
+------------------------------------------------------------------------
+
+## Connections to Other Quantile Methods
+
+CiC sits inside a broader family of quantile-based estimators. Understanding where it fits clarifies when alternatives are preferable.
+
+**Conditional quantile regression** (Koenker-Bassett) estimates the $\theta$-th conditional quantile of $Y$ given covariates $X$ by minimizing an asymmetric absolute-loss objective. It is the workhorse for descriptive distributional analysis, but it answers a fundamentally different question than CiC: it characterizes the conditional quantile of $Y \mid X$, not the *unconditional* quantile of the potential-outcome distribution. Conditional quantile regression is therefore appropriate when the analyst wants to know how covariates shift the conditional distribution; CiC is appropriate when the analyst wants the unconditional distributional impact of a treatment.
+
+**Unconditional quantile regression** (the recentered influence function approach of Firpo-Fortin-Lemieux) addresses precisely this gap by estimating the effect of covariates on unconditional quantiles. It is closer in spirit to CiC, but it does not directly handle the time-and-group structure of a panel quasi-experiment. Where the data structure is a [DiD](#sec-difference-in-differences) panel and the question concerns distributional impact of a discrete treatment, CiC and panel QTET methods are the appropriate tools; where the data are cross-sectional with continuous regressors, unconditional quantile regression is the natural choice.
+
+**Quantile [Instrumental Variables](#sec-instrumental-variables)** (Chernozhukov-Hansen) estimates quantile treatment effects when treatment is endogenous and an instrument is available. It is the natural extension of CiC to settings where the treatment-assignment mechanism does not satisfy the conditional independence assumption. The Frölich-Melly extension referenced in @frolich2013unconditional combines the IV machinery with the unconditional-quantile target.
+
+**Distribution regression** (Chernozhukov-Fernandez-Val-Melly) takes the opposite slicing of the same problem: instead of modeling the quantile function $F^{-1}(\theta \mid X)$, it models the CDF $F(y \mid X)$ at a grid of $y$ values via repeated binary-outcome regressions. The two approaches are duals of one another and tend to agree in moderate samples, but distribution regression is sometimes more numerically stable in the tails and is easier to extend to discrete outcomes.
+
+The practical implication of this taxonomy is that the right quantile method depends on three features of the setting: the data structure (cross-section, panel, repeated cross-section), the source of identification (random assignment, conditional independence, distributional parallel trends, instrumental variation), and the target estimand (conditional vs. unconditional quantile, treatment effect vs. covariate effect). Mismatching the method to the setting can produce confidently estimated artifacts; matching them produces the right answer to the right question.
+
+------------------------------------------------------------------------
+
+## CiC vs. QDiD: A More Detailed Contrast {#sec-cic-vs-qdid}
+
+CiC and QDiD both deliver quantile treatment effects in panel settings, but they rest on *different* identifying assumptions and answer *different* counterfactual questions. The distinction matters in applied work, because the two estimators can disagree, and the disagreement is informative about which assumption is binding. Table \@ref(tab:cic-vs-qdid-detailed) lays out the contrast along the dimensions that most often shape the choice in practice.
 
 | **Aspect**                          | **QDiD (Quantile DiD)**                                                                                                     | **CiC (Athey-Imbens)**                                                                                                              |
 |-----------------------------------|-----------------------------|-----------------------------|
@@ -262,20 +345,66 @@ CiC and QDiD both deliver quantile treatment effects in panel settings, but they
 | **Additional structure**            | Requires a copula-stability assumption (the dependence between outcome ranks across periods is stable)                      | Requires that the distribution of the unobserved heterogeneity in the treated group is contained in that of the control            |
 | **Interpretation of heterogeneity** | Captures differences in quantile shifts                                                                                      | Captures shifts in the latent outcome-generating function                                                                           |
 
-Which to pick? CiC is the natural choice when three things hold: the outcome can reasonably be modeled as a monotone function of an unobserved scalar (productivity → wages is the canonical example), scale-invariance matters (you do not want results to flip when you log the outcome), and the treated group's pre-treatment support is contained in the control group's. QDiD is preferable when the distributional parallel-trends assumption is defensible (pre-treatment quantiles for treated and control track each other closely) and the outcome has a natural scale that need not be robust to monotone reparameterization.
+: (#tab:cic-vs-qdid-detailed) Detailed comparison of QDiD and CiC along identifying assumptions, scale-invariance, and interpretation of heterogeneity.
 
-When feasible, report both estimates alongside the standard DiD point estimate. Concordance across CiC, QDiD, and DiD increases credibility; divergence is a signal that distributional heterogeneity is doing real work in the data and deserves explicit discussion.
+Which to pick? Several considerations push toward one or the other.
+
+-   **Choose CiC** when the outcome can plausibly be modeled as a monotone function of an unobserved scalar (productivity to wages is the canonical example), when scale-invariance matters because reviewers will push back on functional-form choices, and when the treated group's pre-treatment outcome support is contained in the control group's.
+
+-   **Choose QDiD** when the distributional parallel-trends assumption is defensible (pre-treatment quantiles for treated and control track each other closely), when the outcome has a natural scale that need not be robust to monotone reparameterization, and when copula stability is plausible.
+
+-   **Choose neither** when the data do not support either assumption: in that case, partial-identification approaches (bounds) and sensitivity analyses are more honest than a point estimate that hides the assumption's fragility.
+
+When feasible, report estimates from CiC, QDiD, and the standard [DiD](#sec-difference-in-differences) point estimate together. Concordance across the three increases credibility, because the result then does not depend on which assumption is doing the work; divergence is a signal that distributional heterogeneity is doing real work in the data and deserves explicit discussion. Either pattern is more informative than presenting a single estimate from a single estimator and asserting that it is correct.
+
+------------------------------------------------------------------------
+
+## Inference and Diagnostics
+
+Inference for CiC is almost always done by the bootstrap, and the choice of bootstrap matters more than for mean-based estimators. Three considerations recur.
+
+The first is the **type of bootstrap**. The standard nonparametric bootstrap, which resamples observations with replacement, is the simplest and most common. The weighted bootstrap (used by `boot = "weighted"` in `ecic`) draws random weights for each observation and is more robust to outliers and heavy-tailed outcomes. For panel-structure data, a *cluster bootstrap* that resamples entire units rather than observation-period pairs preserves within-unit dependence and is the appropriate default. Whichever variant is used, the bootstrap should respect the unit of analysis at which treatment was assigned, in line with the [clustering discipline](#sec-quasi-experimental) discussed in the foundations chapter.
+
+The second is the **number of replications**. A QTT curve estimated at a fine grid of $\theta$ values is a multivariate object, and the precision of the entire curve (not just any single quantile) depends on the number of replications. For interior quantiles ($\theta \in [0.1, 0.9]$), a few hundred replications usually suffice. For tail quantiles ($\theta < 0.05$ or $\theta > 0.95$), where the local density is low and bootstrap variance is correspondingly high, several thousand replications may be needed before the confidence band stabilizes. The `iters = 10` and `nReps = 3` arguments in the application examples above are deliberately small for runtime; production analyses use much larger values.
+
+The third is **how to construct uniform confidence bands**. A naive approach plots pointwise confidence intervals at each quantile, but a band that covers the entire QTT curve with simultaneous probability $1 - \alpha$ requires a slightly different construction (typically a sup-t band based on bootstrap draws). Reporting both pointwise and uniform bands is the most informative choice when the audience cares about whether the QTT is, say, monotone across quantiles.
+
+Several diagnostics deserve attention in any CiC application.
+
+-   **Pre-treatment density overlap.** Plot the densities of the outcome for treated and control groups in the pre-period. Quantiles where one group has substantially more mass than the other are quantiles where the support-containment assumption is most strained, and the resulting QTT estimates rely most heavily on the structural extrapolation.
+
+-   **Within-control rank stability.** A direct test of rank invariance is impossible for the treated (we never see their counterfactual), but the analogue *can* be checked in the control group: how stable is a control unit's rank in the outcome distribution from the pre-period to the post-period? Substantial reordering is suggestive evidence that the structural model is mis-specified for this population.
+
+-   **Concordance with DiD/QDiD.** As discussed in the [previous section](#sec-cic-vs-qdid), the comparison between CiC, QDiD, and the mean DiD is itself a diagnostic. Concordance increases credibility; divergence flags the assumption that is doing the work.
+
+-   **Sensitivity to bandwidth and grid.** When CiC is implemented with smoothed CDFs (e.g., via kernel-based density estimation), the choice of bandwidth and the grid of $\theta$-values can affect the resulting estimate at the margin. Reporting results across a small range of bandwidths is the standard guard against this, in the same spirit as the bandwidth-sensitivity checks recommended for [regression discontinuity](#sec-regression-discontinuity) designs.
 
 ------------------------------------------------------------------------
 
 ## Practical Guidance on CiC
 
-CiC becomes interesting in applications where the whole distribution of outcomes, not just the mean, carries policy weight. Income support programs often fit this description, because the effect at the bottom of the distribution is more important to a welfare analyst than the effect at the median. Job-training programs similarly can concentrate their gains in the middle of the ability distribution, with little or no effect at the tails. Marketing interventions where response is concentrated in a heavy upper tail (big spenders reacting strongly to a price promotion) are another case where the ATT masks the substantive story.
+CiC becomes interesting in applications where the whole distribution of outcomes, not just the mean, carries policy weight. Several settings recur in applied work.
 
-Before reaching for CiC, check three things. First, is the underlying outcome plausibly a monotone function of an unobserved scalar (ability, latent demand, willingness-to-pay)? The Athey-Imbens derivation relies on exactly that production-function structure. Second, is the treated group's pre-treatment outcome support contained inside the control group's support? If not, some quantiles are not identified and the estimator extrapolates. Third, will scale-invariance buy you something? CiC's main operational advantage over QDiD is that its output does not change if you log, square-root, or otherwise monotonically reparameterize the outcome, a useful feature when reviewers push back on functional-form choices.
+-   **Income support and welfare programs.** The effect at the bottom of the distribution is more important to a welfare analyst than the effect at the median, because the policy is targeted at the bottom. Quantile estimates make the targeting visible.
 
-The single strongest assumption is rank invariance: an individual's position in the untreated outcome distribution would have been the same in the post-period as in the pre-period, had they not been treated. It is an assumption that needs to be argued in context, not asserted from a template. In some settings (short panels, relatively stable populations) it is plausible; in others (long panels, high mobility across the distribution) it is hard to defend.
+-   **Job-training and human-capital programs.** Gains can concentrate in the middle of the ability distribution, with little effect at the tails. The mean estimate misses this entirely; a quantile estimate locates the effect.
 
-Two practical limitations to keep in mind. Confidence intervals come from the bootstrap and are often wide at extreme quantiles where density is low, do not chase statistical significance into the tails of a thin sample. And CiC identifies the marginal distribution of potential outcomes, not individual-level effects; a headline of the form "the treatment raised the 90th percentile by $X$" should not be read as "the 90th-percentile units gained $X$ from the treatment."
+-   **Heavy-tailed marketing outcomes.** When response is concentrated in a heavy upper tail (a small number of big spenders reacting strongly to a price promotion, for example), the [ATT](#sec-difference-in-differences) gives a misleadingly small picture of an effect that is in fact concentrated in the right tail of the distribution.
 
-A complete CiC writeup has four elements: a plot of estimated QTT across quantiles with bootstrap bands, the corresponding DiD/ATT for comparison, overlap diagnostics showing pre-treatment outcome densities for treated and control, and, wherever feasible, both CiC and QDiD estimates side-by-side. Concordance across estimators builds credibility; divergence is itself a finding worth discussing.
+-   **Inequality-relevant outcomes.** Whenever the policy debate is about distributional shape, CiC offers the right object of inference. Examples include effects on income inequality, wealth concentration, and access disparities.
+
+Before reaching for CiC, several checks are worth running. First, is the underlying outcome plausibly a monotone function of an unobserved scalar (ability, latent demand, willingness-to-pay)? The Athey-Imbens derivation relies on exactly that production-function structure. Second, is the treated group's pre-treatment outcome support contained inside the control group's support? If not, some quantiles are not identified and the estimator extrapolates beyond the data. Third, will scale-invariance buy you something? CiC's main operational advantage over QDiD is that its output does not change if you log, square-root, or otherwise monotonically reparameterize the outcome, which is a useful feature when reviewers push back on functional-form choices.
+
+The single strongest assumption is **rank invariance**: an individual's position in the untreated outcome distribution would have been the same in the post-period as in the pre-period, had they not been treated. This is an assumption that needs to be argued in context, not asserted from a template. In some settings (short panels, relatively stable populations) it is plausible; in others (long panels, high mobility across the distribution) it is hard to defend, and the QTT estimates should be interpreted with the corresponding caution. A useful informal check is to compare the rank ordering of units within the control group across periods: substantial reordering is evidence against rank invariance.
+
+A few practical limitations are worth keeping in mind. Confidence intervals come from the bootstrap and are often wide at extreme quantiles where density is low; do not chase statistical significance into the tails of a thin sample. CiC identifies the marginal distribution of potential outcomes, not individual-level effects, so a headline of the form "the treatment raised the 90th percentile by \$$X$" should not be read as "the 90th-percentile units gained \$$X$ from the treatment", because the units at the 90th percentile of the treated distribution are not necessarily the same units who would have been at the 90th percentile of the counterfactual untreated distribution. And like all panel-quantile estimators, CiC inherits the [overlap](#sec-overlap-positivity-assumption) requirement of the underlying DiD design: when the treated and control distributions barely overlap in the pre-period, the resulting QTT estimates are heavily extrapolated.
+
+A complete CiC writeup typically has several elements:
+
+-   A plot of estimated QTT across quantiles with bootstrap bands.
+-   The corresponding DiD/ATT estimate as a benchmark, so a reader can see how the headline number compares.
+-   [Overlap](#sec-overlap-positivity-assumption) diagnostics showing pre-treatment outcome densities for treated and control.
+-   Wherever feasible, both CiC and QDiD estimates side by side, so the reader can see whether the result is robust to the choice of identifying assumption.
+-   A discussion of the rank-invariance assumption in the substantive context of the application, including (where possible) auxiliary evidence on within-group reordering across periods.
+
+Concordance across estimators builds credibility; divergence is itself a finding worth discussing, because it tells the reader that the choice of distributional identification assumption is doing real work and that the headline result depends on which assumption one is willing to defend.

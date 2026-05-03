@@ -2,6 +2,8 @@
 
 @roth2023whats provide a comprehensive synthesis of the recent DiD literature; readers may consult that paper as a roadmap to many of the techniques discussed in this chapter, including staggered adoption, heterogeneous treatment effects, parallel-trends sensitivity analysis, and conditional/relaxed identifying assumptions.
 
+A useful way to organize the rest of this chapter is to recognize that "what could go wrong with DiD" decomposes into a small number of recurring failure modes, and that most of the modern toolkit is a targeted response to one (or several) of them. Heterogeneous and time-varying treatment effects break the implicit weighting in two-way fixed effects, motivating the staggered-adoption estimators introduced in Section \@ref(sec-modern-estimators-for-staggered-adoption) and the [Goodman-Bacon decomposition](#sec-goodman-bacon-decomposition). Departures from parallel trends motivate visual diagnostics in Section \@ref(sec-visualization-did), the [placebo tests](#sec-placebo-test-did) below, and the [partial-identification machinery](#sec-partial-identification-did) at the end of this chapter. Selection on observables that vary across treated and control units pulls in [matching](#sec-matching-methods) and the [conditional ignorability](#sec-conditional-ignorability-assumption) and [overlap](#sec-overlap-positivity-assumption) assumptions. Functional-form sensitivity, especially with zero-valued outcomes, motivates the [changes-in-changes](#sec-changes-in-changes) estimator and the proportional-effects approach below. Reading the rest of the chapter as a menu indexed by failure mode (rather than as a list of unrelated diagnostics) makes it easier to know which tool is the right one to reach for, and the closing sections show how a credible DiD analysis layers several of them.
+
 ------------------------------------------------------------------------
 
 ### Multiple Treatments
@@ -125,7 +127,9 @@ A possible solution is to use an intention-to-treat (ITT) approach, where treatm
 
 -   With multiple treatments, we must check pre-trends separately for each treated group against the control group.
 
--   If pre-treatment trends are not parallel, we may need to adopt alternative methods such as [synthetic control]((#sec-synthetic-control)) models or event study analyses.
+-   If pre-treatment trends are not parallel, we may need to adopt alternative methods such as [synthetic control](#sec-synthetic-control) models or event study analyses.
+
+It is worth noting how multiple-treatment settings interact with the staggered-adoption literature. Once treatments differ in timing as well as in type, the pathologies surveyed in Section \@ref(sec-multiple-periods-and-variation-in-treatment-timing) reappear: each treated arm becomes both a treated unit relative to the never-treated and a potential "forbidden comparison" for some other arm in a [two-way fixed-effects](#sec-two-way-fixed-effects) regression. Reaching for the [group-time average treatment effect](#sec-group-time-average-treatment-effects-callaway2021difference) framework, the [cohort ATT](#sec-cohort-average-treatment-effects-sun2021estimating) estimator, or the [stacked DiD](#sec-stacked-difference-in-differences) design is often more defensible than trying to extend the canonical interaction model to many treatment arms by hand.
 
 ------------------------------------------------------------------------
 
@@ -228,6 +232,8 @@ One way to address mediator endogeneity is to use **instrumental variables**, wh
 ------------------------------------------------------------------------
 
 ## Assumptions
+
+The list of assumptions below is best read as a mapping between identification conditions and diagnostics. Parallel trends is tested visually and via event studies, then stress-tested with [partial identification](#sec-partial-identification-did) when it is suspect. No anticipation is examined in pre-period event-study coefficients and through [placebo tests](#sec-placebo-test-did). Stable composition and exogeneity of shocks justify the design itself and connect to the broader [limitations of quasi-experiments](#sec-limitations-of-quasi-experiments). [Overlap](#sec-overlap-positivity-assumption) and effect homogeneity are the assumptions that, when violated, push the analyst toward [matching methods](#sec-matching-methods) and modern heterogeneity-robust estimators in Section \@ref(sec-modern-estimators-for-staggered-adoption). Each subsection below also notes the failure mode in language that can be cross-referenced back to the corresponding diagnostic later in the chapter.
 
 1.  **Parallel Trends Assumption**
 
@@ -521,6 +527,8 @@ Another useful tool for assessing parallel trends is the `pretrends` package by 
 
 A placebo test is a diagnostic tool used in Difference-in-Differences analysis to assess whether the estimated treatment effect is driven by pre-existing trends rather than the treatment itself. The idea is to estimate a treatment effect in a scenario where no actual treatment occurred. If a significant effect is found, it suggests that the parallel trends assumption may not hold, casting doubt on the validity of the causal inference.
 
+Placebo tests sit alongside the [prior parallel-trends test](#prior-parallel-trends-test) in a complementary role: where the event-study test asks whether deviations are visible *in the data we have*, the placebo test asks whether the estimator generates spurious effects when the treatment label is moved to a unit or period where, by construction, no causal effect can exist. A clean event study without a clean placebo is suggestive but unsatisfying, and a clean placebo with a noisy event study is harder to dismiss than the raw $p$-values alone would imply. Treating the two as a pair helps build the kind of layered defense of parallel trends that complements the partial-identification analysis later in this chapter.
+
 **Types of Placebo DiD Tests**
 
 1.  **Group-Based Placebo Test**
@@ -642,7 +650,7 @@ We would like the "supposed" DiD to be insignificant (Figure \@ref(fig:fig-place
 
 ## Robustness Checks
 
-A well-executed Difference-in-Differences analysis requires robustness checks to verify the validity of estimated treatment effects and best practices to ensure methodological rigor.
+A well-executed Difference-in-Differences analysis requires robustness checks to verify the validity of estimated treatment effects and best practices to ensure methodological rigor. Whereas the [prior parallel-trends test](#prior-parallel-trends-test) and the [placebo test](#sec-placebo-test-did) interrogate the identifying assumption, the checks below interrogate the *modeling choices* layered on top of it: the time window, the functional form for trends, the choice of outcome, and the inclusion of an additional comparison dimension via triple differences. Stability of the estimate across these choices is what allows a reader to attribute the result to the policy variation rather than to a fortunate specification. The broader catalog of [robustness checks for quasi-experimental designs](#sec-robustness-checks-quasi-exp) and the discussion of [coefficient stability bounds](#sec-coefficient-stability-bounds) elsewhere in the book extend the same logic.
 
 ------------------------------------------------------------------------
 
@@ -709,6 +717,8 @@ To improve the credibility and transparency of DiD estimates, researchers should
 
 ## Concerns in DID
 
+The catalogue below collects the issues that recur most often in applied work and pairs each with the diagnostic or estimator that addresses it. Several of them (heterogeneous effects, treatment timing, questionable counterfactuals) feed directly into the modern staggered-adoption literature in Section \@ref(sec-modern-estimators-for-staggered-adoption); others (selection on unobservables, Ashenfelter's dip) connect more naturally to [Rosenbaum bounds](#sec-rosenbaum-bounds) and to the broader [conditional ignorability](#sec-conditional-ignorability-assumption) discussion. The point is not that every analysis must address every concern, but that a credible DiD application explicitly considers which of them are plausible in the context at hand and chooses diagnostics accordingly.
+
 ### Limitations and Common Issues
 
 1.  **Functional Form Dependence**
@@ -751,21 +761,21 @@ To improve the credibility and transparency of DiD estimates, researchers should
 
 10. **Treatment Timing and Negative Weights**
 
--   If treatment timing varies across units, negative weights can arise in standard DiD estimators when treatment effects are heterogeneous [@athey2022design; @borusyak2024revisiting; @goodman2021difference].
--   **Fix:** Use estimators from @callaway2021difference and @de2020two (`did` package).
--   If expecting lags and leads, see @sun2021estimating.
+-   If treatment timing varies across units, negative weights can arise in standard DiD estimators when treatment effects are heterogeneous [@athey2022design; @borusyak2024revisiting; @goodman2021difference]. The [Goodman-Bacon decomposition](#sec-goodman-bacon-decomposition) is the standard diagnostic for the presence and severity of these forbidden comparisons.
+-   **Fix:** Use estimators from @callaway2021difference and @de2020two (`did` package). Specifically, the [group-time ATT estimator](#sec-group-time-average-treatment-effects-callaway2021difference) and the [switching-DiD estimator](#sec-switching-difference-in-differences-estimator-de2020two) avoid the contaminated comparisons that produce negative weights, and the [stacked DiD](#sec-stacked-difference-in-differences) design provides a transparent alternative when the analyst prefers to keep a single regression.
+-   If expecting lags and leads, see @sun2021estimating, whose [cohort ATT](#sec-cohort-average-treatment-effects-sun2021estimating) approach generalizes naturally to event-study settings.
 
 11. **Treatment Effect Heterogeneity Across Groups**
 
--   If treatment effects vary across groups and interact with treatment variance, standard estimators may be invalid [@gibbons2018broken].
+-   If treatment effects vary across groups and interact with treatment variance, standard estimators may be invalid [@gibbons2018broken]. Beyond the staggered-adoption tools above, the [reshaped IPW TWFE estimator](#sec-reshaped-inverse-probability-weighting-twfe-estimator) and the [matrix-completion estimator](#sec-matrix-completion-estimator) are useful when heterogeneity is suspected to load on covariates or on idiosyncratic unit-time shocks rather than purely on cohort.
 
 12. **Endogenous Timing**
 
-If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
+If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing. See Section \@ref(sec-instrumental-variables) for the IV machinery and Section \@ref(sec-design-based) for design-based alternatives.
 
 13. **Questionable Counterfactuals**
 
-In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods].
+In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods]. When parallel trends in levels is implausible but the treated unit can be approximated by a weighted combination of controls, [synthetic control](#sec-synthetic-control) and the hybrid [synthetic DiD](#sec-synthetic-difference-in-differences) approach are natural fallbacks; the [panel-match estimator](#sec-panel-match-did-estimator-with-in-and-out-treatment-conditions) and the family of [counterfactual estimators](#sec-counterfactual-estimators) extend the idea to richer treatment-history settings.
 
 ### Matching Methods in DID
 
@@ -823,6 +833,8 @@ Key advantages of PPML:
 ------------------------------------------------------------------------
 
 ### Handling Zero-Valued Outcomes in DID
+
+Zero-valued outcomes are a special case of the broader functional-form sensitivity that runs through this chapter. In the canonical DiD model, parallel trends is a property of the *outcome scale*, so transforming the outcome (logs, percent changes, normalized counts) silently changes the identifying assumption being made. When a non-trivial fraction of the data is at zero, the choice of scale also collides with the distinction between intensive- and extensive-margin responses. The two approaches below take different stances on that tradeoff, and they should be read alongside the [changes-in-changes](#sec-changes-in-changes) estimator, which provides a fully nonparametric alternative when the analyst is unwilling to commit to either parallel trends in levels or parallel trends in ratios.
 
 When dealing with **zero-valued outcomes**, it is crucial to separate the **intensive margin effect** (e.g., outcome changes from 10 to 11) from the **extensive margin effect** (e.g., outcome changes from 0 to 1).
 
@@ -992,21 +1004,23 @@ To correct for serial correlation, various methods can be employed. However, som
 -   **Variance-covariance matrix corrections**:
     -   Empirical corrections (e.g., cluster-robust standard errors) and arbitrary variance-covariance matrix adjustments (e.g., Newey-West) can work well, but they are reliable only in large samples.
 
-Overall, selecting the appropriate correction method depends on the sample size and structure of the data. When possible, block bootstrapping and collapsing data into pre/post periods are among the most effective approaches.
+Overall, selecting the appropriate correction method depends on the sample size and structure of the data. When possible, block bootstrapping and collapsing data into pre/post periods are among the most effective approaches. The serial-correlation problem is also one of the reasons that modern staggered-adoption estimators (Section \@ref(sec-modern-estimators-for-staggered-adoption)) report cluster-bootstrap standard errors by default, and it is closely connected to the inference issues flagged in the [SUTVA](#sec-sutva) discussion when treatment exposure is correlated within clusters.
 
 ------------------------------------------------------------------------
 
 ### Partial Identification {#sec-partial-identification-did}
 
-Classical DiD delivers a **point‑identified** estimate of the [average treatment effect on the treated](#sec-average-treatment-effect-on-the-treated) (ATT) only when the [parallel‑trends assumption](#prior-parallel-trends-test) is exact. Yet in practice pre‑trends often deviate or post‑treatment shocks differ across groups (e.g., the famous @ashenfelter1978estimating). Partial‑identification (PI) methods shift the question from *"Is the estimate unbiased?"* to *"How much would the identifying assumption have to fail before I reverse my conclusion?"*
+Classical DiD delivers a **point-identified** estimate of the [average treatment effect on the treated](#sec-average-treatment-effect-on-the-treated) (ATT) only when the [parallel-trends assumption](#prior-parallel-trends-test) is exact. Yet in practice pre-trends often deviate or post-treatment shocks differ across groups (e.g., the famous @ashenfelter1978estimating). Partial-identification (PI) methods shift the question from *"Is the estimate unbiased?"* to *"How much would the identifying assumption have to fail before I reverse my conclusion?"*
+
+In the diagnostic workflow sketched at the start of this chapter, partial identification is the natural last line of defense once the visual checks, event-study tests, and [placebo tests](#sec-placebo-test-did) have all left some residual doubt. It is also the right tool when pre-trend tests are statistically silent but underpowered: rather than treating "we failed to reject" as proof of parallel trends, the analyst reports the magnitude of violation that the data would still permit. Used this way, PI complements the heterogeneity-robust estimators in Section \@ref(sec-modern-estimators-for-staggered-adoption) and the [coefficient stability bounds](#sec-coefficient-stability-bounds) machinery: the former handles bias from contaminated comparisons, while PI handles bias from a violated identifying assumption itself.
 
 The partial-identification literature that has grown up around DiD reflects a series of distinct philosophical bets about how to make the "how much could parallel trends fail?" question precise. It is helpful to walk through them in order, because each one chooses a different lever to constrain.
 
-The starting point is @manski2018right, who simply ask the analyst to commit to *any* substantively credible bounds on $\delta$ — across time, across space, or both — and then propagate those bounds through to the ATT. The approach is conceptually clean but requires the researcher to defend the bounds from outside the data. @keele2019patterns sharpen the question into something more empirically tractable by importing Rosenbaum-style sensitivity analysis from the matching literature: rather than bounding $\delta$ directly, fix a single sensitivity parameter that measures how much hidden bias one would need to reverse the estimated sign. @keele2019bracketing extend this machinery to compound treatments, where the treated group is simultaneously exposed to another event, asking whether the causal claim survives under that more demanding scenario.
+The starting point is @manski2018right, who simply ask the analyst to commit to *any* substantively credible bounds on $\delta$, across time, across space, or both, and then propagate those bounds through to the ATT. The approach is conceptually clean but requires the researcher to defend the bounds from outside the data. @keele2019patterns sharpen the question into something more empirically tractable by importing Rosenbaum-style sensitivity analysis from the matching literature: rather than bounding $\delta$ directly, fix a single sensitivity parameter that measures how much hidden bias one would need to reverse the estimated sign. @keele2019bracketing extend this machinery to compound treatments, where the treated group is simultaneously exposed to another event, asking whether the causal claim survives under that more demanding scenario.
 
 A different strategy is to lean on auxiliary control groups rather than auxiliary parameters. @ye2024negative use two control groups exposed to *negatively correlated* shocks to non-parametrically bracket the counterfactual trend, sidestepping parallel trends without committing to a specific bound on $\delta$. @leavitt2020beyond goes Bayesian: a hierarchical prior shrinks extreme violations of parallel trends and yields credible intervals that account for trend heterogeneity directly.
 
-The most influential synthesis is @rambachan2023more, which collapses the question into a researcher-chosen smoothness or magnitude restriction and then reports the *breakdown threshold* — the value of the restriction at which the confidence set first touches zero. Two bounding strategies fall out of this framework, both implemented in the `honestdid` package and discussed in detail later in this section: [relative-magnitude bounds](#sec-relative-magnitude-restriction-honestdid), which constrain $|\delta|$ to be no larger than $M$ times the worst pre-period jump, and [smoothness bounds](#sec-smoothness-restriction-honestdid), which allow the slope of $\delta$ to shift by at most $M$ per period.
+The most influential synthesis is @rambachan2023more, which collapses the question into a researcher-chosen smoothness or magnitude restriction and then reports the *breakdown threshold*, the value of the restriction at which the confidence set first touches zero. Two bounding strategies fall out of this framework, both implemented in the `honestdid` package and discussed in detail later in this section: [relative-magnitude bounds](#sec-relative-magnitude-restriction-honestdid), which constrain $|\delta|$ to be no larger than $M$ times the worst pre-period jump, and [smoothness bounds](#sec-smoothness-restriction-honestdid), which allow the slope of $\delta$ to shift by at most $M$ per period.
 
 ------------------------------------------------------------------------
 
@@ -1015,7 +1029,7 @@ The most influential synthesis is @rambachan2023more, which collapses the questi
 Let
 
 -   $Y_{it}^{1}$ and $Y_{it}^{0}$ be potential outcomes for unit $i$ in period $t$ under treatment and no treatment;
--   $D_i\in\{0,1\}$ indicate ever‑treated units;
+-   $D_i\in{0,1}$ indicate ever-treated units;
 -   $\texttt{Post}_t$ mark periods after the policy shock.
 
 For two periods (pre, post) and two groups (T = treated, U = untreated) the simple DiD estimator is
@@ -1030,8 +1044,8 @@ $$
 \begin{aligned}
 \hat\beta_{DD} &= \underbrace{E(Y_T^{1}\mid\texttt{Post})-E(Y_T^{0}\mid\texttt{Post})}_{\text{ATT}} \\
 &+
-\underbrace{\bigl[E(Y_T^{0}\mid\texttt{Post})-E(Y_T^{0}\mid\texttt{Pre})\bigr]
--\bigl[E(Y_U^{0}\mid\texttt{Post})-E(Y_U^{0}\mid\texttt{Pre})\bigr]}_{\delta}
+\underbrace{[E(Y_T^{0}\mid\texttt{Post})-E(Y_T^{0}\mid\texttt{Pre})]
+-[E(Y_U^{0}\mid\texttt{Post})-E(Y_U^{0}\mid\texttt{Pre})]}_{\delta}
 \end{aligned}
 $$
 
@@ -1041,7 +1055,7 @@ $$
 \hat\beta_{DD}= \text{ATT}+\delta .
 $$
 
-When [parallel trends](#prior-parallel-trends-test) hold, $\delta=0$; any violation translates **one‑for‑one** into bias [@frake2025partial].
+When [parallel trends](#prior-parallel-trends-test) hold, $\delta=0$; any violation translates **one-for-one** into bias [@frake2025partial].
 
 ------------------------------------------------------------------------
 
@@ -1051,24 +1065,24 @@ The core PI idea is simple: *derive credible bounds on* $\delta$, then translate
 
 Two families of restrictions, both operationalized by @rambachan2023more and implemented in the `honestdid` package, are now widely used:
 
-1.  [Relative‑magnitude (RM) bounds](#sec-relative-magnitude-restriction-honestdid): the post‑treatment gap $|\delta|$ cannot exceed $M$ times the largest *period‑to‑period* deviation observed in the *pre‑treatment* event‑study.
-2.  [Smoothness (SM) bounds](#sec-smoothness-restriction-honestdid): the *slope* of the treated‑minus‑control gap can change by at most $M$ units each period after treatment.
+1.  [Relative-magnitude (RM) bounds](#sec-relative-magnitude-restriction-honestdid): the post-treatment gap $|\delta|$ cannot exceed $M$ times the largest *period-to-period* deviation observed in the *pre-treatment* event-study.
+2.  [Smoothness (SM) bounds](#sec-smoothness-restriction-honestdid): the *slope* of the treated-minus-control gap can change by at most $M$ units each period after treatment.
 
-Because $M$ is researcher‑chosen, inference is reported across a grid of plausible $M$ values, revealing the *breakdown* threshold where the confidence set first touches zero [@frake2025partial, p. 14].
+Because $M$ is researcher-chosen, inference is reported across a grid of plausible $M$ values, revealing the *breakdown* threshold where the confidence set first touches zero [@frake2025partial, p. 14].
 
 ------------------------------------------------------------------------
 
 #### Relative-Magnitude Restriction {#sec-relative-magnitude-restriction-honestdid}
 
-*Let* $\hat g_t$ be the event‑study coefficient at time $t$ (normalized to zero at $t=-1$).
+*Let* $\hat g_t$ be the event-study coefficient at time $t$ (normalized to zero at $t=-1$).
 
--   **Step 1: calibrate the worst pre‑trend**:\
+-   **Step 1: calibrate the worst pre-trend**:\
     $M_0 = \max_{s<0} |\hat g_s-\hat g_{s-1}|$.
 
--   **Step 2: allow proportional violations post‑treatment**:\
+-   **Step 2: allow proportional violations post-treatment**:\
     Impose $|\delta_t|\le M\cdot M_0$ for every $t\ge 0$.
 
--   **Step 3: construct "honest" confidence sets** for the ATT or for period‑specific effects by solving a constrained least‑squares problem [@rambachan2023more].
+-   **Step 3: construct "honest" confidence sets** for the ATT or for period-specific effects by solving a constrained least-squares problem [@rambachan2023more].
 
 ------------------------------------------------------------------------
 
@@ -1076,24 +1090,24 @@ Because $M$ is researcher‑chosen, inference is reported across a grid of plaus
 
 When violations evolve gradually (e.g., treated units drift upward over time), the SM bound is more credible.
 
--   **Step 1: estimate the pre‑treatment slope**:\
+-   **Step 1: estimate the pre-treatment slope**:\
     $s_0 = \hat g_{-1}-\hat g_{-2}$.
 
--   **Step 2: restrict post‑treatment slopes**:\
+-   **Step 2: restrict post-treatment slopes**:\
     The counterfactual slope in period $k$ may vary within\
     $[s_0-M, s_0+M]$.
 
--   **Step 3: propagate forward** to obtain an admissible path for $\delta_t$; compute the least‑favorable path, then derive confidence sets [@rambachan2023more].
+-   **Step 3: propagate forward** to obtain an admissible path for $\delta_t$; compute the least-favorable path, then derive confidence sets [@rambachan2023more].
 
 ------------------------------------------------------------------------
 
-#### Step‑by‑step Empirical Workflow
+#### Step-by-step Empirical Workflow
 
 See @frake2025partial, p. 15 for a decision tree that guides the choice of method.
 
-1.  **Graph the event‑study.** Are any pre‑trends visible? Quantify their magnitude and/or slope.
+1.  **Graph the event-study.** Are any pre-trends visible? Quantify their magnitude and/or slope.
 2.  **Choose a restriction family** (RM for episodic shocks, SM for trending deviations). Justify the choice theoretically (e.g., anticipation effects vs. gradual selection).
-3.  **Select a grid of** $M$. Always display the break‑even $M^{*}$ where the CI first covers zero; interpret $M^{*}$ in real‑world units.
+3.  **Select a grid of** $M$. Always display the break-even $M^{*}$ where the CI first covers zero; interpret $M^{*}$ in real-world units.
 4.  **Report the full set, not only the "robust" interval.** Transparency trumps opportunistic suppression.
 5.  **Complement with falsification tests** (placebo policy dates, placebo outcomes) to discipline the plausible range of $M$.
 6.  **Document software and code.** `honestdid` (R/Stata) includes convenient wrappers for both restrictions and automatic figures.
@@ -1102,24 +1116,30 @@ See @frake2025partial, p. 15 for a decision tree that guides the choice of metho
 
 #### Worked Example (Stylized)
 
-Suppose pre‑policy trends exhibit at most a 0.8‑point swing. Setting $M\in\{0,0.5,1,1.5\}$:
+Suppose pre-policy trends exhibit at most a 0.8-point swing. Setting $M\in{0,0.5,1,1.5}$:
 
 | $M$ | 95 % CI for ATT | Conclusion           |
 |-----|-----------------|----------------------|
 | 0   | [0.85, 1.25]    | Positive, robust     |
 | 0.5 | [0.60, 1.50]    | Positive             |
-| 1   | [‑0.05, 1.85]   | Sign flips plausible |
-| 1.5 | [‑0.45, 2.25]   | Cannot rule out zero |
+| 1   | [-0.05, 1.85]   | Sign flips plausible |
+| 1.5 | [-0.45, 2.25]   | Cannot rule out zero |
 
-Thus the causal claim survives unless the unobserved counterfactual deviations are $\ge 1 \times$ the worst pre‑treatment kink, an interpretation far clearer than a single $p$‑value.
+Thus the causal claim survives unless the unobserved counterfactual deviations are $\ge 1 \times$ the worst pre-treatment kink, an interpretation far clearer than a single $p$-value.
 
 ------------------------------------------------------------------------
 
 #### Common Pitfalls and Best Practices
 
--   **Mistaking absence of significant pre‑trends for proof of parallel‑trends.** Under‑powered tests can miss economically large differences.
--   **Choosing** $M$ post‑hoc. Decide the grid *before* looking at results.
--   **Ignoring sign.** If theory predicts the treated counterfactual would have **fallen**, impose a one‑sided bound; doing otherwise wastes power.
--   **Forgetting heterogeneous timing or staggered adoption.** Apply PI to group‑time ATT estimates from modern DiD estimators before aggregation.
+-   **Mistaking absence of significant pre-trends for proof of parallel-trends.** Under-powered tests can miss economically large differences.
+-   **Choosing** $M$ post-hoc. Decide the grid *before* looking at results.
+-   **Ignoring sign.** If theory predicts the treated counterfactual would have **fallen**, impose a one-sided bound; doing otherwise wastes power.
+-   **Forgetting heterogeneous timing or staggered adoption.** Apply PI to group-time ATT estimates from modern DiD estimators before aggregation.
 
-Partial‑identification transforms DiD from a "take‑it‑or‑leave‑it" enterprise into a transparent sensitivity analysis. By explicitly parameterizing and visually communicating, the extent of permissible departures from parallel trends, researchers allow readers to map their own priors onto empirical conclusions. Used thoughtfully, PI techniques enhance credibility without demanding the impossible.
+Partial-identification transforms DiD from a "take-it-or-leave-it" enterprise into a transparent sensitivity analysis. By explicitly parameterizing and visually communicating, the extent of permissible departures from parallel trends, researchers allow readers to map their own priors onto empirical conclusions. Used thoughtfully, PI techniques enhance credibility without demanding the impossible.
+
+------------------------------------------------------------------------
+
+#### Putting the Pieces Together
+
+A defensible modern DiD analysis rarely relies on a single diagnostic; it layers several. A reasonable template, drawing on the tools surveyed in this chapter and on the broader [quasi-experimental](#sec-quasi-experimental) toolkit, looks like this. Begin with raw outcome plots and an event-study (the [visualization](#sec-visualization-did) and [event studies](#sec-event-studies) sections give the mechanics) to inspect both levels and trends. If the data are staggered, run the [Goodman-Bacon decomposition](#sec-goodman-bacon-decomposition) and re-estimate using a heterogeneity-robust estimator from Section \@ref(sec-modern-estimators-for-staggered-adoption) before drawing any substantive conclusion from a TWFE coefficient. Layer in [placebo tests](#sec-placebo-test-did) (group-based, time-based, and randomization-based) and the robustness checks above to discipline modeling choices. Where parallel trends in levels is suspect, consider [matching](#sec-matching-methods), [synthetic control](#sec-synthetic-control), [synthetic DiD](#sec-synthetic-difference-in-differences), or [changes-in-changes](#sec-changes-in-changes) as design-level alternatives. Finally, use partial identification, with both [relative-magnitude](#sec-relative-magnitude-restriction-honestdid) and [smoothness](#sec-smoothness-restriction-honestdid) restrictions, to communicate how much violation of the identifying assumption the conclusion can absorb. The point of the exercise is not to mechanically tick boxes but to give a reader a concrete sense of which failure modes have been ruled out, which remain plausible, and how much they would have to bite before the headline result reverses. A DiD analysis that survives that gauntlet is rarely "proven", but it is unusually difficult to dismiss.

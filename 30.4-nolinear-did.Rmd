@@ -1,12 +1,18 @@
 ### Nonlinear Difference-in-Differences {#sec-nonlinear-did}
 
-Traditional Difference-in-Differences methods typically rely on linear models with strong assumptions like constant treatment effects and homogeneous trends across treatment groups. These assumptions often fail in real-world data, especially when outcomes are binary, fractional, or counts, such as:
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
 
--   Employment status (binary),
--   Proportion of customers who churned (fraction),
--   Number of crimes in a neighborhood (count).
+The standard [Difference-in-Differences](#sec-difference-in-differences) estimator assumes that the untreated potential outcome trends linearly across groups: in the absence of treatment, the treated and control groups would have moved on parallel lines. This is a defensible assumption for continuous outcomes that range freely over the real line (log earnings, log expenditure, voter share), but it breaks down when the outcome is bounded, discrete, or otherwise constrained. A linear trend that produces an "untreated employment rate" of $-0.05$ or a "predicted churn proportion" of $1.13$ has not actually predicted anything, and an estimator built on top of such a prediction is mis-specified in a way the linear specification will not flag.
 
-In these cases, the **linear parallel trends** assumption may be inappropriate. This section develops an advanced, flexible framework for nonlinear DiD estimation with staggered interventions [@wooldridge2023simple].
+The cases where this matters are common in applied work:
+
+-   **Binary outcomes**, such as employment status, default indicators, or whether a customer renewed a contract. The outcome is bounded in $\{0, 1\}$ and the conditional mean lies in $[0, 1]$.
+-   **Fractional outcomes**, such as the proportion of a firm's customers who churned, the share of a portfolio invested in a particular asset, or the fraction of households in poverty. The outcome lies in $[0, 1]$.
+-   **Count outcomes**, such as the number of crimes in a neighborhood, the number of patents filed by a firm, or the number of insurance claims per policyholder. The outcome is a non-negative integer with a discrete distribution.
+
+For each of these, the natural model of the conditional mean is *nonlinear*: a logistic or probit link for binary and fractional outcomes, an exponential link for counts. Linear parallel trends imposed on such outcomes can produce qualitatively wrong inferences, including effects with the wrong sign in regions of the covariate space where the linear approximation is at its worst. The framework developed below, drawing on @wooldridge2023simple, replaces linear parallel trends with a *parallel trends in a transformed index*, which respects the constrained nature of the outcome while preserving the DiD logic of canceling unit and time fixed effects through differencing.
+
+The remainder of this section develops the framework in three parts: an overview of the nonlinear conditional-mean structure, the identifying assumptions (a conditional no-anticipation condition and a conditional index-parallel-trends condition), and two equivalent estimators (an imputation estimator and a pooled QMLE).
 
 ------------------------------------------------------------------------
 
@@ -14,10 +20,10 @@ In these cases, the **linear parallel trends** assumption may be inappropriate. 
 
 We consider a panel dataset where units are observed over $T$ time periods. Units become treated at various times (staggered rollout), and the goal is to estimate [Average Treatment Effect on the Treated] (ATT) at different times.
 
-Let $Y_{it}(g)$ denote the potential outcome at time $t$ if unit $i$ were first treated in period $g$, with $g = q, \ldots, T$ or $g = \infty$ (never treated). Define the ATT for cohort $g$ at time $r \geq g$ as:
+Let $Y_{it}(g)$ denote the potential outcome at time $t$ if unit $i$ were first treated in period $g$, where $g = q, \ldots, T$ for treated cohorts. Let $Y_{it}(0)$ denote the never-treated potential outcome. Define the ATT for cohort $g$ at time $r \geq g$ as:
 
 $$
-\tau_{gr} = \mathbb{E}\left[Y_{ir}(g) - Y_{ir}(\infty) \mid D_g = 1\right]
+\tau_{gr} = \mathbb{E}\left[Y_{ir}(g) - Y_{ir}(0) \mid D_g = 1\right]
 $$
 
 Here, $D_g = 1$ indicates that unit $i$ was first treated in period $g$.
@@ -34,19 +40,25 @@ This formulation nests logistic and Poisson mean structures, and allows us to ha
 
 #### Assumptions
 
-We require the following identification assumptions:
+Identification of the nonlinear DiD ATT requires two assumptions, each a natural extension of the standard linear DiD assumptions to the nonlinear setting.
 
--   **Conditional No Anticipation:** $$
-    \mathbb{E}[Y_{it}(g) \mid D_g = 1, X] = \mathbb{E}[Y_{it}(\infty) \mid D_g = 1, X], \quad \forall t < g
-    $$
+The first is **Conditional No Anticipation**: prior to treatment, the conditional mean of the eventually-treated cohort does not differ systematically from the conditional mean it would have had under permanent non-treatment. Formally,
 
--   **Conditional Index Parallel Trends:** The untreated mean trends are parallel in a transformed index space: $$
-    \mathbb{E}[Y_{it}(\infty) \mid D, X] = G(\text{linear index in } D, X, t)
-    $$
+$$
+\mathbb{E}[Y_{it}(g) \mid D_g = 1, X] = \mathbb{E}[Y_{it}(0) \mid D_g = 1, X], \quad \forall t < g.
+$$
 
-    -   $G(\cdot)$ is a **known**, strictly increasing function (e.g., $\exp(\cdot)$ for Poisson)
+In words, the cohort treated at $g$ does not adjust its behavior in anticipation of treatment in the periods before $g$. This is the same assumption as in linear DiD; the only difference is that it is now phrased in terms of the conditional mean of the *transformed* outcome rather than the level. Anticipation, where present, manifests as a divergence of the cohort's pre-treatment conditional means from the untreated counterfactual, and it can be diagnosed in the same way as in standard event-study plots.
 
-These assumptions are weaker and more realistic than linear Parallel Trends, especially when outcomes are constrained.
+The second is **Conditional Index Parallel Trends**: the untreated mean trends are parallel after passing through a known monotone transformation $G(\cdot)$. Formally,
+
+$$
+\mathbb{E}[Y_{it}(0) \mid D, X] = G(\text{linear index in } D, X, t),
+$$
+
+where $G$ is strictly increasing and known up to its functional form (e.g., $G(\cdot) = \exp(\cdot)$ for Poisson outcomes, or the logistic CDF $G(\cdot) = \Lambda(\cdot)$ for binary outcomes). The choice of $G$ is dictated by the outcome: count outcomes call for the exponential, binary outcomes for the logistic or probit, and so on. The substantive content of the assumption is that on the *index* scale (the argument of $G$), trends are parallel across groups; on the outcome scale they are parallel only after the transformation, which is what allows the model to respect the bounds on the outcome.
+
+These assumptions are weaker than linear parallel trends in two ways. First, they accommodate bounded outcomes without imposing implausible counterfactuals. Second, they allow for cross-group differences in the transformation that the linear specification would force into the residual. The trade-off is that the analyst must commit to a specific link function $G$, and a mis-specified link can re-introduce some of the bias that the framework was meant to remove.
 
 ------------------------------------------------------------------------
 
@@ -196,7 +208,7 @@ simdat <- data.frame(
 head(simdat)
 ```
 
-In this business setting, you can imagine that `logY` is the natural log of revenue, sales, or another KPI, and `xvar` is a log of local population, number of competitor stores in the region, or similar.
+In this business setting, `logY` represents the natural log of revenue, sales, or another KPI, and `xvar` represents a log of local population, the number of competitor stores in the region, or a comparable covariate.
 
 3.  Estimate with `etwfe`
 
@@ -225,7 +237,7 @@ mod <- etwfe(
 )
 ```
 
-Nothing fancy will appear in the raw coefficient list because it's fully "saturated" with interactions. The real prize is in the aggregated treatment effects, which we'll obtain next.
+The raw coefficient list is uninformative on its own because the model is fully saturated with interactions. The substantive output is the aggregated treatment effects, which we obtain next.
 
 4.  Recover the [ATT](#sec-average-treatment-effect-on-the-treated)
 

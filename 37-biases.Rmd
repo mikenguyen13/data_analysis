@@ -1,6 +1,6 @@
-# Other Biases
+# Biases {#sec-biases}
 
-In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. The list below organises the biases this book has discussed alongside those treated here.
+In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. This chapter focuses on biases that arise from the *design* of the study or the *measurement* of variables; specification errors, multicollinearity, autocorrelation, and heteroskedasticity are properties of the *estimation* and are covered in the regression chapters in Part A. The list below organises the biases this book has discussed alongside those treated here.
 
 What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
@@ -35,6 +35,8 @@ What we've covered so far (see [Linear Regression] and [Endogeneity]):
 Aggregation bias, also known as ecological fallacy, refers to the error introduced when data are aggregated and an analysis is conducted at this aggregate level, rather than at the individual level. This can be especially problematic in econometrics, where analysts are often concerned with understanding individual behavior.
 
 When the relationship between variables is different at the aggregate level than at the individual level, aggregation bias can result. The bias arises when inferences about individual behaviors are made based on aggregate data.
+
+The mechanism behind aggregation bias is straightforward but easy to overlook: averaging discards information about within-group heterogeneity. If the slope of a relationship varies across subpopulations, then the slope estimated on group means is a weighted combination of within-group and between-group variation, and the weights need not equal those that recover the individual-level parameter. This is the same identification logic that motivates careful aggregation choices in panel and quasi-experimental work (see Section \@ref(sec-quasi-experimental)). Detection typically relies on comparing estimates across nested levels of aggregation, inspecting whether sign or magnitude flips when moving from individuals to groups, and checking whether group composition is itself correlated with the regressor of interest.
 
 **Example**: Suppose we have data on individuals' incomes and their personal consumption. At the individual level, it's possible that as income rises, consumption also rises. However, when we aggregate the data to, say, a neighborhood level, neighborhoods with diverse income levels might all have similar average consumption due to other unobserved factors.
 
@@ -268,15 +270,25 @@ gridExtra::grid.arrange(grobs = list(p1, p2, p3), ncol = 1)
 
 ## Contamination Bias {#sec-contamination-bias}
 
-@goldsmith2022contamination show regressions with multiple treatments and flexible controls often fail to estimate convex averages of heterogeneous treatment effects, resulting in contamination by non-convex averages of other treatments' effects.
+Contamination bias is a relatively recent label for an old problem in regression-based causal inference: when several mutually exclusive treatments enter the same specification alongside flexible controls, the coefficient on any one treatment is generally not a clean average of that treatment's own effect. Instead, it picks up weighted contrasts of the *other* treatments' effects, with weights that depend on the propensity-score geometry rather than on substantive theory. The problem is closely related to the negative-weighting concerns that motivate modern staggered estimators (Section \@ref(sec-modern-estimators-for-staggered-adoption)) discussed under [Difference-in-Differences](#sec-difference-in-differences), and it shares its root cause with omitted-variable and selection issues discussed in Sections \@ref(sec-omitted-variable-bias) and \@ref(sec-selection-on-observables): the implicit comparison group is not what the analyst thinks it is.
 
--   3 estimation methods to avoid this bias and find significant contamination bias in observational studies, with experimental studies showing less due to lower variability in propensity scores.
+The mechanism is easiest to see with a worked sketch. Suppose three mutually exclusive treatment arms $D_1, D_2, D_3$ are entered as dummies in a single regression with a rich set of controls $X$. The OLS coefficient on $D_1$ does not isolate the effect of arm 1 versus a clean baseline. It is a weighted average that includes negatively signed contributions from the heterogeneous effects of $D_2$ and $D_3$ in strata where those treatments are common. When effect heterogeneity lines up with the propensity score in the wrong direction, the resulting estimate can be attenuated, inflated, or even sign-flipped relative to the true average effect within arm 1. @goldsmith2022contamination formalize this: regressions with multiple treatments and flexible controls often fail to estimate convex averages of heterogeneous treatment effects, with the residualized treatment indicators inducing non-convex weights on the other arms' effects.
+
+The structural parallel to staggered DiD is direct. In both cases, a single regression coefficient is implicitly aggregating across heterogeneous comparison contrasts using weights chosen by the regression machinery rather than by the analyst. In staggered DiD, the contaminating contrasts come from already-treated units serving as controls for later-treated units; in multi-arm regressions, they come from the other arms' treatment effects bleeding into the focal coefficient. The fix in both literatures has the same shape: target convex combinations of own-effect contrasts directly, rather than backing them out of a pooled OLS specification.
+
+Detection is largely diagnostic. Practitioners can inspect the implied regression weights on each treatment-by-stratum cell and check whether they are everywhere positive; flag specifications where some weights are large and negative; and compare the linear specification to estimators that target convex averages directly, such as arm-by-arm matching, separate ATE estimators per arm, or explicitly weighted estimators. Observational designs with highly variable propensity scores tend to display larger contamination than experiments, because randomization stabilizes the weights and shrinks the residualized regressors toward orthogonality with the other arms.
+
+The remedy is to abandon the pooled multi-arm OLS specification when the goal is an own-effect estimate. @goldsmith2022contamination propose three alternative estimators that recover convex combinations of own-treatment effects: a one-treatment-at-a-time approach, a stratification-based estimator, and an interacted regression that explicitly models the heterogeneity. They report substantial contamination in observational studies and a much smaller footprint in experimental ones, again because randomization disciplines the propensity-score variation that drives the bias.
+
+The practical takeaway is conservative: when the design has multiple mutually exclusive treatment arms, do not read coefficients on the arm dummies in a pooled flexible-controls regression as own-effect averages. Estimate one arm at a time against a common baseline, or use a method that explicitly targets the convex average of interest.
 
 ------------------------------------------------------------------------
 
 ## Survivorship Bias {#sec-survivorship-bias}
 
 Survivorship bias refers to the logical error of concentrating on the entities that have made it past some selection process and overlooking those that didn't, typically because of a lack of visibility. This can skew results and lead to overly optimistic conclusions.
+
+Mechanically, survivorship bias is a special case of conditioning on a post-treatment selection variable. When the probability of appearing in the analysis sample depends on the outcome itself, or on unobservables that drive the outcome, the conditional distribution observed in the data is a non-random slice of the population. This is the same structural problem flagged under the conditional ignorability assumption (Section \@ref(sec-conditional-ignorability-assumption)) and the overlap requirement (Section \@ref(sec-overlap-positivity-assumption)): the comparison set has been silently truncated. Detection typically begins with an explicit accounting of the selection process. How were units recruited into the dataset? What attrition or de-listing rules apply? Comparing summary statistics for the analysis sample to a reference population, when one is available, often reveals the gap. Sensitivity analyses that posit plausible distributions for the missing units, and bounding exercises that flip the worst-case assumption, are routine.
 
 **Example**: If you were to analyze the success of companies based only on the ones that are still in business today, you'd miss out on the insights from all those that failed. This would give you a distorted view of what makes a successful company, as you wouldn't account for all those that had those same attributes but didn't succeed.
 
@@ -362,6 +374,8 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 
 **Attrition bias** arises in longitudinal or panel studies when units drop out of the sample non-randomly --- and in particular when dropout is correlated with the outcome or with treatment status. Even a randomized experiment with perfect baseline balance will yield biased treatment-effect estimates if, for example, sicker patients in the control arm are more likely to be lost to follow-up than sicker patients in the treatment arm.
 
+The conceptual link to other selection-style problems is direct. Random assignment guarantees baseline ignorability, but it offers no protection once units begin selecting themselves out of follow-up; from that point forward the analyst is in the world of selection on unobservables (Section \@ref(sec-selection-on-unobservables)) and endogenous sample selection (Section \@ref(sec-endogenous-sample-selection)). Detection typically combines a comparison of baseline characteristics for completers versus dropouts, a test of differential attrition rates across treatment arms, and bounding exercises that ask how extreme the missing outcomes would have to be to overturn the headline estimate. When attrition is heavy or differential, results from quasi-experimental designs (Section \@ref(sec-quasi-experimental)) should be reported alongside their corresponding robustness checks (Section \@ref(sec-robustness-checks-quasi-exp)).
+
 **Example**: In a multi-year clinical trial of a weight-loss drug, participants who fail to lose weight are more likely to disengage and drop out. If dropout is heavier in the placebo arm, the per-protocol estimate overstates the drug's effect because the remaining placebo subjects are atypically successful.
 
 **Common settings**: longitudinal panel surveys (PSID, NLSY, HRS), randomized field experiments with multi-wave follow-ups, cohort studies in epidemiology, customer-retention analytics, and online-experiment platforms where users abandon the funnel before the outcome is recorded.
@@ -380,6 +394,8 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 ## Recall Bias {#sec-recall-bias}
 
 **Recall bias** is a form of [measurement error](#sec-measurement-error) that arises when the accuracy or completeness of a respondent's memory is systematically related to their outcome or exposure status. Unlike classical, mean-zero measurement error --- which generally attenuates regression coefficients --- recall bias is *differential*, meaning it shifts coefficients in unpredictable directions and can manufacture spurious associations.
+
+The departure from classical measurement error (Section \@ref(sec-measurement-error)) is what makes recall bias particularly hazardous. Classical error attaches noise that is independent of the truth and of group status, so the standard intuition that errors-in-variables attenuate slopes applies. Differential recall, by contrast, is correlated with the outcome itself; this correlation can either inflate or deflate associations and can even reverse their sign. The same instrumental-variable and proxy-variable strategies discussed in Section \@ref(sec-instrumental-variables) for handling endogeneity can sometimes be repurposed when an exogenous source of variation in reporting accuracy is available. Detection usually proceeds by comparing self-reported quantities to objective benchmarks on a calibration subsample, by stratifying error rates by case/control or treatment/control status, and by examining whether the implied error structure is plausibly mean-zero conditional on group.
 
 **Example**: In a case-control study of diet and cancer, cancer patients (cases) may scrutinize their pre-diagnosis diet more carefully than healthy controls, recalling specific high-risk items that controls forget. The retrospective association between diet and cancer is then exaggerated, not because of true causation but because *recall is correlated with case status*.
 
@@ -418,6 +434,8 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 ## Publication Bias {#sec-publication-bias}
 
 Publication bias occurs when the results of studies influence the likelihood of their being published. Typically, studies with significant, positive, or sensational results are more likely to be published than those with non-significant or negative results. This can skew the perceived effectiveness or results when researchers conduct meta-analyses or literature reviews, leading them to draw inaccurate conclusions.
+
+Publication bias sits at a different layer of the inference pipeline than the data-generating biases catalogued elsewhere in this chapter. It does not corrupt any single study's identification strategy; rather, it corrupts the *evidence base* that downstream meta-analysts and policymakers rely on. The mechanism is a filter on top of an otherwise honest research process: studies whose realized z-statistic clears the conventional threshold are likelier to enter the published record, so the published distribution of effect sizes is right-shifted relative to the underlying truth. This is the same selection logic that creates survivorship bias (Section \@ref(sec-survivorship-bias)), with the published literature playing the role of "survivors" and the file drawer playing the role of the missing failures. Detection methods exploit predictable features of the unfiltered distribution, especially the relationship between effect size and standard error in a funnel plot, the shape of the p-value distribution near the significance threshold, and the rate of just-barely-significant z-statistics relative to what sampling theory implies. Several of these diagnostics are developed in detail in the section on p-Hacking that follows.
 
 **Example**: Imagine pharmaceutical research. If 10 studies are done on a new drug, and only 2 show a positive effect while 8 show no effect, but only the 2 positive studies get published, a later review of the literature might erroneously conclude the drug is effective.
 
@@ -877,11 +895,6 @@ y_i \sim \mathcal{N}(\theta, s_i^2), \quad p_i = p(y_i).
 $$
 
 Observed likelihood with selection weights:
-
-$$
-L(\theta, \mathbf{w}) \propto \prod_{i=1}^k \frac{\phi\left(\frac{y_i-\theta}{s_i}\right)\frac{1}{s_i} w(p_i)}
-{\int \phi\left(\frac{y-\theta}{s_i}\right)\frac{1}{s_i} w(p(y)) dy}.
-$$
 
 $$
 L(\theta, \mathbf{w}) \propto \prod_{i=1}^k \frac{\phi\left(\frac{y_i-\theta}{s_i}\right)\frac{1}{s_i} w(p_i)}

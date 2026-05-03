@@ -4,6 +4,8 @@ Directed acyclic graphs (DAGs) provide a formal and visual framework for represe
 
 A DAG is a graph composed of nodes (representing variables) and directed edges (arrows) showing the direction of causality. *Acyclic* means that the graph contains no feedback loops; one cannot return to the same node by following the direction of the arrows. The arrows encode *structural* assumptions: an arrow from $X$ to $Y$ states that, holding all other parents of $Y$ fixed, intervening on $X$ can change $Y$.
 
+DAGs sit at the centre of the design choices made elsewhere in the book. The selection-on-observables strategies discussed in Section \@ref(sec-selection-on-observables) presume that a finite set of measured covariates closes every back-door path, while the selection-on-unobservables tools of Section \@ref(sec-selection-on-unobservables) acknowledge that no such set exists and seek leverage from instruments, panels, or natural experiments. The conditional-ignorability assumption of Section \@ref(sec-conditional-ignorability-assumption) and the overlap requirement of Section \@ref(sec-overlap-positivity-assumption) both have transparent graphical readings on a DAG, as do violations of [SUTVA](#sec-sutva) when interference adds new edges between units. The chapter therefore complements the [quasi-experimental](#sec-quasi-experimental) toolkit by giving analysts a language for stating which design assumptions are credible before any estimator is chosen.
+
 Understanding DAGs helps analysts reason about:
 
 -   Which variables to control for in a regression model.
@@ -87,15 +89,74 @@ When such an $\mathbf{S}$ exists,
 $$
 P(Y \mid \operatorname{do}(X = x)) = \sum_{s} P(Y \mid X = x, \mathbf{S} = s)\, P(\mathbf{S} = s),
 $$
-the familiar covariate-adjustment formula. The back-door criterion is the workhorse behind regression adjustment, propensity-score methods, and matching [@Pearl_2018].
+the familiar covariate-adjustment formula. The back-door criterion is the workhorse behind regression adjustment, propensity-score methods, and the [matching methods](#sec-matching-methods) developed for observational data. It is also the graphical counterpart of the [omitted-variable bias](#sec-omitted-variable-bias) intuition: an unblocked back-door path is exactly what a missing regressor produces in linear models [@Pearl_2018].
 
 ### The front-door criterion
 
-When every back-door adjustment set contains an *unmeasured* variable, back-door adjustment fails. The **front-door criterion** offers a second route to identification through a fully mediated pathway. Suppose all of the effect of $X$ on $Y$ flows through an observed mediator $M$, and there is no unblocked back-door path from $X$ to $M$ or from $M$ to $Y$ (other than through $X$). Then
+When every back-door adjustment set contains an *unmeasured* variable, back-door adjustment fails. This is the graphical face of [endogeneity](#sec-endogeneity): the regression of $Y$ on $X$ with the available controls is no longer interpretable as a structural effect. The **front-door criterion** offers a second route to identification through a fully mediated pathway. Suppose all of the effect of $X$ on $Y$ flows through an observed mediator $M$, and there is no unblocked back-door path from $X$ to $M$ or from $M$ to $Y$ (other than through $X$). Then
 $$
 P(Y \mid \operatorname{do}(X)) = \sum_m P(M = m \mid X) \sum_{x'} P(Y \mid M = m, X = x')\, P(X = x'),
 $$
-which is identifiable from observed data even when $X$ and $Y$ share an unmeasured confounder. The canonical illustration is given in Section \@ref(sec-frontdoor) below.
+which is identifiable from observed data even when $X$ and $Y$ share an unmeasured confounder. The canonical illustration is given in Section \@ref(sec-frontdoor) below. When neither criterion applies, analysts often turn to the [instrumental-variables](#sec-instrumental-variables) machinery, which exploits an exogenous source of variation in $X$ rather than attempting to block the back-door path.
+
+## Choosing among competing adjustment sets: a worked example {#sec-adjustment-sets-worked-example}
+
+The back-door criterion typically admits more than one valid adjustment set, and `dagitty::adjustmentSets()` returns the *minimal* ones, that is, the sets from which no variable can be removed without reopening a back-door path. The following worked example shows how the function picks among competing minimal sets in a DAG with several back-door paths, a mediator, and a collider, and how the analyst chooses between the candidates that the function reports.
+
+Consider the DAG in Figure \@ref(fig:dag-multiple-paths). The exposure $X$ has several common causes with the outcome $Y$: $V$ and $W$ each enter $X$ and $Y$ directly, while $U$ enters $X$ and reaches $Y$ only through an intermediate variable $Z$. In addition, $X$ acts on $Y$ both directly and through a mediator $M$, and the variable $K$ is a common effect (collider) of $X$ and $Y$, perhaps a downstream record-keeping flag generated after both treatment and outcome are realised.
+
+```{r dag-multiple-paths, fig.cap="A DAG with several back-door paths from X to Y, a mediator M, and a downstream collider K. The variables U, V, W, and Z together generate three distinct back-door paths and several competing minimal adjustment sets.", fig.alt="DAG with X on the left and Y on the right; V and W are common causes of X and Y; U points to X and to Z, and Z points to Y; X points to M which points to Y; X and Y both point to K below.", fig.width=7, fig.height=4.5}
+multipath <- dagitty("dag {
+  U -> X
+  U -> Z
+  Z -> Y
+  V -> X
+  V -> Y
+  W -> X
+  W -> Y
+  X -> M
+  M -> Y
+  X -> Y
+  X -> K
+  Y -> K
+}")
+
+coordinates(multipath) <- list(
+  x = c(U = 0, Z = 1, V = 1, W = 2, X = 1, M = 2, Y = 3, K = 2),
+  y = c(U = 3, Z = 3, V = 2.4, W = 2.4, X = 1.2, M = 1.2, Y = 1.2, K = 0)
+)
+
+ggdag(multipath) + theme_dag()
+```
+
+The three back-door paths are:
+
+1.  $X \leftarrow U \to Z \to Y$, which a chain through $Z$ closes either by conditioning on $U$ or on $Z$.
+2.  $X \leftarrow V \to Y$, blocked only by conditioning on $V$.
+3.  $X \leftarrow W \to Y$, blocked only by conditioning on $W$.
+
+The forward paths $X \to Y$ and $X \to M \to Y$ carry the causal effect we want to estimate, and the path $X \to K \leftarrow Y$ is blocked by default because $K$ is a collider. We now ask `dagitty` for the minimal back-door adjustment sets and, separately, for *all* admissible sets:
+
+```{r}
+adjustmentSets(multipath, exposure = "X", outcome = "Y")
+adjustmentSets(multipath, exposure = "X", outcome = "Y", type = "all")
+```
+
+The first call returns the two minimal back-door sets, $\{V, W, U\}$ and $\{V, W, Z\}$. Both close all three back-door paths: each contains $V$ and $W$ to handle paths (2) and (3), and each picks one of the two valid blockers, $U$ or $Z$, for path (1). The second call enumerates every admissible super-set, including $\{V, W, U, Z\}$, which is valid but not minimal because dropping either $U$ or $Z$ would still leave path (1) blocked.
+
+Several non-listed sets would be incorrect, and it is instructive to see why:
+
+-   **Conditioning on the collider $K$** would open the path $X \to K \leftarrow Y$, inducing a spurious association between $X$ and $Y$ that no other adjustment can repair. This is why $K$ never appears in any set returned by `adjustmentSets()`.
+-   **Conditioning on the mediator $M$** would block the indirect path $X \to M \to Y$ and so identify a controlled direct effect rather than the total effect $X \to Y$. The function does not return $M$ for the default `effect = "total"`; requesting `effect = "direct"` would change the answer.
+-   **Dropping $V$ or $W$** from either minimal set leaves a back-door path unblocked. For instance, $\{U, W\}$ omits $V$ and so leaves $X \leftarrow V \to Y$ open. `isAdjustmentSet(multipath, c("U", "W"), exposure = "X", outcome = "Y")` returns `FALSE`.
+
+Because both $\{V, W, U\}$ and $\{V, W, Z\}$ identify the same total effect under the assumed DAG, the choice between them is not a question of identification but of statistical and measurement practice. Three considerations typically settle it.
+
+-   **Measurement quality.** If $U$ is a noisy proxy for an underlying latent trait while $Z$ is recorded cleanly, conditioning on $Z$ will block path (1) more reliably; the reverse holds when $Z$ is the noisier variable. The [measurement-error](#sec-measurement-error) discussion explains why a noisy adjustment variable leaves a residual open path proportional to the noise variance.
+-   **Sample-size and overlap considerations.** The set whose joint distribution overlaps better between treated and control units yields more stable [propensity scores](#sec-propensity-scores) and better finite-sample behaviour for [matching methods](#sec-matching-methods). When $U$ is high-dimensional or sparsely supported, the lower-dimensional set $\{V, W, Z\}$ may be preferable on overlap grounds even if both are theoretically valid.
+-   **Robustness to DAG misspecification.** If the analyst suspects an additional unobserved arrow into $Z$ that the drawn DAG omits, conditioning on $Z$ would itself open a new back-door path and bias the estimate, while conditioning on $U$ would not. Reporting estimates under both minimal sets is a cheap and informative sensitivity check, and large discrepancies are a warning that the DAG is wrong.
+
+The same logic generalises: when `adjustmentSets()` returns several minimal candidates, the function has done its identification job, and the analyst's remaining decision is an empirical trade-off about which observed surrogate is best measured, best supported, and least vulnerable to plausible departures from the assumed graph.
 
 ## Confounders, mediators, and colliders side by side
 
@@ -141,6 +202,8 @@ knitr::kable(
 )
 ```
 
+Reading Table \@ref(tab:dag-roles) row by row clarifies why a single covariate cannot be classified in isolation: the same variable can be a confounder in one DAG, a mediator in another, and a collider in a third, depending on the surrounding edges. The graphical perspective also underwrites the [mediation analysis](#sec-mediation-analysis-explaining-the-causal-pathway) framework, which decomposes total effects along chain paths, and the [moderation analysis](#sec-moderation-analysis-for-whom-or-under-what-conditions) framework, which examines how effects vary across subgroups defined by additional covariates.
+
 ## A confounded mediator example
 
 We now build a small DAG that contains *both* a mediator and a true confounder. The exposure $X$ affects $Y$ through a mediator $Z$, and an unobserved variable $U$ confounds the $X \to Y$ relationship by acting as a common cause of $X$ and $Y$. Figure \@ref(fig:dag-mediator-confounder) shows the structure.
@@ -174,7 +237,7 @@ Because $U$ is unobserved, regressing $Y$ on $X$ and $Z$ alone will not identify
 adjustmentSets(dag, exposure = "X", outcome = "Y", type = "all")
 ```
 
-If $U$ were observed, the singleton $\{U\}$ would close the back-door path and identify the total effect of $X$ on $Y$. Conditioning *also* on the mediator $Z$ would instead identify the controlled direct effect of $X$ on $Y$ holding $Z$ fixed -- a different estimand whose interpretation is much more delicate [@vanderweele2015explanation].
+If $U$ were observed, the singleton $\{U\}$ would close the back-door path and identify the total effect of $X$ on $Y$. Conditioning *also* on the mediator $Z$ would instead identify the controlled direct effect of $X$ on $Y$ holding $Z$ fixed, a different estimand whose interpretation is much more delicate [@vanderweele2015explanation]. Inadvertently conditioning on a mediator is one of the canonical examples of [overcontrol bias](#sec-overcontrol-bias), and the [good and bad controls checklist](#sec-controls) in the regression chapter treats this case at length. When $U$ is genuinely unobserved but a clean proxy is available, the [proxy-variable methods](#sec-proxy-variables) of the next chapter become the natural fallback; when $U$ is measured with error, the [measurement-error](#sec-measurement-error) discussion governs how much of the back-door path the noisy proxy actually closes.
 
 ## M-bias: when adjusting for a pre-treatment variable hurts
 
@@ -223,7 +286,7 @@ coef(lm(Y ~ X))["X"]      # close to the true effect (1.0)
 coef(lm(Y ~ X + Z))["X"]  # biased away from 1.0 because Z is a collider
 ```
 
-The "control for everything" heuristic fails here. M-bias is the prototypical reason that pre-treatment covariates cannot be adjusted for indiscriminately [@cinelli2022crash].
+The "control for everything" heuristic fails here. M-bias is the prototypical reason that pre-treatment covariates cannot be adjusted for indiscriminately [@cinelli2022crash]. The same warning is delivered, in a different vocabulary, by the [good and bad controls](#sec-controls) discussion in the regression chapter, where M-bias appears as a textbook case of well-intentioned [overcontrol bias](#sec-overcontrol-bias).
 
 ## Berkson's paradox and selection on a collider
 
@@ -260,7 +323,7 @@ cor(talent, beauty)                             # near 0
 cor(talent[famous], beauty[famous])             # spuriously negative
 ```
 
-The lesson generalises: any analysis that filters cases on an outcome-related criterion (hospital records, survey respondents who replied, customers retained for at least 90 days) is implicitly conditioning on a collider, and "obvious" associations among the survivors may be entirely artefactual.
+The lesson generalises: any analysis that filters cases on an outcome-related criterion (hospital records, survey respondents who replied, customers retained for at least 90 days) is implicitly conditioning on a collider, and "obvious" associations among the survivors may be entirely artefactual. The same logic underlies the discussion of [survivorship bias](#sec-survivorship-bias), which gives several finance and management examples in which the conditioning event is not even acknowledged as such by the analyst.
 
 ## The front-door criterion: smoking, tar, and cancer {#sec-frontdoor}
 
@@ -290,7 +353,7 @@ adjustmentSets(frontdoor, exposure = "Smoking", outcome = "Cancer",
                effect = "direct")
 ```
 
-The mediator $M$ (tar) plays a dual role: it is part of the causal pathway, *and* it is itself unconfounded with the outcome conditional on $X$. The front-door criterion is the historically important demonstration that causal effects can be identified from observational data even in the presence of unmeasured confounders, provided the mediation structure is credible [@Pearl_2018].
+The mediator $M$ (tar) plays a dual role: it is part of the causal pathway, *and* it is itself unconfounded with the outcome conditional on $X$. The front-door criterion is the historically important demonstration that causal effects can be identified from observational data even in the presence of unmeasured confounders, provided the mediation structure is credible [@Pearl_2018]. When such a mediator is unavailable, the design-based alternatives in the [instrumental-variables](#sec-instrumental-variables) chapter, the [regression-discontinuity](#sec-regression-discontinuity) chapter, the [difference-in-differences](#sec-difference-in-differences) chapter, the [event-study](#sec-event-studies) chapter, and the [synthetic-control](#sec-synthetic-control) chapter offer complementary routes to identification, each underwritten by its own DAG-readable assumptions.
 
 ## Conditioning on a descendant of a collider
 
@@ -326,7 +389,7 @@ coef(lm(Y ~ X + Z))["X"]             # spurious negative
 coef(lm(Y ~ X + W))["X"]             # also spurious, smaller magnitude
 ```
 
-The takeaway is that the d-separation rule for colliders extends to all descendants: a collider blocks a path only when it *and all of its descendants* are absent from the conditioning set.
+The takeaway is that the d-separation rule for colliders extends to all descendants: a collider blocks a path only when it *and all of its descendants* are absent from the conditioning set. With this rule in hand, we are ready to translate the chain-fork-collider-descendant taxonomy into a practical decision rule for which covariates to include in a regression specification.
 
 ## Good and bad controls: a checklist
 
@@ -336,7 +399,7 @@ Cinelli, Forney, and Pearl's "crash course in good and bad controls" works throu
 -   **Neutral controls.** Variables that are causes of $Y$ but not of $X$, and not on any back-door path, do not bias the effect estimate but can improve precision.
 -   **Bad controls.** Mediators (when total effects are the target), colliders, descendants of colliders, and "M-bias" pre-treatment colliders should *not* be adjusted for. Adjusting for an instrument of $X$ amplifies bias from any remaining unobserved confounders.
 
-The practical workflow is therefore: draw the DAG first, then ask `dagitty::adjustmentSets()` -- not the other way around.
+The practical workflow is therefore: draw the DAG first, then ask `dagitty::adjustmentSets()`, not the other way around. The longer version of this checklist, with worked regression-table consequences, lives in the [good and bad controls](#sec-controls) section of the regression chapter.
 
 ## Causal discovery
 
@@ -348,6 +411,8 @@ Causal discovery involves algorithmically identifying causal relationships from 
 
 > See [@eberhardt2024discovering] for a comprehensive discussion of the assumptions and limitations of discovery algorithms in practice.
 
+In applied work, causal discovery is best treated as a hypothesis-generation tool rather than a substitute for substantive theory: the algorithms recover a graph that is consistent with the conditional-independence structure of the data, but several DAGs typically share that structure, and only domain knowledge can distinguish between them.
+
 ## Practical workflow
 
 A defensible DAG-based analysis proceeds in four steps.
@@ -357,4 +422,4 @@ A defensible DAG-based analysis proceeds in four steps.
 3.  **Check the DAG against data** through testable implications -- conditional independencies the DAG predicts. `dagitty::impliedConditionalIndependencies()` lists them; rejecting them in data is evidence the DAG is misspecified.
 4.  **Estimate**, using a method (regression, matching, propensity scores, doubly robust estimators) that is faithful to the chosen adjustment set. The DAG only tells us *what* to adjust for; estimation choices still matter for finite-sample performance.
 
-Following these steps does not guarantee a correct answer -- assumptions can be wrong -- but it makes those assumptions explicit, falsifiable, and reviewable, which is the minimum a Springer-grade causal analysis should offer.
+Following these steps does not guarantee a correct answer, since assumptions can be wrong, but it makes those assumptions explicit, falsifiable, and reviewable, which is the minimum a Springer-grade causal analysis should offer. Once the adjustment set is fixed, the choice of estimator typically reduces to the trade-offs already discussed in the [matching methods](#sec-matching-methods), [instrumental-variables](#sec-instrumental-variables), [difference-in-differences](#sec-difference-in-differences), and [synthetic-control](#sec-synthetic-control) chapters, depending on whether the credible identification strategy is selection-on-observables or one of its design-based alternatives.

@@ -1,5 +1,7 @@
 ## Modern Estimators for Staggered Adoption {#sec-modern-estimators-for-staggered-adoption}
 
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
+
 ::: {.rmdcaution}
 Why modern estimators are needed. When treatment is adopted at different times by different units (staggered adoption), the conventional two-way fixed-effects (TWFE) specification
 
@@ -40,41 +42,44 @@ The estimators introduced below address this problem directly: Callaway and Sant
 
 **Assumptions**
 
-The following assumptions are typically imposed to identify treatment effects in staggered adoption settings.
+Identifying $ATT(g, t)$ in a staggered design requires several restrictions on the data-generating process. Each plays a distinct role: some pin down the counterfactual, some restrict the assignment mechanism, and some ensure that the relevant comparison groups exist in finite samples. Reviewing them as a package, rather than as a checklist, clarifies which empirical settings are most likely to satisfy them and which diagnostics matter most.
 
 1.  **Staggered Treatment Adoption**\
-    Once treated, a unit remains treated in all subsequent periods.\
-    Formally, $D_{it}$ is non-decreasing in $t$.
+    Once treated, a unit remains treated in all subsequent periods, so $D_{it}$ is non-decreasing in $t$. This is what makes the design "staggered" rather than "switching": absorbing treatment lets each cohort be summarized by a single adoption date $G_i$. Empirically the assumption fails whenever units can opt out, lose eligibility, or cycle in and out of policy regimes (think laws that sunset, subsidies that expire, or firms that adopt and later abandon a practice). When that happens, the cohort indexing breaks down and one must turn to estimators that explicitly accommodate transitions in both directions, such as the switching DiD framework discussed in Section \@ref(sec-switching-difference-in-differences-estimator-de2020two) and the panel-match approach in Section \@ref(sec-panel-match-did-estimator-with-in-and-out-treatment-conditions).
 
 2.  **Parallel Trends Assumptions** (Conditional or Unconditional on Covariates)
 
-    Two common variants:
+    Parallel trends is the central identifying restriction across all DiD designs (Section \@ref(sec-difference-in-differences)). In the staggered setting it must hold for *each* cohort $g$ relative to whichever comparison group is used. Two variants are standard, and they differ in which units serve as controls:
 
     -   **Parallel trends based on never-treated units**: $$
         \mathbb{E}[Y_t(0) - Y_{t-1}(0) | G_i = g] = \mathbb{E}[Y_t(0) - Y_{t-1}(0) | C_i = 1]
-        $$ Interpretation:
-        -   The average potential outcome trends of the treated group ($G_i = g$) are the same as the **never-treated** group, absent treatment.
+        $$ The cohort first treated at $g$ would, absent treatment, have evolved on the same path as units never exposed. This is the cleanest comparison because controls are by construction unaffected by treatment, but it presumes that a meaningful never-treated population exists and is comparable to eventual adopters. In policy settings with eventual universal rollout, the never-treated set is empty or unrepresentative.
+
     -   **Parallel trends based on not-yet-treated units**: $$
         \mathbb{E}[Y_t(0) - Y_{t-1}(0) | G_i = g] = \mathbb{E}[Y_t(0) - Y_{t-1}(0) | D_{is} = 0, G_i \ne g]
-        $$ Interpretation:
-        -   Units **not yet treated** by time $s$ ($D_{is} = 0$) can serve as controls for units first treated at $g$.
+        $$ Units that have not yet been treated by time $s$ serve as controls for cohort $g$. This is the workhorse variant when never-treated units are scarce or suspected to differ systematically. The cost is that controls eventually become treated, so the effective comparison sample shrinks at later horizons, and unmodeled anticipation by future cohorts can contaminate the trend.
 
-    These assumptions can also be **conditional on covariates** $X$, as:
+    Either variant can be imposed **conditional on covariates** $X$, leveraging the conditional ignorability logic discussed in Section \@ref(sec-conditional-ignorability-assumption):
 
     $$
     \mathbb{E}[Y_t(0) - Y_{t-1}(0) | X_i, G_i = g] = \mathbb{E}[Y_t(0) - Y_{t-1}(0) | X_i, C_i = 1]
     $$
 
-3.  **Random Sampling**\
-    Units are sampled independently and identically from the population.
+    The conditional version is appropriate when adoption timing correlates with observables that themselves move outcomes (firm size, baseline income, sector). Empirically, parallel trends fails when cohorts are differentially exposed to shocks (selection on shocks), when adoption is driven by anticipated outcome changes (Ashenfelter dips), or when underlying trends genuinely differ across cohorts. Pre-trend tests, the placebo strategies in Section \@ref(sec-placebo-test-did), and the partial-identification tools of Sections \@ref(sec-partial-identification-did), \@ref(sec-relative-magnitude-restriction-honestdid), and \@ref(sec-smoothness-restriction-honestdid) help diagnose and bound the consequences of violations.
 
-4.  **Irreversibility of Treatment**\
-    Once treated, units do not revert to untreated status.
+3.  **No Anticipatory Effects**\
+    Outcomes prior to $g$ should not respond to the impending treatment, so that pre-treatment periods are valid baselines. This is what makes the standard $g - 1$ reference period meaningful. Anticipation tends to appear when adoption is preceded by announcements, application processes, or strategic positioning by treated units; visible pre-trends in event-study plots are the usual telltale. When anticipation is unavoidable, researchers either shift the reference period further back or explicitly model the anticipation window.
 
-5.  **Overlap (Positivity)**\
-    For each group $g$, the propensity of receiving treatment at $g$ lies strictly within $(0, 1)$: $$
+4.  **Random Sampling**\
+    Units are drawn independently and identically from the target population. This sampling assumption underlies the standard inference machinery, including the multiplier-bootstrap procedures used in the @callaway2021difference framework. Clustered or network-correlated sampling violates it and typically requires cluster-robust inference or design-based alternatives such as the Fisher randomization tests demonstrated later in this section.
+
+5.  **Irreversibility of Treatment**\
+    Once treated, units do not revert to untreated status. This is the population-level analogue of the staggered adoption assumption above: it pins down what $Y_{it}(g)$ even means once $t \ge g$. It also rules out the kind of treatment cycling that would otherwise demand a switching estimator (Section \@ref(sec-switching-difference-in-differences-estimator-de2020two)).
+
+6.  **Overlap (Positivity)**\
+    For each group $g$ and each covariate cell, the probability of belonging to that cohort lies strictly inside the unit interval: $$
     0 < \mathbb{P}(G_i = g | X_i) < 1
-    $$
+    $$ Overlap (Section \@ref(sec-overlap-positivity-assumption)) ensures that conditional comparisons are not built on extrapolation. In small samples or with rich covariates the assumption is easy to violate by accident: a single covariate cell with no never-treated units forces the estimator to extrapolate, and inverse-probability weights blow up near the boundary. Trimming, coarsening covariates, or switching to outcome-regression-only adjustments are the usual remedies.
 
 ------------------------------------------------------------------------
 
@@ -96,16 +101,18 @@ Interpretation:
 
 Identification of $ATT(g, t)$
 
+Each parallel trends variant maps directly to a sample analogue. The choice is driven by what counts as a credible control: a never-treated reservoir if one exists, the not-yet-treated otherwise, with covariate adjustment layered on whenever observables predict adoption timing.
+
 1.  **Using Never-Treated Units as Controls**: $$
     ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | C_i = 1], \quad \forall t \ge g
-    $$
+    $$ Preferred when the never-treated population is large and plausibly comparable. It avoids any contamination from future treatment effects but is only as good as the comparability of the two groups.
 
 2.  **Using Not-Yet-Treated Units as Controls**: $$
     ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | D_{it} = 0, G_i \ne g], \quad \forall t \ge g
-    $$
+    $$ Useful when a never-treated group is small, missing, or visibly different from adopters. It expands the effective control sample but requires that future cohorts not anticipate treatment in ways that distort their pre-period outcomes.
 
 3.  **Conditional Parallel Trends (with Covariates)**:\
-    If treatment assignment depends on covariates $X_i$, adjust the parallel trends assumption:
+    When treatment assignment depends on covariates $X_i$, identification requires the conditional version of parallel trends and a corresponding adjustment, typically through outcome regression, inverse-probability weighting, or a doubly robust combination of the two:
 
     -   **Never-treated controls**: $$
         ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | X_i, G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | X_i, C_i = 1], \quad \forall t \ge g
@@ -114,44 +121,60 @@ Identification of $ATT(g, t)$
         ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | X_i, G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | X_i, D_{it} = 0, G_i \ne g], \quad \forall t \ge g
         $$
 
+    Covariate adjustment matters most when adoption is endogenous to characteristics that themselves drive outcome trends. The reweighting machinery here parallels the inverse-probability ideas in Section \@ref(sec-reshaped-inverse-probability-weighting-twfe-estimator), and overlap (Section \@ref(sec-overlap-positivity-assumption)) is the binding constraint on how aggressively one can condition.
+
 ------------------------------------------------------------------------
 
 Aggregating $ATT(g, t)$: Common Parameters of Interest
 
+The full grid $\{ATT(g, t)\}$ is rarely the object an applied researcher reports. There are typically too many cells, each estimated with limited precision, and policy questions usually demand a single summary or a small set of summaries. The aggregation step is therefore a substantive choice: it embeds a particular question about *which* treated units, *which* exposure horizons, and *which* calendar windows the reader should care about. The following parameters are the standard menu, and the right pick depends on whether the goal is a cohort-level effect, an overall effect, an exposure profile, or a time-series narrative.
+
 1.  [Average Treatment Effect] per Group ($\theta_S(g)$):\
-    Average effect over all periods after treatment for group $g$: $$
+    Average effect over all post-treatment periods for cohort $g$: $$
     \theta_S(g) = \frac{1}{\tau - g + 1} \sum_{t = g}^{\tau} ATT(g, t)
     $$
 
     -   $\tau$: Last time period in the panel.
 
+    Use $\theta_S(g)$ when the substantive interest is in *which cohorts* responded most. It is also the natural diagnostic for heterogeneity across adoption timing, the very source of bias documented in the @goodman2021difference decomposition (Section \@ref(sec-goodman-bacon-decomposition)). The drawback is that early cohorts are averaged over many post-periods while late cohorts are averaged over few, so $\theta_S(g)$ values are not directly comparable across $g$.
+
 2.  Overall [Average Treatment Effect on the Treated] (ATT) ($\theta_S^O$):\
-    Weighted average of $\theta_S(g)$ across groups $g$, weighted by their group size: $$
+    Weighted average of $\theta_S(g)$ across cohorts, with weights proportional to cohort size: $$
     \theta_S^O = \sum_{g=2}^{\tau} \theta_S(g) \cdot \mathbb{P}(G_i = g)
     $$
 
+    This is the closest analogue to the scalar $\beta$ that TWFE was supposed to deliver, but it is built from non-negative weights and so is interpretable as the average effect on a treated unit drawn at random. Report it when a single headline number is required; pair it with $\theta_S(g)$ or the dynamic profile below to avoid masking heterogeneity.
+
 3.  **Dynamic Treatment Effects** ($\theta_D(e)$):\
-    Average effect after $e$ periods of treatment exposure: $$
+    Average effect $e$ periods after adoption, averaged over cohorts that have been observed at least $e$ periods post-treatment: $$
     \theta_D(e) = \sum_{g=2}^{\tau} \mathbb{1}\{g + e \le \tau\} \cdot ATT(g, g + e) \cdot \mathbb{P}(G_i = g | g + e \le \tau)
     $$
 
+    The dynamic profile is the natural target when treatment effects build up, decay, or peak over time. It is the foundation of event studies (Section \@ref(sec-event-studies)) and supports the visualization conventions discussed in Section \@ref(sec-visualization-did). Note that the composition of cohorts entering $\theta_D(e)$ shifts with $e$: at long horizons only early-adopting cohorts remain, so apparent dynamics may reflect cohort composition as much as time-since-treatment.
+
 4.  **Calendar Time Treatment Effects** ($\theta_C(t)$):\
-    Average treatment effect at time $t$ across all groups treated by $t$: $$
+    Average treatment effect at calendar time $t$ across all cohorts already treated by $t$: $$
     \theta_C(t) = \sum_{g=2}^{\tau} \mathbb{1}\{g \le t\} \cdot ATT(g, t) \cdot \mathbb{P}(G_i = g | g \le t)
     $$
 
+    Choose $\theta_C(t)$ when the question is *how the policy is performing as time passes*, for example whether a treatment loses bite during a recession or strengthens after a complementary policy goes into effect. It is also the right object when a macro shock plausibly hits all treated units simultaneously.
+
 5.  **Average Calendar Time Treatment Effect** ($\theta_C$):\
-    Average of $\theta_C(t)$ across all post-treatment periods: $$
+    Average of $\theta_C(t)$ across post-treatment periods: $$
     \theta_C = \frac{1}{\tau - 1} \sum_{t=2}^{\tau} \theta_C(t)
     $$
 
-The `staggered()` function offers several estimands, each defining a different way of aggregating group-time average treatment effects into a single overall treatment effect:
+    A useful counterpart to $\theta_S^O$: where the latter weights treated units, $\theta_C$ weights calendar periods. The two coincide under effect homogeneity and diverge whenever cohort sizes are unbalanced or treatment dynamics differ across calendar windows.
 
--   **Simple**: Equally weighted across all groups.
+The `staggered()` function exposes the same logic through a small set of estimand names. They are not different identifiers of a single quantity; they are different summaries that answer different questions, and reporting more than one is often informative:
 
--   **Cohort**: Weighted by group sizes (i.e., treated cohorts).
+-   **Simple**: Equally weighted across all $(g, t)$ cells in the post-treatment region. A useful baseline because it does not let any one cohort dominate, but it gives the same weight to a cohort with a few units as to one with many.
 
--   **Calendar**: Weighted by the number of observations in each calendar time.
+-   **Cohort**: Weights by treated-cohort size, so $(g, t)$ cells are aggregated by how many treated units they actually represent. This is the natural estimand when the goal is the average effect on a treated unit, and it lines up with $\theta_S^O$ above.
+
+-   **Calendar**: Weights by the number of observations in each calendar period. Appropriate when the policy question is calendar-anchored (a fiscal year's effect, a post-shock window) rather than cohort-anchored.
+
+A practical rule of thumb: lead with the simple or cohort estimand for the headline ATT, use the dynamic event-study profile to communicate timing, and bring in the calendar variant when temporal context (business cycle, complementary policies) matters for interpretation.
 
 ```{r}
 library(staggered) 
@@ -285,15 +308,15 @@ Traditional TWFE estimators implicitly assume **homogeneous treatment effects** 
 
 #### Defining the Parameter of Interest: CATT
 
-Let $E_i = e$ denote the period when unit $i$ first receives treatment. The **cohort-specific average treatment effect on the treated** (CATT) is defined as: $$
-CATT_{e, l} = \mathbb{E}[Y_{i, e + l} - Y_{i, e + l}^\infty \mid E_i = e]
+Let $G_i = g$ denote the period when unit $i$ first receives treatment. The **cohort-specific average treatment effect on the treated** (CATT) is defined as: $$
+CATT_{g, l} = \mathbb{E}[Y_{i, g + l} - Y_{i, g + l}(0) \mid G_i = g]
 $$ Where:
 
 -   $l$ is the relative period (e.g., $l = -1$ is one year before treatment, $l = 0$ is the treatment year).
 
--   $Y_{i, e + l}^\infty$ is the potential outcome without treatment.
+-   $Y_{i, g + l}(0)$ is the potential outcome without treatment.
 
--   $Y_{i, e + l}$ is the observed outcome.
+-   $Y_{i, g + l}$ is the observed outcome.
 
 This formulation allows one to trace out the dynamic effect of treatment for each cohort, relative to their treatment start time.
 
@@ -301,17 +324,17 @@ This formulation allows one to trace out the dynamic effect of treatment for eac
 
 They propose regressing the outcome on:
 
--   Relative time indicators constructed by interacting treatment cohort ($E_i$) with time ($t$).
+-   Relative time indicators constructed by interacting treatment cohort ($G_i$) with time ($t$).
 
 -   Unit and time fixed effects.
 
-This method explicitly estimates $CATT_{e, l}$ terms, avoiding the contaminating influence of already-treated units that TWFE models often suffer from.
+This method explicitly estimates $CATT_{g, l}$ terms, avoiding the contaminating influence of already-treated units that TWFE models often suffer from.
 
 **Relative Period Bin Indicator**
 
-$$ D_{it}^l = \mathbb{1}(t - E_i = l) $$
+$$ D_{it}^l = \mathbb{1}(t - G_i = l) $$
 
--   $E_i$: The time period when unit $i$ first receives treatment.
+-   $G_i$: The time period when unit $i$ first receives treatment.
 -   $l$: The relative time period: how many periods have passed since treatment began.
 
 1.  **Static Specification**
@@ -338,13 +361,13 @@ $$ Y_{it} = \alpha_i + \lambda_t + \sum_{\substack{l = -K \\ l \neq -1}}^{L} \mu
 1.  **Parallel Trends**
 
 For identification, it is assumed that untreated potential outcomes follow parallel trends across cohorts in the absence of treatment: $$
-\mathbb{E}[Y_{it}^\infty - Y_{i, t-1}^\infty \mid E_i = e] = \text{constant across } e
+\mathbb{E}[Y_{it}(0) - Y_{i, t-1}(0) \mid G_i = g] = \text{constant across } g
 $$ This allows us to use **never-treated** or **not-yet-treated** units as valid counterfactuals.
 
 2.  **No Anticipatory Effects**
 
 Treatment should not influence outcomes before it is implemented. That is: $$
-CATT_{e, l} = 0 \quad \text{for all } l < 0
+CATT_{g, l} = 0 \quad \text{for all } l < 0
 $$ This ensures that any pre-trends are not driven by behavioral changes in anticipation of treatment.
 
 3.  **Treatment Effect Homogeneity (Optional)**
@@ -412,14 +435,14 @@ Dropping certain relative periods (especially pre-treatment periods) introduces 
 To avoid this contamination, researchers often assume that all pre-treatment periods have zero treatment effect, i.e.,
 
 $$
-CATT_{e, l} = 0 \quad \text{for all } l < 0
+CATT_{g, l} = 0 \quad \text{for all } l < 0
 $$
 
 This assumption ensures that excluded pre-treatment periods form a valid counterfactual, and estimates for $l \geq 0$ are not biased due to normalization.
 
 ------------------------------------------------------------------------
 
-@sun2021estimating resolve the issues of weighting and aggregation by using a clean weighting scheme that avoids contamination from excluded periods. Their method produces a weighted average of cohort- and time-specific treatment effects ($CATT_{e, l}$), where the weights are:
+@sun2021estimating resolve the issues of weighting and aggregation by using a clean weighting scheme that avoids contamination from excluded periods. Their method produces a weighted average of cohort- and time-specific treatment effects ($CATT_{g, l}$), where the weights are:
 
 -   **Non-negative**
 -   **Sum to one**
