@@ -9,25 +9,23 @@ Violations of SUTVA---particularly **interference**---are common in **online mar
 
 In interconnected digital environments, agents (sellers, listings, users) affect each other through:
 
--   Algorithmic rankings
--   Pricing competition
--   Substitution behavior among buyers
+- Algorithmic rankings
+- Pricing competition
+- Substitution behavior among buyers
 
 > **Example**: If Airbnb treats a host by recommending a price increase, nearby untreated hosts may adjust their own pricing in response. Buyers also respond based on all available listings. Hence, observed outcomes reflect **systemic responses** rather than isolated treatment effects.
 
 This interconnectedness violates the **no interference** condition, causing the estimated **Total Average Treatment Effect (TATE)** to be biased:
 
-$$
-\text{TATE} = \mathbb{E}[Y_i(1) - Y_i(0)]
-$$
+$$\text{TATE} = \mathbb{E}[Y_i(1) - Y_i(0)]$$
 
 Estimating TATE via **individual-level randomization** assumes SUTVA. However, when interference exists, this approach can overestimate or underestimate true effects depending on the nature and direction of spillovers.
 
 Interference in marketplaces arises from several mechanisms:
 
--   **Demand-Side Spillovers**: Buyers shift demand across multiple listings. For example, improving one listing's appeal diverts attention from others.
--   **Supply-Side Spillovers**: Sellers observe each other's strategies (e.g., price changes) and respond competitively.
--   **Platform-Level Feedback**: Treatment effects propagate via platform algorithms, such as dynamic re-ranking or recommendation engines.
+- **Demand-Side Spillovers**: Buyers shift demand across multiple listings. For example, improving one listing's appeal diverts attention from others.
+- **Supply-Side Spillovers**: Sellers observe each other's strategies (e.g., price changes) and respond competitively.
+- **Platform-Level Feedback**: Treatment effects propagate via platform algorithms, such as dynamic re-ranking or recommendation engines.
 
 These interactions violate unit independence and affect not only outcomes but also treatment uptake and exposure.
 
@@ -35,8 +33,8 @@ These interactions violate unit independence and affect not only outcomes but al
 
 To mitigate interference bias, researchers increasingly use **cluster randomization**, where treatment is assigned at the level of **clusters** (e.g., neighborhoods, product categories, or seller types) rather than individual units. This reduces spillovers between treated and control groups by aligning treatment boundaries with natural interaction clusters.
 
--   In **social networks**, graph-cluster randomization (GCR) partitions the network to minimize cross-group links.
--   In **marketplaces**, meta-experiments (experiments over experiments) can assess the extent of interference and evaluate cluster-based designs.
+- In **social networks**, graph-cluster randomization (GCR) partitions the network to minimize cross-group links.
+- In **marketplaces**, meta-experiments (experiments over experiments) can assess the extent of interference and evaluate cluster-based designs.
 
 Cluster randomization aims to preserve causal identification by reducing contamination, especially when direct or indirect interactions are likely.
 
@@ -46,28 +44,24 @@ Cluster randomization aims to preserve causal identification by reducing contami
 
 Following @eckles2021bias, consider the potential outcome for seller $i$ as:
 
-$$
-Y_i(Z) = \alpha_i + \beta Z_i + \gamma \rho_i + \varepsilon_i
-$$
+$$Y_i(Z) = \alpha_i + \beta Z_i + \gamma \rho_i + \varepsilon_i$$
 
--   $\beta$ is the direct treatment effect.
--   $\gamma$ is the spillover (indirect) effect.
--   $\rho_i = \frac{1}{|N_i|} \sum_{j \in N_i} Z_j$ is the fraction of treated neighbors.
+- $\beta$ is the direct treatment effect.
+- $\gamma$ is the spillover (indirect) effect.
+- $\rho_i = \frac{1}{|N_i|} \sum_{j \in N_i} Z_j$ is the fraction of treated neighbors.
 
 This model implies:
 
--   When $\gamma \ne 0$, there is interference.
--   If $\beta$ and $\gamma$ have opposite signs, interference can *inflate or deflate* TATE estimates.
+- When $\gamma \ne 0$, there is interference.
+- If $\beta$ and $\gamma$ have opposite signs, interference can *inflate or deflate* TATE estimates.
 
 In matrix form, define an **interference matrix** $B$ such that:
 
-$$
-\mathbb{E}[Y_i(Z)] = \alpha_i + \sum_{j} B_{ij} Z_j
-$$
+$$\mathbb{E}[Y_i(Z)] = \alpha_i + \sum_{j} B_{ij} Z_j$$
 
--   $B_{ij}$ quantifies the extent to which treatment on unit $j$ affects unit $i$.
--   Diagonal elements capture direct effects.
--   Off-diagonal elements capture interference.
+- $B_{ij}$ quantifies the extent to which treatment on unit $j$ affects unit $i$.
+- Diagonal elements capture direct effects.
+- Off-diagonal elements capture interference.
 
 This formulation allows for structural modeling of interference.
 
@@ -77,9 +71,9 @@ This formulation allows for structural modeling of interference.
 
 Rationale:
 
--   Units within clusters likely interfere with each other.
+- Units within clusters likely interfere with each other.
 
--   By treating clusters homogeneously, we contain interference within groups.
+- By treating clusters homogeneously, we contain interference within groups.
 
 This reduces bias in estimating average treatment effects.
 
@@ -99,20 +93,19 @@ Let $C(i)$ denote the cluster of unit $i$. Then **cluster quality** is defined a
 
 $$ Q_C(B) = \sum_{i,j} B_{ij} \cdot 1\{C(i) \ne C(j)\} $$
 
--   Lower $Q_C(B)$ implies less across-cluster interference, and hence, better clustering.
--   In practice, $B$ is unobservable, so a proxy matrix $P$ (e.g., co-search or co-view behavior) is used.
+- Lower $Q_C(B)$ implies less across-cluster interference, and hence, better clustering.
+- In practice, $B$ is unobservable, so a proxy matrix $P$ (e.g., co-search or co-view behavior) is used.
 
 #### Graph-Cluster Randomization
 
 **GCR** partitions a social or economic network into clusters and randomizes treatment at the cluster level. This reduces mixed-treatment neighborhoods, a primary source of interference.
 
-> **Key Result**: @ugander2013graph showed that GCR yields unbiased Horvitz--Thompson estimators of treatment effects under certain exposure models: $$
-> \hat{\tau}_{HT} = \sum_{i \in T} \frac{Y_i}{\pi_i} - \sum_{i \in C} \frac{Y_i}{1 - \pi_i}
-> $$ where $\pi_i$ is the probability that unit $i$ is treated, accounting for the randomization design.
+> **Key Result**: @ugander2013graph showed that GCR yields unbiased Horvitz--Thompson estimators of treatment effects under certain exposure models:
+> $$\hat{\tau}_{HT} = \sum_{i \in T} \frac{Y_i}{\pi_i} - \sum_{i \in C} \frac{Y_i}{1 - \pi_i}$$
+> where $\pi_i$ is the probability that unit $i$ is treated, accounting for the randomization design.
 
-@eckles2021bias derived analytic expressions for **variance inflation** due to clustering: $$
-\text{Var}(\hat{\tau}_{CR}) \propto \rho \cdot \frac{\sigma^2}{n_c}
-$$
+@eckles2021bias derived analytic expressions for **variance inflation** due to clustering:
+$$\text{Var}(\hat{\tau}_{CR}) \propto \rho \cdot \frac{\sigma^2}{n_c}$$
 
 where $\rho$ is the intra-cluster correlation and $n_c$ is the number of clusters. Pre-stratification, regression adjustment, or increasing cluster count can partially mitigate this variance growth.
 
@@ -132,20 +125,18 @@ The experimental sample included over **2 million listings worldwide**. For the 
 
 To formally quantify this distortion, @holtz2025reducing defined:
 
--   $\hat{\beta}$: TATE under cluster randomization
--   $\hat{\nu}$: Difference between individual-level and cluster-level estimates
+- $\hat{\beta}$: TATE under cluster randomization
+- $\hat{\nu}$: Difference between individual-level and cluster-level estimates
 
 The **interference bias ratio** was calculated as:
 
-$$
-\text{Bias Ratio} = \frac{\hat{\nu}}{\hat{\beta} + \hat{\nu}} \approx 19.76\%
-$$
+$$\text{Bias Ratio} = \frac{\hat{\nu}}{\hat{\beta} + \hat{\nu}} \approx 19.76\%$$
 
 Bias levels varied by geography and market dynamics:
 
--   **Demand-constrained areas** (e.g., New York in peak season): Bias reached 28.65%
--   **Supply-constrained areas**: Bias was lower, around 12.05%
--   **Higher cluster quality** (i.e., better separation in embedding space) was associated with greater bias reduction
+- **Demand-constrained areas** (e.g., New York in peak season): Bias reached 28.65%
+- **Supply-constrained areas**: Bias was lower, around 12.05%
+- **Higher cluster quality** (i.e., better separation in embedding space) was associated with greater bias reduction
 
 For the second intervention---pricing recommendations via a machine learning algorithm---the cluster-level estimate was not statistically significant (−0.051 bookings per listing), compared to −0.106 from Bernoulli randomization. This null result was largely attributed to limited statistical power.
 
@@ -159,9 +150,9 @@ This case study illustrates both the **prevalence of interference bias** in onli
 
 ### 5.1 Diagnosing Interference
 
--   **Step 1**: Theorize likely spillover channels (e.g., ranking algorithms, price comparisons).
--   **Step 2**: Conduct a meta-experiment with dual randomization and compare TATEs.
--   **Step 3**: Quantify exposure probabilities using network or item similarity matrices.
+- **Step 1**: Theorize likely spillover channels (e.g., ranking algorithms, price comparisons).
+- **Step 2**: Conduct a meta-experiment with dual randomization and compare TATEs.
+- **Step 3**: Quantify exposure probabilities using network or item similarity matrices.
 
 ### 5.2 Cluster Construction Algorithm
 
@@ -180,16 +171,16 @@ Evaluate using **neighbor purity**: proportion of nearest neighbors within the s
 
 ### 5.3 Analysis Plan
 
--   Use **cluster-robust standard errors** or **Horvitz--Thompson weights**.
--   Adjust for **intra-cluster correlation** using methods from Eckles et al.
--   Apply **OLS with pre-stratification** to improve power.
+- Use **cluster-robust standard errors** or **Horvitz--Thompson weights**.
+- Adjust for **intra-cluster correlation** using methods from Eckles et al.
+- Apply **OLS with pre-stratification** to improve power.
 
 ### 5.4 Practical Considerations
 
-| Challenge              | Recommended Approach                                         |
-|------------------------|--------------------------------------------------------------|
-| Power loss             | Increase experiment duration; pre-stratify clusters          |
-| Uneven traffic         | Weight treatment assignment by expected demand               |
+| Challenge | Recommended Approach |
+|----|----|
+| Power loss | Increase experiment duration; pre-stratify clusters |
+| Uneven traffic | Weight treatment assignment by expected demand |
 | Two-sided interactions | Analyze both market sides separately and track cross-effects |
 
 ------------------------------------------------------------------------
@@ -224,10 +215,10 @@ Evaluate using **neighbor purity**: proportion of nearest neighbors within the s
 
 Use one or more of the following:
 
--   Geographic proximity.
--   Embedding techniques (e.g., Word2Vec on search sequences).
--   Co-view or co-search frequency.
--   Pricing similarity or estimated cross-price elasticities.
+- Geographic proximity.
+- Embedding techniques (e.g., Word2Vec on search sequences).
+- Co-view or co-search frequency.
+- Pricing similarity or estimated cross-price elasticities.
 
 ### 6.2 Evaluating Cluster Quality
 
@@ -245,12 +236,12 @@ Lower $Q$ indicates better clustering.
 
 ### 6.3 Trade-offs
 
-| Factor                  | Individual Randomization | Cluster Randomization       |
-|-------------------------|--------------------------|-----------------------------|
-| Bias (Interference)     | High                     | Low                         |
-| Power                   | High                     | Lower                       |
-| Complexity              | Low                      | Moderate                    |
-| Implementation overhead | Minimal                  | Requires new infrastructure |
+| Factor | Individual Randomization | Cluster Randomization |
+|----|----|----|
+| Bias (Interference) | High | Low |
+| Power | High | Lower |
+| Complexity | Low | Moderate |
+| Implementation overhead | Minimal | Requires new infrastructure |
 
 ```{r}
 set.seed(123)
@@ -279,7 +270,7 @@ Observe that $t_{\text{ind}}$ is inflated relative to $t_{\text{cr}}$.
 
 ## 8. Limitations and Open Questions
 
--   **Loss of precision**: Especially problematic in low-interference settings.
--   **Complexity of clustering**: No universal optimal method exists.
--   **Temporal dynamics**: Cluster randomization doesn't inherently address time-based spillovers.
--   **Heterogeneous effects**: Bias correction may vary by treatment strength or context.
+- **Loss of precision**: Especially problematic in low-interference settings.
+- **Complexity of clustering**: No universal optimal method exists.
+- **Temporal dynamics**: Cluster randomization doesn't inherently address time-based spillovers.
+- **Heterogeneous effects**: Bias correction may vary by treatment strength or context.

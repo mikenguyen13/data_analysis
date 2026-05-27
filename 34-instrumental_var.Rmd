@@ -184,7 +184,7 @@ We assume that $Z_i$ affects $D_i$ in a *monotonic* way:
 $$ D_{1i} \geq D_{0i}, \quad \forall i. $$
 
 -   This assumption lets us assume that there is a first stage, in which we examine the proportion of the population that $D_i$ is driven by $Z_i$. It implies that $Z_i$ only moves individuals *toward* treatment, but never away. This rules out "defiers" (i.e., individuals who would have taken the treatment when not assigned but refuse when assigned).
--   This assumption is used to solve to problem of the shifts between participation status back to non-participation status.
+-   This assumption is used to solve the problem of the shifts between participation status back to non-participation status.
     -   Alternatively, one can solve the same problem by assuming constant (homogeneous) treatment effect [@imbens1994identification], but this is rather restrictive.
 
     -   A third solution is the assumption that there exists a value of the instrument, where the probability of participation conditional on that value is 0 [@heckman1990varieties, @angrist1991sources].
@@ -240,7 +240,7 @@ The Wald-form denominator is the *difference* in treatment uptake between the tw
 
 ### Two-Stage Least Squares Estimation {#sec-two-stage-least-squares-estimation}
 
-Two-Stage Least Squares (2SLS) is the most widely used IV estimator It's a special case of [IV-GMM]. Consider the structural equation:
+Two-Stage Least Squares (2SLS) is the most widely used IV estimator. It's a special case of [IV-GMM]. Consider the structural equation:
 
 $$
 Y_i = X_i \beta + \varepsilon_i,
@@ -742,9 +742,9 @@ etable(
 )
 ```
 
-Linear in parameter and linear in endogenous variable
+Linear in parameter and linear in endogenous variable. Table \@ref(tab:iv-2sls-linear-manual) reports the manual two-stage and control-function estimates side by side for the linear case.
 
-```{r}
+```{r iv-2sls-linear-manual, fig.cap="Manual 2SLS and control-function estimates for a linear endogenous regressor, with first-stage and second-stage outputs reported side by side."}
 # manual
 # 2SLS
 first_stage = lm(endogenous ~ exogenous, data = my_data)
@@ -759,9 +759,9 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-Nonlinear in endogenous variable
+Nonlinear in endogenous variable. Table \@ref(tab:iv-2sls-nonlinear-endo) reports the manual two-stage and control-function estimates when the endogenous regressor enters the outcome equation nonlinearly.
 
-```{r}
+```{r iv-2sls-nonlinear-endo, fig.cap="Manual 2SLS and control-function estimates when the endogenous regressor enters nonlinearly, with first-stage and second-stage outputs reported side by side."}
 # 2SLS
 first_stage = lm(endogenous_nonlinear ~ exogenous, data = my_data)
 
@@ -776,9 +776,9 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-Nonlinear in parameters
+Nonlinear in parameters. Table \@ref(tab:iv-2sls-nonlinear-params) reports the manual two-stage and control-function estimates when the structural equation is nonlinear in parameters.
 
-```{r}
+```{r iv-2sls-nonlinear-params, fig.cap="Manual 2SLS and control-function estimates when the structural equation is nonlinear in parameters, with first-stage and second-stage outputs reported side by side."}
 # 2SLS
 first_stage = lm(endogenous ~ exogenous, data = my_data)
 
@@ -1069,7 +1069,7 @@ Table: (\#tab:iv-inference-scenarios) Quality of standard IV inference under bes
         -   Require $E(F) > 142.6$ for near-validity [@lee2022valid].
         -   While the first-stage $F$ is observable, this threshold is high and often impractical.
     2.  Low Endogeneity:
-        -   Assume $|\rho| < 0.565$ [@angrist2024one, @lee2022valid]. In other words, we assume endogeneity to be less than moderat level.
+        -   Assume $|\rho| < 0.565$ [@angrist2024one, @lee2022valid]. In other words, we assume endogeneity to be less than moderate level.
         -   This undermines the motivation for IV in the first place, which exists precisely because of suspected endogeneity.
 2.  Confront the Problem Directly (Robust Methods)
     1.  [Anderson-Rubin (AR) Test](#sec-anderson-rubin-approach) [@anderson1949estimation]:
@@ -1772,7 +1772,7 @@ where $Z$ is the matrix of instruments and $X$ is the matrix of endogenous regre
 
 Stock and Yogo provide critical values for different scenarios (bias, size distortion) for a given number of instruments and endogenous regressors, based on the smallest eigenvalue of $S$. The test compares these eigenvalues against critical values that correspond to thresholds of permissible bias or size distortion in a 2SLS estimator.
 
--   Critical Values and Test Conditions: The critical values derived by Stock and Yogo depend on the level of acceptable bias, the number of endogenous regressors, and the number of instruments. For example, with a 5% maximum acceptable bias, one endogenous variable, and three instruments, the critical value for a sufficient first stage F-statistic is 13.91. Note that this framework requires at least two overidentifying degree of freedom. @stock2002testing set the critical values such that the bias is less then 10% (default)
+-   Critical Values and Test Conditions: The critical values derived by Stock and Yogo depend on the level of acceptable bias, the number of endogenous regressors, and the number of instruments. For example, with a 5% maximum acceptable bias, one endogenous variable, and three instruments, the critical value for a sufficient first stage F-statistic is 13.91. Note that this framework requires at least two overidentifying degree of freedom. @stock2002testing set the critical values such that the bias is less than 10% (default)
 
 $H_0:$ Instruments are weak
 
@@ -2265,7 +2265,9 @@ fs_f_stat
 
 2.  Density Plot of First-Stage Residuals
 
-```{r}
+Figure \@ref(fig:iv-first-stage-residuals-density) shows the density of first-stage residuals. A unimodal shape supports the monotonicity assumption, whereas a bimodal or heavily skewed pattern would suggest a mixture of compliers and defiers.
+
+```{r iv-first-stage-residuals-density, fig.cap="Density of first-stage residuals; a unimodal shape supports monotonicity of the instrument, whereas a bimodal or heavily skewed pattern hints at compliers mixed with defiers."}
 # Extract residuals
 residuals_first_stage <- residuals(first_stage)
 
@@ -2359,7 +2361,9 @@ $$
 
 Thus, if the first stage ($\phi$) is 0, the reduced form ($\rho$) should also be 0.
 
-```{r, eval = FALSE}
+Figure \@ref(fig:iv-shiny-late-simulation) describes a Shiny app that simulates the IV model and displays first-stage, reduced-form, calculated-LATE, and IV-LATE coefficients with confidence intervals as the user varies the true effect, the first-stage strength, and the direct effect of the instrument on the outcome.
+
+```{r iv-shiny-late-simulation, fig.cap="Interactive Shiny simulation of the IV model: first-stage, reduced-form, calculated-LATE, and IV-LATE coefficients with confidence intervals as the user varies the true effect, the first-stage strength, and the instrument's direct effect on the outcome.", eval = FALSE}
 # Load necessary libraries
 library(shiny)
 library(AER)  # for ivreg
@@ -2485,7 +2489,7 @@ To test the validity of the exogeneity assumption, we can use a sanity test:
 
 -   Sargan (for 2SLS) is a simpler version of Hansen's J test (for IV-GMM)
 
--   Modified J test (i.e., Regularized jacknife IV): can handle weak instruments and small sample size [@carrasco2022testing] (also proposed a regularized F-test to test relevance assumption that is robust to heteroskedasticity).
+-   Modified J test (i.e., Regularized jackknife IV): can handle weak instruments and small sample size [@carrasco2022testing] (also proposed a regularized F-test to test relevance assumption that is robust to heteroskedasticity).
 
 -   New advances: endogeneity robust inference in finite sample and sensitivity analysis of inference [@kiviet2020testing]
 
@@ -2571,7 +2575,7 @@ For a heteroskedasticity-robust $J$-statistic, see [@carrasco2022testing; @li202
 
 Similar to [Hansen's J](#hansens-j), but it assumes homoskedasticity
 
--   Have to be careful when sample is not collected exogenously. As such, when you have choice-based sampling design, the sampling weights have to be considered to have consistent estimates. However, even if we apply sampling weights, the tests are not suitable because the iid assumption off errors are already violated. Hence, the test is invalid in this case [@pitt2011overidentification].
+-   Have to be careful when sample is not collected exogenously. As such, when you have choice-based sampling design, the sampling weights have to be considered to have consistent estimates. However, even if we apply sampling weights, the tests are not suitable because the iid assumption of errors are already violated. Hence, the test is invalid in this case [@pitt2011overidentification].
 
 -   If one has heteroskedasticity in its design, the Sargan test is invalid [@pitt2011overidentification].
 
@@ -2828,8 +2832,8 @@ $y_i = \beta x_i + u_i$
 
 where $x_i$ is endogenous: $\mathbb{E}[x_i u_i] \neq 0$. To address this, we introduce instruments $z_i$ such that:
 
-1.  **Relevance**: $\mathbb{E}[z_i x_i] \neq 0$
-2.  **Exogeneity**: $\mathbb{E}[z_i u_i] = 0$
+1.  Relevance: $\mathbb{E}[z_i x_i] \neq 0$
+2.  Exogeneity: $\mathbb{E}[z_i u_i] = 0$
 
 The standard 2SLS estimator is given by:
 
@@ -2839,9 +2843,9 @@ where $P_Z = Z(Z'Z)^{-1}Z'$ is the projection matrix onto the column space of $Z
 
 The many-IV problem arises when the number of instruments $L$ is large relative to the number of observations $n$. In particular, the issue becomes severe as $L/n \to \alpha > 0$, leading to several problems:
 
--   **Bias Toward OLS**: The 2SLS estimator becomes increasingly biased toward the OLS estimator.
--   **Overfitting**: The first-stage regression overfits the endogenous variable, capturing noise rather than true variation.
--   **Inflated Variance**: The second-stage estimates become imprecise, leading to misleading inference.
+-   Bias Toward OLS: The 2SLS estimator becomes increasingly biased toward the OLS estimator.
+-   Overfitting: The first-stage regression overfits the endogenous variable, capturing noise rather than true variation.
+-   Inflated Variance: The second-stage estimates become imprecise, leading to misleading inference.
 
 Traditional IV asymptotics assume $L$ is fixed as $n \to \infty$. @bekker1994alternative proposed an alternative framework where:
 
@@ -2880,8 +2884,8 @@ A weak instrument test: rule of thumb is $F > 10$ for a single instrument; more 
 
 2.  Overidentification Tests
 
--   **Sargan Test**: Assumes homoskedastic errors
--   **Hansen's J-Test**: Robust to heteroskedasticity
+-   Sargan Test: Assumes homoskedastic errors
+-   Hansen's J-Test: Robust to heteroskedasticity
 
 3.  Eigenvalue Diagnostics
 
@@ -2893,13 +2897,13 @@ A weak instrument test: rule of thumb is $F > 10$ for a single instrument; more 
 
 1.  Instrument Selection
 
--   **Lasso IV / Post-Double Selection**: Use regularization to select valid instruments.
--   **Factor-Based Methods**: Project instruments onto principal components.
+-   Lasso IV / Post-Double Selection: Use regularization to select valid instruments.
+-   Factor-Based Methods: Project instruments onto principal components.
 
 2.  Shrinkage Estimators
 
--   **Limited Information Maximum Likelihood (LIML)**: More robust to many-IV bias.
--   **Jackknife IV Estimator (JIVE)**: Adjusts for the overfitting bias in the first stage.
+-   Limited Information Maximum Likelihood (LIML): More robust to many-IV bias.
+-   Jackknife IV Estimator (JIVE): Adjusts for the overfitting bias in the first stage.
 
 3.  Grouped or Aggregated Instruments
 
@@ -2909,10 +2913,10 @@ A weak instrument test: rule of thumb is $F > 10$ for a single instrument; more 
 
 #### Practical Guidelines
 
-1.  **Avoid Including All Possible Instruments**: Parsimony matters more than volume.
-2.  **Always Check First-Stage Strength**: Even if $R^2$ is high, individual instrument strength matters.
-3.  **Report Robustness with Alternative Estimators**: LIML or JIVE can serve as robustness checks.
-4.  **Test for Overidentification**: But interpret results cautiously when $L$ is large.
+1.  Avoid Including All Possible Instruments: Parsimony matters more than volume.
+2.  Always Check First-Stage Strength: Even if $R^2$ is high, individual instrument strength matters.
+3.  Report Robustness with Alternative Estimators: LIML or JIVE can serve as robustness checks.
+4.  Test for Overidentification: But interpret results cautiously when $L$ is large.
 
 ------------------------------------------------------------------------
 
@@ -3119,7 +3123,7 @@ Table: (\#tab:iv-late-vs-mte) Traditional IV (LATE) versus marginal treatment ef
 The MTE framework also connects to:
 
 -   [**Control function methods**](#sec-control-function-approach): which account for selection via inclusion of latent variables (e.g., residuals) in outcome equations.
--   **Partial identification / bounding methods**: which avoid strong parametric assumptions and seek informative bounds on treatment effects.
+-   Partial identification / bounding methods: which avoid strong parametric assumptions and seek informative bounds on treatment effects.
 
 These newer strategies reflect a shift in modern econometrics: away from treating unobserved heterogeneity as a nuisance, and toward modeling it directly for richer causal inference.
 
@@ -3268,7 +3272,147 @@ where $w_j$ are weights determined by the distribution of the instrument and tre
 
 ------------------------------------------------------------------------
 
-## IV and Matching: Design-Based vs. Model-Based Approaches
+#### Beyond TSLS: Nonparametric and Control-Function IV for Continuous Treatments {#sec-nonparametric-iv-continuous}
+
+The TSLS treatment of continuous treatment intensity in the previous subsections imposes a linear structure on the second-stage regression. That linearity buys a clean LATE interpretation in the @angrist1995two style, but it forces the entire dose-response function into a single slope. When the substantive question is whether the marginal effect of one more year of schooling differs at twelve years versus sixteen, or whether the dose-response of a continuous policy variable is concave, linear TSLS will average across these features and report a weighted-average slope whose weights are determined by the instrument rather than by any substantive interest. The literature on **nonparametric instrumental variables** developed in part to address exactly this loss of information.
+
+Three closely related identification frameworks dominate the modern treatment.
+
+**Nonparametric IV (NPIV).** @newey2003instrumental establish identification and estimation of the structural function $g(\cdot)$ in the model
+
+$$
+Y = g(D) + \varepsilon, \quad \mathbb{E}[\varepsilon \mid Z] = 0,
+$$
+
+where $D$ is a continuous endogenous treatment and $Z$ is a continuous instrument. The identifying assumption replaces the linear exclusion restriction of TSLS with a *completeness condition* on the conditional distribution of $D$ given $Z$: the instrument must vary $D$ in enough ways to identify $g$ at every dose, not merely shift it on average. The estimator is a sieve regression of $Y$ on $D$ instrumented by $Z$, with the sieve dimension acting as the bandwidth-like tuning parameter. The output is a curve $\hat{g}(d)$ that traces the dose-response across the support of $D$, with confidence bands constructed by bootstrapping the residuals of the sieve regression. The framework is implemented in the `npiv` package on CRAN.
+
+**Triangular structural models without additivity.** @imbens2009identification extend the NPIV framework to allow the structural function to depend on a continuous unobservable in a non-additive way, $Y = g(D, U)$, where $U$ is correlated with $D$ but mean-independent of $Z$. The estimand of interest in this setting is typically a quantile structural function: for each dose $d$ and each quantile $\tau$, what is the $\tau$-th quantile of the potential outcome at dose $d$? The framework recovers the full distribution of treatment effects at each dose, not just the conditional mean, which is the right deliverable when the analyst suspects that the effects of the continuous treatment are heterogeneous in a way that the mean alone will not reveal.
+
+**Control functions for continuous endogenous treatments.** @florens2008identification develop the control-function approach (Section \@ref(sec-control-function-approach)) for the continuous-treatment case with heterogeneous effects. The idea is to project out the endogeneity of $D$ by conditioning on a control variable $V$ (typically the first-stage residual from a regression of $D$ on $Z$ and covariates), under the assumption that $(Z, V)$ jointly captures the channel through which $D$ is correlated with the structural error. The estimand is the average structural function $\mathbb{E}[g(D, \varepsilon)]$, evaluated at each dose; the average is over the marginal distribution of the unobservables. The framework is closely related to the NPIV approach but trades the completeness condition for a separability condition on the first stage, an assumption that is sometimes easier to defend (when there is a credible argument that the unobserved heterogeneity enters the dose equation additively).
+
+The three frameworks coincide in the linear-Gaussian special case and agree, on the substantive question of how the dose-response varies across the dose distribution, in the broad sense. They differ in which functional-form sacrifices are required and in which estimand is delivered cleanly.
+
+------------------------------------------------------------------------
+
+#### Marginal Treatment Effects and the Heckman-Vytlacil Framework
+
+A complementary framework, due to @heckman2005structural, recasts the continuous-treatment IV problem in the language of latent-index models. The dose received by unit $i$ is modeled as a deterministic function of observables and a continuous unobservable; the marginal treatment effect (MTE) at a given level of the unobservable answers: what would the effect on the outcome be of giving a marginally higher dose to a unit whose unobserved propensity to take the treatment is at this level?
+
+Integrating the MTE function over the unobservable distribution recovers the average treatment effect; integrating it weighted by the relative density of treated units recovers the ATT; integrating it weighted by the change induced by a continuous instrument recovers the LATE-like estimand of TSLS. The MTE function is thus a *unifying* object: each conventional estimand corresponds to a particular weighted average of the same underlying function. Recovering the MTE function nonparametrically, when the instrument and treatment are both continuous, is feasible under additional smoothness assumptions and is implemented in several research codebases though without a settled CRAN package at the time of writing.
+
+The practical value of the MTE framework in continuous-treatment IV is that it makes explicit which estimand the analyst is targeting and which compliers contribute to it. A reader of an MTE-based analysis sees the full function and can read off any of the conventional summaries; a reader of a TSLS analysis sees only a weighted average and has to take the weights on faith.
+
+------------------------------------------------------------------------
+
+#### Worked Example: Nonparametric IV, Demonstration First
+
+We work through the continuous-treatment IV estimator in two passes. The first pass implements a polynomial-TSLS by hand to make the mechanics visible and to show what linear TSLS leaves on the table. The second pass calls the published `npiv` package on the same data and contrasts the results.
+
+##### Demonstration: polynomial-TSLS by hand
+
+```{r npiv-sim, message=FALSE}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+  library(AER)        # ivreg for TSLS
+})
+
+set.seed(20240515)
+
+# Triangular system: continuous instrument Z, continuous endogenous D,
+# outcome Y with a non-linear structural function g(D) = sin(D) + 0.3 D.
+n  <- 2000
+Z  <- runif(n, -3, 3)                       # instrument
+U  <- rnorm(n, sd = 0.5)                    # structural error
+V  <- rnorm(n, sd = 0.5) + 0.6 * U          # first-stage error,
+                                            # correlated with U (endogeneity)
+D  <- 0.8 * Z + V                           # endogenous treatment
+Y  <- sin(D) + 0.3 * D + U                  # non-linear g(D) + error
+
+dat <- data.frame(Y, D, Z)
+head(dat)
+```
+
+The simulated structural function is non-monotone: $g'(d) = \cos(d) + 0.3$ is negative around $d \approx \pi/2 \approx 1.57$ and positive elsewhere. A linear TSLS specification can only recover a single slope, so it will report a weighted average that hides this feature. A polynomial extension can capture some of the non-linearity, but only up to the chosen degree.
+
+First, the linear TSLS benchmark:
+
+```{r npiv-tsls-linear}
+linear_tsls <- ivreg(Y ~ D | Z, data = dat)
+summary(linear_tsls)$coefficients
+```
+
+The single TSLS coefficient on `D` is the constant-effect slope: it averages the marginal effects of $g(\cdot)$ across the support, weighted by the instrument-induced variation. It is not an estimate of $g'(d)$ at any specific dose.
+
+Now a quadratic TSLS that allows the structural function to bend:
+
+```{r npiv-tsls-quad}
+# Polynomial TSLS: instrument D and D^2 with Z and Z^2.
+dat$D2 <- dat$D^2
+dat$Z2 <- dat$Z^2
+
+quad_tsls <- ivreg(Y ~ D + D2 | Z + Z2, data = dat)
+summary(quad_tsls)$coefficients
+
+# Recover the fitted dose-response on a grid. We compute the prediction
+# manually from the fitted coefficients, since AER::predict.ivreg expects
+# the instruments in newdata, not just the regressors.
+d_grid <- seq(min(dat$D), max(dat$D), length.out = 100)
+beta   <- coef(quad_tsls)
+quad_curve <- data.frame(
+  D      = d_grid,
+  Y_hat  = beta["(Intercept)"] + beta["D"] * d_grid + beta["D2"] * d_grid^2,
+  Y_true = sin(d_grid) + 0.3 * d_grid
+)
+
+ggplot(quad_curve, aes(x = D)) +
+  geom_line(aes(y = Y_hat), linewidth = 1) +
+  geom_line(aes(y = Y_true), linetype = "dashed", color = "red") +
+  labs(x = "Endogenous treatment D",
+       y = "g(D): structural outcome at dose D",
+       title = "Quadratic-TSLS dose-response, by hand",
+       subtitle = "Solid: fitted polynomial-TSLS. Dashed red: true g(D).") +
+  theme_minimal()
+```
+
+The figure makes the limitation visible: the quadratic-TSLS curve captures the overall concavity of $g(D)$ in the middle of the support but cannot match the wiggle on the right tail, because a quadratic polynomial does not have enough degrees of freedom to fit a sinusoid. The diagnostic is twofold: the curve fails to bend back down in the right region, and the coefficient on $D^2$ in the table is statistically significant, which means a linear-only specification would have been inadequate but the quadratic extension is also only partially adequate.
+
+Increasing the polynomial degree improves the fit but quickly runs into the classical NPIV pathology: as the basis grows, the conditioning of the first-stage matrix degrades and the estimator becomes high-variance. The principled fix is data-driven choice of the basis dimension, which is exactly what the `npiv` package provides.
+
+##### Production: `npiv` package with data-driven sieve
+
+The `npiv` package by Christensen and collaborators implements the @newey2003instrumental sieve estimator with data-driven choice of the sieve dimension and uniform confidence bands obtained by a bootstrap procedure. The interface mirrors a standard regression call: pass the outcome, the endogenous treatment, the instrument, and an optional set of exogenous controls.
+
+```{r npiv-pipeline, eval=FALSE}
+# install.packages("npiv")  # CRAN, Christensen and collaborators
+library(npiv)
+
+# Fit the NPIV estimator on the same simulated data.
+# ucb_iter governs the uniform-confidence-band resampling;
+# basis controls the sieve (B-splines by default).
+fit <- npiv(
+  Y        = Y,
+  X        = D,        # endogenous variable
+  W        = Z,        # instrument
+  basis    = "bspline",
+  ucb_iter = 1000
+)
+plot(fit, main = "NPIV dose-response of Y on endogenous D")
+curve(sin(x) + 0.3 * x, add = TRUE, col = "red")
+legend("topleft",
+       legend = c("NPIV fit", "True g(d)"),
+       col    = c("black", "red"),
+       lty    = c(1, 1),
+       bty    = "n")
+```
+
+The output of `plot(fit)` is the fitted structural function $\hat{g}(d)$ on a fine grid of dose values, with a uniform 95% confidence band drawn around it. The companion `summary(fit)` returns the data-driven sieve dimension that was selected, the bootstrap iteration count, and a Wald-style test of the joint null $g(d) = 0$ for all $d$ in the band's support. Reading the figure: the fitted curve should track the true $g(d)$ across the support, including the right-tail wiggle that the quadratic-TSLS demo could not capture; the confidence band should be widest where the data are thinnest (typically the extreme tails) and narrowest where the instrument-induced variation in $D$ is most informative.
+
+Reading the demonstration and the production figures together is the right framing for the substantive payoff. The polynomial-TSLS line shows the failure mode of a fixed-basis approach: it cannot extrapolate beyond its functional form, and so it hides any feature of $g(d)$ that lies outside the chosen polynomial family. The NPIV line shows the cure: the sieve dimension grows with the sample size, the data choose the basis, and the uniform band makes the inferential statement honestly. The cost is computational (the bootstrap is the bottleneck) and statistical (NPIV is data-hungry and degrades quickly when the instrument is weak), but for a continuous-treatment problem with enough data and a credible instrument, the NPIV deliverable is a structural function, not a single slope.
+
+------------------------------------------------------------------------
+
+
 
 IV (this chapter) and [matching](#sec-matching-methods) are the two remaining strategies when neither a cutoff nor panel structure is available. They rest on very different identifying assumptions, and they answer slightly different questions; Table \@ref(tab:iv-vs-matching) lays them side by side.
 

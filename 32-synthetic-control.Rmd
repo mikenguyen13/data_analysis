@@ -46,7 +46,7 @@ The no-contamination requirement is SCM's version of [SUTVA](#sec-sutva): the do
 The "no other major changes" condition is closely related to the exclusion-style assumptions discussed in [quasi-experimental settings](#sec-quasi-experimental) more generally: SCM cannot tell apart the policy of interest from any other shock that hits the treated unit at roughly the same time. This is why a credible application typically pairs the synthetic-control estimate with a careful narrative ruling out coincident interventions, and why post-period gaps that grow steadily for years should be read with caution as the window for confounding events widens.
 
 4.  Convex-Hull (Linearity) Assumption
-    -   The counterfactual outcome of the treated unit can be constructed as a weighted sum of the control units, with weights that are **non-negative and sum to one**. Equivalently, the treated unit's pre-treatment characteristics must lie within the **convex hull** of the donor units' pre-treatment characteristics.
+    -   The counterfactual outcome of the treated unit can be constructed as a weighted sum of the control units, with weights that are non-negative and sum to one. Equivalently, the treated unit's pre-treatment characteristics must lie within the convex hull of the donor units' pre-treatment characteristics.
     -   This is stronger than a purely linear combination: it rules out extrapolation outside the donor pool. When the treated unit is on the boundary of, or outside, the convex hull, pre-treatment fit deteriorates and bias can be severe. Relaxations (ridge-penalized SCM, augmented SCM) allow limited negative weights to accommodate treated units that fall outside the hull, at the cost of a bias-variance trade-off.
 
 The convex-hull assumption is the one most likely to fail without the analyst noticing, because failure is masked by the optimizer, which simply returns whatever convex combination minimizes pre-treatment loss even when no good combination exists. The classic empirical signature is a treated unit with extreme pre-treatment values (the wealthiest region, the largest firm, the longest-running campaign) for which all feasible weighted averages fall systematically below or above the treated trajectory. Note how this ties back to assumption (1): poor pre-treatment fit can be a *consequence* of a convex-hull violation rather than a separate problem, which is why "fix the fit" often means "expand or reshape the donor pool" rather than "tune the optimizer". When reshaping is not enough, the [augmented synthetic control](#sec-augmented-synthetic-control) approach allows limited negative weights, while the [synthetic difference-in-differences](#sec-synthetic-difference-in-differences) estimator hybridizes SCM weights with two-way fixed effects to relax both the convex hull and the parallel trends assumptions simultaneously.
@@ -420,7 +420,7 @@ $$
 
 ### Bootstrap Procedure for Standard Errors
 
-A key issue in statistical inference with GSC is the estimation of uncertainty. The standard nonparametric bootstrap is biased due to dependent structures in panel data we adopt the parametric bootstrap from [@li2023statistical] to correct for bias.
+A key issue in statistical inference with GSC is the estimation of uncertainty. The standard nonparametric bootstrap is biased due to dependent structures in panel data, so we adopt the parametric bootstrap from [@li2023statistical] to correct for bias.
 
 Corrected Bootstrap Algorithm:
 
@@ -431,9 +431,9 @@ Corrected Bootstrap Algorithm:
     $$
 4.  Re-estimate the model on resampled data and compute bootstrap confidence intervals.
 
-This approach ensures correct coverage probabilities and avoids bias in standard error estimation.
+This approach ensures correct coverage probabilities and avoids bias in standard error estimation. Figure \@ref(fig:sc-gsynth-simdata) shows the GSC fit on the bundled `simdata` example.
 
-```{r}
+```{r sc-gsynth-simdata, fig.cap="Generalized synthetic control fit on the bundled gsynth simdata, with two-way fixed effects, cross-validated factor count, and parametric bootstrap standard errors."}
 # Load required package
 library(gsynth)
 
@@ -594,7 +594,7 @@ Common MCMC techniques used:
 
 -   Hamiltonian Monte Carlo (HMC) for high-dimensional posteriors.
 
-> **Build note:** the Bayesian SCM example below uses `rstan`, which requires a working C++ toolchain. On Windows install [Rtools](https://cran.r-project.org/bin/windows/Rtools/); on macOS install the Xcode command-line tools. First-time compilation can take 5-10 minutes. The chunk is set to `eval = FALSE` for exactly this reason, run it manually if you want to reproduce the output.
+> Build note: the Bayesian SCM example below uses `rstan`, which requires a working C++ toolchain. On Windows install [Rtools](https://cran.r-project.org/bin/windows/Rtools/); on macOS install the Xcode command-line tools. First-time compilation can take 5-10 minutes. The chunk is set to `eval = FALSE` for exactly this reason, run it manually if you want to reproduce the output.
 
 ```{r, eval = FALSE}
 # Load necessary libraries
@@ -827,9 +827,9 @@ print(synth.tab(dataprep.res = dataprep.out, synth.res = synth.out))
 
 ```
 
-Plot: Observed vs. Synthetic State A
+Plot: Observed vs. Synthetic State A. Figure \@ref(fig:sc-stateA-path) overlays the actual outcome trajectory of State A with its synthetic counterfactual.
 
-```{r}
+```{r sc-stateA-path, fig.cap="Path plot comparing the observed outcome of treated State A with its synthetic-control counterfactual; the dashed vertical line marks the treatment start at year 15."}
 path.plot(
   synth.out,
   dataprep.out,
@@ -840,15 +840,15 @@ path.plot(
 )
 
 # Mark the treatment start year
-abline(v = 15, lty = 2)  
+abline(v = 15, lty = 2)
 
 ```
 
 Plot: Treatment Effect (Gaps Plot)
 
-The gaps plot shows the difference between `State A` and its synthetic control over time.
+The gaps plot shows the difference between `State A` and its synthetic control over time. Figure \@ref(fig:sc-stateA-gaps) plots this treatment-effect path.
 
-```{r}
+```{r sc-stateA-gaps, fig.cap="Gaps plot showing the period-by-period difference between the observed outcome of State A and its synthetic counterfactual; the post-1975 deviation indicates the estimated treatment effect."}
 gaps.plot(synth.res    = synth.out,
           dataprep.res = dataprep.out,
           Ylab         = c("Gap"),
@@ -865,8 +865,8 @@ abline(v   = 15, lty = 2)
 
 The classic `Synth` workflow above relies on building a `dataprep` matrix of predictors, treated/donor identifiers, and time windows before invoking `synth()`. Two more recent packages streamline this pipeline:
 
-- **`tidysynth`** (Dunford) provides a tidyverse-style API in which the synthetic-control workflow is expressed as a chained sequence of verbs, `synthetic_control()` initializes the object, `generate_predictor()` defines pre-treatment matching variables, `generate_weights()` solves for donor weights, and `generate_control()` constructs the synthetic counterfactual. Diagnostics, plots, and placebo tests are dispatched on the resulting object via S3 methods (`plot_trends()`, `plot_placebos()`, `grab_significance()`), avoiding the matrix bookkeeping required by `Synth::dataprep()`.
-- **`augsynth`** (Ben-Michael, Feller, and Rothstein), already used elsewhere in this chapter (see Section [Augmented Synthetic Control Method]), implements ridge-augmented synthetic control with explicit bias correction and is the recommended package when pre-treatment fit is poor.
+- `tidysynth` (Dunford) provides a tidyverse-style API in which the synthetic-control workflow is expressed as a chained sequence of verbs, `synthetic_control()` initializes the object, `generate_predictor()` defines pre-treatment matching variables, `generate_weights()` solves for donor weights, and `generate_control()` constructs the synthetic counterfactual. Diagnostics, plots, and placebo tests are dispatched on the resulting object via S3 methods (`plot_trends()`, `plot_placebos()`, `grab_significance()`), avoiding the matrix bookkeeping required by `Synth::dataprep()`.
+- `augsynth` (Ben-Michael, Feller, and Rothstein), already used elsewhere in this chapter (see Section [Augmented Synthetic Control Method]), implements ridge-augmented synthetic control with explicit bias correction and is the recommended package when pre-treatment fit is poor.
 
 A minimal `tidysynth` skeleton, parallel to the `Synth` example above, is:
 
@@ -938,7 +938,9 @@ gsynth.out <- gsynth(
 
 ```
 
-```{r}
+Figure \@ref(fig:sc-gsynth-stateA) renders the GSC treatment-effect, counterfactual, and control-case panels for the simulated State A example.
+
+```{r sc-gsynth-stateA, fig.cap="Generalized synthetic control output for the simulated State A example, showing estimated treatment effects, the counterfactual trajectory, and the raw control-unit trajectories."}
 # Plot Estimated Treatment Effects
 plot(gsynth.out)
 
@@ -946,7 +948,7 @@ plot(gsynth.out)
 plot(gsynth.out, type = "counterfactual")
 
 # Show Estimations for Control Cases
-plot(gsynth.out, type = "counterfactual", raw = "all") 
+plot(gsynth.out, type = "counterfactual", raw = "all")
 
 ```
 
@@ -956,7 +958,7 @@ The Basque Country in Spain implemented a major policy change in 1975, impacting
 
 We will:
 
-1.  Construct a synthetic control using economic predictors. 2
+1.  Construct a synthetic control using economic predictors.
 2.  Evaluate the policy's impact by comparing the real and synthetic Basque GDP.
 
 ```{r}
@@ -1053,9 +1055,9 @@ synth.tables$tab.w[8:14, ]
 
 #### Step 4: Visualizing Results
 
-Plot Real vs. Synthetic GDP Per Capita
+Plot Real vs. Synthetic GDP Per Capita. Figure \@ref(fig:sc-basque-path) overlays the actual Basque GDP trajectory with its synthetic counterfactual.
 
-```{r}
+```{r sc-basque-path, fig.cap="Path plot comparing real per-capita GDP for the Basque Country with its synthetic counterfactual constructed from a weighted combination of donor Spanish regions, 1955 to 1997."}
 path.plot(
     synth.res = synth.out,
     dataprep.res = dataprep.out,
@@ -1068,9 +1070,9 @@ path.plot(
 
 ```
 
-Plot the Treatment Effect (GDP Gap)
+Plot the Treatment Effect (GDP Gap). Figure \@ref(fig:sc-basque-gaps) plots the period-by-period gap between actual and synthetic Basque GDP.
 
-```{r}
+```{r sc-basque-gaps, fig.cap="Gaps plot showing the difference between actual Basque per-capita GDP and its synthetic counterfactual; the large post-1975 deviation indicates the estimated impact of the policy change."}
 gaps.plot(
     synth.res = synth.out,
     dataprep.res = dataprep.out,
@@ -1086,9 +1088,9 @@ The gap plot shows the difference between actual Basque GDP and its synthetic co
 
 ### Micro-Synthetic Control with `microsynth`
 
-The `microsynth` package extends standard SCM by allowing: 1
+The `microsynth` package extends standard SCM by allowing:
 
-1.  Matching on both predictors and time-variant outcomes. 2
+1.  Matching on both predictors and time-variant outcomes.
 2.  Permutation tests and jackknife resampling for placebo tests.
 3.  Multiple follow-up periods to track long-term treatment effects.
 4.  Omnibus test statistics for multiple outcome variables.
@@ -1203,10 +1205,10 @@ Permutation and jackknife tests assess whether observed treatment effects are st
 
 Key robustness checks:
 
-1.  **Permutation Tests** (`perm = 250`)
+1.  Permutation Tests (`perm = 250`)
     -   Reassigns treatment randomly and estimates placebo effects.
     -   If true effects exceed placebo effects, they are likely causal.
-2.  **Jackknife Resampling** (`jack = TRUE`)
+2.  Jackknife Resampling (`jack = TRUE`)
     -   Removes one control unit at a time and re-estimates effects.
     -   Ensures no single control dominates the synthetic match.
 

@@ -12,6 +12,8 @@ Interpreting them as a causal effect of the event on firm value requires additio
 3.  The expected-return model is correctly specified during the estimation window.
 
 When these conditions are not met, the event study documents a correlation between a period and a price movement, not a causal effect. In modern empirical practice, event studies are often layered on top of an explicit quasi-experimental design ([DiD](#sec-difference-in-differences), [RD](#sec-regression-discontinuity), or [IV](#sec-instrumental-variables)): the event-study plot then serves as a *visualization* of dynamic treatment effects, and the causal identification comes from the underlying design rather than from the event study itself.
+
+A separate and harder question, even granting all three conditions, is whether abnormal returns track the *ex-post value* created by the event. Section \@ref(sec-car-value-creation-gap) reviews the @bendavid2026missing evidence that for corporate acquisitions the answer is essentially no: announcement CAR is uncorrelated with ex-post value-creation measures, and is in fact dominated by news about the standalone acquirer rather than news about the deal. The implication for the rest of this chapter is that "abnormal returns describe a price reaction" and "abnormal returns measure value creation" are two separate empirical claims, and the second requires more than the four foundational assumptions.
 :::
 
 The first event study was conducted by @dolley1933characteristics, while @campbell1998econometrics formalized the methodology for modern applications. Later, @dubow2006measuring developed a metric to assess market transparency (i.e., a way to gauge how "clean" a market is) by tracking unusual stock price movements before major regulatory announcements. Their study found that abnormal price shifts before announcements could indicate insider trading, as prices reacted to leaked information before official disclosures.
@@ -52,7 +54,7 @@ Tables \@ref(tab:event-study-firm-initiated) and \@ref(tab:event-study-non-firm)
 | **Brand & Marketing Strategies**           | [@lane1995stock] (brand extensions), [@wiles2012effect] (brand acquisition)                                                                                                                                                                                                           |
 | **Advertising & Promotions**               | [@wiles2010stock] (deceptive advertising), [@cornwell2005relationship] (sponsorship announcements)                                                                                                                                                                                    |
 | **Strategic Alliances**                    | [@houston2000buyer] (joint ventures), [@fang2015timing] (co-development agreements), [@sorescu2007some] (M&A), [@homburg2014firm] (channel expansions)                                                                                                                                |
-| **Entertainment & Celebrity Endorsements** | [@agrawal1995economic] (celebrity endorsements), [@elberse2007power] (casting announcements), [@wiles2009worth] (product placement in movies), [@joshi2009movie] (movie releases), [@karniouchina2011marketing] (product placement), [@mazodier2013sponsorship] (sports annoucements) |
+| **Entertainment & Celebrity Endorsements** | [@agrawal1995economic] (celebrity endorsements), [@elberse2007power] (casting announcements), [@wiles2009worth] (product placement in movies), [@joshi2009movie] (movie releases), [@karniouchina2011marketing] (product placement), [@mazodier2013sponsorship] (sports announcements) |
 
 Table: (\#tab:event-study-firm-initiated) Marketing event studies of firm-initiated activities, grouped by event category.
 
@@ -73,7 +75,7 @@ Table: (\#tab:event-study-non-firm) Marketing event studies of non-firm-initiate
 
 The space of plausible event studies is far from exhausted. Major advertising campaigns, market entries, product recalls, and patent announcements are all candidate events whose informational content arrives with a clean timestamp and whose effect on firm value is in principle measurable. Whenever you encounter a setting where (a) the event is dated precisely, (b) market participants could plausibly update on it, and (c) you can construct a defensible counterfactual from the estimation window, the apparatus that follows in this chapter is in scope.
 
-## Key Assumptions
+## Key Assumptions {#sec-key-assumptions}
 
 The interpretation of an event study, whether descriptive or causal, rests on a small set of assumptions about how prices, information, and the firm's stakeholders interact. None of these are testable in the strong sense that randomization is, and each fails in identifiable ways. Reading the four assumptions below as licensing claims, each one buying you a specific interpretation, is more useful than reading them as a checklist.
 
@@ -337,7 +339,9 @@ where:
 
 ### Computing Leverage Effect from Compustat Data
 
-```{r}
+Figure \@ref(fig:es-leverage-effect-distribution) shows the cross-firm distribution of the leverage effect computed from Compustat together with the within-firm coefficient of variation across years.
+
+```{r es-leverage-effect-distribution, fig.cap="Cross-firm distribution of the Compustat leverage effect (top) and the within-firm coefficient of variation across years (bottom).", message=FALSE}
 # Load required libraries
 library(tidyverse)
 
@@ -427,7 +431,9 @@ By computing $\Delta W_t$, researchers can translate stock market reactions into
 
 ------------------------------------------------------------------------
 
-```{r}
+Figure \@ref(fig:es-wealth-change-distribution) shows the simulated distribution of dollar wealth change $\Delta W_t$ across 100 firms drawn from a normal CAR distribution and a uniform pre-event market value.
+
+```{r es-wealth-change-distribution, fig.cap="Distribution of simulated dollar wealth change from a marketing event across 100 firms, computed as CAR times pre-event market value."}
 # Load necessary libraries
 library(tidyverse)
 
@@ -554,6 +560,24 @@ This correction ensures abnormal returns are properly scaled, reducing bias from
 
 ------------------------------------------------------------------------
 
+#### Boehmer-Musumeci-Poulsen Standardized Cross-Sectional Test {#sec-bmp-test}
+
+The Patell test corrects for prediction error in the estimation window but assumes the event-window variance equals the estimation-window variance. That assumption fails whenever the event itself perturbs return volatility, which is the norm rather than the exception: corporate-action announcements, regulatory shocks, and major news releases all tend to widen the cross-section of returns on the announcement date relative to ordinary trading days. @boehmer1991eventstudy show that ignoring this *event-induced variance* causes the Patell test to reject the null too often, sometimes dramatically so, and propose a standardized cross-sectional statistic that absorbs the shift. The BMP test divides each firm's Patell-standardized abnormal return by the cross-sectional standard deviation of those standardized returns within the event window, so any common increase in variance is differenced out. In simulation studies and empirical comparisons it has displaced Patell as the default short-window test for any sample where the event might plausibly shift variance, which is almost all of them.
+
+@harrington2007all extend the logic one step further by showing analytically that *any* cross-sectional heterogeneity in event effects, not just an aggregate variance shift, mechanically inflates event-window variance relative to the estimation window. Their recommendation, which is now standard, is to use BMP-style tests as the default even when no aggregate variance shift is suspected, because firm-level heterogeneity in the underlying effect is virtually unavoidable in real samples.
+
+#### Kolari-Pynnonen Adjusted Tests for Cross-Sectional Correlation {#sec-kolari-pynnonen-test}
+
+BMP corrects for event-induced variance but still treats abnormal returns as independent across firms. When events cluster in calendar time, as they routinely do for sector regulations, market-wide announcements, or industry shocks, abnormal returns across firms share a common factor that the independence assumption ignores. @kolari2010event show that this cross-sectional correlation biases the BMP statistic upward and propose a one-line correction: multiply the BMP statistic by $\sqrt{(1 - \bar{r}) / (1 + (n-1) \bar{r})}$, where $\bar{r}$ is the average pairwise correlation of estimation-window residuals across the $n$ sample firms. The adjusted statistic, often labeled ADJ-BMP or the Kolari-Pynnonen test, restores correct rejection rates in clustered-event samples and reduces to BMP exactly when residuals are uncorrelated.
+
+@kolari2011nonparametric provide a companion generalized rank test (GRANK) that is simultaneously robust to event-induced volatility, cross-sectional correlation, and non-normality, making it the most defensible nonparametric default for short-window studies. The progression Patell to BMP to ADJ-BMP/GRANK now defines best-practice inference: pick the test whose robustness profile matches the threats present in the sample, and report results across multiple tests when they disagree.
+
+#### Contaminated Estimation Windows {#sec-contaminated-estimation}
+
+A subtler inferential problem arises when the estimation window itself is dirty. Serial acquirers, repeat issuers, or firms in industries with frequent news flow violate the implicit assumption that the estimation window contains only "normal" return generation. @aktas2007event document the bias this introduces, larger and more variable abnormal returns than the true effect, and propose a two-state market-model adjustment that downweights estimation-window observations contaminated by other firm-specific news. The fix is most consequential for samples of serial acquirers and for firms in M&A-active industries, where the convention of fitting the market model on the most recent 250 days routinely overlaps other event windows.
+
+------------------------------------------------------------------------
+
 ### Non-Parametric Tests
 
 Non-parametric tests do not assume a specific return distribution, making them robust to non-normality and heteroskedasticity.
@@ -675,9 +699,9 @@ A useful data source for identifying confounding events is **Capital IQ's Key De
 
 **Why?**
 
--   **Selection bias risk**: Researchers may selectively exclude events, introducing bias.
--   **Increasing exclusions over time**: As time progresses, more events need to be excluded, reducing statistical power.
--   **Short-term windows minimize confounder effects**.
+-   Selection bias risk: Researchers may selectively exclude events, introducing bias.
+-   Increasing exclusions over time: As time progresses, more events need to be excluded, reducing statistical power.
+-   Short-term windows minimize confounder effects. 
 
 ------------------------------------------------------------------------
 
@@ -695,7 +719,9 @@ We will analyze the impact of **including vs. excluding** correlated and uncorre
 
 ------------------------------------------------------------------------
 
-```{r, warning=FALSE}
+Figure \@ref(fig:es-correlated-uncorrelated-sim) plots the estimated mean focal-event effect, with 95% confidence intervals, under scenarios that progressively include or exclude correlated and uncorrelated events.
+
+```{r es-correlated-uncorrelated-sim, fig.cap="Estimated mean focal-event effect with 95% confidence intervals across scenarios that include or exclude correlated and varying numbers of uncorrelated events. The dashed red line marks the true effect.", warning=FALSE}
 # Load required libraries
 library(dplyr)
 library(ggplot2)
@@ -866,11 +892,11 @@ ggplot(results,
                color = "red") 
 ```
 
-As depicted in the plot, the inclusion of correlated events demonstrates minimal impact on the estimation of our focal events. Conversely, excluding these correlated events can diminish our statistical power. This is true in cases of pronounced correlation.
+As shown in Figure \@ref(fig:es-correlated-uncorrelated-sim), the inclusion of correlated events demonstrates minimal impact on the estimation of our focal events. Conversely, excluding these correlated events can diminish our statistical power. This is true in cases of pronounced correlation.
 
 However, the consequences of excluding unrelated events are notably more significant. It becomes evident that by omitting around 40 unrelated events from our study, we lose the ability to accurately identify the true effects of the focal events. In reality and within research, we often rely on the Key Developments database, excluding over 150 events, a practice that can substantially impair our capacity to ascertain the authentic impact of the focal events.
 
-This little experiment really drives home the point -- you better have a darn good reason to exclude an event from your study!
+This little experiment really drives home the point: you had better have a good reason to exclude an event from your study.
 
 ------------------------------------------------------------------------
 
@@ -885,6 +911,18 @@ Event studies are subject to several biases that can affect the estimation of ab
 When firms in the sample trade on exchanges in different time zones, the very notion of "the day of the event" becomes ambiguous. @campbell1998econometrics flag this issue: a closing price recorded at 4 p.m. New York time and another at 4 p.m. Tokyo time correspond to substantially different information sets, and aggregating them as if they were contemporaneous obscures the true price reaction. The bias is especially acute for firms cross-listed on multiple exchanges or for events that release news during a specific time zone's trading hours, after some markets have closed and before others open.
 
 The standard fixes line up directly with the source of the problem. Use synchronized closing prices wherever possible, drawing on a single reference exchange or on intraday quotes recorded at a uniform timestamp. When that is not feasible, define the event window relative to the firm's *primary* trading exchange and accept that the resulting estimate is conditional on that choice. In multi-exchange settings, reporting results separately by primary listing is a useful robustness exercise: substantial divergence is a flag that timing alignment is doing real work.
+
+------------------------------------------------------------------------
+
+### Intraday and High-Frequency Event Studies {#sec-intraday-event-studies}
+
+The conventional event study works with daily returns because, until the early 2000s, daily was the finest granularity at which clean panel data on returns and corporate events was widely available. Two developments since then have made intraday and tick-level event studies a parallel methodological track rather than a niche variant: the standardisation of high-frequency exchange data (TAQ in the US, equivalent feeds elsewhere) and the routine timestamping of news events at the minute or second level in commercial data feeds (Bloomberg, Reuters, RavenPack, Capital IQ Key Developments). The payoff is that the *event window* contracts from days to minutes, which buys two things at once: dramatically lower contamination from coincident news, and the ability to identify the precise channel through which information enters prices.
+
+The canonical reference is @andersen2003micro, who use five-minute exchange-rate returns sampled from high-frequency tick data to identify the price impact of macroeconomic announcements. Their key results, that announcement surprises induce conditional-mean jumps within minutes of release, that the price response is asymmetric in good versus bad news, and that volatility persists for hours after the announcement, established the template that subsequent intraday event studies have largely followed. In US equities, @lucca2015prefomc document a large equity excess return in the 24-hour window before scheduled FOMC announcements (measured from 2 p.m. the previous day to 2 p.m. the announcement day), the *pre-FOMC drift*, a result that is invisible at daily frequency because the close-to-close convention straddles the 2 p.m. announcement window. @boehmer2021tracking provide a method for tagging marketable retail trades in TAQ data and pair it with high-frequency event studies of retail-driven news, opening a separate channel for asking who actually trades on which information.
+
+A second class of high-frequency studies attacks the *signal extraction* problem rather than the timing problem. @boudoukh2019information use textual analysis of firm-specific news to identify the news content underlying price moves and to separate news-driven moves from microstructural noise, finding that identified news accounts for roughly half of overnight idiosyncratic return variance. The methodology generalises directly to firm-specific event studies in samples where multiple news items can arrive on the same day: instead of dropping contaminated firm-days, the analyst attributes the price move to the textually identified news content and proceeds. This approach is increasingly the norm in studies that need to disentangle the contribution of overlapping announcements, regulatory disclosures, earnings, M&A news, and analyst reports.
+
+Three practical guidelines follow from the intraday literature. First, when the event has a precise public timestamp (a press-release time, a regulatory filing timestamp, an exchange-disseminated news flag), shrink the event window to the smallest interval that contains the news. The price reaction is concentrated in the minutes around the announcement, and wider windows mostly add noise. Second, when multiple events plausibly arrive on the same day, textual attribution via NLP is the most defensible way to isolate the focal event's contribution. Third, the standard parametric tests carry over to intraday data with the obvious caveat that intraday return distributions are heavier-tailed than daily ones, so the BMP and Kolari-Pynnonen adjustments (Section \@ref(sec-bmp-test) and Section \@ref(sec-kolari-pynnonen-test)) and the nonparametric GRANK test are all the more important.
 
 ------------------------------------------------------------------------
 
@@ -1028,14 +1066,44 @@ A Switching Regression Model accounts for selection on unobservables using instr
 
 -   Example: @cao2013wedded applied switching regression to compare two outcomes while correcting for selection bias.
 
+## Does CAR Measure Value Creation? Evidence from M&A {#sec-car-value-creation-gap}
+
+The discussion so far has treated the cumulative abnormal return as a well-defined object: under the four assumptions in Section \@ref(sec-key-assumptions), CAR is the market's revaluation of the firm in light of the event's information content. A separate and harder question is whether that revaluation actually tracks the *ex-post* value created by the event. The two are not the same. CAR measures what investors believed about the event at the moment the news broke; ex-post value is what the event actually produced over the subsequent months and years. A growing body of work shows that the gap between the two can be large, persistent, and in places systematic. The cleanest setting in which to see this is corporate mergers and acquisitions, where the event is precisely dated, the dollar stakes are enormous, and ex-post outcomes (operating performance, productivity, divestitures, write-downs) are observable.
+
+### The M&A Stylized Facts
+
+The textbook short-window finding is by now well-rehearsed. @bradley1988synergistic showed that the combined CAR of target and acquirer, the *synergy gain*, is reliably positive around tender-offer announcements, around 7.4 percent of combined market capitalization on average. The split between target and acquirer is lopsided: targets routinely earn 20 to 30 percent abnormal returns around mergers and 30 to 40 percent around tender-offer premia, while acquirers earn close to zero on average. @andrade2001new synthesized two decades of this evidence and concluded that mergers create value, but that the acquirer's share is small and often negative. The standard inference was that markets price the deal efficiently, the gains accrue to targets because of competitive bidding, and the average acquirer is paying close to fair value.
+
+That inference began to fray in the early 2000s. @moeller2004firm document a strong size effect: large acquirers earn significantly *negative* announcement returns, even as small acquirers earn positive ones. @moeller2005wealth quantify the aggregate consequence: acquirers lost on the order of 240 billion dollars at announcement during the 1998 to 2001 merger wave alone, an order of magnitude larger than any plausible synergy estimate. @bhagat2005tender propose probability-scaled CARs and methods that exploit returns at intervening events to back out the surprise component of the announcement, and conclude that the perceived value improvements from tender offers are larger than raw CAR suggests, that is, that raw CAR understates value creation. @bouwman2009market show that announcement returns vary systematically with the market valuation environment in which the deal is launched, with high-valuation acquisitions earning high short-run CAR but underperforming over the long run. @bargeron2008why decompose the public-versus-private acquirer gap and link it to differences in bidder managerial ownership, a channel that announcement-window CAR cannot reveal. @cai2012board and @harford2012sources tie negative acquirer CAR to specific governance failures, board interlocks in the first case, managerial entrenchment in the second.
+
+Two strands of evidence push directly against the CAR-as-value-creation interpretation. The *long-run shareholder benefit* literature, anchored by @loughran1997long, documents large negative five-year buy-and-hold abnormal returns for *stock-merger* acquirers (around minus 25 percent over five years in their sample) alongside positive five-year returns for cash-tender-offer acquirers, a divergence that is entirely invisible in the announcement window. The *operating-performance and restructuring* literature anchors at @healy1992corporate, who use accounting cash-flow data on the 50 largest US mergers from 1979 through mid-1984 to document post-merger operating-performance gains, and extends through @maksimovic2001market and @maksimovic2011postmerger, who use Census plant-level data to show that acquirers extensively reorganize target assets in the years after the deal, selling roughly 27 percent of target plants and closing another 19 percent within three years. Whatever value mergers ultimately create or destroy is realized through this restructuring, not through the announcement-window price move. @maksimovic2013private extend the comparison to public versus private acquirer waves and find that the two sets of acquirers differ systematically in the magnitude of productivity gains they generate, with public-firm acquirers realizing larger gains on-the-wave and when their stock is highly valued. @golubov2015extraordinary close the loop by showing that acquirer announcement returns are persistent at the firm level, the same acquirers earn unusually high or low CAR across multiple deals, suggesting that CAR reflects an acquirer-specific characteristic that travels with the firm rather than a deal-specific assessment.
+
+### The (Missing) Relation
+
+@bendavid2026missing put this body of evidence on a sharper footing. They take as their premise the workhorse interpretation, that the acquirer's announcement-period CAR is the market's expectation of the value the deal will create, and ask the obvious question: does CAR correlate with ex-post outcomes? They construct a battery of value-creation measures using post-deal data: changes in operating performance, write-downs and impairments of acquired goodwill, divestitures of acquired assets, and the long-horizon survival of the combined entity. They then show, across a large sample of US acquisitions, that announcement CAR is essentially uncorrelated with each of these ex-post outcomes. The (Missing) Relation between Acquisition Announcement Returns and Value Creation is not a statistical artifact of a particular benchmark or window, the result survives a wide range of factor-model and characteristic-benchmark choices and a wide range of event-window definitions.
+
+Two of their secondary results matter for how to read the broader literature. First, a simple characteristics-based model using only information publicly available at announcement time predicts ex-post outcomes reasonably well, that is, the missing relation is not because outcomes are intrinsically unpredictable. Second, decomposing CAR into a component driven by acquirer characteristics and a component driven by deal characteristics shows that the acquirer-specific component dominates: announcement-period CAR is mostly news about the standalone acquirer that happens to arrive on the deal date, not news about the deal itself. This rationalises the @golubov2015extraordinary persistence finding and explains why CAR fails as a deal-quality signal in the first place: it is mostly not measuring the deal.
+
+### Implications for Practice
+
+The Ben-David et al. result does not invalidate event studies, but it sharply constrains what claims they can support. Three implications are worth flagging.
+
+First, for M&A specifically, *announcement CAR is a poor proxy for expected value creation*. Treating it as one, for example by using it as the dependent variable in a cross-sectional regression of "what deal characteristics create value", is essentially regressing on an outcome whose signal-to-noise ratio for the deal is close to zero. Modern best practice in M&A empirics increasingly pairs CAR with ex-post measures, operating-performance changes [@healy1992corporate], productivity gains [@maksimovic2001market; @maksimovic2011postmerger], or impairment- and divestiture-based outcomes [@bendavid2026missing], and treats agreement between the two as the substantive finding.
+
+Second, the result generalises to event studies in any setting where the focal event arrives bundled with substantial firm-specific information. Earnings announcements, regulatory rulings affecting a single firm, and major product launches all share the structural feature that the announcement-window CAR is dominated by news about the firm that happens to arrive on the event date. The cleaner the event (a regulatory decision affecting many firms simultaneously, a court ruling with timing exogenous to the firm), the closer CAR comes to measuring the event's effect; the muddier the event (a strategic firm choice with substantial coincident firm-specific news), the more the warning applies.
+
+Third, the result reinforces the case made elsewhere in the chapter that long-horizon and ex-post measures are not just a robustness check on short-window CAR but a substantively different object. The chapter's [long-run event-study section](#sec-buy-and-hold-abnormal-returns-bhar) and the productivity- and restructuring-based literature it references are the natural complement to the short-window machinery: when announcement returns and long-run outcomes diverge, that divergence is itself evidence, and the @bendavid2026missing result says the divergence is the rule rather than the exception in M&A. The historical survey in @andrade2001new, the modern critique in @bendavid2026missing, and the handbook treatment in @betton2008corporate together map out the territory.
+
+------------------------------------------------------------------------
+
 ## Long-run Event Studies
 
 Long-horizon event studies analyze the long-term impact of corporate events on stock prices. These studies commonly assume that the distribution of abnormal returns has a mean of zero [@sorescu2017, p. 192]. Moreover, @sorescu2017 provide evidence that samples with and without confounding events yield similar results.
 
 However, long-run event studies face several methodological challenges:
 
--   **Systematic biases over time**: Estimation errors can accumulate over long periods.
--   **Sensitivity to model specification**: The choice of asset pricing models can influence results.
+-   Systematic biases over time: Estimation errors can accumulate over long periods.
+-   Sensitivity to model specification: The choice of asset pricing models can influence results.
 
 Long-run event studies typically use event windows of **12 to 60 months** [@loughran1995new; @brav1997myth].
 
@@ -1266,7 +1334,9 @@ In short-term studies, LCAR and BHAR tend to yield similar results, but in long-
 
 ------------------------------------------------------------------------
 
-```{r}
+Figure \@ref(fig:es-lcar-trajectories) plots simulated long-run cumulative abnormal return paths for 50 event firms over a 60-month event window.
+
+```{r es-lcar-trajectories, fig.cap="Simulated long-run cumulative abnormal return (LCAR) trajectories for 50 firms over a 60-month event window, with each line representing one firm's cumulative abnormal return relative to a benchmark portfolio."}
 # Load necessary packages
 library(tidyverse)
 library(ggplot2)
@@ -1401,6 +1471,18 @@ While CTAR offers robust cross-sectional controls, it has notable limitations:
 2.  Low Statistical Power
     -   CTAR has been criticized for low power (i.e., high Type II error rates) [@loughran2000uniformly].
     -   Detecting significant abnormal returns requires a large number of event firms and a sufficiently long time-series.
+
+------------------------------------------------------------------------
+
+### Modern Concerns in Long-Run Inference {#sec-long-run-modern-concerns}
+
+The three long-run estimators above (BHAR, LCAR, CTAR) were developed in the 1990s and early 2000s on the assumption that abnormal returns are approximately normally distributed in the cross-section once a sensible benchmark has been chosen. Two more recent results sharpen the conditions under which that assumption survives, one on the distribution side and one on the benchmark side.
+
+@bessembinder2018do documents the extreme skewness of long-run individual-stock returns. Across the full CRSP universe from 1926 to 2016, the median stock underperforms the one-month Treasury bill over its lifetime, and only 4.3% of stocks account for all aggregate net wealth creation; the remaining 95.7% collectively earn zero in excess of T-bills. @bessembinder2023long extend this finding to 64,000 stocks in 42 countries and show the pattern is global. The implication for long-run event studies is direct: the cross-section of $T$-month BHAR is not a tractable bell curve but a sharply right-skewed distribution with a small number of extreme winners. Standard $t$-tests on the BHAR mean are mis-sized in this setting, and the skewness-adjusted tests in @lyon1999improved should be treated as a floor on the corrections needed rather than a complete solution. Bootstrap inference (resampling the cross-section of event firms) and reporting of medians, percentiles, and dollar-weighted means alongside mean BHAR are now expected in long-horizon studies that aspire to publication.
+
+@bessembinder2019characteristic provide the parallel correction on the benchmark side. They show that regression-fitted characteristic benchmarks, matching event firms to non-event firms on size, book-to-market, momentum, profitability, and investment, outperform standard factor-model corrections in long-run designs. Many published long-run abnormal returns shrink toward zero or disappear once the benchmark is calibrated to event-firm characteristics rather than to a universe-wide factor model. The characteristic-benchmark approach is now the most defensible single choice for long-horizon designs and provides a stringent robustness check on factor-model-based BHAR.
+
+Taken together, these three results substantially raise the bar for what long-run event studies need to show. A modern long-horizon design should: (i) report results under both factor-model and characteristic benchmarks, (ii) report bootstrap confidence intervals alongside parametric ones, (iii) report the median and the right-tail percentiles of the BHAR distribution alongside the mean, and (iv) cross-check BHAR against calendar-time portfolio (CTAR) results to detect cross-sectional-correlation contamination. Where these checks agree, the inference is on solid ground; where they disagree, the disagreement is usually substantively informative and worth tracing rather than averaging away.
 
 ------------------------------------------------------------------------
 
@@ -1634,6 +1716,35 @@ where:
 >
 > -   However, the statistical properties of the FF model for daily event studies remain untested.
 
+##### **Fama-French Five-Factor Model (FF5)**
+
+@fama2015five augment FF3 with a profitability factor and an investment factor:
+
+$$
+\begin{aligned}
+E(R_{it}|X_t) - r_{ft} &= \alpha_i + \beta_{1i} (E(R_{mt}|X_t) - r_{ft}) + b_{2i} SMB_t + b_{3i} HML_t \\
+&\quad + b_{4i} RMW_t + b_{5i} CMA_t
+\end{aligned}
+$$
+
+where $RMW_t$ is the return on a portfolio of robust-minus-weak operating profitability stocks and $CMA_t$ is the return on conservative-minus-aggressive investment stocks. FF5 is the current default factor model in cross-sectional asset-pricing tests, and it has largely displaced FF3 in event-study work where the sample includes substantial cross-firm variation in profitability and investment policy. The value factor HML becomes statistically redundant in FF5 in some samples, which is itself diagnostic information about the source of the anomaly.
+
+##### **Hou-Xue-Zhang q-Factor Model**
+
+@hou2015digesting develop a parallel four-factor model derived from the neoclassical investment-q framework: market, size, investment, and profitability factors. The q-factor model has comparable or better explanatory power to FF5 across a wide range of cross-sectional anomalies, and the underlying interpretation, linking returns to firms' investment and profitability decisions, is closer to the economic-equilibrium logic that motivates CAPM than to the empirical-factor logic that motivates FF3. For event studies of corporate actions where the event itself plausibly changes investment policy (capital expenditure announcements, divestitures, acquisitions), the q-factor model provides a more theoretically coherent benchmark than the Fama-French models.
+
+##### **Mispricing and Behavioral Factors**
+
+A separate strand of the recent literature augments the standard factor models with factors built explicitly from mispricing or behavioral signals. @stambaugh2017mispricing construct two mispricing factors, MGMT and PERF, from anomalies grouped by their relation to managerial action and to firm performance, and show that the resulting four-factor model (market, size, MGMT, PERF) absorbs the bulk of anomaly-based predictability. @daniel2020short propose short-horizon (PEAD-based) and long-horizon (financing-based) behavioral factors that capture distinct components of the cross-section. For event studies in marketing and management, where investor under- or over-reaction to soft information is often the substantive question, these models offer a benchmark that does not by construction price out the very behavior the researcher is studying.
+
+##### **Characteristic-Based Benchmarks**
+
+The factor models above net out priced risk by regressing returns on common factors. A complementary approach nets out *characteristic* exposure by matching each event firm to a portfolio of non-event firms with similar size, book-to-market, momentum, and (where relevant) profitability and investment characteristics. @bessembinder2019characteristic show that regression-fitted characteristic benchmarks outperform standard factor-model corrections in long-run event studies, and they document that many published long-run abnormal returns shrink toward zero or disappear once the benchmark is calibrated to event-firm characteristics rather than to a universe-wide factor model. For long-horizon designs the characteristic benchmark is now the most defensible choice, and for short-horizon designs it provides a useful robustness check on factor-model results.
+
+##### **Machine-Learning Normal-Return Models**
+
+The factor-model and characteristic-benchmark approaches both fit a small number of linear features. A separate methodological frontier fits the expected-return model with high-dimensional, nonlinear machine-learning predictors. @gu2020empirical benchmark a range of ML estimators (penalized regression, random forests, gradient-boosted trees, neural networks) and find that they substantially improve out-of-sample fit relative to standard factor models, particularly for stocks with non-trivial nonlinear exposure to common factors. Their architecture has been adopted as an alternative normal-return engine in recent event-study work, especially for samples of small, illiquid, or thinly factor-exposed stocks where linear factor models fit poorly. The practical caveat is that ML normal-return models trade interpretability for fit, the abnormal return becomes the residual from a black-box prediction rather than a clean deviation from a market-model intercept, and they require careful out-of-sample protocols to avoid look-ahead contamination in the estimation window.
+
 ------------------------------------------------------------------------
 
 ### **Economic Models for Expected Returns**
@@ -1688,16 +1799,22 @@ where:
 
 Table \@ref(tab:event-study-return-models) compares the expected-return models commonly used to compute abnormal returns.
 
-| Model                | Key Assumptions                         | Factors Considered              | Best Use Case                |
-|----------------------|-----------------------------------------|---------------------------------|------------------------------|
-| Constant Mean Return | Mean-reverting returns                  | None                            | Simple event studies         |
-| Market Model         | Linear relationship with market returns | Market factor ($R_m$)           | Short-term studies           |
-| Fama-French (FF3)    | Size & value factors matter             | Market, Size (SML), Value (HML) | Medium- to long-term studies |
-| Fama-French (FF4)    | Momentum also matters                   | Market, Size, Value, Momentum   | Momentum-driven strategies   |
-| CAPM                 | Market is the only risk factor          | Market factor ($R_m$)           | Classic asset pricing        |
-| APT                  | Multiple systematic risks matter        | Market + Other Factors          | Flexible risk modeling       |
+| Model                                 | Key Assumptions                                                         | Factors Considered                                            | Best Use Case                                    |
+|---------------------------------------|-------------------------------------------------------------------------|---------------------------------------------------------------|--------------------------------------------------|
+| Constant Mean Return                  | Mean-reverting returns                                                  | None                                                          | Simple event studies                             |
+| Market Model                          | Linear relationship with market returns                                 | Market factor ($R_m$)                                         | Short-term studies                               |
+| CAPM                                  | Market is the only risk factor                                          | Market factor ($R_m$)                                         | Classic asset pricing                            |
+| APT                                   | Multiple systematic risks matter                                        | Market + other factors                                        | Flexible risk modeling                           |
+| Fama-French (FF3) [@fama1993common]   | Size and value factors matter                                           | Market, Size (SMB), Value (HML)                               | Medium- to long-term studies                     |
+| Carhart (FF4) [@carhart1997persistence] | Momentum also matters                                                  | Market, Size, Value, Momentum                                 | Momentum-driven strategies                       |
+| Fama-French Five-Factor [@fama2015five] | Profitability and investment matter                                   | Market, Size, Value, RMW, CMA                                 | Current default for long-horizon designs         |
+| q-Factor [@hou2015digesting]          | Returns track investment-q                                              | Market, Size, Investment, Profitability                       | Corporate actions changing investment policy     |
+| Mispricing factors [@stambaugh2017mispricing] | Mispricing channels persist                                      | Market, Size, MGMT, PERF                                      | Anomaly-rich samples                             |
+| Behavioral factors [@daniel2020short] | Investor under- or over-reaction priced                                 | Market + PEAD + FIN                                           | Behavioral hypotheses, marketing/management      |
+| Characteristic benchmark [@bessembinder2019characteristic] | Match on size/BM/momentum/profit characteristics | Implicit, via matched portfolio                               | Long-horizon studies, robustness check           |
+| Machine-learning model [@gu2020empirical] | Nonlinear, high-dimensional predictors                              | Many; selected by penalized or tree ensembles                 | Small or illiquid stocks; nonlinear factor exposure |
 
-Table: (\#tab:event-study-return-models) Expected-return models for event studies, with key assumptions, factors, and recommended use cases.
+Table: (\#tab:event-study-return-models) Expected-return models for event studies, with key assumptions, factors, and recommended use cases. The block of post-FF4 models, FF5, q-factor, mispricing/behavioral, characteristic-benchmark, and machine-learning, has become the modern menu; the choice among them is increasingly driven by what the event plausibly changes (risk, characteristics, or behavior) rather than by historical convention.
 
 ------------------------------------------------------------------------
 
@@ -1705,18 +1822,33 @@ Table: (\#tab:event-study-return-models) Expected-return models for event studie
 
 Several R packages facilitate event studies; Table \@ref(tab:event-study-r-packages) lists the most widely used.
 
-| Package                | Description                                                  |
-|------------------------|--------------------------------------------------------------|
-| `eventstudies`         | Computes abnormal returns and visualizes event impact        |
-| `erer`                 | Implements event study methodology in economics and finance  |
-| `EventStudy`           | Provides API-based event study tools (requires subscription) |
-| `AbnormalReturns`      | Implements market model and FF3 abnormal return calculations |
-| `PerformanceAnalytics` | Provides tools for risk and performance measurement          |
-| `estudy2`              | A flexible event study implementation                        |
+The toolchain has expanded substantially since the first edition of this chapter, and the menu now spans short-window finance event studies, panel-DiD-style econometric event studies, and high-throughput pipelines for tens of millions of firm-events. Table \@ref(tab:event-study-r-packages) groups the most-used packages by what they are designed for.
 
-Table: (\#tab:event-study-r-packages) R packages commonly used to implement event studies and what each provides.
+| Package                                       | Language | What it does                                                                                                                            |
+|-----------------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `eventstudies`                                | R        | Classical short-window event studies; bootstrap inference plus t-test and Patell; maintained at `xKDR/eventstudies` on GitHub          |
+| `erer`                                        | R        | Compact implementation of the canonical market-model event study with built-in plotting                                                 |
+| `estudy2`                                     | R        | Most complete suite of parametric and nonparametric tests, including Patell, BMP, Kolari-Pynnonen ADJ-BMP, GRANK, Corrado, Cowan; installable from `irudnyts/estudy2` |
+| `EventStudy`                                  | R        | Commercial event-study API client (EventStudyTools.com), with subscription tiers                                                        |
+| `AbnormalReturns`                             | R        | Lightweight market-model and FF3 abnormal-return helpers                                                                                |
+| `PerformanceAnalytics`                        | R        | General risk and performance toolkit; useful for long-run BHAR and CTAR construction                                                    |
+| `crseEventStudy`                              | R        | Standardised abnormal returns with cross-sectionally and serially robust SEs                                                            |
+| `eventstudyr`                                 | R        | Panel-DiD-style event-study estimation implementing @freyaldenhoven2025visualization, with sup-t bands and "least wiggly" Wald-region paths; maintained at `JMSLab/eventstudyr`, on CRAN |
+| `fixest`                                      | R        | The workhorse for econometric event studies; `i()` syntax for dummy expansion and `sunab()` for the @sun2021estimating estimator       |
+| `did`                                         | R        | Canonical @callaway2021difference implementation: group-time ATTs with multiple periods                                                 |
+| `did2s`                                       | R        | Two-stage @gardner2022two estimator (numerically equivalent to the @borusyak2024revisiting imputation under standard panel designs)     |
+| `didimputation`                               | R        | Dedicated implementation of the @borusyak2024revisiting imputation event-study                                                          |
+| `HonestDiD`                                   | R        | Partial-identification bounds under relaxed parallel trends [@rambachan2023more]                                                        |
+| `etwfe`                                       | R        | Extended TWFE / two-way Mundlak DiD                                                                                                     |
+| `staggered`                                   | R        | Efficient estimator under random treatment timing (Roth and Sant'Anna)                                                                  |
+| `AbnormalReturns.jl`                          | Julia    | High-throughput regression-based abnormal returns for millions of firm-events                                                            |
+| `eventstudy`                                  | Python   | Market model, constant-mean, FF3; AR, CAR, AAR, CAAR routines                                                                            |
+| `eventstudy2` (Stata)                         | Stata    | Kaspereit's flexible event-study command                                                                                                |
+| `csdid`, `did_imputation`, `did_multiplegt_dyn`, `eventdd` | Stata | Modern staggered-DiD estimators ported to Stata                                                                                          |
 
-To install these packages, run:
+Table: (\#tab:event-study-r-packages) Software for short-window finance event studies (top block), panel-DiD-style econometric event studies (middle block), and non-R alternatives (bottom block). The split mirrors the distinction made explicit in Section \@ref(sec-econometric-event-study-designs).
+
+To install the main R packages, run:
 
 ```{r, eval=FALSE}
 install.packages(
@@ -1724,12 +1856,27 @@ install.packages(
         "eventstudies",
         "erer",
         "EventStudy",
+        "estudy2",
         "AbnormalReturns",
         "PerformanceAnalytics",
+        "crseEventStudy",
+        "eventstudyr",
+        "fixest",
+        "did",
+        "did2s",
+        "didimputation",
+        "HonestDiD",
+        "etwfe",
+        "staggered",
         "tidyquant",
         "tidyverse"
     )
 )
+
+# Packages with active GitHub development branches that may be ahead of CRAN:
+# remotes::install_github("irudnyts/estudy2")
+# remotes::install_github("xKDR/eventstudies")
+# remotes::install_github("JMSLab/eventstudyr")
 ```
 
 ### **Sorting Portfolios for Expected Returns**
@@ -1793,7 +1940,9 @@ hh <- evReturn(
 
 **Step 4: Visualizing the Results**
 
-```{r}
+Figure \@ref(fig:es-erer-evreturn-plot) plots the abnormal-return path produced by `erer::evReturn()` for the WPP/SP500 example over the $\pm5$-day event window.
+
+```{r es-erer-evreturn-plot, fig.cap="Abnormal-return path for WPP relative to the S\\&P 500 over a $\\pm5$-day event window, generated by the erer package's evReturn() routine."}
 plot(hh)
 
 ```
@@ -1808,18 +1957,18 @@ plot(hh)
 
     -   Does not include event-specific returns. Hence, no regression later to determine variables that can affect abnormal stock returns.
 
-2.  [Cross-sectional Analysis of Eventus]: Event-specific abnormal returns (using monthly or data data) for cross-sectional analysis (under **Cross-Sectional Analysis** section)
+2.  [Cross-sectional Analysis of Eventus]: Event-specific abnormal returns (using monthly or daily data) for cross-sectional analysis (under **Cross-Sectional Analysis** section)
 
-    -   Since it has the stock-specific abnormal returns, we can do regression on CARs later. But it only gives market-adjusted model. However, according to [@sorescu2017], they advocate for the use of market-adjusted model for the short-term only, and reserve the FF4 for the longer-term event studies using monthly daily.
+    -   Since it has the stock-specific abnormal returns, we can do regression on CARs later. But it only gives market-adjusted model. However, according to [@sorescu2017], they advocate for the use of market-adjusted model for the short-term only, and reserve the FF4 for the longer-term event studies using monthly or daily data.
 
 #### Basic Event Study
 
-1.  Input a text file contains a firm identifier (e.g., PERMNO, CUSIP) and the event date
+1.  Input a text file containing a firm identifier (e.g., PERMNO, CUSIP) and the event date
 2.  Choose market indices: equally weighted and the value weighted index (i.e., weighted by their market capitalization). And check Fama-French and Carhart factors.
 3.  Estimation options
     1.  Estimation period: `ESTLEN = 100` is the convention so that the estimation is not impacted by outliers.
 
-    2.  Use "autodate" options: the first trading after the event date is used if the event falls on a weekend or holiday
+    2.  Use "autodate" options: the first trading day after the event date is used if the event falls on a weekend or holiday
 4.  Abnormal returns window: depends on the specific event
 5.  Choose test: either parametric (including [Patell Standardized Residual (PSR)](#patell-standardized-residual-psr)) or non-parametric
 
@@ -1835,11 +1984,13 @@ Whether an event study is an appropriate tool depends less on the method itself 
 
 The biggest threat to a clean event study is not the statistics but the narrative. Confounding news is the number-one reason event-study estimates are disputed in practice. If a regulatory announcement coincides with an earnings release, a macroeconomic shock, or a peer firm's news event, the abnormal returns reflect all of it. The remedy is boring but essential: check a news feed for every day in the event window, document what you find, and either pre-commit to a specification that excludes contaminated events or report robustness to their exclusion.
 
-Two inference issues deserve specific attention. Cross-sectional correlation arises when many firms experience the same event on the same day, a sector-wide regulation, a macro shock, a regulatory deadline. Abnormal returns across those firms are not independent, and conventional $t$-tests overstate significance. Calendar-time abnormal returns (CTARs) or clustering at the event-date level fix this. Long-horizon studies (BHARs over one to five years) introduce a different problem: new-listing bias, rebalancing bias, and outcome skewness make long-run estimates notoriously fragile, as documented by @barber1997firm and @lyon1999improved. Treat long-horizon event studies with caution, and always compare BHAR to calendar-time-portfolio results.
+Two inference issues deserve specific attention. Cross-sectional correlation arises when many firms experience the same event on the same day, a sector-wide regulation, a macro shock, a regulatory deadline. Abnormal returns across those firms are not independent, and conventional $t$-tests overstate significance. Calendar-time abnormal returns (CTARs) or clustering at the event-date level fix this. Long-horizon studies (BHARs over one to five years) introduce a different problem: new-listing bias, rebalancing bias, and outcome skewness make long-run estimates notoriously fragile, as documented by @barber1997firm and @lyon1999improved, with the modern distributional and benchmark refinements collected in Section \@ref(sec-long-run-modern-concerns). Treat long-horizon event studies with caution, and always compare BHAR to calendar-time-portfolio results. When the event has a precise public timestamp, the intraday designs surveyed in Section \@ref(sec-intraday-event-studies) shrink the window from days to minutes and remove most of the coincident-news contamination.
 
 The framing matters as much as the mechanics. As emphasized in the opening note to this chapter, abnormal returns *describe* market reactions, they are not automatically causal effects of the event on firm value. Claiming causality requires the event to be unanticipated, precisely dated, and exclusive of confounding news. Where those conditions are plausible (a surprise SEC enforcement action, a court ruling whose timing is outside the firm's control), the event study does identify a causal quantity. Where they are not, the honest framing is "the stock moved around this event by $X$%" rather than "the event caused an $X$% change in firm value."
 
-For a complete writeup: justify the event and estimation windows; specify the expected-return model and show its fit in the estimation window; report CAR or ACAR with an appropriate test statistic (Patell, BMP, or a non-parametric rank test, depending on the return distribution); run placebo event studies on non-event dates; and include a narrative audit of the event window for confounding news.
+Even where the conditions are met, the further leap from "the market priced this event at $X$%" to "the event will create $X$% of value" is a separate claim that the @bendavid2026missing results push back on: in M&A and any other setting where the announcement bundles substantial firm-specific news, announcement-period CAR can be dominated by news about the standalone firm rather than about the event. Section \@ref(sec-car-value-creation-gap) lays out the implications. For event studies that aspire to claims about *value creation* rather than market reactions, the modern standard is to pair CAR with ex-post outcomes (operating performance, productivity, divestitures, impairments) and treat agreement between the two as the substantive finding.
+
+For a complete writeup: justify the event and estimation windows (and apply the contaminated-window adjustment of Section \@ref(sec-contaminated-estimation) when serial events or active industry news flow make the estimation window dirty); specify the expected-return model and show its fit in the estimation window (Section \@ref(sec-expected-return-calculation) gives the modern menu of FF5, q-factor, behavioral, characteristic-benchmark, and machine-learning alternatives); report CAR or ACAR with an appropriate test statistic (Patell, BMP, ADJ-BMP/GRANK, or a nonparametric rank test, depending on whether event-induced variance or cross-sectional correlation is the binding concern, per Sections \@ref(sec-bmp-test) and \@ref(sec-kolari-pynnonen-test)); run placebo event studies on non-event dates; include a narrative audit of the event window for confounding news; and, for any claim about value creation rather than market reaction, report ex-post outcomes alongside CAR.
 
 ## Econometric Event-Study Designs {#sec-econometric-event-study-designs}
 

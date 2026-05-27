@@ -2,7 +2,7 @@
 
 The framework in this chapter follows the "good and bad controls" treatment of @cinelli2022crash and the canonical "bad control" discussion in [@angrist2009mostly, ch. 3].
 
-```{r, message=FALSE, warning=FALSE}
+```{r controls-setup, message=FALSE, warning=FALSE}
 library(dagitty)
 library(ggdag)
 ```
@@ -27,9 +27,9 @@ A common intuition in causal inference is to control for any variable that prece
 
 This perspective is especially prevalent in [Matching Methods], where all observed pre-treatment covariates are typically included in the matching process. However, controlling for *every* pre-treatment variable can lead to *bad control bias*.
 
-One such example is **M-bias**, which arises when conditioning on a *collider* --- a variable that is influenced by two unobserved causes. The DAG below illustrates a case where $Z$ appears to be a good control but actually opens a biasing path:
+One such example is **M-bias**, which arises when conditioning on a *collider* --- a variable that is influenced by two unobserved causes. Figure \@ref(fig:controls-mbias-basic) illustrates a case where $Z$ appears to be a good control but actually opens a biasing path:
 
-```{r}
+```{r controls-mbias-basic, fig.cap="DAG illustrating M-bias: $Z$ is a collider on the path $X \\leftarrow U_1 \\to Z \\leftarrow U_2 \\to Y$, so conditioning on the pre-treatment $Z$ opens a non-causal path between $X$ and $Y$."}
 # Clean workspace
 rm(list = ls())
 
@@ -84,9 +84,9 @@ Notice how adjusting for $Z$ changes the estimate of the effect of $X$ on $Y$, e
 
 #### Worse: M-bias with Direct Effect from Z to Y
 
-A more difficult case arises when $Z$ also has a direct effect on $Y$. Consider the DAG below:
+A more difficult case arises when $Z$ also has a direct effect on $Y$. Consider the DAG in Figure \@ref(fig:controls-mbias-z-to-y):
 
-```{r}
+```{r controls-mbias-z-to-y, fig.cap="DAG illustrating the harder M-bias variant in which $Z$ is both a collider and has a direct effect on $Y$, so neither adjusting nor not adjusting for $Z$ removes all bias."}
 # Clean workspace
 rm(list = ls())
 
@@ -135,9 +135,9 @@ These tools help us understand how large the unmeasured biases would have to be 
 
 Bias amplification occurs when controlling for a variable that is not a confounder --- in fact, controlling for it increases bias due to an unobserved confounder.
 
-In the DAG below, $U$ is an unobserved common cause of both $X$ and $Y$. $Z$ influences $X$ but has no causal relationship with $Y$. Including $Z$ in the model does not block any back-door path but instead increases the bias from $U$ by amplifying its association with $X$.
+In the DAG in Figure \@ref(fig:controls-bias-amplification), $U$ is an unobserved common cause of both $X$ and $Y$. $Z$ influences $X$ but has no causal relationship with $Y$. Including $Z$ in the model does not block any back-door path but instead increases the bias from $U$ by amplifying its association with $X$.
 
-```{r}
+```{r controls-bias-amplification, fig.cap="DAG illustrating bias amplification: $Z$ predicts $X$ but is not a confounder, and adjusting for $Z$ amplifies the omitted-variable bias from the unobserved common cause $U$."}
 # Clean workspace
 rm(list = ls())
 
@@ -190,9 +190,9 @@ Overcontrol bias arises when we adjust for variables that lie on the causal path
 
 #### Mediator Control
 
-Controlling for a **mediator** --- a variable that lies on the causal path between treatment and outcome --- removes part of the effect we are trying to estimate.
+Controlling for a **mediator** --- a variable that lies on the causal path between treatment and outcome --- removes part of the effect we are trying to estimate, as illustrated in Figure \@ref(fig:controls-mediator).
 
-```{r}
+```{r controls-mediator, fig.cap="DAG illustrating mediator overcontrol: $Z$ lies on the causal path $X \\to Z \\to Y$, so conditioning on $Z$ blocks part of the total effect of $X$ on $Y$."}
 # Clean workspace
 rm(list = ls())
 
@@ -230,9 +230,9 @@ Here, $Z$ will appear significant, but including it blocks the causal path from 
 
 #### Proxy for Mediator
 
-In more complex scenarios, controlling for variables that **proxy** for mediators can introduce similar distortions.
+In more complex scenarios, controlling for variables that **proxy** for mediators can introduce similar distortions, as in Figure \@ref(fig:controls-mediator-proxy).
 
-```{r}
+```{r controls-mediator-proxy, fig.cap="DAG illustrating proxy-for-mediator overcontrol: $Z$ is a descendant of the mediator $M$, so adjusting for $Z$ partially blocks the indirect effect through $M$."}
 # Clean workspace
 rm(list = ls())
 
@@ -270,9 +270,9 @@ Even though $Z$ is not on the path from $X$ to $Y$, controlling for it removes p
 
 #### Overcontrol with Unobserved Confounding
 
-When $Z$ is influenced by both $X$ and a latent confounder $U$ that also affects $Y$, controlling for $Z$ again biases the estimate.
+When $Z$ is influenced by both $X$ and a latent confounder $U$ that also affects $Y$, controlling for $Z$ again biases the estimate, as shown in Figure \@ref(fig:controls-overcontrol-latent).
 
-```{r}
+```{r controls-overcontrol-latent, fig.cap="DAG illustrating overcontrol with unobserved confounding: $Z$ is a mediator that is also affected by a latent $U$ which causes $Y$, so adjusting for $Z$ blocks the causal channel and opens a collider path through $U$."}
 # Clean workspace
 rm(list = ls())
 
@@ -332,9 +332,9 @@ Selection bias matters because it is rarely framed as a "control" decision in th
 
 #### Classic Collider Bias
 
-In the DAG below, $Z$ is a collider between $X$ and a latent variable $U$. Controlling for $Z$ opens a back-door path from $X$ to $Y$ through $U$, introducing bias.
+In the DAG in Figure \@ref(fig:controls-collider-classic), $Z$ is a collider between $X$ and a latent variable $U$. Controlling for $Z$ opens a back-door path from $X$ to $Y$ through $U$, introducing bias.
 
-```{r}
+```{r controls-collider-classic, fig.cap="DAG illustrating classic collider bias: $Z$ is a common effect of $X$ and the latent $U$, and conditioning on $Z$ opens the non-causal path $X \\to Z \\leftarrow U \\to Y$."}
 rm(list = ls())
 
 # DAG
@@ -374,9 +374,9 @@ Controlling for $Z$ opens the non-causal path $X \to Z \leftarrow U \to Y$, resu
 
 #### Collider Between Treatment and Outcome
 
-In some cases, the collider is influenced directly by both the treatment and the outcome. This setting is also highly relevant in observational designs, particularly in retrospective or convenience sampling scenarios.
+In some cases, the collider is influenced directly by both the treatment and the outcome, as illustrated in Figure \@ref(fig:controls-collider-x-y). This setting is also highly relevant in observational designs, particularly in retrospective or convenience sampling scenarios.
 
-```{r}
+```{r controls-collider-x-y, fig.cap="DAG illustrating a collider directly between treatment and outcome: $Z$ is jointly caused by $X$ and $Y$, so conditioning on $Z$ induces spurious dependence between $X$ and $Y$."}
 rm(list = ls())
 
 # DAG: X → Z ← Y
@@ -409,15 +409,15 @@ jtools::export_summs(
 
 ```
 
-Even though $Z$ is associated with both $X$ and \$Y\$, it **should not be controlled for**, because doing so opens the collider path $X \to Z \leftarrow Y$, generating spurious dependence.
+Even though $Z$ is associated with both $X$ and $Y$, it **should not be controlled for**, because doing so opens the collider path $X \to Z \leftarrow Y$, generating spurious dependence.
 
 ### Case-Control Bias
 
 Case-control studies often condition on the outcome itself or on a *descendant* of the outcome, which can bias the estimated effect of the treatment on the outcome through several distinct mechanisms.
 
-In the DAG below, $Z$ is a **descendant of the outcome** $Y$ (not a descendant of a collider). Controlling for $Z$ blocks part of the variation in $Y$ that the treatment $X$ induces and can attenuate or bias the estimated $X \to Y$ effect.
+In the DAG in Figure \@ref(fig:controls-case-control), $Z$ is a **descendant of the outcome** $Y$ (not a descendant of a collider). Controlling for $Z$ blocks part of the variation in $Y$ that the treatment $X$ induces and can attenuate or bias the estimated $X \to Y$ effect.
 
-```{r}
+```{r controls-case-control, fig.cap="DAG illustrating case-control bias: $Z$ is a descendant of the outcome $Y$ on the path $X \\to Y \\to Z$, so conditioning on $Z$ removes part of the treatment-induced variation in $Y$."}
 rm(list = ls())
 
 # DAG: X -> Y -> Z (Z is a descendant of the outcome Y)
@@ -473,9 +473,9 @@ A variable $Z$ is a **good control** when it blocks all *back-door paths* from t
 
 #### Simple Confounder
 
-In this DAG, $Z$ is a common cause of both $X$ and $Y$, i.e., a **confounder**.
+In the DAG in Figure \@ref(fig:controls-confounder-simple), $Z$ is a common cause of both $X$ and $Y$, i.e., a **confounder**.
 
-```{r}
+```{r controls-confounder-simple, fig.cap="DAG illustrating a simple observed confounder: $Z$ is a common cause of $X$ and $Y$, so adjusting for $Z$ blocks the back-door path $X \\leftarrow Z \\to Y$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -505,9 +505,9 @@ jtools::export_summs(lm(y ~ x), lm(y ~ x + z))
 
 #### Confounding via a Latent Variable
 
-In this structure, $U$ is unobserved but causes both $Z$ and $Y$, and $Z$ affects $X$. Even though $U$ is not observed, adjusting for $Z$ helps block the back-door path from $X$ to $Y$ that goes through $U$.
+In the structure in Figure \@ref(fig:controls-confounder-latent), $U$ is unobserved but causes both $Z$ and $Y$, and $Z$ affects $X$. Even though $U$ is not observed, adjusting for $Z$ helps block the back-door path from $X$ to $Y$ that goes through $U$.
 
-```{r}
+```{r controls-confounder-latent, fig.cap="DAG illustrating an observed proxy for a latent confounder: $U$ is unobserved and causes $Z$ and $Y$, while $Z$ causes $X$, so adjusting for $Z$ blocks the back-door path $X \\leftarrow Z \\leftarrow U \\to Y$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -535,13 +535,13 @@ jtools::export_summs(lm(y ~ x), lm(y ~ x + z))
 
 ```
 
-Even though \$Z\$ appears significant, **its inclusion serves to reduce omitted variable bias** rather than having a causal interpretation itself.
+Even though $Z$ appears significant, **its inclusion serves to reduce omitted variable bias** rather than having a causal interpretation itself.
 
 #### $Z$ is caused by $U$, but also causes $Y$
 
-This DAG illustrates a subtle case where $Z$ is on a non-causal path from $X$ to $Y$ and helps block bias through a shared cause $U$.
+Figure \@ref(fig:controls-confounder-shared-u) illustrates a subtle case where $Z$ is on a non-causal path from $X$ to $Y$ and helps block bias through a shared cause $U$.
 
-```{r}
+```{r controls-confounder-shared-u, fig.cap="DAG illustrating a good control on a shared-cause path: $U$ causes both $Z$ and $X$, $Z$ causes $Y$, and adjusting for $Z$ blocks the back-door path $X \\leftarrow U \\to Z \\to Y$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -572,7 +572,9 @@ Again, **we cannot interpret the coefficient on** $Z$ **causally**, but includin
 
 #### Summary of Omitted Variable Correction
 
-```{r}
+The three configurations above are summarized side-by-side in Figure \@ref(fig:controls-good-summary).
+
+```{r controls-good-summary, fig.cap="Summary panel of the three good-control DAGs for omitted-variable bias correction: a simple confounder, a latent confounder mediated through an observed $Z$, and a shared cause $U$ in which $Z$ lies on the back-door path."}
 # Model 1: Z is a confounder
 model1 <- dagitty("dag{
   x -> y
@@ -639,7 +641,9 @@ When a variable $Z$ is a confounder of both the treatment $X$ and a mediator $M$
 
 #### Observed Confounder of Mediator and Treatment
 
-```{r}
+Figure \@ref(fig:controls-mediation-observed) shows the case in which $Z$ is an observed common cause of both the treatment and the mediator.
+
+```{r controls-mediation-observed, fig.cap="DAG illustrating mediation correction with an observed confounder: $Z$ causes both the treatment $X$ and the mediator $M$, so adjusting for $Z$ separates the indirect path $X \\to M \\to Y$ from the back-door path through $Z$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -679,7 +683,9 @@ jtools::export_summs(lm(y ~ x), lm(y ~ x + z))
 
 #### Latent Common Cause of Mediator and Treatment
 
-```{r}
+Figure \@ref(fig:controls-mediation-latent) extends the previous case to a latent confounder $U$ that drives both the mediator and (indirectly) the treatment.
+
+```{r controls-mediation-latent, fig.cap="DAG illustrating mediation correction with a latent common cause: $U$ is unobserved and causes both $Z$ (which causes $X$) and the mediator $M$, so adjusting for $Z$ helps block the back-door path through $U$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -723,7 +729,9 @@ jtools::export_summs(lm(y ~ x), lm(y ~ x + z))
 
 #### Z Affects Mediator, U Affects Both X and Z
 
-```{r}
+Figure \@ref(fig:controls-mediation-z-on-m) presents the variant in which $Z$ acts on the mediator and a latent $U$ jointly drives the treatment and $Z$.
+
+```{r controls-mediation-z-on-m, fig.cap="DAG illustrating mediation correction with $Z$ as a parent of the mediator and a latent $U$ that causes both $X$ and $Z$, so adjusting for $Z$ blocks the back-door path through $U$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -767,7 +775,9 @@ jtools::export_summs(lm(y ~ x), lm(y ~ x + z))
 
 #### Summary of Mediation Correction
 
-```{r}
+Figure \@ref(fig:controls-mediation-summary) places the three mediation-correction DAGs side-by-side.
+
+```{r controls-mediation-summary, fig.cap="Summary panel of the three mediation-correction DAGs: an observed confounder of mediator and treatment, a latent common cause acting through an observed $Z$, and the variant where $Z$ acts on the mediator while $U$ jointly causes $X$ and $Z$."}
 # Model 4
 model4 <- dagitty("dag{
   x -> y
@@ -870,7 +880,9 @@ Good predictive controls matter because they are often the easiest free lunch in
 
 #### $Z$ predicts $Y$, not $X$
 
-```{r}
+Figure \@ref(fig:controls-good-predictive-y) shows the case in which $Z$ has a direct effect on $Y$ but no causal link to $X$.
+
+```{r controls-good-predictive-y, fig.cap="DAG illustrating a good predictive control: $Z$ causes $Y$ but is unrelated to $X$, so adjusting for $Z$ leaves the estimate of $X \\to Y$ unbiased while reducing residual variance."}
 # Clean workspace
 rm(list = ls())
 
@@ -903,7 +915,9 @@ The coefficient on $X$ remains unbiased in both models, but standard errors are 
 
 #### $Z$ predicts a mediator $M$
 
-```{r}
+Figure \@ref(fig:controls-good-predictive-m) shows the variant in which $Z$ predicts the mediator $M$ rather than the outcome directly.
+
+```{r controls-good-predictive-m, fig.cap="DAG illustrating a good predictive control acting on a mediator: $Z$ causes the mediator $M$ but is not on any causal path from $X$ to $Y$, so adjusting for $Z$ reduces residual variance without bias."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -943,7 +957,9 @@ In more complex selection structures, adjusting for selection variables can impr
 
 #### $W$ is a collider; $Z$ helps condition on selection
 
-```{r}
+Figure \@ref(fig:controls-good-selection) illustrates how an additional control $Z$ can restore identification when conditioning on a downstream collider $W$.
+
+```{r controls-good-selection, fig.cap="DAG illustrating good selection-bias adjustment: $W$ is a collider with parents $Z$ and $U$, and adjusting for both $W$ and $Z$ blocks the otherwise-open path $X \\to Z \\to W \\leftarrow U \\to Y$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -992,7 +1008,9 @@ Bad predictive controls matter because they masquerade as good ones: they look s
 
 #### $Z$ predicts $X$, not $Y$
 
-```{r}
+Figure \@ref(fig:controls-bad-predictive-x) illustrates the case in which $Z$ predicts the treatment but does not affect the outcome.
+
+```{r controls-bad-predictive-x, fig.cap="DAG illustrating a bad predictive control: $Z$ causes $X$ but has no effect on $Y$, so conditioning on $Z$ does not help identification and inflates the standard error on $X$."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -1024,7 +1042,9 @@ $Z$ adds no explanatory power for $Y$, and thus increases SE for the estimate of
 
 #### $Z$ is a child of $X$
 
-```{r}
+Figure \@ref(fig:controls-bad-predictive-child) illustrates the post-treatment variant in which $Z$ is a downstream effect of $X$.
+
+```{r controls-bad-predictive-child, fig.cap="DAG illustrating a post-treatment bad predictive control: $Z$ is a child of $X$ but does not affect $Y$, so adjusting for $Z$ inflates the standard error without contributing to identification."}
 rm(list = ls())
 
 model <- dagitty("dag{
@@ -1057,9 +1077,9 @@ Here, $Z$ is a post-treatment variable. Though it does not bias the estimate of 
 
 ### Bad Selection Bias
 
-Controlling for some post-treatment variables can hurt precision without affecting bias.
+Controlling for some post-treatment variables can hurt precision without affecting bias, as in Figure \@ref(fig:controls-bad-selection).
 
-```{r}
+```{r controls-bad-selection, fig.cap="DAG illustrating a bad selection-bias control: $Z$ is a post-treatment effect of $X$ but is not on the causal path to $Y$, so adjusting for $Z$ does not introduce bias yet inflates the standard error."}
 rm(list = ls())
 
 model <- dagitty("dag{

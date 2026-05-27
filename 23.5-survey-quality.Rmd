@@ -1,0 +1,1440 @@
+# Survey Reliability and Response Stability {#sec-survey-reliability}
+
+Survey research generates a substantial fraction of the empirical record in the social, marketing, and health sciences. The credibility of that record rests on a chain of assumptions about what survey responses are: that respondents have well-defined attitudes or beliefs, that the instrument elicits those attitudes faithfully, and that the residual variation we call measurement error is small, well-behaved, and reducible through better instrument design. This chapter argues that the third link in the chain is partially broken. A non-trivial share of the variance routinely labelled "measurement error" is not error in the conventional sense; it is **intrinsic stochasticity** in the response process itself --- the same kind of irreducible noise that biology, neuroimaging, and physics have long acknowledged in their measurement models.
+
+The methodological consequence is not that survey research is invalid; it is that the field's conventional toolkit for diagnosing and reporting reliability is inadequate. We need a sharper definition of reliability, a richer variance decomposition, a more honest decision-theoretic model of the response process, and a small number of practical changes to survey design and analysis. This chapter develops all four.
+
+The treatment here builds on four bodies of literature. First, the cognitive psychology of surveys [@tourangeau2000psychology; @schwarz1999self; @krosnick1991; @krosnick1999survey], which decomposes the response process into a sequence of cognitive operations and identifies error sources at each stage. Second, classical psychometric reliability theory [@lord1968; @cronbach1951coefficient; @heise1969separating; @wiley1970estimation; @alwin2007margins], which provides the test-retest, internal-consistency, and quasi-Markov simplex tools that have served the field for half a century. Third, the modern survey-methodology synthesis embodied in the Total Survey Error framework [@groves2009survey; @saris2014design]. Fourth, the decision-theoretic and behavioural-economic literature on probability matching [@vulkan2000; @erev1998predicting; @lo2021; @kahneman1979prospect], which provides a mechanistic explanation for the residual instability that the classical psychometric framework attributes to error. Recent work in survey methodology connects these threads and quantifies response instability under tight identifying assumptions [@clayton2025; @jenke2026working]; the careless-responding literature [@meade2012identifying; @curran2016methods; @oppenheimer2009; @berinsky2014; @hauser2016; @aronow2019note] then converts the framework into practical filter design.
+
+> **Roadmap.** Section \@ref(sec-cognitive-process) introduces the four-stage cognitive model of how respondents answer a survey question and identifies where error and noise enter at each stage. Section \@ref(sec-tse) reviews the Total Survey Error framework and locates the contribution of this chapter within it. Section \@ref(sec-defining-instability) defines instability formally and gives the estimator. Section \@ref(sec-classical-reliability) reviews classical reliability theory (Cronbach's $\alpha$, ICC, the Heise--Wiley simplex) and shows where it is silent on intrinsic stochasticity. Section \@ref(sec-three-way-decomp) develops the three-way variance decomposition. Section \@ref(sec-decision-theory) gives the decision-theoretic foundations. Sections \@ref(sec-modulators)--\@ref(sec-tot) discuss what modulates stochasticity and how to filter it. Section \@ref(sec-design-implications) gives design recommendations; Section \@ref(sec-analysis-implications) gives analysis recommendations including a closed-form attenuation correction, a SIMEX procedure, and the modern conjoint audit (pAMCE, AMIE, satisficing, $\bar D$ correction; @hainmueller2014causal, @egami2019causal, @delacuesta2022improving, @bansak2018number, @clayton2025). Section \@ref(sec-survey-reliability-applied) gives a complete R workflow. Sections \@ref(sec-anchoring-vignettes)--\@ref(sec-mrp) treat three advanced design and analysis topics that complement the within-session replication framework: anchoring vignettes for cross-cultural comparability [@king2004enhancing; @king2007comparing], sensitive-question methodology including randomised response, list experiments, and the @rosenfeld2016empirical empirical-validation benchmark [@warner1965randomized; @blair2012statistical; @bullock2011statistical; @glynn2013statistical], and multilevel regression and poststratification (MRP) with deep interactions and dynamic IRT extensions [@park2004bayesian; @wang2015forecasting; @ghitza2013deep; @caughey2015dynamic; @lax2009estimate]. Section \@ref(sec-robustness) covers the modern robustness, replicability, and fraud-detection toolkit [@simmons2011false; @simonsohn2014pcurve; @simonsohn2013just; @simonsohn2020specification; @ioannidis2005why; @osc2015estimating; @camerer2018evaluating]. Section \@ref(sec-llm) addresses synthetic respondents and large language models [@argyle2023out; @bisbee2024synthetic]. The chapter closes with a short note on causal inference, a summary, a further-reading list, and exercises. For the broadest modern guide to designing original surveys, @stantcheva2023how is the single best entry point.
+
+------------------------------------------------------------------------
+
+## The cognitive process of answering a survey question {#sec-cognitive-process}
+
+The most influential synthesis of how respondents construct an answer to a survey question is the four-stage model of @tourangeau2000psychology. The model decomposes the response process into
+
+1.  **Comprehension** of the question.
+2.  **Retrieval** of relevant information from memory.
+3.  **Judgment** integrating retrieved information into a tentative answer.
+4.  **Response selection**, mapping the judgment onto the available response options.
+
+Each stage admits its own error sources. Table \@ref(tab:cognitive-stages) summarises the stages, the cognitive operation each performs, and the dominant error mechanism associated with it.
+
+```{r cognitive-stages, echo=FALSE}
+stages <- tibble::tibble(
+  Stage             = c("1. Comprehension",
+                        "2. Retrieval",
+                        "3. Judgment",
+                        "4. Response selection"),
+  `Cognitive operation` = c("Parse syntax; assign reference; infer pragmatic meaning",
+                            "Search memory for relevant beliefs, episodes, attitudes",
+                            "Integrate retrieved evidence into a tentative answer",
+                            "Map the answer onto the response options"),
+  `Dominant error mechanism` = c("Question wording; vague terms; double-barrelled items",
+                                 "Recall failure; availability; omission of relevant evidence",
+                                 "Anchoring; framing; satisficing; mood-as-information",
+                                 "Acquiescence; central tendency; extreme responding; scale interpretation")
+)
+
+knitr::kable(
+  stages,
+  caption = "The four-stage cognitive model of survey response and the dominant error mechanism at each stage. Adapted from @tourangeau2000psychology.",
+  booktabs = TRUE
+)
+```
+
+Several points follow from Table \@ref(tab:cognitive-stages) that recur throughout the chapter.
+
+First, **most instrument-side measurement-error work targets stages 1 and 4**: clearer wording reduces comprehension error, better-calibrated response options reduce mapping error. The interior stages 2 and 3 are far less under instrument control.
+
+Second, **the optimizing--satisficing tradeoff** [@krosnick1991; @krosnick1999survey] sits at stage 3. A respondent has a finite cognitive budget; when the cost of fully retrieving and integrating evidence exceeds the perceived benefit, the respondent satisfices --- generating an answer that is plausible but not optimal. Satisficing is the cognitive mechanism through which item complexity and respondent fatigue inflate response noise, and it is the mechanism we will repeatedly point to when explaining why intrinsic stochasticity has the empirical signature it does.
+
+Third, **probability matching at stage 4** (Section \@ref(sec-decision-theory)) is conceptually distinct from satisficing at stage 3 even though they are easy to confuse. Satisficing reflects effort allocation; probability matching reflects how an internal probabilistic judgment is converted into a choice. Both inflate $\bar D$, but they imply different design responses.
+
+The four-stage model is also the right place to locate the classical question-wording literature. @schwarz1999self synthesises three decades of experimental evidence that subtle features of the stimulus --- the verbal labels on a scale, the numeric range, the order of options, the prior questions --- systematically shift the answer obtained. Two stylized findings illustrate the family. When respondents are asked how often they are "really irritated" with response options ranging from "less than once a year" to "more than once a month", they report being irritated infrequently; when given options ranging from "less than once a day" to "several times a month", they report being irritated more frequently. When response options for daily television viewing are centred on a middle option of two hours, respondents anchor low; when centred on four hours, they anchor high. These are not idiosyncratic anomalies; they are systematic effects of the response-option set acting on stages 1 and 4. The most extensive catalog of such effects in survey methodology remains @schuman1981questions.
+
+------------------------------------------------------------------------
+
+## The Total Survey Error framework {#sec-tse}
+
+The standard graduate-level synthesis of where error enters survey estimates is the **Total Survey Error** (TSE) framework of @groves2009survey. TSE partitions estimate error into the components in Table \@ref(tab:tse-components). The framework is the lingua franca for survey-methodology audits; locating this chapter's contribution within it sharpens what is being claimed.
+
+```{r tse-components, echo=FALSE}
+tse <- tibble::tibble(
+  Component = c("Coverage error", "Sampling error", "Nonresponse error",
+                "Measurement error (instrument)", "Measurement error (respondent)",
+                "Processing error"),
+  Source = c("Mismatch between the target population and the sampling frame",
+             "Variation across samples of the same size from the same frame",
+             "Differences between respondents and non-respondents in the realised sample",
+             "Question wording, mode, interviewer, layout",
+             "Comprehension, retrieval, judgment, response selection",
+             "Coding, editing, weighting, imputation"),
+  `Reducible by` = c("Better frame; multi-frame designs",
+                     "Larger $n$; design-based variance reduction (Chapter on Sampling)",
+                     "Targeted follow-up; weighting adjustments",
+                     "Cognitive pretesting; mode harmonisation; question redesign",
+                     "Better stage-1 and stage-4 design; *but not stage-2/3 noise*",
+                     "Process audits; double coding")
+)
+
+knitr::kable(
+  tse,
+  caption = "The Total Survey Error framework. Adapted from @groves2009survey. The contribution of this chapter is concentrated in the respondent-side measurement-error row.",
+  booktabs = TRUE
+) |>
+  kableExtra::kable_styling(latex_options = "scale_down",
+                            bootstrap_options = "striped")
+```
+
+The contribution of this chapter sits in the respondent-side row of Table \@ref(tab:tse-components): the share of measurement error attributable to the respondent's own response-generation process. The argument is that this row is conventionally treated as a residual that better instrument design will eventually shrink, when in fact a substantial part of it has the structural properties of intrinsic stochasticity and cannot be designed away.
+
+------------------------------------------------------------------------
+
+## Defining survey instability {#sec-defining-instability}
+
+### Setup and notation
+
+Consider a finite population of $N$ respondents and a binary survey item. Let $C_{it} \in \{0, 1\}$ denote respondent $i$'s observed choice at administration $t \in \{1, 2\}$, where the two administrations are separated by some elapsed time and possibly by intervening items. Define **individual-level survey instability** as the indicator
+
+\begin{equation}
+D_i \;=\; \mathbb{1}\!\left( C_{i1} \neq C_{i2} \right),
+(\#eq:individual-d)
+\end{equation}
+
+and **population mean instability** as the average of $D_i$ across the population,
+
+\begin{equation}
+\Delta \;=\; \frac{1}{N} \sum_{i=1}^{N} D_i.
+(\#eq:population-d)
+\end{equation}
+
+The complement $1 - \Delta$ is sometimes called *intra-respondent reliability* on a binary item. It is conceptually distinct from inter-rater reliability (agreement *across raters* on the same target), internal consistency (Cronbach's $\alpha$, agreement *across items* in a scale; Section \@ref(sec-classical-reliability)), and unidimensionality (whether the items load on a single latent factor). Intra-respondent reliability is the within-respondent within-item analogue.
+
+For a sample of $n < N$ respondents drawn under a sampling design with inclusion indicator $S_i \in \{0,1\}$ and inclusion probability $\pi_i^{\mathrm{(samp)}}$, the design-unbiased Horvitz--Thompson estimator of $\Delta$ is
+
+\begin{equation}
+\widehat{\Delta} \;=\; \frac{1}{N}\sum_{i=1}^{N} \frac{S_i\, D_i}{\pi_i^{\mathrm{(samp)}}}.
+(\#eq:ht-d)
+\end{equation}
+
+Under simple random sampling without replacement and ignorable nonresponse, equation \@ref(eq:ht-d) collapses to the sample mean $\bar D = n^{-1} \sum_{i:S_i=1} D_i$. We use $\bar D$ in the rest of the chapter; design-based corrections required when the sampling design departs from simple random are covered in the chapter on Sampling.
+
+### Identifying assumptions
+
+For $\bar D$ to estimate something we are willing to call *instability* rather than something else that happens to be a difference rate, three assumptions must hold.
+
+**Assumption 1 (No material change).** Between the two administrations, no information has reached respondent $i$ that would change the meaning of the question or the value of the response options. Formally, the respondent's information set $\mathcal{F}_i$ relevant to the item is the same at both administrations.
+
+**Assumption 2 (No memory).** At administration $t = 2$, respondent $i$ has no recollection of having been asked the item at $t = 1$. Were memory present, $C_{i2}$ would be a function of $C_{i1}$ rather than an independent draw from the response process.
+
+**Assumption 3 (Attrition at random).** Whether respondent $i$ is observed at both administrations is independent of $D_i$, possibly conditional on observed covariates.
+
+These three assumptions interact in ways that traditional panel surveys cannot satisfy simultaneously (Table \@ref(tab:assumption-tradeoff)).
+
+```{r assumption-tradeoff, echo=FALSE}
+tradeoff <- tibble::tibble(
+  Design = c("Wide-spaced panel waves",
+             "Narrow-spaced panel waves",
+             "Within-session replication"),
+  `A1 (no change)` = c("Hard --- world changes between waves",
+                       "Easier --- short interval",
+                       "Trivially holds (single session)"),
+  `A2 (no memory)` = c("Easy --- long interval",
+                       "Hard --- recent question recalled",
+                       "Holds with sufficient distractor items [@clayton2025]"),
+  `A3 (attrition at random)` = c("Hard --- selective attrition",
+                                 "Easier --- short interval",
+                                 "Trivially holds (no inter-session attrition)")
+)
+
+knitr::kable(
+  tradeoff,
+  caption = "Identifying assumptions for $\\bar D$ across three replication designs. Within-session replication is the only design that can satisfy all three assumptions simultaneously.",
+  booktabs = TRUE
+)
+```
+
+The methodological move that allows clean estimation of $\Delta$ is, accordingly, to ask the same item twice within a single survey session, separated by distractor items. Within-session replication satisfies Assumption 1 by construction, satisfies Assumption 3 because attrition is essentially absent within a session, and satisfies Assumption 2 if the distractor block is sufficient; in the @clayton2025 design, with three or more well-chosen distractors, respondents virtually never report having noticed the repeat, so Assumption 2 holds empirically. Under all three assumptions, $\Delta \in [0, 1]$ in principle, but the practical maximum is $0.5$ --- the value implied by independent Bernoulli draws.
+
+### Why $\bar D$ is preferred to test--retest correlation
+
+For binary items, $\bar D$ contains strictly more information for analytic purposes than the test--retest correlation, for three reasons.
+
+First, $\bar D$ is on the same scale as the outcome (probability of disagreement), whereas correlation is unitless and harder to translate into substantive terms.
+
+Second, $\bar D$ has a direct decision-theoretic interpretation: it tells you the probability that an arbitrarily selected respondent's recorded answer would differ if you collected the data again moments later. No correlation coefficient gives you that quantity directly.
+
+Third, $\bar D$ does not depend on the marginal distribution of the outcome, while correlation does. The classical relationship is
+
+\begin{equation}
+r_{tt} \;=\; 1 - \frac{\bar D}{2 p (1-p)},
+(\#eq:rtt-vs-d)
+\end{equation}
+
+where $p = \Pr(C = 1)$. Equation \@ref(eq:rtt-vs-d) makes the marginal dependence explicit: holding $\bar D$ fixed, $r_{tt}$ shrinks toward zero as $p$ approaches $\tfrac{1}{2}$. This is the binary-item version of the classical fact that polychoric and Pearson correlations on dichotomised data depend on marginals; @achen1975 gives the canonical political-behaviour treatment, and the broader psychometric literature [@alwin2007margins] confirms the same pattern for ordinal items.
+
+Table \@ref(tab:rtt-d-comparison) makes the dependence concrete: for a fixed $\bar D = 0.20$, the implied $r_{tt}$ varies from 0.69 at $p = 0.5$ to 0.38 at $p = 0.2$. A reader who reads only $r_{tt}$ would draw very different conclusions about the same underlying response process depending on the marginal.
+
+```{r rtt-d-comparison, echo=FALSE}
+rtt_table <- tibble::tibble(
+  `D-bar`   = c(0.10, 0.10, 0.10, 0.20, 0.20, 0.20, 0.30, 0.30, 0.30),
+  `p = Pr(C=1)` = rep(c(0.50, 0.30, 0.20), times = 3),
+  `r_tt`     = c(0.80, 0.762, 0.688,
+                 0.60, 0.524, 0.375,
+                 0.40, 0.286, 0.062)
+)
+
+knitr::kable(
+  rtt_table, digits = 3,
+  caption = "Dependence of test--retest correlation on the response marginal. Three values of $\\bar D$ paired with three values of $p$. Same instability, very different $r_{tt}$.",
+  booktabs = TRUE
+)
+```
+
+We therefore recommend reporting $\bar D$ as the primary reliability statistic for binary survey items, with the test--retest correlation reported alongside *only* if comparison to historical literature requires it.
+
+### Sampling distribution of $\bar D$
+
+Because $D_i \in \{0,1\}$ and is sampled independently across respondents under simple random sampling, $\bar D$ is the sample mean of independent Bernoulli$(\Delta)$ random variables with population variance $\Delta(1-\Delta)$. The standard error is
+
+\begin{equation}
+\mathrm{SE}(\bar D) \;=\; \sqrt{\frac{\Delta(1-\Delta)}{n}} \;\approx\; \sqrt{\frac{\bar D(1-\bar D)}{n}}.
+(\#eq:se-d)
+\end{equation}
+
+A two-sided $1 - \alpha$ Wald interval is $\bar D \pm z_{1-\alpha/2}\,\mathrm{SE}(\bar D)$. For small samples or for $\bar D$ near 0 or 0.5, the Clopper--Pearson exact interval or a Wilson score interval should be preferred to Wald. We illustrate both in Section \@ref(sec-survey-reliability-applied).
+
+For non-binary items, the natural generalisation of $\bar D$ is the within-respondent mean absolute discrepancy or, for ordinal items, the within-respondent Spearman rank correlation across replications. The mathematical apparatus changes; the conceptual point --- *use a within-session replicated DV to identify intrinsic stochasticity* --- does not.
+
+------------------------------------------------------------------------
+
+## Classical reliability theory and where it stops {#sec-classical-reliability}
+
+Before we develop the three-way variance decomposition we need to be precise about what classical psychometrics already provides. The argument of this chapter is not that classical reliability theory is wrong --- it is that it is silent on a specific component of the noise. Knowing exactly what classical theory does identify is a precondition for seeing what it does not.
+
+### The classical decomposition
+
+The foundational reference is @lord1968. An observed score $X$ is decomposed into a true score $T$ and an error term $E$,
+
+\begin{equation}
+X \;=\; T + E,\qquad \mathrm{Var}(X) \;=\; \mathrm{Var}(T) + \mathrm{Var}(E),
+(\#eq:classical-decomp)
+\end{equation}
+
+with $\mathrm{Cov}(T, E) = 0$ by construction. The reliability of the measurement is
+
+\begin{equation}
+\rho \;=\; \frac{\mathrm{Var}(T)}{\mathrm{Var}(T) + \mathrm{Var}(E)} \;=\; 1 - \frac{\mathrm{Var}(E)}{\mathrm{Var}(X)},
+(\#eq:reliability)
+\end{equation}
+
+a number in $[0, 1]$. The standard estimators of $\rho$ depend on the nature of the data.
+
+### Cronbach's $\alpha$ for multi-item scales
+
+When the measurement is a $k$-item scale, the standard internal-consistency estimator is @cronbach1951coefficient's $\alpha$,
+
+\begin{equation}
+\alpha \;=\; \frac{k}{k - 1} \left( 1 - \frac{\sum_{j=1}^{k} \mathrm{Var}(X_j)}{\mathrm{Var}\!\left(\sum_{j=1}^{k} X_j\right)} \right),
+(\#eq:alpha)
+\end{equation}
+
+a lower bound on $\rho$ under the assumption of $\tau$-equivalent items. Cronbach's $\alpha$ is silent on within-respondent within-item noise; it summarises *across-item* consistency. A scale with $\alpha = 0.95$ can still produce $\bar D = 0.25$ on each individual item.
+
+### Test--retest correlation and the Heise--Wiley simplex
+
+For longitudinal designs, the natural reliability estimator is the test--retest correlation $r_{tt}$ defined in equation \@ref(eq:rtt-vs-d). The classical objection [@heise1969separating; @wiley1970estimation] is that for any non-zero interval between administrations, $r_{tt}$ confounds *unreliability* (within-respondent measurement noise) with *true change* (within-respondent attitude shift).
+
+@heise1969separating shows that with three administrations of the same item it is possible to separate reliability from stability using the moment conditions of an autoregressive measurement model. Let $X_t$ denote the observed score at time $t$, $T_t$ the latent true score, and assume
+
+\begin{align}
+X_t &= T_t + E_t, & E_t &\sim \mathcal{N}(0, \sigma_E^2),\ \mathrm{independent\ across}\ t, \\
+T_t &= \beta_t T_{t-1} + U_t, & U_t &\sim \mathcal{N}(0, \sigma_U^2),
+\end{align}
+
+with reliability $\rho = \mathrm{Var}(T_t)/\mathrm{Var}(X_t)$ and stability $\beta_t$ the autoregressive parameter. With three waves, the three pairwise correlations $r_{12}$, $r_{23}$, $r_{13}$ over-identify $(\rho, \beta_1, \beta_2)$, yielding the Heise estimators
+
+\begin{equation}
+\hat\rho_2 \;=\; \frac{r_{12} \cdot r_{23}}{r_{13}},\qquad \hat\beta_1 \;=\; \frac{r_{13}}{r_{23}},\qquad \hat\beta_2 \;=\; \frac{r_{13}}{r_{12}}.
+(\#eq:heise)
+\end{equation}
+
+@wiley1970estimation extends the framework to allow time-varying error variances and develops a maximum-likelihood version of the simplex. The Heise--Wiley simplex remains the classical workhorse for longitudinal reliability estimation in sociology and political science.
+
+> **Why the simplex is silent on intrinsic stochasticity.** The simplex identifies $\rho$ and $\beta_t$ from across-wave covariances that *assume independent measurement error across waves*. If part of the residual noise is, in fact, intrinsic stochasticity drawn afresh from a respondent-level distribution at each measurement, the simplex absorbs it into $\sigma_E^2$ and labels it "measurement error". The decomposition is internally consistent, but the substantive interpretation --- "this is noise we could in principle eliminate with a better instrument" --- is wrong.
+
+### Multi-trait multi-method reliability
+
+@saris2014design gives the modern Wiley-style synthesis. The MTMM (multi-trait multi-method) design administers each of $T$ traits through each of $M$ methods, yielding $TM$ measurements per respondent and identification of trait variance, method variance, and unique variance from a structural equation model. MTMM is the gold-standard reliability assessment in survey methodology, but it shares the simplex's limitation: any noise drawn from a respondent-level stochastic process at each measurement is absorbed into the unique-variance term and is not separately identified.
+
+The within-survey replicated DV protocol (Section \@ref(sec-tot)) is, in this language, a single-trait single-method design with within-session replication; what it gives up in trait/method coverage it gains in the ability to isolate intrinsic stochasticity from instrument noise.
+
+------------------------------------------------------------------------
+
+## A three-way variance decomposition {#sec-three-way-decomp}
+
+The classical decomposition in equation \@ref(eq:classical-decomp) lumps everything that is not signal into a single residual. We argue it should be replaced with
+
+\begin{equation}
+\mathrm{Var}(X) \;=\; \underbrace{\mathrm{Var}(T)}_{\text{signal}} \;+\; \underbrace{\mathrm{Var}(M)}_{\text{measurement error}} \;+\; \underbrace{\mathrm{Var}(S)}_{\text{intrinsic stochasticity}},
+(\#eq:three-way-decomp)
+\end{equation}
+
+with $T$, $M$, and $S$ pairwise uncorrelated. The third term captures noise that is part of the *respondent's* response-generation process rather than a defect of the instrument. The new reliability ratio is
+
+\begin{equation}
+\rho^{\ast} \;=\; \frac{\mathrm{Var}(T)}{\mathrm{Var}(T) + \mathrm{Var}(M) + \mathrm{Var}(S)},
+(\#eq:rho-star)
+\end{equation}
+
+with $\rho^{\ast} \le \rho$ in general. The classical $\rho$ confuses $\mathrm{Var}(M) + \mathrm{Var}(S)$ for a single residual; $\rho^{\ast}$ separates them.
+
+This is not a semantic distinction. It has direct empirical consequences (Table \@ref(tab:two-vs-three)).
+
+```{r two-vs-three, echo=FALSE}
+two_vs_three <- tibble::tibble(
+  Question = c("Will instrument improvement reduce the residual?",
+               "Is the residual identified by within-session replication?",
+               "Is the residual identified by classical test--retest?",
+               "Does the residual attenuate regression coefficients?",
+               "Does the residual cancel out in differences (DiD, RDD)?"),
+  `Two-way (Lord-Novick)` = c("Always yes (by definition)",
+                              "Yes",
+                              "Yes (with caveats; see Heise simplex)",
+                              "Yes, by attenuation factor",
+                              "Yes, on average"),
+  `Three-way (this chapter)` = c("Only $\\mathrm{Var}(M)$; $\\mathrm{Var}(S)$ irreducible",
+                                 "$\\mathrm{Var}(M) + \\mathrm{Var}(S)$ identified jointly",
+                                 "$\\mathrm{Var}(S)$ absorbed into the error term",
+                                 "Yes for $\\mathrm{Var}(M)$; the $\\mathrm{Var}(S)$ part needs the correction in Section \\@ref(sec-attenuation-correction)",
+                                 "Yes for both, on average")
+)
+
+knitr::kable(
+  two_vs_three,
+  caption = "Empirical implications of the three-way decomposition. Most differences from the classical two-way decomposition involve what the analyst can or cannot do about the residual.",
+  booktabs = TRUE
+) |>
+  kableExtra::kable_styling(latex_options = "scale_down",
+                            bootstrap_options = "striped")
+```
+
+The three-way decomposition is not unique to survey research. Table \@ref(tab:decomp-analogs) lists analogous decompositions in adjacent disciplines.
+
+```{r decomp-analogs, echo=FALSE}
+analogs <- tibble::tibble(
+  Field                      = c("Survey research (this chapter)",
+                                 "Gene-expression noise [@elowitz2002]",
+                                 "fMRI / neuroimaging",
+                                 "Soft-matter / colloid physics",
+                                 "Classical test theory [@lord1968]"),
+  `Instrument-side variance` = c("Measurement error (M)",
+                                 "Extrinsic noise",
+                                 "Thermal / scanner noise",
+                                 "Diffraction / optical limits",
+                                 "Error of measurement"),
+  `Subject-side variance`    = c("Intrinsic stochasticity (S)",
+                                 "Intrinsic gene-expression noise",
+                                 "Physiological / spontaneous activity",
+                                 "Brownian motion",
+                                 "True-score variation")
+)
+
+knitr::kable(
+  analogs,
+  caption = "Three-way variance decompositions across disciplines. The within-survey replicated DV plays the same role as the dual fluorescent reporter in the @elowitz2002 design: it isolates within-subject from across-subject variance.",
+  booktabs = TRUE
+)
+```
+
+The analogy with gene-expression noise is particularly tight. @elowitz2002 separated *intrinsic* and *extrinsic* contributions to noise in protein expression by simultaneously measuring two identical fluorescent reporters in the same cell; the within-cell discrepancy is intrinsic, the across-cell discrepancy after subtracting intrinsic noise is extrinsic. The within-survey replicated DV plays an exactly analogous role: it isolates the within-respondent noise component that no instrument-side fix can remove.
+
+The implication for applied analysts is direct. When you observe a $\bar D$ of, say, 0.20 in a binary outcome and you have already done the careful work of debiasing your instrument, do not conclude that you have failed. Conclude that you are approaching the irreducible floor for your population and item, and adjust your inference and your reporting accordingly.
+
+------------------------------------------------------------------------
+
+## Decision-theoretic foundations {#sec-decision-theory}
+
+The presence of intrinsic stochasticity raises a question that classical reliability theory does not answer: through what mechanism does noise enter the response? A complete answer requires a model of how respondents transform their (potentially uncertain) preferences into observed choices. We review three candidate models in order of increasing realism.
+
+### Expected utility (deterministic)
+
+Let $\rho_i \in \{0, 1\}$ denote respondent $i$'s true preference and $\pi_i \in [0,1]$ their belief that $\rho_i = 1$. Under expected utility (with no idiosyncratic shocks), the respondent always picks the option more likely to be correct,
+
+\begin{equation}
+C_{it} \;=\; \mathbb{1}\!\left( \pi_i > 0.5 \right).
+(\#eq:eu)
+\end{equation}
+
+Under \@ref(eq:eu), $\pi_{i1} = \pi_{i2}$ implies $C_{i1} = C_{i2}$ for every respondent, hence $D_i = 0$ for every respondent who knows their own preference. This model predicts zero observed instability, which is empirically false at any reasonable sample size.
+
+### Random utility (stochastic input, deterministic decision rule)
+
+The economics-flavoured fix, foundational in discrete-choice modelling, is to add a mean-zero shock just before the decision,
+
+\begin{equation}
+C_{it} \;=\; \mathbb{1}\!\left( \pi_i + \eta_{it} > 0.5 \right),\qquad \eta_{it} \perp \!\!\! \perp \eta_{is}\ \text{for}\ t \neq s,
+(\#eq:rum)
+\end{equation}
+
+where $\eta_{it}$ is drawn afresh on each administration. This is the foundation of all logit and probit discrete-choice models, including the @hainmueller2014causal AMCE estimator. Under \@ref(eq:rum), instability is positive but vanishes as $|\pi_i - 0.5|$ grows large or as $\mathrm{Var}(\eta_{it})$ shrinks to zero. The per-respondent instability is
+
+\begin{equation}
+\Delta_i^{\mathrm{RUM}} \;=\; 2\, p_i (1 - p_i),\qquad p_i \;=\; \Pr(\pi_i + \eta_{it} > 0.5),
+(\#eq:rum-instab)
+\end{equation}
+
+a strictly decreasing function of $|\pi_i - 0.5|$ for any unimodal symmetric shock. RUM is consistent with @kahneman1979prospect prospect-theoretic deviations from expected utility insofar as the deviations enter as mean-zero shocks; it is not consistent with intrinsically stochastic choice.
+
+### Probability matching (irreducibly stochastic)
+
+The psychology-flavoured alternative treats the choice itself as stochastic, even when beliefs are perfectly known:
+
+\begin{equation}
+C_{it} \;\sim\; \mathrm{Bernoulli}(\pi_i),\qquad C_{i1} \perp \!\!\! \perp C_{i2}\mid \pi_i.
+(\#eq:pm)
+\end{equation}
+
+Under \@ref(eq:pm), even a respondent who is perfectly informed about $\pi_i$ does *not* necessarily choose the higher-probability option. The expected per-respondent instability is
+
+\begin{equation}
+\Delta_i^{\mathrm{PM}} \;=\; 2\, \pi_i (1 - \pi_i),
+(\#eq:pm-instability)
+\end{equation}
+
+which is strictly positive whenever $\pi_i \in (0, 1)$ and reaches its maximum of $0.5$ at $\pi_i = 0.5$. Probability matching has been documented in humans, primates, fish, pigeons, and bees, and remains one of the most replicated findings in experimental decision science despite half a century of attempts to design it away [@vulkan2000; @lo2021]. The phenomenon is not merely a curiosity: in incentivised financial-decision experiments, even subjects with statistical training systematically randomise rather than maximise [@lo2021], and reinforcement-learning models that *predict* probability-matching emerge naturally fit experimental game-play data [@erev1998predicting].
+
+### Why this matters for applied analysts
+
+Suppose you fit a binary logit to a survey outcome. The standard interpretation treats the linear predictor as the systematic part and the logit shock as measurement-error-like noise. If respondents are in fact probability-matching, the logit shock is not error in the classical sense; it is a property of the respondent's decision process. Two consequences follow.
+
+First, the conditional choice probabilities $\widehat{\Pr}(C = 1 \mid X)$ recovered from a logit can be biased toward $0.5$ when respondents probability-match, because the model assumes deterministic-conditional-on-shock choice when in fact the choice is irreducibly Bernoulli$(\pi)$. @clayton2025 derive the corresponding correction for forced-choice conjoint experiments under the @hainmueller2014causal AMCE framework.
+
+Second, treating intrinsic stochasticity as classical errors-in-variables in the *response* will not help, because the classical errors-in-variables apparatus assumes the noise is in the regressor. Under probability matching, the noise is in the response itself, which produces a different attenuation pattern (Section \@ref(sec-attenuation-correction)).
+
+A simple simulation makes the qualitative differences vivid. Figure \@ref(fig:prob-match-sim) plots $\Delta_i$ as a function of $\pi_i$ under each of the three models.
+
+```{r prob-match-sim, fig.cap="Per-respondent instability $\\Delta_i$ as a function of the underlying belief $\\pi_i$ under three response models. Probability matching predicts a smooth quadratic peaking at $\\pi_i = 0.5$ with $\\Delta_i = 0.5$. Random utility with small shocks predicts a sharp peak near $\\pi_i = 0.5$. Expected utility predicts identically zero. Empirically observed instability profiles are most consistent with the probability-matching curve.", fig.width=7, fig.height=4.5}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+pi_grid <- tibble(pi = seq(0, 1, length.out = 401))
+
+eu_instab  <- function(pi) rep(0, length(pi))
+pm_instab  <- function(pi) 2 * pi * (1 - pi)
+rum_instab <- function(pi, sd) {
+  p <- 1 - pnorm(0.5 - pi, sd = sd)
+  2 * p * (1 - p)
+}
+
+sim_df <- pi_grid |>
+  mutate(
+    `Expected utility`         = eu_instab(pi),
+    `Probability matching`     = pm_instab(pi),
+    `Random utility (sd=0.1)`  = rum_instab(pi, sd = 0.1),
+    `Random utility (sd=0.3)`  = rum_instab(pi, sd = 0.3)
+  ) |>
+  pivot_longer(-pi, names_to = "model", values_to = "instability")
+
+ggplot(sim_df, aes(pi, instability, colour = model, linetype = model)) +
+  geom_line(linewidth = 1) +
+  geom_hline(yintercept = 0.23, linetype = "dotted", colour = "grey40") +
+  annotate("text", x = 0.05, y = 0.245,
+           label = "Empirical floor ~ 0.23",
+           hjust = 0, size = 3.5, colour = "grey25") +
+  scale_y_continuous(limits = c(0, 0.55), breaks = seq(0, 0.5, 0.1)) +
+  labs(x = expression(paste("Belief ", pi[i])),
+       y = expression(paste("Per-respondent instability ", Delta[i])),
+       colour = NULL, linetype = NULL,
+       title = "Three response models, three instability profiles") +
+  theme(legend.position = "bottom")
+```
+
+Figure \@ref(fig:prob-match-sim) makes three things clear. First, expected utility predicts zero instability for every respondent, regardless of $\pi_i$. Second, probability matching peaks at $\pi_i = 0.5$ with $\Delta_i = 0.5$ and decreases as beliefs become more certain, but never reaches zero except at the endpoints. Third, random utility with small noise is concentrated near $\pi_i = 0.5$; with larger noise it spreads out and approaches the probability-matching curve in shape, although the underlying process is different.
+
+------------------------------------------------------------------------
+
+## Beyond the decision model: what modulates stochasticity {#sec-modulators}
+
+Once we accept that decision making is stochastic, we can ask what modulates the magnitude of that stochasticity. The empirical literature in survey methodology and cognitive psychology organises the answer at four nested levels of proximity to the response.
+
+### The cognitive process level
+
+Three modulators have direct survey-design implications.
+
+1.  **Cognitive complexity.** Items requiring more cognitive resources (longer questions, more response options, unfamiliar phrasing) produce more instability. Time-on-task averaged across respondents is a usable proxy for complexity, although confounded with attentiveness within respondents. The classical analysis of how respondents shortcut effortful retrieval and integration --- *satisficing* in @krosnick1991 and @krosnick1999survey --- describes the cognitive mechanism through which complexity inflates intrinsic stochasticity: when retrieval is costly, a respondent samples partial evidence and integrates it noisily.
+
+2.  **Time on task within respondents.** Below an item-specific threshold, instability rises sharply toward $0.5$. Above the threshold, instability stabilises near the population baseline. Where the platform allows, hidden-page time can be subtracted using the Page Visibility API to recover *attended* time on task; when this is unavailable, raw on-page time is an upper bound on attended time. We give a calibration procedure in Section \@ref(sec-survey-reliability-applied).
+
+3.  **Divergent processing across administrations.** Even with adequate time, respondents who attend to the item differently the second time produce more instability. This has been measured experimentally with eye-tracking; for most applications, it cannot be measured directly but motivates careful attention to priming differences between the two administrations.
+
+### The psychological state level
+
+Four states have been studied as candidate filters for poor data quality. They differ in whether they are (a) consciously controllable, (b) influenced by other survey items, and (c) themselves stable within a single session. Table \@ref(tab:psych-states) summarises.
+
+```{r psych-states, echo=FALSE}
+states <- tibble::tibble(
+  State           = c("Preoccupation", "Mind-wandering",
+                      "Persona / mood self-report", "Attention checks (IMC)"),
+  `Influenced by other items?` = c("No", "Yes", "No", "Yes"),
+  `Under conscious control?`   = c("No", "No", "Yes", "Yes"),
+  `Stable within session?`     = c("Yes", "No", "No", "No")
+)
+
+knitr::kable(
+  states,
+  caption = "Four psychological states evaluated as candidate filters. Only preoccupation satisfies all three properties.",
+  booktabs = TRUE
+)
+```
+
+Only **preoccupation** satisfies all three properties shown in Table \@ref(tab:psych-states). The others are useful as research variables but problematic as primary filters. The five-criterion evaluation appears in Section \@ref(sec-filters).
+
+### The individual-characteristic level
+
+Demographics, socioeconomic position, and prior knowledge predict instability. Older respondents, despite slower cognition, often exhibit *lower* instability than younger respondents, apparently because they are less preoccupied and mind-wander less. This is not a license to filter respondents on age --- doing so would change the estimand --- but it is useful diagnostic information and motivates always reporting $\bar D$ stratified by key demographics.
+
+The literature on response styles [@krosnick1999survey; @schwarz1999self] identifies several individual-level patterns relevant here: acquiescence (the tendency to agree regardless of content), extreme responding (preferring scale endpoints), and central tendency (preferring scale midpoints). All three inflate $\bar D$ when an item flips its semantic polarity between administrations, which is one reason within-session replication should keep wording identical. Social-desirability response bias [@crowne1960new; @tourangeau1996asking] is a separate but related concern: respondents systematically misreport on sensitive items in a direction that conforms to perceived norms; this biases the estimated $\Pr(C = 1)$ but does not necessarily inflate $\bar D$ unless the perceived norm shifts between administrations.
+
+### The item characteristic level
+
+Items differ in their susceptibility to all of the above. The single best predictor of an item's $\bar D$ is its position on a complexity scale, calibrated by either expert rating or pre-test mean TOT. @krosnick1999survey's review of question-design effects, together with @schuman1981questions's extensive catalog of wording experiments, gives the analyst a working menu of item features that inflate $\bar D$:
+
+-   Double-barrelled questions (combining two propositions in one item).
+-   Negatively worded items, especially those embedded among positively worded ones.
+-   Items with more than seven response options on a non-anchored scale.
+-   Items requiring specific numerical estimates ("how many times in the past month did you...").
+-   Items referring to events more than three months in the past.
+
+These are the items where pre-testing is most valuable and where within-session replication is most informative. Items at the simple end --- bipolar attitude items with five or fewer well-anchored response options, asked once --- contribute relatively little to total $\bar D$ even in long instruments.
+
+------------------------------------------------------------------------
+
+## Filter design: five criteria {#sec-filters}
+
+Filtering respondents to improve data quality is necessary but risky. A good filter must satisfy all five of the following criteria.
+
+1.  **Exogeneity to other survey items.** The filter is not influenced by the content of the rest of the survey.
+2.  **Exogeneity to conscious choice.** The respondent cannot easily produce the "correct" answer to escape the filter.
+3.  **Predictive validity.** The filter actually predicts instability or other markers of poor data quality.
+4.  **No treatment effect on other items.** Including the filter item does not change responses to subsequent items.
+5.  **Within-survey stability.** The filter item itself is stable across the duration of the survey.
+
+The empirical evidence evaluates four candidate filters against these criteria; Table \@ref(tab:filter-eval) summarises.
+
+```{r filter-eval, echo=FALSE}
+filters <- tibble::tibble(
+  Filter = c("Preoccupation",
+             "Mind-wandering probe",
+             "Persona / mood self-report",
+             "Attention checks (IMC)"),
+  `(1) Exogenous to items?`   = c("Yes", "No",  "Yes", "No"),
+  `(2) Not consciously chosen?` = c("Yes", "Yes", "No",  "No"),
+  `(3) Predicts instability?` = c("Yes", "Yes", "Yes", "Mixed"),
+  `(4) Not a treatment?`      = c("Yes", "Yes", "Yes", "No"),
+  `(5) Stable in-survey?`     = c("Yes", "No",  "No",  "No"),
+  Verdict = c("Use as primary",
+              "Research only",
+              "Research only",
+              "Avoid as primary")
+)
+
+knitr::kable(
+  filters,
+  caption = "Filter candidates evaluated against the five criteria. Preoccupation is the only candidate satisfying all five and is the recommended primary filter.",
+  booktabs = TRUE
+) |>
+  kableExtra::kable_styling(latex_options = "scale_down",
+                            bootstrap_options = "striped")
+```
+
+### The case against attention checks as a primary filter
+
+The instructional manipulation check (IMC) of @oppenheimer2009 is still the most widely deployed quality filter in online survey research. The empirical critique of the IMC as a *primary* filter is threefold.
+
+First, including an IMC changes how respondents read subsequent items, treating each as a potential trick rather than a sincere question --- a violation of Gricean cooperative norms documented in @oppenheimer2009 and quantified in @hauser2016. This is a violation of criterion (4) in Table \@ref(tab:filter-eval).
+
+Second, pass rates on commonly used IMCs vary from approximately one third to nearly the whole sample across populations, formulations, and platforms [@berinsky2014; @hauser2016; @berinsky2012evaluating]. The filter is not measuring a stable construct, in violation of criterion (5).
+
+Third, dropping respondents who fail an IMC introduces selection on observables that correlate with the outcome. @aronow2019note derive the formal bias and show it is non-ignorable in the standard randomised-experiment-with-survey-DV setting; @berinsky2014 document that screener pass rates correlate with politically and demographically relevant respondent characteristics, so dropping failers re-defines the population.
+
+The cumulative case is not that IMCs are useless --- they remain valuable as research diagnostics and, in some venues, as reviewer-expected reassurance --- but that they are a poor *primary* filter.
+
+### Multivariate detection of careless responding
+
+The careless-responding literature [@meade2012identifying; @curran2016methods] develops a battery of detection indices that go beyond the single IMC. Five families recur in the literature.
+
+1.  **Long-string indices.** The maximum number of consecutive identical responses; long strings suggest non-effortful straightlining.
+2.  **Inter-item standard deviation.** The within-respondent SD across reverse-coded item pairs; near-zero SD on a heterogeneous scale suggests acquiescence.
+3.  **Person-total correlation.** The correlation between the respondent's vector of answers and the sample-mean answer vector; very low or negative values are anomalous.
+4.  **Mahalanobis distance.** Multivariate outlier detection on the response vector.
+5.  **Response time outliers.** TOT below an item-specific floor (Section \@ref(sec-tot)).
+
+@meade2012identifying recommend computing several of these indices in parallel and using the joint distribution to flag respondents, rather than dropping on any single index. The recommendation in this chapter is consistent: report the indices, flag rather than drop, and disclose the joint distribution alongside the substantive analysis.
+
+### The recommended primary filter: preoccupation
+
+A validated four-level preoccupation item is administered immediately after consent and before any focal items. A workable wording is
+
+> *Everyone comes to a new task (like this survey) with things on their minds. How preoccupied were you, just before you started this survey, with thoughts or worries about your partner, job, health, children, friends, money, or other concerns?*\
+> (1) Very preoccupied; (2) Fairly preoccupied; (3) Slightly preoccupied; (4) Not at all preoccupied.
+
+Treat the response as a four-level ordinal variable. **Do not drop respondents on the basis of preoccupation alone**, because doing so changes the estimand --- the resulting sample no longer represents the population on a variable correlated with the outcome. Instead, *flag* preoccupied respondents and report estimates with and without the flagged subset side by side. This preserves the population-level estimand while signalling to readers how much the conclusion depends on the most-preoccupied respondents.
+
+------------------------------------------------------------------------
+
+## Time on task as an exogenous quality measure {#sec-tot}
+
+The second recommended quality signal is **time on task** (TOT), measured on *burn-in* items rather than focal items. The distinction matters: TOT on the focal item is endogenous (a respondent may be slow because the item is hard, because they are preoccupied, or because they are attentive --- you cannot separate these post hoc), whereas TOT on burn-in items provides an exogenous reading.
+
+A practical workflow is:
+
+1.  Insert two or three burn-in items between the preoccupation item and the first focal item. Match their format to the focal items (conjoint, Likert, multiple choice).
+2.  Record TOT in seconds for each burn-in item.
+3.  Compute the mean TOT across burn-in items per respondent.
+4.  Apply a cognitive-complexity-appropriate floor. The floor is item-specific and must be calibrated empirically; see Step 2 in Section \@ref(sec-survey-reliability-applied) for a calibration procedure.
+
+Figure \@ref(fig:tot-sim) gives a simulated illustration of the TOT--instability relationship.
+
+```{r tot-sim, fig.cap="Simulated time-on-task vs. instability relationship. Below an item-specific threshold (around 6 seconds for the conjoint-style items used here), instability rises sharply toward the coin-flip ceiling. Above the threshold, instability stabilises near the baseline rate. The threshold value depends on item complexity and must be calibrated for each instrument.", fig.width=7, fig.height=4.5}
+library(dplyr)
+library(ggplot2)
+
+set.seed(123)
+n <- 2000
+tot_seconds <- rgamma(n, shape = 2, scale = 4) + 0.5
+
+true_instability <- pmin(0.5, 0.5 - 0.28 * (1 - exp(-0.4 * (tot_seconds - 1))))
+true_instability <- pmax(true_instability, 0.22)
+
+D_obs <- rbinom(n, 1, true_instability)
+
+tot_df <- tibble(tot = tot_seconds, D = D_obs) |>
+  mutate(tot_bin = cut(tot,
+                       breaks = c(0, 2, 4, 6, 8, 12, 20, 60),
+                       include.lowest = TRUE))
+
+bin_summary <- tot_df |>
+  group_by(tot_bin) |>
+  summarise(D_mean   = mean(D),
+            n_in_bin = dplyr::n(),
+            tot_mid  = mean(tot),
+            .groups  = "drop")
+
+ggplot(bin_summary, aes(tot_mid, D_mean)) +
+  geom_smooth(data = tot_df, aes(tot, D), method = "loess", se = TRUE,
+              span = 0.4, inherit.aes = FALSE, colour = "grey40") +
+  geom_point(aes(size = n_in_bin)) +
+  geom_hline(yintercept = 0.50, linetype = "dashed", colour = "red") +
+  geom_hline(yintercept = 0.23, linetype = "dashed", colour = "darkgreen") +
+  geom_vline(xintercept = 6,    linetype = "dotted") +
+  annotate("text", x = 30, y = 0.51, label = "Coin-flip ceiling (0.50)",
+           colour = "red",       size = 3.4, hjust = 1) +
+  annotate("text", x = 30, y = 0.25, label = "Baseline (~0.23)",
+           colour = "darkgreen", size = 3.4, hjust = 1) +
+  annotate("text", x = 6.3, y = 0.45, label = "calibrated floor",
+           size = 3.4, hjust = 0) +
+  scale_x_log10() +
+  scale_size_continuous(guide = "none") +
+  labs(x = "Time on task (seconds, log scale)",
+       y = expression(paste("Mean instability ", bar(D))),
+       title = "Instability declines with time on task, then plateaus")
+```
+
+Two implementation notes follow from Figure \@ref(fig:tot-sim). First, *measured* TOT is an upper bound on actual attention time --- a respondent may have the item on screen while mind-wandering or tab-switching. Where the platform allows, subtract hidden-page time. Second, dropping respondents who fall below the floor on burn-in items is a less risky filter than preoccupation-based dropping because the floor cleanly identifies inattentive respondents who could not have read the item, and the dropped group is far less correlated with substantive outcomes than the dropped-on-preoccupation group would be.
+
+The mode-effects literature [@holbrook2003telephone] is relevant here: telephone respondents satisfice more than face-to-face respondents and produce systematically different TOT distributions on the same item. When pooling across modes, calibrate the TOT floor mode-by-mode rather than once for the pooled sample.
+
+------------------------------------------------------------------------
+
+## Practical implications for survey design {#sec-design-implications}
+
+The argument has direct implications for how surveys should be designed. We list them in approximate order of importance.
+
+1.  **Reduce cognitive complexity.** Write items in respondents' vocabulary, not researchers' vocabulary [@krosnick1999survey; @saris2014design]. Prefer four response options to seven. Avoid double-barrelled questions, branching scales, and clauses that require sustained working memory. Pretest with timing, and flag items where mean TOT exceeds 30 seconds.
+2.  **Always measure $\bar D$ on the key dependent variable.** Insert the same item a second time, separated by at least three distractor items, and compute $\bar D$ as part of the standard analysis. This is the single most important addition to survey reporting standards we can recommend.
+3.  **Replace IMCs with the preoccupation item as primary filter.** Administer the preoccupation item once at the start, after consent and before any focal items. Optionally repeat at the end to verify within-survey stability. Do not drop on preoccupation; flag.
+4.  **Measure TOT on burn-in items.** Insert two burn-in items matched in format to the focal items. Drop respondents below the calibrated floor; do not drop on focal-item TOT.
+5.  **Calibrate the TOT floor by mode.** When the survey runs across multiple modes (web, phone, face-to-face), calibrate the TOT floor separately within each mode following @holbrook2003telephone.
+6.  **Report quality as part of the deliverable.** Filter outcomes, $\bar D$, the preoccupation distribution, and the burn-in TOT distribution should appear in every client report and academic paper appendix. Side-by-side estimates (full sample vs. flagged-excluded) protect the reader from estimand confusion.
+7.  **For sensitive items, layer in social-desirability protection.** The literature on sensitive-question methodology [@tourangeau1996asking; @crowne1960new] gives standard tools (item count technique, randomised response, audio computer-assisted self-interview) that reduce social-desirability response bias; intrinsic-stochasticity correction does not substitute for these tools and they do not substitute for it.
+8.  **For conjoint experiments, follow the design guidance in @hainmueller2014causal and @bansak2018number.** Limit the number of choice tasks per respondent (10--12 is a common upper bound), randomise attribute order, and ensure each forced-choice pair has a within-survey replicate for the @clayton2025 measurement-error correction.
+
+------------------------------------------------------------------------
+
+## Implications for analysis {#sec-analysis-implications}
+
+The instability decomposition has implications downstream of data collection.
+
+### Standard errors and effective sample size
+
+If you have used a quality filter, your standard errors should reflect the post-filter sample size, not the recruited sample size. More importantly, if your filter removes respondents non-randomly with respect to the outcome (and almost any non-trivial filter does), your point estimates apply to the *filtered* population. Be explicit about the change in estimand.
+
+Within-respondent intrinsic stochasticity also reduces *effective* sample size. With $\bar D$ and a single administration of the focal item, the variance of the sample mean of the binary outcome is
+
+\begin{equation}
+\mathrm{Var}(\bar Y) \;=\; \frac{p(1-p)}{n_{\text{eff}}},\qquad n_{\text{eff}} \;\le\; n,
+(\#eq:n-eff)
+\end{equation}
+
+with $n_{\text{eff}}$ shrinking as $\bar D$ rises. The exact relationship depends on the response model, but a useful rule of thumb is $n_{\text{eff}} \approx n \cdot (1 - 2 \bar D)$ for symmetric misclassification. Power calculations that ignore this overstate power.
+
+### Conjoint and discrete-choice analysis
+
+Where AMCEs (average marginal component effects) are reported from forced-choice conjoint experiments [@hainmueller2014causal], four additional concerns over and above intrinsic stochasticity now form the standard methodological audit.
+
+1.  **Profile-distribution external validity.** @delacuesta2022improving show that the AMCE depends critically on the *distribution* of the non-target attributes used for averaging. A conjoint that randomises attributes uniformly (the field default) generates AMCEs that diverge from real-world choice probabilities when the actual attribute distribution in the target population is highly non-uniform. The remedy is to use the **population AMCE** (pAMCE), which weights the per-profile contribution by the population distribution of attributes. The `factorEx` package implements both design-based and model-based pAMCE estimators.
+2.  **Causal interaction beyond the marginal.** @egami2019causal develop the **average marginal interaction effect** (AMIE) as the proper generalisation of the AMCE to multi-attribute interactions in a factorial design. Unlike the conventional interaction effect, the AMIE does not depend on the choice of baseline conditions, so its sign and magnitude are interpretable even for higher-order interactions.
+3.  **Choice-task satisficing.** @bansak2018number show that respondent fatigue induces detectable shifts in AMCEs after roughly 10--12 choice tasks per respondent, motivating an upper-bound rule on task count.
+4.  **Within-respondent measurement error.** The misclassification-style measurement-error correction in @clayton2025 should be applied alongside the AMCE/pAMCE/AMIE, using $\bar D$ from a repeated DV to recover the unattenuated effect. In its absence, AMCEs are biased toward zero, and the bias is non-negligible. @hainmueller2015validating's behavioural-validation work on conjoint experiments motivates the correction further: real-world choice probabilities track conjoint-recovered AMCEs closely, but only after accounting for measurement error.
+
+The four-concern audit (pAMCE, AMIE, satisficing, $\bar D$ correction) defines the modern minimum-acceptable conjoint analysis.
+
+### A closed-form attenuation correction for binary regression {#sec-attenuation-correction}
+
+For the broader class of analyses that regress a binary survey outcome on covariates, the simplest defensible correction treats the within-respondent noise as symmetric misclassification. Suppose the *true* binary outcome is $Y^\ast$ and the observed $Y$ equals $Y^\ast$ with probability $1 - q$ and $1 - Y^\ast$ with probability $q$, with $q$ the per-administration flip probability and noise independent of covariates. The standard result on linear regression with binary misclassification gives the attenuation factor $1 - 2q$, so
+
+\begin{equation}
+\widehat\beta_{\text{naive}} \;=\; (1 - 2q)\,\beta_{\text{true}}
+\quad\Longleftrightarrow\quad
+\widehat\beta_{\text{corrected}} \;=\; \frac{\widehat\beta_{\text{naive}}}{1 - 2q}.
+(\#eq:attn-corr)
+\end{equation}
+
+Within-survey replication identifies $q$. Under independent noise, $\bar D = 2q(1-q)$, hence
+
+\begin{equation}
+\widehat q \;=\; \frac{1 - \sqrt{1 - 2 \bar D}}{2}, \qquad 1 - 2\widehat q \;=\; \sqrt{1 - 2\bar D}.
+(\#eq:q-from-d)
+\end{equation}
+
+Combining \@ref(eq:attn-corr) and \@ref(eq:q-from-d) yields the practical estimator
+
+\begin{equation}
+\widehat\beta_{\text{corrected}} \;=\; \frac{\widehat\beta_{\text{naive}}}{\sqrt{1 - 2\bar D}}.
+(\#eq:beta-corr)
+\end{equation}
+
+The standard error correction follows by the delta method or, more simply, by paired-bootstrap resampling jointly over the regression and the $\bar D$ estimate (Section \@ref(sec-survey-reliability-applied), Step 6). Equation \@ref(eq:beta-corr) is approximate when the underlying noise is probability-matching rather than symmetric misclassification; we treat it as a useful first-pass adjustment and refer to @clayton2025 for the structural conjoint correction.
+
+### A SIMEX alternative
+
+For analysts who want a more flexible correction that accommodates non-symmetric noise, the **SIMEX** (simulation--extrapolation) procedure is a non-parametric alternative. The SIMEX recipe is
+
+1.  Add additional noise to the observed $Y$ at multiple noise levels $\lambda \in \{0.5, 1.0, 1.5, 2.0\}$ above the baseline, generating multiple noisier datasets.
+2.  Fit the regression on each noisier dataset and record the estimated coefficient.
+3.  Extrapolate the noise-coefficient relationship back to $\lambda = -1$, the noise-free limit.
+
+We give a worked SIMEX implementation in Step 7 of Section \@ref(sec-survey-reliability-applied).
+
+### Meta-analysis
+
+Effect-size heterogeneity in meta-analyses of survey-based research partly reflects intrinsic stochasticity in the underlying surveys, not just publication bias or moderators. This does not change the standard meta-analytic procedure but does suggest that residual heterogeneity should be discussed in those terms. PET--PEESE and Vevea--Hedges remain valid; the *interpretation* of the residual after their application changes.
+
+### Quantities to report
+
+Most survey analyses report only the conditional mean. We additionally recommend reporting:
+
+-   $\bar D$ for the key DV with a bootstrap or analytic CI.
+-   The distribution of preoccupation responses.
+-   The distribution of burn-in TOT (median, IQR, percentage below the calibrated floor).
+-   Conditional means computed separately for the flagged and unflagged subsets, with a one-line note on whether they meaningfully differ.
+-   When a regression is reported on a binary outcome, the corrected coefficient from equation \@ref(eq:beta-corr) alongside the naive coefficient.
+
+These additions cost little in space and substantially improve the reader's ability to assess what the reported estimate actually represents.
+
+------------------------------------------------------------------------
+
+## Applied workflow in R {#sec-survey-reliability-applied}
+
+We close with a worked example showing the full pipeline from raw survey data to a quality-aware analytic table. The example uses simulated data with realistic parameter choices; the code is intended to be transplanted directly to real data with minimal modification.
+
+### Step 0: Simulate a realistic survey
+
+```{r sim-data}
+library(dplyr)
+library(tidyr)
+
+set.seed(20260506)
+n <- 1500
+
+respondents <- tibble(respondent_id = 1:n) |>
+  mutate(
+    age_group = sample(
+      c("18-25", "26-40", "41-60", "61+"), n,
+      replace = TRUE, prob = c(0.25, 0.35, 0.25, 0.15)
+    ),
+    preoccupation = sample(
+      1:4, n, replace = TRUE,
+      prob = c(0.10, 0.24, 0.36, 0.30)
+    ),
+    bi_tot_mean    = pmax(
+      1.5,
+      rgamma(n, shape = 4, scale = 3) -
+        0.5 * (5 - preoccupation) +
+        ifelse(age_group == "61+", 4, 0)
+    ),
+    bi_below_floor = bi_tot_mean < 6,
+    pi_i           = plogis(rnorm(n, mean = 0.30, sd = 1.20)),
+    Q1a            = rbinom(n, 1, pi_i),
+    pi_eff         = pmin(0.95, pmax(0.05,
+      pi_i + rnorm(n, 0,
+                   0.05 + 0.05 * (5 - preoccupation) +
+                   0.10  * bi_below_floor)
+    )),
+    Q1b            = rbinom(n, 1, pi_eff),
+    D              = as.integer(Q1a != Q1b),
+    x_covariate    = rnorm(n)
+  )
+
+dplyr::glimpse(respondents)
+```
+
+### Step 1: Compute $\bar D$ with bootstrap CI
+
+Table \@ref(tab:baseline-d) reports the sample-mean instability with the Wald-based standard error.
+
+```{r baseline-d}
+baseline_d <- respondents |>
+  summarise(
+    n      = dplyr::n(),
+    D_mean = mean(D),
+    D_se   = sqrt(D_mean * (1 - D_mean) / n)
+  )
+
+knitr::kable(
+  baseline_d, digits = 4,
+  caption = "Sample-mean instability with Wald standard error."
+)
+```
+
+A bootstrap percentile interval is more honest than the Wald SE for proportions, especially when stratifying by subgroup later in the analysis. Table \@ref(tab:boot-d) reports the percentile and BCa intervals from 2,000 bootstrap replications.
+
+```{r boot-d}
+suppressPackageStartupMessages(library(boot))
+
+boot_d  <- boot::boot(
+  respondents$D,
+  statistic = function(d, i) mean(d[i]),
+  R = 2000
+)
+boot_ci <- boot::boot.ci(boot_d, type = c("perc", "bca"))
+
+ci_table <- tibble::tibble(
+  estimator = c("percentile", "BCa"),
+  lower     = c(boot_ci$percent[4], boot_ci$bca[4]),
+  upper     = c(boot_ci$percent[5], boot_ci$bca[5])
+)
+
+knitr::kable(
+  ci_table, digits = 4,
+  caption = "Bootstrap 95% confidence intervals for $\\bar D$."
+)
+```
+
+### Step 2: Calibrate the TOT floor
+
+The 6-second floor in Figure \@ref(fig:tot-sim) was an analyst guess. In practice the floor should be picked at the *elbow* of the empirical TOT--instability curve on burn-in items, identified by binning burn-in TOT and looking for the smallest bin above which $\bar D$ is no longer increasing. Figure \@ref(fig:tot-floor-calib) shows the calibration plot for the simulated data.
+
+```{r tot-floor-calib, fig.cap="Empirical TOT--instability curve on burn-in items. The calibrated floor is the smallest TOT above which instability is statistically indistinguishable from the right-tail baseline. Pick the floor where the curve flattens.", fig.width=7, fig.height=4.5}
+library(ggplot2)
+
+floor_df <- respondents |>
+  mutate(tot_bin = cut(bi_tot_mean,
+                       breaks = c(0, 2, 3, 4, 5, 6, 8, 12, 20, 60),
+                       include.lowest = TRUE)) |>
+  group_by(tot_bin) |>
+  summarise(
+    tot_mid  = mean(bi_tot_mean),
+    D_mean   = mean(D),
+    n_in_bin = dplyr::n(),
+    .groups  = "drop"
+  )
+
+ggplot(floor_df, aes(tot_mid, D_mean)) +
+  geom_point(aes(size = n_in_bin)) +
+  geom_line() +
+  scale_size_continuous(guide = "none") +
+  labs(x = "Mean burn-in TOT (sec)",
+       y = expression(paste("Mean instability ", bar(D))),
+       title = "Pick the floor at the elbow")
+```
+
+### Step 3: Apply the quality filter
+
+Table \@ref(tab:quality-filter) reports the filter-outcome distribution after applying the calibrated TOT floor and the preoccupation flag.
+
+```{r quality-filter}
+respondents_q <- respondents |>
+  mutate(
+    filter_outcome = dplyr::case_when(
+      bi_below_floor       ~ "drop_floor",
+      preoccupation == 1L  ~ "flag_very_preocc",
+      preoccupation == 2L  ~ "flag_fairly_preocc",
+      TRUE                 ~ "keep"
+    ),
+    filter_outcome = factor(
+      filter_outcome,
+      levels = c("keep", "flag_fairly_preocc",
+                 "flag_very_preocc", "drop_floor")
+    )
+  )
+
+filter_summary <- respondents_q |>
+  count(filter_outcome) |>
+  mutate(pct = 100 * n / sum(n))
+
+knitr::kable(
+  filter_summary, digits = 1,
+  caption = "Filter outcome distribution after applying TOT floor and preoccupation flag."
+)
+```
+
+### Step 4: Side-by-side estimates
+
+Table \@ref(tab:side-by-side) reports the substantive estimate under three filter regimes: full sample, drop-floor-failers-only, and the strictest version that also drops the preoccupation-flagged group. This is the critical reporting move. The reader sees both the unfiltered estimate and the filtered estimate, and can decide for themselves which estimand they want.
+
+```{r side-by-side}
+estimands <- dplyr::bind_rows(
+  respondents_q |>
+    summarise(sample = "Full sample (incl. flagged)",
+              n        = dplyr::n(),
+              mean_Q1a = mean(Q1a),
+              D        = mean(D)),
+  respondents_q |>
+    dplyr::filter(filter_outcome != "drop_floor") |>
+    summarise(sample = "Drop floor-failers only",
+              n        = dplyr::n(),
+              mean_Q1a = mean(Q1a),
+              D        = mean(D)),
+  respondents_q |>
+    dplyr::filter(filter_outcome == "keep") |>
+    summarise(sample = "Drop floor-failers and unflag",
+              n        = dplyr::n(),
+              mean_Q1a = mean(Q1a),
+              D        = mean(D))
+)
+
+knitr::kable(
+  estimands, digits = 4,
+  caption = "Side-by-side estimates under three filter regimes. Movement in the mean across regimes signals how much the quality filter is doing to the substantive conclusion."
+)
+```
+
+### Step 5: Estimate the latent belief $\pi_i$ with a mixed-effects model
+
+Because $C_{i1}$ and $C_{i2}$ are conditionally independent draws from $\mathrm{Bernoulli}(\pi_i)$, fitting a respondent-level random-intercept logistic model on the long-format data identifies $\widehat\pi_i$ as the empirical-Bayes posterior mean given the two responses. This is useful when the analyst wants per-respondent belief estimates rather than only the population $\bar D$.
+
+```{r mixed-pi}
+suppressPackageStartupMessages(library(lme4))
+
+long_df <- respondents |>
+  dplyr::select(respondent_id, Q1a, Q1b) |>
+  tidyr::pivot_longer(c(Q1a, Q1b), names_to = "admin", values_to = "C")
+
+m_pi <- lme4::glmer(
+  C ~ 1 + (1 | respondent_id),
+  data   = long_df,
+  family = binomial(link = "logit")
+)
+
+eb_lp  <- coef(m_pi)$respondent_id[, "(Intercept)"]
+pi_hat <- plogis(eb_lp)
+
+pi_compare <- tibble(
+  respondent_id = as.integer(rownames(coef(m_pi)$respondent_id)),
+  pi_hat        = pi_hat
+) |>
+  dplyr::left_join(respondents |> dplyr::select(respondent_id, pi_i),
+                   by = "respondent_id")
+
+with(pi_compare, cor(pi_hat, pi_i))
+```
+
+The empirical-Bayes posterior $\widehat\pi_i$ shrinks toward the population mean when only two responses per respondent are available; the correlation with the true $\pi_i$ is bounded above by what two binary draws can identify, but the resulting estimates are still useful for sub-population stratification. With a third or fourth replication of the focal item, identification improves substantially.
+
+### Step 6: Closed-form attenuation correction
+
+Table \@ref(tab:attn-correction) reports the closed-form correction in equation \@ref(eq:beta-corr), with a paired-bootstrap 95% CI that propagates uncertainty in both the regression coefficient and $\bar D$.
+
+```{r attn-correction}
+fit <- glm(Q1a ~ x_covariate, data = respondents, family = binomial())
+beta_naive <- coef(fit)["x_covariate"]
+
+D_bar <- mean(respondents$D)
+correction_factor <- sqrt(1 - 2 * D_bar)
+beta_corrected    <- beta_naive / correction_factor
+
+set.seed(7)
+B <- 2000
+boot_corr <- replicate(B, {
+  idx <- sample.int(nrow(respondents), replace = TRUE)
+  d   <- respondents[idx, ]
+  fb  <- coef(glm(Q1a ~ x_covariate, data = d, family = binomial()))[
+    "x_covariate"
+  ]
+  Db  <- mean(d$D)
+  fb / sqrt(pmax(1 - 2 * Db, .Machine$double.eps))
+})
+boot_ci_corr <- quantile(boot_corr, c(0.025, 0.975))
+
+attn_table <- tibble::tibble(
+  quantity = c("D_bar",
+               "Misclassification rate q",
+               "Attenuation factor (1 - 2q)",
+               "Naive beta_x",
+               "Corrected beta_x",
+               "Bootstrap 95% CI lower",
+               "Bootstrap 95% CI upper"),
+  value    = c(D_bar,
+               (1 - sqrt(1 - 2 * D_bar)) / 2,
+               sqrt(1 - 2 * D_bar),
+               beta_naive,
+               beta_corrected,
+               boot_ci_corr[1],
+               boot_ci_corr[2])
+)
+
+knitr::kable(
+  attn_table, digits = 4,
+  caption = "Closed-form attenuation correction for a binary outcome regressed on a continuous covariate, with paired-bootstrap 95% CI."
+)
+```
+
+### Step 7: SIMEX correction
+
+For analysts who prefer a non-parametric alternative to the closed-form correction, the SIMEX procedure adds additional symmetric misclassification noise at multiple levels and extrapolates back to the noise-free limit. Figure \@ref(fig:simex) shows the extrapolation curve and the recovered coefficient.
+
+```{r simex, fig.cap="SIMEX extrapolation. Coefficient $\\widehat\\beta_x$ as a function of added noise $\\lambda$. The estimate at $\\lambda = -1$ (the noise-free limit) is the SIMEX-corrected coefficient.", fig.width=7, fig.height=4.5}
+library(ggplot2)
+
+q_hat <- (1 - sqrt(1 - 2 * mean(respondents$D))) / 2
+
+flip_outcome <- function(y, q) {
+  flip <- rbinom(length(y), 1, q)
+  ifelse(flip == 1, 1 - y, y)
+}
+
+lambdas <- c(0.0, 0.5, 1.0, 1.5, 2.0)
+B_simex <- 200
+
+simex_df <- tibble::tibble(lambda = lambdas) |>
+  rowwise() |>
+  mutate(
+    beta = mean(replicate(B_simex, {
+      q_lambda <- pmin(0.499, q_hat * (1 + lambda))
+      y_noisy  <- flip_outcome(respondents$Q1a, q_lambda - q_hat)
+      coef(glm(y_noisy ~ respondents$x_covariate,
+               family = binomial()))["respondents$x_covariate"]
+    }))
+  ) |>
+  ungroup()
+
+quad_fit <- lm(beta ~ lambda + I(lambda^2), data = simex_df)
+beta_simex <- as.numeric(predict(quad_fit, newdata = data.frame(lambda = -1)))
+
+ggplot(simex_df, aes(lambda, beta)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2),
+              se = FALSE, fullrange = TRUE) +
+  geom_vline(xintercept = -1, linetype = "dashed", colour = "red") +
+  geom_hline(yintercept = beta_simex, linetype = "dashed",
+             colour = "red") +
+  annotate("text", x = -1, y = beta_simex,
+           label = sprintf(" SIMEX = %.3f", beta_simex),
+           hjust = 0, vjust = -0.5, colour = "red") +
+  scale_x_continuous(limits = c(-1.2, 2.2),
+                     breaks = c(-1, 0, 0.5, 1, 1.5, 2)) +
+  labs(x = expression(lambda),
+       y = expression(widehat(beta)[x]),
+       title = "SIMEX extrapolation back to the noise-free limit")
+```
+
+The SIMEX estimate (red dashed line in Figure \@ref(fig:simex)) is consistent with the closed-form correction in Table \@ref(tab:attn-correction); the standard error from a SIMEX bootstrap is somewhat larger because the procedure does not exploit the parametric structure of the misclassification model.
+
+### Step 8: Subgroup diagnostics
+
+Figure \@ref(fig:d-by-preocc) shows how $\bar D$ varies by preoccupation level. This is the dose--response check that validates the preoccupation item is doing real work in your data.
+
+```{r d-by-preocc, fig.cap="Mean instability by preoccupation level. The dose-response slope is the diagnostic that the preoccupation item is functioning as predicted in your sample.", fig.width=7, fig.height=4.5}
+library(ggplot2)
+
+preocc_summary <- respondents |>
+  dplyr::group_by(preoccupation) |>
+  dplyr::summarise(
+    D_mean = mean(D),
+    D_se   = sd(D) / sqrt(dplyr::n()),
+    n      = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(preocc_label = factor(
+    preoccupation,
+    levels = 4:1,
+    labels = c("Not at all", "Slightly", "Fairly", "Very")
+  ))
+
+ggplot(preocc_summary, aes(preocc_label, D_mean)) +
+  geom_col(fill = "steelblue", alpha = 0.85) +
+  geom_errorbar(aes(ymin = D_mean - 1.96 * D_se,
+                    ymax = D_mean + 1.96 * D_se),
+                width = 0.2) +
+  geom_text(aes(label = sprintf("%.2f", D_mean)),
+            vjust = -0.5, size = 3.8) +
+  labs(x = "Preoccupation level (reverse coded)",
+       y = expression(paste("Mean instability ", bar(D))),
+       title = "Dose-response: instability rises with preoccupation",
+       subtitle = "The slope is the diagnostic.")
+```
+
+The pattern in Figure \@ref(fig:d-by-preocc) is the criterion (3) test of Table \@ref(tab:filter-eval): if the dose--response slope is flat, the preoccupation item is not predictive of instability in your sample, and the filter should be re-validated before being trusted.
+
+### Step 9: Careless-responding diagnostics
+
+Following @meade2012identifying and @curran2016methods, Table \@ref(tab:careless) computes a small battery of careless-responding indices for the simulated data. In a real instrument with multiple Likert items, these indices would be computed across the full response vector; here we illustrate the mechanics with the available variables.
+
+```{r careless}
+careless_df <- respondents |>
+  mutate(
+    long_string_q1 = ifelse(Q1a == Q1b, 2L, 1L),
+    person_corr    = ifelse(is.na(pi_i), 0,
+                            (Q1a - mean(Q1a)) * (pi_i - mean(pi_i))),
+    fast_response  = bi_tot_mean < 3,
+    inconsistent   = (Q1a != Q1b) & (preoccupation == 4L)
+  ) |>
+  summarise(
+    n_long_string_max = max(long_string_q1),
+    pct_fast          = round(100 * mean(fast_response), 1),
+    pct_inconsistent  = round(100 * mean(inconsistent),  1),
+    median_person_corr = round(median(person_corr), 3)
+  )
+
+knitr::kable(
+  careless_df, digits = 3,
+  caption = "Careless-responding diagnostic indices, illustrative implementation. In a real instrument these would be computed across the full set of items."
+)
+```
+
+### Step 10: The data-quality block
+
+Table \@ref(tab:quality-block) is the compact "data-quality block" that gives the reader everything needed to assess the credibility of the estimate. In a real manuscript the block would appear as a small table immediately after the sample-description paragraph; in a client-facing report it would appear in the methods appendix.
+
+```{r quality-block}
+quality_block <- tibble::tibble(
+  metric = c("N recruited",
+             "N after floor drop",
+             "N unflagged (strictest)",
+             "D bar (full sample)",
+             "D bar (unflagged)",
+             "% very preoccupied",
+             "% below TOT floor",
+             "Median burn-in TOT (sec)",
+             "Naive beta_x",
+             "Corrected beta_x"),
+  value  = c(nrow(respondents),
+             sum(respondents_q$filter_outcome != "drop_floor"),
+             sum(respondents_q$filter_outcome == "keep"),
+             round(mean(respondents$D), 3),
+             round(mean(respondents_q$D[
+               respondents_q$filter_outcome == "keep"
+             ]), 3),
+             round(100 * mean(respondents$preoccupation == 1L), 1),
+             round(100 * mean(respondents$bi_below_floor), 1),
+             round(median(respondents$bi_tot_mean), 1),
+             round(beta_naive, 3),
+             round(beta_corrected, 3))
+)
+
+knitr::kable(
+  quality_block,
+  caption = "Data-quality block for the methods section. Includes both the descriptive quality metrics and the corrected substantive estimate."
+)
+```
+
+------------------------------------------------------------------------
+
+## Cross-cultural and interpersonal comparability: anchoring vignettes {#sec-anchoring-vignettes}
+
+A separate identification problem arises when respondents use the *same response scale* in *different ways*. Two respondents can report identical levels of "freedom of movement" or "trust in government" while meaning quite different things, because each respondent is implicitly anchoring the scale to their own life experience. The classical example involves cross-country comparisons of self-reported health: respondents in countries with worse health on every objective measure routinely rate their own health as better. The data are not wrong --- they are *incomparable*.
+
+@king2004enhancing introduce **anchoring vignettes** as the standard solution. A vignette is a short hypothetical description of a third party, evaluated by the respondent on the same scale as the focal self-assessment. By comparing each respondent's vignette ratings with their self-rating, the analyst can identify respondent-specific scale anchoring and adjust the self-rating onto a common scale. @king2007comparing develop the methodology for evaluating and selecting which vignettes to use.
+
+### The differential item functioning problem
+
+Let $Y_i^\ast \in \mathbb{R}$ denote respondent $i$'s latent value on the focal construct (e.g., "political efficacy") and $Y_i \in \{1, 2, 3, 4, 5\}$ their observed five-point response. Standard latent-variable models assume
+
+\begin{equation}
+Y_i \;=\; k \quad \mathrm{iff}\quad \tau_{k-1} < Y_i^\ast \le \tau_k,
+(\#eq:standard-cut)
+\end{equation}
+
+with a single set of cut-points $\{\tau_k\}$ shared across respondents. When respondents use the scale differently, the cut-points are respondent-specific:
+
+\begin{equation}
+Y_i \;=\; k \quad \mathrm{iff}\quad \tau_{k-1, i} < Y_i^\ast \le \tau_{k, i}.
+(\#eq:dif-cut)
+\end{equation}
+
+Differential item functioning (DIF) occurs whenever $\{\tau_{k, i}\}$ varies across $i$ in a way correlated with characteristics of interest (country, language, cohort). Without correction, group comparisons of $\bar Y$ confound *true differences in $Y^\ast$* with *differences in $\{\tau_k\}$*.
+
+### Identification via vignettes
+
+Suppose respondent $i$ rates $V$ vignettes $\{Z_{ij}^\ast\}_{j=1}^V$ that have the *same* known objective level across respondents (the description does not change). The respondent's vignette rating
+
+\begin{equation}
+Z_{ij} \;=\; k \quad \mathrm{iff}\quad \tau_{k-1, i} < Z_{ij}^\ast \le \tau_{k, i}
+(\#eq:vignette-rating)
+\end{equation}
+
+uses the *same* cut-points as the self-assessment but on a *known* latent value. With at least three vignettes spanning the relevant range, the respondent's cut-points are identified up to scale. Substituting back into equation \@ref(eq:dif-cut) recovers a respondent-specific calibration of $Y_i^\ast$.
+
+The validated workflow [@king2004enhancing; @king2007comparing] is:
+
+1.  Administer 3--5 vignettes per focal item, evaluated on the *same scale* as the self-assessment.
+2.  Use response-consistency assumptions (vignette equivalence, response consistency) to identify cut-points.
+3.  Compare the rescaled $\hat Y_i^\ast$ across groups, instead of the raw $Y_i$.
+
+Anchoring vignettes are now standard in the World Health Organization's WHS, the European Social Survey, and many comparative political-behaviour studies. The chapter on Sampling discusses the design considerations for cross-cultural surveys; anchoring vignettes are the standard analytic complement.
+
+------------------------------------------------------------------------
+
+## Sensitive-question methodology {#sec-sensitive}
+
+When the focal item asks about a *sensitive* topic --- drug use, anti-social behaviour, sexual partners, vote choice in a contested setting, support for stigmatised groups --- direct questioning produces systematic under-reporting [@tourangeau1996asking; @crowne1960new]. Within-survey replication can identify intrinsic stochasticity but does not solve social-desirability bias: a respondent who lies once will tend to lie consistently. Three families of design fixes target the sensitive-question problem directly.
+
+### Randomised response
+
+@warner1965randomized's randomised response is the original solution. The respondent is asked a sensitive yes/no question $Q_S$ or its negation $\neg Q_S$, with the choice of which question made by a private randomisation device with known probability $p$. The interviewer does not observe which question was asked, only the answer. From the marginal answer rate $\bar Y$ and the known $p$, the analyst recovers the true sensitive-trait prevalence:
+
+\begin{equation}
+\Pr(Q_S = \mathrm{yes}) \;=\; \frac{\bar Y - (1 - p)}{2p - 1}.
+(\#eq:warner)
+\end{equation}
+
+The variance of equation \@ref(eq:warner) is inflated by a factor of $1 / (2p - 1)^2$ relative to direct questioning, but the bias is removed in expectation under cooperation.
+
+### List experiments (item count technique)
+
+@blair2012statistical develop the modern statistical apparatus for the **list experiment**, also called the item count technique. The respondent sees a list of items and reports *how many* apply to them, without specifying which. The treatment group sees the list with a sensitive item appended; the control group sees the list without it. The difference in mean count across groups identifies the sensitive-item prevalence under three assumptions: no design effect, no liars, and randomisation of treatment assignment.
+
+The estimator is simply
+
+\begin{equation}
+\widehat{\Pr}(\text{sensitive trait}) \;=\; \bar Y_T - \bar Y_C,
+(\#eq:list-experiment)
+\end{equation}
+
+where $\bar Y_T$ and $\bar Y_C$ are the mean counts in the treatment and control arms. @blair2012statistical extend the analysis to multivariate covariates via maximum-likelihood estimation of a structural model, implemented in the `list` package in R. @glynn2013statistical (the "statistical truth serum" paper) develops the design-side complement: optimal list length, item-correlation structure, and double-list designs to reduce bias and variance, plus closed-form sample-size formulas. Use @glynn2013statistical for the design and @blair2012statistical for the analysis.
+
+### Endorsement experiments
+
+@bullock2011statistical develop **endorsement experiments** for measuring support for stigmatised groups. The respondent rates support for a policy proposal that is randomly attributed (or not) to the stigmatised group; the change in support due to attribution measures the group's effective endorsement effect. The design is particularly useful when even a list-experiment "yes" count would carry stigma.
+
+### When to use which
+
+```{r sensitive-method-comparison, echo=FALSE}
+sensitive_methods <- tibble::tibble(
+  Method = c("Direct questioning",
+             "Randomised response [@warner1965randomized]",
+             "List experiment [@blair2012statistical]",
+             "Endorsement experiment [@bullock2011statistical]"),
+  `Best for` = c("Mildly sensitive items where social-desirability bias is moderate",
+                 "Highly sensitive items in interviewer-administered modes",
+                 "Highly sensitive items in self-administered modes",
+                 "Measuring support for stigmatised groups via policy attribution"),
+  `Variance penalty` = c("None (baseline)",
+                         "$1 / (2p-1)^2$",
+                         "Substantial (depends on list length and treatment shift)",
+                         "Substantial"),
+  `Cognitive cost`   = c("Low", "Moderate", "Low (just count items)",
+                         "Low (just rate the policy)")
+)
+
+knitr::kable(
+  sensitive_methods,
+  caption = "Comparison of sensitive-question methods. The right method depends on the sensitivity of the topic, the survey mode, and the variance budget.",
+  booktabs = TRUE
+) |>
+  kableExtra::kable_styling(latex_options = "scale_down",
+                            bootstrap_options = "striped")
+```
+
+Table \@ref(tab:sensitive-method-comparison) summarises the tradeoffs. The recommendation is to default to direct questioning for mildly sensitive items, list experiments for self-administered surveys on highly sensitive items, randomised response when an interviewer is present and the topic is highly sensitive, and endorsement experiments when even a sensitive-item-count would carry stigma.
+
+The empirical-validation work of @rosenfeld2016empirical is decisive on which method actually performs in the field. They administered all four methods --- direct questioning, list experiments, endorsement experiments, and randomised response --- to a sample whose true behaviour (vote on a 2011 Mississippi anti-abortion referendum) was independently knowable from official election returns. The list experiment recovered the true vote share most accurately; randomised response and endorsement experiments produced larger biases in opposite directions; direct questioning under-reported by the expected social-desirability margin. The implication is not that the list experiment dominates universally, but that **direct empirical validation against a known benchmark is the gold standard** when you can find one.
+
+------------------------------------------------------------------------
+
+## Multilevel regression and poststratification (MRP) {#sec-mrp}
+
+The next problem we treat is *non-representativeness*: the realised sample differs from the target population on observable characteristics in ways that bias estimates of population-level quantities. The classical solution is design-based weighting (covered in the chapter on Sampling). The modern alternative, which dominates in many applied settings, is **multilevel regression and poststratification** (MRP), introduced for state-level public-opinion estimation by @park2004bayesian and pushed to its limit on highly non-representative data by @wang2015forecasting.
+
+### The two-stage MRP recipe
+
+Partition the population into $J$ poststratification cells defined by demographic and geographic characteristics. Let $\pi_j$ denote the population proportion in cell $j$ (known from a census or large reference frame) and $y_j$ the cell-specific outcome of interest.
+
+**Stage 1: Multilevel regression.** Fit a multilevel model for the outcome conditional on cell-defining covariates,
+
+\begin{equation}
+\Pr(Y_i = 1 \mid \text{cell}_i = j) \;=\; \mathrm{logit}^{-1}\!\left( \alpha + \mathbf{x}_j^\top \boldsymbol{\beta} + \alpha_{j[i]}^{\mathrm{cell}} \right),
+(\#eq:mrp-stage1)
+\end{equation}
+
+with $\alpha_j^{\mathrm{cell}} \sim \mathcal{N}(0, \sigma^2_{\mathrm{cell}})$ a random effect that partially pools across cells. The multilevel structure stabilises estimates in cells with few sampled respondents.
+
+**Stage 2: Poststratification.** Form the population estimate as a weighted average of cell-level estimates,
+
+\begin{equation}
+\widehat{\theta}^{\mathrm{MRP}} \;=\; \sum_{j=1}^{J} \pi_j \, \widehat y_j.
+(\#eq:mrp-stage2)
+\end{equation}
+
+Subgroup estimates (state-level, age-by-race) follow by restricting the sum in equation \@ref(eq:mrp-stage2) to the relevant cells.
+
+### Why MRP works on non-representative samples
+
+@wang2015forecasting demonstrate the dramatic case: forecasting the 2012 US Presidential election from voters who completed surveys *on the Xbox gaming console* --- a sample with extreme demographic non-representativeness (overwhelmingly young and male). Direct estimates from the raw sample wildly missed the election outcome; the MRP-corrected estimates matched the true result at state-level resolution. The lesson generalises: with sufficient cell-defining covariates and a population reference frame, sample non-representativeness can be substantially corrected post hoc. The cost is the modelling assumptions in equation \@ref(eq:mrp-stage1); the benefit is access to populations that probability-sample frames cannot reach.
+
+### Refinements: deep interactions, dynamic IRT, state-opinion benchmarking
+
+Three lines of MRP refinement that the modern analyst should be aware of:
+
+1.  **Deep interactions.** @ghitza2013deep extend MRP by including high-order interactions in the multilevel model in equation \@ref(eq:mrp-stage1). They demonstrate that election turnout and vote choice in small electoral subgroups (e.g., young Hispanic women in Florida) are nonlinear and non-monotonic in the cell-defining covariates, and a model that includes only main effects systematically misses these patterns. The estimation procedure is implemented in `rstanarm` and `brms`.
+2.  **Dynamic group-level IRT.** @caughey2015dynamic combine MRP with a binomial item-response-theory model and a dynamic linear model to estimate latent opinion over time at the subnational-group level, even when individual surveys ask non-overlapping items. The DGIRT model implemented in the `dgo` R package is now the default for time-series-cross-section public-opinion estimation.
+3.  **State-opinion benchmarking.** @lax2009estimate establish that MRP outperforms simple disaggregation when state-level $n$ is small ($\le 100$ per state in the source survey), and the two converge when $n$ grows large. The result calibrates expectations: MRP buys precision where direct estimation is too noisy, but does not provide free lunch in well-sampled states.
+
+> **MRP and intrinsic stochasticity.** MRP and the within-survey replication framework are complementary, not competing. MRP corrects sample non-representativeness in $\widehat{\Pr}(Y = 1)$; within-survey replication identifies intrinsic stochasticity in the response process. A complete survey-quality workflow applies both: first compute $\widehat \theta^{\mathrm{MRP}}$ from equation \@ref(eq:mrp-stage2), then apply the attenuation correction from equation \@ref(eq:beta-corr) to any regression of $Y$ on covariates.
+
+------------------------------------------------------------------------
+
+## Robustness, replicability, and fraud detection {#sec-robustness}
+
+A separate concern, only loosely connected to instability but increasingly central to credible survey-based research, is whether reported results survive analytic-flexibility, publication-bias, and outright-fabrication challenges. The "replication crisis" in social psychology and adjacent fields produced a methodological toolkit --- chiefly from Simmons, Nelson, and Simonsohn ("Data Colada") --- that every modern survey analyst should know.
+
+### Researcher degrees of freedom and false positives
+
+@simmons2011false demonstrate via simulation that *undisclosed analytic flexibility* in data collection (when to stop sampling, which covariates to add, which observations to exclude, which analyses to report) can inflate the nominal 5% Type I error rate to as high as 60%. The mechanism is "researcher degrees of freedom": with even a few unconstrained choices, an analyst can generate a $p < .05$ result on noise-only data with high probability. The recommended response is the disclosure-based pre-registration regime that the authors' six requirements set up: declare sample size, exclusion rules, covariates, and primary analysis before seeing the data.
+
+The methodological context for @simmons2011false is the broader argument of @ioannidis2005why that, given the realities of low statistical power, multiple testing, and selective reporting, the *majority* of published research findings in many subfields are false. The empirical confirmation arrived a decade later: @osc2015estimating's reproducibility project replicated 100 high-profile psychology experiments and found that only 36% of replications produced statistically significant effects in the same direction as the original, with replication effect sizes averaging half the original. @camerer2018evaluating extended the project to 21 experimental social-science studies published in *Nature* and *Science*, finding 62% directional replication with replication effect sizes again averaging half the original.
+
+For survey-based research the implication is direct: the same forces that produced replication failures in lab experiments operate in survey instruments, and a credible survey paper now requires the same disclosure regime --- pre-registered analysis plan, full disclosure of measured items and exclusions, posted data and code.
+
+### p-curve
+
+@simonsohn2014pcurve introduce **p-curve** as a tool for inferring whether a published literature contains evidential value. The p-curve is the distribution of statistically significant $p$-values across a set of studies, conditional on $p < 0.05$. Under the null with no selection, the conditional distribution is uniform on $(0, 0.05)$; under a true effect with no selection, it is right-skewed (more $p$ values near 0.01 than 0.05); under selection on significance with no true effect, it is left-skewed. The shape of the p-curve --- right-skewed, flat, or left-skewed --- is diagnostic of whether a literature contains real effects, no effects, or selectively reported effects.
+
+### Specification curve analysis
+
+@simonsohn2020specification develop **specification curve analysis** as a robustness check that visualises the joint distribution of estimates across all defensible analytic specifications. The procedure is
+
+1.  Enumerate the set of defensible analytic specifications: covariate sets, exclusion rules, transformations, model families.
+2.  Estimate the focal coefficient under each specification.
+3.  Plot the ordered estimates with their confidence intervals.
+4.  Conduct joint inference across specifications.
+
+The output is a curve that ranges from the most conservative to the most aggressive estimate, exposing both how much the headline estimate depends on choices and which choices matter. Where the curve is mostly above zero, the inference is robust; where it crosses zero, the inference is specification-dependent.
+
+### Detecting fabricated data
+
+@simonsohn2013just shows that summary-statistic-based detection of fabricated data is feasible in surprisingly many cases. Two diagnostic patterns recur in fabricated datasets: (a) reported summary statistics are *too similar across conditions* to have come from independent random samples, and (b) reported decimals follow non-uniform distributions inconsistent with genuine measurement error. Both detections require only the published summary statistics and a sufficient sample of within-paper comparisons; raw-data access strengthens but is not strictly required for the suspicion stage. The high-profile Smeesters and Sanna retractions in social psychology were driven by exactly this analysis.
+
+### Checklist for a credible survey-based paper
+
+The combined Data Colada apparatus implies a checklist that we recommend incorporating into the methods section of any survey-based paper.
+
+```{r robustness-checklist, echo=FALSE}
+checklist <- tibble::tibble(
+  Item = c("Pre-registration of sample size and analysis plan",
+           "Disclosure of all measured items and conditions",
+           "Disclosure of all exclusions",
+           "Specification curve for the headline estimate",
+           "Replication ($\\bar D$) on the key DV",
+           "Posted raw data and analysis code"),
+  Reference = c("@simmons2011false",
+                "@simmons2011false",
+                "@simmons2011false",
+                "@simonsohn2020specification",
+                "This chapter; @clayton2025",
+                "@simonsohn2013just")
+)
+
+knitr::kable(
+  checklist,
+  caption = "Robustness checklist for survey-based papers. Each row is a now-standard requirement in the better social-science journals.",
+  booktabs = TRUE
+)
+```
+
+Table \@ref(tab:robustness-checklist) is not exhaustive but covers the five items most likely to be requested by attentive reviewers as of the mid-2020s.
+
+------------------------------------------------------------------------
+
+## Synthetic respondents and large language models {#sec-llm}
+
+The newest frontier in survey research --- and the one most fraught with methodological hazard --- is the use of **large language models** to generate synthetic respondents. Two recent contributions in *Political Analysis* anchor the literature.
+
+@argyle2023out propose that LLMs conditioned on demographic and ideological "backstories" can serve as proxies for specific human subpopulations. They demonstrate **algorithmic fidelity**: a properly conditioned GPT-3 reproduces sub-population response distributions from real US surveys with surprising accuracy at the marginal level. The implication, if taken at face value, is that "silicon samples" could complement or even substitute for human pilot studies.
+
+@bisbee2024synthetic deliver the cautionary follow-on. They administered GPT-3.5/ChatGPT prompts that emulated personas drawn from the 2016--2020 American National Election Study and asked for feeling-thermometer ratings of 11 socio-political groups. Three findings:
+
+1.  Marginal means align well between synthetic and human samples.
+2.  *Within-cell* variance is substantially compressed in the synthetic sample, biasing standard errors downward and inferential conclusions toward false positives.
+3.  Synthetic responses are non-stable: minor prompt rewording, and even prompts repeated across a three-month window with no change, produce significantly different distributions.
+
+Findings (2) and (3) connect directly to this chapter's framework: synthetic respondents exhibit *too little* intrinsic stochasticity at the within-respondent level and *too much* between-prompt drift at the across-instrument level. Both are diagnoses that within-survey replication and a $\bar D$ comparison between human and synthetic samples make immediately visible.
+
+> **Recommendation.** Treat LLM-generated synthetic samples as a tool for *pilot exploration* (item-wording stress tests, attribute discovery, qualitative-survey augmentation), not as a substitute for human respondents on substantive estimands. The Argyle--Bisbee literature converges on this conclusion as of the mid-2020s. Apply the within-survey $\bar D$ test in any synthetic-sample pilot to make sure the synthetic respondents are not producing artificially low instability that would flatter the analysis.
+
+------------------------------------------------------------------------
+
+## Causal inference with survey-measured outcomes
+
+This chapter has focused on cross-sectional measurement, but the issue carries over to causal designs covered elsewhere in this book.
+
+In a randomised survey experiment with a binary outcome (see the chapter on Experimental Design), intrinsic stochasticity inflates the variance of the outcome but does not bias the average treatment effect, *provided* the stochasticity is not differentially affected by treatment. The latter caveat is real: if the treatment is a question wording change that affects cognitive complexity, the treatment may itself shift instability, and naive comparisons of outcome means will conflate the substantive treatment effect with the change in stochasticity.
+
+The recommended diagnostic is to estimate $\bar D$ in the treatment and control arms separately. If they differ meaningfully, your treatment is doing more than you intended, and the estimate of the substantive effect needs to be reinterpreted. This is a different concern from differential recall bias discussed in the chapter on Biases but is detected by the same family of design choices (within-session replication, balanced TOT measurement across arms).
+
+In observational designs --- Difference-in-Differences, Instrumental Variables, Regression Discontinuity --- using survey-measured outcomes, the same logic applies: intrinsic stochasticity attenuates effect estimates in the presence of measurement error in the outcome, and the closed-form correction in Section \@ref(sec-attenuation-correction) or the SIMEX correction in Section \@ref(sec-survey-reliability-applied) should be applied. Both require a $\bar D$ estimate, which is one more reason to make repeated DV measurement a default rather than an afterthought.
+
+------------------------------------------------------------------------
+
+## Summary
+
+A meaningful share of the variance in survey responses is not error. It is intrinsic stochasticity, a property of the respondents themselves, with documented analogues in biology, neuroimaging, and physics. Acknowledging this changes how we measure reliability ($\bar D$ on a within-session repeated DV is preferred to test--retest correlations across waves), how we filter respondents (preoccupation and burn-in TOT in, IMCs out as primary filter), how we model decision making (probability matching, not deterministic expected utility), and how we report results (side-by-side estimates with explicit estimand changes).
+
+The applied analyst who absorbs this material can implement the entire workflow within a single survey instrument, at trivial marginal cost, and produce results that are more informative and more honest than what the field has conventionally been doing. The R workflow in Section \@ref(sec-survey-reliability-applied) is intended to be lifted directly into production code.
+
+------------------------------------------------------------------------
+
+## Further reading {.unnumbered}
+
+For the cognitive psychology of the survey response process, the canonical reference is @tourangeau2000psychology, with @schwarz1999self and @krosnick1999survey as essential complements. @schuman1981questions is the classical experimental catalog of question-form effects. For modern question-design practice, @saris2014design is the practitioner's reference. For the Total Survey Error framework and survey methodology more broadly, @groves2009survey is the standard graduate textbook. For longitudinal reliability, @heise1969separating, @wiley1970estimation, and @alwin2007margins together cover the simplex/quasi-Markov machinery from the original derivations to modern applications. For careless-responding detection, @meade2012identifying and @curran2016methods are the methodological references; @aronow2019note documents the formal cost of dropping subjects who fail attention checks. For probability matching and stochastic choice, @vulkan2000 reviews the classical experimental literature, @erev1998predicting connects it to reinforcement learning, and @lo2021 gives a recent incentivised replication. For conjoint experiments, @hainmueller2014causal develops the AMCE framework, @hainmueller2015validating gives the behavioural-validation evidence, and @clayton2025 provides the measurement-error correction.
+
+For interpersonal and cross-cultural comparability, the canonical references are @king2004enhancing on the original anchoring-vignettes design and @king2007comparing on vignette evaluation and selection. For sensitive-question methodology, @warner1965randomized is the foundational randomised-response paper, @blair2012statistical develops the modern statistical analysis of list experiments, @glynn2013statistical develops the design-side complement, @bullock2011statistical introduces endorsement experiments, and @rosenfeld2016empirical provides the empirical validation against an independently-known benchmark. For non-representative-sample correction via multilevel regression and poststratification, @park2004bayesian gives the original derivation, @lax2009estimate establishes when MRP outperforms simple disaggregation, @ghitza2013deep extends the model to deep interactions, @caughey2015dynamic adds dynamic group-level IRT, and @wang2015forecasting provides the most-cited applied demonstration. For modern conjoint analysis, @hainmueller2014causal develops the AMCE framework, @hainmueller2015validating gives behavioural validation, @egami2019causal introduces the AMIE for causal interaction, @delacuesta2022improving introduces the pAMCE for external validity, @bansak2018number identifies satisficing in choice tasks, and @clayton2025 supplies the measurement-error correction. For the modern robustness, replicability, and fraud-detection toolkit, @ioannidis2005why provides the analytic framing, @simmons2011false documents the false-positive consequences of researcher degrees of freedom, @osc2015estimating and @camerer2018evaluating give the empirical replicability evidence, @simonsohn2014pcurve introduces p-curve, @simonsohn2020specification develops specification-curve analysis, and @simonsohn2013just shows how summary-statistic-based fraud detection works in practice. For synthetic respondents and large language models, @argyle2023out advances the silicon-samples program and @bisbee2024synthetic catalogs its limits. For a single state-of-the-art entry point that synthesises survey design across all of these threads, @stantcheva2023how is the most useful recent reference.
+
+------------------------------------------------------------------------
+
+## Exercises {.unnumbered}
+
+1.  *Conceptual.* Explain in your own words why instrument-side measurement-error reduction (better wording, response scales) does not generally reduce $\bar D$. Under what circumstances *would* a wording change reduce $\bar D$?
+
+2.  *Derivation.* Show that under probability matching with belief $\pi_i$, $\Delta_i = 2\pi_i(1 - \pi_i)$. What value of $\pi_i$ maximises $\Delta_i$? What is the implied maximum?
+
+3.  *Derivation.* Verify equation \@ref(eq:rtt-vs-d). Then re-derive the entries in Table \@ref(tab:rtt-d-comparison) and comment on what they imply for studies that report only the test--retest correlation.
+
+4.  *Heise simplex.* Using equation \@ref(eq:heise), compute $\hat\rho_2$ given $r_{12} = 0.7$, $r_{23} = 0.7$, $r_{13} = 0.5$. Interpret the result. What does it imply about the comparison between $\rho^{\ast}$ and $\rho$?
+
+5.  *Simulation.* Modify the simulation in Section \@ref(sec-survey-reliability-applied) to allow $\pi_i$ to depend on a covariate $x_i$. Estimate $\bar D$ separately by levels of $x_i$ and discuss what the variation tells you about the population.
+
+6.  *Implementation.* Design a within-survey repeated-DV protocol for a topic in your area. Specify the focal item, the number and type of distractor items, the burn-in items, and the preoccupation item. Justify each choice using the criteria in Section \@ref(sec-filters).
+
+7.  *Critique.* Read @aronow2019note on the bias from dropping subjects who fail a manipulation check. Reconcile its findings with the recommendation in Section \@ref(sec-filters) to avoid attention checks as a *primary* filter. Where do the two recommendations agree, and where does this chapter go further?
+
+8.  *Replication.* Take any published survey-based paper with a binary key DV. Compute (or estimate from reported numbers) the implied $\bar D$ floor under the assumption that 10% of the residual variance is intrinsic stochasticity. Apply the closed-form correction in equation \@ref(eq:beta-corr). Does the paper's central claim survive?
+
+9.  *SIMEX.* Re-run the SIMEX procedure in Step 7 of Section \@ref(sec-survey-reliability-applied) with $\lambda \in \{0.5, 1.0, 1.5, 2.0, 2.5, 3.0\}$ and compare the extrapolated estimate to the closed-form estimate. When do the two diverge?
+
+10. *Conjoint.* For a conjoint experiment with 10 attributes and a 2-profile forced-choice design, sketch how you would (i) measure $\bar D$ and (ii) apply the @clayton2025 correction. What is the cost in respondent-minutes of the additional measurement?

@@ -6,9 +6,9 @@ The standard [Difference-in-Differences](#sec-difference-in-differences) estimat
 
 The cases where this matters are common in applied work:
 
--   **Binary outcomes**, such as employment status, default indicators, or whether a customer renewed a contract. The outcome is bounded in $\{0, 1\}$ and the conditional mean lies in $[0, 1]$.
--   **Fractional outcomes**, such as the proportion of a firm's customers who churned, the share of a portfolio invested in a particular asset, or the fraction of households in poverty. The outcome lies in $[0, 1]$.
--   **Count outcomes**, such as the number of crimes in a neighborhood, the number of patents filed by a firm, or the number of insurance claims per policyholder. The outcome is a non-negative integer with a discrete distribution.
+-   Binary outcomes, such as employment status, default indicators, or whether a customer renewed a contract. The outcome is bounded in $\{0, 1\}$ and the conditional mean lies in $[0, 1]$.
+-   Fractional outcomes, such as the proportion of a firm's customers who churned, the share of a portfolio invested in a particular asset, or the fraction of households in poverty. The outcome lies in $[0, 1]$.
+-   Count outcomes, such as the number of crimes in a neighborhood, the number of patents filed by a firm, or the number of insurance claims per policyholder. The outcome is a non-negative integer with a discrete distribution.
 
 For each of these, the natural model of the conditional mean is *nonlinear*: a logistic or probit link for binary and fractional outcomes, an exponential link for counts. Linear parallel trends imposed on such outcomes can produce qualitatively wrong inferences, including effects with the wrong sign in regions of the covariate space where the linear approximation is at its worst. The framework developed below, drawing on @wooldridge2023simple, replaces linear parallel trends with a *parallel trends in a transformed index*, which respects the constrained nature of the outcome while preserving the DiD logic of canceling unit and time fixed effects through differencing.
 
@@ -28,7 +28,7 @@ $$
 
 Here, $D_g = 1$ indicates that unit $i$ was first treated in period $g$.
 
-Rather than assuming linear conditional expectations of untreated outcomes, we posit a **nonlinear conditional mean** using a known, strictly increasing function $G(\cdot)$:
+Rather than assuming linear conditional expectations of untreated outcomes, we posit a nonlinear conditional mean using a known, strictly increasing function $G(\cdot)$:
 
 $$
 \mathbb{E}[Y_{it}(0) \mid D, X] = G\left( \alpha + \sum_{g=q}^{T} \beta_g D_g + X \kappa + \sum_{g=q}^{T} (D_g \cdot X)\eta_g + \gamma_t + X \pi_t \right)
@@ -42,7 +42,7 @@ This formulation nests logistic and Poisson mean structures, and allows us to ha
 
 Identification of the nonlinear DiD ATT requires two assumptions, each a natural extension of the standard linear DiD assumptions to the nonlinear setting.
 
-The first is **Conditional No Anticipation**: prior to treatment, the conditional mean of the eventually-treated cohort does not differ systematically from the conditional mean it would have had under permanent non-treatment. Formally,
+The first is Conditional No Anticipation: prior to treatment, the conditional mean of the eventually-treated cohort does not differ systematically from the conditional mean it would have had under permanent non-treatment. Formally,
 
 $$
 \mathbb{E}[Y_{it}(g) \mid D_g = 1, X] = \mathbb{E}[Y_{it}(0) \mid D_g = 1, X], \quad \forall t < g.
@@ -50,7 +50,7 @@ $$
 
 In words, the cohort treated at $g$ does not adjust its behavior in anticipation of treatment in the periods before $g$. This is the same assumption as in linear DiD; the only difference is that it is now phrased in terms of the conditional mean of the *transformed* outcome rather than the level. Anticipation, where present, manifests as a divergence of the cohort's pre-treatment conditional means from the untreated counterfactual, and it can be diagnosed in the same way as in standard event-study plots.
 
-The second is **Conditional Index Parallel Trends**: the untreated mean trends are parallel after passing through a known monotone transformation $G(\cdot)$. Formally,
+The second is Conditional Index Parallel Trends: the untreated mean trends are parallel after passing through a known monotone transformation $G(\cdot)$. Formally,
 
 $$
 \mathbb{E}[Y_{it}(0) \mid D, X] = G(\text{linear index in } D, X, t),
@@ -64,7 +64,7 @@ These assumptions are weaker than linear parallel trends in two ways. First, the
 
 #### Estimation
 
-**Step 1: Imputation Estimator**
+Step 1: Imputation Estimator
 
 1.  Estimate Parameters Using Untreated Observations Only:
 
@@ -80,7 +80,7 @@ $$ \hat{\tau}_{gr} = \frac{1}{N_{gr}} \sum_{i: D_g=1} \left( Y_{ir} - \widehat{Y
 
 ------------------------------------------------------------------------
 
-**Step 2: Pooled QMLE Estimator (Equivalent When Using Canonical Link)**
+Step 2: Pooled QMLE Estimator (Equivalent When Using Canonical Link)
 
 1.  Fit Model Using All Observations:
 
@@ -101,7 +101,7 @@ Where:
 
 $$ \hat{\tau}_{gr} = \frac{1}{N_g} \sum_{i: D_g=1} \left[ G\left( X_i\beta + \delta_r + \ldots \right) - G\left( X_i\beta + \ldots \right) \right] $$
 
-**Canonical Links in Practice**
+Canonical Links in Practice
 
 | Conditional Mean              | LEF Density | Suitable For                               |
 |-------------------------------|-------------|--------------------------------------------|
@@ -129,7 +129,7 @@ When Do Imputation and Pooled Methods Match?
 
 #### Application Using `etwfe`
 
-The `etwfe` package provides a unified, user-friendly interface for estimating staggered treatment effects using **generalized linear models**. It is particularly well-suited for nonlinear outcomes, such as **binary**, **fractional**, or **count** data.
+The `etwfe` package provides a unified, user-friendly interface for estimating staggered treatment effects using generalized linear models. It is particularly well-suited for nonlinear outcomes, such as binary, fractional, or count data.
 
 We'll now demonstrate how to apply `etwfe` to estimate [Average Treatment Effect on the Treated] (ATT) under a nonlinear DiD framework using a Poisson model. This aligns with the exponential conditional mean assumption discussed earlier.
 
@@ -153,7 +153,7 @@ set.seed(12345)
 
 2.  Simulate a known data-generating process
 
-Imagine a **multi-period business panel** where each "unit" is a *regional store* or *branch* of a large retail chain. Half of these stores eventually receive a new *marketing analytics platform* at some known time, which in principle changes their performance metric (e.g., weekly log sales). The other half *never* receive the platform, functioning as a "never-treated" control group.
+Imagine a multi-period business panel where each "unit" is a *regional store* or *branch* of a large retail chain. Half of these stores eventually receive a new *marketing analytics platform* at some known time, which in principle changes their performance metric (e.g., weekly log sales). The other half *never* receive the platform, functioning as a "never-treated" control group.
 
 -   We have $N=200$ stores (half eventually treated, half never treated).
 
@@ -253,9 +253,9 @@ You should see an estimate near the *true* $-0.05$.
 
 5.  Recover an event-study pattern of dynamic effects
 
-To check pre- and post-treatment dynamics, we ask for an **event study** via `type = "event"`. This shows how the outcome evolves *around* the adoption time. Negative "event" values correspond to pre-treatment, while nonnegative "event" values are post-treatment.
+To check pre- and post-treatment dynamics, we ask for an event study via `type = "event"`. This shows how the outcome evolves *around* the adoption time. Negative "event" values correspond to pre-treatment, while nonnegative "event" values are post-treatment. Table \@ref(tab:nldid-event-study) reports the dynamic ATT estimates by relative period.
 
-```{r}
+```{r nldid-event-study, fig.cap="ETWFE event-study estimates by relative event time, with cluster-robust standard errors at the unit level."}
 # --- 5) Event-study estimates ---
 mod_es <- emfx(mod, type = "event")
 mod_es
@@ -296,11 +296,13 @@ Below we will:
 
 1.  Extract the estimated event effects from `mod_es`.
 
-2.  Build a **reference** dataset with the same event times.
+2.  Build a reference dataset with the same event times.
 
 3.  Plot both on the same figure.
 
-```{r}
+Figure \@ref(fig:nldid-event-vs-true) overlays the estimated ETWFE event-study with the known data-generating-process effect.
+
+```{r nldid-event-vs-true, fig.cap="ETWFE event-study point estimates and 95% confidence band overlaid on the known true dynamic effect from the data-generating process."}
 # --- 6) Plot results vs. known effect ---
 est_df <- as.data.frame(mod_es)
 
@@ -359,15 +361,15 @@ ggplot() +
     causalverse::ama_theme()
 ```
 
--   **Solid line** and shaded region: the ETWFE *point estimates* and their 95% confidence intervals, for each event time relative to adoption.
+-   Solid line and shaded region: the ETWFE *point estimates* and their 95% confidence intervals, for each event time relative to adoption.
 
--   **Dashed red line**: the *true* effect that we built into the DGP.
+-   Dashed red line: the *true* effect that we built into the DGP.
 
 If the estimation works well (and your sample is big enough), the estimated event-study effects should hover near the dashed red line *post*-treatment, and near zero *pre*-treatment.
 
-Alternatively, we could also the `plot` function to produce a quick plot.
+Alternatively, we could also use the `plot` function to produce a quick plot. Figure \@ref(fig:nldid-event-ribbon) shows the same event-study via the package's built-in ribbon plot.
 
-```{r}
+```{r nldid-event-ribbon, fig.cap="Default ribbon plot of the ETWFE event-study from marginaleffects::plot, showing the dynamic ATT estimates with their 95% confidence band."}
 plot(
     mod_es,
     type = "ribbon",
@@ -381,9 +383,9 @@ plot(
 
 7.  Double-check in a regression table (optional)
 
-If you like to see a clean numeric summary of the *dynamic* estimates by period, you can pipe your event-study object into `modelsummary`:
+If you like to see a clean numeric summary of the *dynamic* estimates by period, you can pipe your event-study object into `modelsummary`. Table \@ref(tab:nldid-event-modelsummary) renders the resulting wide-format table.
 
-```{r, eval = FALSE}
+```{r nldid-event-modelsummary, fig.cap="ETWFE event-study by relative adoption period rendered as a wide-format modelsummary table with cluster-robust standard errors at the store level.", eval = FALSE}
 # --- 7) Optional table for dynamic estimates ---
 modelsummary(
     list("Event-Study" = mod_es),
