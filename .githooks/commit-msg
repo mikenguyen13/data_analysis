@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# commit-msg hook: block AI / LLM attribution in commit messages.
+#
+# Repository policy: commits are human-authored. Trailers like
+#   Co-Authored-By: Claude ...
+#   Co-Authored-By: ChatGPT ...
+#   🤖 Generated with [Claude Code]
+# are not permitted, even when an AI assistant helped with the work.
+#
+# To enable this hook in a fresh clone, run once:
+#   git config core.hooksPath .githooks
+#
+# To bypass for an emergency (NOT recommended):
+#   git commit --no-verify
+
+set -e
+msg_file="$1"
+
+# Forbidden patterns. Case-insensitive extended regex.
+patterns=(
+    'Co-Authored-By:[[:space:]]*Claude'
+    'Co-Authored-By:[[:space:]]*Anthropic'
+    'Co-Authored-By:[[:space:]]*(Opus|Sonnet|Haiku)'
+    'Co-Authored-By:[[:space:]]*(ChatGPT|GPT-[0-9]|OpenAI)'
+    'Co-Authored-By:[[:space:]]*(Copilot|Cursor|Codeium|Cody|Gemini|Llama)'
+    'noreply@anthropic\.com'
+    'noreply@openai\.com'
+    'Generated with[[:space:]]*\[?Claude'
+    'Generated with[[:space:]]*Claude Code'
+    'Generated (with|by)[[:space:]]*(ChatGPT|GPT|OpenAI|Copilot|Cursor)'
+    '🤖.*(Claude|Anthropic|ChatGPT|GPT|OpenAI|Copilot|Cursor|Gemini)'
+    '\[Claude Code\]'
+)
+
+for pat in "${patterns[@]}"; do
+    if grep -i -q -E "$pat" "$msg_file"; then
+        printf '\n' >&2
+        echo '============================================================' >&2
+        echo 'commit-msg hook: AI attribution blocked' >&2
+        echo '============================================================' >&2
+        echo '' >&2
+        echo 'Repository policy: no AI / LLM attribution in commit messages.' >&2
+        echo "Offending pattern: $pat" >&2
+        echo '' >&2
+        echo 'Offending line(s):' >&2
+        grep -i -n -E "$pat" "$msg_file" >&2 || true
+        echo '' >&2
+        echo 'Fix: edit the commit message to remove the attribution,' >&2
+        echo 'then retry. Bypass (not recommended):  git commit --no-verify' >&2
+        echo '============================================================' >&2
+        exit 1
+    fi
+done
+
+exit 0
