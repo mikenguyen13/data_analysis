@@ -1,0 +1,371 @@
+### Shift-Share (Bartik) Instruments {#sec-shift-share-iv}
+
+The shift-share instrument, also called the Bartik instrument after @bartik1991benefits, exploits the idea that a unit's exposure to a vector of aggregate shocks is mediated by its pre-determined "shares." The canonical application weights nationwide industry growth rates by a locality's lagged industry composition to study local labor demand [@blanchard1992regional; @bound2000demand; @card2001immigrant]. Because the shares are fixed before the shocks realize, the composite instrument moves with the shocks while remaining plausibly exogenous to the local unobservables that drive the outcome.
+
+The literature now distinguishes two distinct identification paths, depending on whether the analyst relies on quasi-random shocks [@borusyak2022quasi] or quasi-random shares [@goldsmith2020bartik]. The two paths require different assumptions, motivate different diagnostics, and lead to different inferential procedures, but the construction of the instrument itself is the same in both cases. Recent practitioner guides synthesize both views and recommend matching one's empirical checklist to the chosen path [@borusyak2025practical].
+
+Alternative names appear across literatures: the *industry-mix* instrument in economic geography, the *exposure-weighted* instrument in trade, and the *regional demand shifter* in macro. Information-systems and finance applications include @huang2020unemployment and @beaumont2025build respectively.
+
+#### Notation and Setup
+
+Index units (regions, firms, cohorts) by $i = 1, \dots, N$ and time by $t = 0, \dots, T$. Let
+
+- $g_{kt}$ denote a common shock to sector $k \in \{1, \dots, K\}$ in period $t$ (often a nationwide growth rate),
+- $s_{ik0}$ denote the baseline share of sector $k$ in unit $i$ measured in some pre-period $0$, with $\sum_k s_{ik0} = 1$,
+- $D_{it}$ denote the endogenous treatment or dose,
+- $Y_{it}$ denote the outcome, and $X_{it}$ collect further controls.
+
+The structural relationship of interest is
+
+$$Y_{it} = \beta\, D_{it} + X_{it}'\gamma + u_{it},$$
+
+where $u_{it}$ contains unobservables that may correlate with $D_{it}$.
+
+#### Instrument Construction
+
+The shift-share instrument combines pre-period shares with the realized shocks:
+
+$$Z_{it} = \sum_{k} s_{ik0}\, g_{kt}.$$
+
+A useful identity: when $D_{it}$ is itself defined as $\sum_k s_{ik0} g_{kt}$ (the case in many trade applications), the instrument is mechanically equal to the treatment, and the "IV" relabels variation rather than instruments away from a separate endogeneity problem. More often $D_{it}$ is an endogenous proxy (e.g., realized local employment growth, which responds to local conditions), and $Z_{it}$ supplies external variation.
+
+A *share-shift variant* lags the shares to ensure they are predetermined relative to the shock window and to minimize serial correlation between shares and current local shocks. Pick a lag $L$ and set $\tilde s_{ik,t-L}$ as the share measured at $t-L$:
+
+$$Z_{it}^{(L)} = \sum_{k} \tilde s_{ik,t-L}\, g_{kt}.$$
+
+When $L > 0$ the design is colloquially called a share-shift Bartik IV [@borusyak2025practical]. Because the shares evolve over time, $Z_{it}^{(L)}$ is not collinear with unit fixed effects, so identification survives long panels where the conventional one-time-share Bartik would be swept out. Common choices are $L \in \{5, 10\}$ years in annual data.
+
+Estimation is two-stage least squares:
+
+$$\begin{aligned}
+\text{first stage:}\quad & D_{it} = \pi\, Z_{it} + X_{it}'\delta + v_{it}, \\
+\text{second stage:}\quad & Y_{it} = \beta\, \hat D_{it} + X_{it}'\gamma + e_{it}.
+\end{aligned}$$
+
+By Frisch-Waugh-Lovell the 2SLS estimate equals the IV estimate from data partialled out for unit and time fixed effects (see [Two-Stage Least Squares Estimation](#sec-two-stage-least-squares-estimation)).
+
+#### Identification: Two Paths to Validity
+
+The exclusion restriction takes a slightly different form than in standard IV because $Z_{it}$ is constructed from common shocks weighted by unit-specific shares. The relevant moment is the *aggregate* orthogonality
+
+$$\mathbb{E}\!\left[\frac{1}{N}\sum_{i} Z_{it} u_{it}\right] = 0,$$
+
+which can be secured along either of two paths.
+
+**Path 1: Shock exogeneity (many shocks, possibly endogenous shares).** @borusyak2022quasi treat the shocks $g_{kt}$ themselves as the instrument and the shares as exposure mappings. The identifying assumption is that shocks are as-good-as-randomly assigned conditional on observed shock-level covariates $q_{kt}$:
+
+$$\mathbb{E}[g_{kt} \mid \bar u_{kt}, q_{kt}, s_k] = q_{kt}'\mu,$$
+
+where $\bar u_{kt}$ is the exposure-weighted average residual and $s_k = N^{-1}\sum_i s_{ik0}$ is the average share. Combined with a many-shocks regularity condition (the inverse Herfindahl of shock weights diverges, so no single shock dominates), a law of large numbers across sectors yields $N^{-1}\sum_i Z_{it} u_{it} \xrightarrow{p} 0$. Under this view, the shares are simply weights, and the design is essentially a *shock-level* IV regression in disguise (derived in the next subsection). This path is appropriate when shocks are numerous, granular, and externally generated, such as foreign demand shocks, trade-war tariffs, or refugee flows.
+
+**Path 2: Share exogeneity (few shocks, exogenous shares).** @goldsmith2020bartik instead treat the shares $s_{ik0}$ as quasi-random across units. The identifying assumption is
+
+$$\mathbb{E}[u_i \mid s_{i1}, \dots, s_{iK}] = 0,$$
+
+so that, conditional on baseline composition, units differently exposed would have followed parallel paths. The design is then equivalent to an overidentified IV using the $K$ shares themselves as instruments, with $g$-driven weights. This path is appropriate when shares are *tailored* to the treatment, the canonical example being the lagged Cuban share in @card1990impact that interacts with the Mariel boatlift. Share exogeneity does *not* require that shares are unaffected by outcomes; it requires that they are uncorrelated with the *residual* in a regression of outcomes on the treatment.
+
+**Relevance, stability, linearity.** Both paths additionally require $\text{Var}(Z_{it}) > 0$ and a non-trivial first-stage $F$. The exclusion restriction implicitly assumes the shocks $g_{kt}$ affect $Y_{it}$ only through the share-weighted aggregate $D_{it}$, ruling out contemporaneous general-equilibrium feedback through other channels. Finally, the construction is linear in the shares: nonlinear exposure-response generates bias unless modelled directly.
+
+#### Equivalence to Shock-Level IV
+
+@borusyak2022quasi prove an algebraic identity that clarifies what the SSIV estimator does. Start from the residualized form (after partialling out controls $w_i$ via Frisch-Waugh-Lovell):
+
+$$\hat\beta^{\text{SSIV}} = \frac{\sum_i z_i y_i^\perp}{\sum_i z_i x_i^\perp} = \frac{\sum_i \sum_n s_{in} g_n y_i^\perp}{\sum_i \sum_n s_{in} g_n x_i^\perp}.$$
+
+Switching the order of summation and dividing numerator and denominator by $N$,
+
+$$\hat\beta^{\text{SSIV}} = \frac{\sum_n g_n\, \bigl(N^{-1}\sum_i s_{in} y_i^\perp\bigr)}{\sum_n g_n\, \bigl(N^{-1}\sum_i s_{in} x_i^\perp\bigr)} = \frac{\sum_n s_n g_n \bar y_n^\perp}{\sum_n s_n g_n \bar x_n^\perp},$$
+
+where $s_n = N^{-1}\sum_i s_{in}$ is the average exposure to shock $n$ and $\bar v_n^\perp = (\sum_i s_{in} v_i^\perp)/(\sum_i s_{in})$ is the exposure-weighted average residual. This is numerically identical to an IV regression
+
+$$\bar y_n^\perp = \alpha + \beta\, \bar x_n^\perp + \bar u_n$$
+
+run at the *shock level*, with instrument $g_n$ and weights $s_n$. The intuition: SSIV pools many shock-by-shock IV regressions, weighting each by how much aggregate exposure that shock generates.
+
+This algebraic equivalence has two implications. First, it makes shock-level interpretations natural: $\beta$ is the average response across shocks that load heavily on the data. Second, it tells us *where to cluster*. The identifying variation is at the level of $n$, so inference should cluster there as well, even though estimation runs at the unit level.
+
+#### Rotemberg Weights and the GMM-IV Interpretation
+
+Under share exogeneity, the SSIV estimator can also be written as a weighted average of just-identified IV estimates, one per share. @goldsmith2020bartik decompose
+
+$$\hat\beta = \sum_n \hat\alpha_n\, \hat\beta_n,$$
+
+where
+
+$$\hat\beta_n = \frac{\sum_i s_{in} y_i^\perp}{\sum_i s_{in} x_i^\perp}, \qquad
+\hat\alpha_n = \frac{g_n \sum_i s_{in} x_i^\perp}{\sum_{n'} g_{n'} \sum_i s_{in'} x_i^\perp}.$$
+
+The $\hat\alpha_n$ are *Rotemberg weights* [@rotemberg1983instrument]. They sum to one, are large for shares with extreme shocks and strong first-stage covariance, and can be negative. Negative weights are problematic under heterogeneous treatment effects, as they may push $\hat\beta$ outside the convex hull of the $\hat\beta_n$.
+
+In practice, @goldsmith2020bartik recommend computing the weights, identifying the top few high-influence sectors, and conducting sensitivity analysis: how does $\hat\beta$ change if the top-weight share is dropped or if its own underlying assumption looks weak?
+
+The construction has a GMM reading as well. The vector $(s_{i1}, \dots, s_{iK})$ supplies $K$ moment conditions $\mathbb{E}[s_{ik} u_i] = 0$, and the Bartik IV is the just-identified linear combination with weights proportional to $g_k$. The Rotemberg decomposition is what makes this implicit weighting transparent.
+
+#### Worked Example: Two Industries, Two Periods
+
+A two-industry, two-period example makes the connection to difference-in-differences explicit. Suppose only two industries exist, indexed $k \in \{1, 2\}$, and we observe two periods $t \in \{1, 2\}$. Use baseline shares $z_{i1,0}$ with $z_{i2,0} = 1 - z_{i1,0}$, and consider
+
+$$y_{it} = \tau_t + \beta_0 x_{it} + u_{it}, \qquad B_{it} = g_{1t} z_{i1,0} + g_{2t} z_{i2,0} = g_{2t} + (g_{1t} - g_{2t}) z_{i1,0}.$$
+
+The first stage projects $x_{it}$ on time fixed effects and the constructed instrument, giving
+
+$$x_{it} = (\tau_t + \gamma g_{2t}) + \gamma (g_{1t} - g_{2t}) z_{i1,0} + \eta_{it}.$$
+
+This is identical, up to rescaling, to a saturated specification where the share is interacted with each period dummy:
+
+$$x_{it} = \tau_t + z_{i1,0} \cdot 1(t=1)\delta_1 + z_{i1,0} \cdot 1(t=2)\delta_2 + \tilde\eta_{it}.$$
+
+The two are equivalent if $\delta_1/(g_{11} - g_{21}) = \delta_2/(g_{12} - g_{22})$. The Bartik design imposes that proportionality. Substantively, $\hat\beta_0$ compares the high-share vs. low-share locations across periods that differ in the *intensity* of the aggregate shocks. That is exactly the difference-in-differences logic, with shares playing the role of exposure and aggregate shocks playing the role of treatment intensity.
+
+This analogy explains why one popular reading of Bartik is "a continuous-treatment DiD with shock heterogeneity baked into the weighting." In settings with few shocks but tailored shares, that DiD logic, not large-$K$ asymptotics, is what carries the identification.
+
+#### Choosing a Framework: Shocks, Shares, or Neither
+
+@borusyak2022quasi argue that the choice between shock-driven and share-driven identification must be made *ex ante*, based on the structure of the setting, not selected after running balance tests. Three cases organize this choice.
+
+**Case 1: Many quasi-random shocks.** The researcher observes a large set of plausibly exogenous shocks, granular enough that a law of large numbers across sectors is credible. Identification rests on shock exogeneity. Diagnostics center on balance tests of $g_n$ against shock-level covariates and on the effective number of shocks (the inverse Herfindahl of $s_n$). This is the natural setup for trade-shock applications with hundreds of industries or immigration applications with many origin countries.
+
+**Case 2: Shocks estimated in sample.** The researcher constructs $g_n$ from the same data used to estimate the outcome equation, typically by averaging some outcome across units other than $i$. The classic example is @bartik1991benefits, who uses national industry growth rates as proxies for industry-specific demand shocks, and @card2009immigration, who builds national immigration rates by group. Estimated shocks are not literally exogenous; they are merely *less endogenous* than the local treatment. This intermediate case calls for leave-one-out constructions and external validity arguments about the source of national variation.
+
+**Case 3: Few or non-exogenous shocks.** When there are too few shocks for a many-shocks LLN, or the shocks are themselves suspect, identification must rest on share exogeneity. This is a strong assumption: unobserved sector-level shocks $\nu_n$ that enter the residual through $u_i = \sum_n s_{in}\nu_n + \tilde u_i$ generate bias even when $g_n$ is well-behaved. Plausibility is highest when shares are *tailored* to the treatment in question (the pre-boatlift Cuban share for the Mariel shock; pre-WWII railroads as exposure to subsequent railroad expansion) and lowest when shares are *generic* and predict many possible shocks (industry employment shares used across countless trade and technology studies).
+
+The practical implication, summarized in @borusyak2025practical, is to motivate the design before estimating it: state the hypothetical experiment, defend the shock or share, and report diagnostics tailored to the chosen path rather than running every available test and reporting whichever passes.
+
+#### Relaxing the Constant-Share Assumption
+
+A standard normalization is that shares sum to one within each unit, $\sum_n s_{in} = 1$. Many applications work with *incomplete* shares: only a subset of sectors is measured, so $S_i = \sum_n s_{in}$ varies across units and reflects the size of the measured component (e.g., total manufacturing employment as a share of local employment). Decomposing the average shock as $g_n = \mu + (g_n - \mu)$,
+
+$$z_i = \mu S_i + \sum_n s_{in}(g_n - \mu),$$
+
+reveals a mechanical component $\mu S_i$ proportional to total exposure. If $S_i$ is endogenous (manufacturing-heavy regions differ systematically from manufacturing-light ones), this term injects bias. The remedy is to include $S_i$ as a control, leaving identification to come from the quasi-random component of the shocks rather than from compositional differences in total exposure. In panel settings, controlling for $S_{it}$ interacted with time fixed effects ensures that identification comes from within-period variation in the quasi-random component.
+
+#### Large-K Asymptotics and Inference
+
+The composite nature of $Z_{it}$ induces cross-sectional dependence: units with similar share vectors load similarly on the same shocks, so their instruments are mechanically correlated. If shock-level shocks also enter the residual through $u_i = \sum_n s_{in}\nu_n + \tilde u_i$, the standard CLT for $\hat\beta$ fails because $z_i$ and $u_i$ are correlated across units with similar exposure profiles. @adao2019shift call this *exposure clustering*.
+
+Three procedures recover valid inference:
+
+1. *Cluster at the shock level* when shocks are well-defined groupings (e.g., industry $\times$ year for a trade shock).
+2. *AKM standard errors* of @adao2019shift, which account simultaneously for many-shocks and many-shares asymptotics and are agnostic to the underlying clustering structure.
+3. *Randomization inference* via re-drawing shocks under a sharp null and recomputing $\hat\beta$ to build exact $p$-values [@borusyak2022quasi].
+
+Under the @borusyak2022quasi shock-level reformulation, the asymptotics simplify: as the effective number of shocks grows (inverse Herfindahl of $s_n$ diverges), $N^{-1}\sum_i Z_{it} u_{it} \xrightarrow{p} 0$ at rate $K^{-1/2}$.
+
+#### Diagnostics and Robustness
+
+A robust empirical workflow combines the following:
+
+- *First-stage F.* Use a weak-instrument test that respects the effective degrees of freedom of $Z_{it}$ rather than a naive count of regressors.
+- *Shock-level balance tests.* Regress $g_n$ on shock-level covariates $q_n$ (lagged outcomes, sector FEs, year FEs). Under shock exogeneity these should be uncorrelated.
+- *Leave-one-out instruments.* Recompute $Z_i^{(-i)} = \sum_n s_{in}^{(-i)} g_n$ where the unit's own share is excluded to reduce mechanical correlation, particularly when shocks are estimated in sample. This is the SSIV analog of jackknife IV.
+- *Pre-trend tests.* Regress pre-treatment outcomes on $Z_{it}$ to probe the exclusion restriction along the time dimension. Failure here is consistent with omitted local trends correlated with exposure.
+- *Rotemberg-weight sensitivity.* Identify the top-weight shares and re-estimate after dropping each, or after dropping the top five jointly. Large swings flag designs whose conclusion rides on one or two sectors.
+- *Rotated-shock placebo.* Replace $g_{kt}$ with shocks drawn from a pre-period or a randomly permuted assignment and confirm that the estimated effect collapses. A nonzero placebo signals that the identifying variation is not what you think it is.
+
+#### Case Study: Chinese Import Competition and US Labor Markets
+
+@autor2013china estimate the impact of rising Chinese import competition on US local labor markets over 1991-2007. The treatment is
+
+$$x_{it} = \text{growth of Chinese imports per worker, in \$1{,}000s},$$
+
+the outcome $y_{it}$ is the change in the manufacturing employment share, and the instrument is the shift-share
+
+$$z_{it} = \sum_n s_{int} g_{nt},$$
+
+where $n$ indexes 397 SIC 4-digit industries, $g_{nt}$ is the growth in Chinese exports to non-US destinations per US worker, and $s_{int}$ is the lagged employment share of industry $n$ in commuting zone $i$.
+
+The design uses growth of Chinese exports to *other* high-income countries as the shock, leveraging the idea that productivity gains in China should affect global trade with the US and with peer destinations alike, but that US-specific demand or productivity shocks ($u_{it}$) should not move third-country imports. @borusyak2022quasi recast the design as a shock-level IV and conduct shock-level balance tests: $g_n$ shows no significant correlation with industry covariates after controlling for year fixed effects, supporting the shock-exogeneity reading. The effective number of shocks, measured as the inverse Herfindahl of $s_n$, ranges between 58 and 192, supporting the many-shocks asymptotic regime.
+
+@goldsmith2020bartik run the same design under the alternative share-exogeneity reading. Their overidentification and pre-trend tests *fail* for @autor2013china, consistent with the presence of unobserved sector-specific shocks that load on the shares and bias the share-driven estimator. The lesson is that the same empirical design can succeed under one identification path and fail under another. In trade applications, the modern consensus has moved toward the shock-driven reading [@borusyak2022quasi].
+
+#### Software
+
+Several R packages implement shift-share inference and diagnostics:
+
+```{r, eval = FALSE}
+# AKM and AKM0 standard errors plus a basic SSIV estimator
+install.packages("ShiftShareSE")
+
+# Aggregation to the shock-level equivalent of Borusyak-Hull-Jaravel
+devtools::install_github("kylebutts/ssaggregate")
+
+# Rotemberg weights and sensitivity tools for the Goldsmith-Pinkham et al. path
+devtools::install_github("jjchern/bartik.weight")
+```
+
+A representative call to `ShiftShareSE` on the bundled @autor2013china replication data:
+
+```{r, eval = FALSE}
+library(ShiftShareSE)
+ivreg_ss(d_sh_empl ~ 1 | shock, X = IV, data = ADH$reg, W = ADH$W,
+         method = c("ehw", "akm", "akm0"))
+```
+
+#### Extensions
+
+- *Heterogeneous effects.* Interact $D_{it}$ with baseline covariates to test for heterogeneity. Under first-stage monotonicity, SSIV identifies a convex average of unit-specific effects in the same sense as LATE [@goldsmith2020bartik].
+- *Dynamic Bartik.* Include leads and lags of $D_{it}$ to produce an event-study-style response (see [Event Studies](#sec-event-studies) for the broader pre-trend diagnostic toolkit).
+- *Multi-dimensional shocks.* Replace the scalar $g_{kt}$ with a vector (e.g., trade shocks by partner and industry), stacking them into a higher-order exposure matrix.
+- *Shift-share DiD hybrid.* Use Bartik as the first stage within a staggered-adoption DiD when treatment is partially driven by differential exposure to common shocks.
+- *Recentered IV.* When the instrument is a more general formula in exogenous shocks and predetermined characteristics, the @borusyak2023nonrandom recentering framework supplies a unified treatment. See [Recentered Instrumental Variables](#sec-recentered-iv) below.
+
+#### Limitations and Best-Practice Checklist
+
+| Issue | Guidance |
+|----|----|
+| Over-reliance on a single dominant shock | Compute Rotemberg weights; report results after dropping top-weight sectors. |
+| Persistent unobservables correlated with shares | Use rolling share-shift with sufficient lag $L$; include pre-trend controls. |
+| Generic shares predicting many shocks | Prefer the shock-exogeneity path; run @borusyak2022quasi shock-level balance tests. |
+| General-equilibrium feedback | Build the instrument at the labor-market level; instrument only for first-round effects. |
+| Spatial spillovers | Cluster at aggregated geography; include spatial-lag controls. |
+| Nonlinear outcomes | Use control-function or GMM variants. |
+| Standard errors that ignore exposure clustering | Use AKM, AKM0, or shock-level clustering after `ssaggregate`. |
+
+Selected canonical applications by area:
+
+| Research area | Studies |
+|----|----|
+| Regional labor demand and immigration | @blanchard1992regional; @bound2000demand; @card2001immigrant; @moretti2004workers; @card2009immigration; @aizer2010gender; @duranton2011fundamental; @beaudry2012does; @diamond2016determinants; @altonji2018effects; @imbert2022migrants |
+| Bank lending and credit supply | @amiti2018much; @greenstone2020credit |
+| Market size and demography | @acemoglu2004market; @jaravel2021inflation |
+| Fiscal multipliers | @nakamura2014fiscal |
+| Trade shocks and labor markets | @autor2013china; @autor2018understanding |
+| Foreign aid allocation | @nunn2014us |
+| Portfolio allocation | @calvet2009fight |
+| Trade shocks and prices | @piveteau2018impact; @jaravel2019unequal |
+| Technology and automation | @acemoglu2017secular |
+| Predicting population growth | @baum2017roads |
+
+------------------------------------------------------------------------
+
+### Recentered Instrumental Variables {#sec-recentered-iv}
+
+Modern empirical work routinely uses *formula instruments*: variables that combine exogenous shocks with predetermined characteristics through a known function. The shift-share instrument is the leading example, but the class is much broader, including market-access measures, transportation upgrades, simulated eligibility scores, and centralized assignment indices. @borusyak2023nonrandom show that whenever exposure to exogenous shocks is itself nonrandom, even unbiased shocks can generate omitted-variable bias in the constructed instrument. Their *Recentered Instrumental Variable* (RIV) framework removes this bias by subtracting each unit's expected exposure under a credible counterfactual shock distribution.
+
+The settings where RIV is useful include linear SSIV [@autor2013china; @borusyak2022quasi]; nonlinear SSIV [@boustan2013effect; @chodorow2020secular; @derenoncourt2022can]; centralized school-assignment mechanisms [@abdulkadirouglu2017research; @angrist2020simple]; model-implied optimal IVs [@adao2019general]; weather instruments [@madestam2013political]; and mass-media exposure via free-space propagation [@olken2009television; @yanagizawa2014propaganda].
+
+#### Motivating Examples
+
+*Market access from China's high-speed rail.* Suppose we want to estimate how transportation infrastructure affects land value via market access:
+
+$$\Delta \log V_i = \beta\, \Delta \log MA_i + \varepsilon_i, \qquad MA_{it} = \sum_k \tau(g_t, \text{loc}_i, \text{loc}_k)^{-1}\, \text{pop}_k,$$
+
+where $g_t$ is the road network at time $t$, $\tau$ is a travel-cost function, and $\text{pop}_k$ is destination population. Even if construction is randomized, $MA_i$ is not, because the transformation through geography and population introduces nonrandom exposure. Periphery regions hit by sea-level rise or differential regional growth trends may correlate with where market access happens to grow. The realized $\Delta MA_i$ is therefore endogenous as an instrument for any outcome that varies systematically with geography.
+
+*Medicaid eligibility.* When state policies $g_s$ are assumed randomly assigned across states but individual eligibility $x_i$ depends jointly on $g_s$ and predetermined demographics (income, age, family composition), even a state-level expansion dummy is an inefficient instrument for individual eligibility. The simulated-eligibility instrument of @currie1996saving instruments using an average eligibility rate computed for a fixed reference sample, but this discards heterogeneity in how strongly different demographics respond to a given policy expansion.
+
+In both cases, the construction $z_i = f_i(g, w)$ is a known formula in exogenous shocks $g$ and predetermined characteristics $w$, but the formula itself induces structured variation that need not be exogenous to the outcome.
+
+#### Formal Framework
+
+We estimate
+
+$$y_i = \beta x_i + \varepsilon_i, \qquad i = 1, \dots, N,$$
+
+with treatment $x_i$, unobserved error $\varepsilon_i$, and a candidate instrument constructed as
+
+$$z_i = f_i(g, w),$$
+
+where $g = (g_1, \dots, g_K)$ is a vector of exogenous shocks, $w$ collects observed predetermined characteristics, and $f_i$ is a known formula. The formula is general: it nests linear SSIV ($f_i(g, w) = \sum_k s_{ik} g_k$), reduced-form designs ($x_i = z_i$), and nonlinear or interactive constructions.
+
+Even when $g \perp\!\!\!\perp \varepsilon_i \mid w$, the constructed instrument $z_i$ need not satisfy $z_i \perp\!\!\!\perp \varepsilon_i$. This is because $f_i(g, w)$ may systematically assign larger values of $z_i$ to units with particular, potentially unobserved characteristics, generating an omitted-variable bias of the form
+
+$$\mathbb{E}\!\left[\frac{1}{N}\sum_i z_i \varepsilon_i\right] = \mathbb{E}\!\left[\frac{1}{N}\sum_i \mu_i \varepsilon_i\right] \ne 0,$$
+
+where $\mu_i = \mathbb{E}_{g' \sim G(\cdot\mid w)}[f_i(g', w)]$ is each unit's expected instrument under the known shock distribution.
+
+#### Why Recentering Works
+
+Define the recentered instrument
+
+$$\tilde z_i = z_i - \mu_i.$$
+
+By construction $\mathbb{E}[\tilde z_i \mid w] = 0$, and under shock exogeneity,
+
+$$\mathbb{E}\!\left[\frac{1}{N}\sum_i \tilde z_i \varepsilon_i\right] = 0,$$
+
+so $\tilde z_i$ is a valid instrument for identifying $\beta$. An algebraically equivalent procedure is to control for $\mu_i$ directly in the second stage and use the original $z_i$ as the instrument, by Frisch-Waugh-Lovell. The control-function variant can be more efficient when treatment effects are heterogeneous.
+
+For the linear SSIV special case, the expected instrument simplifies. If $g_k$ is exogenous conditional on shares, $\mathbb{E}[g_k \mid \mathbf{s}] = \gamma$, then $\mu_i = \gamma S_i$ where $S_i = \sum_k s_{ik}$. Controlling for the *sum of shares* $S_i$ is then sufficient. If $g_k$ is exogenous only conditional on shock-level covariates $q_k$, with $\mathbb{E}[g_k \mid \mathbf{s}, \mathbf{q}] = q_k'\gamma$, then $\mu_i = \gamma'\sum_k s_{ik} q_k$, and controlling for the share-weighted average of $q_k$ suffices. This recovers, from a single recentering identity, the leave-one-out and exposure-weighted control structure that the recent SSIV literature has converged on.
+
+#### Assumptions and the Shock Assignment Process
+
+To compute $\mu_i$ and identify causal effects, we need two assumptions on the *shock assignment process*:
+
+1. *Shock exogeneity:* $g \perp \varepsilon \mid w$. Satisfied when shocks arise from randomized assignment (lotteries, RCTs), natural variation (weather, seismic activity), or plausibly exogenous policy mechanisms.
+2. *Known conditional shock distribution:* $G(g \mid w)$ is known, either from the randomization protocol or from a design-based permutation distribution over plausible counterfactual assignments.
+
+These yield the expected instrument
+
+$$\mu_i = \int f_i(g, w)\, dG(g \mid w),$$
+
+which can be evaluated analytically in simple cases (linear SSIV) and by simulation in complex ones.
+
+#### Estimation Procedure
+
+The recipe is:
+
+1. Define the instrument formula: $z_i = f_i(g, w)$.
+2. Specify the assignment process: commit to a credible distribution $G(g \mid w)$.
+3. Generate counterfactual shocks: simulate $S$ draws $g^{(s)} \sim G(g \mid w)$.
+4. Compute the expected instrument: $\mu_i = S^{-1}\sum_{s=1}^S f_i(g^{(s)}, w)$.
+5. Recenter: $\tilde z_i = z_i - \mu_i$.
+6. Estimate the IV regression using $\tilde z_i$ as instrument for $x_i$.
+
+The alternative control-function form replaces step 5 with including $\mu_i$ as a covariate:
+
+$$y_i = \beta x_i + \lambda \mu_i + u_i, \qquad z_i \text{ instruments for } x_i.$$
+
+Number of simulation draws $S$ is set so that simulation noise in $\mu_i$ is negligible relative to the residual scale. Several thousand draws is typical; the cost is embarrassingly parallel.
+
+#### Properties: Consistency, Inference, Optimality
+
+*Consistency.* The RIV estimator is consistent under mild regularity: sufficient variation in shocks across units, the known shock assignment process, and finite second moments. Crucially, *no assumption is required on the correlation structure of $\varepsilon_i$*. This makes the method robust to complex spatial or network dependence, which is a significant practical advantage in spatial and platform-economics applications.
+
+*Inference.* Standard errors based on the usual CLT may be invalid when units exposed to shared shocks have correlated residuals. @borusyak2023nonrandom advocate *randomization inference*: define a test statistic based on recentered residuals, simulate its distribution under resampled $g^* \sim G(\cdot \mid w)$, and construct confidence intervals by test inversion. Under constant treatment effects, this yields exact finite-sample inference conditional on $w$.
+
+*Optimality.* Among all instruments of the form $f_i(g, w)$, @borusyak2023nonrandom characterize an asymptotically efficient recentered instrument, generalizing the optimal-weighting result of GMM to structured IV settings.
+
+#### Extensions
+
+- *Heterogeneous treatment effects.* When $\beta_i$ varies, $\tilde z_i$ identifies a convex average of $\beta_i$ under first-stage monotonicity, analogous to LATE.
+- *Nonlinear treatments.* The framework accommodates $x_i = h_i(g, w, u)$ with unobserved component $u$. The candidate instrument $z_i = h_i(g, w, 0)$ is recentered over $g$ to purge bias from nonrandom exposure.
+- *Propensity-score analogy.* RIV is structurally similar to propensity-score adjustment but applies to formula treatments rather than binary ones, and avoids estimating a high-dimensional propensity function.
+
+#### Application: Market Access from China's High-Speed Rail
+
+@borusyak2023nonrandom apply the recentering method to the effect of market-access growth from China's high-speed rail (HSR) network on prefectural employment. Between 2008 and 2016, 83 HSR lines were built connecting major cities; an additional 66 lines were planned but not built by 2016. The goal is to estimate the causal effect of increased market access on employment growth across 274 prefectures between 2007 and 2016.
+
+Market access for prefecture $i$ in year $t$ is
+
+$$MA_{it} = \sum_k \exp(-0.02 \tau_{ikt})\, p_{k,2000},$$
+
+with HSR-affected travel time $\tau_{ikt}$ from @zheng2013china and year-2000 population $p_{k,2000}$. Raw comparisons across regions with different $\Delta MA$ confound HSR effects with regional trends, geography, and historical investment patterns. Controlling for province fixed effects helps but does not remove the structural problem: $MA$ is constructed via a travel-cost model, and there is no experimental analog to benchmark the controls.
+
+Earlier work attacks this through alternative natural experiments [@bartelme2018economies; @donaldson2018railroads]. @borusyak2023nonrandom instead isolate the plausibly exogenous component of *timing* of construction among observably similar lines. Assume the set of lines (built and unbuilt) was fixed as of 2019. Randomly reshuffle which 83 of these were built by 2016, maintaining the same number and connectivity structure. Use these reshuffled draws to estimate the expected market-access growth $\mu_i$ under random assignment, and form
+
+$$\tilde z_i = \Delta \log MA_i - \mu_i.$$
+
+The recentered instrument removes systematic variation correlated with geography or development trends, isolating the HSR-driven component of market-access growth.
+
+#### Application: Medicaid Expansion Efficiency
+
+The second application revisits the 2014 Medicaid expansion. Of 43 states with initially low coverage, 19 expanded eligibility to 138% of the federal poverty line. Expansion decisions are treated as as-good-as-random among states with same-party governors. Household demographics and pre-2014 policy environments are not randomly assigned.
+
+Two estimators are valid under the same identification assumptions:
+
+1. *Simulated IV* [@currie1996saving]: use a state-level expansion dummy as the instrument for individual-level eligibility, with simulated eligibility computed for a fixed reference sample.
+2. *Recentered IV* [@borusyak2023nonrandom]: predict eligibility $x_i$ from state expansion status and predetermined demographics, then recenter using $\mu_i = \mathbb{E}[x_i \mid \text{random expansion}]$.
+
+The recentered IV estimator delivers standard errors roughly three times smaller than the simulated IV. The efficiency gain comes from exploiting within-state variation across heterogeneous households, which the simulated-eligibility approach throws away by computing eligibility for a single fixed reference sample.
+
+#### Practical Considerations
+
+The main costs and design choices:
+
+- *Computational burden.* Simulating $\mu_i$ requires repeated evaluation of $f_i$ across counterfactual shocks. This is parallelizable and rarely the binding constraint.
+- *Choice of counterfactual distribution.* The credibility of $G(g \mid w)$ is the design's load-bearing assumption. Permutation distributions are transparent; structural distributions can be more powerful but require their own defense. Report sensitivity to the choice.
+- *Falsification.* Test balance of $\tilde z_i$ against predetermined covariates and inspect pre-trends. Report results under alternative reshuffling strategies as robustness checks.
+- *Layered controls.* Including predetermined controls after recentering can improve efficiency without compromising identification. Using both the control-function form and the recentered instrument is a form of double robustness.
+
+Recentered IV is most valuable in applied settings where treatments arise from structural formulas, geographic interactions, or networked exposure, and where the standard IV assumption that the constructed instrument is itself exogenous would be implausible.
