@@ -183,7 +183,7 @@ ggplot(plot1, aes(rho, rejection, colour = se_type)) +
     theme_minimal()
 ```
 
-The pattern matches the Moulton formula. With no within-cluster correlation, all three standard errors reject about five percent of the time. As the correlation rises, the default and heteroskedasticity-robust standard errors reject far too often, and the problem is much worse for the larger clusters. The heteroskedasticity-robust standard error is no help here: it corrects for non-constant variance on the diagonal of $\Omega$ but still ignores the off-diagonal within-cluster terms. Only the cluster-robust standard error keeps the rejection rate near the nominal level.
+Table \@ref(tab:clu-sim1-run) and Figure \@ref(fig:clu-sim1-plot) confirm that the pattern matches the Moulton formula. With no within-cluster correlation, all three standard errors reject about five percent of the time. As the correlation rises, the default and heteroskedasticity-robust standard errors reject far too often, and the problem is much worse for the larger clusters. The heteroskedasticity-robust standard error is no help here: it corrects for non-constant variance on the diagonal of $\Omega$ but still ignores the off-diagonal within-cluster terms. Only the cluster-robust standard error keeps the rejection rate near the nominal level.
 
 ## Cluster-Robust Variance Estimation {#sec-clu-crve}
 
@@ -253,7 +253,7 @@ knitr::kable(res2, digits = 3,
              caption = "Errors are correlated at the state level. Clustering finer than the truth (by individual) over-rejects; clustering at or above the truth controls the rejection rate.")
 ```
 
-Clustering by individual, which is finer than the true state-level correlation, produces standard errors that are too small and a rejection rate well above five percent. Clustering by state, the correct level, controls the rejection rate. Clustering by region, one level too coarse, also controls the rejection rate here because each region contains every state nested within it and there are still thirty regions to average over. The lesson generalizes: when in doubt, cluster at the coarser level, because the danger of coarsening is not invalidity but the few-cluster problem we turn to next.
+Table \@ref(tab:clu-sim2) shows that clustering by individual, which is finer than the true state-level correlation, produces standard errors that are too small and a rejection rate well above five percent. Clustering by state, the correct level, controls the rejection rate. Clustering by region, one level too coarse, also controls the rejection rate here because each region contains every state nested within it and there are still thirty regions to average over. The lesson generalizes: when in doubt, cluster at the coarser level, because the danger of coarsening is not invalidity but the few-cluster problem we turn to next.
 
 ## The Few-Cluster Problem {#sec-clu-few}
 
@@ -350,7 +350,7 @@ res3 |>
     theme_minimal()
 ```
 
-With five or ten clusters the ordinary cluster-robust $t$-test rejects a true null far too often, even though clustering is at the correct level. CR2 with Satterthwaite degrees of freedom recovers most of the gap without any resampling, and the wild cluster bootstrap, justified asymptotically by @djogbenou2019asymptotic, stays close to five percent throughout. The practical implication is direct: with fewer than 30 or so clusters, the asymptotic cluster-robust $t$-test cannot be trusted on its own.
+Table \@ref(tab:clu-sim3-run) and Figure \@ref(fig:clu-sim3-plot) report what happens. With five or ten clusters the ordinary cluster-robust $t$-test rejects a true null far too often, even though clustering is at the correct level. CR2 with Satterthwaite degrees of freedom recovers most of the gap without any resampling, and the wild cluster bootstrap, justified asymptotically by @djogbenou2019asymptotic, stays close to five percent throughout. The practical implication is direct: with fewer than 30 or so clusters, the asymptotic cluster-robust $t$-test cannot be trusted on its own.
 
 ### Refinements for Few Clusters {#sec-clu-refinements}
 
@@ -413,7 +413,7 @@ knitr::kable(t(data.frame(`Rejection rate` = res4, check.names = FALSE)),
              caption = "Errors are correlated within units and within time periods. One-way clustering corrects only one dimension and still over-rejects; two-way clustering controls the rejection rate.")
 ```
 
-Both one-way clusterings are an improvement over the default, but each leaves one dimension of correlation uncorrected and still over-rejects. Only two-way clustering brings the rejection rate back near five percent. Note the cost: two-way clustering relies on *both* dimensions having enough clusters, since the effective degrees of freedom are governed by the smaller dimension. A panel with many firms but only eight years gets little protection from clustering on year, and the few-cluster problem of Section \@ref(sec-clu-few) applies to that dimension. @mackinnon2020wild extend the wild cluster bootstrap to the multiway setting, which is the recommended fallback when one dimension is short.
+Table \@ref(tab:clu-sim4) shows that both one-way clusterings are an improvement over the default, but each leaves one dimension of correlation uncorrected and still over-rejects. Only two-way clustering brings the rejection rate back near five percent. Note the cost: two-way clustering relies on *both* dimensions having enough clusters, since the effective degrees of freedom are governed by the smaller dimension. A panel with many firms but only eight years gets little protection from clustering on year, and the few-cluster problem of Section \@ref(sec-clu-few) applies to that dimension. @mackinnon2020wild extend the wild cluster bootstrap to the multiway setting, which is the recommended fallback when one dimension is short.
 
 ## Beyond Clusters: Spatial, Temporal, and Network Dependence {#sec-clu-spatial}
 
@@ -491,7 +491,7 @@ knitr::kable(
 )
 ```
 
-With strong spatial autocorrelation in both variables, the default OLS standard error sees them as carrying $N$ independent pieces of information when they really carry far fewer, and rejects a null that is true by construction at a wildly inflated rate. Block clustering at a 4-by-4 spatial partition helps but still under-corrects because the smoothing kernel reaches across block boundaries. Conley HAC reduces the rejection rate sharply, but at a cutoff close to the underlying smoothing scale it still over-rejects, and only a much larger cutoff brings the rejection rate close to nominal. This is exactly the @conley2025standard concern. In real-world cross-country or persistence regressions the analyst has no externally credible estimate of the spatial scale, and a cutoff chosen too small can leave substantial spurious correlation in the residuals. Best-practice diagnostics are (i) report Conley HAC at several cutoffs and look for the smallest cutoff at which the standard errors stabilize, (ii) run a randomization placebo by permuting locations, and (iii) when feasible, impose explicit structure on the spatial process rather than relying on a non-parametric HAC alone.
+Table \@ref(tab:clu-sim-spatial) summarizes the rejection rates. With strong spatial autocorrelation in both variables, the default OLS standard error sees them as carrying $N$ independent pieces of information when they really carry far fewer, and rejects a null that is true by construction at a wildly inflated rate. Block clustering at a 4-by-4 spatial partition helps but still under-corrects because the smoothing kernel reaches across block boundaries. Conley HAC reduces the rejection rate sharply, but at a cutoff close to the underlying smoothing scale it still over-rejects, and only a much larger cutoff brings the rejection rate close to nominal. This is exactly the @conley2025standard concern. In real-world cross-country or persistence regressions the analyst has no externally credible estimate of the spatial scale, and a cutoff chosen too small can leave substantial spurious correlation in the residuals. Best-practice diagnostics are (i) report Conley HAC at several cutoffs and look for the smallest cutoff at which the standard errors stabilize, (ii) run a randomization placebo by permuting locations, and (iii) when feasible, impose explicit structure on the spatial process rather than relying on a non-parametric HAC alone.
 
 R implementations of Conley HAC are available in the `conleyreg` package; Stata users have `acreg` [@colella2023acreg], which extends the same logic to arbitrary correlation structures including networks.
 
@@ -561,7 +561,7 @@ knitr::kable(res_db, digits = 3,
              caption = "Rejection rate of a true null when within-cluster error correlation is fixed but the design varies. In the cluster-randomized arm only cluster-robust controls size; in the individually randomized arm all three estimators are valid and cluster-robust is over-conservative. Clustering is a property of the design, not of the error structure alone.")
 ```
 
-The cluster-randomized arm reproduces the familiar finding: ignoring the cluster structure of the error leaves the default and HC standard errors badly under-sized. The individually randomized arm shows the @abadie2023should point: with within-cluster error correlation but no design-induced clustering, HC1 already delivers nominal size, and the cluster-robust standard error is *valid but unnecessary*. In larger or more imbalanced designs the cluster-robust estimator in this arm typically becomes mildly conservative; the practical message is that the presence of a state or firm variable in the data does not, on its own, dictate that we cluster on it.
+Table \@ref(tab:clu-sim-design-based) makes the contrast visible. The cluster-randomized arm reproduces the familiar finding: ignoring the cluster structure of the error leaves the default and HC standard errors badly under-sized. The individually randomized arm shows the @abadie2023should point: with within-cluster error correlation but no design-induced clustering, HC1 already delivers nominal size, and the cluster-robust standard error is *valid but unnecessary*. In larger or more imbalanced designs the cluster-robust estimator in this arm typically becomes mildly conservative; the practical message is that the presence of a state or firm variable in the data does not, on its own, dictate that we cluster on it.
 
 ### Decision Tree {#sec-clu-tree}
 
