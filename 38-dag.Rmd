@@ -22,8 +22,8 @@ These R packages facilitate DAG creation, visualization, and causal analysis:
 
 Web tools:
 
--   **Publication-ready DAG editor**: [shinyDAG](https://www.gerkelab.com/project/shinydag/) -- An R-based Shiny app for creating DAGs interactively.
--   **Standalone DAG tool**: [DAG program](https://hsz.dife.de/dag/) by Sven Knüppel -- Suited to beginners needing an intuitive graphical interface.
+-   [shinyDAG](https://www.gerkelab.com/project/shinydag/) is a publication-ready, R-based Shiny app for creating DAGs interactively.
+-   [DAG program](https://hsz.dife.de/dag/), by Sven Knüppel, is a standalone tool suited to beginners who need an intuitive graphical interface.
 
 ```{r dag-setup, message=FALSE, warning=FALSE}
 library(dagitty)
@@ -64,7 +64,7 @@ X \to Z \leftarrow Y
 $$
 
 -   $Z$ is a *collider* on the path $X \to Z \leftarrow Y$. The path is blocked by default.
--   Conditioning on $Z$ -- or on any descendant of $Z$ -- *opens* the path and induces a spurious association between $X$ and $Y$.
+-   Conditioning on $Z$, or on any descendant of $Z$, *opens* the path and induces a spurious association between $X$ and $Y$.
 -   HR analytics example: education ($X$) and experience ($Y$) are independent in the applicant pool but both raise the probability of being hired ($Z$). Among hires only, education and experience become negatively associated even though no causal link exists.
 
 ### Other key concepts
@@ -241,7 +241,7 @@ If $U$ were observed, the singleton $\{U\}$ would close the back-door path and i
 
 ## M-bias: when adjusting for a pre-treatment variable hurts
 
-A common misconception is that adjusting for any pre-treatment covariate can only reduce bias. The **M-bias** structure shows this is false. Consider Figure \@ref(fig:dag-mbias): two unobserved variables $U_1$ and $U_2$ each cause an observed pre-treatment variable $Z$, and they also separately cause $X$ and $Y$. The graph contains no confounding of $X$ on $Y$ -- the only path from $X$ to $Y$ that does not go through $X$'s causal descendants is $X \leftarrow U_1 \to Z \leftarrow U_2 \to Y$, which is blocked at the collider $Z$.
+A common misconception is that adjusting for any pre-treatment covariate can only reduce bias. The M-bias structure shows this is false. Consider Figure \@ref(fig:dag-mbias): two unobserved variables $U_1$ and $U_2$ each cause an observed pre-treatment variable $Z$, and they also separately cause $X$ and $Y$. The graph contains no confounding of $X$ on $Y$. The only path from $X$ to $Y$ that does not go through $X$'s causal descendants is $X \leftarrow U_1 \to Z \leftarrow U_2 \to Y$, which is blocked at the collider $Z$.
 
 ```{r dag-mbias, fig.cap="M-bias structure: Z is a pre-treatment collider on the path X <- U1 -> Z <- U2 -> Y, so conditioning on Z opens a non-causal path between X and Y.", fig.alt="DAG arranged as the letter M with U1 and U2 at the top corners pointing down to Z in the centre and to X and Y at the bottom corners; X also points to Y."}
 mbias <- dagitty("dag {
@@ -395,7 +395,7 @@ The takeaway is that the d-separation rule for colliders extends to all descenda
 
 Cinelli, Forney, and Pearl's "crash course in good and bad controls" works through eighteen canonical DAG configurations and groups them into a small number of decision rules about which variables to adjust for [@cinelli2022crash]. The headline rules, restated graphically, are:
 
--   **Good controls.** Variables on a back-door path -- whether or not they are direct causes of $X$ -- block confounding when conditioned on. Proxies for unobserved confounders generally help, though residual bias remains.
+-   **Good controls.** Variables on a back-door path, whether or not they are direct causes of $X$, block confounding when conditioned on. Proxies for unobserved confounders generally help, though residual bias remains.
 -   **Neutral controls.** Variables that are causes of $Y$ but not of $X$, and not on any back-door path, do not bias the effect estimate but can improve precision.
 -   **Bad controls.** Mediators (when total effects are the target), colliders, descendants of colliders, and "M-bias" pre-treatment colliders should *not* be adjusted for. Adjusting for an instrument of $X$ amplifies bias from any remaining unobserved confounders.
 
@@ -419,7 +419,7 @@ A defensible DAG-based analysis proceeds in four steps.
 
 1.  **Draw the DAG** from substantive knowledge, including any unobserved variables that domain experts insist on. This step is unavoidable: no statistical procedure can recover what the analyst is unwilling to commit to on paper.
 2.  **Check identification.** Use `dagitty::adjustmentSets()` (or the equivalent in `ggdag`) to ask whether the target effect is identifiable from observed data, and if so, with which adjustment sets.
-3.  **Check the DAG against data** through testable implications -- conditional independencies the DAG predicts. `dagitty::impliedConditionalIndependencies()` lists them; rejecting them in data is evidence the DAG is misspecified.
+3.  **Check the DAG against data** through testable implications, the conditional independencies the DAG predicts. `dagitty::impliedConditionalIndependencies()` lists them; rejecting them in data is evidence the DAG is misspecified.
 4.  **Estimate**, using a method (regression, matching, propensity scores, doubly robust estimators) that is faithful to the chosen adjustment set. The DAG only tells us *what* to adjust for; estimation choices still matter for finite-sample performance.
 
 Following these steps does not guarantee a correct answer, since assumptions can be wrong, but it makes those assumptions explicit, falsifiable, and reviewable, which is the minimum a Springer-grade causal analysis should offer. Once the adjustment set is fixed, the choice of estimator typically reduces to the trade-offs already discussed in the [matching methods](#sec-matching-methods), [instrumental-variables](#sec-instrumental-variables), [difference-in-differences](#sec-difference-in-differences), and [synthetic-control](#sec-synthetic-control) chapters, depending on whether the credible identification strategy is selection-on-observables or one of its design-based alternatives.
