@@ -1,0 +1,43 @@
+name: Update README TOC
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.Rmd"
+      - "_bookdown.yml"
+      - "tools/build-toc.R"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-toc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - name: Regenerate TOC
+        run: Rscript tools/build-toc.R
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet README.md; then
+            echo "README.md unchanged."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Auto-update README TOC [skip ci]"
+          git push
