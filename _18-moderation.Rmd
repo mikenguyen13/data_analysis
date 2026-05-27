@@ -1125,3 +1125,175 @@ Start: Do I need to test an interaction?
 │        ├─ Bounded scales → Use GAM
 │        └─ Previous literature → Use GAM
 ```
+
+### Johnson-Neyman 2.0: a GAM-based Two-step Workflow
+
+Classic Johnson-Neyman probing is linear: it reports the range of moderator values $z$ over which the marginal effect of $x$ on $y$ is statistically distinguishable from zero, under the assumption that the conditional effect is linear in $z$. When the true relationship is curved, linear probing can produce qualitatively wrong conclusions, including sign reversals and spurious significance. The GAM-based variant, sometimes called Johnson-Neyman 2.0, fits a flexible interaction with a smooth-by term and translates the resulting plot into a familiar test on the relevant subset.
+
+The workflow has two steps. Step 1 fits a GAM with a smooth-by interaction and plots the implied marginal effect of $x$ across moderator values, with confidence band. Step 2 reads a qualitative pattern from the plot (e.g. "negative for $z < z_0$") and confirms it with a conventional t-test or linear regression on exactly that subset. The two-step structure preserves interpretability, yields a single estimate and p-value per region, and avoids the strong linearity assumption.
+
+The method is most defensible when $x$ is randomly assigned and $z$ is measured; if $x$ and $z$ are correlated, the Step-2 subset regressions are descriptive rather than causal, and the GAM plot should be emphasized over any subset point estimate. If the true interaction is linear, the GAM collapses to linear and little efficiency is lost.
+
+```{r, eval = FALSE}
+# Quick demo: binary x randomized, nonlinear true interaction in z
+library(mgcv)
+library(dplyr)
+library(ggplot2)
+library(interactions)
+
+set.seed(123)
+n  <- 1500
+x  <- rbinom(n, 1, 0.5)
+z  <- rnorm(n)
+tau_z <- -0.6 + 0.9 * exp(-z^2) - 0.4 * pmax(z - 0.5, 0)
+y  <- 0.2 * z + tau_z * x + rnorm(n)
+dat <- tibble(y, x = factor(x), z)
+
+# Classic linear Johnson-Neyman, for comparison
+m_lin <- lm(y ~ x * z, data = dat)
+jn_lin <- johnson_neyman(m_lin, pred = x, modx = z, control.fdr = FALSE)
+
+# Step 1: fit GAM with smooth-by interaction and plot marginal effect of x across z
+m_gam <- gam(y ~ s(z) + s(z, by = x) + x, data = dat, method = "REML")
+
+grid    <- tibble(z = seq(min(z), max(z), length.out = 401))
+pred_x1 <- predict(m_gam, newdata = mutate(grid, x = factor(1, levels = levels(dat$x))), se.fit = TRUE)
+pred_x0 <- predict(m_gam, newdata = mutate(grid, x = factor(0, levels = levels(dat$x))), se.fit = TRUE)
+eff     <- pred_x1$fit - pred_x0$fit
+se      <- sqrt(pred_x1$se.fit^2 + pred_x0$se.fit^2)
+crit    <- qnorm(0.975)
+df_g    <- grid %>% mutate(effect = eff, lo = eff - crit * se, hi = eff + crit * se)
+
+ggplot(df_g, aes(z, effect)) +
+    geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.15) +
+    geom_line(linewidth = 0.9) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    labs(x = "Moderator z", y = "Marginal effect of x on y",
+         title = "GAM Johnson-Neyman curve")
+
+# Step 2: confirm a region with a conventional test
+crosses <- with(df_g, z[which(lo <= 0 & hi >= 0)])
+z0      <- if (length(crosses)) min(crosses) else min(df_g$z) - 1
+sub_neg <- dat %>% filter(z < z0)
+t.test(y ~ x, data = sub_neg)
+```
+
+A reusable wrapper detects sign regions automatically and applies a Benjamini-Hochberg correction across detected regions:
+
+```{r, eval = FALSE}
+suppressPackageStartupMessages({
+    library(mgcv); library(dplyr); library(tidyr)
+    library(ggplot2); library(purrr); library(tibble)
+})
+
+.contiguous_runs <- function(x) {
+    r      <- rle(x)
+    ends   <- cumsum(r$lengths)
+    starts <- c(1, head(ends, -1) + 1)
+    tibble(val = r$values, start = starts, end = ends)
+}
+
+jn2_probe <- function(data, y, x, z,
+                      grid_n   = 401,
+                      ref_level = NULL,
+                      family    = gaussian(),
+                      k         = -1,
+                      method    = "REML",
+                      alpha     = 0.05,
+                      confirm_lm = TRUE,
+                      adjust_p  = "BH") {
+    y <- rlang::ensym(y); x <- rlang::ensym(x); z <- rlang::ensym(z)
+    df <- data %>% drop_na(!!y, !!x, !!z)
+
+    xvec <- df %>% dplyr::pull(!!x)
+    if (is.numeric(xvec)) {
+        stopifnot(all(xvec %in% c(0, 1)))
+        df[[rlang::as_name(x)]] <- factor(xvec, levels = c(0, 1))
+    } else {
+        fx <- factor(xvec)
+        stopifnot(nlevels(fx) == 2)
+        if (!is.null(ref_level)) fx <- relevel(fx, ref = ref_level)
+        df[[rlang::as_name(x)]] <- fx
+    }
+    levs <- levels(df[[rlang::as_name(x)]])
+    ctrl <- levs[1]; trt <- levs[2]
+
+    s_main <- if (k > 0) bquote(s(.(z), k = .(k))) else bquote(s(.(z)))
+    s_by   <- if (k > 0) bquote(s(.(z), by = .(x), k = .(k))) else bquote(s(.(z), by = .(x)))
+    f      <- as.formula(bquote(.(y) ~ .(s_main) + .(s_by) + .(x)))
+    m_gam  <- gam(f, data = df, family = family, method = method)
+
+    zseq <- seq(min(df[[rlang::as_name(z)]]), max(df[[rlang::as_name(z)]]), length.out = grid_n)
+    grid <- tibble(!!z := zseq)
+    new_trt  <- grid %>% mutate(!!x := factor(trt,  levels = levs))
+    new_ctrl <- grid %>% mutate(!!x := factor(ctrl, levels = levs))
+    p_trt    <- predict(m_gam, newdata = new_trt,  se.fit = TRUE, type = "link")
+    p_ctrl   <- predict(m_gam, newdata = new_ctrl, se.fit = TRUE, type = "link")
+
+    eff  <- p_trt$fit - p_ctrl$fit
+    se   <- sqrt(p_trt$se.fit^2 + p_ctrl$se.fit^2)
+    crit <- qnorm(1 - alpha / 2)
+    curve_df <- grid %>%
+        mutate(effect = eff, se = se, lo = eff - crit * se, hi = eff + crit * se) %>%
+        rename(z = !!z)
+
+    above <- curve_df$lo > 0
+    below <- curve_df$hi < 0
+    runs_above <- .contiguous_runs(above) %>% filter(val)
+    runs_below <- .contiguous_runs(below) %>% filter(val)
+    idx_to_ranges <- function(runs) {
+        if (nrow(runs) == 0) return(tibble(z_lo = numeric(0), z_hi = numeric(0), sign = character(0)))
+        tibble(z_lo = curve_df$z[runs$start],
+               z_hi = curve_df$z[runs$end],
+               sign = NA_character_)
+    }
+    regions <- bind_rows(
+        idx_to_ranges(runs_below) %>% mutate(sign = "negative"),
+        idx_to_ranges(runs_above) %>% mutate(sign = "positive")
+    ) %>% arrange(z_lo, z_hi)
+
+    confirm_tbl <- map_dfr(seq_len(nrow(regions)), function(i) {
+        r   <- regions[i, ]
+        sub <- df %>% filter(dplyr::between(!!z, r$z_lo, r$z_hi))
+        n0  <- sum(sub[[rlang::as_name(x)]] == ctrl)
+        n1  <- sum(sub[[rlang::as_name(x)]] == trt)
+        if (n0 < 5 || n1 < 5) return(tibble(z_lo = r$z_lo, z_hi = r$z_hi, sign = r$sign,
+                                            n = nrow(sub), n_ctrl = n0, n_trt = n1,
+                                            est = NA_real_, p_ttest = NA_real_,
+                                            est_lm = NA_real_, p_lm = NA_real_))
+        tt   <- t.test(sub[[rlang::as_name(y)]] ~ sub[[rlang::as_name(x)]])
+        est  <- as.numeric(diff(tt$estimate))
+        if (confirm_lm) {
+            lm_fit <- lm(as.formula(paste(rlang::as_name(y), "~", rlang::as_name(x), "+", rlang::as_name(z))),
+                         data = sub)
+            co     <- summary(lm_fit)$coef
+            est_lm <- unname(co[paste0(rlang::as_name(x), trt), "Estimate"])
+            p_lm   <- unname(co[paste0(rlang::as_name(x), trt), "Pr(>|t|)"])
+        } else { est_lm <- NA_real_; p_lm <- NA_real_ }
+        tibble(z_lo = r$z_lo, z_hi = r$z_hi, sign = r$sign,
+               n = nrow(sub), n_ctrl = n0, n_trt = n1,
+               est = est, p_ttest = tt$p.value,
+               est_lm = est_lm, p_lm = p_lm)
+    })
+
+    if (nrow(confirm_tbl) > 0) {
+        if (!all(is.na(confirm_tbl$p_ttest))) confirm_tbl$p_ttest_adj <- p.adjust(confirm_tbl$p_ttest, method = adjust_p)
+        if (!all(is.na(confirm_tbl$p_lm)))    confirm_tbl$p_lm_adj    <- p.adjust(confirm_tbl$p_lm,    method = adjust_p)
+    }
+
+    plot <- ggplot(curve_df, aes(z, effect)) +
+        geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.15) +
+        geom_line(linewidth = 0.9) +
+        geom_hline(yintercept = 0, linetype = 2) +
+        labs(x = rlang::as_name(z),
+             y = paste("Effect of", rlang::as_name(x), "on", rlang::as_name(y)),
+             title = "Johnson-Neyman 2.0: GAM probing of interaction")
+
+    list(model = m_gam, curve = curve_df, regions = regions,
+         confirm = confirm_tbl, plot = plot,
+         meta = list(x_levels = levs, control = ctrl, treatment = trt,
+                     alpha = alpha, p_adjust = adjust_p, formula = f))
+}
+```
+
+When reporting results, describe the shape from the GAM curve first ("the marginal effect is negative for low $z$, crosses zero near $z \approx 0.65$, and turns positive for high $z$") and then attach the confirmatory numbers from Step 2. For continuous $x$, replace the smooth-by term with a tensor interaction `ti(x, z)` and compute the derivative $\partial \mathbb{E}[y] / \partial x$ across $z$ in place of the difference of two predictions.

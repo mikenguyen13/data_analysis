@@ -234,6 +234,162 @@ $$
 
 The Wald-form denominator is the *difference* in treatment uptake between the two instrument arms, which equals the share of compliers under monotonicity. Some treatments of the formula write only $E[D_i \mid Z_i = 1]$ in the denominator; that simplification is correct only under one-sided non-compliance (no always-takers), in which case $E[D_i \mid Z_i = 0] = 0$. Under full compliance the LATE further coincides with the [Average Treatment Effect on the Treated](#sec-notation-quasi-experimental).
 
+#### Common Pitfall: ITT Divided by the Wrong Complier Share
+
+A common applied mistake is to compute "LATE = ITT / complier share" with the complier share replaced by $\Pr(D = 1 \mid Z = 1)$, i.e. the takeup rate in the treated assignment arm. That is correct only when $\Pr(D = 1 \mid Z = 0) \approx 0$, meaning no always-takers and no treatment uptake in the control assignment group. In general,
+
+$$
+\Pr(D = 1 \mid Z = 1) = \Pr(\text{always-taker}) + \Pr(\text{complier}), \qquad
+\Pr(D = 1 \mid Z = 0) = \Pr(\text{always-taker}),
+$$
+
+so the correct denominator is the first-stage *difference* $\Pr(D = 1 \mid Z = 1) - \Pr(D = 1 \mid Z = 0)$. The following simulation makes the mistake visible: a data-generating process with always-takers, compliers, and never-takers, where the treatment effect is non-zero only for compliers.
+
+```{r itt-iv-exact-identified}
+set.seed(12345)
+
+simulate_binary_iv <- function(N = 20000,
+                               p_complier = 0.40,
+                               p_always   = 0.10,
+                               tau_c      = 2.0,
+                               sigma      = 1.0) {
+    types <- sample(
+        c("C", "A", "N"),
+        size    = N,
+        replace = TRUE,
+        prob    = c(p_complier, p_always, 1 - p_complier - p_always)
+    )
+    Z  <- rbinom(N, 1, 0.5)
+    D0 <- ifelse(types == "A", 1, 0)
+    D1 <- ifelse(types %in% c("A", "C"), 1, 0)
+    D  <- ifelse(Z == 1, D1, D0)
+    U  <- rnorm(N)
+    Y0 <- 1.0 + 1.5 * U + rnorm(N, sd = sigma)
+    tau <- ifelse(types == "C", tau_c, 0.0)
+    Y1  <- Y0 + tau
+    Y   <- ifelse(D == 1, Y1, Y0)
+    data.frame(Y, D, Z, type = types)
+}
+
+wald_late <- function(df) {
+    ITT_Y <- mean(df$Y[df$Z == 1]) - mean(df$Y[df$Z == 0])
+    FS    <- mean(df$D[df$Z == 1]) - mean(df$D[df$Z == 0])
+    list(ITT_Y = ITT_Y, FS = FS, LATE = ITT_Y / FS)
+}
+
+df1 <- simulate_binary_iv()
+w1  <- wald_late(df1)
+
+# 2SLS with intercept only
+stage1     <- lm(D ~ Z, data = df1)
+df1$Dhat   <- fitted(stage1)
+beta_2sls  <- coef(lm(Y ~ Dhat, data = df1))[["Dhat"]]
+
+# Wrong "complier share" = Pr(D = 1 | Z = 1)
+takeup_assigned <- mean(df1$D[df1$Z == 1])
+late_wrong      <- w1$ITT_Y / takeup_assigned
+
+data.frame(
+    quantity = c(
+        "ITT_Y",
+        "First stage = E[D|Z=1] - E[D|Z=0]",
+        "Wald LATE = ITT_Y / First stage",
+        "2SLS coefficient",
+        "Wrong denominator Pr(D = 1 | Z = 1)",
+        "ITT_Y / Pr(D = 1 | Z = 1) (not LATE)"
+    ),
+    value = c(w1$ITT_Y, w1$FS, w1$LATE, beta_2sls,
+              takeup_assigned, late_wrong)
+)
+```
+
+The Wald ratio equals the 2SLS coefficient because the design is exactly identified with no controls. The wrong denominator divides by always-takers $+$ compliers, so it produces a smaller-magnitude estimate that is *not* a LATE.
+
+#### Pitfall: Controls and the Residualized Wald
+
+The second common reason a hand-computed ratio disagrees with 2SLS output is that the IV regression includes controls or fixed effects while the manual ITT and first stage are computed as raw mean differences. With controls $X$, 2SLS coincides with the *residualized* Wald,
+
+$$
+\hat\beta_{2SLS} = \frac{\widehat{\mathrm{Cov}}(\tilde Z, \tilde Y)}{\widehat{\mathrm{Cov}}(\tilde Z, \tilde D)},
+$$
+
+where tildes denote residuals after partialling out the constant and $X$. The clean way to match 2SLS by hand is to take the ratio of the $Z$ coefficient from $\mathrm{lm}(Y \sim Z + X)$ to the $Z$ coefficient from $\mathrm{lm}(D \sim Z + X)$. The simulation below confirms this:
+
+```{r itt-iv-with-controls}
+simulate_with_covariate <- function(N = 30000,
+                                    p_complier = 0.35,
+                                    p_always   = 0.15,
+                                    tau_c      = 2.0,
+                                    sigma      = 1.0,
+                                    z_strength = 0.8) {
+    types <- sample(
+        c("C", "A", "N"),
+        size    = N,
+        replace = TRUE,
+        prob    = c(p_complier, p_always, 1 - p_complier - p_always)
+    )
+    X  <- rnorm(N)
+    pZ <- 1 / (1 + exp(-z_strength * X))    # Z correlated with X
+    Z  <- rbinom(N, 1, pZ)
+    D0 <- ifelse(types == "A", 1, 0)
+    D1 <- ifelse(types %in% c("A", "C"), 1, 0)
+    D  <- ifelse(Z == 1, D1, D0)
+    U  <- rnorm(N)
+    Y0 <- 1.0 + 1.0 * X + 1.3 * U + rnorm(N, sd = sigma)
+    tau <- ifelse(types == "C", tau_c, 0.0)
+    Y   <- ifelse(D == 1, Y0 + tau, Y0)
+    data.frame(Y, D, Z, X)
+}
+
+df2 <- simulate_with_covariate()
+w2  <- wald_late(df2)               # naive Wald, ignores X
+
+fs2 <- lm(D ~ Z + X, data = df2)
+df2$Dhat   <- fitted(fs2)
+beta_2sls_X <- coef(lm(Y ~ Dhat + X, data = df2))[["Dhat"]]
+
+# Residualized Wald
+residualize <- function(v, Xmat) {
+    fit <- lm.fit(x = Xmat, y = v)
+    v - Xmat %*% fit$coefficients
+}
+Xmat <- cbind(1, df2$X)
+Ztil <- as.numeric(residualize(df2$Z, Xmat))
+Ytil <- as.numeric(residualize(df2$Y, Xmat))
+Dtil <- as.numeric(residualize(df2$D, Xmat))
+beta_resid_wald <- mean(Ztil * Ytil) / mean(Ztil * Dtil)
+
+data.frame(
+    estimator = c(
+        "Naive Wald using group means (no X)",
+        "2SLS with X in both stages",
+        "Residualized Wald after partialling out X"
+    ),
+    value = c(w2$LATE, beta_2sls_X, beta_resid_wald)
+)
+```
+
+The naive Wald is biased because $Z$ is correlated with $X$. The 2SLS and the residualized Wald agree numerically.
+
+#### Debugging Checklist When a Manual Ratio Disagrees With 2SLS
+
+1. Confirm the denominator is the first-stage *difference*, not the takeup rate in the treated arm.
+2. Confirm both numerator and denominator are computed from the *same* specification: if 2SLS includes controls, fixed effects, or weights, the manual reduced-form and first-stage regressions must also include them. The ratio of the $Z$ coefficients from $\mathrm{lm}(Y \sim Z + X)$ and $\mathrm{lm}(D \sim Z + X)$ matches 2SLS exactly.
+3. Confirm the analysis sample is identical across steps. Differential missingness silently changes the sample.
+4. Confirm the design is exactly identified. With multiple instruments, 2SLS is not the simple Wald ratio; the manual ratio must use the matrix-form reduced-form and first-stage coefficients.
+
+#### Standard Errors and the One-Term Rule
+
+The delta-method variance of $\hat\beta = \hat\pi / \hat\gamma$ is
+
+$$
+\mathrm{Var}(\hat\beta) \approx \frac{1}{\hat\gamma^2} \mathrm{Var}(\hat\pi)
++ \frac{\hat\pi^2}{\hat\gamma^4} \mathrm{Var}(\hat\gamma)
+- 2 \frac{\hat\pi}{\hat\gamma^3} \mathrm{Cov}(\hat\pi, \hat\gamma).
+$$
+
+The widely-cited shortcut $\mathrm{SE}(\hat\beta) \approx \mathrm{SE}(\hat\pi) / |\hat\gamma|$ drops the second and third terms. It is reasonable when the first stage is precisely estimated and well away from zero. It can be misleading when instruments are weak; with weak instruments, use [weak-instrument-robust inference](#sec-weak-instruments-problem) instead.
+
 ------------------------------------------------------------------------
 
 ## Estimation {#sec-estimation}
@@ -742,9 +898,9 @@ etable(
 )
 ```
 
-Linear in parameter and linear in endogenous variable. Table \@ref(tab:iv-2sls-linear-manual) reports the manual two-stage and control-function estimates side by side for the linear case.
+Linear in parameter and linear in endogenous variable. The output below reports the manual two-stage and control-function estimates side by side for the linear case.
 
-```{r iv-2sls-linear-manual, fig.cap="Manual 2SLS and control-function estimates for a linear endogenous regressor, with first-stage and second-stage outputs reported side by side."}
+```{r iv-2sls-linear-manual}
 # manual
 # 2SLS
 first_stage = lm(endogenous ~ exogenous, data = my_data)
@@ -759,9 +915,9 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-Nonlinear in endogenous variable. Table \@ref(tab:iv-2sls-nonlinear-endo) reports the manual two-stage and control-function estimates when the endogenous regressor enters the outcome equation nonlinearly.
+Nonlinear in endogenous variable. The output below reports the manual two-stage and control-function estimates when the endogenous regressor enters the outcome equation nonlinearly.
 
-```{r iv-2sls-nonlinear-endo, fig.cap="Manual 2SLS and control-function estimates when the endogenous regressor enters nonlinearly, with first-stage and second-stage outputs reported side by side."}
+```{r iv-2sls-nonlinear-endo}
 # 2SLS
 first_stage = lm(endogenous_nonlinear ~ exogenous, data = my_data)
 
@@ -776,9 +932,9 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-Nonlinear in parameters. Table \@ref(tab:iv-2sls-nonlinear-params) reports the manual two-stage and control-function estimates when the structural equation is nonlinear in parameters.
+Nonlinear in parameters. The output below reports the manual two-stage and control-function estimates when the structural equation is nonlinear in parameters.
 
-```{r iv-2sls-nonlinear-params, fig.cap="Manual 2SLS and control-function estimates when the structural equation is nonlinear in parameters, with first-stage and second-stage outputs reported side by side."}
+```{r iv-2sls-nonlinear-params}
 # 2SLS
 first_stage = lm(endogenous ~ exogenous, data = my_data)
 
@@ -2361,9 +2517,9 @@ $$
 
 Thus, if the first stage ($\phi$) is 0, the reduced form ($\rho$) should also be 0.
 
-Figure \@ref(fig:iv-shiny-late-simulation) describes a Shiny app that simulates the IV model and displays first-stage, reduced-form, calculated-LATE, and IV-LATE coefficients with confidence intervals as the user varies the true effect, the first-stage strength, and the direct effect of the instrument on the outcome.
+The skeleton below describes a Shiny app that simulates the IV model and displays first-stage, reduced-form, calculated-LATE, and IV-LATE coefficients with confidence intervals as the user varies the true effect, the first-stage strength, and the direct effect of the instrument on the outcome.
 
-```{r iv-shiny-late-simulation, fig.cap="Interactive Shiny simulation of the IV model: first-stage, reduced-form, calculated-LATE, and IV-LATE coefficients with confidence intervals as the user varies the true effect, the first-stage strength, and the instrument's direct effect on the outcome.", eval = FALSE}
+```{r iv-shiny-late-simulation, eval = FALSE}
 # Load necessary libraries
 library(shiny)
 library(AER)  # for ivreg
@@ -3409,6 +3565,82 @@ legend("topleft",
 The output of `plot(fit)` is the fitted structural function $\hat{g}(d)$ on a fine grid of dose values, with a uniform 95% confidence band drawn around it. The companion `summary(fit)` returns the data-driven sieve dimension that was selected, the bootstrap iteration count, and a Wald-style test of the joint null $g(d) = 0$ for all $d$ in the band's support. Reading the figure: the fitted curve should track the true $g(d)$ across the support, including the right-tail wiggle that the quadratic-TSLS demo could not capture; the confidence band should be widest where the data are thinnest (typically the extreme tails) and narrowest where the instrument-induced variation in $D$ is most informative.
 
 Reading the demonstration and the production figures together is the right framing for the substantive payoff. The polynomial-TSLS line shows the failure mode of a fixed-basis approach: it cannot extrapolate beyond its functional form, and so it hides any feature of $g(d)$ that lies outside the chosen polynomial family. The NPIV line shows the cure: the sieve dimension grows with the sample size, the data choose the basis, and the uniform band makes the inferential statement honestly. The cost is computational (the bootstrap is the bottleneck) and statistical (NPIV is data-hungry and degrades quickly when the instrument is weak), but for a continuous-treatment problem with enough data and a credible instrument, the NPIV deliverable is a structural function, not a single slope.
+
+------------------------------------------------------------------------
+
+### Granular IV and Structural Identification in the Global Oil Market
+
+In empirical macroeconomics and international finance, distinguishing between aggregate and local (country-specific) shocks is often a powerful strategy for identification. Granular Instrumental Variables (GIV) exploit differences in local-level behavior to uncover aggregate relationships: micro-level deviations from the cross-sectional average serve as exogenous variation in identifying macroeconomic parameters. This section follows the structural application of @baumeister2023full to the global oil market, building on the theoretical foundations laid by @gabaix2024granular.
+
+It is useful to contrast GIV with the Bartik (shift-share) instrument. Bartik IVs combine a national exposure to aggregate shocks with weighted sums of industry-level shocks under common-shocks plus exogenous-weights assumptions; GIV instead aggregates idiosyncratic local shocks under an assumption that the granular shocks are independent.
+
+#### Case Study: The Global Oil Market
+
+@baumeister2023full estimate oil supply and demand elasticities from 1973:M1 to 2023:M2 (excluding the COVID-19 period), using a structural system of equations to identify price elasticities. Producers are partitioned into $n = 4$ groups (United States, Saudi Arabia, Russia, Rest of the World) and consumers into $m = 4$ groups (United States, Japan, Europe, Rest of the World).
+
+Let $q_{it}$ be the growth rate of oil production in country $i$ with world production share $s_{qi}$, and $c_{jt}$ the growth rate of oil consumption in country $j$ with world consumption share $s_{cj}$. Global growth rates are approximated by the weighted sums $\sum_{i=1}^n s_{qi} q_{it}$ and $\sum_{j=1}^m s_{cj} c_{jt}$.
+
+Supply, demand, and inventory each have a structural representation. For supply,
+
+$$q_{it} = \phi_{qi} p_t + \mathbf{b}_{qi}' \mathbf{x}_{t-1} + u_{qit} + u_{\chi it},$$
+
+where $\phi_{qi}$ is the short-run supply elasticity of country $i$, $\mathbf{x}_{t-1}$ collects lags of production, consumption, and the global oil price, $u_{qit}$ is a structural supply shock, and $u_{\chi it}$ is measurement error. In vector form $\mathbf{q}_t = \boldsymbol{\phi}_q p_t + \mathbf{B}_q \mathbf{x}_{t-1} + \mathbf{u}_{qt} + \mathbf{u}_{\chi t}$. Demand is analogous:
+
+$$c_{jt} = \phi_{cj} p_t + \mathbf{b}_{cj}' \mathbf{x}_{t-1} + u_{cjt} + u_{\psi jt},$$
+
+with vector form $\mathbf{c}_t = \boldsymbol{\phi}_c p_t + \mathbf{B}_c \mathbf{x}_{t-1} + \mathbf{u}_{ct} + \mathbf{u}_{\psi t}$. Inventories reconcile the difference between correctly measured global production and consumption,
+
+$$v_t = \sum_{i=1}^n s_{qi} (q_{it} - u_{\chi it}) - \sum_{j=1}^m s_{cj} (c_{jt} - u_{\psi jt}),$$
+
+with structural behavior $v_t = \phi_v p_t + \mathbf{b}_v' \mathbf{x}_{t-1} + u_{vt}$. Combining supply, demand, and inventory yields the market-clearing identity that determines $p_t$ endogenously:
+
+$$\left( \mathbf{s}_q' \boldsymbol{\phi}_q - \mathbf{s}_c' \boldsymbol{\phi}_c - \phi_v \right) p_t
+= \left( \mathbf{s}_c' \mathbf{B}_c - \mathbf{s}_q' \mathbf{B}_q + \mathbf{b}_v' \right) \mathbf{x}_{t-1}
++ \mathbf{s}_c' \mathbf{u}_{ct} - \mathbf{s}_q' \mathbf{u}_{qt} + u_{vt}.$$
+
+The system has $n + m + 1$ equations for the $n + m + 1$ endogenous variables $\mathbf{q}_t, \mathbf{c}_t, p_t$ and is closed under structural assumptions about the shocks. Identification of $\boldsymbol{\phi}_q$ and $\boldsymbol{\phi}_c$ rests on cross-sectional variation in country-specific shocks, orthogonality of shocks across countries, independence of measurement errors from prices, and lagged variables in $\mathbf{x}_{t-1}$ as instruments. The granular insight is that country-level production and consumption shocks are weakly correlated across countries, which makes the system well-suited for IV estimation; @baumeister2023full estimate the full system by Full-Information Maximum Likelihood.
+
+#### Demand-Side Worked Example: Constructing a Granular Instrument
+
+Suppose the short-run demand elasticity is common across countries, $\phi_{cj} = \phi_c$ for all $j$. Decompose each country's demand shock into a common global component $f_{ct}$ and an idiosyncratic deviation $\eta_{cjt}$:
+
+$$c_{jt} = \phi_c p_t + \mathbf{b}_{cj}' \mathbf{x}_{t-1} + f_{ct} + \eta_{cjt} + u_{\psi jt}.$$
+
+The unweighted cross-country average is
+
+$$\bar{c}_t = \frac{1}{m} \sum_{j=1}^{m} c_{jt} = \phi_c p_t + \bar{\mathbf{b}}_c' \mathbf{x}_{t-1} + f_{ct} + \bar{\eta}_{ct} + \bar{u}_{\psi t}.$$
+
+The country-specific deviation eliminates the price term and the common shock,
+
+$$c_{jt} - \bar{c}_t = (\mathbf{b}_{cj}' - \bar{\mathbf{b}}_c') \mathbf{x}_{t-1} + (\eta_{cjt} - \bar{\eta}_{ct}) + (u_{\psi jt} - \bar{u}_{\psi t}),$$
+
+so only idiosyncratic variation and measurement error remain. A more powerful instrument is constructed by combining country-specific deviations with the share-weighted consumption $c_t = \sum_{j=1}^m s_{cj} c_{jt}$:
+
+$$c_t - \bar{c}_t = \sum_{j=1}^{m} s_{cj} (c_{jt} - \bar{c}_t) = (\mathbf{b}_c' - \bar{\mathbf{b}}_c') \mathbf{x}_{t-1} + (\eta_{ct} - \bar{\eta}_{ct}) + (u_{\psi t} - \bar{u}_{\psi t}).$$
+
+The difference between share-weighted and unweighted consumption is orthogonal to the endogenous price $p_t$ (the price term cancels in both averages) and orthogonal to the common shock, leaving only idiosyncratic variation. Under the assumption that idiosyncratic demand shocks and measurement errors are uncorrelated with supply shocks, this difference is a valid and powerful instrument for the supply elasticity $\phi_q$.
+
+#### Handling Correlated Global Shocks: a VAR Plus Factor Structure
+
+A stronger identifying assumption is that supply and demand composite shocks are themselves uncorrelated, $\mathbb{E}\left[(\mathbf{u}_{qt} + \mathbf{u}_{\chi t})(\mathbf{u}_{ct} + \mathbf{u}_{\psi t})' \right] = \mathbf{0}_{nm}$, which yields $nm$ overidentifying moment conditions for $n + m$ parameters. In practice these restrictions are rejected, indicating that supply and demand shocks are not uncorrelated.
+
+To accommodate this, @baumeister2023full impose a factor structure: each shock decomposes into a common global factor $f_t$, a sector-specific factor ($f_{qt}$ for supply, $f_{ct}$ for demand), an idiosyncratic shock, and measurement error:
+
+$$\mathbf{u}_{qt} = \mathbf{h}_q f_t + \boldsymbol{\gamma}_q f_{qt} + \boldsymbol{\eta}_{qt}, \qquad
+\mathbf{u}_{ct} = \mathbf{h}_c f_t + \boldsymbol{\gamma}_c f_{ct} + \boldsymbol{\eta}_{ct}.$$
+
+The endogenous vector $\mathbf{y}_t = [\mathbf{q}_t', \mathbf{c}_t', p_t]'$ follows a reduced-form VAR with twelve lags, $\mathbf{y}_t = \boldsymbol{\Pi} \mathbf{x}_{t-1} + \boldsymbol{\varepsilon}_t$, and the reduced-form shocks are linked to the structural shocks via
+
+$$\mathbf{A} \boldsymbol{\varepsilon}_t = \mathbf{u}_t, \qquad
+\mathbf{A} = \begin{bmatrix}
+\mathbf{I}_n & \mathbf{0}      & -\boldsymbol{\phi}_q \\
+\mathbf{0}   & \mathbf{I}_m    & -\boldsymbol{\phi}_c \\
+\mathbf{0}   & \mathbf{0}      & 1
+\end{bmatrix}.$$
+
+Under the assumptions that idiosyncratic shocks are uncorrelated across the supply and demand blocks (with diagonal $\boldsymbol{\Sigma}_q, \boldsymbol{\Sigma}_c$), that global factors are normalized to $\mathbb{E}[\mathbf{f}_t \mathbf{f}_t'] = \mathbf{I}_3$, and that measurement errors share a common variance within each block, the implied structural covariance matrix $\mathbf{D} = \mathbb{E}[\mathbf{u}_t \mathbf{u}_t']$ has a block structure that pins down the structural parameters. Estimation proceeds in three steps: estimate the reduced-form VAR to obtain $\boldsymbol{\varepsilon}_t$, use FIML or Bayesian methods to recover the structural elasticities and factor loadings, and impose the structural restrictions via $\mathbf{A}$ to solve under the covariance constraints in $\mathbf{D}$.
+
+The granular IV lesson generalizes: when a market is dominated by a small number of large players whose idiosyncratic shocks survive aggregation, the difference between share-weighted and equal-weighted aggregates is a structurally interpretable instrument, and the same logic carries over to settings well beyond oil (e.g. industry concentration in trade, large funds in asset pricing, and dominant firms in IO).
 
 ------------------------------------------------------------------------
 

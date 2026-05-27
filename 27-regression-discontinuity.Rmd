@@ -1528,6 +1528,167 @@ $$
 4.  **Varying Bandwidths**
     -   Re-estimate using different bandwidths for robustness.
 
+## Free Discontinuity Regression {#sec-free-discontinuity-regression}
+
+Classical regression discontinuity, including [Multi-Cutoff RD](#sec-multi-cutoff-regression-discontinuity-design) and [Multi-Score RD](#sec-multi-score-regression-discontinuity-design), requires the analyst to specify the discontinuity locations in advance. The cutoff $c$ in [Sharp RD](#sec-sharp-regression-discontinuity-design), the cutoff vector $\{C_1, C_2, \ldots\}$ in Multi-Cutoff RD, and the boundary $\{x : X_1 = C_1 \text{ or } X_2 = C_2\}$ in Multi-Score RD are all treated as known. The identification step exploits a discontinuity at a predetermined location.
+
+In some applications the analyst does not know where the jumps in the conditional expectation surface occur, or how many there are. The treatment may be triggered by a rule that is not transparent, the policy region may have an irregular boundary in covariate space, or the data may be a spatial map on which abrupt changes are visible but not pre-specified. For these settings, @gunsilius2023free develop Free Discontinuity Regression (FDR), a nonparametric estimator that simultaneously smooths the regression surface, segments it into disjoint pieces, and recovers the locations and sizes of jumps without prior knowledge of the discontinuity set.
+
+### Setup and Estimand
+
+Let $Y_i$ be a scalar outcome observed at a vector of covariates $X_i \in \mathbb{R}^d$ for $i = 1, \ldots, n$. The conditional expectation $m(x) = \mathbb{E}[Y_i \mid X_i = x]$ is assumed to be piecewise smooth: $m$ is smooth on each of an unknown number of disjoint regions $\Omega_1, \ldots, \Omega_K \subset \mathbb{R}^d$ and jumps across the unknown $(d-1)$-dimensional boundaries that separate them, collected into a jump set $S = \bigcup_k \partial \Omega_k$. The estimand consists of three objects, all unknown: the regions $\{\Omega_k\}$ with their boundaries, the smooth pieces $\{m_k\}$ that describe the regression surface inside each region, and the jump sizes $\jmath(x) = m(x^+) - m(x^-)$ across each point of the boundary, where $x^+$ and $x^-$ denote limits from the two sides.
+
+FDR estimates these jointly by minimizing a Mumford-Shah-type functional adapted to regression:
+
+$$
+(\hat m, \hat S) \;=\; \arg\min_{m, S} \;\; \sum_{i=1}^n (Y_i - m(X_i))^2 \;+\; \alpha \int_{\mathbb{R}^d \setminus S} \|\nabla m(x)\|^2 \, dx \;+\; \beta \, \mathcal{H}^{d-1}(S),
+$$ {#eq-fdr-mumford-shah}
+
+where $\mathcal{H}^{d-1}(S)$ is the $(d-1)$-dimensional Hausdorff measure of $S$ (arc length when $d=2$, surface area when $d=3$), $\alpha > 0$ penalizes wiggliness within each region, and $\beta > 0$ penalizes the total size of the jump set. The three terms balance data fidelity, within-region smoothness, and parsimony of the segmentation.
+
+### Identification Assumptions
+
+Consistent recovery of $(m, S)$ under (\@ref(eq:fdr-mumford-shah)) requires the data-generating process and the penalty schedule to satisfy a set of regularity conditions [@gunsilius2023free].
+
+1.  *Compactness*. The support of $X_i$ is compact, $X_i \in \mathcal{X} \subset \mathbb{R}^d$.
+2.  *Piecewise smoothness*. There exists a finite partition $\{\Omega_1, \ldots, \Omega_K\}$ of $\mathcal{X}$ such that the restriction of $m$ to each $\Omega_k$ extends to a function in a Sobolev space $W^{1,2}$. The number of regions $K$ is finite but unknown.
+3.  *Rectifiable boundary*. The jump set $S$ is closed and $(d-1)$-rectifiable: it is locally the image of a Lipschitz map from $\mathbb{R}^{d-1}$, with finite $\mathcal{H}^{d-1}$-measure. This rules out fractal boundaries.
+4.  *Jump separation*. $\inf_{x \in S} |\jmath(x)| \ge \jmath_{\min} > 0$. Boundaries are detectable only above a noise-dependent threshold; arbitrarily small jumps cannot be separated from regression error in finite samples.
+5.  *Bounded noise*. The conditional noise $\varepsilon_i = Y_i - m(X_i)$ has $\mathbb{E}[\varepsilon_i \mid X_i] = 0$ and $\mathbb{E}[\varepsilon_i^2 \mid X_i] \le \sigma^2 < \infty$, with sub-Gaussian tails sufficing for the rate results.
+6.  *Penalty schedule*. The penalties scale as $\alpha_n = c_\alpha n^{-2/(2+d)}$ and $\beta_n = c_\beta n^{-1/(2+d)}$ as $n \to \infty$. These rates trade variance and bias optimally for $W^{1,2}$ regression with $(d-1)$-rectifiable jump sets; in finite samples both are chosen by cross-validation.
+
+Under conditions 1 through 6, @gunsilius2023free establish that $\hat S \to S$ in the Hausdorff distance and $\hat m \to m$ uniformly on compact subsets of $\mathcal{X} \setminus S$. The pointwise jump estimator $\hat\jmath(x_0) = \hat m(x_0^+) - \hat m(x_0^-)$ at an interior point $x_0 \in S$ is consistent and asymptotically normal after centering and scaling by an estimator-specific rate.
+
+### Estimation in Practice
+
+Direct minimization of (\@ref(eq:fdr-mumford-shah)) is intractable because $S$ is a free geometric object. Two standard relaxations make the problem solvable.
+
+*Ambrosio-Tortorelli relaxation*. Replace the jump set $S$ with a continuous edge field $v : \mathcal{X} \to [0, 1]$ that approaches $0$ near jumps and $1$ in smooth regions. The relaxed functional is
+
+$$
+\sum_{i=1}^n (Y_i - m(X_i))^2 \;+\; \alpha \int_{\mathcal{X}} v(x)^2 \, \|\nabla m(x)\|^2 \, dx \;+\; \beta \int_{\mathcal{X}} \left( \epsilon \|\nabla v(x)\|^2 + \tfrac{1}{4\epsilon} (1 - v(x))^2 \right) dx.
+$$
+
+@ambrosio1992approximation prove $\Gamma$-convergence to (\@ref(eq:fdr-mumford-shah)) as $\epsilon \to 0$. In code one fixes a small $\epsilon$ and alternates two convex sub-problems: solve for $m$ with $v$ fixed (a weighted ridge regression), then solve for $v$ with $m$ fixed (a quadratic problem in $v$).
+
+*Graph-cut discretization*. Discretize $\mathcal{X}$ on a regular grid of nodes connected by edges. Replace $\int \|\nabla m\|^2$ with $\sum_{(i,j) \in E} w_{ij} (m_i - m_j)^2$ and $\mathcal{H}^{d-1}(S)$ with the total weight of cut edges where $m$ jumps. The resulting problem is a graph-cut problem that admits convex relaxation and is solved with ADMM or alternating-direction proximal splitting. Computational cost scales as $O(n \cdot |\text{grid}| \cdot \text{iterations})$; in $d = 2$ on a $200 \times 200$ grid this is a matter of minutes.
+
+A 1D analog of the FDR objective is the *fused lasso* (also called 1D total-variation denoising), which replaces $\mathcal{H}^{d-1}(S)$ with the $\ell_1$ norm of consecutive differences. The fused lasso is fully convex, has well-developed solvers in the `genlasso` package, and produces the same qualitative output that FDR produces in higher dimensions: a piecewise-constant fit whose jump locations are recovered from the data. The following demonstration uses the 1D problem to make the FDR pipeline concrete.
+
+```{r fdr-1d-demo, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(genlasso)   # CRAN: fused lasso / trend filtering
+  library(ggplot2)
+})
+
+set.seed(20240515)
+
+# Stylized 1D data with three unknown jumps and a noisy signal in between.
+# True jump locations: x = -1.0, 0.3, 1.4. Jump sizes: +2, -3, +1.5.
+n <- 500
+x <- sort(runif(n, -2, 2))
+true_m <- function(x) {
+  m <- 0.0 + 0.4 * x
+  m <- m + 2.0 * (x > -1.0)
+  m <- m - 3.0 * (x >  0.3)
+  m <- m + 1.5 * (x >  1.4)
+  m
+}
+m_x <- true_m(x)
+y   <- m_x + rnorm(n, sd = 0.4)
+
+# Fused lasso (the 1D analog of the FDR objective):
+#   min_m  sum (y - m)^2 + beta * sum |m_{i+1} - m_i|.
+# genlasso::fusedlasso1d returns the full solution path over beta.
+fit  <- fusedlasso1d(y)
+# Pick beta by 5-fold cross-validation.
+cv   <- cv.trendfilter(fit, k = 5)
+m_hat <- coef(fit, lambda = cv$lambda.1se)$beta[, 1]
+
+# Recover the jump set: locations where consecutive m_hat differ
+# by more than a noise-driven threshold. The threshold is calibrated
+# at twice the residual SD divided by sqrt of the local window size.
+resid_sd  <- sd(y - m_hat)
+threshold <- 2 * resid_sd / sqrt(5)
+diffs     <- diff(m_hat)
+raw_idx   <- which(abs(diffs) > threshold)
+
+# Merge runs of adjacent indices into a single jump.
+# This avoids splitting one true jump across consecutive grid points.
+if (length(raw_idx) > 0) {
+  group_id  <- cumsum(c(1, diff(raw_idx) > 1))
+  merged <- tapply(raw_idx, group_id, function(idx) {
+    i_lo <- min(idx); i_hi <- max(idx)
+    list(loc  = mean(x[i_lo:(i_hi + 1)]),
+         size = sum(diffs[idx]))
+  })
+  jump_locs  <- sapply(merged, `[[`, "loc")
+  jump_sizes <- sapply(merged, `[[`, "size")
+} else {
+  jump_locs <- numeric(0); jump_sizes <- numeric(0)
+}
+
+data.frame(jump_location = round(jump_locs, 3),
+           jump_size     = round(jump_sizes, 2))
+```
+
+The recovered jump locations cluster near the three true locations ($-1.0, 0.3, 1.4$), and the recovered jump sizes approximate the true sizes ($+2, -3, +1.5$). A graphical check confirms the segmentation:
+
+```{r fdr-1d-plot, message=FALSE, warning=FALSE}
+plot_df <- data.frame(x = x, y = y, m_true = m_x, m_hat = m_hat)
+
+ggplot(plot_df, aes(x = x)) +
+  geom_point(aes(y = y), alpha = 0.3, size = 0.7) +
+  geom_line(aes(y = m_true), linetype = 2, color = "red") +
+  geom_line(aes(y = m_hat), linewidth = 0.9) +
+  geom_vline(xintercept = jump_locs, linetype = 3, color = "blue") +
+  labs(x = "X", y = "Y",
+       title = "Free Discontinuity Regression (1D analog via fused lasso)",
+       subtitle = "Dashed red: true m(x). Solid black: estimated m(x). Dotted blue: recovered jumps.") +
+  theme_minimal()
+```
+
+In two dimensions the same pipeline applies with a 2D grid and a graph-cut solver. The estimated jump set $\hat S$ is then a curve (in $d=2$) or a surface (in $d=3$) rather than a finite list of points. The 2D pipeline is the one used by @gunsilius2023free to recover the geographic boundary of internet shutdowns in Africa from nighttime-light data, where the running covariates are latitude and longitude, the outcome is light intensity, and the estimated boundary $\hat S$ traces the spatial extent of the shutdown without being given as an input.
+
+### Inference
+
+Two inferential objects are typically reported. The first is a confidence set for the jump set $\hat S$, expressed as a tube of radius $r$ in the Hausdorff distance such that $\mathbb{P}(d_H(\hat S, S) \le r) \ge 1 - \alpha_\text{level}$. The second is a confidence interval for the jump size $\jmath(x_0)$ at a fixed point $x_0$ on the recovered boundary.
+
+@gunsilius2023free develop randomization-based inference for both. The procedure resamples residuals around the recovered surface, refits FDR on each resample to obtain $\hat S^{(b)}, \hat m^{(b)}$, and constructs percentile-type intervals from the bootstrap distribution of $\hat\jmath^{(b)}(x_0)$. The randomization step accounts for the data-driven choice of $S$, so the intervals are valid after selection. A practical caution: the randomization-based CIs are computationally expensive (each bootstrap replicate requires a full FDR refit) and conservative when the jump-separation condition is close to binding.
+
+For the 1D fused-lasso analog used above, post-selection inference can be done with the methods in @tibshirani2016exact (R: `selectiveInference`), which give exact conditional CIs for the jump sizes after the lasso path selects the breakpoints.
+
+### Robustness Checks {#sec-fdr-robustness-checks}
+
+A credible FDR analysis reports four diagnostics.
+
+1.  *Sensitivity to $\alpha$ and $\beta$*. Refit on a grid of penalties and tabulate $\hat S$, the number of recovered regions, and the jump sizes at a few salient locations. Stable conclusions across a one-decade window in each penalty indicate that the segmentation is data-driven rather than penalty-driven.
+2.  *Subsample stability*. Refit on bootstrap subsamples of size $0.8n$ and overlay the recovered jump sets. Boundary segments that appear in most subsamples are reliable; segments that appear in only a few are spurious low-amplitude features.
+3.  *Comparison with known boundaries*. If institutional knowledge suggests candidate boundaries (administrative borders, eligibility thresholds, policy regions), overlay $\hat S$ on those. Partial alignment is a credibility marker; complete misalignment is a warning that FDR is fitting noise.
+4.  *Classical RD where applicable*. On any boundary segment that aligns with a known cutoff, also run a [sharp](#sec-sharp-regression-discontinuity-design) or [fuzzy RD](#sec-fuzzy-regression-discontinuity-design) and compare the local jump estimate. Order-of-magnitude agreement supports both analyses; large divergence flags that the FDR surface is over- or under-smoothed locally.
+
+### When FDR Is the Right Tool
+
+FDR is most useful when the location of the discontinuity is itself the object of interest, or when the assignment mechanism is opaque enough that no specific cutoff can be defended a priori. Typical applications include:
+
+-   Spatial regression where abrupt changes in an outcome (nighttime light, prices, internet penetration) trace the boundary of an administrative region, policy zone, or shock that the analyst cannot fully observe.
+-   Multidimensional eligibility rules where the analyst sees the running covariates but not the underlying rule.
+-   Image-segmentation-style problems applied to economic data, including remote-sensing outcomes and digital trace data.
+
+When a credible cutoff is known, classical [Sharp](#sec-sharp-regression-discontinuity-design) or [Fuzzy RD](#sec-fuzzy-regression-discontinuity-design) is preferred: it imposes fewer assumptions on the global shape of $m$ and yields sharper inference at the known boundary. When the cutoff is ambiguous or has to be discovered, FDR offers a principled alternative that respects the discontinuity structure while letting the data locate it. In practice the two are complements: the recovered $\hat S$ from FDR can suggest candidate boundaries that are then re-examined with classical RD on the appropriate subsample.
+
+### Implementation Notes
+
+A reference implementation of FDR accompanies @gunsilius2023free as a research codebase rather than a CRAN or PyPI package. For routine 1D work, the fused-lasso analog via `genlasso` is fully convex, fast, and well-supported. For 2D applications, the image-processing literature provides Mumford-Shah solvers (e.g. the Chambolle-Pock primal-dual algorithm) that translate directly to FDR with minor modifications.
+
+Practical pointers for a credible FDR analysis:
+
+1.  Center and scale all coordinates of $X$ before fitting. The penalty $\beta \mathcal{H}^{d-1}(S)$ is scale-dependent and unscaled coordinates produce unstable boundaries.
+2.  Choose $\alpha$ and $\beta$ by cross-validation. Use separate folds within each recovered region rather than uniform-random folds, which mix regions and degrade the smoothness penalty.
+3.  Report both the segmentation and the jump-size estimates. The segmentation alone is descriptive; the jump-size estimates with valid confidence intervals are the inferentially interpretable output.
+4.  Visualize $\hat S$ alongside institutional knowledge. A credible FDR analysis usually shows partial alignment with known boundaries plus additional features that the data identify but the analyst did not pre-specify.
+5.  Pair FDR with [Robustness Checks](#sec-fdr-robustness-checks) above before any substantive claim about jump locations.
+
 ## Evaluation of a Regression Discontinuity Design
 
 After estimating an RD model, it is crucial to evaluate whether the assumptions hold and whether the results are robust to different specifications. The key aspects of RD evaluation include:
