@@ -12,9 +12,9 @@ At its core, experimental design ensures that studies are conducted efficiently 
 
 A well-designed experiment follows three key principles:
 
-1.  **Randomization**: Ensures that subjects or experimental units are assigned to different groups randomly, eliminating selection bias.
-2.  **Replication**: Increases the precision of estimates by repeating the experiment on multiple subjects.
-3.  **Control**: Isolates the effect of treatments by using control groups or baseline conditions to minimize confounding factors.
+1.  Randomization: Ensures that subjects or experimental units are assigned to different groups randomly, eliminating selection bias.
+2.  Replication: Increases the precision of estimates by repeating the experiment on multiple subjects.
+3.  Control: Isolates the effect of treatments by using control groups or baseline conditions to minimize confounding factors.
 
 In addition to these, **blocking** and **factorial designs** further refine experimental accuracy.
 
@@ -31,8 +31,8 @@ RCTs provide:
 
 An RCT consists of two groups:
 
-1.  **Treatment group**: Receives the intervention (e.g., a new marketing campaign, drug, or financial incentive).
-2.  **Control group**: Does not receive the intervention, serving as a baseline.
+1.  Treatment group: Receives the intervention (e.g., a new marketing campaign, drug, or financial incentive).
+2.  Control group: Does not receive the intervention, serving as a baseline.
 
 Subjects from the same population are randomly assigned to either group. This randomization ensures that any observed differences in outcomes are due solely to the treatment, not external factors.
 
@@ -104,7 +104,7 @@ This equation decomposes the **observed difference** into two components:
 
 -   Treatment Effect on the Treated: $E[Y_{1i} - Y_{0i} |D_i = 1]$, which represents the causal impact of the treatment on those who are treated.
 
--   **Selection Bias**:\
+-   Selection Bias: \
     $E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]$, which captures systematic differences between treated and untreated groups **even in the absence of treatment**.
 
 Thus, the **observed difference in outcomes** is:
@@ -713,9 +713,9 @@ In standard randomization, baseline covariates are only balanced on average, mea
         1 - (1 - 0.05)^{10} = 0.40 = 40\%  
         $$\
     -   This means a high chance of some imbalance across treatment groups.\
--   **Re-randomization increases precision**: If covariates correlate with the outcome, improving covariate balance improves treatment effect estimation
--   **Accounting for re-randomization in inference**: Since re-randomization filters out bad assignments, it is equivalent to increasing the sample size and must be considered when computing standard errors.
--   **Alternative balancing techniques**:
+-   Re-randomization increases precision: If covariates correlate with the outcome, improving covariate balance improves treatment effect estimation
+-   Accounting for re-randomization in inference: Since re-randomization filters out bad assignments, it is equivalent to increasing the sample size and must be considered when computing standard errors.
+-   Alternative balancing techniques: 
     -   Stratified randomization [@johansson2022rerandomization].
     -   Matched randomization [@greevy2004optimal; @kapelner2014matching].
     -   Minimization [@pocock1975sequential].
@@ -853,9 +853,9 @@ colMeans(X[group == 0, ])  # Control group means
 
 A **two-stage randomized experiment** involves **sequential interventions**, where treatment assignments depend on earlier responses. This design is widely used in:
 
--   **Adaptive Learning**: Adjusting educational content based on student progress.
--   **Personalized Advertising**: Targeting follow-up ads based on engagement.
--   **Medical Trials**: Adapting treatments based on patient response.
+-   Adaptive Learning: Adjusting educational content based on student progress.
+-   Personalized Advertising: Targeting follow-up ads based on engagement.
+-   Medical Trials: Adapting treatments based on patient response.
 
 By introducing **a second randomization stage**, researchers can evaluate:
 
@@ -921,9 +921,9 @@ This structure ensures:
 
 In real-world experiments, **interference and noncompliance** complicate analysis [@imai2021causal]:
 
--   **Interference**: When treatment effects "spill over" from one group to another (e.g., social influence in marketing).
+-   Interference: When treatment effects "spill over" from one group to another (e.g., social influence in marketing).
 
--   **Noncompliance**: When participants do not adhere to their assigned treatment (e.g., a customer ignoring an ad).
+-   Noncompliance: When participants do not adhere to their assigned treatment (e.g., a customer ignoring an ad).
 
 To handle noncompliance, we define:
 
@@ -983,6 +983,83 @@ summary(iv_model)
 
 If interference is present, the standard IV method may be biased. Researchers should explore network-based randomization or spatial models.
 
+
+### Cluster Randomization for Interference Bias {#sec-cluster-randomization}
+
+Standard randomized controlled trials rely on the Stable Unit Treatment Value Assumption (SUTVA), which has two parts. No interference says that the potential outcome of one unit is unaffected by the treatment assignment of any other unit, i.e. $Y_i(Z)$ depends only on $Z_i$, not on $Z_j$ for $j \ne i$. No hidden versions of treatment says that each treatment condition is well defined and consistent across units.
+
+Violations of SUTVA, particularly interference, are common in online marketplaces such as Airbnb, eBay, Uber, and Etsy, where agents interact strategically and share common resources like customer attention and platform visibility. Interference occurs when $Y_i(Z)$ depends on the treatment status of others, i.e. $Y_i(Z_1, \ldots, Z_n)$. In such settings interference bias distorts causal estimates, often misleading decision makers.
+
+In interconnected digital environments, agents (sellers, listings, users) affect each other through algorithmic rankings, pricing competition, and substitution behavior among buyers. As one stylized example, if Airbnb treats a host by recommending a price increase, nearby untreated hosts may adjust their own pricing in response, and buyers respond based on all available listings, so observed outcomes reflect systemic responses rather than isolated treatment effects.
+
+This violates the no-interference condition, causing the estimated Total Average Treatment Effect (TATE) to be biased:
+
+$$\text{TATE} = \mathbb{E}[Y_i(1) - Y_i(0)].$$
+
+@blake2014marketplace (eBay) formalized this dynamic as test-control interference: treated sellers attract buyers away from control sellers, inflating estimated gains. Subsequent marketplace simulations have shown that overstatements of treatment effects in two-sided platforms can exceed 100% under realistic assumptions.
+
+Following @eckles2021bias, consider the potential outcome for seller $i$:
+
+$$Y_i(Z) = \alpha_i + \beta Z_i + \gamma \rho_i + \varepsilon_i,$$
+
+where $\beta$ is the direct treatment effect, $\gamma$ is the spillover (indirect) effect, and $\rho_i = \frac{1}{|N_i|} \sum_{j \in N_i} Z_j$ is the fraction of treated neighbors. When $\gamma \neq 0$ there is interference; if $\beta$ and $\gamma$ have opposite signs, interference can inflate or deflate TATE estimates. In matrix form, define an interference matrix $B$ such that $\mathbb{E}[Y_i(Z)] = \alpha_i + \sum_j B_{ij} Z_j$, where diagonal entries capture direct effects and off-diagonal entries capture interference.
+
+Cluster randomization assigns entire clusters (groups) of units, rather than individual units, to treatment or control. Units within clusters likely interfere with each other, so treating clusters homogeneously contains interference within groups. @holtz2025reducing extend @eckles2021bias and show that, for a linear interference model with uniform-sign $B_{ii}$ and $B_{ij}$, cluster randomization always reduces interference bias relative to individual-level randomization:
+
+$$|\mathbb{E}[\hat{\tau}_{\text{cr}} - \tau]| \le |\mathbb{E}[\hat{\tau}_{\text{ind}} - \tau]|,$$
+
+regardless of whether spillovers are positive or negative. Let $C(i)$ denote the cluster of unit $i$. Cluster quality is
+
+$$Q_C(B) = \sum_{i,j} B_{ij} \cdot \mathbf{1}\{C(i) \ne C(j)\}.$$
+
+Lower $Q_C(B)$ implies less across-cluster interference and better clustering. In practice $B$ is unobservable, so a proxy matrix $P$ (e.g. co-search or co-view behavior) is used.
+
+Graph-Cluster Randomization (GCR) partitions a social or economic network into clusters and randomizes treatment at the cluster level, reducing mixed-treatment neighborhoods. @ugander2013graph showed that GCR yields unbiased Horvitz-Thompson estimators of treatment effects under certain exposure models:
+
+$$\hat{\tau}_{HT} = \sum_{i \in T} \frac{Y_i}{\pi_i} - \sum_{i \in C} \frac{Y_i}{1 - \pi_i},$$
+
+where $\pi_i$ is the probability that unit $i$ is treated, accounting for the randomization design. The price for this bias reduction is variance: @eckles2021bias show that $\mathrm{Var}(\hat{\tau}_{CR}) \propto \rho \cdot \sigma^2 / n_c$, where $\rho$ is the intra-cluster correlation and $n_c$ is the number of clusters. Pre-stratification, regression adjustment, or increasing the cluster count can partially mitigate this variance growth.
+
+#### Case Study: The Airbnb Meta-Experiment
+
+@holtz2025reducing conducted a large-scale meta-experiment on Airbnb to empirically measure interference bias and evaluate cluster randomization. Airbnb engineers constructed clusters by embedding each listing into a 16-dimensional vector space using guest co-click data, then applied a recursive partitioning tree such that at least 90% of listings within a node shared common neighbors. The resulting roughly 15,000 clusters had a median size of 150 listings, and the within-cluster substitution rate exceeded 95%. Hold-out data confirmed that cross-cluster substitution was minimal.
+
+In each of two platform-wide experiments (over 2 million listings worldwide), 75% of clusters were randomized at the cluster level, while 25% retained standard Bernoulli (individual-level) randomization. For the guest-fee intervention the estimated TATE was $-0.207$ bookings per listing under individual-level randomization, but only $-0.139$ under cluster randomization, implying that interference inflated the naive estimate by 32.6%. The interference bias ratio $\hat{\nu} / (\hat{\beta} + \hat{\nu})$ was approximately 19.8%. Bias varied with market conditions: demand-constrained areas (New York in peak season) reached 28.6%, supply-constrained areas were lower at 12.1%, and higher cluster quality (better separation in embedding space) was associated with greater bias reduction. For the pricing-recommendation intervention the cluster-level estimate ($-0.051$) was not statistically significant, compared to $-0.106$ under Bernoulli randomization; a post-hoc power analysis indicated that detecting the same bias with 80% power would have required 3.5 times more clusters.
+
+The case study illustrates both the prevalence of interference bias in online marketplaces and the potential of cluster randomization to mitigate it, provided clusters are intelligently constructed and contextually grounded.
+
+#### Practical Blueprint
+
+Diagnosing interference. First theorize likely spillover channels (e.g. ranking algorithms, price comparisons), then conduct a meta-experiment with dual randomization and compare TATEs, then quantify exposure probabilities using network or item similarity matrices.
+
+Cluster construction. Given a substitution matrix $S$ from clicks or bookings: symmetrize $W = (S + S^\top)/2$, compute a normalized graph Laplacian $L$, embed nodes via the top-$k$ eigenvectors of $L$, apply $k$-means clustering ($k$ via the gap statistic), and merge tiny clusters if needed. Evaluate using neighbor purity (proportion of nearest neighbors within the same cluster); Airbnb used a threshold of at least 0.9.
+
+Analysis plan. Use cluster-robust standard errors or Horvitz-Thompson weights, adjust for intra-cluster correlation, and consider OLS with pre-stratification to improve power.
+
+A short simulation makes the bias-reduction visible:
+
+```{r}
+set.seed(123)
+n <- 1000
+clusters <- rep(1:100, each = 10)
+Z <- rbinom(n, 1, 0.5)
+B <- matrix(runif(n^2, 0, 0.1), n, n)
+diag(B) <- runif(n, 0.5, 1)
+
+Y <- sapply(1:n, function(i) sum(B[i, ] * Z)) + rnorm(n)
+
+t_ind <- mean(Y[Z == 1]) - mean(Y[Z == 0])
+
+cluster_Z <- tapply(Z, clusters, mean)
+cluster_Y <- tapply(Y, clusters, mean)
+t_cr <- mean(cluster_Y[cluster_Z > 0.5]) - mean(cluster_Y[cluster_Z <= 0.5])
+
+c(t_ind = t_ind, t_cr = t_cr)
+```
+
+The individual-randomization estimate $t_\text{ind}$ is inflated relative to the cluster-randomization estimate $t_\text{cr}$ because the off-diagonal entries of $B$ leak treatment from $j$ to $i$ across the assignment split.
+
+Trade-offs. Cluster randomization trades higher implementation overhead and reduced power for substantially lower interference bias; the right choice depends on the size of $\gamma$, the granularity of the interference structure, and how much within-cluster pre-stratification is feasible.
 
 ### Switchback Experiments with Surrogate Variables
 

@@ -549,7 +549,7 @@ plot(
 
         3.  Achieving covariate balance.
 
-    -   **Note**: Large numbers of small matched sets can lead to larger standard errors during the estimation stage.
+    -   Note: Large numbers of small matched sets can lead to larger standard errors during the estimation stage.
 
     -   Covariates that aren't well balanced can lead to undesirable comparisons between treated and control units.
 
@@ -680,9 +680,9 @@ get_covariate_balance(
 
         -   **Bootstrap** (default method with 1000 iterations).
 
-        -   **Conditional**: Assumes independence across units, but not time.
+        -   Conditional: Assumes independence across units, but not time.
 
-        -   **Unconditional**: Doesn't make assumptions of independence across units or time.
+        -   Unconditional: Doesn't make assumptions of independence across units or time.
 
     -   For **`qoi`** values set to `att`, `art`, or `atc` [@imai2021matching]:
 
@@ -812,7 +812,7 @@ $$
 
 The ATT is calculated conditioning on 4 years of lags ($L = 4$) and up to 4 years following the policy change $F = 1, 2, 3, 4$. Matched sets for each treated observation are constructed based on its treatment history, with the number of matched control units generally decreasing when considering a 4-year treatment history as compared to a 1-year history.
 
-To enhance the quality of matched sets, methods such as Mahalanobis distance matching, propensity score matching, and propensity score weighting are utilized. These approaches enable us to evaluate the effectiveness of each refinement method. In the process of matching, we employ both up-to-five and up-to-ten matching to investigate how sensitive our empirical results are to the maximum number of allowed matches. For more information on the refinement process, please see the Web Appendix
+To enhance the quality of matched sets, methods such as Mahalanobis distance matching, propensity score matching, and propensity score weighting are utilized. These approaches enable us to evaluate the effectiveness of each refinement method. In the process of matching, we employ both up-to-five and up-to-ten matching to investigate how sensitive our empirical results are to the maximum number of allowed matches. For more information on the refinement process, please see the Web Appendix.
 
 > The Mahalanobis distance is expressed through a specific formula. We aim to pair each treated unit with a maximum of $J$ control units, permitting replacement, denoted as $| \mathcal{M}_{it} \le J|$. The average Mahalanobis distance between a treated and each control unit over time is computed as:
 >
@@ -855,7 +855,7 @@ To enhance the quality of matched sets, methods such as Mahalanobis distance mat
 ```
 > Lastly, we evaluate the balance of lagged outcome variables over several pre-treatment periods and that of time-varying covariates. This examination aids in assessing the validity of the parallel trend assumption integral to the DiD estimator justification.
 
-In the balance scatter figure, we demonstrate the enhancement of covariate balance thank to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference between before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.
+In the balance scatter figure, we demonstrate the enhancement of covariate balance thanks to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference between before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.
 
 ```{r, collapse=TRUE}
 library(PanelMatch)
@@ -993,7 +993,9 @@ for (name in names(results_rev)) {
 stopImplicitCluster()
 ```
 
-```{r, collapse=TRUE, eval = FALSE}
+The export script below assembles the per-method balance scatter plots (Mahalanobis, PS matching, PS weighting at 1- and 4-year lags) into a single PNG that is rendered above.
+
+```{r did2-balance-scatter-export, collapse=TRUE, eval = FALSE}
 library(gridExtra)
 
 # Updated plotting function
@@ -1177,9 +1179,9 @@ names(plots) <- sapply(configurations, function(config) {
 })
 ```
 
-To export
+The script below assembles the per-method, per-estimand pre-treatment balance plots into a single composite PNG used by the rendered figure above.
 
-```{r, eval = FALSE}
+```{r did2-balance-by-method-export, eval = FALSE}
 library(gridExtra)
 library(grid)
 
@@ -1427,17 +1429,17 @@ names(res_est_plot_rev) <- names(res_est_rev)
 stopCluster(cl)
 ```
 
-To export
+The export script below assembles the ATT and ART event-study estimates from PanelMatch under five refinement-by-match-size combinations into a composite PNG.
 
-```{r, collapse=TRUE, eval = FALSE}
+```{r did2-panel-estimate-export, collapse=TRUE, eval = FALSE}
 library(gridExtra)
 library(grid)
 
 # Column and row labels
-col_labels <- c("Mahalanobis 5m", 
-                "Mahalanobis 10m", 
-                "PS Matching 5m", 
-                "PS Matching 10m", 
+col_labels <- c("Mahalanobis 5m",
+                "Mahalanobis 10m",
+                "PS Matching 5m",
+                "PS Matching 10m",
                 "PS Weighting 5m")
 
 row_labels <- c("ATT", "ART")
@@ -1508,7 +1510,7 @@ grid.text(
 dev.off()
 ```
 
-```{r, eval = FALSE, include=FALSE}
+```{r did2-panel-estimate-include, eval = FALSE, include=FALSE}
 knitr::include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 ```
 
@@ -1526,11 +1528,11 @@ denote the potential outcomes for unit $i$ at time $t$ *with* and *without* trea
 
 Why use counterfactual estimators?
 
--   **Avoid negative weights**: unlike some TWFE specifications that generate undesirable extrapolation weights, imputation uses only control data when building the prediction model and (typically) applies equal weights in post-treatment periods.
+-   Avoid negative weights: unlike some TWFE specifications that generate undesirable extrapolation weights, imputation uses only control data when building the prediction model and (typically) applies equal weights in post-treatment periods.
 
--   **Model flexibility**: analysts may combine rich time-series structure, non-linear regressions, or machine-learning learners while relaxing the *strict exogeneity* assumption that plagues [TWFE](#sec-two-way-fixed-effects).
+-   Model flexibility: analysts may combine rich time-series structure, non-linear regressions, or machine-learning learners while relaxing the *strict exogeneity* assumption that plagues [TWFE](#sec-two-way-fixed-effects).
 
--   **Transparent diagnostics**: pre-treatment prediction error (e.g. $\text{RMSE}_{\text{pre}}$) offers a concrete check of model fit, something ordinary DiD lacks.
+-   Transparent diagnostics: pre-treatment prediction error (e.g. $\text{RMSE}_{\text{pre}}$) offers a concrete check of model fit, something ordinary DiD lacks.
 
 The main families of counterfactual estimators are summarised in Table \@ref(tab:did-counterfactual-estimators).
 
@@ -1592,7 +1594,7 @@ Setting $R=0$ recovers FEct. **Generalized Synthetic Control** (GSC) [@xu2017gen
 
 This is a generalization of factor-augmented models. Rather than fixing $R$, MC solves a convex optimization where the nuclear-norm penalty $|\widehat Y(0)|_*$ shrinks *all* singular values. Different from IFEct which uses hard impute, MC uses soft impute to regularize the singular values when decomposing the residual matrix.
 
-IFEct can outperform MC when the latent factors (of unobservables) is indeed low-rank/sparse and strong; MC prevails when unobservables are *dense and weak.*
+IFEct can outperform MC when the latent factors (of unobservables) are indeed low-rank/sparse and strong; MC prevails when unobservables are *dense and weak.*
 
 ------------------------------------------------------------------------
 
@@ -1606,11 +1608,11 @@ SC is best viewed as a *case-study* tool (single or few treated units, single tr
 
 **Identifying Assumptions**:
 
-1.  **Function Form**: Additive separability of observables, unobservables, and idiosyncratic error term.
+1.  Function Form: Additive separability of observables, unobservables, and idiosyncratic error term.
     -   Hence, these models are scale dependent [@athey2006identification] (e.g., log-transform outcome can invalidate this assumption).
-2.  **Strict Exogeneity**: Conditional on observables and unobservables, potential outcomes are independent of treatment assignment (i.e., baseline quasi-randomization)
+2.  Strict Exogeneity: Conditional on observables and unobservables, potential outcomes are independent of treatment assignment (i.e., baseline quasi-randomization)
     -   In DiD, where unobservables = unit + time FEs, this assumption is the parallel trends assumption
-3.  **Low-dimensional Decomposition (Feasibility Assumption)**: Unobservable effects can be decomposed in low-dimension.
+3.  Low-dimensional Decomposition (Feasibility Assumption): Unobservable effects can be decomposed in low-dimension.
     -   For the case that $U_{it} = f_t \times \lambda_i$ where $f_t$ = common time trend (time FE), and $\lambda_i$ = unit heterogeneity (unit FE). If $U_{it} = f_t \times \lambda_i$ , DiD can satisfy this assumption. But this assumption is weaker than that of DID, and allows us to control for unobservables based on data.
 
 **Estimation Procedure**:
@@ -1634,7 +1636,9 @@ Other imputation estimators include
 
 -   [@brown2023simple]
 
-```{r, eval  = FALSE}
+The code below fits the FECT model and reports pre-treatment F-test diagnostics for the democracy-and-trade panel under a two-way fixed-effects specification.
+
+```{r did2-fect-fit, eval  = FALSE}
 library(fect)
 
 PanelMatch::dem
@@ -1662,9 +1666,9 @@ plot(model.fect, stats = "F.p")
 
 F-test $H_0$: residual averages in the pre-treatment periods = 0
 
-To see treatment reversal effects
+The code below produces FECT exit-event diagnostics showing treatment-reversal effects and the corresponding F-test p-values across event time.
 
-```{r, eval = FALSE}
+```{r did2-fect-exit, eval = FALSE}
 plot(model.fect, stats = "F.p", type = 'exit')
 ```
 
@@ -1672,9 +1676,9 @@ plot(model.fect, stats = "F.p", type = 'exit')
 
 By selecting a part of the data and excluding observations within a specified range to improve the model fitting, we then evaluate whether the estimated Average Treatment Effect (ATT) within this range significantly differs from zero. This approach helps us analyze the periods before treatment.
 
-If this test fails, either the functional form or strict exogeneity assumption is problematic.
+If this test fails, either the functional form or strict exogeneity assumption is problematic. The code below runs a FECT placebo test that masks pre-treatment periods minus two through zero and reports the p-value of the masked-period average effect against the null of zero.
 
-```{r, eval = FALSE}
+```{r did2-fect-placebo, eval = FALSE}
 out.fect.p <-
     fect(
         Y = "y",
@@ -1695,9 +1699,9 @@ plot(out.fect.p, proportion = 0.1, stats = "placebo.p")
 
 The placebo test can be adapted to assess carryover effects by masking several post-treatment periods instead of pre-treatment ones. If no carryover effects are present, the average prediction error should approximate zero. For the carryover test, set `carryoverTest = TRUE`. Specify a post-treatment period range in carryover.period to exclude observations for model fitting, then evaluate if the estimated ATT significantly deviates from zero.
 
-Even if we have carryover effects, in most cases of the staggered adoption setting, researchers are interested in the cumulative effects, or aggregated treatment effects, so it's okay.
+Even if we have carryover effects, in most cases of the staggered adoption setting, researchers are interested in the cumulative effects, or aggregated treatment effects, so it's okay. The code below runs the FECT carryover test that masks the first three post-treatment periods and reports whether the masked-period average prediction error differs significantly from zero.
 
-```{r, eval = FALSE}
+```{r did2-fect-carryover, eval = FALSE}
 out.fect.c <-
     fect(
         Y = "y",
@@ -1758,7 +1762,7 @@ Contributions of @athey2021matrix
 
 The matrix completion approach is built on the assumption that the complete outcome matrix $\mathbf{Y}$ satisfies:
 
-1.  **Low-rank structure**: $$
+1.  Low-rank structure: $$
     \mathbf{Y} = \mathbf{U} \mathbf{V}^T + \mathbf{E}
     $$ where $\mathbf{U} \in \mathbb{R}^{N \times R}$, $\mathbf{V} \in \mathbb{R}^{T \times R}$, and $\mathbf{E}$ is a noise matrix.
 2.  [Missing Completely At Random (MCAR)](#missing-completely-at-random-mcar): The pattern of missing data is independent of unobserved outcomes, conditional on observables.
@@ -1769,7 +1773,7 @@ To identify the causal estimand, matrix completion relies on:
 
 -   [SUTVA](#sec-sutva) **(Stable Unit Treatment Value Assumption)**: $Y_{it}(w)$ depends only on $W_{it}$, not on other units' treatments.
 
--   **No dynamic treatment effects**: The treatment at time $t$ does not influence outcomes in other periods.
+-   No dynamic treatment effects: The treatment at time $t$ does not influence outcomes in other periods.
 
 ------------------------------------------------------------------------
 
@@ -1820,10 +1824,10 @@ Table: (\#tab:did-matrix-shape) Panel-matrix shape, treatment pattern, and the r
 
 **Special Patterns of Missingness**
 
--   **Block structures**:
+-   Block structures: 
     -   **Single-period treatment** (horizontal regression) [@imbens2015causal]
     -   **Single-unit treatment** (vertical regression) [@abadie2010synthetic]
--   **Staggered adoption**: Treatments occur at different times across units, as in many business interventions.
+-   Staggered adoption: Treatments occur at different times across units, as in many business interventions.
 
 ------------------------------------------------------------------------
 
@@ -1952,7 +1956,7 @@ The RIPW-TWFE framework is particularly relevant in panel data settings with **g
 
 -   **staggered adoption**
 
--   **transient treatments**.
+-   transient treatments. 
 
 ------------------------------------------------------------------------
 
@@ -1960,13 +1964,13 @@ Setting and Notation
 
 -   Panel data with $n$ units observed over $T$ time periods.
 
--   **Potential outcomes**: For each unit $i \in \{1, \dots, n\}$ and time $t \in \{1, \dots, T\}$:
+-   Potential outcomes: For each unit $i \in \{1, \dots, n\}$ and time $t \in \{1, \dots, T\}$:
 
     $$
     Y_{it}(1), \quad Y_{it}(0)
     $$
 
--   **Observed outcomes**:
+-   Observed outcomes: 
 
     $$
     Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
@@ -1978,7 +1982,7 @@ Setting and Notation
     \mathbf{W}_i = (W_{i1}, \dots, W_{iT}) \in {0,1}^T
     $$
 
--   **Generalized Propensity Score (GPS)**: For unit $i$, the probability distribution over treatment paths:
+-   Generalized Propensity Score (GPS): For unit $i$, the probability distribution over treatment paths:
 
     $$
     \mathbf{W}_i \sim \pi_i(\cdot)
@@ -1990,9 +1994,9 @@ Setting and Notation
 
 **Assumptions**
 
-1.  **Binary Treatment**: $W_{it} \in {0,1}$ for all $i$ and $t$.
+1.  Binary Treatment: $W_{it} \in {0,1}$ for all $i$ and $t$.
 
-2.  **No Dynamic Effects**: Current outcomes depend only on current treatment, not past treatments.
+2.  No Dynamic Effects: Current outcomes depend only on current treatment, not past treatments.
 
 3.  **Overlap Condition** (Assumption 2.2 from @arkhangelsky2024design):
 
@@ -2010,7 +2014,7 @@ Setting and Notation
 
 Key Quantities of Interest
 
--   **Unit-Time Specific Treatment Effect**:
+-   Unit-Time Specific Treatment Effect: 
 
     $$
     \tau_{it} = Y_{it}(1) - Y_{it}(0)
@@ -2022,7 +2026,7 @@ Key Quantities of Interest
     \tau_t = \frac{1}{n} \sum_{i=1}^n \tau_{it}
     $$
 
--   **Doubly Averaged Treatment Effect (DATE)**:
+-   Doubly Averaged Treatment Effect (DATE): 
 
     $$
     \tau(\xi) = \sum_{t=1}^T \xi_t \tau_t = \sum_{t=1}^T \xi_t \left( \frac{1}{n} \sum_{i=1}^n \tau_{it} \right)
@@ -2030,7 +2034,7 @@ Key Quantities of Interest
 
     where $\xi = (\xi_1, \dots, \xi_T)$ is a vector of non-negative weights such that $\sum_{t=1}^T \xi_t = 1$.
 
--   **Special Case**: Equally weighted DATE:
+-   Special Case: Equally weighted DATE:
 
     $$
     \tau_{\text{eq}} = \frac{1}{nT} \sum_{t=1}^T \sum_{i=1}^n \tau_{it}
@@ -2120,7 +2124,7 @@ $$
 
 The choice of $\Pi(\cdot)$ determines the behavior and interpretation of the RIPW estimator. Several special cases are noteworthy:
 
--   **Uniform Reshaped Design**:
+-   Uniform Reshaped Design: 
 
     $$
     \Pi(\cdot) \sim \text{Uniform}(\mathbb{S})
@@ -2136,7 +2140,7 @@ The choice of $\Pi(\cdot)$ determines the behavior and interpretation of the RIP
 
     -   This reduces RIPW to the standard **IPW-TWFE estimator**, in which the target is a uniform treatment assignment design.
 
--   **Reshaped Design Equals True Assignment**:
+-   Reshaped Design Equals True Assignment: 
 
     $$
     \Pi(\cdot) = \pi_i(\cdot)
@@ -2188,7 +2192,7 @@ The RIPW estimator has a **double robustness** property:
 
 This feature is particularly valuable in [quasi-experimental designs](#sec-quasi-experimental) where the parallel trends assumption may not hold globally.
 
--   **Design-Robustness**: RIPW corrects for negative weighting issues identified in the TWFE literature (e.g., @goodman2021difference; @de2023two).
+-   Design-Robustness: RIPW corrects for negative weighting issues identified in the TWFE literature (e.g., @goodman2021difference; @de2023two).
 -   Unlike conventional TWFE regressions, which can yield biased estimands under heterogeneity, RIPW explicitly targets user-specified weighted averages (DATE).
 -   In randomized experiments, RIPW ensures the **effective estimand** is interpretable as a population-level average, determined by the design $\Pi$.
 

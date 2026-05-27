@@ -292,7 +292,9 @@ movies_small <- movies %>%
 summary(movies_small)
 ```
 
-```{r}
+Figure \@ref(fig:report-eda-distributions) shows the marginal distributions of the four key variables in the movies sample.
+
+```{r report-eda-distributions, fig.cap="Marginal distributions of metascore, budget, US gross, and runtime in the movies sample.", message=FALSE}
 # Distribution plots (log scale for highly skewed financials)
 library(tidyr)
 
@@ -372,9 +374,9 @@ $$
 
 ### Considerations
 
--   **Interactions**: e.g., does budget effectiveness differ by year?
--   **Collinearity**: budget and gross can be correlated; check VIF.
--   **Dependence**: panel or clustered structures (franchise, studio) may require cluster-robust SEs.
+-   Interactions: e.g., does budget effectiveness differ by year?
+-   Collinearity: budget and gross can be correlated; check VIF.
+-   Dependence: panel or clustered structures (franchise, studio) may require cluster-robust SEs.
 
 ```{r}
 fit <- lm(metascore ~ log1p(budget) + log1p(us_gross) + runtime + year, data = movies_small)
@@ -431,7 +433,9 @@ broom::glance(fit) %>%
   select(r.squared, adj.r.squared, sigma, AIC, BIC, df, nobs)
 ```
 
-```{r}
+Figure \@ref(fig:report-residual-diagnostics) shows the standard four-panel residual diagnostic plots for the fitted OLS model.
+
+```{r report-residual-diagnostics, fig.cap="Four-panel residual diagnostics for the OLS model: residuals vs. fitted, normal Q-Q, scale-location, and residuals vs. leverage.", message=FALSE}
 # Base residual diagnostics (four-panel plots)
 par(mfrow = c(2, 2))
 plot(fit)
@@ -485,14 +489,14 @@ See Table \@ref(tab:report-sandwich-variants) for a quick reference:
 
 | Type     | Applicable | Usage           | Notes/References                                 |
 |:---------|:-----------|:----------------|:-------------------------------------------------|
-| const    | iid        | Homskedastic    | Assumes constant variance                        |
+| const    | iid        | Homoskedastic   | Assumes constant variance                        |
 | HC/HC0   | vcovHC     | Heteroskedastic | White's estimator [@white1980heteroskedasticity] |
 | HC1      | vcovHC     | Heteroskedastic | DoF correction [@mackinnon1985some]              |
 | HC2      | vcovHC     | Heteroskedastic | Hat-matrix adjustment                            |
 | HC3      | vcovHC     | Heteroskedastic | Preferred for small $n$; hat-matrix adjustment   |
 | HC4/4m/5 | vcovHC     | Heteroskedastic | Leverage-adaptive                                |
 
-: (#tab:report-sandwich-variants) Sandwich variants.
+Table: (\#tab:report-sandwich-variants) Sandwich variants.
 
 <!--# See vignette: https://cran.r-project.org/web/packages/sandwich/vignettes/sandwich-CL.pdf  -->
 
@@ -584,9 +588,9 @@ plot_summs(
 
 ### Coefficient Uncertainty and Distribution
 
-Visualize uncertainty with either frequentist or Bayesian approaches. With frequentist OLS, we can simulate coefficient draws from the asymptotic sampling distribution using the estimated variance-covariance matrix and then plot with `ggplot2`.
+Visualize uncertainty with either frequentist or Bayesian approaches. With frequentist OLS, we can simulate coefficient draws from the asymptotic sampling distribution using the estimated variance-covariance matrix and then plot with `ggplot2`. Figure \@ref(fig:report-coef-sampling-densities) shows the simulated sampling densities for selected coefficients.
 
-```{r}
+```{r report-coef-sampling-densities, fig.cap="Simulated HC3-robust sampling densities for selected coefficients, drawn from a multivariate normal approximation to the asymptotic distribution.", message=FALSE}
 # Simulate coefficient draws (multivariate normal approx)
 if (requireNamespace("MASS", quietly = TRUE)) {
   V <- vcovHC(fit_c, type = "HC3")
@@ -645,7 +649,9 @@ if (requireNamespace("modelsummary", quietly = TRUE)) {
 }
 ```
 
-```{r}
+The chunk below reports stargazer-formatted regression and correlation output for the `attitude` dataset.
+
+```{r report-stargazer-attitude, message=FALSE}
 # stargazer examples, including correlation and ASCII output
 if (requireNamespace("stargazer", quietly = TRUE)) {
   library(stargazer)
@@ -690,7 +696,9 @@ if (requireNamespace("stargazer", quietly = TRUE)) {
 }
 ```
 
-```{r, eval=FALSE}
+The template below shows the LaTeX-formatted stargazer template that can be enabled when producing a typeset manuscript.
+
+```{r report-stargazer-latex, eval=FALSE}
 # LaTeX output (uncomment to use)
 stargazer(
   linear.1,
@@ -714,17 +722,17 @@ stargazer(
 
 ### Export APA theme (flextable)
 
-Below creates an APA-like table for a subset of `mtcars`.
+The chunk below demonstrates an APA-styled flextable rendering of a five-row, five-column slice of `mtcars`.
 
-```{r, eval = FALSE}
+```{r report-apa-flextable, eval = FALSE}
 data("mtcars")
 library(flextable)
 theme_apa(flextable(mtcars[1:5,1:5]))
 ```
 
-You can export data frames to LaTeX via `xtable` and ready-made styles via `stargazer`. (Ensure output directory exists.)
+You can export data frames to LaTeX via `xtable` and ready-made styles via `stargazer`. (Ensure output directory exists.) The snippet below shows the xtable-and-stargazer export idiom.
 
-```{r, eval=FALSE}
+```{r report-export-latex, eval=FALSE}
 print(xtable::xtable(mtcars, type = "latex"),
       file = file.path(getwd(), "output", "mtcars_xtable.tex"))
 
@@ -834,7 +842,9 @@ amatheme <- theme_bw(base_size = 14, base_family = "serif") +
   )
 ```
 
-```{r}
+Figure \@ref(fig:report-amatheme-npg) shows the example mtcars scatterplot rendered with the custom AMA-style theme and NPG palette.
+
+```{r report-amatheme-npg, fig.cap="MPG against cylinders by gear, styled with the custom AMA theme and the NPG color palette.", message=FALSE}
 # Example plot
 library(tidyverse)
 library(ggsci)
@@ -1003,7 +1013,9 @@ coef_names <- c("Budget" = "log(budget)", "US Gross" = "log(us_gross)",
 export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
-```{r}
+Figure \@ref(fig:report-modelsummary-demo) shows a quick `modelsummary` regression table and coefficient plot for an `mtcars` OLS fit under three SE specifications.
+
+```{r report-modelsummary-demo, fig.cap="Coefficient plot from `modelplot()` for the `mtcars` OLS fit (`mpg ~ wt + hp + cyl`), comparing classical, robust, and HC4 standard errors; the accompanying `msummary()` regression table is printed inline above the plot.", message=FALSE}
 # modelsummary quick demo
 library(modelsummary)
 lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
@@ -1034,7 +1046,9 @@ stargazer(linear.1,
           align = TRUE)
 ```
 
-```{r, eval = FALSE}
+The chunk below gives the LaTeX-ready stargazer template for the same three models, with custom dependent-variable and covariate labels.
+
+```{r report-stargazer-latex-demo, eval = FALSE}
 # LaTeX-ready stargazer (as in text)
 stargazer(
     linear.1,
@@ -1056,7 +1070,9 @@ stargazer(
 )
 ```
 
-```{r}
+The chunk below renders the same two OLS regressions as an ASCII (`type = "text"`) stargazer table with 90% confidence intervals.
+
+```{r report-stargazer-ascii, message=FALSE}
 # ASCII text output (as in text)
 stargazer(
     linear.1,
@@ -1079,16 +1095,18 @@ stargazer(
 )
 ```
 
-```{r, eval = FALSE}
+The snippet below shows the matching stargazer-formatted correlation matrix for the three core `attitude` variables.
+
+```{r report-stargazer-corr, eval = FALSE}
 # Correlation table
 correlation.matrix <-
     cor(attitude[, c("rating", "complaints", "privileges")])
 stargazer(correlation.matrix, title = "Correlation Matrix")
 ```
 
-**Pro Tip:** Save figures reproducibly for journals:
+Pro Tip: Save figures reproducibly for journals. The snippet below is the canonical `ggsave` call to write the most recent ggplot to disk at journal-appropriate dimensions and resolution.
 
-```{r, eval = FALSE}
+```{r report-ggsave-template, eval = FALSE}
 ggsave(filename = file.path('output','coef_plot.png'),
        plot = last_plot(),
        width = 6.5, height = 4.5, dpi = 300)

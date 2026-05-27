@@ -1,0 +1,360 @@
+### Difference-in-Differences with Continuous Treatment {#sec-continuous-did}
+
+Most of the DiD machinery developed in this chapter, from the [simple 2x2 design](#sec-simple-difference-in-differences) to the [group-time estimator](#sec-group-time-average-treatment-effects-callaway2021difference), has been built for a binary treatment: a unit is either treated at some time or it is not. A large slice of empirical work does not fit that template. A county may be exposed to a tariff shock whose magnitude varies across local industries [@acemoglu2016import]. A state may raise its minimum wage by different amounts in different years [@cengiz2019effect]. In each of these settings the analyst observes both *whether* a unit was treated and *how much* treatment it received. The natural object of interest is no longer a single number but a function: how the average causal effect varies with the dose.
+
+This section develops the identification and estimation of such dose-response effects in panel data. The treatment is now a continuous (or many-valued) variable $D_i \in \mathcal{D} \subset \mathbb{R}_{\geq 0}$, where $D_i = 0$ corresponds to no treatment and $D_i > 0$ corresponds to varying intensities of exposure. The framework draws on @de2020two and @de2023two for the critique of TWFE in heterogeneous-effect settings (the published methodological backbone of the continuous case), and on @callaway2024event for the event-study extension. The story is, in spirit, the same one told in Section \@ref(sec-modern-concerns-in-did): naive linear specifications can quietly average over heterogeneity in ways that are difficult to defend, and the cure is to be explicit about the estimand and to estimate it directly.
+
+------------------------------------------------------------------------
+
+#### Setup and Notation
+
+We observe a panel of units $i = 1, \dots, N$ over time periods $t = 1, \dots, T$. Let $G_i \in \{q, \dots, T, \infty\}$ denote the period in which unit $i$ first receives a positive dose, with $G_i = \infty$ for the never-treated. For each treated unit, $D_i \in \mathcal{D}$ denotes the dose received from period $G_i$ onward; the dose is assumed time-invariant within a unit for the simplest case and time-varying $D_{it}$ in the general case. Most of the conceptual content survives in the simpler time-invariant-dose setting, so we present that first and indicate at each step how the argument generalizes.
+
+The potential-outcomes framework extends naturally. Let $Y_{it}(d)$ denote the outcome unit $i$ would realize at time $t$ under dose $d$. The observed outcome is
+
+$$
+Y_{it} = Y_{it}(D_i) \cdot \mathbf{1}\{t \geq G_i\} + Y_{it}(0) \cdot \mathbf{1}\{t < G_i\}.
+$$
+
+The novelty relative to the binary case is that we now have a continuum of counterfactuals $\{Y_{it}(d): d \in \mathcal{D}\}$ for each unit, not just two. Identification will have to do enough work to recover an entire curve, not just a single difference.
+
+------------------------------------------------------------------------
+
+#### Estimands {#sec-continuous-did-estimands}
+
+Three estimands cover almost everything the literature reports. They differ in whether they describe levels or slopes of the dose-response, and in whether they are conditioned on the treated.
+
+The first is the **dose-specific average treatment effect on the treated**:
+
+$$
+ATT(d, t) = \mathbb{E}[Y_{it}(d) - Y_{it}(0) \mid D_i = d, G_i \leq t].
+$$
+
+This is the level effect of dose $d$, evaluated at the population of units that actually received dose $d$. As $d$ varies, $ATT(d, t)$ traces out a curve: the dose-response function on the treated. Reporting this curve, rather than a single scalar, is the natural deliverable of a continuous-treatment DiD analysis.
+
+The second is the **average causal response (ACR)**, the slope of the dose-response evaluated at dose $d$:
+
+$$
+ACR(d, t) = \frac{\partial}{\partial d} \mathbb{E}[Y_{it}(d) - Y_{it}(0)].
+$$
+
+In words, $ACR(d, t)$ answers: at dose level $d$, what is the marginal effect of an additional unit of treatment, averaged over the *entire* population? The integral of $ACR(\cdot, t)$ over $\mathcal{D}$ recovers an aggregate effect.
+
+The third is the **average causal response on the treated (ACRT)**, the same marginal effect but conditioned on the treated population:
+
+$$
+ACRT(d, t) = \frac{\partial}{\partial d} \mathbb{E}[Y_{it}(d) - Y_{it}(0) \mid D_i = d].
+$$
+
+It is worth slowing down on this object because it is the workhorse estimand of the continuous-DiD literature and because reading the formula too quickly hides what it is actually doing. ACRT is a *derivative*, not a difference. It does not compare units that received dose $d$ to units that received dose $d'$; that would be a finite difference and would confound selection (who is at each dose) with response (how each dose affects the outcome). Instead, ACRT asks: if we held the dose-receiving population fixed at the units that actually took dose $d$, and we shifted their dose marginally, how would their average outcome change? It is the slope of the dose-response curve *at* dose $d$, evaluated for units whose dose happens to be $d$.
+
+The distinction between ACR and ACRT is the distinction between two questions:
+
+- ACR(d): if a randomly selected unit from the population were given dose $d$ rather than dose $d - \mathrm{d}d$, how would its outcome change?
+- ACRT(d): if a unit that actually took dose $d$ were given dose $d$ rather than dose $d - \mathrm{d}d$, how would its outcome change?
+
+The difference matters whenever the units that select into high doses respond differently to those doses than units that select into low doses would have. This is the selection-on-gains pattern: firms that adopt a new technology more aggressively are often the firms with the most to gain from it. ACRT averages the marginal effects over the realized treated population at each dose; ACR averages over the full population, treated or not. These objects are different functions of the same underlying dose-response surface, and choosing between them is a substantive decision about whose marginal effect the analyst wants to report.
+
+------------------------------------------------------------------------
+
+#### Identifying Assumptions {#sec-continuous-did-assumptions}
+
+Two assumptions do the work in the continuous-treatment DiD framework. Both have direct analogues in the binary case but require care because the counterfactual is now indexed by a continuum.
+
+The first is **no anticipation**, identical in spirit to the binary-treatment version:
+
+$$
+\mathbb{E}[Y_{it}(0)] = \mathbb{E}[Y_{it} \mid G_i = g], \quad \text{for all } t < g.
+$$
+
+Units do not adjust their outcomes in response to a treatment they have not yet received. This is the standard requirement and can be diagnosed with pre-treatment event-study plots in exactly the same way as in the staggered binary case.
+
+The second is **parallel trends**, and here the continuous setting forces a choice. The choice has nothing to do with statistical convenience: the two versions identify different estimands, and the gap between them is precisely the selection-on-gains bias.
+
+**Weak parallel trends** posits that the expected change in the never-treated potential outcome is the same for the never-treated group and for the cohort that received dose $d$:
+
+$$
+\mathbb{E}[Y_{it}(0) - Y_{i,g-1}(0) \mid G_i = g, D_i = d] = \mathbb{E}[Y_{it}(0) - Y_{i,g-1}(0) \mid G_i = \infty], \quad \forall t \geq g, d \in \mathcal{D}.
+$$
+
+This is the natural lift of the binary parallel-trends assumption: it says that, in the absence of treatment, the units that took dose $d$ would have evolved on average like the never-treated, conditional on the cohort and dose. The assumption is just about the *baseline* path, not about how units would respond to alternative doses. Under weak parallel trends, $ATT(d, t)$ and $ACRT(d, t)$ are identified.
+
+Here is the point worth pausing on: weak parallel trends does *not* assume away selection bias on the responses. Two units might satisfy weak parallel trends (they would have had the same untreated path) and still respond very differently to the same dose if their unobserved heterogeneity made them more or less responsive to that particular intensity. Under weak parallel trends, the analyst is identifying ACRT, not ACR, precisely because the selection-on-gains pattern remains *inside* the estimand. The ACRT curve is a curve over the *realized* treated population at each dose; it is informative, but it is not the population dose-response.
+
+**Strong parallel trends** posits something stricter: the expected change in the *dose-$d$ potential outcome* is the same across all dose subpopulations.
+
+$$
+\mathbb{E}[Y_{it}(d) - Y_{i,g-1}(d) \mid G_i = g, D_i = d'] = \mathbb{E}[Y_{it}(d) - Y_{i,g-1}(d) \mid G_i = g], \quad \forall d, d' \in \mathcal{D}.
+$$
+
+In words, units that actually took dose $d'$ would have responded the same way to dose $d$ as units that actually took dose $d$. Strong parallel trends is exactly the assumption that the selection-on-gains channel is shut off: there is no systematic relationship between which dose a unit took and how it would respond to a counterfactual dose. Under strong parallel trends, the population dose-response function $ACR(d, t)$ is identified, and it coincides with the on-the-treated version $ACRT(d, t)$.
+
+The phrasing matters. Strong parallel trends is not a separate piece of evidence that the analyst gathers to push from ACRT to ACR; it is the explicit assumption that lets the analyst report ACR rather than ACRT. The analyst pays for the richer estimand by ruling out, by assumption, the selection-on-gains story that motivated reaching for the continuous-treatment framework in the first place. Whether that price is worth paying is a substantive question, not a technical one.
+
+The practical default is conservative: assume the weak version, identify $ACRT$, and report the analysis as a conditional-on-treated dose-response. The stronger version is appropriate only when there is substantive reason to believe that dose assignment is unrelated to the gains, for instance when the dose is determined by a quasi-experimental shock that varies for reasons orthogonal to the potential outcomes. A useful diagnostic, when both estimators can be computed, is to report the ACR and ACRT curves side by side; a large gap is evidence that the selection-on-gains channel is empirically active, and the population-level interpretation of ACR is on weaker footing.
+
+------------------------------------------------------------------------
+
+#### Why TWFE Goes Wrong with Continuous Treatment
+
+It is tempting to estimate continuous-treatment DiD by simply replacing the binary treatment indicator with the continuous dose in a [TWFE](#sec-two-way-fixed-effects) regression:
+
+$$
+Y_{it} = \alpha_i + \gamma_t + \beta \cdot D_{it} + \epsilon_{it}.
+$$
+
+The coefficient $\beta$ is then interpreted as "the marginal effect of one more unit of dose." This interpretation is correct only under restrictive conditions; in general, $\beta$ is a weighted average of unit-time-specific marginal effects with weights that can be negative and that need not concentrate where the analyst's substantive interest lies.
+
+@de2020two make the point cleanly for binary staggered designs and the logic carries over to the continuous case. In a two-period setting with strong parallel trends and constant treatment effects across doses, the TWFE coefficient on $D$ does recover the common marginal effect. Once treatment effects are allowed to vary with the dose (the substantively interesting case, the whole reason to do a continuous-treatment analysis in the first place), the TWFE coefficient becomes a weighted average of $ACR(d, t)$ across doses and time periods. The weights are functions of the variance of $D_{it}$ within unit-time cells, not of any substantive feature of the dose distribution. In the staggered-adoption case, the same negative-weight pathology that @de2020two diagnose for binary treatments reappears, only now compounded by the dose dimension: comparisons of high-dose-late-treated units to low-dose-early-treated units can enter the estimand with negative weight.
+
+The practical implication is the same as in the binary case. TWFE with a continuous treatment is best treated as a descriptive summary, useful for first-look exploration and benchmark comparisons. It should not be reported as the headline estimate without an accompanying decomposition or an alternative estimator that targets a well-defined dose-response object.
+
+------------------------------------------------------------------------
+
+#### Multi-Valued (Discrete Dose Bins) DiD {#sec-multivalued-did}
+
+Many applications sit between the clean binary and the fully continuous cases. The dose is naturally discretized into a handful of levels: a tax rate that takes a few statutory values, a training program that comes in two-week and four-week and six-week versions, a tariff that is set in coarse brackets. The continuous-treatment estimators of the previous sections are overkill in this setting, since there is no dose continuum to smooth over, and the binary estimators throw away the dose information entirely.
+
+The right tool is a **multi-valued (discrete-dose) DiD**, in which each dose level acts as a separate treatment group and the analyst recovers a vector of dose-specific ATTs. @de2023two develop the framework in detail and show that, under a weak parallel-trends assumption for each dose level, the dose-specific ATTs are identified by group-time-style estimators applied separately to each dose stratum. The aggregate object is then a small table or step-function curve rather than a smooth dose-response.
+
+Concretely, suppose the dose takes $K$ discrete values $d_1 < d_2 < \dots < d_K$ in the treated population (with $d_0 = 0$ for the never-treated). The estimand of interest is the vector
+
+$$
+\big( ATT(d_1, t), ATT(d_2, t), \dots, ATT(d_K, t) \big),
+$$
+
+where each $ATT(d_k, t)$ is identified by a DiD between units in dose group $k$ and the never-treated, under the corresponding weak parallel-trends assumption restricted to dose group $k$. The analyst can read the table directly or compute discrete differences $ATT(d_{k+1}, t) - ATT(d_k, t)$ to approximate the slope of the dose-response, which is the discrete-dose analogue of ACR.
+
+The framework subsumes two limiting cases. When $K = 1$ (only one dose level), it reduces to the standard binary DiD. When $K$ is large and the dose grid is fine, it approaches the continuous-treatment case from below, and the analyst should ask whether the gain in dose resolution is worth the loss of statistical power per dose stratum. The empirical sweet spot is typically $K \in \{2, 3, 4, 5\}$: enough levels to detect non-monotonicity in the dose-response, few enough that each stratum has a usable sample size.
+
+The estimator can be implemented in any package that supports group-time ATTs (for example, the `did` package by passing the dose group as the `gname` argument), or by hand as a stratified DiD. We illustrate both below.
+
+------------------------------------------------------------------------
+
+#### Estimation: Demonstration First, Production Second
+
+We work through the estimation in two passes. The first pass is a from-scratch demonstration that estimates a discrete-dose ATT vector using only base R and `fixest`, to make the mechanics visible. The second pass calls the canonical published-package implementations (`did` for the multi-valued case, the `contdid` CRAN package for the continuous case) on the same synthetic data.
+
+##### Demonstration: stratified DiD by dose bin
+
+We simulate a panel with a never-treated group and three discrete dose levels, and we recover the dose-specific ATT vector by a sequence of binary 2x2 DiDs against the never-treated.
+
+```{r contdid-sim, message=FALSE}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(fixest)
+})
+
+set.seed(20240515)
+
+# Panel: 4 dose groups (0 = never-treated, 1/2/3 = three discrete dose levels)
+# 2 periods (pre and post), 1000 units per group.
+n_per_group <- 1000
+groups      <- 0:3
+true_att    <- c(0.0, 0.5, 1.2, 1.5)  # concave dose-response on the treated
+
+panel <- expand.grid(
+  unit  = seq_len(n_per_group * length(groups)),
+  time  = c(0, 1)
+) %>%
+  arrange(unit, time) %>%
+  mutate(
+    dose_group = rep(rep(groups, each = n_per_group), each = 2),
+    unit_fe    = rep(rnorm(n_per_group * length(groups), sd = 0.3), each = 2),
+    time_fe    = ifelse(time == 0, 0, 0.2),
+    treat_post = as.integer(dose_group > 0 & time == 1),
+    att_realized = true_att[dose_group + 1] * treat_post,
+    Y          = unit_fe + time_fe + att_realized + rnorm(n(), sd = 0.5)
+  )
+
+head(panel)
+```
+
+The data are organized so the dose-response is concave: dose level 2 has a marginal effect of $1.2 - 0.5 = 0.7$ above dose 1, while dose level 3 has a marginal effect of only $1.5 - 1.2 = 0.3$ above dose 2. The discrete ACR is decreasing in the dose, a classic diminishing-returns pattern.
+
+Now estimate the dose-specific ATT vector by running one 2x2 DiD per dose level against the never-treated:
+
+```{r contdid-stratified}
+att_by_dose <- lapply(setdiff(groups, 0), function(k) {
+  sub <- panel %>%
+    filter(dose_group %in% c(0, k)) %>%
+    mutate(
+      treated = as.integer(dose_group == k),
+      post    = as.integer(time == 1),
+      did     = treated * post
+    )
+  fit <- feols(Y ~ did | unit + time, data = sub)
+  est <- unname(coef(fit)["did"])
+  se  <- unname(sqrt(diag(vcov(fit)))["did"])
+  data.frame(
+    dose     = k,
+    att_hat  = est,
+    se       = se,
+    ci_lo    = est - 1.96 * se,
+    ci_hi    = est + 1.96 * se,
+    att_true = true_att[k + 1]
+  )
+}) %>% bind_rows()
+
+att_by_dose
+```
+
+The table reports, for each discrete dose, the estimated ATT, its standard error, a 95% confidence interval, and the true ATT used to simulate the data. Compare the `att_hat` column to `att_true`: the stratified DiD recovers the dose-specific level effects without bias because each comparison is a clean 2x2 against the never-treated under satisfied parallel trends. The discrete ACR is the first difference of the `att_hat` column moving from one dose to the next.
+
+Plotting the dose-response gives the headline figure:
+
+```{r contdid-stratified-plot, fig.cap="Discrete-dose ATT estimates from stratified 2x2 DiDs against the never-treated. Points are estimates, vertical lines are 95% CIs, dashed line is the true dose-response used in the simulation. The recovered curve is concave in the dose, mirroring the simulated diminishing-returns pattern.", fig.width=6, fig.height=4}
+ggplot(att_by_dose, aes(x = dose, y = att_hat)) +
+  geom_pointrange(aes(ymin = ci_lo, ymax = ci_hi)) +
+  geom_line(aes(y = att_true), linetype = "dashed", color = "red") +
+  scale_x_continuous(breaks = 1:3) +
+  labs(x = "Dose level (k)",
+       y = "ATT(d_k): estimated level effect",
+       title = "Dose-response from stratified DiD",
+       subtitle = "Points + 95% CIs; dashed red line is the true ATT") +
+  theme_minimal()
+```
+
+The figure makes the substantive story immediate: most of the gain from the program is realized at dose level 2, and the marginal benefit from moving to dose level 3 is much smaller. A reviewer who looked at a single TWFE coefficient on a continuous version of the dose would have averaged this concave pattern into a single slope and missed the diminishing-returns story.
+
+The same logic generalizes to staggered adoption with discrete doses by replacing the single 2x2 with a group-time ATT estimator [@callaway2021difference], computed separately for each dose group. We turn to the production-package implementation next.
+
+##### Production: `did` for multi-valued discrete-dose DiD
+
+The published `did` package by @callaway2021difference handles staggered adoption with binary treatment and extends to the discrete-multi-valued case by treating each dose group as its own cohort. The aggregation step then reports either dose-specific ATTs or a pooled effect.
+
+```{r did-multivalued, eval=FALSE}
+# install.packages("did")  # CRAN, Callaway and Sant'Anna
+library(did)
+
+# Cast the dose group as the cohort variable. The package expects an
+# integer "G" indicating period of first treatment; we encode the dose
+# group by interacting it with the actual first-treatment period.
+panel_did <- panel %>%
+  group_by(unit) %>%
+  mutate(first_treat = ifelse(dose_group == 0, 0,
+                              min(time[treat_post == 1], default = 0))) %>%
+  ungroup()
+
+att_did <- att_gt(
+  yname  = "Y",
+  tname  = "time",
+  idname = "unit",
+  gname  = "first_treat",
+  data   = panel_did,
+  control_group = "nevertreated",
+  est_method    = "dr"  # doubly robust estimator
+)
+summary(att_did)
+ggdid(att_did)
+```
+
+The `summary()` output is a table with one row per (cohort, time-period) pair, reporting the estimated $ATT(g, t)$, its standard error, and a 95% confidence interval. With three dose groups and two time periods, you get three estimates: one ATT per dose level at the post-period. The `ggdid()` figure renders each cohort's path in its own panel; for the discrete-dose application the cohorts are the dose groups, so the panels read off the dose-response directly.
+
+##### Production: `contdid` for the continuous case
+
+When the dose is genuinely continuous (or has too many discrete levels to stratify), the `contdid` CRAN package by Callaway, Goodman-Bacon, and Sant'Anna implements the B-spline nonparametric estimator that targets either $ATT(d, t)$ or $ACRT(d, t)$ directly. The methodological paper backing the implementation is still circulating as a working paper; the published @callaway2024event covers the event-study extension and is the journal-cited reference for that part of the framework.
+
+```{r contdid-package, eval=FALSE}
+# install.packages("contdid")  # CRAN, Callaway, Goodman-Bacon, Sant'Anna
+library(contdid)
+
+# Generate the package's built-in simulated panel.
+df_cont <- simulate_contdid_data(
+  n = 5000,
+  num_time_periods = 4,
+  num_groups       = 4
+)
+
+# Estimate ATT(d), the level effect curve, with a uniform CB.
+att_d <- cont_did(
+  yname            = "Y",
+  tname            = "time_period",
+  idname           = "id",
+  dname            = "D",
+  gname            = "G",
+  data             = df_cont,
+  target_parameter = "level",
+  aggregation      = "dose",
+  treatment_type   = "continuous",
+  control_group    = "notyettreated",
+  biters           = 1000,
+  cband            = TRUE
+)
+summary(att_d)
+ggcont_did(att_d) +
+  labs(x = "Dose D", y = "ATT(d)",
+       title = "Level dose-response from contdid",
+       subtitle = "Uniform 95% CB via multiplier bootstrap")
+```
+
+The `summary(att_d)` output reports the estimated $ATT(d)$ on a fine grid of dose values, the uniform-band lower and upper limits at each grid point, and an overall test of the joint null that $ATT(d) = 0$ for all $d$. The `ggcont_did()` figure plots the curve with the uniform band shaded; the right way to read it is to scan for the dose range over which the band excludes zero (the doses for which the level effect is statistically distinguishable from zero) and to read the shape (monotone increasing, concave, threshold) rather than any single point estimate.
+
+To recover the ACRT slope curve, change `target_parameter = "slope"`. To trace the dynamic path, change `aggregation = "eventstudy"`. Both are one-argument changes:
+
+```{r contdid-acrt-package, eval=FALSE}
+acrt_d <- cont_did(
+  yname = "Y", tname = "time_period", idname = "id",
+  dname = "D", gname = "G", data = df_cont,
+  target_parameter = "slope",     # ACRT(d) instead of ATT(d)
+  aggregation      = "dose",
+  treatment_type   = "continuous",
+  control_group    = "notyettreated",
+  biters = 1000, cband = TRUE
+)
+summary(acrt_d)
+ggcont_did(acrt_d) +
+  labs(x = "Dose D", y = "ACRT(d)",
+       title = "Marginal-effect dose-response from contdid")
+```
+
+The `summary(acrt_d)` table mirrors the level-effect table but reports the derivative of the dose-response (the marginal effect of one more unit of dose) at each grid point. A positive but declining ACRT curve is the signature of a concave dose-response; a curve that crosses zero is the signature of a non-monotone response. Comparing the level and slope figures together is the standard reporting style for a continuous-DiD analysis.
+
+------------------------------------------------------------------------
+
+#### Diagnostics and Sensitivity
+
+Three routine checks should accompany any continuous-DiD estimate, in addition to the pre-trend tests carried over from the binary case.
+
+The first is a **dose common-support diagnostic**. Plot the empirical density of the dose among the treated and check that the range over which $ATT(d, t)$ is estimated is well populated. The B-spline smoother will happily extrapolate into thin regions, but the resulting estimates have little to do with the data. The diagnostic plot is one line of `ggplot`:
+
+```{r contdid-support, fig.cap="Common-support diagnostic. Density of the dose among the treated, with a rug of individual observations. The dose-response is identified only over the range where the density is non-negligible; estimates outside that range are smoother-driven extrapolation, not data.", fig.width=6, fig.height=3.5}
+panel %>%
+  filter(dose_group > 0) %>%
+  mutate(dose_value = dose_group) %>%
+  ggplot(aes(x = dose_value)) +
+  geom_bar(width = 0.4, fill = "grey70") +
+  labs(x = "Dose level among treated", y = "Count",
+       title = "Common-support diagnostic for the dose distribution") +
+  theme_minimal()
+```
+
+In the discrete-dose simulation above the support is balanced by construction (1000 units per dose level), so the diagnostic is trivially satisfied; in a real application the histogram or density would typically be far from uniform and the analyst should restrict the reported dose-response curve to doses that are well represented in the data.
+
+The second is a **placebo dose specification**. Re-run the estimation, but pretend treatment occurred one period earlier than it actually did. A non-zero estimated dose-response in the placebo is evidence of pre-trends that vary with dose, which directly violates the parallel-trends assumption in its continuous-treatment form. The placebo is sharper than the standard scalar pre-trend test because it reveals whether the violation of parallel trends is itself dose-dependent.
+
+The third is a **weak-vs-strong PT comparison**. Estimate the dose-response under both the weak-parallel-trends assumption (which identifies ACRT) and the strong-parallel-trends assumption (which identifies ACR). A small gap between the two curves is consistent with negligible selection-on-gains; a large gap is direct empirical evidence that the population-level interpretation of ACR rests on an assumption that the data are not willing to make. Reporting both curves, with a clear statement of which one the headline result corresponds to, is the conservative default.
+
+------------------------------------------------------------------------
+
+#### Empirical Applications
+
+Two published applications illustrate the design pattern in different domains.
+
+@acemoglu2016import study the employment consequences of the rise in Chinese import competition in the United States in the 2000s. The treatment is a continuous measure of local-labor-market exposure to Chinese imports, constructed from pre-period industry shares interacted with national import-penetration changes. The dose varies smoothly across commuting zones, and the natural deliverable is the dose-response of local employment to a one-unit increase in exposure. The original paper uses a Bartik-style shift-share instrumental-variables specification layered on a long-difference design; the same data could be re-analyzed in the continuous-DiD framework to recover a non-parametric dose-response curve and check that the structural-IV linear specification is consistent with what a flexible estimator finds.
+
+@cengiz2019effect estimate the effect of minimum-wage increases on the number of low-wage jobs. The treatment is a continuous wage floor that varies across states and years, with substantial heterogeneity in the size of the bite. The analysis is structured as a bunching design (counting jobs disappearing from below the new floor and reappearing above it), which is conceptually adjacent to a dose-response but reports a different estimand. A continuous-DiD analysis on the same panel would directly trace out how employment effects scale with the magnitude of the minimum-wage change, with the dose interpreted either as the level of the new minimum wage or as the size of the increase relative to the prevailing market wage.
+
+In both cases the substantive payoff of the continuous framework is the ability to detect non-linearities in the dose-response that a binary specification would average away: a tariff exposure that bites hardest in the middle of its range, a minimum-wage increase whose employment cost rises faster than linearly past a threshold.
+
+------------------------------------------------------------------------
+
+#### When to Use Continuous-Treatment DiD
+
+The continuous-treatment DiD framework is the right tool when the substantive question concerns the *shape* of a dose-response, not merely the average effect of being treated. It is also the right tool when dose heterogeneity is large enough that an average-of-treated-effects estimate would conflate compositional and behavioral channels. The price of moving to the dose-response framework is paid in three places: data requirements (one needs enough variation in the dose to identify the curve), assumption strength (one must choose between the weak and strong forms of parallel trends and live with the implications of each), and inference complexity (uniform confidence bands and bootstrap iterations replace the simple standard errors of the binary case).
+
+When the dose is naturally discrete with a small number of levels, the [multi-valued DiD](#sec-multivalued-did) framework is a strict improvement over both the binary and the smooth-continuous alternatives: it preserves the dose information, makes the dose-specific ATTs visible, and avoids the implicit smoothing assumptions that a continuous estimator imposes. When the dose is genuinely continuous, the continuous-treatment estimators are the right choice, but the analyst should report the diagnostic comparison with a discretized version of the same data as a robustness check on the smoothing assumptions.
+
+Several alternative designs cover related but distinct questions. The shift-share / Bartik design handles continuous local-labor-market exposure under a structural identification argument that is complementary to the parallel-trends argument used here; in many applications both are reported as robustness checks on each other. The [generalized synthetic control](#sec-generalized-synthetic-control) and [matrix completion estimator](#sec-matrix-completion-estimator) target the same panel structure but with a factor-model identification strategy that does not require a dose-response framing. The [matching-based GPS dose-response analysis](#sec-gps-continuous) in the [matching chapter](#sec-matching-methods) handles cross-sectional dose-response without a panel, at the cost of a stronger conditional-unconfoundedness assumption. The choice among these designs is the same kind of choice the analyst faces in the binary case: which set of assumptions is least uncomfortable in this dataset, and which estimand is closest to the substantive question.
