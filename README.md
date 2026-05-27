@@ -74,7 +74,7 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 
 21. Experimental Design
 22. Sampling
-23. Survey Reliability and Response Stability
+23. Survey and Response Quality
 24. Analysis of Variance
 25. Multivariate Methods
 
