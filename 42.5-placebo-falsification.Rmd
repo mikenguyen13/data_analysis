@@ -1,0 +1,81 @@
+## Placebo, Falsification, and Negative-Control Tests {#sec-placebo-falsification}
+
+The sensitivity analyses discussed earlier in this chapter ask how strong an unobserved confounder would have to be before it overturned a result. Placebo and falsification tests ask a complementary question. Instead of quantifying the bias an unmeasured confounder could produce, they look for the footprints such a confounder should leave if it were present. The logic is indirect but powerful. If the identifying assumptions of a study hold, then certain quantities that the analyst can estimate ought to be zero. When those quantities turn out to be large and statistically distinguishable from zero, the design is telling us that something other than the treatment is driving the data.
+
+Researchers use many names for this family of checks, including balance tests, falsification tests, refutability tests, tests for known effects, tests of unconfoundedness, and tests with negative controls. The shared idea is that we construct a setting in which we already know what the answer should be, run the estimator, and see whether it returns that known answer. A placebo test is therefore a deliberate attempt to make the design fail. Passing the test does not prove that the identifying assumptions hold, since no finite set of falsification checks can verify an untestable assumption such as unconfoundedness. Failing the test, by contrast, is informative in the way that a refuted prediction is informative in any empirical science. A significant placebo effect is evidence that the study design has a problem, even when we cannot say exactly which assumption has broken.
+
+### Two Complementary Designs
+
+There are two broad ways to construct a quantity that should be zero, and they correspond to the two columns of a study, the treatment and the outcome.
+
+The first design estimates the causal effect of a treatment that is already understood to have no impact on the outcome of interest. We replace the real treatment with a fake or placebo treatment, run the same estimator, and check that the estimated effect is null. The replacement can be a unit that was never exposed but is analyzed as if it had been, a time period before the policy took effect, or a group that the mechanism could not plausibly reach. In a difference in differences study, for example, assigning a placebo intervention date that precedes the actual policy change should yield no effect if the parallel trends assumption holds, because nothing happened at the placebo date. A nonzero placebo estimate signals that treated and control groups were already diverging for reasons unrelated to the policy.
+
+The second design estimates the causal effect of the real treatment on an outcome that is known to be unaffected by it. Here the treatment is genuine, but the dependent variable is chosen because no causal pathway connects it to the treatment. If the treatment nonetheless appears to move this placebo outcome, the apparent association cannot be causal and must instead reflect confounding, selection, or some other artifact of the design. A classic instance is checking whether a treatment predicts an outcome measured before the treatment was assigned. Since the future cannot cause the past, any such association is spurious by construction and reveals a flaw in the comparison.
+
+Both strategies rest on the same statistical foundation. Each evaluates the null hypothesis that the relevant average causal effect equals zero, and each treats a rejection of that null as a warning rather than as a finding to be celebrated. The interpretive direction is reversed relative to ordinary hypothesis testing. In a placebo test we hope to fail to reject the null, because the null is what the valid design predicts.
+
+### Negative Controls
+
+The negative-control framework, articulated for observational epidemiology by @lipsitch2010negative, gives these ideas a precise vocabulary and a clear causal-diagram interpretation. A negative control is a variable known a priori to have no causal relationship with either the exposure or the outcome through the pathway under study, yet to share the same sources of confounding as the primary analysis. Because it shares the confounding structure but not the causal effect, the negative control isolates bias. If the analysis is unconfounded, the estimated negative-control association should be null. If confounding is present, it should bleed into the negative-control estimate, and its magnitude offers a direct, observable signal of the bias that we otherwise could only bound through sensitivity analysis.
+
+@lipsitch2010negative distinguish two types. A negative-control outcome is a response variable that the exposure cannot affect but that is subject to the same confounders as the true outcome. Detecting an exposure effect on such an outcome implies residual confounding or selection bias. A negative-control exposure is a treatment that cannot affect the outcome but that is associated with the same confounders as the true exposure. Detecting an effect of the negative-control exposure on the outcome again implies that the comparison is contaminated. The well-known observation that influenza vaccination appeared to reduce mortality during periods when influenza was not circulating is a canonical negative-control finding. Because the vaccine could not prevent deaths in the absence of influenza, the apparent protective effect exposed healthy-vaccinee selection, with healthier people both more likely to be vaccinated and less likely to die.
+
+A useful way to read a negative control is through the same causal graph that motivates the main analysis. The control is chosen so that the only open path between it and the comparison variable runs through the suspected confounders. With the causal arrow severed by design, any remaining association must travel along the backdoor path, so the negative-control estimate measures the backdoor association alone. This logic connects placebo testing to the broader literature on confounding bias and underpins the proximal causal inference methods that use negative controls not merely to detect bias but to correct for it, as developed by @miao2018identifying and surveyed by @tchetgen2024proximal.
+
+### The Rosenbaum Tradition
+
+The use of known effects to probe a design has a long history in observational study practice. @rosenbaum2002overt frames falsification through the related notions of known effects and pattern specificity. If a treatment is believed to operate through a specific mechanism, then it should affect outcomes that lie on the mechanism's pathway while leaving outcomes off that pathway untouched. Observing the predicted pattern of present and absent effects, rather than a diffuse association with everything, strengthens a causal claim, because confounding tends to produce broad rather than narrowly targeted associations. A confounder that raises one outcome usually raises many, so a treatment that moves only the theoretically predicted outcome is harder to explain away as confounding.
+
+Rosenbaum also emphasizes that a single comparison rarely settles a causal question, and that elaborate theories with multiple testable implications are more credible precisely because they expose the design to more opportunities to fail. A negative-control outcome is one such implication. So is the requirement that the treatment effect be absent in a subgroup that the mechanism cannot reach, or that a dose-response relationship appear where the theory predicts one. Each falsification check that the design survives makes the alternative explanation, that confounding rather than treatment produced the result, less tenable, even though no check can ever rule it out entirely.
+
+### Worked Logic
+
+A simple simulation makes the reasoning concrete. We generate a confounded observational data set in which a confounder raises both the probability of treatment and the level of two outcomes. The first outcome is the real outcome of interest. The second is a negative-control outcome, constructed so that the treatment has no causal effect on it, yet it responds to the same confounder. A naive comparison of treated and untreated units will find a spurious effect on the negative-control outcome, and that spurious effect is the visible signature of the confounding that also biases the estimate on the real outcome.
+
+```{r, eval = FALSE}
+set.seed(42)
+n <- 5000
+
+# A single confounder drives both treatment and both outcomes
+U <- rnorm(n)
+
+# Treatment is more likely when the confounder is high
+treat <- rbinom(n, 1, plogis(0.9 * U))
+
+# Real outcome: treatment has a genuine effect of 1.5, plus confounding
+y_real <- 1.5 * treat + 2.0 * U + rnorm(n)
+
+# Negative-control outcome: treatment has NO effect, but shares the confounder
+y_placebo <- 0.0 * treat + 2.0 * U + rnorm(n)
+
+# Naive comparisons ignoring the confounder
+real_effect <- coef(lm(y_real ~ treat))["treat"]
+placebo_effect <- coef(lm(y_placebo ~ treat))["treat"]
+
+real_effect      # biased upward, well above the true 1.5
+placebo_effect   # should be 0 by construction, but appears positive
+```
+
+The naive estimate on the real outcome exceeds its true value of 1.5 because the confounder inflates it. The naive estimate on the negative-control outcome is positive even though the true effect is exactly zero. That nonzero placebo estimate is the falsification test firing. It tells us, without any knowledge of the true parameter, that the design is confounded and that the estimate on the real outcome cannot be trusted at face value. An analyst who then conditions on the confounder, where it is observed, would see both estimates move toward their correct values, with the placebo estimate collapsing toward zero. The placebo test thus doubles as a diagnostic for whether a proposed adjustment strategy has succeeded.
+
+### Implementation Across Designs
+
+Placebo and falsification tests adapt naturally to the major identification strategies, and each strategy suggests its own characteristic version of the test.
+
+In matching and propensity-score studies, the most familiar falsification check is balance assessment. After matching, covariates that predate treatment should be distributed similarly across treated and control groups, because a valid matching procedure has removed their association with treatment. Standardized mean differences that remain large after matching indicate that the matching has failed to reproduce a randomized comparison. A complementary check estimates the treatment effect on a pretreatment outcome, which by temporal logic must be zero.
+
+In difference in differences and event-study designs, the leading falsification test examines pretreatment periods. The coefficients on lead indicators, which capture differences between treated and control units before treatment begins, should be statistically indistinguishable from zero if the parallel trends assumption holds. Significant pretrends are the canonical placebo failure for these designs, signaling that the groups were already on diverging paths.
+
+In regression discontinuity designs, falsification takes two forms. Covariates measured before the running variable was realized should be continuous at the cutoff, since units just above and just below the threshold should be comparable. A jump in a predetermined covariate at the cutoff suggests sorting or manipulation. Analysts also estimate the treatment effect at placebo cutoffs away from the true threshold, where no discontinuity should appear.
+
+In instrumental-variables analyses, a falsification test checks whether the instrument predicts outcomes among subpopulations for whom the instrument cannot operate through the treatment channel, or whether it predicts predetermined covariates. An instrument correlated with pretreatment characteristics casts doubt on the exclusion restriction and on the assumption that the instrument is as good as randomly assigned.
+
+### Pitfalls and Interpretation
+
+Placebo tests are diagnostic tools, not proofs, and several cautions govern their use. The most important is the asymmetry of evidence already noted. Passing a falsification test cannot establish that the identifying assumption holds, because the assumption is fundamentally untestable and a finite battery of placebos can only probe particular violations. A clean placebo result raises confidence without conferring certainty. The strength of the evidence depends on how stringent the test was and on how plausibly a confounder that biased the main estimate would also have moved the placebo quantity.
+
+A second pitfall is the power of the test. A placebo test that fails to reject the null may do so because the design is sound or merely because the test had too little power to detect a real problem. A negative-control outcome measured with heavy noise, or a placebo comparison based on a tiny subsample, can pass simply because the standard errors are large. Reporting the precision of a placebo estimate, and not only its statistical significance, is therefore essential. A tightly estimated zero is reassuring, while a wide confidence interval centered on zero is nearly uninformative. For the same reason, equivalence testing, which asks whether a placebo effect is small enough to be deemed negligible rather than merely insignificant, is often more appropriate than a conventional test against a point null.
+
+A third concern is the validity of the negative control itself. The entire argument depends on the control sharing the confounding structure of the primary analysis while having no causal link to the comparison variable. If the chosen control is in fact affected by the treatment through an unrecognized pathway, then a nonzero estimate is not evidence of confounding but of a real effect, and the test misleads. Conversely, if the control does not share the relevant confounders, a null result provides no reassurance about the main analysis, because there was never any bias for the control to detect. Choosing negative controls is therefore a substantive exercise in subject-matter reasoning rather than a mechanical one, and the credibility of the test rests on the credibility of those judgments.
+
+Finally, multiplicity deserves attention. Researchers often run many falsification checks, and with enough of them some will reject by chance even in a perfectly valid design. The remedy is to specify the falsification tests in advance, to interpret the full pattern of results rather than cherry-picking the comforting ones, and to treat a single isolated rejection among many tests differently from a coherent pattern of failures. Used in this disciplined way, placebo and negative-control tests are among the most credible tools available for stress-testing a causal claim, precisely because they make the design vulnerable to refutation.

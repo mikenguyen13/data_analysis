@@ -1,0 +1,123 @@
+## Bayesian Difference-in-Differences {#sec-bayesian-did}
+
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
+
+The standard [Difference-in-Differences](#sec-difference-in-differences) estimator is a frequentist device. It produces a point estimate of the treatment effect, an estimated standard error, and a confidence interval whose coverage is justified by appeals to repeated sampling. This machinery works well when the panel is large, the treatment timing is common, and the analyst is content to report a single number with an interval around it. The Bayesian formulation of DiD keeps the identifying logic intact, the same parallel-trends reasoning underwrites the design, but replaces the inferential apparatus with a posterior distribution over the quantities of interest. Instead of a point estimate and a standard error, the analyst obtains a full distribution for the average treatment effect on the treated, for any cohort-specific or period-specific effect, and for any function of these that a decision maker might care about.
+
+This reframing pays off in three situations that recur in applied work. When the panel is small, so that asymptotic normal approximations are unreliable, the posterior propagates finite-sample uncertainty honestly rather than relying on a sandwich estimator whose justification is asymptotic. When effects are heterogeneous across many cohorts or units, partial pooling shares information across them in a way that disciplines noisy cohort-level estimates without forcing them to a common value. And when the analyst must feed the treatment effect into a downstream decision, an inventory choice, a pricing rule, a regulatory cost-benefit calculation, the posterior delivers exactly the object that decision theory requires, namely a probability distribution over the unknown effect that can be integrated against a loss function.
+
+### From the two-way fixed-effects regression to a probability model
+
+Recall the canonical regression form of DiD with a single treatment onset. For unit $i$ observed in period $t$,
+
+$$
+Y_{it} \;=\; \alpha_i \;+\; \gamma_t \;+\; \tau\, W_{it} \;+\; \varepsilon_{it},
+$$
+
+where $\alpha_i$ is a unit fixed effect, $\gamma_t$ is a period fixed effect, $W_{it}$ indicates active treatment, and $\tau$ is the treatment effect. Frequentist DiD estimates this by least squares and treats $\tau$ as a fixed unknown constant.
+
+The Bayesian version writes the same mean structure but completes it into a generative probability model by specifying a sampling distribution for the outcome and prior distributions for every parameter. A typical specification is
+
+$$
+\begin{aligned}
+Y_{it} \mid \alpha_i, \gamma_t, \tau &\;\sim\; \mathcal{N}\!\bigl(\alpha_i + \gamma_t + \tau\, W_{it},\; \sigma^2\bigr), \\
+\alpha_i &\;\sim\; \mathcal{N}\!\bigl(\mu_\alpha,\; \sigma_\alpha^2\bigr), \\
+\gamma_t &\;\sim\; \mathcal{N}\!\bigl(\mu_\gamma,\; \sigma_\gamma^2\bigr), \\
+\tau &\;\sim\; \mathcal{N}\!\bigl(0,\; \sigma_\tau^2\bigr),
+\end{aligned}
+$$
+
+with weakly informative hyperpriors on the variance components such as half-normal or half-Student-t distributions on $\sigma$, $\sigma_\alpha$, $\sigma_\gamma$ [@gelman2006prior]. Two features distinguish this from the frequentist regression. First, the unit and period effects are now drawn from common distributions rather than being free parameters; this is the random-effects or partial-pooling structure that the Bayesian framework handles naturally. Second, the treatment effect $\tau$ carries its own prior, which the analyst chooses to reflect substantive knowledge about plausible effect magnitudes.
+
+Inference targets the posterior distribution
+
+$$
+p\bigl(\tau, \boldsymbol{\alpha}, \boldsymbol{\gamma}, \sigma, \ldots \mid \mathbf{Y}\bigr)
+\;\propto\;
+p\bigl(\mathbf{Y} \mid \tau, \boldsymbol{\alpha}, \boldsymbol{\gamma}, \sigma\bigr)\,
+p(\tau)\, p(\boldsymbol{\alpha})\, p(\boldsymbol{\gamma})\, p(\sigma)\, \cdots,
+$$
+
+which is summarized by drawing samples through Hamiltonian Monte Carlo [@gelman2013bayesian]. From those draws, the posterior for $\tau$ alone is obtained by marginalizing over the nuisance parameters, which Monte Carlo accomplishes simply by ignoring the other coordinates of each draw.
+
+### Priors on treatment effects
+
+The prior on $\tau$ is the most visible modeling choice, and it deserves care rather than reflexive vagueness. A flat or extremely diffuse prior reproduces the frequentist point estimate in large samples but offers no regularization when data are thin and can place substantial prior mass on absurd effect sizes. A weakly informative prior, by contrast, encodes the order of magnitude that the outcome scale permits, a treatment that doubles sales is plausible, one that multiplies them by a thousand is not, without committing to a particular value.
+
+For continuous outcomes measured on a standardized scale, a normal prior centered at zero with a standard deviation chosen to span the range of credible effects is a common default. Centering at zero is not an assertion that the effect is zero; it expresses the prior judgment that small effects are more likely than large ones and lets the data move the posterior away from zero when the evidence warrants. When prior studies or a meta-analysis supply a credible range for the effect, that information can be encoded directly in the prior, which is one of the clearest advantages of the Bayesian approach over an analysis that discards such evidence. The sensitivity of conclusions to the prior should always be reported, ideally by re-running the model under a small set of defensible priors and showing that the substantive conclusion is stable, or by being explicit about where it is not.
+
+### Partial pooling for heterogeneous and staggered effects
+
+The setting where the Bayesian framework earns its keep is the modern staggered-adoption design, where units adopt treatment at different times and the effect may differ by adoption cohort and by time since adoption. The frequentist literature has documented that the naive two-way fixed-effects regression delivers a treatment-effect estimate that is a weighted average of cohort-by-period effects with weights that can be negative, producing estimates that need not lie in the convex hull of the underlying effects [@goodman2021difference; @sun2021estimating; @callaway2021difference]. The recommended frequentist remedy is to estimate each cohort-by-period effect separately and then aggregate with sensible nonnegative weights.
+
+The Bayesian analogue estimates the disaggregated effects but adds a hierarchical layer that pools them. Let $\tau_{g,e}$ denote the effect for cohort $g$ (the group that adopts in period $g$) at event time $e$ (periods since adoption). A hierarchical model writes
+
+$$
+\begin{aligned}
+\tau_{g,e} &\;\sim\; \mathcal{N}\!\bigl(\theta_e,\; \omega^2\bigr), \\
+\theta_e &\;\sim\; \mathcal{N}\!\bigl(\mu_\theta,\; \kappa^2\bigr),
+\end{aligned}
+$$
+
+so that each cohort's effect at event time $e$ is shrunk toward a common event-time profile $\theta_e$, and the profile itself is regularized. The degree of shrinkage is not chosen by the analyst but learned from the data through the posterior for $\omega$: when the cohort effects are similar, $\omega$ is estimated small and the model pools aggressively; when they genuinely differ, $\omega$ is large and the model lets each cohort speak for itself. This adaptive pooling is the central practical benefit. Cohorts with few treated units, which would yield hopelessly noisy standalone estimates, borrow strength from better-identified cohorts, while cohorts with abundant data are barely shrunk. The same logic underlies the broader literature on hierarchical Bayesian models in panel and small-area settings [@gelman2006data].
+
+Once the posterior for the full set of $\tau_{g,e}$ is in hand, any aggregate of interest is a deterministic function of the draws and inherits a posterior automatically. The overall average treatment effect on the treated is a cohort-size-weighted average of the relevant $\tau_{g,e}$; its posterior is obtained by computing that weighted average within each Monte Carlo draw. Event-study coefficients, the average effect over a horizon, and the difference between early and late adopters are all handled the same way, with no separate delta-method or bootstrap step required.
+
+### Posterior inference and credible intervals
+
+The output of the analysis is a set of posterior draws for every parameter and for every derived quantity. Reporting proceeds by summarizing these draws. The posterior mean or median of $\tau$ serves as a point summary, and a credible interval, for instance the central interval spanning the 2.5th to 97.5th posterior percentiles, communicates uncertainty. A 95 percent credible interval has the interpretation that practitioners often wrongly attach to a confidence interval, namely that, conditional on the model and prior, there is a 95 percent posterior probability that the effect lies in the interval. Because the interval is read off the posterior directly, it requires no appeal to asymptotic normality and remains valid in small samples where a normal-approximation confidence interval would mislead.
+
+The posterior also answers questions that a confidence interval cannot pose. The posterior probability that the effect exceeds a managerially relevant threshold, the probability that early adopters benefited more than late adopters, or the probability that the effect is positive in at least one cohort are each computed as the fraction of draws satisfying the condition. These probability statements map cleanly onto the decisions that motivate most applied DiD studies.
+
+Model adequacy is assessed through posterior predictive checks, simulating replicated datasets from the fitted model and comparing them to the observed data, and through convergence diagnostics for the sampler such as the potential scale reduction factor and effective sample size [@gelman2013bayesian]. For DiD specifically, the pre-treatment fit deserves scrutiny: the model's implied pre-treatment trajectories for treated and control units should track the data, since a model that misfits the pre-period offers no reason to trust its counterfactual in the post-period. This is the Bayesian counterpart of the pre-trends check that disciplines any DiD analysis.
+
+### Advantages and costs
+
+The advantages cluster around three themes. First, uncertainty is represented coherently and completely: every quantity, no matter how complicated a function of the parameters, comes with a posterior, and finite-sample uncertainty is propagated without asymptotic approximation. Second, the hierarchical structure is a natural fit for staggered and heterogeneous designs, delivering adaptive partial pooling that stabilizes noisy cohort-level estimates while letting genuine heterogeneity surface. Third, prior information, whether from earlier studies, a meta-analysis, or domain expertise, can be incorporated transparently rather than discarded, which is especially valuable when the panel is short.
+
+These benefits are not free. The analyst must specify priors and defend them, the computation through Markov chain Monte Carlo is heavier than a single regression and requires convergence checks, and the inferences are conditional on the model in a way that places the burden on careful model checking. The Bayesian and frequentist analyses typically agree when data are abundant and priors are weak; they diverge, and the Bayesian treatment tends to be more honest, precisely in the small-sample and many-cohort regimes where the asymptotic frequentist story is least credible.
+
+### Implementation
+
+The `brms` package provides a formula interface to Stan that expresses these models compactly [@burkner2017brms], while `rstanarm` offers precompiled models for common cases [@goodrich2020rstanarm]. The chunk below sketches a hierarchical staggered-DiD specification; it is not evaluated here because it requires a compiled Stan toolchain and a fitted panel.
+
+```{r, eval = FALSE}
+library(brms)
+
+# panel: outcome y, unit id, period t, cohort g, event time e (NA pre-treatment),
+# treatment indicator w (1 when actively treated)
+
+# Two-way fixed effects with a single treatment effect and weakly informative priors
+fit_simple <- brm(
+    y ~ w + (1 | id) + (1 | t),
+    data   = panel,
+    prior  = c(
+        prior(normal(0, 1),       class = "b",  coef = "w"),
+        prior(student_t(3, 0, 2), class = "sd"),
+        prior(student_t(3, 0, 2), class = "sigma")
+    ),
+    chains = 4, cores = 4, iter = 2000, seed = 1
+)
+
+# Hierarchical staggered design: cohort-by-event-time effects pooled toward an
+# event-time profile via a varying-slope term over event time within cohort
+fit_staggered <- brm(
+    y ~ 1 + (1 | id) + (1 | t) + (1 + factor(e) | g),
+    data   = subset(panel, !is.na(e)),
+    prior  = c(
+        prior(student_t(3, 0, 2), class = "sd"),
+        prior(student_t(3, 0, 2), class = "sigma")
+    ),
+    chains = 4, cores = 4, iter = 2000, seed = 1
+)
+
+# Posterior summaries and a credible interval for the treatment effect
+summary(fit_simple)
+posterior_interval(fit_simple, pars = "b_w", prob = 0.95)
+
+# Posterior probability that the effect exceeds a decision threshold
+draws <- as_draws_df(fit_simple)
+mean(draws$b_w > 0.10)
+```
+
+The first model recovers a single treatment effect with partial pooling on the unit and period intercepts. The second lets each cohort carry its own event-time profile while shrinking those profiles toward a common shape, which is the disaggregate-then-pool strategy that the staggered-DiD literature recommends, implemented in one coherent probability model.

@@ -1,0 +1,129 @@
+# Structural Econometrics and Demand Estimation {#sec-structural-io}
+
+This chapter sits in a small cluster of specialized, structural methods that estimate the deep economic primitives behind observed data rather than describing reduced-form associations. Alongside the companion chapter on frontier and efficiency analysis, which recovers a firm's production technology and its distance from the efficient frontier, this chapter recovers consumer preferences and firm costs from market outcomes. The unifying idea is that an explicit economic model, taken seriously as a set of restrictions on the data-generating process, lets us answer counterfactual questions that no purely descriptive regression can.
+
+## What "Structural" Means
+
+A reduced-form analysis asks how an outcome moves with a covariate, holding the rest of the world fixed in a statistical sense. A structural analysis instead posits a model of optimizing agents, consumers maximizing utility and firms maximizing profit, and estimates the parameters of that model, the preference and cost primitives, directly. The payoff is that once the primitives are in hand the analyst can simulate counterfactuals that were never observed: a merger between two firms, the removal of a product, a new tax, or a change in market structure. The cost is that the answers are only as credible as the model and its identifying assumptions [@reiss2011structural].
+
+The trade-off is sharp. Reduced-form work buys credibility by leaning on a research design, a randomized experiment or a quasi-experiment, and refuses to extrapolate beyond it. Structural work buys generality by committing to a model, and accepts that misspecification of preferences or of firm conduct contaminates every counterfactual. Modern empirical industrial organization tries to get the best of both: estimate a flexible structural model, but discipline its parameters with credible exogenous variation, typically [instrumental variables](#sec-instrumental-variables) built from cost shifters or competitor characteristics. The remainder of this chapter develops that program for the central object of empirical industrial organization, demand for differentiated products.
+
+## Discrete-Choice Demand for Differentiated Products
+
+The modeling challenge is that markets such as automobiles, breakfast cereals, or smartphones contain dozens or hundreds of distinct products. A naive demand system with one own-price and many cross-price elasticities per product has far too many parameters to estimate from the data at hand. The discrete-choice approach solves the dimensionality problem by projecting products onto a low-dimensional space of characteristics and letting heterogeneous consumers choose the single product that maximizes their utility [@mcfadden1974conditional]. Demand for a product is then the integral over consumers of the probability that the product is the utility-maximizing choice, and a handful of taste parameters governs the entire matrix of elasticities. This is the same random-utility logic that underlies multinomial logit models of individual choice, now aggregated to market-level shares.
+
+### Logit Demand
+
+Index markets by $t = 1, \dots, T$ and products by $j = 1, \dots, J_t$, with $j = 0$ the outside option (not buying, or buying from outside the defined set). Consumer $i$ in market $t$ receives indirect utility from product $j$ of
+
+$$u_{ijt} = \delta_{jt} + \varepsilon_{ijt}, \qquad \delta_{jt} = x_{jt}'\beta - \alpha p_{jt} + \xi_{jt},$$
+
+where $x_{jt}$ collects observed product characteristics, $p_{jt}$ is price, and $\delta_{jt}$ is the mean utility common to all consumers. The term $\xi_{jt}$ is the unobserved (to the econometrician) product quality in market $t$, and it is the source of all the econometric difficulty below. When the idiosyncratic taste $\varepsilon_{ijt}$ is independent and identically distributed Type I extreme value across products and consumers, the choice probabilities take the closed-form multinomial logit shape, and the predicted market share of product $j$ is
+
+$$s_{jt} = \frac{\exp(\delta_{jt})}{1 + \sum_{k=1}^{J_t} \exp(\delta_{kt})},$$
+
+with the outside share $s_{0t} = 1 / (1 + \sum_k \exp(\delta_{kt}))$ normalized by setting $\delta_{0t} = 0$.
+
+The plain logit is transparent but carries a notorious defect, the independence of irrelevant alternatives. Because the ratio of any two shares depends only on those two products' utilities, cross-price elasticities depend only on market shares, not on whether products are close substitutes in characteristic space. A luxury sedan and an economy compact with the same share are predicted to draw equally from a third car, which is economically absurd. The substitution patterns are an artifact of the error distribution rather than of preferences.
+
+### Nested Logit Demand
+
+Nested logit relaxes the IIA restriction by grouping products into nests, for example body styles of cars or flavors of cereal, within which substitution is stronger than across nests. Utility gains a nest-specific common component, and the resulting aggregate share for product $j$ in nest $g$ can be written in the linear-in-shares form
+
+$$\ln s_{jt} - \ln s_{0t} = x_{jt}'\beta - \alpha p_{jt} + \sigma \ln s_{j|g,t} + \xi_{jt},$$
+
+where $s_{j|g,t}$ is the within-nest share and $\sigma \in [0,1)$ is the nesting parameter governing the correlation of tastes within a nest [@cardell1997variance]. As $\sigma \to 0$ the model collapses to plain logit; as $\sigma \to 1$ products within a nest become perfect substitutes. Nested logit allows richer and more sensible substitution, yet it still imposes IIA within nests and forces the analyst to choose the nesting structure in advance. The within-nest share $s_{j|g,t}$ is endogenous, since it is a function of $\xi_{jt}$, so it must be instrumented just like price.
+
+### The Berry Inversion
+
+Both logit and nested logit share a feature that makes estimation tractable at the market level: the mean utility $\delta_{jt}$ can be recovered analytically from observed shares. @berry1994estimating showed that the mapping from mean utilities to shares can be inverted, so that observed market shares deliver the unobserved $\delta_{jt}$ up to the model parameters. For plain logit the inversion is the simple log-share difference
+
+$$\delta_{jt} = \ln s_{jt} - \ln s_{0t},$$
+
+and for nested logit it adds the $\sigma \ln s_{j|g,t}$ term. The inversion is what turns a discrete-choice model into a linear instrumental-variables regression: the left side is computed from data, the right side is $x_{jt}'\beta - \alpha p_{jt} + \xi_{jt}$, and the structural error $\xi_{jt}$ is now isolated on one side ready for a moment condition. This inversion is the conceptual hinge of the entire literature, and its extension to richer models is the contribution of the next section.
+
+### The BLP Random-Coefficients Model
+
+The signal contribution of @berry1995automobile, universally abbreviated BLP, is to let the taste parameters vary across consumers so that substitution is driven by proximity in characteristic space rather than by shares alone. Consumer $i$ now has individual coefficients
+
+$$u_{ijt} = x_{jt}'\beta_i - \alpha_i p_{jt} + \xi_{jt} + \varepsilon_{ijt}, \qquad \beta_i = \beta + \Sigma \nu_i,$$
+
+where $\nu_i$ is a vector of unobserved consumer-level taste shocks (often standard normal) and $\Sigma$ collects the standard deviations of the random coefficients. Consumers who value, say, fuel economy highly substitute toward other fuel-efficient cars when one is removed, generating realistic, characteristic-driven cross-elasticities. The predicted share is now an integral over the distribution of consumer types,
+
+$$s_{jt}(\delta_t, \theta_2) = \int \frac{\exp\!\big(\delta_{jt} + \mu_{ijt}(\theta_2)\big)}{1 + \sum_{k} \exp\!\big(\delta_{kt} + \mu_{ikt}(\theta_2)\big)} \, dF(\nu_i),$$
+
+where $\mu_{ijt}$ collects the consumer-specific deviations governed by the nonlinear parameters $\theta_2 = (\Sigma, \dots)$, and the integral is approximated by simulation (Monte Carlo or quasi-random draws). The price of realism is that the share integral has no closed form, so the Berry inversion must now be done numerically: for any candidate $\theta_2$, solve the system $s_{jt}(\delta_t, \theta_2) = \mathcal{S}_{jt}$ for the vector $\delta_t$ that equates predicted to observed shares $\mathcal{S}_{jt}$. BLP show this can be done by a contraction mapping,
+
+$$\delta_t^{(h+1)} = \delta_t^{(h)} + \ln \mathcal{S}_t - \ln s_t\!\big(\delta_t^{(h)}, \theta_2\big),$$
+
+iterated to convergence at each evaluation of the objective function. The output is a value of $\delta_{jt}$ for every product and market, and from it the linear parameters and the structural error $\xi_{jt}(\theta) = \delta_{jt} - x_{jt}'\beta + \alpha p_{jt}$.
+
+Several practical refinements have become standard. Incorporating consumer demographics from auxiliary survey data lets the random coefficients interact with income or age, sharpening substitution patterns [@nevo2001measuring]. Numerical care matters: tight contraction tolerances, good starting values, and well-chosen simulation draws guard against the optimization and finite-sample pathologies catalogued and partly resolved by @knittel2014estimation, and modern estimation packages encode these lessons. A simple but important diagnostic is that the model should not predict any product's share to be implausibly close to zero, since the log-share inversion is delicate there.
+
+## Price Endogeneity, Instruments, and GMM
+
+The central econometric problem is that price is endogenous. Firms set prices knowing the unobserved quality $\xi_{jt}$, a desirable but unmeasured feature drives up both demand and the price the firm charges, so $\mathbb{E}[\xi_{jt} \mid p_{jt}] \neq 0$. Ordinary least squares on the inverted share equation therefore yields a price coefficient biased toward zero, understating own-price sensitivity and overstating markups. The fix is the same instrumental-variables logic developed in the chapter on [instrumental variables](#sec-instrumental-variables): find variables correlated with price but uncorrelated with $\xi_{jt}$.
+
+Three families of instruments dominate empirical practice.
+
+### Cost shifters
+
+Anything that moves a firm's marginal cost without entering consumer utility is a valid instrument: input prices, exchange rates for imported components, wage indices in the production region. These are the cleanest instruments conceptually but are often unavailable at the product-market level.
+
+### BLP instruments
+
+@berry1995automobile observed that, under oligopoly pricing, a product's optimal markup depends on the characteristics of competing products, since a car surrounded by close substitutes commands a thinner margin. The characteristics of other products, summed within and across firms, are therefore correlated with price through the markup yet plausibly excluded from the consumer's utility for product $j$. Typical constructions are the sums of rival characteristics and the counts of competing products. These differentiation instruments are powerful, and a substantial literature has refined them with constructions based on the local density of products in characteristic space, which tend to have better finite-sample behavior than the original sums.
+
+### Hausman instruments
+
+@hausman1996valuation proposed using the price of the same product in other geographic markets as an instrument, on the logic that prices share a common cost component across markets but local demand shocks $\xi_{jt}$ are market-specific. The validity of Hausman instruments hinges on the absence of national demand shocks (advertising, common preference shifts) that would correlate quality across markets, so they are best used where such common shocks can be argued away.
+
+### GMM Estimation
+
+With instruments $z_{jt}$ in hand, estimation proceeds by the generalized method of moments (see the GMM material in the [instrumental variables](#sec-instrumental-variables) chapter), exploiting the population moment condition that the structural error is mean-independent of the instruments,
+
+$$\mathbb{E}\big[ \xi_{jt}(\theta) \, z_{jt} \big] = 0.$$
+
+The sample analogue is the GMM objective $g(\theta)' W g(\theta)$, with $g(\theta) = \frac{1}{N}\sum_{jt} \xi_{jt}(\theta) z_{jt}$ and a positive-definite weight matrix $W$, efficiently set to the inverse of the moment covariance in a second step [@hansen1982large]. For the random-coefficients model the estimation nests two loops: an inner loop solving the Berry contraction for $\delta_t$ given $\theta_2$, and an outer loop minimizing the GMM objective over $\theta_2$ (the linear parameters $\beta, \alpha$ concentrate out as an IV regression given $\delta$). A control-function alternative, which inserts a first-stage price residual into the utility equation, is available when a single endogenous price and a clean instrument are present [@petrin2010control].
+
+A schematic of the estimation loop, illustrative and not meant to be run, makes the structure concrete.
+
+```{r, eval=FALSE}
+# Conceptual sketch of the BLP GMM objective. Illustrative only.
+# Production estimation should use a maintained package (e.g. PyBLP).
+
+blp_objective <- function(theta2, shares, X, prices, Z, W, nu_draws) {
+  # Inner loop: invert shares for mean utilities delta given theta2.
+  delta <- berry_contraction(theta2, shares, X, prices, nu_draws)
+
+  # Concentrate out the linear parameters via IV/GLS using delta.
+  linear <- iv_fit(delta, cbind(X, prices), Z, W)
+  xi     <- delta - linear$fitted          # structural error xi(theta)
+
+  # Sample moments and the GMM criterion.
+  g <- crossprod(Z, xi) / nrow(Z)          # E[xi * Z] sample analogue
+  as.numeric(t(g) %*% W %*% g)
+}
+# Outer loop: minimize over the nonlinear parameters theta2.
+# fit <- optim(theta2_start, blp_objective, shares = s, X = X, ...)
+```
+
+### The Supply Side and Markups
+
+A distinctive strength of the structural approach is that it recovers markups and marginal costs without observing cost data, by combining the estimated demand elasticities with an assumption about firm conduct. Under Bertrand-Nash competition in prices, each multiproduct firm sets the prices of its products to maximize joint profit, and the resulting first-order conditions can be solved for the implied markups. In vector form for the products of a firm,
+
+$$p_t = c_t + \big(\Omega_t \odot \tfrac{\partial s_t}{\partial p_t}\big)^{-1} s_t,$$
+
+where $c_t$ is the vector of marginal costs, $\partial s_t / \partial p_t$ is the matrix of demand derivatives implied by the demand estimates, and $\Omega_t$ is an ownership matrix encoding which products share an owner. Inverting this relationship backs out marginal cost as a residual, the markup being everything in price not explained by cost. Adding the supply moments to the demand moments in a joint GMM step improves efficiency and, more importantly, lets the estimated model simulate counterfactuals such as a merger, where the ownership matrix $\Omega_t$ changes and new equilibrium prices follow from the same first-order conditions. The conduct assumption is itself testable and should not be imposed casually.
+
+## Nonparametric Identification of Demand
+
+A natural worry is that the conclusions ride on functional-form choices: extreme-value errors, normal random coefficients, and a particular parameterization of utility. A sustained research program asks instead what features of demand are identified by the data and the economic structure alone, without these parametric crutches. @berry2014identification establish, using only market-level data on shares, prices, and characteristics, that the demand system is nonparametrically identified provided suitable instruments exist. The key conditions are a connected-substitutes structure, which orders how products compete, and instruments rich enough to trace out the demand surface, the demand-side instruments shifting markups and supply-side or cost instruments shifting prices. Their result clarifies that the BLP machinery is not merely a convenient parameterization but recovers an object that is identified in principle.
+
+@berry2016identification synthesize the broader identification landscape for differentiated-products markets, situating discrete-choice demand within the wider class of models and laying out the roles of large-support instruments, index restrictions, and the connected-substitutes condition. The most recent advance, @berry2024nonparametric, shows that micro data linking individual consumers to their chosen products and their characteristics deliver nonparametric identification under substantially weaker conditions than aggregate data require, because individual-level variation in choice sets and demographics does much of the work that instruments must do at the market level. The practical lesson is that when consumer-level data are available, they relax the burden on the instruments and the parametric assumptions alike, which is one reason the field has moved toward combining aggregate shares with micro moments.
+
+## Practical Notes
+
+Several points recur in applied work and are worth stating plainly. Instrument strength is the binding constraint far more often than instrument validity: weak BLP instruments produce the same unstable, badly behaved estimates familiar from the weak-instrument diagnostics in the [instrumental variables](#sec-instrumental-variables) chapter, and differentiation instruments based on the local density of competing products were designed precisely to improve relevance. The definition of the market and of the outside option is a modeling decision with first-order consequences, since the outside share governs the level of price elasticities; a market defined too narrowly inflates the outside option and depresses estimated price sensitivity. Numerical hygiene in the BLP contraction and the simulation draws matters as much as the economics, and reproducible results call for a maintained estimation package rather than hand-rolled code.
+
+The connections to the rest of the book run deep. The random-utility foundation is the aggregate counterpart of the multinomial logit model of individual choice; the estimator is a GMM problem with an inner fixed-point solve; and the entire enterprise stands or falls on the quality of its [instruments](#sec-instrumental-variables). What structural demand estimation adds beyond those tools is the economic model that turns estimated elasticities into counterfactual predictions, markups, merger simulations, welfare from a new product, which no reduced-form regression can supply.

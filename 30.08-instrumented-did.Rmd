@@ -1,0 +1,50 @@
+## Instrumented Difference-in-Differences {#sec-instrumented-did}
+
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
+
+The parallel-trends assumption that licenses ordinary difference-in-differences is an assumption about untreated potential outcomes: absent the treatment, the treated and control groups would have moved on parallel paths. A common reason this fails is that the groups differ not only in treatment but in the trajectory of the exposure itself, and that the divergent exposure trend is driven by unobserved factors whose influence varies over time. When the trend in the outcome diverges because the trend in exposure diverges, ordinary DiD attributes the gap to the treatment and is biased. Instrumented difference-in-differences, developed by @ye2022instrumented, addresses exactly this situation by introducing an instrument that perturbs the exposure trend without acting on the outcome trend directly.
+
+The motivating design is a longitudinal study, possibly with repeated cross-sections, in which an encouragement is delivered after a baseline period to push units toward taking the treatment regularly. The encouragement plays the role of an instrument for the trend in exposure. If the encouragement has no direct effect on the trend in the outcome, then any nonparallel trend in the outcome that tracks the nonparallel trend in exposure can be ascribed to the treatment. The method thereby converts a violation of parallel trends, caused by differential exposure, into an identification opportunity.
+
+### What the instrument buys
+
+Two features distinguish instrumented DiD from both ordinary DiD and standard instrumental variables. First, it is robust to time-varying unmeasured confounding of the exposure-outcome relationship. The instrument, the encouragement, is by construction independent of the time-varying unmeasured confounders, so confounding that is time-invariant but has time-varying effects, or that is itself time-varying, does not bias the estimate. Ordinary DiD cannot tolerate this, because such confounding is what breaks parallel trends in the first place.
+
+Second, the exclusion restriction is weaker than in a conventional instrumental-variables analysis. A standard IV must have no direct effect on the outcome at all. The encouragement in instrumented DiD is permitted to have a direct effect on the outcome level, provided it does not affect the outcome trend and does not modify the treatment effect. This is a meaningful relaxation. Consider a firm testing a new pricing strategy on sales, while also offering loyalty-program discounts to some customers. As a standard instrument the discount fails, since it raises sales directly. But it may still serve as an instrument for DiD if the pricing strategy's effect differs across loyalty and non-loyalty customers over time while the discount offered to each group stays constant over time. Variables that shift levels but not trends are therefore candidate instruments for DiD even when they are invalid as standard instruments. A further practical advantage over fuzzy DiD is that units may switch treatment in either direction under instrumented DiD, rather than being constrained to one-way switching.
+
+The target estimand is the average treatment effect, or a conditional average treatment effect when effect modifiers are included.
+
+### Assumptions
+
+The analysis combines standard causal assumptions with the assumptions specific to the instrumented DiD design [@ye2022instrumented].
+
+The standard assumptions are three. Consistency, a form of the stable unit treatment value assumption, requires that a unit's outcome not depend on the exposure of other units or on the unit's own exposure at other time points. Positivity requires that every unit have a positive probability of receiving the treatment. Random sampling requires that the data at each time point be a random sample from the population.
+
+The design-specific assumptions are four. Trend relevance requires that the instrument affect the exposure trend for some subpopulation; this is the analogue of instrument relevance and is the engine of identification. Independence and exclusion require that the encouragement be unconfounded, have no direct effect on the outcome trend, and not modify the treatment effect; this is the relaxed exclusion restriction described above, which permits a direct effect on the outcome level. The assumption of no unmeasured common effect modifier requires that no unmeasured confounder affect both the trend in exposure and the trend in the outcome. Finally, a stable treatment effect over time requires that the conditional average treatment effect not change across the study window; this is most plausible over short horizons and can be probed through sensitivity analysis.
+
+### Estimation
+
+The simplest estimator is a Wald-type ratio. In the spirit of the instrumental-variables Wald estimator, instrumented DiD scales the instrument-induced difference in the outcome trend by the instrument-induced difference in the exposure trend. Writing $\Delta$ for the change between baseline and follow-up and indexing the instrument by $Z \in \{0,1\}$, the estimator takes the form
+
+$$
+\hat{\tau}_{\text{Wald}} \;=\;
+\frac{E[\Delta Y \mid Z = 1] - E[\Delta Y \mid Z = 0]}
+     {E[\Delta D \mid Z = 1] - E[\Delta D \mid Z = 0]},
+$$
+
+where $Y$ is the outcome and $D$ is the exposure. The numerator is the differential outcome trend induced by the encouragement, and the denominator is the differential exposure trend it induces; their ratio identifies the treatment effect under the assumptions above. The denominator is nonzero precisely because of trend relevance, which is why that assumption is indispensable.
+
+The Wald form is transparent but commits to particular modeling choices. @ye2022instrumented develop multiply robust estimators that combine a regression model for the outcome, an inverse-probability-weighting model for the instrument, and a g-estimation component. The multiply robust property is that valid inference is guaranteed if any one of these working models is correctly specified, even if the others are misspecified. This affords substantial protection against modeling error, since the analyst need not get every nuisance component right, only one of them.
+
+When the same individuals cannot be followed throughout the panel, a two-sample instrumented DiD is available. The analyst then works with an exposure dataset and an outcome dataset that may contain different units, and recovers the average treatment effect from summary statistics of the two samples. This extends the design to settings where linked longitudinal data on the same units are unavailable, at the cost of relying on the comparability of the two samples.
+
+### Implementation
+
+The `idid` package implements these estimators. The chunk below sketches installation and is not evaluated here, since it pulls from an external source and requires a fitted study design.
+
+```{r, eval = FALSE}
+library(devtools)
+install_github("tye27/idid")
+```
+
+Instrumented DiD occupies a useful niche between ordinary DiD and instrumental variables. It applies when the parallel-trends assumption is untenable because exposure trends diverge for reasons tied to time-varying unobservables, yet a credible instrument exists that moves the exposure trend without moving the outcome trend. Where such an instrument is available, the method recovers a treatment effect that neither ordinary DiD nor a conventional IV analysis could deliver, and the multiply robust estimators make the inference resilient to a degree of nuisance-model misspecification.

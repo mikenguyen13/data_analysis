@@ -1,0 +1,536 @@
+# Discrete Choice and Limited Dependent Variables {#sec-discrete-choice}
+
+Most outcomes in economics and the social sciences are not the smooth, unbounded continua that linear regression presumes. People choose whether to work, which mode of transport to take, how many children to have, or which of several brands to buy. These decisions produce outcomes that are binary, ordered, unordered with many categories, censored at a boundary, or restricted to the non-negative integers. Fitting a linear model to such outcomes can yield predicted probabilities below zero or above one, heteroskedasticity that is intrinsic rather than incidental, and partial effects that are constant by construction when economic theory says they should not be.
+
+This chapter develops the modern toolkit for these limited dependent variables. The organizing idea, due to @mcfadden1974conditional, is the random utility model: a decision maker chooses the alternative that yields the highest latent utility, and the econometrician observes only the choice, not the utility. Different assumptions about the distribution of the unobserved component of utility deliver the logit, probit, ordered, multinomial, nested, and mixed models that follow. We begin from the binary case, generalize to ordered and unordered multinomial outcomes, treat interpretation through marginal effects and elasticities, and then turn to count data, rare events, the log-of-zero problem, and aggregate demand estimation. The aggregate demand material connects directly to the structural industrial-organization treatment in Section \@ref(sec-structural-io).
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+set.seed(1)
+```
+
+## The Latent-Variable and Random-Utility Framework
+
+A unifying way to motivate every model in this chapter is to posit an unobserved continuous index, the latent variable, that drives the observed discrete outcome.
+
+### Binary Outcomes
+
+Let $y_i \in \{0,1\}$ be a binary outcome, employment status say, and let there be a latent propensity
+
+$$
+y_i^* = \mathbf{x}_i' \boldsymbol\beta + \varepsilon_i, \qquad
+y_i = \mathbf{1}(y_i^* > 0).
+$$
+
+We observe $y_i = 1$ exactly when the latent index crosses a threshold normalized to zero. The conditional probability of a positive outcome is then
+
+$$
+P(y_i = 1 \mid \mathbf{x}_i)
+= P(\varepsilon_i > -\mathbf{x}_i'\boldsymbol\beta)
+= 1 - F(-\mathbf{x}_i'\boldsymbol\beta)
+= F(\mathbf{x}_i'\boldsymbol\beta),
+$$
+
+where the last equality uses the symmetry of the error distribution and $F$ is the cumulative distribution function of $\varepsilon_i$. Two choices of $F$ dominate practice.
+
+If $\varepsilon_i$ follows the standard logistic distribution, then $F(z) = \Lambda(z) = e^z / (1 + e^z)$ and we obtain the logit model. If $\varepsilon_i$ is standard normal, then $F(z) = \Phi(z)$ and we obtain the probit model. Because the latent variable has no natural scale, the variance of $\varepsilon_i$ is normalized: to unity for probit and to $\pi^2/3$ for logit. The coefficients of the two models therefore differ by roughly the ratio of these scale factors, about $\pi/\sqrt 3 \approx 1.81$, which is why logit coefficients are usually larger than probit coefficients by a factor near 1.6 to 1.8.
+
+The same probability can be derived from utility maximization. Suppose the utility of the two states is $U_{i1} = \mathbf{x}_i'\boldsymbol\beta_1 + \epsilon_{i1}$ and $U_{i0} = \mathbf{x}_i'\boldsymbol\beta_0 + \epsilon_{i0}$. The agent picks state 1 when $U_{i1} > U_{i0}$, which reproduces the latent-index expression with $\boldsymbol\beta = \boldsymbol\beta_1 - \boldsymbol\beta_0$ and $\varepsilon_i = \epsilon_{i0} - \epsilon_{i1}$. If the two utility shocks are independent type-I extreme value (Gumbel), their difference is logistic and we recover logit; if they are jointly normal, we recover probit. This equivalence between the latent-index and random-utility views is what makes binary choice the natural building block for everything that follows.
+
+### Ordered Outcomes
+
+When the outcome is an ordered category, a survey response on a Likert scale, a bond rating, or an education level, the single latent variable is partitioned by a set of estimated cut points $-\infty = \kappa_0 < \kappa_1 < \cdots < \kappa_J = \infty$:
+
+$$
+y_i = j \quad \text{if} \quad \kappa_{j-1} < y_i^* \le \kappa_j,
+\qquad y_i^* = \mathbf{x}_i'\boldsymbol\beta + \varepsilon_i.
+$$
+
+The implied cell probabilities are differences of the cdf,
+
+$$
+P(y_i = j \mid \mathbf{x}_i) = F(\kappa_j - \mathbf{x}_i'\boldsymbol\beta) - F(\kappa_{j-1} - \mathbf{x}_i'\boldsymbol\beta),
+$$
+
+giving the ordered logit when $F = \Lambda$ and the ordered probit when $F = \Phi$. The intercept is absorbed into the cut points, so it is not separately identified. The key behavioral restriction is the proportional-odds or parallel-regressions assumption: a single coefficient vector $\boldsymbol\beta$ shifts the latent index for every threshold simultaneously. If this assumption fails, a generalized ordered model or a multinomial model that ignores the ordering is preferable.
+
+### Unordered Multinomial Outcomes
+
+When the $J$ alternatives have no natural ordering, the latent-index logic generalizes to $J$ separate utilities,
+
+$$
+U_{ij} = V_{ij} + \varepsilon_{ij}, \qquad j = 1, \dots, J,
+$$
+
+and the agent chooses $j$ if $U_{ij} \ge U_{ik}$ for all $k$. The deterministic part $V_{ij}$ collects observed attributes of the alternative and characteristics of the decision maker; the stochastic part $\varepsilon_{ij}$ collects everything the analyst cannot see. The probability that $i$ chooses $l$ is
+
+$$
+P_{il} = P\bigl(V_{il} + \varepsilon_{il} \ge V_{ij} + \varepsilon_{ij} \ \forall j\bigr).
+$$
+
+The distribution assumed for the vector $(\varepsilon_{i1},\dots,\varepsilon_{iJ})$ determines the model. Independent and identically distributed Gumbel errors give the multinomial and conditional logit; correlated Gumbel errors within groups give the nested logit; multivariate normal errors give the multinomial probit; and a mixing distribution over the coefficients gives the mixed logit. We work through each in turn.
+
+## Binary Choice in Practice
+
+### The Logit Model
+
+The logit model writes the success probability as the inverse-logit (logistic) transform of a linear index,
+
+$$
+P(y_i = 1 \mid \mathbf{x}_i)
+= \Lambda(\mathbf{x}_i'\boldsymbol\beta)
+= \frac{e^{\mathbf{x}_i'\boldsymbol\beta}}{1 + e^{\mathbf{x}_i'\boldsymbol\beta}}.
+$$
+
+Solving for the index recovers the log-odds, which is linear in the parameters,
+
+$$
+\ln\!\left(\frac{P(y_i=1\mid\mathbf{x}_i)}{1 - P(y_i=1\mid\mathbf{x}_i)}\right)
+= \mathbf{x}_i'\boldsymbol\beta .
+$$
+
+A unit increase in $x_{ik}$ raises the log-odds by $\beta_k$, equivalently it multiplies the odds by $e^{\beta_k}$, the odds ratio. The model is estimated by maximum likelihood; the log-likelihood is globally concave, so convergence is fast and reliable.
+
+The following simulated example runs in a clean session and illustrates estimation, odds ratios, and predicted probabilities.
+
+```{r}
+n <- 2000
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+x3 <- rbinom(n, 1, 0.5)
+eta <- -0.5 + 0.8 * x1 - 0.4 * x2 + 0.6 * x3
+p <- 1 / (1 + exp(-eta))
+y <- rbinom(n, 1, p)
+dat <- data.frame(y, x1, x2, x3)
+
+fit_logit <- glm(y ~ x1 + x2 + x3, family = binomial(link = "logit"),
+                 data = dat)
+summary(fit_logit)$coefficients
+```
+
+Coefficients are on the log-odds scale. Exponentiating turns them into odds ratios, and subtracting one expresses them as the percentage change in the odds.
+
+```{r}
+cbind(estimate = round(coef(fit_logit), 4),
+      odds_ratio = round(exp(coef(fit_logit)), 4),
+      pct_change = round((exp(coef(fit_logit)) - 1) * 100, 2))
+```
+
+An odds ratio of $e^{\beta_k}$ for a binary regressor means the odds of $y = 1$ are $e^{\beta_k}$ times higher when the regressor switches on. Because the logistic cdf is nonlinear, the effect on the probability itself depends on where on the curve the agent sits; we return to this point under marginal effects.
+
+To recover predicted probabilities, apply the inverse-logit to the fitted index. The probability evaluated at the sample means of the regressors is
+
+```{r}
+inv_logit <- function(z) 1 / (1 + exp(-z))
+xbar <- colMeans(dat[, c("x1", "x2", "x3")])
+inv_logit(coef(fit_logit)[1] + sum(coef(fit_logit)[-1] * xbar))
+```
+
+The `predict` method delivers the same quantity with standard errors, from which pointwise confidence intervals for the predicted probability follow.
+
+```{r}
+nd <- data.frame(x1 = mean(dat$x1), x2 = mean(dat$x2),
+                 x3 = c(0, 1))
+pr <- predict(fit_logit, newdata = nd, type = "response", se.fit = TRUE)
+data.frame(nd,
+           prob = pr$fit,
+           lower = pr$fit - 1.96 * pr$se.fit,
+           upper = pr$fit + 1.96 * pr$se.fit)
+```
+
+### The Probit Model
+
+The probit model replaces the logistic cdf with the standard normal,
+
+$$
+P(y_i = 1 \mid \mathbf{x}_i) = \Phi(\mathbf{x}_i'\boldsymbol\beta),
+$$
+
+where $\Phi$ is the standard normal cdf. The latent-variable derivation is identical except that the error is normal with variance fixed at one. Because $\Phi$ has no closed-form inverse that linearizes the index, there is no odds-ratio interpretation; probit coefficients are read through their sign and through marginal effects.
+
+Logit and probit almost always agree on signs, significance, and fitted probabilities; they differ mainly in the thickness of the tails of the error distribution. Logit places slightly more mass in the tails, so it predicts marginally higher probabilities for extreme index values. The choice between them is largely one of convention: logit dominates in epidemiology and in choice modeling because of the odds-ratio and the closed-form link to random utility, while probit is common in econometrics, especially when the binary equation is one piece of a larger normal system such as a sample-selection or a simultaneous-equations model.
+
+```{r}
+fit_probit <- glm(y ~ x1 + x2 + x3, family = binomial(link = "probit"),
+                  data = dat)
+ratio <- coef(fit_logit) / coef(fit_probit)
+round(ratio, 3)
+```
+
+The ratios of logit to probit coefficients cluster near the theoretical scale factor $\pi/\sqrt{3} \approx 1.81$, confirming that the two models differ mostly by a rescaling of the latent variance rather than by economic content.
+
+A practical caution: with a perfectly predicted outcome, separation, the maximum-likelihood estimates diverge to infinity and standard errors explode. Penalized likelihood, for example the Firth bias correction, restores finite estimates and is the same device that mitigates small-sample and rare-event bias discussed later.
+
+## Ordered Outcomes in Practice
+
+### Ordered Logit and Ordered Probit
+
+For an ordered response the cell probabilities are differences of the link evaluated at the cut points. Estimation is again by maximum likelihood, jointly over $\boldsymbol\beta$ and the thresholds $\{\kappa_j\}$. The sign of $\beta_k$ tells the direction in which a regressor pushes the latent index, and hence whether higher outcome categories become more or less likely, but the magnitude maps into category probabilities only through the cut points.
+
+The example below simulates an ordered outcome and fits both links with `MASS::polr`.
+
+```{r}
+ystar <- 0.9 * x1 - 0.5 * x2 + rlogis(n)
+cuts <- quantile(ystar, c(1/3, 2/3))
+yo <- cut(ystar, breaks = c(-Inf, cuts, Inf), labels = c("low", "mid", "high"))
+od <- data.frame(yo, x1, x2)
+
+library(MASS)
+fit_ologit <- polr(yo ~ x1 + x2, data = od, method = "logistic", Hess = TRUE)
+fit_oprobit <- polr(yo ~ x1 + x2, data = od, method = "probit", Hess = TRUE)
+summary(fit_ologit)$coefficients
+```
+
+In ordered logit, exponentiating a coefficient gives a proportional-odds ratio: the multiplicative effect on the odds of being in a higher category versus all lower categories combined, and this ratio is assumed constant across the cut points. Predicted category probabilities follow from the `type = "probs"` option.
+
+```{r}
+nd_o <- data.frame(x1 = c(-1, 0, 1), x2 = 0)
+round(predict(fit_ologit, newdata = nd_o, type = "probs"), 3)
+```
+
+As $x_1$ rises, probability mass shifts from the low category toward the high category, the signature of a positive latent-index coefficient. The parallel-regressions assumption that underlies this clean interpretation should be tested; a Brant test or a likelihood-ratio comparison against a generalized ordered model serves the purpose. When it is rejected, dropping the ordering and estimating a multinomial model trades efficiency for robustness.
+
+## Multinomial and Conditional Logit
+
+### Two Ways Regressors Enter
+
+For unordered alternatives it is essential to distinguish two kinds of regressors. Characteristics of the decision maker, income or age, do not vary across alternatives and must enter with alternative-specific coefficients; this is the multinomial logit. Attributes of the alternatives, price or travel time, vary across alternatives and enter with a single generic coefficient; this is the conditional logit of @mcfadden1974conditional. Models that combine both are often called mixed in the older literature, though that term now usually denotes random coefficients.
+
+Writing the deterministic utility as
+
+$$
+V_{ij} = \alpha_j + \mathbf{z}_i'\boldsymbol\gamma_j + \mathbf{x}_{ij}'\boldsymbol\beta,
+$$
+
+the choice probabilities under i.i.d. Gumbel errors are the logit shares
+
+$$
+P_{ij} = \frac{\exp(V_{ij})}{\sum_{k=1}^J \exp(V_{ik})}.
+$$
+
+Because only utility differences matter, one alternative is the reference: its constant and its $\boldsymbol\gamma$ are normalized to zero, so there are at most $J-1$ identifiable alternative-specific constants and coefficient vectors.
+
+### Estimation with nnet and mlogit
+
+The `nnet::multinom` routine fits the multinomial logit with case-specific regressors. The example simulates a three-category choice driven by a continuous covariate.
+
+```{r, include = FALSE}
+# Gumbel draws for the simulated utilities below (avoids extra package deps)
+rgumbel <- function(k) -log(-log(runif(k)))
+```
+
+```{r}
+score <- rnorm(n)
+female <- rbinom(n, 1, 0.5)
+u_low <- -0.6 - 0.9 * score + 0.2 * female + rgumbel(n)
+u_mid <- rep(0, n) + rgumbel(n)
+u_hi  <- -0.3 + 0.7 * score - 0.1 * female + rgumbel(n)
+choice <- max.col(cbind(u_low, u_mid, u_hi))
+ses <- factor(c("low", "mid", "hi")[choice], levels = c("mid", "low", "hi"))
+md <- data.frame(ses, score, female)
+
+library(nnet)
+fit_mnl <- multinom(ses ~ score + female, data = md, trace = FALSE)
+summary(fit_mnl)$coefficients
+```
+
+Each row of coefficients compares one category against the reference (here `mid`). Exponentiating gives relative-risk ratios: the multiplicative change in the probability of that category relative to the base category for a unit change in the regressor. Predicted probabilities again come from the `predict` method with `type = "probs"`.
+
+The `mlogit` package is the workhorse for conditional and richer choice models because it accepts data in the long, one-row-per-alternative format and lets attributes vary across alternatives. The canonical illustration uses the `Heating` data, where households choose among five heating systems and the regressors are installation and operating cost. The chunk is shown but not evaluated, since it depends on the package and its bundled data.
+
+```{r, eval = FALSE}
+library(mlogit)
+data("Heating", package = "mlogit")
+H <- dfidx(Heating, choice = "depvar", varying = c(3:12))
+
+# generic cost coefficients, no alternative-specific constants
+m0 <- mlogit(depvar ~ ic + oc | 0, H)
+summary(m0)
+
+# add alternative-specific constants, normalized at the heat-pump alternative
+mc <- mlogit(depvar ~ ic + oc, H, reflevel = "hp")
+apply(fitted(mc, outcome = FALSE), 2, mean)  # now match observed shares
+```
+
+Including a full set of alternative-specific constants forces the average predicted probabilities to equal the observed market shares exactly, a useful diagnostic and a fixed point used in aggregate demand estimation below.
+
+### Willingness to Pay and Consumer Surplus
+
+A central payoff of estimating utility on a cost attribute is that ratios of coefficients are marginal rates of substitution expressed in money. If utility contains installation cost with coefficient $\beta_{ic}$ and operating cost with coefficient $\beta_{oc}$, then setting $dV = \beta_{ic}\, d(ic) + \beta_{oc}\, d(oc) = 0$ gives the willingness to pay in higher installation cost for a one-dollar reduction in annual operating cost,
+
+$$
+\left.-\frac{d(ic)}{d(oc)}\right|_{dV = 0} = \frac{\beta_{oc}}{\beta_{ic}} .
+$$
+
+```{r, eval = FALSE}
+wtp <- coef(mc)["oc"] / coef(mc)["ic"]   # dollars of capital per dollar/yr saved
+r <- 1 / wtp                              # implied discount rate
+c(wtp = wtp, discount_rate = r)
+```
+
+The reciprocal of this willingness to pay is the implied discount rate the household applies to a perpetual stream of one-dollar annual savings, a quantity researchers use to gauge whether estimated trade-offs are economically sensible.
+
+For welfare analysis, @small1981applied show that the expected maximum utility in a logit model has the closed-form log-sum, also called the inclusive value,
+
+$$
+E\Bigl(\max_j U_{ij}\Bigr) = \ln \sum_{j=1}^J e^{V_{ij}} + C,
+$$
+
+where $C$ is a constant that cancels in differences. Dividing the change in the log-sum by the marginal utility of income, the negative of the price or cost coefficient, converts a policy-induced change in attributes into a compensating-variation measure of consumer surplus. The `logsum` function in `mlogit` computes this term directly, so the surplus from, for example, a reduction in transit travel time is the scaled difference of inclusive values before and after the change.
+
+### Marginal Effects in Choice Models
+
+For a case-specific regressor the marginal effect on the probability of alternative $l$ is
+
+$$
+\frac{\partial P_{il}}{\partial z_i}
+= P_{il}\Bigl(\beta_l - \textstyle\sum_j P_{ij}\beta_j\Bigr),
+$$
+
+so the sign of the effect compares an alternative's own coefficient with a probability-weighted average of all coefficients. Only the largest and smallest coefficients have signs that are guaranteed; intermediate alternatives can move in either direction. For an alternative-specific attribute the own and cross effects are
+
+$$
+\frac{\partial P_{il}}{\partial x_{il}} = \beta\, P_{il}(1 - P_{il}),
+\qquad
+\frac{\partial P_{il}}{\partial x_{ik}} = -\beta\, P_{il} P_{ik},
+$$
+
+so an own-attribute improvement raises the alternative's probability and lowers every competitor's probability proportionally. That proportionality is exactly the independence-of-irrelevant-alternatives property examined next.
+
+## The Independence of Irrelevant Alternatives
+
+### The Property and Its Critique
+
+In any i.i.d. logit, the ratio of two choice probabilities depends only on those two alternatives,
+
+$$
+\frac{P_{il}}{P_{im}} = \frac{e^{V_{il}}}{e^{V_{im}}} = e^{V_{il} - V_{im}},
+$$
+
+independent of the existence or attributes of any third alternative. This is the independence of irrelevant alternatives (IIA). It is enormously convenient, allowing consistent estimation on a subset of alternatives, but it imposes a substantive restriction that is often violated.
+
+The classic counterexample is the red-bus/blue-bus problem. Suppose a commuter is equally likely to drive or take a red bus, so each has probability $1/2$. Introduce a blue bus identical to the red bus in every respect but color. Intuitively the two buses are near-perfect substitutes, so the car share should stay near $1/2$ and the two buses should split the remaining half. IIA instead forces all three shares toward $1/3$, because it treats the blue bus as drawing proportionally from both the car and the red bus rather than overwhelmingly from its near-twin. The failure traces directly to the assumption that the utility shocks are independent across alternatives; buses share unobserved attributes, so their errors are correlated, violating the premise. Nested logit, mixed logit, and multinomial probit all relax this assumption.
+
+### Testing IIA: Hausman and McFadden
+
+@hausman1984specification proposed a specification test for IIA built on the logic that, if IIA holds, estimating the model on the full choice set and on a restricted subset should both be consistent, but only the full-set estimator is efficient. The test statistic is the quadratic form
+
+$$
+H = (\hat{\boldsymbol\beta}_s - \hat{\boldsymbol\beta}_f)'
+\bigl(\hat{\mathbf V}_s - \hat{\mathbf V}_f\bigr)^{-1}
+(\hat{\boldsymbol\beta}_s - \hat{\boldsymbol\beta}_f),
+$$
+
+where $\hat{\boldsymbol\beta}_f$ and $\hat{\mathbf V}_f$ come from the full choice set and $\hat{\boldsymbol\beta}_s$ and $\hat{\mathbf V}_s$ from a subset, restricted to the common coefficients. Under the null of IIA, $H$ is asymptotically chi-squared with degrees of freedom equal to the number of common coefficients. A large statistic signals that dropping alternatives changes the estimates, evidence that IIA fails and a richer correlation structure is needed. The test can have poor finite-sample behavior, including a non-positive-definite covariance difference, so it is best read alongside the substantive plausibility of IIA in the application.
+
+## Relaxing IIA
+
+### Nested Logit
+
+The nested logit of @mcfadden1978modelling groups alternatives into nests within which the error terms are correlated, while errors across nests remain independent. The joint cdf of the errors is the generalized extreme value form
+
+$$
+\exp\!\left(-\sum_{m=1}^{M}\Bigl(\sum_{j \in B_m} e^{-\varepsilon_j/\lambda_m}\Bigr)^{\lambda_m}\right),
+$$
+
+where $B_m$ is the set of alternatives in nest $m$ and $\lambda_m \in (0,1]$ governs within-nest correlation. When $\lambda_m = 1$ for all nests the errors are i.i.d. Gumbel and the model collapses to ordinary logit; smaller $\lambda_m$ means stronger correlation, so $1 - \lambda_m$ measures the within-nest dependence. The choice probability factors neatly into the marginal probability of the nest and the conditional probability of the alternative within it,
+
+$$
+P_j = \underbrace{\frac{e^{Z_j/\lambda_l}}{\sum_{k\in B_l} e^{Z_k/\lambda_l}}}_{\text{within-nest}}
+\times
+\underbrace{\frac{e^{W_l + \lambda_l I_l}}{\sum_{m} e^{W_m + \lambda_m I_m}}}_{\text{across-nest}},
+\qquad
+I_l = \ln \sum_{k\in B_l} e^{Z_k/\lambda_l},
+$$
+
+where $I_l$ is the inclusive value of nest $l$ and $W_l + \lambda_l I_l$ is the expected utility of selecting the best alternative in that nest. IIA holds within nests but not across them, which resolves the red-bus/blue-bus problem by placing the two buses in a common nest. The model is estimated by full-information maximum likelihood, or sequentially by estimating the lower (within-nest) model first and feeding its inclusive value into the upper (nest) model, a consistent but less efficient two-step approach. Two natural hypotheses, that all nest parameters equal one (no nesting) and that they are equal to each other, are tested by likelihood-ratio, Wald, or score tests.
+
+### Multinomial Probit
+
+The multinomial probit lets the utility errors be jointly normal with an unrestricted covariance matrix $\boldsymbol\Omega$,
+
+$$
+U_{ij} = V_{ij} + \varepsilon_{ij}, \qquad
+(\varepsilon_{i1},\dots,\varepsilon_{iJ})' \sim N(\mathbf 0, \boldsymbol\Omega),
+$$
+
+so any pattern of substitution is allowed and IIA is abandoned entirely. The price is that the choice probabilities are $(J-1)$-dimensional normal integrals with no closed form. Only differences of utilities are identified, so the model is estimated on error differences whose covariance is $\boldsymbol\Omega^l = M^l \boldsymbol\Omega M^{l\prime}$ for a differencing matrix $M^l$, and the overall scale is fixed by normalizing one variance. With $J$ alternatives the covariance matrix has $J(J+1)/2$ structural parameters, of which only $J(J-1)/2 - 1$ are identified. The integral is evaluated by simulation, the GHK (Geweke-Hajivassiliou-Keane) smooth recursive simulator factoring the joint probability into a product of conditional univariate normal probabilities computed from draws of truncated normals. Simulated maximum likelihood then maximizes the simulated probabilities.
+
+### Mixed (Random-Parameters) Logit
+
+The mixed logit, surveyed and popularized by @train2009discrete, lets the taste coefficients vary across individuals according to a mixing distribution. Conditional on an individual draw $\boldsymbol\beta_i$, the probabilities are ordinary logit,
+
+$$
+P_{il}\mid\boldsymbol\beta_i = \frac{e^{\boldsymbol\beta_i'\mathbf x_{il}}}{\sum_j e^{\boldsymbol\beta_i'\mathbf x_{ij}}},
+$$
+
+and the unconditional probability integrates over the distribution of tastes,
+
+$$
+P_{il} = \int \frac{e^{\boldsymbol\beta'\mathbf x_{il}}}{\sum_j e^{\boldsymbol\beta'\mathbf x_{ij}}}\, f(\boldsymbol\beta;\boldsymbol\theta)\, d\boldsymbol\beta .
+$$
+
+@mcfadden2000mixed showed that mixed logit can approximate any random-utility choice model arbitrarily well by suitable choice of the mixing distribution $f$, and that it breaks IIA because the random coefficients induce correlation in utilities across alternatives. The integral has no closed form, so estimation uses simulated maximum likelihood: draw $R$ values of $\boldsymbol\beta$, usually with variance-reducing Halton sequences, average the conditional probabilities, and maximize. Distributions are chosen to respect economics: normal or transformed normal for tastes that may switch sign, log-normal or sign-constrained distributions for price coefficients that should stay negative, and bounded triangular or uniform distributions when log-normal tails generate implausible values. With panel data, repeated choices by the same person identify the individual-specific coefficients more sharply, and individual posterior means $\hat{\boldsymbol\beta}_i = \sum_r P_{ir}\boldsymbol\beta_r / \sum_r P_{ir}$ summarize each person's tastes. Coefficients can be parameterized directly in willingness-to-pay space rather than preference space when the monetary trade-offs are the object of interest.
+
+### Latent Class Logit
+
+A discrete alternative to the continuous mixing of mixed logit is the latent class model, in which the population is a mixture of a finite number $C$ of segments, each with its own coefficient vector $\boldsymbol\beta_c$ and a membership probability $\pi_c$ that may depend on individual characteristics. The choice probability is the segment-weighted average
+
+$$
+P_{il} = \sum_{c=1}^{C} \pi_c \,
+\frac{e^{\boldsymbol\beta_c'\mathbf x_{il}}}{\sum_j e^{\boldsymbol\beta_c'\mathbf x_{ij}}} .
+$$
+
+Latent class logit suits applications where heterogeneity is better described as a small number of distinct consumer types, loyal versus price-sensitive shoppers say, than as a smooth distribution, and it sidesteps the need to assume a parametric form for the mixing distribution. The number of classes is selected by information criteria such as the BIC, since the usual likelihood-ratio test is non-standard when classes may be empty. The `gmnl` package estimates both mixed and latent-class logit in R.
+
+## Interpretation, Marginal Effects, and Fit
+
+### Partial Effect at the Average versus Average Partial Effect
+
+Because every model in this chapter is nonlinear, a coefficient is not a partial effect, and there are two distinct ways to summarize the effect of a regressor on the probability. The distinction is worth stating carefully.
+
+|             | PEA                                                                                          | APE                                                              |
+|-------------|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| Term        | Partial effect at the average                                                                | Average partial effect                                          |
+| Definition  | The effect of a regressor on the outcome for a hypothetical case holding all regressors at their sample means | The effect of the regressor averaged over the empirical distribution of all regressors |
+| Calculation | Set every regressor at its sample mean, then evaluate the slope of the probability           | Evaluate the partial effect for each observation, then average  |
+
+For an ordinary linear model with no interactions or polynomials the two coincide, because the partial effect does not vary across observations. The moment the conditional mean departs from linearity, through an interaction, a polynomial, or a logit or probit link, the partial effect at the average and the average partial effect generally differ. The average partial effect is usually the more meaningful summary for a population, since it averages over the actual distribution of agents rather than describing a possibly fictitious average individual; the partial effect at the average can fall outside the support of the data when, for example, the average of a binary regressor is a non-integer. For a probit the marginal effect of $x_k$ on the probability is $\phi(\mathbf x_i'\boldsymbol\beta)\,\beta_k$, for a logit it is $\Lambda(\mathbf x_i'\boldsymbol\beta)(1-\Lambda(\mathbf x_i'\boldsymbol\beta))\,\beta_k$; averaging the first form over the sample gives the APE, evaluating it at $\bar{\mathbf x}$ gives the PEA.
+
+```{r}
+# average partial effect of x1 in the logit by averaging individual slopes
+lp <- predict(fit_logit, type = "link")
+ape_x1 <- mean(dlogis(lp)) * coef(fit_logit)["x1"]
+# partial effect at the average
+pea_x1 <- dlogis(sum(coef(fit_logit) * c(1, colMeans(dat[, c("x1","x2","x3")])))) *
+  coef(fit_logit)["x1"]
+c(APE = unname(ape_x1), PEA = unname(pea_x1))
+```
+
+For a discrete regressor the partial effect is a difference in predicted probabilities, $P(y=1\mid x_k=1) - P(y=1\mid x_k=0)$, evaluated either at the average covariates (a PEA-style discrete effect) or averaged across the sample (an APE-style discrete effect), and the APE form is again generally preferred.
+
+### Elasticities and Semi-Elasticities
+
+Researchers frequently want a unit-free summary or a percentage interpretation rather than a level effect. An elasticity rescales the partial effect by the ratio of the regressor to the conditional mean,
+
+$$
+\frac{\partial E(Y\mid\mathbf x)}{\partial x_j}\cdot \frac{x_j}{E(Y\mid\mathbf x)}
+= \frac{\partial \ln E(Y\mid\mathbf x)}{\partial \ln x_j},
+$$
+
+valid when both the mean and the regressor are positive. A semi-elasticity rescales by only one of the two, giving the percentage change in the outcome for a unit change in the regressor, or the level change in the outcome for a proportional change in the regressor. In a model where the log of the outcome is linear, $\ln Y = \beta_0 + \beta_1 \ln x_1 + \beta_2 x_2 + u$, the coefficient $\beta_1$ is a constant elasticity and $100\,\beta_2$ is a semi-elasticity, the approximate percentage change in $Y$ from a one-unit change in $x_2$.
+
+A subtle but important point concerns the difference between the elasticity of the true conditional mean and the slope of a log-linear regression. By Jensen's inequality $E(\ln Y) \ne \ln E(Y)$, so the two are not identical objects. They do coincide in their derivatives, however, when the error enters multiplicatively and is independent of the regressors: writing $Y = \exp(\mathbf x'\boldsymbol\beta)\exp(u)$ gives $\ln E(Y\mid\mathbf x) = \ln\delta + \mathbf x'\boldsymbol\beta$ with $\delta = E(e^u)$, so that
+
+$$
+\frac{\partial \ln E(Y\mid\mathbf x)}{\partial \ln x_j}
+= \frac{\partial E(\ln Y\mid\mathbf x)}{\partial \ln x_j} = \beta_j .
+$$
+
+The log-linear coefficient is therefore a good approximation to the elasticity of the level, with the caveat that the additive constant $\ln\delta$ must be handled with care when predicting levels, a problem that becomes acute when the outcome can equal zero, treated below.
+
+### Interaction Terms in Nonlinear Models
+
+Interaction terms require special care in nonlinear models. In a linear model the interaction effect is simply the coefficient on the product term. In a logit or probit, the cross partial of the probability with respect to two regressors is not the coefficient on the interaction; it involves the curvature of the link and can be nonzero even when no interaction term is included, and can flip sign across observations. @ai2003interaction show that the correct interaction effect is the full cross derivative, which must be computed at each observation and then summarized, and that its sign and significance can differ sharply from the naive reading of the product-term coefficient. The practical lesson is to compute interaction effects as differences in differences of predicted probabilities across the relevant covariate values rather than reading them off a single coefficient and its $t$-statistic.
+
+### Model Fit and Classification
+
+The likelihood-based analogue of $R^2$ for these models is McFadden's pseudo-$R^2$,
+
+$$
+R^2_{\text{McF}} = 1 - \frac{\ln \hat L_{\text{full}}}{\ln \hat L_0},
+$$
+
+the proportional improvement in the maximized log-likelihood relative to the intercept-only model. It is bounded between zero and one but does not have the proportion-of-variance interpretation of the linear $R^2$; values between 0.2 and 0.4 already indicate an excellent fit. A complementary, decision-oriented metric is classification accuracy, the hit rate, obtained by predicting $y = 1$ when the fitted probability exceeds a threshold (often the sample frequency of ones rather than 0.5) and tabulating correct against incorrect predictions in a confusion matrix. Because the hit rate depends on an arbitrary cutoff, the area under the ROC curve, which integrates sensitivity against one minus specificity over all thresholds, is the threshold-free summary of discriminatory power.
+
+```{r}
+ll_full <- as.numeric(logLik(fit_logit))
+ll_null <- as.numeric(logLik(update(fit_logit, . ~ 1)))
+mcfadden_r2 <- 1 - ll_full / ll_null
+
+phat <- predict(fit_logit, type = "response")
+pred_class <- as.integer(phat > mean(dat$y))
+hit_rate <- mean(pred_class == dat$y)
+c(mcfadden_pseudo_R2 = mcfadden_r2, hit_rate = hit_rate)
+```
+
+## Rare Events
+
+Logistic regression is biased in finite samples when one of the outcomes is rare, the kind of data that arises in studies of wars, financial crises, rare diseases, or, in management, the formation of unusual corporate deals as in @arikan2019. @king2001logistic show that maximum-likelihood logit systematically underestimates the probability of the rare event, because the bias term in the score is most pronounced precisely when the events of interest are few. The problem compounds a second inefficiency: when events are scarce, collecting data on the abundant non-events is costly and adds little information.
+
+The remedy has two parts. First, a bias correction: the @king2001logistic estimator applies an analytic finite-sample correction to the coefficients (closely related to the Firth penalized-likelihood approach), which materially shifts the estimated event probabilities upward toward their true values. Second, an efficient sampling design: endogenous or choice-based sampling, in which all the rare events and only a sample of the non-events are collected, recovers most of the information at a fraction of the data-collection cost, provided the intercept is corrected with the known population fraction of events through a prior-correction or weighting adjustment. The `Zelig` and `logistf` packages implement these corrections in R. The broad message is that the default logit, fit to a sample with a handful of ones among many zeros, should not be trusted at face value for the predicted probabilities of the rare outcome.
+
+## Count Data
+
+When the outcome is a count, the number of patents a firm files, doctor visits a patient makes, or accidents at an intersection, the natural starting point is the Poisson regression. It models the conditional mean as an exponential of the index, which keeps fitted values non-negative,
+
+$$
+E(y_i \mid \mathbf x_i) = \exp(\mathbf x_i'\boldsymbol\beta),
+$$
+
+and assumes the count is Poisson distributed. A coefficient is a semi-elasticity: $100\,\beta_k$ is the approximate percentage change in the expected count for a one-unit change in $x_k$.
+
+```{r}
+xc <- rnorm(n)
+mu <- exp(0.4 + 0.5 * xc)
+yc <- rpois(n, mu)
+cd <- data.frame(yc, xc)
+fit_pois <- glm(yc ~ xc, family = poisson(link = "log"), data = cd)
+summary(fit_pois)$coefficients
+```
+
+### Overdispersion and the Negative Binomial
+
+The Poisson model imposes equidispersion, the restriction that the conditional variance equals the conditional mean. Real count data are usually overdispersed, with variance exceeding the mean, because of unobserved heterogeneity or clustering of events. Ignoring overdispersion leaves the coefficients consistent but makes the reported standard errors too small, overstating significance. A formal test, in the spirit of @cameron1986econometric, regresses an auxiliary expression of the squared residuals on the fitted mean and checks whether the variance grows faster than the mean.
+
+```{r}
+# auxiliary overdispersion test: variance vs mean
+muhat <- predict(fit_pois, type = "response")
+z <- ((cd$yc - muhat)^2 - cd$yc) / muhat
+od_test <- summary(lm(z ~ muhat - 1))$coefficients
+od_test
+```
+
+When overdispersion is present the negative binomial regression, which adds a gamma-distributed multiplicative error to the Poisson mean and so lets the variance be a quadratic function of the mean, is the standard fix; `MASS::glm.nb` fits it. An attractive robustness result is that the Poisson estimator remains consistent for the conditional-mean parameters even when the full distribution is misspecified, provided only that the mean is correctly specified; this is the quasi-maximum-likelihood property of @wooldridge1999quasi. Combining Poisson point estimates with heteroskedasticity-robust or cluster-robust standard errors is therefore a safe default that does not require the count to be truly Poisson. When the count has more zeros than even the negative binomial can accommodate, zero-inflated and hurdle models, which separate the process generating zeros from the process generating positive counts, extend the framework.
+
+### Endogenous Regressors in Nonlinear Models
+
+A binary or count outcome with an endogenous regressor, a treatment correlated with unobservables, cannot be handled by simply applying two-stage least squares to a nonlinear model; plugging a first-stage fitted value into a logit or Poisson second stage, the forbidden regression, is inconsistent. The control-function approach is the appropriate device: estimate a first-stage reduced form for the endogenous regressor, then include the first-stage residual as an additional regressor in the nonlinear second stage, which absorbs the endogenous part of the error. @petrin2010control develop this control-function strategy for discrete-choice demand models, and @wooldridge2015control surveys its application across nonlinear models. The residual's coefficient also provides a direct test of exogeneity: if it is insignificant, the regressor can be treated as exogenous.
+
+## The Log-of-Zero Problem
+
+A recurring temptation with non-negative outcomes that pile up at zero, trade flows, expenditures, or firm sales, is to model $\ln(y)$, or $\ln(1+y)$, or $\ln(y + c)$ for some small constant. @chen2024logs show that this practice is more hazardous than it appears: when the outcome has mass at zero, the estimand from a log-like transformation depends on the arbitrary units in which $y$ is measured, because the transformation is sensitive to the scale near zero, and the resulting average treatment effect on the transformed scale has no units-invariant interpretation as a percentage effect. Worse, one can change the sign of the estimated effect by rescaling the outcome. Their recommendation is to decide first whether the target is an effect on the level (in which case a model such as Poisson regression with robust standard errors, which handles zeros naturally and delivers a units-invariant proportional interpretation, is appropriate) or an effect on an extensive and intensive margin separately, and to avoid $\ln(1+y)$-type transformations whose estimands are an artifact of units. This connects directly to the count-data discussion: Poisson quasi-maximum likelihood is the workhorse precisely because it accommodates zeros, keeps the mean non-negative, and gives coefficients a clean semi-elasticity reading without any ad hoc shifting of the outcome.
+
+## Aggregate Demand Estimation
+
+The choice models above use individual-level data. A large literature in industrial organization estimates demand from aggregate market shares, prices, and product characteristics, which is the natural data structure when individual choices are unobserved but market outcomes are recorded. This material is the bridge to the structural treatment in Section \@ref(sec-structural-io).
+
+### Berry Inversion
+
+@berry1994estimating showed how to take a random-utility model to aggregate data. Consumer $i$ in market $t$ has utility for product $j$ of
+
+$$
+u_{ijt} = \mathbf x_{jt}'\boldsymbol\beta - \alpha p_{jt} + \xi_{jt} + \varepsilon_{ijt},
+$$
+
+where $\xi_{jt}$ is a product-market characteristic that consumers observe but the econometrician does not, demand-relevant quality say. Aggregating the logit choice probabilities over consumers gives predicted market shares as a function of the mean utilities $\delta_{jt} = \mathbf x_{jt}'\boldsymbol\beta - \alpha p_{jt} + \xi_{jt}$. The central insight is that the share equations can be inverted: given observed shares, one solves uniquely for the vector of mean utilities. In the plain logit case the inversion is the closed form
+
+$$
+\ln(s_{jt}) - \ln(s_{0t}) = \delta_{jt} = \mathbf x_{jt}'\boldsymbol\beta - \alpha p_{jt} + \xi_{jt},
+$$
+
+where $s_{0t}$ is the share of the outside (no-purchase) option. The inversion turns a model of shares into a linear regression in $\delta$, with the unobservable $\xi_{jt}$ playing the role of the structural error.
+
+### Price Endogeneity and Instruments
+
+The Berry inversion immediately exposes a problem: price $p_{jt}$ is correlated with the unobserved quality $\xi_{jt}$, because firms set higher prices for products consumers value for unobserved reasons. Ordinary least squares on the inverted equation therefore yields a biased, typically attenuated, price coefficient and an understated demand elasticity. Price must be instrumented. The standard instruments are cost shifters that move price but not demand, and the BLP instruments, the characteristics of rival products, which shift a product's markup through the competitive environment without entering its own demand shock. Estimation proceeds by generalized method of moments on the conditional moment $E(\xi_{jt}\mid \mathbf z_{jt}) = 0$. An alternative for micro-data choice models is the control-function approach of @petrin2010control, which adds a first-stage price residual to the utility equation.
+
+### Random-Coefficients Demand (BLP)
+
+The plain logit on aggregate data inherits IIA and so generates the implausible substitution patterns of the red-bus/blue-bus critique, with cross-price elasticities that depend only on shares and not on how similar products are. @berry1995automobile, the BLP model, solves this by letting the taste coefficients $\boldsymbol\beta_i$ and the price sensitivity $\alpha_i$ vary across consumers according to a distribution, exactly the mixed-logit idea applied to aggregate data. Random coefficients make consumers substitute toward products with similar characteristics, so a price cut on one minivan draws disproportionately from other minivans rather than uniformly from all cars, producing realistic own- and cross-price elasticities.
+
+Estimation nests three loops. An inner loop solves the system of share equations by a contraction mapping to recover the mean utilities $\delta_{jt}$ that equate predicted to observed shares for any candidate parameter vector. A middle step forms the structural errors $\xi_{jt} = \delta_{jt} - (\mathbf x_{jt}'\boldsymbol\beta - \alpha p_{jt})$ and interacts them with instruments to build GMM moments. An outer loop searches over the nonlinear random-coefficient parameters to minimize the GMM objective. Identification of the random-coefficient (substitution) parameters comes from how shares respond to the characteristics of competing products, which is why the BLP instruments are central. The `BLPestimatoR` package implements the full estimator in R. The econometric foundations, including nonparametric identification of these demand systems, are developed in @berry2014identification, and the full structural pipeline, from demand estimation to counterfactual merger and welfare analysis, is the subject of Section \@ref(sec-structural-io).
+
+## Summary
+
+The random utility model is the common thread of this chapter. A latent index crossing a threshold gives binary logit and probit; a single index cut into ordered bins gives ordered logit and probit; competing alternative-specific utilities give multinomial and conditional logit, whose i.i.d.-Gumbel errors impose the independence of irrelevant alternatives. Relaxing that assumption motivates nested logit, multinomial probit, and the highly flexible mixed and latent-class logit. Because all of these models are nonlinear, interpretation runs through marginal effects, where the distinction between the partial effect at the average and the average partial effect matters, through elasticities and semi-elasticities, and through careful treatment of interaction terms and model fit. The same likelihood machinery extends to count data through Poisson and negative binomial regression, where Poisson quasi-maximum likelihood with robust standard errors is a robust default that also clarifies the modern advice to avoid log-of-zero transformations. Finally, aggregating the random-utility logic over consumers, with the Berry inversion and BLP random coefficients and instruments for endogenous prices, yields the demand systems that anchor the structural industrial-organization analysis in Section \@ref(sec-structural-io).

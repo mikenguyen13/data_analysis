@@ -1,0 +1,109 @@
+## Temporal Causal Inference with Staggered Cohorts {#sec-temporal-causal-inference}
+
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
+
+The difference-in-differences designs developed so far all rely on the existence of a control group that escapes the treatment, at least for a while. A policy hits one set of states and not another, a price change reaches one market and not its neighbor, a product feature ships to a treated arm and not a holdout. The hard case arises when an event reaches everyone at once. A publicly announced data breach, a recall, a regulatory ruling, or a viral news story is known to the entire population almost simultaneously, so there is no contemporaneous group of unaware units to serve as a control. Traditional experimental and quasi-experimental tools, A/B tests, randomized trials, test markets, and conventional DiD, all presuppose a clean comparison group, and that group simply does not exist after a widely known shock. Even if one could find units that somehow remained unaware, they would be unrepresentative of the population precisely because they missed the event.
+
+Temporal causal inference, proposed by @turjeman2023data, resolves this by constructing the control group from the same population at an earlier point in its own history rather than from a different population at the same calendar time. The idea exploits the fact that, when an event strikes, different units are at different stages of their lifecycle or tenure. A user who joined a service three weeks before a breach experiences the shock early in their engagement; a user who joined three years earlier experiences it deep into a mature relationship. If behavior follows a trajectory that depends mainly on tenure rather than on calendar time, then the early-tenure experience of a long-standing cohort, observed before the event reached them, predicts what the treated short-tenure cohort would have done absent the event.
+
+### From staggered tenure to treated and control cohorts
+
+The design reorganizes the panel along tenure, the time since a unit first adopted or joined, rather than along calendar time. Let $H_T$ denote the cohort of participants who joined exactly $T$ time units before the event occurred. For this treated cohort, the event lands $T$ units into their tenure, and the analyst observes their behavior for a window that extends some periods past the event, capturing the post-event response.
+
+The control group for $H_T$ is assembled from cohorts $H_1, \ldots, H_{T-1}$ that joined earlier and therefore reached tenure $T$ before the event arrived. For each such earlier cohort, the analyst tracks activity from first adoption up to the point where the event reaches them or the observation window closes, whichever comes first. The crucial property is that these earlier cohorts passed through tenure $T$, the tenure at which the treated cohort meets the event, while the event had not yet occurred for them. Their behavior at that tenure therefore furnishes the counterfactual: it is what the treated cohort would have done at tenure $T$ had the event not happened.
+
+A subtlety is that every cohort is eventually exposed to the event, since the shock is population-wide. The control cohorts are not unexposed; they are exposed later in their own tenure. The design uses only the segment of each control cohort's trajectory that precedes its own exposure, so within the comparison window the control observations are genuinely event-free. Most cohorts play both roles across the analysis, serving as controls for later-joining cohorts and as treated units relative to earlier ones; only the very earliest and very latest cohorts in the window are confined to a single role.
+
+The plot below illustrates the construction with several simulated cohorts. The upper panel shows behavior against calendar time, where the cohorts are shifted horizontally because they joined at different dates. The lower panel realigns them against tenure, the time since each cohort's own adoption, which is the axis on which the cohorts become comparable. Aligned on tenure, the cohorts trace similar trajectories, and the treated cohort meets the event at the tenure where the earlier cohorts had not yet been exposed.
+
+```{r, collapse=TRUE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(patchwork)
+
+# Base tenure grid shared by every cohort
+tenure <- seq(0, 99, length.out = 100)
+
+# Each cohort joins at a different calendar time but follows a tenure-driven path
+generate_cohort <- function(name, start_time, mean, sd) {
+    data.frame(
+        tenure = tenure,
+        cohort = name,
+        time   = seq(start_time, start_time + 99, by = 1),
+        value  = dnorm(tenure, mean = mean, sd = sd)
+    )
+}
+
+cohorts <- list(
+    generate_cohort("Cohort 1", 1,  47, 15),
+    generate_cohort("Cohort 2", 10, 48, 17),
+    generate_cohort("Cohort 3", 20, 52, 20),
+    generate_cohort("Cohort 4", 30, 53, 18),
+    generate_cohort("Treated",  40, 50, 16)
+)
+final_dataset <- do.call(rbind, cohorts)
+
+# Calendar-time view: cohorts are offset because they joined on different dates
+plot_time <-
+    ggplot(final_dataset, aes(x = time, y = value, color = cohort)) +
+    geom_line(linewidth = 0.7) +
+    geom_vline(xintercept = 40, linetype = "dashed") +
+    geom_vline(xintercept = 90, linetype = "dashed") +
+    labs(title = "Behavior vs. calendar time", x = "Time", y = "Value") +
+    theme_minimal()
+
+# Tenure view: aligned on time since adoption, the cohorts become comparable
+plot_tenure <-
+    ggplot(final_dataset, aes(x = tenure, y = value, color = cohort)) +
+    geom_line(linewidth = 0.7) +
+    geom_vline(xintercept = 0,  linetype = "dashed") +
+    geom_vline(xintercept = 50, linetype = "dashed") +
+    labs(title = "Behavior vs. tenure", x = "Tenure", y = "Value") +
+    theme_minimal()
+
+plot_time / plot_tenure
+```
+
+The upper panel displays behavior over calendar time for one treated cohort and several earlier cohorts. The lower panel realigns the same series on tenure, showing that the cohorts share a common shape once tenure is held fixed; the control cohorts have not yet met the event at the tenure where the treated cohort encounters it.
+
+Before any model, it pays to show model-free evidence, the simple average of the outcome for treated and control groups around the event. The chunk below reproduces that descriptive comparison from the data accompanying @turjeman2023data; it is not evaluated here because it depends on study-specific labeling that lives outside this book's build.
+
+```{r, eval = FALSE}
+percent_active_per_group <- rio::import(file.path(
+    getwd(), "data", "mksc.2019.0208", "percent_active_per_group.csv"
+))
+
+ggplot(percent_active_per_group,
+       aes(x = time_from, y = avg_avg, linetype = as.factor(group_type))) +
+    geom_line(linewidth = 0.75) +
+    geom_vline(xintercept = 0) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    scale_linetype_manual(values = c("dotted", "solid")) +
+    labs(x = "Weeks from treatment",
+         y = "Average percent of active users",
+         linetype = "Group") +
+    theme_minimal()
+```
+
+### Potential outcomes and the role of multiple control cohorts
+
+The framework is the usual potential-outcomes one. For each unit there is an outcome absent the event, $Y_i(0)$, and an outcome with the event, $Y_i(1)$, only one of which is observed; the unobserved counterfactual is imputed as $\hat{Y}_i(0)$ or $\hat{Y}_i(1)$, and the probability of exposure is estimated as $\hat{w}_i \in (0,1)$. What distinguishes temporal causal inference is the source of the counterfactual: rather than a single contemporaneous control group, it draws on many control cohorts that joined at distinct times.
+
+This multiplicity is a strength. Each control cohort lived through the comparison tenure window during a different calendar interval, so any cohort-specific calendar disturbance, a seasonal swing, a competitor's promotion, a macroeconomic wobble, contaminates only the cohorts active during that interval. Averaging the counterfactual across many cohorts that span different calendar intervals averages out these idiosyncratic disturbances, leaving the tenure-driven component that the design is built to recover. A single control group offers no such averaging.
+
+### Identifying assumptions
+
+Temporal causal inference rests on the same assumptions as other selection-on-observables designs, reinterpreted for the tenure-aligned cohort structure.
+
+The stable unit treatment value assumption has two parts. The first is no interference between units. Because treated and control cohorts are defined by tenure and observed during non-overlapping segments of calendar time within the comparison window, a unit's assignment does not act on another unit's outcome through the usual contemporaneous channels: for a pair $\{i, j\}$ in different cohorts, $Y_i(1) \perp Y_j(0)$ within the window. After a population-wide shock, treated units may influence one another, so $Y_i(1)$ and $Y_j(1)$ need not be independent across all treated pairs; the design confines attention to comparisons where this is least problematic. The second part is no hidden versions of treatment, so that the observed outcome is $Y_i = W_i Y_i(1) + (1 - W_i) Y_i(0)$ and only the event of interest moves the outcome. This is hard to guarantee outside a controlled trial, but using many control cohorts that joined at different dates dilutes the influence of any single extraneous event on the imputed $Y_i(0)$, since unrelated disturbances are averaged across cohorts.
+
+Conditional independence, or ignorability, requires that assignment to the treated or control role be independent of the potential outcomes given covariates, $P(W_i \mid X_i, Y_i(0), Y_i(1)) = P(W_i \mid X_i)$. Here assignment is governed by join time, the tenure at which a unit met the event, so the concern is whether the date a unit joined is related to its outcome trajectory in a way the covariates do not capture. The design validates the implied parallel-trends condition empirically. A bidirectional Granger test checks whether the control series helps predict the treated series and vice versa in the pre-event window, with the goal of finding the two statistically indistinguishable before the event. A Kolmogorov-Smirnov test compares the pre-event timelines of the two groups to confirm they are drawn from comparable distributions. Passing both supports the claim that, prior to the event, treated and control cohorts were on the same path.
+
+Overlap requires a treatment propensity strictly between zero and one for every unit given covariates, $0 < \Pr(W_i = 1 \mid X_i = x) < 1$. In this design every unit is eventually treated, and at any given tenure each unit had a positive chance of being on either side of the event, so overlap is plausible; it can be examined directly through the estimated propensity $\hat{w}(x)$.
+
+Finally, exogeneity of covariates requires that the covariates not be affected by the event. This is supported when the shock is genuinely unforeseen. If some units anticipated it, the anticipation is likely shared across treated and control cohorts, so the design controls for it and identification of the treatment effect is preserved.
+
+### Relation to staggered difference-in-differences
+
+Temporal causal inference is closely related to, but distinct from, the staggered DiD designs of the preceding sections. Staggered DiD estimates treatment effects when an intervention reaches different units at different calendar times and at least some units remain untreated as controls within each period; the analyst aligns on calendar time and exploits the staggering of adoption. Temporal causal inference inverts the geometry. The event reaches everyone at nearly the same calendar moment, so there is no contemporaneous holdout, and the staggering that the design exploits is in tenure rather than in adoption of the treatment. By realigning cohorts on tenure and using earlier cohorts' pre-event tenure segments as the counterfactual, it manufactures a control group out of the population's own history. When a clean contemporaneous control group exists, staggered DiD is the natural tool; when the shock is population-wide and no such group exists, temporal causal inference supplies the comparison that DiD cannot.
+
+As with any matching or nonparametric design, the method is data-hungry. Stable trajectory matching across cohorts, credible Granger and Kolmogorov-Smirnov diagnostics, and well-estimated propensities all require many units per cohort and a reasonably long tenure window. With thin cohorts the imputed counterfactual is noisy and the pre-event diagnostics lose power, so the approach is best suited to settings with large panels of individually tracked units.

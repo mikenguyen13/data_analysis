@@ -1,0 +1,290 @@
+## Likelihood and Theories of Inference {#sec-likelihood-inference}
+
+The earlier sections of this chapter treated inference operationally: form a hypothesis, compute a test statistic, compare it to a reference distribution, and report a confidence interval. That machinery works, but it leaves open a deeper question. Why is a particular estimator the right summary of the data, and where do its standard errors come from? This section steps back to the conceptual foundations. It introduces the statistical model as an explicit description of how the data arose, lays out the three classical theories of inference (likelihood, Bayesian, and Neyman-Pearson), and then develops the likelihood approach in enough detail to recover maximum likelihood estimation, its sampling properties, and the curvature-based standard errors that the rest of the book relies on. The treatment follows the unifying perspective of @king1998unifying and the textbook development in @casella2002statistical and @wasserman2004all.
+
+### The Statistical Model
+
+Every inference rests on a model, an explicit statement of how the observed data could have been generated. A useful way to write a model separates a stochastic component, which captures the randomness in the outcome, from a systematic component, which captures how that randomness shifts with covariates. For a normal outcome the model reads
+
+$$
+\begin{aligned}
+Y_i &\sim N(\mu_i, \sigma^2) && \text{stochastic component} \\
+\mu_i &= x_i \beta && \text{systematic component}.
+\end{aligned}
+$$
+
+The same template generalizes to outcomes that are binary, count, or duration valued:
+
+$$
+\begin{aligned}
+Y_i &\sim f(\theta_i, \alpha) && \text{stochastic component} \\
+\theta_i &= g(x_i, \beta) && \text{systematic component}.
+\end{aligned}
+$$
+
+Here $f$ is a probability density, $\theta_i$ is the feature of that density that varies across observations, $\alpha$ collects ancillary parameters that stay constant across observations (such as a variance), $g$ is the link or functional form, $x_i$ is the covariate vector, and $\beta$ holds the effect parameters. Throughout, $Y_i$ denotes the random variable before the data arrive and $y_i$ denotes the realized number after they do.
+
+This decomposition makes the sources of uncertainty explicit. Estimation uncertainty reflects our incomplete knowledge of $\beta$ and $\alpha$; it shrinks toward zero as the sample size $n$ grows. Fundamental uncertainty is the irreducible randomness of the stochastic component; it does not vanish with more data. Model dependence is uncertainty about the model itself, including the choice of $f$ and $g$. A misspecified functional form can bias estimates, although a well chosen approximation often recovers the best linear or logistic summary of the true relationship. The stochastic and systematic components are also linked through their support: if the outcome is bounded, the systematic component cannot be globally linear, since a linear predictor would eventually push the mean past the boundary.
+
+### Probability as the Forward Map
+
+A probability model assigns $P(y \mid M)$, the probability of the data given the model $M = (f, g, X, \beta, \alpha)$, which for brevity we write as $P(y)$. The function $P(\cdot)$ satisfies the three Kolmogorov axioms: probabilities are nonnegative, the probability of the entire sample space is one, and the probability of a union of mutually exclusive events is the sum of their probabilities,
+
+$$
+P(z_1 \cup \dots \cup z_k) = \sum_{j=1}^{k} P(z_j) \quad \text{for mutually exclusive } z_1, \dots, z_k.
+$$
+
+These are definitions of what it means to be a probability, not empirical assumptions, so they cannot be wrong. Randomness in this sense is not the same as haphazardness; structured processes can still be perfectly random in distribution, and pseudo-random number generators are deterministic yet pass as random for modeling purposes.
+
+The model maps parameters to data, $P(\text{known} \mid \text{unknown})$. Inference wants to reverse this map and learn about the unknown parameters from the known data. The pure inverse, $P(M \mid y)$, is unattainable because it would require knowing the model with no assumptions. What is attainable is a more modest target: fix an assumed structure $M^*$ and treat only the parameters $\theta$ as unknown, so the inferential object becomes $P(\theta \mid y, M^*)$, written $P(\theta \mid y)$ for short. Inference without assumptions is impossible; the question is only which assumptions to condition on and how to defend them.
+
+### Three Theories of Inference
+
+Bayes theorem is the algebraic hinge that connects the forward map to the inferential target:
+
+$$
+\begin{aligned}
+P(\theta \mid y)
+&= \frac{P(\theta, y)}{P(y)}
+&& \text{definition of conditional probability} \\
+&= \frac{P(\theta)\,P(y \mid \theta)}{P(y)}
+&& \text{since } P(\theta, y) = P(\theta)\,P(y \mid \theta) \\
+&= \frac{P(\theta)\,P(y \mid \theta)}{\int P(\theta)\,P(y \mid \theta)\, d\theta}.
+\end{aligned}
+$$
+
+The three classical theories of inference differ in how they interpret and use this identity. In each, $P(y \mid \theta)$ is an ordinary probability density; the disagreement is about everything else.
+
+#### The Likelihood Theory
+
+R. A. Fisher's likelihood theory treats $\theta$ as fixed at its unknown true value and $y$ as the random object that has been realized. Collect the parts of Bayes theorem that do not involve $\theta$ into a single function of the data,
+
+$$
+k(y) \equiv \frac{P(\theta)}{\int P(\theta)\,P(y \mid \theta)\, d\theta},
+$$
+
+so that $P(\theta \mid y) = k(y)\,P(y \mid \theta)$. The likelihood theory adds one axiom to the three probability axioms: the likelihood of $\theta$ given $y$ is
+
+$$
+L(\theta \mid y) \equiv k(y)\,P(y \mid \theta) \propto P(y \mid \theta).
+$$
+
+Read as a function of $\theta$ with the data held at their observed values, $L(\theta \mid y)$ reports how well any candidate value of $\theta$ accounts for what was seen. It is a relative measure of support, not a probability over $\theta$. Comparing $L$ at two parameter values within one dataset is meaningful; comparing likelihood values across different datasets is not, much as an $R^2$ cannot be compared across regressions with different dependent variables. The likelihood principle states that the data influence inference only through this function: once $L(\theta \mid y)$ is known, the raw data carry no further information about $\theta$, provided the model is correct.
+
+In practice we work with the log-likelihood $\ln L(\theta \mid y)$, which has the same maximizer but is numerically more stable and turns products into sums. The likelihood curve is itself the summary estimator. Its single highest point is the maximum likelihood estimate (MLE), and the curvature near that peak measures how sharply the data distinguish the MLE from nearby values, which is the basis for the standard error.
+
+#### The Bayesian Theory
+
+The Bayesian theory, tracing to an unpublished argument of Thomas Bayes, keeps the full identity and reads it as
+
+$$
+P(\theta \mid y) = \frac{P(\theta)\,P(y \mid \theta)}{\int P(\theta)\,P(y \mid \theta)\, d\theta} \propto P(\theta)\,P(y \mid \theta).
+$$
+
+Here $P(\theta \mid y)$ is the posterior density, $P(y \mid \theta)$ is the ordinary probability (proportional to the likelihood), the denominator is a normalizing constant, and $P(\theta)$ is the prior density. The prior is precisely where Bayesian inference departs from likelihood: it formalizes evidence about $\theta$ from outside the current dataset. This is at once an opportunity, since it lets external information enter the estimator, and a requirement, since some prior must always be specified. The Bayesian stance treats all unknowns as random variables with a joint distribution, treats observed data as fixed, and derives inferences by conditioning and integration.
+
+Unlike the likelihood, the posterior is a genuine probability density, so probability statements about $\theta$ follow directly by integration. When the prior is flat over the relevant region, $P(\theta) \propto 1$, the posterior and the likelihood coincide. The philosophical gap between the two theories is large, but the practical gap is often small unless the prior carries real weight, as in forecasting problems with sparse data. A diffuse prior tends to improve numerical stability and identification, so Bayesian computation can run more smoothly even when the substantive conclusions match those from likelihood. A pragmatic rule of thumb is to start with likelihood because it is simpler and adopt the Bayesian apparatus when external information or computational structure makes it worthwhile.
+
+#### The Neyman-Pearson Theory
+
+The third theory, Neyman-Pearson hypothesis testing, is the framework developed earlier in this chapter, and it sits somewhat apart from the other two. It draws a sharp line between a null hypothesis $H_0$ and an alternative $H_1$ and conducts all calculations under $H_0$. For the regression coefficient in $E(Y) = \beta_0 + \beta x$, one might test $H_0: \beta = 0$ against $H_1: \beta > 0$, fix the Type I error rate $\alpha = 0.05$ in advance, and, invoking the central limit theorem for large $n$, use
+
+$$
+\frac{b - \beta}{\hat{\sigma}_b} \;\Big|\; (\beta = 0) \;=\; \frac{b}{\hat{\sigma}_b} \sim N(0, 1).
+$$
+
+The critical value solves $\int_{\text{CV}}^{\infty} N(b \mid 0, \sigma_b^2)\, db = \alpha$, and one rejects $H_0$ when the test statistic exceeds it. The discipline of fixing the design and the decision rule before seeing the data is the strength of this theory, and the same logic underlies the modern preregistration movement.
+
+No single theory is correct in any absolute sense; the sensible choice is the one that is most tractable for the problem at hand. What matters more than allegiance to a school is that different careful methods, likelihood with goodness-of-fit checks, Bayesian analysis with diffuse priors, robust and semiparametric estimators, and flexible functional forms, increasingly converge on the same answers. The unifying lesson is that no assumption can be fully trusted, so every theory of inference conditions on assumptions that the analyst must understand and probe [@king1998unifying].
+
+### Likelihood-Based Estimation
+
+To make the likelihood approach concrete, consider the simplest possible model: a normal outcome with no covariates, a single mean parameter, and known unit variance. The model is
+
+$$
+Y_i \sim N(\mu_i, 1), \qquad \mu_i = \beta, \qquad Y_i \perp Y_j \text{ for } i \neq j.
+$$
+
+Because the observations are independent, the joint density factors into a product, giving the full probability of the data:
+
+$$
+P(y \mid \beta) = \prod_{i=1}^{n} (2\pi)^{-1/2} \exp\!\left(-\frac{(y_i - \beta)^2}{2}\right).
+$$
+
+The likelihood is this density read as a function of $\beta$, up to the data-only factor $k(y)$:
+
+$$
+L(\beta \mid y) = k(y) \prod_{i=1}^{n} (2\pi)^{-1/2} \exp\!\left(-\frac{(y_i - \beta)^2}{2}\right).
+$$
+
+Taking logs converts the product to a sum, and any term that does not involve $\beta$ is an additive constant that cannot change the location of the maximum:
+
+$$
+\ln L(\beta \mid y) = \ln k(y) - \frac{n}{2}\ln(2\pi) - \frac{1}{2}\sum_{i=1}^{n}(y_i - \beta)^2 \;\doteq\; -\frac{1}{2}\sum_{i=1}^{n}(y_i - \beta)^2,
+$$
+
+where $\doteq$ means equal up to an additive constant. Maximizing the log-likelihood means minimizing the sum of squared deviations, so the MLE is the sample mean $\hat{\beta} = \bar{y}$.
+
+When the maximizer is not available in closed form, we find it analytically where possible by setting the derivative of the log-likelihood to zero and solving,
+
+$$
+\left. \frac{\partial \ln L(\theta \mid y)}{\partial \theta} \right|_{\theta = \hat{\theta}} = 0,
+$$
+
+then checking the second-order condition that the second derivative is negative at $\hat{\theta}$. Otherwise we maximize numerically. The simulation below confirms that the log-likelihood for the stylized normal model peaks at the sample mean.
+
+```{r likelihood-curve, fig.cap="Log-likelihood for the stylized normal model peaks at the sample mean", fig.alt="A curve of the log-likelihood plotted against candidate values of beta. The curve is concave and reaches its maximum at the sample mean, which is marked with a vertical dashed line."}
+set.seed(123)
+y <- rnorm(50, mean = 2, sd = 1)
+
+# Log-likelihood up to an additive constant
+loglik <- function(beta, y) {
+    -0.5 * sum((y - beta)^2)
+}
+
+beta_grid <- seq(1, 3, length.out = 200)
+ll_values <- sapply(beta_grid, loglik, y = y)
+
+plot(beta_grid, ll_values, type = "l", lwd = 2,
+     xlab = expression(beta), ylab = "Log-likelihood")
+abline(v = mean(y), lty = 2)
+
+# The maximizer on the grid matches the sample mean
+beta_grid[which.max(ll_values)]
+mean(y)
+```
+
+### Properties of the Maximum Likelihood Estimator
+
+Maximum likelihood is attractive because of what its estimators do, both in finite samples and as the sample grows.
+
+In finite samples the MLE has three notable properties. First, when a minimum variance unbiased estimator exists, maximum likelihood finds it, and when none exists it still produces a sensible estimator. For the stylized normal model the sample mean is unbiased, $E(\bar{Y}) = \frac{1}{n}\sum_{i=1}^{n} E(Y_i) = \mu$, and its variance $V(\bar{Y}) = \sigma^2 / n$ is as small as any unbiased estimator can achieve. Second, the MLE is invariant to reparameterization: the MLE of $\sigma$ is the square root of the MLE of $\sigma^2$. This is not true of unbiasedness, since $E(1/\bar{y}) \neq 1/E(\bar{y})$ in general. Third, the MLE is invariant to the sampling plan, which means it is legitimate to inspect results while deciding how much data to collect, a flexibility that other frameworks do not always permit.
+
+As $n \to \infty$ the MLE gains three asymptotic guarantees. By the law of large numbers it is consistent: its sampling distribution collapses to a spike over the true parameter, so more data help. By the central limit theorem it is asymptotically normal: the standardized estimator $\hat{\theta}/\operatorname{se}(\hat{\theta})$ converges to a normal distribution, so for large $n$ the normal approximation is reliable. And it is asymptotically efficient: in the limit the MLE packs as much information into a point estimate as any estimator can. The law of large numbers and the central limit theorem play complementary roles here, the former driving consistency and the latter driving the shape of the limiting distribution. The short simulation below illustrates both: as $n$ grows, the spread of the MLE shrinks (consistency) while its standardized distribution stays close to normal.
+
+```{r mle-asymptotics, fig.cap="Sampling distribution of the maximum likelihood estimator concentrates as the sample size grows", fig.alt="Three overlaid density curves of the maximum likelihood estimator of the mean for sample sizes 10, 50, and 250. Larger samples produce taller, narrower densities centered on the true value of 2."}
+set.seed(1)
+true_mu <- 2
+sample_sizes <- c(10, 50, 250)
+reps <- 2000
+
+draws <- lapply(sample_sizes, function(n) {
+    replicate(reps, mean(rnorm(n, mean = true_mu, sd = 1)))
+})
+
+plot(density(draws[[1]]), lwd = 2, xlim = c(1, 3),
+     main = "", xlab = expression(hat(mu)))
+lines(density(draws[[2]]), lwd = 2, lty = 2)
+lines(density(draws[[3]]), lwd = 2, lty = 3)
+abline(v = true_mu, col = "grey50")
+legend("topright", legend = paste0("n = ", sample_sizes),
+       lwd = 2, lty = 1:3, bty = "n")
+
+# Variance of the MLE falls roughly in proportion to 1/n
+sapply(draws, var)
+```
+
+### Quantifying Uncertainty
+
+Once the MLE is in hand, three complementary views of the likelihood surface describe the uncertainty around it: the relative heights of the surface at different parameter values give likelihood ratios, the curvature at the maximum gives standard errors, and the slope at a single value gives the score. The first two are developed here.
+
+#### The Likelihood Ratio
+
+To compare a richer unrestricted model with likelihood $L^*$ against a nested restricted model with likelihood $L_R^*$, form the likelihood ratio. Because the unrestricted model can fit at least as well, $L^* \ge L_R^*$ and the ratio $L_R^*/L^* \le 1$. The data-only factor $k(y)$ cancels, leaving a ratio of ordinary probabilities,
+
+$$
+\frac{L(\theta_1 \mid y)}{L(\theta_2 \mid y)} = \frac{P(y \mid \theta_1)}{P(y \mid \theta_2)}.
+$$
+
+Under a Neyman-Pearson null, the scaled log ratio has a known large-sample distribution,
+
+$$
+R = -2 \ln\!\left(\frac{L_R^*}{L^*}\right) = 2\left(\ln L^* - \ln L_R^*\right) \;\xrightarrow{d}\; \chi^2_m,
+$$
+
+where $m$ is the number of restrictions. If the restrictions do no harm, $E(R) = m$; an observed value well above $m$ signals that the restricted parameters differ from their constrained values. The likelihood ratio test is reliable, but probing many points of interest can require many such tests, which motivates a single-number summary of uncertainty.
+
+#### Standard Errors from Curvature
+
+Rather than plot the entire likelihood surface or run many ratio tests, we summarize the curvature near the maximum with one quantity, using the normal likelihood as the local approximation that the asymptotic normality of the MLE justifies. For the normal model with $\mu_i = \beta$ and variance $\sigma^2$,
+
+$$
+\ln L(\beta \mid y) = -\frac{n}{2}\ln(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^{n}(y_i - \beta)^2.
+$$
+
+Expanding the square collects the dependence on $\beta$ into a quadratic, $\ln L(\beta \mid y) = a + b\beta + c\beta^2$, whose curvature term is
+
+$$
+c = \frac{\partial^2 \ln L(\beta \mid y)}{\partial \beta^2} = -\frac{n}{\sigma^2}.
+$$
+
+The curvature is more pronounced, meaning a sharper peak and a more informative estimate, when the sample is large or the noise variance is small. For a general model whose log-likelihood is not exactly normal, we use the best quadratic approximation and read the curvature from the matrix of second derivatives. Inverting the negative of that matrix, evaluated at the MLE, gives the estimated variance-covariance matrix of the estimator,
+
+$$
+\hat{V}(\hat{\theta}) = \left[ -\frac{\partial^2 \ln L(\theta \mid y)}{\partial \theta\, \partial \theta'} \right]^{-1}_{\theta = \hat{\theta}}.
+$$
+
+The diagonal entries are the squared standard errors and the off-diagonal entries are the estimated covariances. This is the observed information formulation: it works for a parameter vector of any dimension, can be computed analytically or numerically, and is asymptotically an estimate of the exact sampling variance [@casella2002statistical]. For the stylized normal model the formula reproduces the familiar result that the standard error of the mean is $\sigma/\sqrt{n}$, as the next chunk confirms by comparing the curvature-based standard error with the textbook expression.
+
+```{r mle-standard-error}
+set.seed(42)
+y <- rnorm(80, mean = 5, sd = 2)
+n <- length(y)
+sigma2 <- var(y)
+
+# Curvature-based variance of the MLE of the mean:
+# second derivative of the log-likelihood w.r.t. beta is -n / sigma2
+V_hat <- 1 / (n / sigma2)
+se_curvature <- sqrt(V_hat)
+
+# Compare with the textbook standard error of the mean
+se_textbook <- sqrt(sigma2) / sqrt(n)
+
+c(curvature = se_curvature, textbook = se_textbook)
+```
+
+### From Estimates to Quantities of Interest
+
+A complete statistical presentation reports point estimates of substantively meaningful quantities together with honest measures of their uncertainty, in a form a reader can grasp without re-deriving the model [@king2000making]. Once the MLE $\hat{\theta} = (\hat{\beta}, \hat{\alpha})$ and its estimated variance $\hat{V}(\hat{\theta})$ are in hand, simulation turns them into statements about quantities of interest. The recipe draws parameters from their asymptotic distribution to represent estimation uncertainty, $\tilde{\theta} \sim N(\hat{\theta}, \hat{V}(\hat{\theta}))$, computes the systematic component $\tilde{\theta}_c = g(x_c, \tilde{\beta})$ at chosen covariate values $x_c$, optionally draws the outcome $\tilde{y}_c \sim f(\tilde{\theta}_c, \tilde{\alpha})$ to add fundamental uncertainty, and then summarizes the simulated values. Expected-value quantities average over the fundamental component and so carry only estimation uncertainty, whose variance vanishes as $n \to \infty$; predicted-value quantities retain the fundamental component and so keep a nonzero variance no matter how large the sample. The chunk below illustrates the parameter-simulation step for the stylized normal model.
+
+```{r qoi-simulation}
+set.seed(7)
+y <- rnorm(120, mean = 3, sd = 1.5)
+n <- length(y)
+
+beta_hat <- mean(y)
+V_hat <- var(y) / n
+
+# Draw from the asymptotic sampling distribution of the MLE
+sims <- rnorm(5000, mean = beta_hat, sd = sqrt(V_hat))
+
+# Point estimate and a simulation-based 95% interval
+c(estimate = beta_hat,
+  lower = quantile(sims, 0.025),
+  upper = quantile(sims, 0.975))
+```
+
+For models with bounded or constrained parameters it is common to reparameterize onto an unbounded scale before optimizing, since numerical optimizers behave better and the central limit theorem applies sooner. A variance parameter $\sigma > 0$, for instance, can be estimated through $\sigma = e^{\eta}$ and the unconstrained $\eta$ optimized directly. The following sketch shows how a custom log-likelihood is coded for a normal linear model and maximized with a general-purpose optimizer; it is marked as not run because it depends on supplying a design matrix and outcome.
+
+```{r custom-loglik, eval=FALSE}
+# Negative log-likelihood for a normal linear model,
+# with sigma reparameterized as exp(eta) for unconstrained optimization
+neg_loglik <- function(par, X, y) {
+    X <- cbind(1, X)
+    k <- ncol(X)
+    beta <- par[1:k]
+    sigma <- exp(par[k + 1])
+    resid <- y - X %*% beta
+    0.5 * length(y) * log(2 * pi * sigma^2) +
+        sum(resid^2) / (2 * sigma^2)
+}
+
+# Maximize the likelihood (minimize the negative log-likelihood)
+fit <- optim(par = rep(0, ncol(X) + 2), fn = neg_loglik,
+             X = X, y = y, hessian = TRUE)
+
+# Curvature-based variance-covariance matrix: inverse of the Hessian
+V_hat <- solve(fit$hessian)
+```
+
+This same likelihood machinery, the stochastic and systematic components, the log-likelihood, the MLE, and the curvature-based variance, extends directly to the generalized linear models, count and duration models, and other parametric families taken up in later chapters [@mccullagh2019generalized; @efron2021computer]. When the model's variance assumptions are doubtful, robust standard errors estimate $V(\hat{\theta})$ under weaker conditions and serve as a diagnostic: a large gap between conventional and robust standard errors points to misspecification that is better fixed than papered over. The treatment of robust standard errors, and the causal estimands such as the population and sample average treatment effects, belongs to the later chapters on regression and causal inference, where the likelihood foundations developed here carry over without change.

@@ -1,0 +1,336 @@
+# Machine Learning for Causal Inference {#sec-ml-causal}
+
+Causal inference from observational data requires us to adjust for confounding variables that jointly influence the treatment and the outcome. The classical toolkit, built around linear regression, propensity score weighting, and parametric matching, assumes that the analyst can write down a correctly specified model for either the outcome surface or the treatment assignment mechanism. When the number of covariates is large, when their functional relationship to the outcome is unknown, or when treatment effects vary in complex ways across the population, these parametric assumptions become fragile. Machine learning offers flexible, data-adaptive estimators for exactly these high-dimensional nuisance functions. The central intellectual contribution of the modern literature is showing how to combine flexible prediction with the structure of semiparametric theory so that causal estimates retain valid confidence intervals despite being built on top of black-box learners.
+
+This chapter develops that synthesis. We begin with the reason naive plug-in machine learning fails for causal questions, namely the regularization bias problem. We then build up the machinery that solves it: Neyman-orthogonal scores, cross-fitting, and the double or debiased machine learning framework of @chernozhukov2018double. We connect this to the older doubly robust tradition of augmented inverse probability weighting and targeted maximum likelihood estimation, and to ensemble learning through the SuperLearner. We then turn to heterogeneity, where causal forests and generalized random forests recover how effects vary across individuals, and where meta-learners offer a complementary modular approach. Finally we describe a time-aware extension, temporal causal forests, and close with practical guidance and pitfalls.
+
+## Why Machine Learning for Causal Inference
+
+### High-Dimensional Confounding
+
+Selection-on-observables identification rests on the assumption of unconfoundedness, that conditional on a covariate vector $X$ the treatment $W$ is as good as randomly assigned. The credibility of this assumption grows with the richness of $X$. A study that conditions on only a handful of covariates invites the criticism that some omitted variable still confounds the comparison. Including hundreds or thousands of covariates, their interactions, and flexible transformations strengthens the identifying assumption, but it overwhelms classical parametric estimators. Ordinary least squares with more covariates than observations is not even defined, and even when $p < n$ the variance explodes as $p$ approaches $n$.
+
+Machine learning methods such as the Lasso, random forests, gradient boosting, and neural networks were designed precisely to predict well in high dimensions by trading a small amount of bias for a large reduction in variance. The temptation is therefore to estimate the outcome regression or the propensity score with one of these learners and to plug the result into a standard causal estimator. As the next subsection shows, doing this naively destroys the statistical guarantees we rely on for inference.
+
+### The Regularization Bias Problem
+
+Consider the partially linear model
+$$
+Y = \theta_0 W + g_0(X) + \varepsilon, \qquad \mathbb{E}[\varepsilon \mid X, W] = 0,
+$$
+where $\theta_0$ is the causal parameter of interest and $g_0$ is an unknown, potentially complicated function of the confounders. A direct strategy is to estimate $g_0$ with a machine learning method $\hat{g}$ and then regress the residual $Y - \hat{g}(X)$ on $W$. Suppose for concreteness that we estimate $\theta_0$ by
+$$
+\hat{\theta} = \left(\frac{1}{n}\sum_i W_i^2\right)^{-1} \frac{1}{n}\sum_i W_i \bigl(Y_i - \hat{g}(X_i)\bigr).
+$$
+Decomposing the scaled error reveals two terms,
+$$
+\sqrt{n}(\hat{\theta} - \theta_0) = \underbrace{a}_{\text{well behaved}} + \underbrace{b}_{\text{regularization bias}},
+$$
+where the second term involves $\frac{1}{\sqrt{n}}\sum_i W_i \bigl(g_0(X_i) - \hat{g}(X_i)\bigr)$. Because every machine learning estimator regularizes, shrinking coefficients or limiting tree depth to control variance, the error $g_0 - \hat{g}$ converges to zero more slowly than the parametric rate $n^{-1/2}$. The bias term $b$ therefore diverges, and $\hat{\theta}$ is not even consistent at the rate needed for valid confidence intervals. This is the regularization bias, sometimes called the plug-in or first-order bias. It is not a small-sample nuisance; it is a structural consequence of using a biased, slowly converging nuisance estimator inside a causal functional that is sensitive to errors in that nuisance.
+
+Two ideas rescue us. The first is to construct the estimating equation so that it is insensitive, to first order, to errors in the nuisance functions. This is Neyman orthogonality. The second is to estimate the nuisance functions on data separate from the data used to form the final estimate, breaking the dependence that would otherwise reintroduce bias. This is cross-fitting. Together they are the heart of double machine learning.
+
+## Double and Debiased Machine Learning
+
+The double or debiased machine learning framework of @chernozhukov2018double provides a general recipe for estimating a low-dimensional causal parameter in the presence of high-dimensional nuisance functions estimated by arbitrary machine learning methods. It rests on two pillars, Neyman-orthogonal scores and cross-fitting.
+
+### Neyman-Orthogonal Scores
+
+Suppose the target parameter $\theta_0$ solves a moment condition $\mathbb{E}[\psi(Z; \theta_0, \eta_0)] = 0$, where $Z$ collects the observed data, $\psi$ is a known score function, and $\eta_0$ denotes the nuisance functions. The score is Neyman orthogonal if its expectation has a vanishing derivative with respect to the nuisance at the truth,
+$$
+\partial_\eta \, \mathbb{E}\bigl[\psi(Z; \theta_0, \eta)\bigr]\Big|_{\eta = \eta_0} = 0.
+$$
+Orthogonality means that small errors in $\hat{\eta}$ have only a second-order effect on the moment condition. Because machine learning errors are slow but not pathological, second-order terms of the form $\|\hat{\eta} - \eta_0\|^2$ vanish faster than $n^{-1/2}$ provided each nuisance is estimated at a rate faster than $n^{-1/4}$, a rate that flexible learners can attain. The first-order regularization bias is thus eliminated by construction.
+
+For the partially linear model, the naive score $W(Y - \theta W - g(X))$ is not orthogonal because it is sensitive to errors in $g$ through its correlation with $W$. The orthogonal score partials out the confounders from the treatment as well. Define the conditional treatment mean $m_0(X) = \mathbb{E}[W \mid X]$ and the residualized treatment $V = W - m_0(X)$. The Robinson-style orthogonal score is
+$$
+\psi(Z; \theta, \eta) = \bigl(Y - g(X) - \theta\,(W - m(X))\bigr)\,\bigl(W - m(X)\bigr),
+$$
+with nuisance $\eta = (g, m)$. This is the partialling-out estimator that underlies the classic semiparametric partially linear regression of @robinson1988root, now estimated with machine learning for both nuisance functions. Intuitively, we residualize $Y$ on $X$ and $W$ on $X$ using flexible learners, then regress the $Y$-residual on the $W$-residual. The mutual residualization is what makes the score robust to errors in either nuisance.
+
+### Cross-Fitting
+
+Even with an orthogonal score, reusing the same observations to estimate the nuisance functions and to evaluate the moment condition introduces an overfitting bias and requires strong empirical-process conditions on the learner. Cross-fitting removes this by sample splitting. Partition the data into $K$ folds. For each fold $k$, estimate the nuisance functions on all observations outside fold $k$, then evaluate the orthogonal score on the held-out fold $k$ using those out-of-fold nuisance estimates. Averaging the fold-specific moment conditions and solving for $\theta$ gives the cross-fitted estimator. Swapping the roles of the folds and averaging recovers full efficiency. Cross-fitting allows the use of essentially any learner without Donsker-type complexity restrictions, which is what makes the framework practical with modern, highly flexible models.
+
+The resulting estimator is $\sqrt{n}$-consistent and asymptotically normal,
+$$
+\sqrt{n}\,(\hat{\theta} - \theta_0) \;\xrightarrow{d}\; \mathcal{N}\!\left(0,\; \sigma^2\right),
+$$
+with a variance that can be estimated from the score, so ordinary Wald confidence intervals are valid despite the black-box first stage.
+
+### Partially Linear and Interactive Models
+
+The framework covers two leading specifications. The partially linear model above imposes a constant treatment effect $\theta_0$ but leaves the confounding function $g_0$ unrestricted. The interactive regression model relaxes the constant-effect assumption and targets the average treatment effect
+$$
+\theta_0 = \mathbb{E}\bigl[\mu_0(1, X) - \mu_0(0, X)\bigr],
+$$
+where $\mu_0(w, x) = \mathbb{E}[Y \mid W = w, X = x]$. Its orthogonal score is the augmented inverse probability weighting (AIPW) score introduced in the next section, with the outcome regression $\mu_0$ and the propensity score $e_0(X) = \mathbb{P}(W = 1 \mid X)$ as nuisances. Double machine learning for the interactive model is therefore AIPW with cross-fitted, machine-learned nuisances.
+
+### A Runnable Partially Linear Example
+
+The following simulation illustrates the orthogonalization and cross-fitting logic from scratch, using the built-in random forest only through base R so that it runs in a clean session. We generate data from a partially linear model with a nonlinear confounding surface, then compare the naive plug-in estimator with the cross-fitted orthogonal estimator.
+
+```{r dml-sim}
+set.seed(123)
+
+n <- 2000
+p <- 10
+X <- matrix(runif(n * p), n, p)
+
+# Nonlinear confounding for both treatment and outcome
+g0 <- function(X) sin(2 * pi * X[, 1]) + X[, 2]^2 + 0.5 * X[, 3]
+m0 <- function(X) plogis(1.5 * X[, 1] - X[, 2])
+
+theta_true <- 1.0
+W <- m0(X) + rnorm(n, sd = 0.3)          # continuous treatment
+Y <- theta_true * W + g0(X) + rnorm(n, sd = 1)
+
+dat <- data.frame(Y = Y, W = W, X)
+
+# Naive plug-in: estimate g on full data, regress residual on W
+naive_fit <- lm(Y ~ poly(X1, 3) + poly(X2, 3) + X3, data = dat)
+resid_Y <- dat$Y - predict(naive_fit)
+theta_naive <- coef(lm(resid_Y ~ dat$W - 1))
+
+# Cross-fitted orthogonal (partialling-out) estimator
+K <- 5
+folds <- sample(rep(1:K, length.out = n))
+vY <- numeric(n); vW <- numeric(n)
+for (k in 1:K) {
+    tr <- folds != k
+    te <- folds == k
+    gY <- lm(Y ~ poly(X1, 3) + poly(X2, 3) + X3, data = dat[tr, ])
+    gW <- lm(W ~ poly(X1, 3) + poly(X2, 3) + X3, data = dat[tr, ])
+    vY[te] <- dat$Y[te] - predict(gY, newdata = dat[te, ])
+    vW[te] <- dat$W[te] - predict(gW, newdata = dat[te, ])
+}
+theta_dml <- sum(vW * vY) / sum(vW * vW)
+
+c(naive = theta_naive, dml = theta_dml, truth = theta_true)
+```
+
+The orthogonal, cross-fitted estimate sits close to the true value of one, while the naive plug-in is biased because it fails to residualize the treatment. With genuine machine learning learners in place of the polynomial regressions, the same logic delivers valid inference in far higher dimensions. In practice the `DoubleML` package implements this machinery with a wide range of learners.
+
+```{r dml-package, eval=FALSE}
+# Production implementation with the DoubleML package and a random forest.
+library(DoubleML)
+library(mlr3)
+library(mlr3learners)
+
+dml_data <- DoubleMLData$new(
+    dat,
+    y_col = "Y",
+    d_cols = "W",
+    x_cols = paste0("X", 1:p)
+)
+
+learner <- lrn("regr.ranger", num.trees = 500)
+dml_plr <- DoubleMLPLR$new(
+    dml_data,
+    ml_l = learner$clone(),
+    ml_m = learner$clone(),
+    n_folds = 5
+)
+dml_plr$fit()
+dml_plr$summary()
+```
+
+## Doubly Robust Estimation and Targeted Learning
+
+The double machine learning framework for the interactive model is closely tied to a longer tradition in biostatistics built around doubly robust estimators. Understanding that tradition clarifies why the AIPW score is orthogonal and motivates targeted maximum likelihood estimation.
+
+### Augmented Inverse Probability Weighting
+
+For the average treatment effect under unconfoundedness, two simple estimators are available. Outcome regression imputes both potential outcomes from $\hat{\mu}(w, x)$ and averages the difference. Inverse probability weighting reweights observed outcomes by the inverse propensity score $\hat{e}(x)$. Each is consistent only if its single nuisance model is correct. The augmented inverse probability weighting estimator combines them into the influence-function form
+$$
+\hat{\tau}_{\text{AIPW}} = \frac{1}{n}\sum_{i=1}^{n}\Biggl[\hat{\mu}(1, X_i) - \hat{\mu}(0, X_i) + \frac{W_i\bigl(Y_i - \hat{\mu}(1, X_i)\bigr)}{\hat{e}(X_i)} - \frac{(1 - W_i)\bigl(Y_i - \hat{\mu}(0, X_i)\bigr)}{1 - \hat{e}(X_i)}\Biggr].
+$$
+This estimator is doubly robust: it is consistent if either the outcome model or the propensity model is correctly specified, not necessarily both. The augmentation term is exactly the correction that makes the moment condition Neyman orthogonal, which is why AIPW with cross-fitting is the interactive-model double machine learning estimator. The doubly robust property has its roots in the missing-data and marginal structural model literature of @robins2000marginal and the augmentation theory of @scharfstein1999adjusting, where the efficient influence function for the treatment effect was first characterized.
+
+### Targeted Maximum Likelihood Estimation
+
+Targeted maximum likelihood estimation (TMLE), developed by @vanderlaan2006targeted, is a substitution estimator that achieves the same double robustness and semiparametric efficiency through a different route. Rather than plug machine learning predictions directly into the target parameter, TMLE proceeds in two stages. First it obtains an initial estimate of the outcome regression, typically from a flexible learner. Second it updates that initial fit through a parametric fluctuation submodel whose direction is chosen so that the updated estimate solves the efficient influence function estimating equation. The fluctuation uses a clever covariate built from the estimated propensity score. The final substitution estimator then respects the natural bounds of the parameter, for example remaining a valid probability for binary outcomes, and inherits the efficiency and double robustness of the influence-function approach.
+
+The advantages of TMLE over plain AIPW are largely practical. Because TMLE is a substitution estimator, it tends to be more stable when propensity scores approach zero or one, and it never produces estimates outside the natural parameter space. Conceptually, AIPW and TMLE are two members of the same family of asymptotically efficient, doubly robust estimators. The `tmle` package implements the method in R.
+
+```{r tmle-example, eval=FALSE}
+library(tmle)
+library(SuperLearner)
+
+tmle_fit <- tmle(
+    Y = Y, A = W, W = X,
+    Q.SL.library = c("SL.glm", "SL.ranger", "SL.glmnet"),
+    g.SL.library = c("SL.glm", "SL.ranger", "SL.glmnet")
+)
+tmle_fit$estimates$ATE
+```
+
+### SuperLearner Ensembling
+
+A natural worry is how to choose the machine learning method for the nuisance functions. The SuperLearner of @vanderlaan2007super answers this by not choosing at all. It builds a library of candidate learners, ranging from simple parametric models to flexible ensembles, and forms an optimal convex combination of their cross-validated predictions. The weights are chosen to minimize cross-validated risk, and the oracle results show that the resulting ensemble performs asymptotically as well as the best single algorithm in the library, or the best weighted combination. Because the SuperLearner is itself a valid prediction method, it slots directly into AIPW, TMLE, or double machine learning as the nuisance estimator, and it is the recommended default when the analyst has no strong prior about which learner is appropriate.
+
+```{r superlearner-example, eval=FALSE}
+library(SuperLearner)
+
+sl_lib <- c("SL.mean", "SL.glm", "SL.glmnet", "SL.ranger", "SL.xgboost")
+sl_fit <- SuperLearner(
+    Y = Y, X = as.data.frame(X),
+    family = gaussian(),
+    SL.library = sl_lib,
+    cvControl = list(V = 10)
+)
+sl_fit  # prints the learned ensemble weights
+```
+
+### Flexible Nuisance Learners
+
+Several learners recur as components of these ensembles and as standalone nuisance estimators. The Lasso of @tibshirani1996 performs variable selection and shrinkage, and its high-dimensional inference theory underpins the post-double-selection approach of @belloni2014inference and @belloni2014high, an early and influential instance of orthogonalized estimation that prefigures double machine learning. Random forests, introduced by @breiman2001random and based on the recursive partitioning of @breiman2017classification, provide flexible, low-tuning regression for both the outcome and the propensity score. Gradient boosting machines build additive ensembles of shallow trees and are common for propensity score estimation. Bayesian additive regression trees offer a flexible, regularized sum-of-trees prior with automatic uncertainty quantification and are widely used for the outcome surface in causal applications, including the endogeneity-aware formulation of @hill2021endogeneity. The unifying message is that any of these can serve as a nuisance learner, and the orthogonal-score plus cross-fitting machinery makes the downstream causal estimate robust to the particular choice.
+
+## Heterogeneous Treatment Effects
+
+Average effects answer whether a treatment works on the whole. Many questions instead concern for whom it works, which is captured by the conditional average treatment effect (CATE)
+$$
+\tau(x) = \mathbb{E}\bigl[Y(1) - Y(0) \mid X = x\bigr].
+$$
+Estimating $\tau(x)$ is a function-estimation problem rather than a scalar-estimation problem, and it is where tree-based and meta-learning methods come into their own.
+
+### Causal Forests and Generalized Random Forests
+
+Causal forests, introduced by @wager2018estimation, adapt the random forest to estimate $\tau(x)$ rather than a conditional mean. The key conceptual move, developed more generally in the generalized random forest of @athey2019generalized, is to view a forest not as an ensemble of predictions but as an adaptive kernel or weighting function. A forest grown on the data assigns to a target point $x$ a set of similarity weights $\alpha_i(x)$, the frequency with which training observation $i$ falls in the same leaf as $x$ across the trees,
+$$
+\alpha_i(x) = \frac{1}{B}\sum_{b=1}^{B} \frac{\mathbf{1}\{X_i \in L_b(x)\}}{\lvert L_b(x)\rvert},
+$$
+where $L_b(x)$ is the leaf of tree $b$ containing $x$. These weights then define a local, weighted version of any estimating equation. For heterogeneous effects the local estimating equation is a residualized treatment-effect regression, in the spirit of the R-learner described below, so the forest solves a weighted partialling-out problem in the neighborhood of each $x$. This connects causal forests directly to the orthogonalization theme of the chapter.
+
+Two features make the inference valid. First, the trees split to maximize heterogeneity in the treatment effect rather than to predict the outcome, so the adaptive neighborhoods are tailored to the causal target. Second, the forest uses honest splitting: the sample used to choose the splits is disjoint from the sample used to estimate the effect within each leaf. Honesty removes the overfitting bias that adaptive partitioning would otherwise introduce and is what allows @wager2018estimation to derive asymptotic normality of the pointwise estimates, hence pointwise confidence intervals for $\tau(x)$. The generalized random forest of @athey2019generalized extends the same kernel-weighting and honesty principles to a broad class of moment-condition problems, including instrumental variables and quantile estimation, and provides the theoretical foundation in the Annals of Statistics. An accessible empirical walkthrough appears in @athey2019estimating.
+
+The following simulation builds the honest-forest CATE estimate conceptually using only base R, generating heterogeneous effects driven by a single covariate.
+
+```{r cate-sim}
+set.seed(2024)
+n <- 4000
+p <- 5
+X <- matrix(runif(n * p), n, p)
+e <- 0.5                                   # randomized treatment for clarity
+W <- rbinom(n, 1, e)
+tau_fun <- function(x) 1 + 2 * (x[, 1] > 0.5)   # effect doubles past 0.5
+mu0 <- function(x) x[, 2] + sin(2 * pi * x[, 3])
+Y <- mu0(X) + W * tau_fun(X) + rnorm(n)
+
+# Stratified difference-in-means as a transparent CATE proxy:
+# compare treated vs control within bins of the effect modifier X1.
+bins <- cut(X[, 1], breaks = seq(0, 1, by = 0.25), include.lowest = TRUE)
+cate_by_bin <- tapply(seq_len(n), bins, function(idx) {
+    mean(Y[idx][W[idx] == 1]) - mean(Y[idx][W[idx] == 0])
+})
+round(cate_by_bin, 2)
+```
+
+The estimated effect jumps as $X_1$ crosses 0.5, recovering the simulated heterogeneity. A causal forest automates this binning adaptively and over many covariates at once. The production estimator uses the `grf` package.
+
+```{r grf-example, eval=FALSE}
+library(grf)
+
+cf <- causal_forest(
+    X = X, Y = Y, W = W,
+    num.trees = 2000,
+    honesty = TRUE
+)
+
+# Out-of-bag CATE predictions and pointwise standard errors
+tau_hat <- predict(cf, estimate.variance = TRUE)
+head(tau_hat)
+
+# Doubly robust average treatment effect from the forest
+average_treatment_effect(cf)
+
+# Test for the presence of heterogeneity
+test_calibration(cf)
+```
+
+### The R-Learner and Meta-Learners
+
+A complementary, modular philosophy estimates the CATE by reducing it to a sequence of standard prediction problems, each of which can be solved with any off-the-shelf learner. These are the meta-learners. The S-learner trains a single model on the pooled data with treatment as an additional feature, then takes the difference in predictions setting $W = 1$ versus $W = 0$. The T-learner trains two separate outcome models, one per treatment arm, and differences them. The X-learner, proposed by @kunzel2019metalearners, refines the T-learner by imputing individual treatment effects, regressing them on covariates within each arm, and combining the two CATE estimates with propensity-based weights. The X-learner performs especially well when the treatment groups are very unequal in size or when one potential-outcome surface is much smoother than the other, settings where the T-learner wastes data.
+
+The R-learner formalizes the residualization idea as a loss function. Starting from the Robinson decomposition, one residualizes the outcome and the treatment on the covariates, $\tilde{Y} = Y - \hat{m}(X)$ and $\tilde{W} = W - \hat{e}(X)$, and then estimates the CATE by minimizing the weighted criterion
+$$
+\hat{\tau}(\cdot) = \arg\min_{\tau}\; \frac{1}{n}\sum_{i=1}^{n}\Bigl(\tilde{Y}_i - \tau(X_i)\,\tilde{W}_i\Bigr)^2 + \Lambda\bigl(\tau\bigr),
+$$
+where $\Lambda$ is a regularizer on the CATE function. Because the nuisances enter only through the residuals, the objective is Neyman orthogonal, so errors in $\hat{m}$ and $\hat{e}$ have a second-order effect on the estimated heterogeneity. Causal forests can be seen as solving a local version of this same R-learner objective, which is why the two approaches are tightly linked.
+
+```{r meta-learner-example, eval=FALSE}
+library(rlearner)   # R-, S-, T-, X-learners with glmnet or boosting
+
+# R-learner with cross-validated lasso nuisances
+rfit <- rlasso(x = X, w = W, y = Y)
+tau_rlearner <- predict(rfit, X)
+
+# X-learner via the same package family
+xfit <- xboost(x = X, w = W, y = Y)
+tau_xlearner <- predict(xfit, X)
+```
+
+The choice among meta-learners and forests is empirical. Forests provide honest pointwise inference and require little tuning; meta-learners offer flexibility in the choice of base learner and can exploit structure such as smoothness or sparsity. A common workflow estimates the CATE several ways and checks that the qualitative conclusions about who benefits are stable across methods.
+
+## Temporal Causal Forests
+
+The forest machinery extends naturally to settings with a strong temporal structure, where every unit is eventually exposed to a widely known event and a clean contemporaneous control group does not exist. This arises with public announcements, recalls, security breaches, and similar shocks, where it is impossible to find a group unaware of the event that would still be representative of the affected population. The temporal causal inference design of @turjeman2023data addresses this by matching across cohorts that adopted at different times, so that newer participants who experienced the event early in their tenure are compared with the early trajectories of older participants who had not yet been exposed.
+
+The core idea is to make calendar time and tenure separate axes. Let $H_T$ denote the cohort that joined $T$ time units before the event; this treated cohort is observed for $T + 3$ units, with the final units after the event. Control trajectories are assembled from earlier cohorts $H_1, \dots, H_{T-1}$, tracked from their own adoption up to the event or to the matched tenure window, whichever comes first. Each cohort plays a dual role, sometimes treated and sometimes control, except for those at the extreme ends of the window. Because the design relies on comparing trajectories rather than a single contemporaneous control, it requires a large sample so that subgroups with comparable time trends can be matched.
+
+The figure below illustrates the design with simulated cohorts, showing the same activity curves on a calendar-time axis and on a tenure axis. On the tenure axis the cohorts line up, making clear that the control cohorts simply had not yet reached the event when the treated cohort did.
+
+```{r tcf-design, eval=FALSE}
+library(ggplot2)
+library(patchwork)
+
+tenure <- seq(0, 100, length.out = 100)
+generate_cohort <- function(name, start_time, mean, sd) {
+    data.frame(
+        tenure = tenure,
+        cohort = name,
+        time   = seq(start_time, start_time + 99, by = 1),
+        value  = dnorm(tenure, mean = mean, sd = sd)
+    )
+}
+cohorts <- list(
+    generate_cohort("Cohort 1",  1, 47, 15),
+    generate_cohort("Cohort 2", 10, 48, 17),
+    generate_cohort("Cohort 3", 20, 52, 20),
+    generate_cohort("Cohort 4", 30, 53, 18),
+    generate_cohort("treatment", 40, 50, 16)
+)
+final_dataset <- do.call(rbind, cohorts)
+
+plot_time <- ggplot(final_dataset, aes(time, value, color = cohort)) +
+    geom_line() +
+    geom_vline(xintercept = c(40, 90), linetype = "dashed") +
+    labs(title = "Value vs. Calendar Time", x = "Time", y = "Value")
+
+plot_tenure <- ggplot(final_dataset, aes(tenure, value, color = cohort)) +
+    geom_line() +
+    geom_vline(xintercept = c(0, 50), linetype = "dashed") +
+    labs(title = "Value vs. Tenure", x = "Tenure", y = "Value")
+
+plot_time / plot_tenure
+```
+
+Identification rests on the usual selection-on-observables assumptions, reinterpreted for the temporal setting. The stable unit treatment value assumption requires no interference, which holds across cohorts because their treatment exposures occur at different points in calendar time, though it can be strained when treated units influence one another after the shock. Conditional independence requires that, given the covariates including the time trend, cohort membership is as good as randomly assigned; this is checked empirically with pre-treatment parallel-trends tests, including bidirectional Granger tests and Kolmogorov-Smirnov comparisons of the pre-event trajectories. Overlap requires that every unit had a positive propensity of treatment at any tenure, which the design satisfies because all units are eventually treated and the estimated propensity is bounded away from zero and one. Exogeneity of covariates requires that the shock was unforeseen, or at least equally anticipated across cohorts.
+
+Temporal causal forests then extend the causal forest in two ways identified by @turjeman2023data as improving root-mean-squared error and recovery of heterogeneous effects. First, the covariate vector $X_i$ is augmented to include the unit's time trend, so the forest groups units that are homogeneous in their activity trajectories, in effect estimating a counterfactual time path for each unit and ensuring that treated and control units share similar pre-event trends. Second, as a robustness analysis, the nuisance functions are estimated with the local linear forest of @friedberg2020local, which fits a local linear correction within each leaf and improves accuracy when the underlying surface is smooth; this refinement is feasible when cohort timelines are of equal length. The result is a method that recovers both the average effect of a public shock and its heterogeneity across individuals while respecting the temporal structure that rules out a conventional control group.
+
+## Practical Guidance and Pitfalls
+
+Several practical considerations govern whether these methods deliver on their promise.
+
+Cross-fitting is not optional. The asymptotic guarantees of double machine learning depend on estimating the nuisance functions on data separate from the data used to form the final estimate. Skipping this step reintroduces overfitting bias and invalidates the confidence intervals, even when an orthogonal score is used.
+
+Orthogonality protects only against slow nuisance errors, not against violations of identification. If unconfoundedness fails because an important confounder is unobserved, no amount of flexible nuisance estimation will recover the causal effect. Machine learning strengthens the case for conditional ignorability by allowing a rich conditioning set, but it cannot test the assumption itself. The role of these methods is to remove functional-form and high-dimensionality concerns, leaving the identifying assumptions to be defended on substantive grounds.
+
+Overlap matters more, not less, with flexible models. Inverse propensity weights become unstable when estimated propensities approach zero or one, and flexible learners can produce extreme propensity estimates. Diagnosing the propensity distribution, trimming or stabilizing extreme weights, and preferring substitution estimators such as TMLE that are less sensitive to small denominators all help. Reporting the distribution of estimated propensity scores should be routine.
+
+Heterogeneity claims require discipline. A causal forest will always produce a varying $\tau(x)$, but the variation may be noise. The honest forest delivers pointwise standard errors, and calibration tests such as the best-linear-predictor test assess whether the estimated heterogeneity is real. Out-of-sample validation, for instance ranking units by predicted effect and checking that the realized effect ordering agrees, guards against overinterpreting spurious patterns.
+
+Sample size and tuning are real constraints. Like other nonparametric and matching methods, forests and meta-learners need substantial data for stable results, especially when estimating heterogeneity across many covariates or when treatment groups are imbalanced. The SuperLearner reduces the burden of choosing a single learner, but it multiplies computation, and the analyst should ensure that the cross-validation used inside the ensemble is nested properly within the cross-fitting used for the causal estimate.
+
+Finally, transparency and replication remain essential. The flexibility that makes these methods powerful also makes them harder to scrutinize. Pre-registering the estimand, the conditioning set, and the validation plan, and reporting results across several estimators, keeps the analysis honest and the conclusions credible.

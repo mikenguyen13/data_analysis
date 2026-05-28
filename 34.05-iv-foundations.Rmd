@@ -1,0 +1,210 @@
+## Econometric Foundations: Conditional Expectations, Projection, and Endogeneity {#sec-iv-foundations}
+
+Before turning to the mechanics of instrumental variable estimation, it is worth establishing the conceptual scaffolding on which the entire method rests. Instrumental variables exist to solve a single problem: the parameter an economist wants to learn about is not, in general, the parameter that ordinary least squares recovers. Making that statement precise requires three ingredients, namely a clear definition of what it means for a parameter to be identified, a careful distinction between the conditional expectation function and the linear projection that least squares actually estimates, and a catalogue of the reasons the two can diverge. Once those pieces are in place, the role of an instrument follows almost mechanically. This section develops that foundation and connects it to the relevance, exogeneity, and rank conditions introduced in the [main treatment of instrumental variables](#sec-instrumental-variables). The exposition follows the framework in @angrist2009mostly and the moment based development of identification associated with @hansen1982large.
+
+### Identification
+
+A population parameter, written generically as $\Theta$, is some functional of the distribution $F$ of the observable data, say $\Theta = g(F)$ for $F$ in a class of admissible distributions $\mathcal{F}$. The parameter is said to be identified when it both exists and is unique for every $F \in \mathcal{F}$. Identification is a statement about the population, not about any particular sample. It asks whether, given perfect knowledge of the joint distribution of the observables, the parameter is pinned down at all. No amount of data can rescue a parameter that is not identified, and identification therefore logically precedes estimation.
+
+Two examples make the idea concrete. The conditional mean $E(Y \mid X = x)$ is identified whenever $E|Y| < \infty$, because the distribution of the data determines it directly. The coefficients of a linear projection, introduced below, are identified as long as the second moment matrix $E(\mathbf{X}'\mathbf{X})$ is nonsingular. In both cases the parameter is written as a function of moments of the observable random variables, and the equality sign in $\Theta = g(F)$ carries the dual meaning of existence and uniqueness.
+
+Consider the linear model $Y = \beta_0 + \beta_1 X + U$. Suppose we impose the identification assumption that the error has conditional mean zero, $E(U \mid X) = 0$, so that the conditional expectation is itself linear, $E(Y \mid X) = \beta_0 + \beta_1 X$. The intercept is then identified as $\beta_0 = E(Y \mid X = 0)$. The slope follows from the covariance,
+
+$$
+\text{Cov}(Y, X) = \text{Cov}(\beta_0, X) + \beta_1 \text{Var}(X) + \text{Cov}(U, X) = \beta_1 \text{Var}(X),
+$$
+
+so that $\beta_1 = \text{Cov}(Y, X) / \text{Var}(X)$ provided the additional condition $\text{Var}(X) \neq 0$ holds, that is, provided $X$ is not degenerate. Identification thus rests on two pieces: a stochastic restriction on the error and a support condition on the regressor. The first is the substantive assumption that may fail; the second is usually innocuous but still necessary.
+
+It is useful to keep in mind a hierarchy of restrictions on the relationship between a regressor and an error term, ordered from weakest to strongest. The weakest is zero covariance, $\text{Cov}(X, U) = 0$, which is equivalent to $E(XU) = E(X)E(U)$ and is exactly what the linear projection imposes. Mean independence, $E(U \mid X) = E(U)$, is stronger because it implies $E(g(X) U) = E(g(X)) E(U)$ for any function $g$, not merely for $g$ linear. Full independence, $U \perp X$, is strongest of all and implies $E(g(X) h(U)) = E(g(X)) E(h(U))$ for arbitrary $g$ and $h$. The distinctions matter because different estimators and different interpretations require different rungs of this ladder, and much of the difficulty in applied work lies in arguing that a given rung is actually reached.
+
+### The Conditional Expectation Function
+
+Most economic questions are questions about a conditional expectation function, written compactly as
+
+$$
+E(Y \mid W, \mathbf{C}),
+$$
+
+where $Y$ is the outcome, $W$ is the variable of primary interest, and $\mathbf{C}$ is a vector of control variables, some of which may be unobserved. We focus on the conditional expectation rather than the full conditional distribution $F_{Y \mid W, \mathbf{C}}$ because the conditional mean is a single, tractable summary of the relationship that requires fewer assumptions to estimate credibly. Modeling the entire conditional distribution demands considerably more structure and tends to buy less internal validity in return, though conditional quantiles and other features of the distribution are sometimes of independent interest.
+
+The conditional expectation function can be read in three quite different ways, and the reading determines which assumptions are required and what conclusions are licensed. Take the familiar wage equation,
+
+$$
+\ln(\text{wage}) = \beta_0 + \beta_1 \, \text{educ} + \beta_2 \, \text{exp} + \beta_3 \, \text{married} + U,
+$$
+
+where $U$ collects all unobserved factors affecting the wage offer. If we treat this as a structural or causal model, then the coefficients carry behavioral meaning and the equation should in principle be derivable from an underlying optimization problem; the cost is a heavy set of assumptions and restrictions needed to justify that derivation. If we treat it as a conditional expectation function, then the relevant worry is whether $E(U \mid \mathbf{X}) = 0$ actually holds, since unobserved factors lurking in $U$ may well be correlated with schooling or experience. If we treat it merely as a linear projection, then there is nothing to worry about at all, because the projection always exists, but the interpretation becomes purely descriptive rather than causal.
+
+Specifying a conditional expectation also requires specifying the population of interest, since the same conditioning variables can describe very different populations. A poorly chosen population is one in which the variable of interest exhibits little or no variation, leaving nothing for the data to identify.
+
+A model for the conditional expectation can be classified along several dimensions. A specification such as $E(Y \mid X_1, X_2) = \beta_0 + \beta_1 X_1 + \beta_2 X_2$ is linear in the variables, because it is a linear combination of $(1, X_1, X_2)$, and adding a term like $\beta_3 X_2^2$ or $\beta_3 X_1 X_2$ would violate linearity in variables while remaining linear in parameters. It is linear in the parameters because it is a linear combination of $(\beta_0, \beta_1, \beta_2)$, and a term like $X_1^{\gamma}$ would violate that. It is parametric because it involves a finite number of unknown parameters rather than an unknown function; replacing $\beta_2 X_2$ with an unknown $g(X_2)$ would make it nonparametric. A semiparametric model combines a finite dimensional parameter of interest with an infinite dimensional nuisance component. These are modeling choices rather than properties of the data: the very same equation $Y = \mathbf{X}\boldsymbol{\beta} + U$ can be approached as parametric, semiparametric, or nonparametric depending on what one is willing to assume.
+
+### Linear Projection
+
+Most of the examples above quietly imposed linearity on the conditional expectation function, an assumption that need not hold. The linear projection provides a way to obtain an estimable equation without that assumption, at the price of a weaker interpretation. Let $\mathbf{X} = (X_1, \dots, X_k)$ be a $1 \times k$ vector whose $k \times k$ variance matrix is positive definite. The linear projection of $Y$ on a constant and $\mathbf{X}$ then exists and is unique,
+
+$$
+L(Y \mid 1, \mathbf{X}) = \gamma_0 + \gamma_1 X_1 + \dots + \gamma_k X_k,
+$$
+
+with slope coefficients and intercept defined by
+
+$$
+\boldsymbol{\gamma} = [\text{Var}(\mathbf{X})]^{-1} \text{Cov}(\mathbf{X}, Y), \qquad \gamma_0 = E(Y) - E(\mathbf{X}) \boldsymbol{\gamma}.
+$$
+
+These objects are functions of population moments and are therefore identified and estimable. Equivalently, we may write $Y = \gamma_0 + \gamma_1 X_1 + \dots + \gamma_k X_k + U$, where the projection error satisfies, by construction, $E(U) = 0$ and $\text{Cov}(X_j, U) = 0$ for every $j$. It is essential to recognize what these properties do not say. Zero covariance does not imply that $U$ is independent of $\mathbf{X}$, nor even that it is mean independent. The projection error can depend on the regressors in arbitrarily rich ways so long as it is linearly uncorrelated with each of them.
+
+The linear projection has several properties that explain why it is the natural object of least squares estimation. First, the projection coefficient is the minimum mean square linear predictor, since it solves $\min_{b_0, \mathbf{b}} E[(Y - b_0 - \mathbf{X}\mathbf{b})^2]$. Second, the conditional expectation function is the minimum mean square predictor among all functions, since it solves $\min_{g} E[(Y - g(\mathbf{X}))^2]$. Third, when the conditional expectation happens to be linear in $\mathbf{X}$, the projection coincides exactly with the conditional expectation. Fourth, and most usefully, even when the conditional expectation is not linear, the projection is the best linear approximation to it in the mean square sense.
+
+The last claim deserves a short proof, because it is what justifies reporting a linear regression even when one does not believe the truth is linear. The best linear approximation to the conditional expectation solves $\min_{b_0, \mathbf{b}} E[(E(Y \mid \mathbf{X}) - b_0 - \mathbf{X}\mathbf{b})^2]$, whereas the projection solves $\min_{b_0, \mathbf{b}} E[(Y - b_0 - \mathbf{X}\mathbf{b})^2]$. For any $b_0$ and $\mathbf{b}$, add and subtract the conditional expectation inside the square,
+
+$$
+\begin{aligned}
+E[(Y - b_0 - \mathbf{X}\mathbf{b})^2] &= E[(Y - E(Y \mid \mathbf{X}))^2] + E[(E(Y \mid \mathbf{X}) - b_0 - \mathbf{X}\mathbf{b})^2] \\
+&\quad + 2 E[(Y - E(Y \mid \mathbf{X}))(E(Y \mid \mathbf{X}) - b_0 - \mathbf{X}\mathbf{b})].
+\end{aligned}
+$$
+
+The cross term vanishes by the law of iterated expectations, since conditioning on $\mathbf{X}$ leaves $E(Y \mid \mathbf{X}) - b_0 - \mathbf{X}\mathbf{b}$ fixed while $E(Y - E(Y \mid \mathbf{X}) \mid \mathbf{X}) = 0$. Because the first term does not depend on the choice of $b_0$ and $\mathbf{b}$, the two minimization problems share the same argument minimizer,
+
+$$
+\arg\min_{b_0, \mathbf{b}} E[(Y - b_0 - \mathbf{X}\mathbf{b})^2] = \arg\min_{b_0, \mathbf{b}} E[(E(Y \mid \mathbf{X}) - b_0 - \mathbf{X}\mathbf{b})^2].
+$$
+
+The projection coefficient is therefore the best mean square linear approximation to the conditional expectation function, which is precisely why least squares remains informative as a descriptive device even when the causal model is nonlinear.
+
+The decomposition is easy to see in a small simulation. The conditional expectation below is genuinely nonlinear in $x$, yet the population projection coefficient recovered by least squares matches the slope obtained by regressing the true conditional mean on $x$, confirming that the projection is approximating $E(Y \mid X)$ rather than $Y$ itself.
+
+```{r iv-foundations-projection, eval=TRUE}
+set.seed(123)
+n <- 100000
+x <- runif(n, -2, 2)
+cef <- 1 + 0.8 * x + 0.5 * x^2          # nonlinear conditional expectation
+y <- cef + rnorm(n)                     # outcome adds mean-zero noise
+
+# projection of the outcome on (1, x)
+coef_outcome <- coef(lm(y ~ x))["x"]
+# projection of the conditional expectation on (1, x)
+coef_cef <- coef(lm(cef ~ x))["x"]
+
+round(c(projection_on_Y = coef_outcome,
+        projection_on_CEF = coef_cef), 4)
+```
+
+The two slopes agree up to sampling noise, illustrating that the linear projection of $Y$ is the best linear approximation to the conditional expectation function and not merely a summary of the raw outcome.
+
+### Endogeneity in the Linear Model
+
+Now suppose the object of interest is genuinely structural. Write the population model as linear in parameters,
+
+$$
+Y = \beta_0 + \beta_1 X_1 + \dots + \beta_k X_k + U = \mathbf{X}\boldsymbol{\beta} + U,
+$$
+
+where $\mathbf{X}$ stacks a constant with the regressors and the $\beta_j$ are the behavioral parameters we wish to estimate. Ordinary least squares is consistent for these parameters when the orthogonality condition $E(\mathbf{X}' U) = 0$ holds. A regressor $X_j$ is called endogenous precisely when this condition fails through $\text{Cov}(X_j, U) \neq 0$. When that happens, the structural coefficient $\beta_j$ cannot coincide with the linear projection coefficient, even though the latter always exists and is always estimable. This is the formal version of the warning that correlation, which the projection captures, is not the same as causation, which is what the structural coefficient is meant to represent.
+
+There are three classic sources of endogeneity, each of which recurs throughout applied work and each of which motivates the instrumental variable solution. The first is omitted variables, where a determinant of the outcome that is correlated with an included regressor is left out of the equation, often because it is unobservable. The second is measurement error, where the analyst would like to study the effect of a true variable $X_k^{*}$ but observes only an imperfect proxy $X_k$, or would like to explain a true outcome $Y^{*}$ but observes only a noisy measure $Y$. The third is simultaneity, where outcome and regressor are jointly determined, as in a market where price depends on quantity demanded while quantity demanded depends on price; this case is central to general equilibrium and supply and demand systems and was the setting in which instrumental variables were first developed [@wright1928tariff].
+
+The omitted variable case repays a careful look because it shows exactly how the structural parameter and the projection parameter separate. Suppose the true causal model is
+
+$$
+Y = \beta_0 + \beta_1 X + \gamma Q + V, \qquad E(V \mid X, Q) = 0,
+$$
+
+so that $\beta_1$ is the effect of $X$ on $Y$ holding the omitted variable $Q$ fixed. If $Q$ is dropped, the working error becomes $U = \gamma Q + V$, and the orthogonality of $X$ with $U$ reduces to
+
+$$
+\text{Cov}(X, U) = \gamma \, \text{Cov}(X, Q),
+$$
+
+which is nonzero whenever $X$ is correlated with $Q$ and $Q$ genuinely affects $Y$, that is, $\gamma \neq 0$. To see what least squares then estimates, project the omitted variable on the included regressor, $Q = \delta_0 + \delta_1 X + R$, with $\delta_1 = \text{Cov}(X, Q)/\text{Var}(X)$ and $\text{Cov}(X, R) = 0$ by construction. Substituting,
+
+$$
+Y = (\beta_0 + \gamma \delta_0) + (\beta_1 + \gamma \delta_1) X + (\gamma R + V),
+$$
+
+and the composite error $\gamma R + V$ now satisfies both projection conditions. Least squares is therefore consistent for the projection slope $\beta_1 + \gamma \delta_1$, so that
+
+$$
+\text{plim}\, \hat{\beta}_1 = \beta_1 + \gamma \frac{\text{Cov}(X, Q)}{\text{Var}(X)}.
+$$
+
+The inconsistency, $\text{plim}\, \hat{\beta}_1 - \beta_1 = \gamma \, \text{Cov}(X, Q)/\text{Var}(X)$, is the omitted variable bias, and its sign is the product of two pieces: the direction of the correlation between the included regressor and the omitted variable, and the direction of the omitted variable's effect on the outcome. Both must be nonzero and their signs jointly determine whether least squares overstates or understates the causal effect.
+
+### Instrumental Variables and the Method of Moments
+
+Return to the simplest endogenous model, $Y = \beta_0 + \beta_1 X + U$ with $\text{Cov}(X, U) \neq 0$. The identification problem is that the observed covariation between $X$ and $Y$ blends two distinct sources of variation,
+
+$$
+\text{Cov}(X, Y) = \beta_1 \text{Var}(X) + \text{Cov}(X, U),
+$$
+
+so that the projection slope $\text{Cov}(X, Y)/\text{Var}(X)$ equals $\beta_1$ plus a bias term $\text{Cov}(X, U)/\text{Var}(X)$ that does not vanish. Variation in $X$ that is correlated with $U$ contaminates the comparison, and no reweighting of the existing data can separate the two.
+
+The instrumental variable solution is to bring in a new source of variation through an instrument $Z$ that satisfies two conditions. The relevance condition, $\text{Cov}(Z, X) \neq 0$, requires that the instrument actually move the endogenous regressor and is testable from the data. The exogeneity condition, or exclusion restriction, $\text{Cov}(Z, U) = 0$, requires that the instrument be uncorrelated with the structural error and is fundamentally a matter of judgment that cannot be verified directly. The canonical illustration is the use of quarter of birth as an instrument for years of schooling in studies of the returns to education [@angrist1991does], though later work questioning the strength of the instrument and documenting systematic differences in family background across birth seasons is a reminder that the relevance and exclusion conditions are never beyond challenge [@bound1995problems; @buckles2013season].
+
+To see why a valid instrument solves the problem, project the endogenous regressor on the instrument, $X = \delta_0 + \theta Z + R$, splitting $X$ into an exogenous part driven by $Z$ and a residual part $R$ with $E(R) = 0$ and $\text{Cov}(Z, R) = 0$. The endogeneity of $X$ then lives entirely in the residual,
+
+$$
+\text{Cov}(X, U) = \theta \, \text{Cov}(Z, U) + \text{Cov}(R, U) = \text{Cov}(R, U),
+$$
+
+because the instrument is exogenous. Using only the $Z$ driven part of $X$ therefore strips out the contaminated variation and isolates the causal effect.
+
+The argument generalizes cleanly to the multiple regressor case and connects directly to the method of moments. Write the model as $Y = \mathbf{X}\boldsymbol{\beta} + U$ with a single endogenous regressor $X_k$, so that $\text{Cov}(X_k, U) \neq 0$ while the remaining regressors are exogenous. It is worth stressing that there is no such thing as an OLS model as opposed to an IV model; least squares and instrumental variables are competing estimation strategies for the same underlying linear model. Given an external instrument $Z_k$ for $X_k$, build the instrument vector $\mathbf{Z} = (1, X_2, \dots, X_{k-1}, Z_k)$ alongside the regressor vector $\mathbf{X} = (1, X_2, \dots, X_{k-1}, X_k)$, both $1 \times k$, in which every exogenous regressor instruments for itself. Two assumptions then drive identification. Exogeneity becomes $E(\mathbf{Z}' U) = 0$. The rank condition, which replaces simple relevance in the vector setting, is $\text{rank}\,[E(\mathbf{Z}' \mathbf{X})] = k$, equivalently the requirement that $E(\mathbf{Z}' \mathbf{X})$ be invertible.
+
+The exogeneity assumption is best understood as a moment condition. Substituting the model,
+
+$$
+E(\mathbf{Z}' U) = 0 \quad \Longleftrightarrow \quad E(\mathbf{Z}'(Y - \mathbf{X}\boldsymbol{\beta})) = 0,
+$$
+
+expresses the expectation of a known function of observables and unknown parameters as equal to zero. Moment conditions of exactly this form are the foundation of generalized method of moments estimation [@hansen1982large], and the overidentification tests associated with it descend from the early work on testing instrument validity in simultaneous systems [@sargan1958estimation]. The rank condition is the matrix counterpart of relevance combined with the absence of perfect multicollinearity. Concretely, assuming no perfect collinearity among $1, X_2, \dots, X_{k-1}$, the rank condition holds if and only if the coefficient $\theta$ on the instrument in the first stage projection
+
+$$
+L(X_k \mid 1, X_2, \dots, X_{k-1}, Z_k) = \delta_1 + \delta_2 X_2 + \dots + \delta_{k-1} X_{k-1} + \theta Z_k
+$$
+
+is nonzero. In words, after partialling out the other exogenous regressors, the instrument must still be correlated with the endogenous variable, and because this is a statement about a regression coefficient it is testable.
+
+Under exogeneity and the rank condition the instrument identifies the structural parameter. Premultiply the model by $\mathbf{Z}'$ and take expectations,
+
+$$
+E(\mathbf{Z}' Y) = E(\mathbf{Z}' \mathbf{X}) \boldsymbol{\beta} + E(\mathbf{Z}' U) = E(\mathbf{Z}' \mathbf{X}) \boldsymbol{\beta},
+$$
+
+and invert the now nonsingular cross moment matrix to obtain
+
+$$
+\boldsymbol{\beta} = [E(\mathbf{Z}' \mathbf{X})]^{-1} E(\mathbf{Z}' Y).
+$$
+
+The sample analogue replaces population moments with their empirical counterparts, yielding the instrumental variable estimator
+
+$$
+\hat{\boldsymbol{\beta}}_{IV} = (\mathbf{Z}' \mathbf{X})^{-1} \mathbf{Z}' \mathbf{Y} = \boldsymbol{\beta} + (\mathbf{Z}' \mathbf{X})^{-1} \mathbf{Z}' \mathbf{U}.
+$$
+
+Consistency follows because the second term converges to zero in probability under exogeneity, while the rank condition guarantees that the inverse exists in large samples. The interpretation of the resulting estimand, the local average treatment effect that applies to the compliers whose treatment is shifted by the instrument, is developed in the [identification framework for instrumental variables](#sec-instrumental-variables) and in the foundational treatment of @imbens1994identification. A practical caution carries over from the structural setting: if any of the variables treated as controls are themselves endogenous, the resulting inconsistency contaminates every coefficient in $\hat{\boldsymbol{\beta}}_{IV}$, not merely the coefficient on the variable for which an instrument was sought.
+
+The same logic can be visualized in a short simulation that contrasts the inconsistent least squares estimator with the consistent instrumental variable estimator when the regressor is endogenous and a valid instrument is available.
+
+```{r iv-foundations-ivsim, eval=TRUE}
+set.seed(456)
+n <- 200000
+z <- rnorm(n)                       # exogenous instrument
+u <- rnorm(n)                       # structural error
+x <- 0.7 * z + u + rnorm(n)         # x is correlated with u (endogenous)
+beta_true <- 2
+y <- 1 + beta_true * x + u          # u enters both x and y
+
+ols <- coef(lm(y ~ x))["x"]                 # biased by Cov(x, u)
+# IV via the ratio of covariances in the just-identified case
+iv  <- cov(z, y) / cov(z, x)
+
+round(c(true = beta_true, ols = ols, iv = iv), 4)
+```
+
+Least squares is pulled away from the true value of two by the correlation between $x$ and the error, whereas the instrumental variable estimator, formed here as the ratio $\text{Cov}(Z, Y)/\text{Cov}(Z, X)$ in the just identified case, recovers the structural parameter up to sampling noise. This is the payoff of the entire construction: by importing exogenous variation through a valid instrument, the method of moments identifies the structural coefficient that ordinary least squares cannot.

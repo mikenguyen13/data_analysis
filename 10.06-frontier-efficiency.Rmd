@@ -1,0 +1,298 @@
+# Frontier and Efficiency Analysis {#sec-frontier-efficiency}
+
+Most regression models in this book describe an average relationship. Conditional mean methods ask how the typical unit responds to its inputs, and a fitted value sitting above or below the regression line is treated as noise. Efficiency analysis asks a different question. It assumes that there exists a best-practice boundary, a frontier, that describes the maximum output obtainable from a given bundle of inputs (or, dually, the minimum cost of producing a given output), and it measures how far each production unit operates from that boundary. The gap is not noise. It is interpreted economically as inefficiency, a shortfall attributable to managerial slack, organizational friction, or suboptimal use of resources.
+
+This shift in interpretation places frontier analysis squarely within applied microeconometrics and productivity measurement rather than within ordinary curve fitting. The unit of analysis is a decision-making unit, a firm, hospital, bank branch, farm, school, or country, that converts inputs into outputs. The objects of interest are the technology that defines what is feasible and the efficiency scores that rank units against the feasible best. The intellectual roots trace to @koopmans1951analysis on activity analysis, @debreu1951coefficient on the coefficient of resource utilization, and especially @farrell1957measurement, who first decomposed productive efficiency into technical and allocative components and proposed measuring it relative to an empirically constructed frontier.
+
+Two broad estimation traditions grew from this foundation. Stochastic Frontier Analysis (SFA) is parametric and econometric. It specifies a functional form for the frontier and a statistical model for the deviations from it, separating random noise from inefficiency through a composed error structure, and estimates the parameters by maximum likelihood. Data Envelopment Analysis (DEA) is nonparametric and operations-research based. It constructs the frontier as the tightest piecewise-linear envelope of the observed data using linear programming, imposing no functional form and no distributional assumption. The two methods embody a classic tradeoff between statistical structure and flexibility, and this chapter develops both, then contrasts them.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The Efficiency Measurement Problem
+
+Consider a decision-making unit that uses a vector of inputs $\mathbf{x} \in \mathbb{R}^N_{+}$ to produce a vector of outputs $\mathbf{y} \in \mathbb{R}^M_{+}$. The production technology is the set of all feasible input-output combinations,
+
+$$
+T = \{ (\mathbf{x}, \mathbf{y}) : \mathbf{x} \text{ can produce } \mathbf{y} \}.
+$$
+
+In the single-output case the upper boundary of this set is the production frontier $y = f(\mathbf{x})$, the maximum output attainable from $\mathbf{x}$. A unit is technically efficient when it produces on the frontier and technically inefficient when it lies strictly inside the feasible set.
+
+@farrell1957measurement formalized two orientations for measuring the distance to the frontier. Under an input orientation, efficiency is the maximal proportional contraction of inputs that still permits producing the observed output. Under an output orientation, efficiency is the maximal proportional expansion of output achievable from the observed inputs. For a single output the output-oriented technical efficiency of unit $i$ is the ratio of observed to maximum feasible output,
+
+$$
+TE_i = \frac{y_i}{f(\mathbf{x}_i)} \in (0, 1],
+$$
+
+with $TE_i = 1$ for a unit operating on the frontier. Farrell further distinguished technical efficiency, which concerns the physical input-output relationship, from allocative efficiency, which concerns choosing the input mix that minimizes cost given input prices. Their product is overall economic efficiency.
+
+The central empirical difficulty is that the frontier is unobserved. We see only a scatter of input-output pairs, and we must infer the boundary that envelops them. The two methodological traditions resolve this differently. SFA assumes a parametric frontier perturbed by both noise and inefficiency and recovers it by likelihood methods. DEA wraps the data in a deterministic linear-programming hull and reads efficiency off the distance to that hull. We treat each in turn.
+
+## Stochastic Frontier Analysis
+
+### From Deterministic to Stochastic Frontiers
+
+A naive way to estimate a production frontier is to fit a regression and then shift the intercept up until all residuals are non-positive, so that every unit lies on or below the fitted boundary. This deterministic frontier, in the spirit of @aigner1968estimation, has a fatal weakness. It attributes the entire gap between a unit and the frontier to inefficiency and none to measurement error, weather, luck, or any other random shock outside the manager's control. A single outlier caused by a favorable shock can pull the whole frontier upward and distort every efficiency score, and the estimates are extremely sensitive to data error.
+
+The breakthrough, developed independently and simultaneously by @aigner1977formulation and @meeusen1977efficiency, was to split the deviation from the frontier into two parts. Write the Cobb-Douglas production frontier in logarithms,
+
+$$
+\ln y_i = \beta_0 + \sum_{n=1}^{N} \beta_n \ln x_{ni} + \varepsilon_i,
+\qquad \varepsilon_i = v_i - u_i,
+$$ {#eq-sfa-cobb-douglas}
+
+where the composed error $\varepsilon_i$ has two components with very different roles. The symmetric component $v_i$ is ordinary statistical noise. It captures random shocks, measurement error, and omitted influences, can be positive or negative, and is typically assumed $v_i \sim N(0, \sigma_v^2)$. The one-sided component $u_i \geq 0$ captures technical inefficiency. Because output cannot exceed the stochastic frontier $\exp(\beta_0 + \sum_n \beta_n \ln x_{ni} + v_i)$, the inefficiency term enters with a negative sign and shifts the unit below its own noise-perturbed ceiling. Equivalently, in levels,
+
+$$
+y_i = f(\mathbf{x}_i; \boldsymbol{\beta}) \times \exp(v_i) \times \exp(-u_i),
+$$
+
+so that observed output equals the deterministic frontier times a random shock times the technical efficiency $TE_i = \exp(-u_i)$.
+
+This composed-error specification is the defining feature of SFA. The frontier itself is stochastic because $v_i$ shifts it up or down for each unit, which is why two units with identical inefficiency can record different output. Separating $v_i$ from $u_i$ from a single residual is the core estimation challenge and is achievable only because the two components are assumed to follow different distributions, one symmetric and one one-sided.
+
+### Distributional Assumptions on Inefficiency
+
+Identification of the two error components rests on distinguishing the symmetric noise from the asymmetric inefficiency. The noise term is almost universally taken as normal, $v_i \sim N(0, \sigma_v^2)$, independent of the regressors and of $u_i$. The inefficiency term requires a distribution supported on the non-negative half line, and several choices are standard.
+
+The half-normal model of @aigner1977formulation sets $u_i \sim N^{+}(0, \sigma_u^2)$, the absolute value of a zero-mean normal. Most units cluster near full efficiency, with a thinning tail of progressively less efficient units. This is the workhorse specification. The exponential model of @meeusen1977efficiency sets $u_i \sim \text{Exponential}(\sigma_u)$, which is similarly single-parameter and concentrates mass near zero but with a different tail shape. The truncated-normal model of @stevenson1980likelihood generalizes the half-normal to $u_i \sim N^{+}(\mu, \sigma_u^2)$ with a free pre-truncation mean $\mu$, allowing the modal inefficiency to sit away from zero and accommodating cases where few units are near best practice. The gamma model of @greene1990gamma adds a shape parameter for further flexibility at the cost of heavier computation.
+
+A convenient reparameterization due to @battese1977estimation summarizes the relative importance of the two error sources. Define the total variance $\sigma^2 = \sigma_v^2 + \sigma_u^2$ and the variance ratio
+
+$$
+\gamma = \frac{\sigma_u^2}{\sigma_v^2 + \sigma_u^2} \in [0, 1].
+$$ {#eq-gamma}
+
+When $\gamma \to 0$ the composed error is dominated by noise, inefficiency is negligible, and ordinary least squares is adequate. When $\gamma \to 1$ the deviations are almost entirely inefficiency and the model approaches the deterministic frontier. A formal test of $\gamma = 0$, which must respect the boundary of the parameter space and therefore uses a mixed chi-square null distribution as in @coelli1995estimation, asks whether the frontier specification is warranted at all over a simple regression.
+
+### Maximum Likelihood Estimation
+
+Under the half-normal specification the density of the composed error $\varepsilon_i = v_i - u_i$ has the closed form derived by @aigner1977formulation,
+
+$$
+f(\varepsilon_i) = \frac{2}{\sigma}\, \phi\!\left( \frac{\varepsilon_i}{\sigma} \right) \Phi\!\left( -\frac{\varepsilon_i \lambda}{\sigma} \right),
+\qquad \lambda = \frac{\sigma_u}{\sigma_v},
+$$ {#eq-composed-density}
+
+where $\phi$ and $\Phi$ are the standard normal density and distribution function, and $\lambda$ measures inefficiency relative to noise. The asymmetry parameter $\lambda$ governs the skewness of the composed error, and a telling diagnostic is the sign of the skewness of the OLS residuals. For a production frontier the residuals should be negatively skewed; positive skewness signals that the data carry no detectable inefficiency in the expected direction, often called the wrong-skew problem.
+
+The log likelihood is the sum of the logarithms of @eq-composed-density over the sample and is maximized numerically, since no closed-form solution exists. Estimation proceeds in practice from OLS starting values, often using a grid search over $\gamma$ to locate a good initial point before Newton-type iteration. The result is consistent and asymptotically efficient estimates of the technology parameters $\boldsymbol{\beta}$ together with the variance parameters $\sigma^2$ and $\gamma$ (equivalently $\sigma_u$ and $\sigma_v$).
+
+### Predicting Technical Efficiency
+
+Estimating the model yields the parameters but not the inefficiency of any individual unit, because $u_i$ is unobserved. What we observe per unit is only the composed residual $\hat{\varepsilon}_i$. The standard solution, due to @jondrow1982estimation, is to predict $u_i$ by its conditional expectation given the composed error, $E(u_i \mid \varepsilon_i)$, which under the half-normal model has a closed-form expression involving $\phi$ and $\Phi$ evaluated at $\varepsilon_i$. The technical efficiency score is then most commonly computed as $\widehat{TE}_i = E(\exp(-u_i) \mid \varepsilon_i)$, the point predictor recommended by @battese1988prediction, which is preferred to $\exp(-E(u_i \mid \varepsilon_i))$ because it correctly handles the nonlinearity of the exponential.
+
+These conditional predictions are not consistent estimators of any single unit's true efficiency, since the conditioning information does not grow with the sample. They are nonetheless the accepted basis for ranking units and for reporting the efficiency distribution, and @horrace2002confidence show how to attach confidence intervals to them.
+
+### Cost Frontiers
+
+The production frontier describes maximum output. Its economic dual is the cost frontier, which describes the minimum expenditure required to produce a given output at given input prices. The treatment in @kumbhakar2000stochastic develops this systematically. Writing total cost $C_i$ as a function of output $y_i$ and an input-price vector $\mathbf{w}_i$, a translog or Cobb-Douglas cost frontier in logarithms takes the form
+
+$$
+\ln C_i = \beta_0 + \beta_y \ln y_i + \sum_{n=1}^{N} \beta_n \ln w_{ni} + v_i + u_i,
+$$ {#eq-cost-frontier}
+
+where the crucial change relative to @eq-sfa-cobb-douglas is the sign on the inefficiency term. A cost-inefficient unit spends more than the minimum, so $u_i \geq 0$ now raises observed cost above the frontier and enters with a positive sign. Cost efficiency is $CE_i = \exp(-u_i) \in (0,1]$, the ratio of minimum to observed cost. Cost inefficiency conflates technical inefficiency, using too many inputs, with allocative inefficiency, using the wrong input mix given prices, and decomposing the two requires either added structure or estimating the cost-share equations jointly. The analogous extension to profit frontiers measures the shortfall of realized profit from the maximum feasible profit and behaves like the production case with inefficiency reducing the objective.
+
+### Panel-Data Frontier Models
+
+When units are observed repeatedly the panel dimension sharpens efficiency measurement, and the field developed a sequence of models surveyed in @kumbhakar2000stochastic. The earliest treatment by @schmidt1984production recast time-invariant inefficiency as a one-sided firm effect, $\ln y_{it} = \beta_0 + \sum_n \beta_n \ln x_{nit} + v_{it} - u_i$, and showed that with panel data $u_i$ can be recovered by fixed-effects or random-effects methods without a distributional assumption, treating each unit's effect relative to the best-performing unit. Repeated observation also makes the per-unit inefficiency prediction consistent as the number of periods grows, overcoming the limitation noted above for cross sections.
+
+A restrictive feature of these early models is that inefficiency is constant over time, implausible over long panels. @battese1992frontier introduced time-varying inefficiency through $u_{it} = u_i \exp(-\eta (t - T))$, letting each unit's inefficiency decay or grow at a common rate $\eta$, and @battese1995model extended the framework so that the mean of the inefficiency distribution depends on explanatory variables $z_{it}$, $\mu_{it} = \mathbf{z}_{it}' \boldsymbol{\delta}$, letting the analyst model the determinants of inefficiency directly in a single estimation step. A persistent concern is that simple fixed-effects frontiers absorb all time-invariant unit heterogeneity into inefficiency, conflating durable productivity differences with managerial slack; the "true" fixed-effects and random-effects models of @greene2005fixed separate a time-invariant heterogeneity term from a time-varying inefficiency term to address exactly this.
+
+### Estimation in R
+
+The `frontier` package implements the cross-sectional and the @battese1992frontier and @battese1995model panel models via maximum likelihood, and the `sfaR` package offers a broader menu of inefficiency distributions and the Jondrow and Battese-Coelli efficiency predictors. The canonical example below fits a half-normal Cobb-Douglas production frontier to the package's `front41Data`.
+
+```{r sfa-frontier, eval=FALSE}
+# install.packages("frontier")
+library(frontier)
+
+# Cross-sectional production-frontier data shipped with the package.
+data(front41Data)
+
+# Half-normal Cobb-Douglas stochastic production frontier:
+#   ln(output) = b0 + b1 ln(capital) + b2 ln(labour) + v - u
+cobb_douglas <- sfa(
+    log(output) ~ log(capital) + log(labour),
+    data = front41Data
+)
+
+# Coefficients, sigmaSq, gamma, and the LR test of gamma = 0.
+summary(cobb_douglas)
+
+# Battese-Coelli technical efficiency scores E(exp(-u) | e), one per firm.
+efficiencies(cobb_douglas)
+```
+
+The same package estimates a cost frontier by supplying a cost equation and declaring the inefficiency to be cost-increasing through the `ineffDecrease` argument, and it fits the time-varying panel model when given a panel data structure.
+
+```{r sfa-cost, eval=FALSE}
+# Cost frontier: inefficiency raises cost, so it is "cost increasing".
+cost_frontier <- sfa(
+    log(cost) ~ log(output) + log(price_capital) + log(price_labour),
+    data       = firm_cost_data,
+    ineffDecrease = FALSE
+)
+summary(cost_frontier)
+```
+
+The `sfaR` package exposes alternative distributions through a single interface, which is useful for checking whether efficiency rankings are robust to the assumed shape of $u_i$.
+
+```{r sfar, eval=FALSE}
+# install.packages("sfaR")
+library(sfaR)
+
+# Compare half-normal, truncated-normal, and exponential inefficiency.
+fit_hnorm <- sfacross(
+    log(output) ~ log(capital) + log(labour),
+    udist = "hnormal",  data = front41Data
+)
+fit_tnorm <- sfacross(
+    log(output) ~ log(capital) + log(labour),
+    udist = "tnormal",  data = front41Data
+)
+fit_exp <- sfacross(
+    log(output) ~ log(capital) + log(labour),
+    udist = "exponential", data = front41Data
+)
+
+# Efficiency scores and a side-by-side likelihood comparison.
+efficiencies(fit_hnorm)
+lapply(list(fit_hnorm, fit_tnorm, fit_exp), logLik)
+```
+
+A small self-contained simulation illustrates the composed-error structure and the diagnostic skewness without requiring any external package. We draw a symmetric noise component and a half-normal inefficiency component, combine them, and confirm the negative skewness that signals genuine inefficiency in production data.
+
+```{r sfa-sim}
+set.seed(2024)
+n <- 2000
+
+# Two-sided noise.
+v <- rnorm(n, mean = 0, sd = 0.3)
+# One-sided half-normal inefficiency u >= 0.
+u <- abs(rnorm(n, mean = 0, sd = 0.6))
+# Composed production-frontier error: noise minus inefficiency.
+epsilon <- v - u
+
+# Production data: output is the frontier exp(noise) shrunk by exp(-u).
+data.frame(
+    mean_eps      = mean(epsilon),
+    sd_eps        = sd(epsilon),
+    skewness_sign = sign(mean((epsilon - mean(epsilon))^3))
+)
+```
+
+A negative sign on the residual skewness is the empirical fingerprint of a production frontier with detectable inefficiency. Positive skewness is the wrong-skew warning that the model has no inefficiency to separate from noise.
+
+## Data Envelopment Analysis
+
+### A Nonparametric Frontier
+
+Data Envelopment Analysis takes the opposite methodological stance. Rather than assume a functional form for $f(\mathbf{x})$ and a distribution for the deviations, it lets the data define the frontier. Introduced by @charnes1978measuring, who built directly on the radial efficiency measure of @farrell1957measurement, DEA constructs the smallest convex set that contains all observed input-output points and is consistent with free disposability, then declares its boundary to be the efficient frontier. Each unit is compared to a linear combination of the observed units, its peers, that produces at least as much output with no more input. The efficiency score is the solution of a linear program, so no parameters are estimated and no error distribution is specified.
+
+The price of this flexibility is that DEA is deterministic. Every deviation from the frontier is counted as inefficiency, exactly the weakness that motivated the stochastic frontier. There is no noise term, so measurement error and luck contaminate the scores, and the method is sensitive to outliers and to the curse of dimensionality when the number of inputs and outputs is large relative to the sample.
+
+### The CCR Model and Constant Returns to Scale
+
+The original model of @charnes1978measuring, known by the authors' initials as the CCR model, assumes constant returns to scale (CRS). For unit $o$ under an input orientation, DEA seeks the largest proportional reduction $\theta$ of that unit's inputs such that the contracted unit is still dominated by some convex combination of the observed units. In envelopment form the linear program is
+
+$$
+\begin{aligned}
+\min_{\theta, \boldsymbol{\lambda}} \quad & \theta \\
+\text{s.t.} \quad & \sum_{j=1}^{J} \lambda_j x_{nj} \leq \theta\, x_{no}, \quad n = 1, \dots, N, \\
+& \sum_{j=1}^{J} \lambda_j y_{mj} \geq y_{mo}, \quad m = 1, \dots, M, \\
+& \lambda_j \geq 0, \quad j = 1, \dots, J,
+\end{aligned}
+$$ {#eq-dea-ccr}
+
+where $x_{nj}$ and $y_{mj}$ are the $n$th input and $m$th output of unit $j$, and the weights $\boldsymbol{\lambda}$ pick out the benchmark peers. The optimal $\theta^{*} \in (0, 1]$ is the input-oriented technical efficiency. A score of one means the unit is on the frontier; a score of $0.8$ means the unit could in principle produce its current output using only eighty percent of its inputs. One such linear program is solved per unit, $J$ programs in total.
+
+### The BCC Model and Variable Returns to Scale
+
+The CRS assumption is appropriate only when all units operate at their optimal scale, which is rarely true. @banker1984models relaxed it by adding a convexity constraint on the intensity weights, $\sum_{j} \lambda_j = 1$, to @eq-dea-ccr. This BCC model, again named for its authors, permits variable returns to scale (VRS) and envelops the data more tightly, so VRS efficiency scores are always at least as large as their CRS counterparts. The ratio of the CRS to the VRS technical efficiency is the scale efficiency, which isolates the loss attributable to operating at a suboptimal scale from pure technical inefficiency, and comparing the two reveals whether a unit faces increasing, constant, or decreasing returns to scale at its current operating point.
+
+### Orientation
+
+DEA shares Farrell's two orientations. The input-oriented program in @eq-dea-ccr asks how much input could be saved while holding output fixed, the natural framing when output is demand-determined, as for a hospital meeting a fixed caseload. The output-oriented program instead maximizes a proportional expansion $\phi \geq 1$ of outputs while holding inputs fixed, the natural framing when inputs are budgeted and the goal is to maximize service. Under constant returns to scale the input- and output-oriented scores convey the same information, since one is the reciprocal of the other, but under variable returns to scale they generally differ and the choice should follow the economic question.
+
+### Estimation in R
+
+Several R packages solve the DEA programs. The `Benchmarking` package accompanies a standard textbook treatment and exposes orientation and returns-to-scale options directly, and `rDEA` adds the bias correction and bootstrap inference of @simar1998sensitivity, which is important because raw DEA scores are biased upward and have no off-the-shelf standard errors.
+
+```{r dea-benchmarking, eval=FALSE}
+# install.packages("Benchmarking")
+library(Benchmarking)
+
+# Inputs X (units x N) and outputs Y (units x M).
+X <- as.matrix(firm_data[, c("capital", "labour")])
+Y <- as.matrix(firm_data[, c("output")])
+
+# Constant returns to scale (CCR), input oriented.
+dea_crs <- dea(X, Y, RTS = "crs", ORIENTATION = "in")
+
+# Variable returns to scale (BCC), input oriented.
+dea_vrs <- dea(X, Y, RTS = "vrs", ORIENTATION = "in")
+
+# Scale efficiency is the ratio of CRS to VRS technical efficiency.
+scale_eff <- eff(dea_crs) / eff(dea_vrs)
+```
+
+The bias-corrected bootstrap from `rDEA` provides confidence intervals for the scores, addressing DEA's lack of a built-in stochastic component.
+
+```{r dea-rdea, eval=FALSE}
+# install.packages("rDEA")
+library(rDEA)
+
+# Bias-corrected, bootstrapped input-oriented VRS efficiency.
+dea_boot <- dea.robust(
+    X = X, Y = Y,
+    model = "input", RTS = "VRS", B = 2000
+)
+dea_boot$theta_hat_hat   # bias-corrected efficiency scores
+```
+
+A compact illustration with no external dependency solves the constant-returns input-oriented program directly with base R's linear-programming-free ratio for a single input and output, where the frontier is simply the maximum output-to-input ratio.
+
+```{r dea-sim}
+# Five units, one input and one output.
+units  <- data.frame(
+    unit   = LETTERS[1:5],
+    input  = c(1, 2, 3, 4, 5),
+    output = c(1, 3, 4, 4, 5)
+)
+
+# Under CRS with one input and one output, the frontier is the
+# best observed output-per-input ratio; efficiency is each unit's
+# ratio relative to that best.
+units$ratio   <- units$output / units$input
+best          <- max(units$ratio)
+units$te_crs  <- units$ratio / best
+units
+```
+
+Unit B attains the highest output-per-input ratio and defines the constant-returns frontier, so it scores one, while the others are measured by how far their own ratio falls short of B's.
+
+## Parametric SFA versus Nonparametric DEA
+
+The two traditions answer the same question with opposite priorities, and the choice between them turns on what the analyst is willing to assume. The contrast is summarized below.
+
+| Dimension | Stochastic Frontier Analysis | Data Envelopment Analysis |
+|---|---|---|
+| Frontier | Parametric functional form (Cobb-Douglas, translog) | Nonparametric piecewise-linear envelope |
+| Deviation from frontier | Composed error: noise plus inefficiency | All deviation is inefficiency |
+| Statistical noise | Modeled explicitly through $v_i$ | None; deterministic |
+| Estimation | Maximum likelihood | Linear programming |
+| Distributional assumption on inefficiency | Required (half-normal, exponential, truncated-normal) | None |
+| Inference | Standard errors, likelihood-ratio tests | Bootstrap (@simar1998sensitivity) |
+| Multiple outputs | Awkward; needs distance functions | Natural |
+| Sensitivity to outliers | Moderated by the noise term | High |
+| Specification error | Possible if functional form is wrong | None |
+
+: SFA versus DEA at a glance.
+
+The decision hinges on two questions. First, how noisy are the data? When measurement error and random shocks are substantial, as in agriculture or any setting exposed to weather and unmeasured heterogeneity, the stochastic component of SFA is valuable and DEA's habit of labeling every shock as inefficiency overstates the inefficiency. When the data are clean and the technology is hard to write down, DEA's freedom from functional-form and distributional assumptions is the advantage. Second, how complex is the production process? DEA handles many inputs and outputs effortlessly, whereas the single-output regression form of SFA requires distance functions or system estimation to accommodate multiple outputs.
+
+Practitioners increasingly run both methods and compare. Agreement in the efficiency rankings is reassuring; divergence is informative, often pointing to influential noise that DEA misclassifies or to a misspecified functional form in SFA. Semiparametric and nonparametric refinements, surveyed by @parmeter2014editor and developed in the local-likelihood frontier of @park2015constructive, aim to keep the stochastic noise term of SFA while relaxing its rigid functional form, narrowing the gap between the two traditions. The broader point is that frontier methods reframe estimation as benchmarking against best practice rather than fitting an average, and that reframing, not any particular algorithm, is what places efficiency analysis at the center of empirical productivity and performance research.
