@@ -49,63 +49,72 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 4. Linear Regression
 5. Non-Linear Regression
 6. Generalized Linear Models
-7. Linear Mixed Models
-8. Nonlinear and Generalized Linear Mixed Models
-9. Nonparametric Regression
+7. Discrete Choice and Limited Dependent Variables
+8. Linear Mixed Models
+9. Nonlinear and Generalized Linear Mixed Models
+10. Nonparametric Regression
+11. Quantile Regression and Distributional Methods
+12. Frontier and Efficiency Analysis
+13. Structural Econometrics and Demand Estimation
 
 **Part III. Ramifications**
 
-10. Data
-11. Variable Transformation
-12. Imputation (Missing Data)
-13. Model Specification Tests
-14. Variable Selection
-15. Hypothesis Testing
-16. Marginal Effects
-17. Moderation
-18. Mediation
-19. Prediction and Estimation
+14. Data
+15. Time Series Analysis
+16. Variable Transformation
+17. Imputation (Missing Data)
+18. Model Specification Tests
+19. Variable Selection
+20. Hypothesis Testing
+21. Marginal Effects
+22. Moderation
+23. Mediation
+24. Prediction and Estimation
 
 **Part IV. Causal Inference**
 
-20. Causal Inference
+25. Causal Inference
 
 - *A. Experimental Design*
 
-21. Experimental Design
-22. Sampling
-23. Survey and Response Quality
-24. Analysis of Variance
-25. Multivariate Methods
+26. Experimental Design
+27. Interference and Spillover Effects
+28. Sampling
+29. Survey and Response Quality
+30. Analysis of Variance
+31. Multivariate Methods
 
 - *B. Quasi-Experimental Design*
 
-26. Quasi-Experimental Methods
-27. Regression Discontinuity
-28. Temporal Discontinuity Designs
-29. Synthetic Difference-in-Differences
-30. Difference-in-Differences
-31. Changes-in-Changes
-32. Synthetic Control
-33. Event Studies
-34. Instrumental Variables
-35. Matching Methods
+32. Quasi-Experimental Methods
+33. Regression Discontinuity
+34. Temporal Discontinuity Designs
+35. Synthetic Difference-in-Differences
+36. Difference-in-Differences
+37. Changes-in-Changes
+38. Synthetic Control
+39. Event Studies
+40. Instrumental Variables
+41. Matching Methods
+42. Machine Learning for Causal Inference
+43. Text as Data and NLP for Causal Inference
 
 - *C. Other Concerns*
 
-36. Endogeneity
-37. Biases
-38. Directed Acyclic Graphs
-39. Controls
+44. Endogeneity
+45. Biases
+46. Directed Acyclic Graphs
+47. Controls
 
 **Part V. Miscellaneous**
 
-40. Reporting Your Analysis
-41. Exploratory Data Analysis
-42. Sensitivity Analysis and Robustness Checks
-43. Replication and Synthetic Data
-44. High-Performance Computing
-45. Clustered and Robust Inference
+48. Reporting Your Analysis
+49. Exploratory Data Analysis
+50. Sensitivity Analysis and Robustness Checks
+51. Replication and Synthetic Data
+52. Differential Privacy
+53. High-Performance Computing
+54. Clustered and Robust Inference
 
 **Appendix**
 
