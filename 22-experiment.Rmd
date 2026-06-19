@@ -221,6 +221,591 @@ A famous study by @bertrand2004emily examined racial discrimination in hiring by
 
 ------------------------------------------------------------------------
 
+## Variance Reduction in Experimental Design {#sec-variance-reduction}
+
+Randomization guarantees that a difference in means is an unbiased estimate of the average treatment effect, but it says nothing about precision. When the outcome is noisy, as spend, revenue, session length, or trading profit and loss typically are, we need a large sample to detect even a modest effect. Variance reduction methods attack this problem directly. They adjust the outcome using information that was fixed before randomization, shrinking the standard error without disturbing the expected value of the estimator. In modern online experimentation, these adjustments are among the cheapest and highest return improvements a team can deploy [@deng2013improving].
+
+This section develops the two workhorse adjustments used in practice. CUPED uses a pre-experiment covariate, most often a pre-period version of the same metric. CUPAC generalizes the idea by replacing that covariate with a prediction from a model trained on historical data. Both reduce to regression adjustment, and both connect cleanly to the difference-in-differences logic developed elsewhere in this book.
+
+------------------------------------------------------------------------
+
+### CUPED
+
+CUPED, an abbreviation for Controlled-experiment Using Pre-Experiment Data, adjusts each unit's outcome by a pre-treatment covariate that is correlated with the outcome but, by construction, independent of the randomized assignment [@deng2013improving]. Because the covariate was measured before treatment, subtracting a multiple of it cannot introduce bias, and a well chosen multiple removes predictable noise.
+
+#### Setup and notation
+
+Let $i = 1, \dots, n$ index experimental units, which might be users, customers, or accounts. Treatment assignment is $T_i \in \{0,1\}$, randomized. The potential outcomes are $Y_i(1)$ and $Y_i(0)$, and the observed outcome is $Y_i = T_i Y_i(1) + (1 - T_i) Y_i(0)$. The pre-experiment covariate $X_i$ is measured before randomization. The canonical choice is a pre-period version of the outcome, such as last week's spend, though stable assignment dimensions such as device or region can also serve.
+
+The single assumption CUPED requires is that assignment is independent of the covariate,
+
+$$
+T_i \perp X_i,
+$$
+
+which holds whenever randomization occurs after $X_i$ is measured and there is no leakage from the experiment back into the covariate.
+
+#### The CUPED estimator
+
+CUPED defines an adjusted outcome
+
+$$
+Y_i^{\text{cuped}} = Y_i - \theta\left(X_i - \mathbb{E}[X]\right),
+$$
+
+and estimates the treatment effect by the difference in means of the adjusted outcome,
+
+$$
+\hat{\tau}_{\text{cuped}} = \bar{Y}^{\text{cuped}}_1 - \bar{Y}^{\text{cuped}}_0
+= \left(\bar{Y}_1 - \bar{Y}_0\right) - \theta\left(\bar{X}_1 - \bar{X}_0\right).
+$$
+
+Read in words, CUPED is the ordinary difference in means minus $\theta$ times any accidental imbalance in the covariate between the two arms. We center $X_i$ at $\mathbb{E}[X]$, or at the sample mean $\bar{X}$ in practice, so that the adjustment does not shift overall levels in a way that interacts with assignment. Centering also gives the intercept a clean interpretation in the regression form below.
+
+#### Unbiasedness, even with estimated $\theta$
+
+A natural worry is that subtracting a random quantity might bias the estimate. It does not. Writing
+
+$$
+\hat{\tau}_{\text{cuped}} = \hat{\tau}_{\text{diff}} - \theta(\bar{X}_1 - \bar{X}_0),
+$$
+
+suppose first that $\theta$ is a fixed constant, even a poorly chosen one. Under random assignment the expected covariate imbalance is zero, so
+
+$$
+\mathbb{E}[\bar{X}_1 - \bar{X}_0] = 0
+\quad \Rightarrow \quad
+\mathbb{E}[\hat{\tau}_{\text{cuped}}] = \mathbb{E}[\hat{\tau}_{\text{diff}}] = \tau.
+$$
+
+CUPED is therefore unbiased for any fixed $\theta$.
+
+In practice $\theta$ is estimated, usually by ordinary least squares on the same data. This estimator remains asymptotically unbiased in randomized experiments, and the finite-sample bias is negligible in the large samples typical of A/B tests [@deng2013improving; @freedman2008regression]. If a stronger guarantee is desired, one can cross-fit $\theta$, estimating it on one fold and applying it to another so that the adjustment term is conditionally mean zero given the fold-wise coefficient. This is the orthogonalization logic that underlies modern debiased estimation [@chernozhukov2018double].
+
+#### Choosing $\theta$: variance minimization
+
+The coefficient is chosen to minimize the variance of the adjusted outcome. Let $X_c = X - \mathbb{E}[X]$ denote the centered covariate. Then
+
+$$
+\mathrm{Var}(Y - \theta X_c)
+= \mathrm{Var}(Y) + \theta^2 \mathrm{Var}(X_c) - 2\theta\,\mathrm{Cov}(Y, X_c).
+$$
+
+Differentiating with respect to $\theta$ and setting the derivative to zero gives
+
+$$
+2\theta\, \mathrm{Var}(X_c) - 2\,\mathrm{Cov}(Y, X_c) = 0,
+$$
+
+so the variance-minimizing coefficient is
+
+$$
+\theta^\star = \frac{\mathrm{Cov}(Y, X_c)}{\mathrm{Var}(X_c)} = \frac{\mathrm{Cov}(Y, X)}{\mathrm{Var}(X)},
+$$
+
+where the second equality holds because centering changes neither the variance nor the relevant covariance. This is exactly the slope from regressing $Y$ on $X$ in a simple linear regression [@deng2013improving].
+
+The achievable gain follows immediately. With a single covariate, projecting $Y$ onto $X$ shrinks the residual variance by a factor $(1 - \rho^2)$, where $\rho = \mathrm{Cor}(Y, X)$,
+
+$$
+\mathrm{Var}(Y^{\text{cuped}}) = \mathrm{Var}(Y)\,(1 - \rho^2).
+$$
+
+The standard error then shrinks by $\sqrt{1 - \rho^2}$, and the sample size required for a fixed power shrinks by roughly $(1 - \rho^2)$. The leverage is substantial. A correlation of $\rho = 0.6$ gives $1 - \rho^2 = 0.64$, a 36 percent reduction in variance and a 20 percent reduction in standard error, since $\sqrt{0.64} = 0.8$.
+
+#### Three ways to implement CUPED
+
+There are three equivalent routes to a CUPED estimate. The first transforms the outcome and runs a difference in means. The second runs a regression, also known as ANCOVA, of the outcome on treatment and the centered covariate, which is the recommended default because robust standard errors, multiple covariates, interactions, and clustering all come for free. Under random assignment, ordinary least squares with covariate adjustment is unbiased and typically more precise than the raw difference in means, especially when the covariate predicts the outcome [@freedman2008regression]. The third cross-fits the coefficient as a defensive measure against finite-sample dependence between the adjustment and the realized imbalance.
+
+We begin by loading the tools used throughout this section.
+
+```{r cuped-setup, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(estimatr)  # lm_robust() for robust standard errors
+library(broom)     # tidy model summaries
+```
+
+We then simulate an experiment in which a skewed pre-period covariate predicts the outcome, so CUPED has room to help.
+
+```{r cuped-simulate}
+set.seed(123)
+
+n  <- 1000
+X  <- rlnorm(n, meanlog = 3.5, sdlog = 0.6)  # skewed pre-period spend
+T  <- rbinom(n, 1, 0.5)
+
+tau_true <- 2.0
+
+# Outcome correlated with X, plus noise and a treatment effect
+Y <- 0.7 * X + rlnorm(n, meanlog = 2.2, sdlog = 0.7) + tau_true * T
+
+dat <- tibble(id = 1:n, T = T, X = X, Y = Y)
+head(dat)
+```
+
+The correlation between covariate and outcome is the single best predictor of how much CUPED will gain.
+
+```{r cuped-correlation}
+cor(dat$X, dat$Y)
+```
+
+**Method one: the transformed-outcome form.** We estimate $\theta^\star$ as the regression slope, build the adjusted outcome, and difference its means.
+
+```{r cuped-transform}
+theta_hat <- with(dat, cov(X, Y) / var(X))
+xbar      <- mean(dat$X)
+
+dat <- dat %>%
+  mutate(
+    Xc      = X - xbar,
+    Y_cuped = Y - theta_hat * Xc
+  )
+
+ate_naive <- with(dat, mean(Y[T == 1]) - mean(Y[T == 0]))
+ate_cuped <- with(dat, mean(Y_cuped[T == 1]) - mean(Y_cuped[T == 0]))
+
+c(ATE_naive = ate_naive, ATE_cuped = ate_cuped, theta_hat = theta_hat)
+```
+
+A simple difference-in-means standard error makes the precision gain visible.
+
+```{r cuped-se}
+se_diff_means <- function(y, t) {
+  n1 <- sum(t == 1); n0 <- sum(t == 0)
+  v1 <- var(y[t == 1]); v0 <- var(y[t == 0])
+  sqrt(v1 / n1 + v0 / n0)
+}
+
+se_naive <- se_diff_means(dat$Y, dat$T)
+se_cuped <- se_diff_means(dat$Y_cuped, dat$T)
+
+tibble(
+  method  = c("naive diff-in-means", "CUPED transformed outcome"),
+  ate     = c(ate_naive, ate_cuped),
+  se      = c(se_naive, se_cuped),
+  ci_low  = c(ate_naive, ate_cuped) - 1.96 * c(se_naive, se_cuped),
+  ci_high = c(ate_naive, ate_cuped) + 1.96 * c(se_naive, se_cuped)
+)
+```
+
+**Method two: regression, or ANCOVA, with robust standard errors.** Regressing the outcome on treatment and the centered covariate and reading the coefficient on $T$ gives the same adjustment in a more flexible package. Robust standard errors are the sensible default in experiments because business metrics are rarely homoskedastic [@imbens2015causal].
+
+```{r cuped-ancova}
+fit_ancova <- lm_robust(Y ~ T + I(X - mean(X)), data = dat)  # HC2 robust SE
+tidy(fit_ancova) %>% filter(term == "T")
+```
+
+The three estimates sit in the same efficient neighborhood. They are not algebraically identical in finite samples, so small differences are expected.
+
+```{r cuped-compare}
+tibble(
+  method   = c("naive diff-in-means", "CUPED transform", "ANCOVA robust"),
+  estimate = c(ate_naive, ate_cuped, coef(fit_ancova)["T"])
+)
+```
+
+**Method three: cross-fitted CUPED.** Splitting the data into folds and estimating $\theta$ on the complement of each fold removes any finite-sample dependence between the adjustment coefficient and a given fold's treatment imbalance. In large A/B tests the pooled and cross-fitted estimates are usually almost identical, but the option is cheap insurance.
+
+```{r cuped-crossfit}
+set.seed(456)
+K <- 5
+dat <- dat %>%
+  mutate(fold = sample(rep(1:K, length.out = n())))
+
+dat <- dat %>%
+  group_by(fold) %>%
+  group_modify(~ {
+    current_fold <- .y$fold
+    train <- dat %>% filter(fold != current_fold)
+    test  <- .x
+
+    theta_k <- with(train, cov(X, Y) / var(X))
+    xbar_k  <- mean(train$X)
+
+    test %>%
+      mutate(Y_cuped_cf = Y - theta_k * (X - xbar_k))
+  }) %>%
+  ungroup()
+
+ate_cuped_cf <- with(dat, mean(Y_cuped_cf[T == 1]) - mean(Y_cuped_cf[T == 0]))
+se_cuped_cf  <- se_diff_means(dat$Y_cuped_cf, dat$T)
+
+tibble(
+  method = c("CUPED (pooled theta)", "CUPED (cross-fitted theta)"),
+  ate    = c(ate_cuped, ate_cuped_cf),
+  se     = c(se_cuped, se_cuped_cf)
+)
+```
+
+#### Multiple covariates as regression residualization
+
+With several pre-treatment covariates $X_{i1}, \dots, X_{ip}$, the natural extension residualizes the outcome against all of them at once,
+
+$$
+Y_i^{\text{adj}} = Y_i - (X_i - \bar{X})^\top \hat{\beta},
+$$
+
+where $\hat{\beta}$ is the coefficient vector from regressing $Y$ on the covariates. In practice one simply runs the regression of the outcome on treatment and all covariates with robust standard errors, which is the standard regression-adjustment recommendation for experiments [@freedman2008regression; @imbens2015causal].
+
+```{r cuped-multicovariate}
+set.seed(789)
+dat2 <- dat %>%
+  mutate(
+    X2 = log1p(X) + rnorm(n(), sd = 0.2),
+    X3 = rbinom(n(), 1, plogis(scale(log1p(X))))
+  )
+
+fit_multi <- lm_robust(
+  Y ~ T + I(X - mean(X)) + I(X2 - mean(X2)) + X3,
+  data = dat2
+)
+tidy(fit_multi) %>% filter(term == "T")
+```
+
+#### From correlation to sample size
+
+The accounting of gains is direct. With single-covariate correlation $\rho$, the variance multiplies by $(1 - \rho^2)$, the standard error by $\sqrt{1 - \rho^2}$, and the required sample size by approximately $(1 - \rho^2)$.
+
+```{r cuped-power}
+rho      <- cor(dat$X, dat$Y)
+gain_var <- 1 - rho^2
+gain_se  <- sqrt(gain_var)
+
+tibble(
+  rho                           = rho,
+  variance_multiplier           = gain_var,
+  se_multiplier                 = gain_se,
+  approx_sample_size_multiplier = gain_var
+)
+```
+
+------------------------------------------------------------------------
+
+### CUPED versus Difference-in-Differences
+
+CUPED can look much like difference-in-differences, especially when the covariate is a pre-period version of the outcome. The two are nonetheless solving different problems. CUPED is a precision tool for randomized experiments, whereas difference-in-differences is an identification tool for non-randomized settings that uses time to remove bias. They coincide only in a special algebraic case.
+
+#### The algebraic connection
+
+Let $Y_{i1}$ denote the outcome during the experiment and $Y_{i0}$ the outcome in the pre-period. Using $X_i = Y_{i0}$ as the CUPED covariate gives
+
+$$
+\hat{\tau}_{\text{cuped}}
+= (\bar{Y}_{1,1} - \bar{Y}_{0,1}) - \theta(\bar{Y}_{1,0} - \bar{Y}_{0,0}),
+$$
+
+where $\bar{Y}_{t,p}$ is the mean outcome for arm $t \in \{0,1\}$ in period $p \in \{0,1\}$. The classic two-period, two-group difference-in-differences estimator is
+
+$$
+\hat{\tau}_{\text{did}}
+= (\bar{Y}_{1,1} - \bar{Y}_{0,1}) - (\bar{Y}_{1,0} - \bar{Y}_{0,0}).
+$$
+
+Comparing the two, difference-in-differences is exactly CUPED with $\theta$ fixed to one.
+
+#### Why the goals differ
+
+In a randomized experiment the post-period difference $\bar{Y}_{1,1} - \bar{Y}_{0,1}$ is already unbiased for $\tau$. CUPED subtracts a correction built from the pre-period imbalance, which has expectation zero under randomization, so the estimator stays unbiased and the adjustment buys precision rather than identification. It chooses
+
+$$
+\theta^\star = \frac{\mathrm{Cov}(Y_{1}, Y_{0})}{\mathrm{Var}(Y_{0})},
+$$
+
+which is almost never exactly one.
+
+Difference-in-differences is used when treatment is not randomized and the groups differ systematically. It uses the pre-period to difference out time-invariant group differences, and it relies on the parallel trends assumption that, absent treatment, the two groups would have moved together. The coefficient on the pre-period outcome is fixed at one because the method models the outcome with additive unit and time effects,
+
+$$
+Y_{it} = \alpha_i + \lambda_t + \tau\,(T_i \cdot \mathbb{1}\{t=1\}) + \varepsilon_{it}.
+$$
+
+Taking post minus pre differences cancels the unit effect $\alpha_i$, and that cancellation is what forces the unit coefficient to one. CUPED is not cancelling fixed effects for identification; it is projecting out predictable variation, which is why its coefficient is chosen optimally rather than fixed.
+
+#### When they coincide
+
+The two estimators become similar when the covariate is the pre-period outcome, treatment is randomized so both are unbiased, and the optimal projection coefficient happens to be near one. This occurs when the post-period outcome is close to the pre-period outcome plus noise, with similar scale and high persistence. In many business metrics $\theta^\star$ departs from one because seasonality changes scale, growth shifts the mean and variance, heavy-tailed purchases behave differently across periods, and pre-period windows rarely match post-period windows. In those cases difference-in-differences is a valid but non-optimal form of variance reduction.
+
+The following simulation confirms the identity numerically. With $\theta = 1$ the CUPED adjustment reproduces the difference-in-differences estimate.
+
+```{r cuped-did-identity}
+set.seed(1)
+n  <- 2000
+T  <- rbinom(n, 1, 0.5)
+
+Y0  <- rnorm(n, mean = 10, sd = 3)
+tau <- 1.2
+Y1  <- 0.8 * Y0 + rnorm(n, sd = 2) + tau * T
+
+dat_did <- data.frame(T, Y0, Y1)
+
+# Difference-in-differences as a change-score difference in means
+did <- with(dat_did, mean((Y1 - Y0)[T == 1]) - mean((Y1 - Y0)[T == 0]))
+
+# CUPED with theta fixed to one
+cuped_theta1 <- with(
+  dat_did,
+  mean((Y1 - 1 * (Y0 - mean(Y0)))[T == 1]) -
+    mean((Y1 - 1 * (Y0 - mean(Y0)))[T == 0])
+)
+
+c(DiD = did, CUPED_theta1 = cuped_theta1)
+```
+
+The optimal CUPED coefficient is generally not one, and using it can further reduce variance.
+
+```{r cuped-did-optimal}
+theta_star <- with(dat_did, cov(Y0, Y1) / var(Y0))
+cuped_opt  <- with(
+  dat_did,
+  mean((Y1 - theta_star * (Y0 - mean(Y0)))[T == 1]) -
+    mean((Y1 - theta_star * (Y0 - mean(Y0)))[T == 0])
+)
+
+c(theta_star = theta_star, CUPED_opt = cuped_opt)
+```
+
+The practical rule is short. With a randomized experiment and pre-period data, use CUPED or ANCOVA and estimate the coefficient, since that is the precision-optimal choice. Without randomization, use difference-in-differences but defend parallel trends through plots, placebo tests, and event-study evidence. Difference-in-differences resembles CUPED because it is essentially CUPED with $\theta = 1$, but it serves identification under assumptions, whereas CUPED serves variance reduction under randomization.
+
+------------------------------------------------------------------------
+
+### CUPAC
+
+A good pre-period outcome is not always available. New users and new products have no consistent pre-period, sparse metrics leave most users at zero, a brand-new metric has no history, and seasonal or launch effects can contaminate the pre-period window. CUPAC, Controlled-experiment Using Pre-experiment data with Adaptive Covariates, addresses these cases by replacing the raw pre-period covariate with a prediction $\hat{m}$ built from richer pre-treatment features such as prior behavior, account attributes, and context. The intuition is that even without a clean pre-period outcome, baseline outcomes are often predictable from pre-treatment data.
+
+#### Setup and estimator
+
+We observe $(Y_i, T_i, W_i)$, where $W_i$ collects pre-treatment features and $T_i$ is randomized so that $T_i \perp (Y_i(0), Y_i(1), W_i)$. A model trained on historical data produces a prediction of the baseline outcome,
+
+$$
+\hat{m}_i \approx \mathbb{E}[Y_i(0) \mid W_i],
+$$
+
+and this prediction is then used exactly as CUPED uses its covariate,
+
+$$
+Y_i^{\text{cupac}} = Y_i - \theta\,(\hat{m}_i - \overline{\hat{m}}),
+\qquad
+\hat{\tau}_{\text{cupac}} = \overline{Y^{\text{cupac}}}_1 - \overline{Y^{\text{cupac}}}_0.
+$$
+
+The critical rule is that $\hat{m}_i$ must depend only on pre-treatment information. Because assignment is random and $\hat{m}$ depends only on $W$, the imbalance $\overline{\hat{m}}_1 - \overline{\hat{m}}_0$ has expectation zero, so the estimator is unbiased. The variance-minimizing coefficient and the resulting gain mirror CUPED,
+
+$$
+\theta^\star = \frac{\mathrm{Cov}(Y, \hat{m})}{\mathrm{Var}(\hat{m})},
+\qquad
+\frac{\mathrm{Var}(\hat{\tau}_{\text{cupac}})}{\mathrm{Var}(\hat{\tau}_{\text{DIM}})}
+\approx 1 - \rho_{Y, \hat{m}}^2.
+$$
+
+CUPAC is therefore only as good as the predictor's ability to explain baseline outcome variation. As with CUPED, regressing the outcome on treatment and the centered prediction is the equivalent and recommended form, since it makes robust and clustered inference straightforward.
+
+#### Building the predictor and cross-fitting
+
+The predictor uses only information available before assignment: prior sessions, purchases, and engagement; stable customer attributes such as tenure and plan type; and context such as region and channel. Training labels typically come from historical cohorts or rolling windows, where features from a pre-window predict the outcome in a later window of a prior period. The goal is to approximate $m(W) = \mathbb{E}[Y(0) \mid W]$, so predictive correlation matters more than interpretability, and gradient boosting or random forests are common choices in practice.
+
+The cardinal sins are leakage and overfitting. Post-treatment features, training labels that overlap the experiment outcome window, and features that encode treatment exposure all bias the result. The safe default trains on external historical data and scores each unit once at randomization time. When training must use current experiment data, sample-splitting or cross-fitting ensures that each unit's prediction is formed without that unit's own outcome, which is the same orthogonalization principle that underlies double machine learning [@chernozhukov2018double].
+
+#### Implementation
+
+We simulate an A/B test whose outcome is a heavy-tailed seven-day revenue figure, with rich pre-treatment features and a noisy, sparse pre-period revenue proxy. CUPED will lean on the noisy proxy, while CUPAC will lean on a predictor trained on a separate historical sample.
+
+```{r cupac-simulate, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+
+se_diff_means <- function(y, t) {
+  y1 <- y[t == 1]; y0 <- y[t == 0]
+  sqrt(var(y1) / length(y1) + var(y0) / length(y0))
+}
+
+set.seed(123)
+n <- 20000
+W <- tibble(
+  x1 = rnorm(n),
+  x2 = rbinom(n, 1, 0.4),
+  x3 = runif(n, -1, 1)
+)
+
+# Baseline revenue signal plus noise, with a heavy-tailed multiplier
+baseline_signal  <- 2 + 1.5 * W$x1 + 0.8 * W$x2 - 1.0 * W$x3
+noise            <- rnorm(n, 0, 3)
+heavy_multiplier <- rlnorm(n, meanlog = 0, sdlog = 0.35)
+Y0               <- (baseline_signal + noise) * heavy_multiplier
+
+tau_i <- 0.3 + 0.2 * W$x1   # small heterogeneous effect
+T     <- rbinom(n, 1, 0.5)
+Y     <- Y0 + T * tau_i
+
+# Noisy, sparse pre-period revenue proxy
+X_pre <- pmax(0, 0.6 * Y0 + rnorm(n, 0, 6))
+X_pre <- ifelse(runif(n) < 0.35, 0, X_pre)   # 35% have no pre-period activity
+
+dat <- bind_cols(W, tibble(T = T, Y = Y, Y0 = Y0, tau = tau_i, X_pre = X_pre))
+head(dat)
+```
+
+We train the CUPAC predictor on an independent historical sample and score the experiment units once.
+
+```{r cupac-train}
+set.seed(123)
+n_hist <- 60000
+W_hist <- tibble(
+  x1 = rnorm(n_hist),
+  x2 = rbinom(n_hist, 1, 0.4),
+  x3 = runif(n_hist, -1, 1)
+)
+
+baseline_signal_hist  <- 2 + 1.5 * W_hist$x1 + 0.8 * W_hist$x2 - 1.0 * W_hist$x3
+noise_hist            <- rnorm(n_hist, 0, 3)
+heavy_multiplier_hist <- rlnorm(n_hist, meanlog = 0, sdlog = 0.35)
+Y0_hist               <- (baseline_signal_hist + noise_hist) * heavy_multiplier_hist
+
+hist_dat <- bind_cols(W_hist, tibble(Y0 = Y0_hist))
+
+# Predict the baseline outcome from pre-treatment features
+m_fit <- lm(Y0 ~ x1 + x2 + x3, data = hist_dat)
+mhat  <- predict(m_fit, newdata = dat)
+
+dat <- dat %>% mutate(mhat = mhat)
+summary(dat$mhat)
+```
+
+We then compare the difference in means, CUPED using the noisy pre-period proxy, and CUPAC using the prediction.
+
+```{r cupac-estimators}
+ate_dim <- with(dat, mean(Y[T == 1]) - mean(Y[T == 0]))
+se_dim  <- se_diff_means(dat$Y, dat$T)
+
+theta_cuped <- with(dat, cov(Y, X_pre) / var(X_pre))
+Y_cuped     <- with(dat, Y - theta_cuped * (X_pre - mean(X_pre)))
+ate_cuped   <- mean(Y_cuped[dat$T == 1]) - mean(Y_cuped[dat$T == 0])
+se_cuped    <- se_diff_means(Y_cuped, dat$T)
+
+theta_cupac <- with(dat, cov(Y, mhat) / var(mhat))
+Y_cupac     <- with(dat, Y - theta_cupac * (mhat - mean(mhat)))
+ate_cupac   <- mean(Y_cupac[dat$T == 1]) - mean(Y_cupac[dat$T == 0])
+se_cupac    <- se_diff_means(Y_cupac, dat$T)
+
+res <- tibble(
+  method  = c("Diff-in-means", "CUPED (X_pre)", "CUPAC (mhat)"),
+  ate     = c(ate_dim, ate_cuped, ate_cupac),
+  se      = c(se_dim, se_cuped, se_cupac),
+  ci_low  = ate - 1.96 * se,
+  ci_high = ate + 1.96 * se
+)
+res
+```
+
+A compact summary translates the standard errors into variance ratios and effective sample multipliers relative to the difference in means.
+
+```{r cupac-effective-n}
+res2 <- res %>%
+  mutate(
+    var_ratio        = (se / se_dim)^2,
+    eff_n_multiplier = 1 / var_ratio
+  )
+res2
+```
+
+Variance reduction potential is best gauged in the control group, where the covariate-outcome relationship is untouched by treatment.
+
+```{r cupac-diagnostics}
+ctrl <- dat %>% filter(T == 0)
+
+cor_pre  <- cor(ctrl$Y, ctrl$X_pre)
+cor_mhat <- cor(ctrl$Y, ctrl$mhat)
+
+tibble(
+  covariate            = c("X_pre (CUPED)", "mhat (CUPAC)"),
+  cor_with_Y_control   = c(cor_pre, cor_mhat),
+  approx_var_reduction = c(cor_pre^2, cor_mhat^2)
+)
+```
+
+When the prediction correlates with the outcome more strongly than a noisy pre-period metric does, CUPAC outperforms CUPED even though CUPED relies on a real pre-period measurement. The regression form gives the same adjustment together with convenient inference.
+
+```{r cupac-regression}
+fit_ra <- lm(Y ~ T + I(mhat - mean(mhat)), data = dat)
+summary(fit_ra)$coef["T", ]
+```
+
+When the randomization unit is a cluster, such as users nested in stores, the standard errors should be clustered on that unit. The estimator is unchanged; only the inference adapts.
+
+#### Pitfalls
+
+Several failure modes recur in practice, and most leave a visible signature.
+
+**Leakage and in-experiment data.** A covariate, or a predictor's features, must be strictly pre-treatment. Using the first day of the experiment as the covariate, building features from logs that include post-randomization events, or encoding treatment exposure all bias the estimate. The telltale symptom is a suspiciously large variance reduction with a shifting point estimate. The simplest guardrail is a balance check on the adjustment variable: under correct randomization and correct feature construction, $\overline{\hat{m}}_1 - \overline{\hat{m}}_0$ should be near zero relative to sampling noise.
+
+```{r cupac-balance-check}
+T_vec <- dat$T
+mhat  <- dat$mhat
+
+d  <- mean(mhat[T_vec == 1]) - mean(mhat[T_vec == 0])
+n1 <- sum(T_vec == 1); n0 <- sum(T_vec == 0)
+s1 <- sd(mhat[T_vec == 1]); s0 <- sd(mhat[T_vec == 0])
+
+se     <- sqrt(s1^2 / n1 + s0^2 / n0)
+t_stat <- d / se
+p_val  <- 2 * stats::pt(abs(t_stat), df = n1 + n0 - 2, lower.tail = FALSE)
+smd    <- d / sqrt((s1^2 + s0^2) / 2)
+
+# Randomization-based permutation p-value, aligned with the design
+set.seed(1)
+B <- 100
+d_perm <- replicate(B, {
+  Tperm <- sample(T_vec)
+  mean(mhat[Tperm == 1]) - mean(mhat[Tperm == 0])
+})
+p_perm <- mean(abs(d_perm) >= abs(d))
+
+data.frame(
+  diff = d, se = se, t = t_stat, p = p_val,
+  smd = smd, p_perm = p_perm, n_treat = n1, n_ctrl = n0
+)
+```
+
+**Missing pre-period.** Many units have no pre-period metric. Sensible options are to impute a value, commonly zero or a group mean, alongside an indicator for missingness, and to include both in the regression. Restricting the analysis to units with pre-period data invites selection effects and is best avoided.
+
+```{r cupac-missing}
+set.seed(2024)
+dat_miss <- dat %>%
+  mutate(
+    X_obs    = ifelse(runif(n()) < 0.15, NA, X_pre),  # 15% missing
+    new_user = as.integer(is.na(X_obs)),
+    X_imp    = ifelse(is.na(X_obs), 0, X_obs)
+  )
+
+fit_miss <- lm(Y ~ T + I(X_imp - mean(X_imp)) + new_user, data = dat_miss)
+summary(fit_miss)$coef["T", ]
+```
+
+**Heavy tails.** Revenue-like metrics are heavy-tailed, and a few large units can dominate the variance. Ordinary least squares remains valid, but winsorizing at a high percentile, analyzing $\log(1 + Y)$ as a secondary metric, or using a count model for sensitivity are common mitigations, each of which should be chosen deliberately and documented. Heavy zero mass deserves particular care, and the log-transform literature is directly relevant here [@chen2024logs].
+
+**Ratio metrics.** Conversion rate and average order value are ratios, and adjusting the ratio directly is not generally optimal. Industry practice adjusts the numerator and denominator separately and recombines, or uses a generalized linear model with covariate adjustment, or applies delta-method variance estimates. If the primary metric is a ratio, prefer a regression or generalized linear model adjustment over transforming the ratio itself.
+
+**Overfitting and drift.** A predictor trained inside the experiment without sample-splitting will overfit and leak. Training on historical data with cross-fitting avoids this. Separately, if the relationship between features and the baseline outcome drifts because of seasonality, pricing changes, or macro shocks, the prediction loses correlation with the outcome. This costs precision rather than unbiasedness, as long as the prediction stays strictly pre-treatment.
+
+#### Power and sample size
+
+The power implication is the same for both methods. If the adjustment reduces variance by a factor $r = \mathrm{Var}(\hat{\tau}_{\text{adj}}) / \mathrm{Var}(\hat{\tau}_{\text{DIM}})$, then the sample size needed for a fixed power scales by approximately $r$. A ratio of $r = 0.64$ means roughly 36 percent less sample, or equivalently less calendar time, for the same detectable effect.
+
+```{r cupac-power}
+r_cuped <- (se_cuped / se_dim)^2
+r_cupac <- (se_cupac / se_dim)^2
+
+tibble(
+  method               = c("CUPED", "CUPAC"),
+  var_ratio_vs_dim     = c(r_cuped, r_cupac),
+  sample_reduction_pct = c(1 - r_cuped, 1 - r_cupac)
+)
+```
+
+For high-dimensional pre-treatment features, CUPAC is especially attractive because it compresses many covariates into a single strong predictor and adjusts with that, rather than burning degrees of freedom on a wide regression. The same prediction can serve as a baseline control when exploring heterogeneous effects, and the predict-then-adjust logic connects directly to the outcome-regression component of doubly robust estimators, which become more important once randomization is lost.
+
+------------------------------------------------------------------------
+
 ## Classical Experimental Designs
 
 Experimental designs provide structured frameworks for conducting experiments, ensuring that results are **statistically valid** and **practically applicable**. The choice of design depends on the research question, the nature of the treatment, and potential sources of variability. For a more in-depth statistical understanding of these designs, we will revisit them again in [Analysis of Variance](#sec-analysis-of-variance-anova).

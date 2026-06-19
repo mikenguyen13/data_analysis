@@ -1304,6 +1304,254 @@ When feasible, randomization is the cleanest remedy because it makes the omitted
 
 ------------------------------------------------------------------------
 
+## Instrument-Free Identification: Gaussian Copula Correction {#sec-copula-correction}
+
+Every remedy for an endogenous regressor surveyed so far, from [Instrumental Variables](#sec-instrumental-variables) to the [Control Function Approach](#sec-control-function-approach), rests on the same scarce resource: a valid instrument that shifts the endogenous regressor without touching the outcome except through that regressor. Credible instruments are hard to find and harder to defend, and a weak or invalid one can leave estimates more biased than OLS.
+
+A separate family of methods sidesteps the search for an instrument altogether. Instead of borrowing exogenous variation from outside the model, these *instrument-free* methods extract identifying information from the joint distribution of the observed variables. The three best known are the latent instrumental variable approach [@ebbes2005solving], the higher-moment and heteroskedasticity-based instruments of @lewbel2012using, and the Gaussian copula correction introduced to marketing by @park2012handling. The copula method has become the most widely applied of the three because it is simple to implement and extends naturally to nonlinear models. @qian2025practical provide the current practical guide, and this section follows their treatment, drawing the cautions from @becker2022revisiting and @eckert2023addressing and the recent refinements from @yang2025addressing.
+
+The trade is explicit. Instrument-free identification replaces an exclusion restriction, which is an economic argument about the data-generating process, with a distributional assumption, which is a statistical argument about functional form. Neither is testable in full, and the copula approach is no exception. It is best understood as a complement to a credible design and a robustness check, not as a substitute for thinking about identification [@papies2017addressing].
+
+### Setup and Intuition
+
+Consider the structural model with a single continuous endogenous regressor $P_i$ and a vector of exogenous controls $\mathbf{X}_i$:
+
+$$
+Y_i = \beta_0 + \beta_P P_i + \mathbf{X}_i' \boldsymbol{\gamma} + \varepsilon_i, \qquad \text{Cov}(P_i, \varepsilon_i) = \rho \, \sigma_P \sigma_\varepsilon \ne 0 .
+$$
+
+The endogeneity is summarized by the correlation $\rho$ between the regressor and the structural error. OLS attributes the part of $Y$ driven by $\varepsilon$ to $P$, so $\hat{\beta}_P^{OLS}$ is biased by an amount that does not vanish as $n$ grows.
+
+The copula approach makes two modeling commitments. First, the structural error is normal, $\varepsilon_i \sim N(0, \sigma_\varepsilon^2)$. Second, the endogenous regressor has a continuous but *non-normal* marginal distribution $F_P$. The dependence between $P_i$ and $\varepsilon_i$ is then modeled with a Gaussian copula, which couples the two marginals through a single correlation parameter $\rho$ while leaving each marginal unrestricted. The asymmetry between the two assumptions, a normal error but a non-normal regressor, is exactly what makes the model identifiable, as the next subsections show.
+
+### The Gaussian Copula Control Function
+
+Apply the probability integral transform to the regressor and map it onto the normal scale:
+
+$$
+P_i^* = \Phi^{-1}\!\big(F_P(P_i)\big),
+$$
+
+where $\Phi^{-1}$ is the standard normal quantile function. By construction $P_i^*$ is a standard normal variable that preserves the rank ordering of $P_i$. Under the Gaussian copula assumption, the pair $\big(P_i^*, \varepsilon_i / \sigma_\varepsilon\big)$ is bivariate standard normal with correlation $\rho$, so the conditional mean of the error given the regressor is linear in $P_i^*$:
+
+$$
+E[\varepsilon_i \mid P_i] = \rho \, \sigma_\varepsilon \, P_i^* .
+$$
+
+This is the key result. The endogenous part of the error is a known function of the regressor up to the scalar $\lambda \equiv \rho \sigma_\varepsilon$. Augmenting the regression with $P_i^*$ as a generated control variable purges it:
+
+$$
+Y_i = \beta_0 + \beta_P P_i + \mathbf{X}_i' \boldsymbol{\gamma} + \lambda \, P_i^* + \nu_i, \qquad E[\nu_i \mid P_i, \mathbf{X}_i] = 0 .
+$$
+
+OLS on this augmented equation is consistent for $\beta_P$. The control term $P_i^*$ plays the same role as the inverse Mills ratio in a [Heckman correction](#sec-heckman-type-control-function) or the first-stage residual in a [control function](#sec-control-function-approach): it absorbs the component of the disturbance that is correlated with the regressor. The difference is that no instrument is needed to construct it. In practice $F_P$ is unknown and is replaced by the rescaled empirical CDF, $\hat{F}_P(P_i) = \big(\text{rank}(P_i) - 0.5\big) / n$, which keeps the transformed values away from the $\pm\infty$ tails.
+
+### Why Non-Normality Is Required {#sec-copula-nonnormality}
+
+The non-normality of $P_i$ is not a technical nicety; it is the identifying assumption. Suppose the regressor were normal, $P_i \sim N(\mu_P, \sigma_P^2)$. Then $F_P(P_i) = \Phi\big((P_i - \mu_P)/\sigma_P\big)$, and the copula term collapses to a linear function of the regressor itself:
+
+$$
+P_i^* = \Phi^{-1}\!\big(F_P(P_i)\big) = \frac{P_i - \mu_P}{\sigma_P} .
+$$
+
+The generated control $P_i^*$ is then perfectly collinear with $P_i$, and the augmented regression cannot separate $\beta_P$ from $\lambda$. Identification fails completely. Away from normality the transform $\Phi^{-1}(F_P(\cdot))$ is nonlinear, $P_i^*$ carries information not contained in $P_i$, and the two coefficients become separately estimable. The strength of identification therefore grows with the departure of $P_i$ from normality, measured by skewness and excess kurtosis. This is the single most important diagnostic for the method, and it is why a researcher must inspect the regressor's distribution before trusting the correction.
+
+### Implementation in R
+
+The simulation below follows the canonical construction. A Gaussian copula couples the regressor and the error through a correlation $\rho$, and the regressor is then given a skewed (exponential) marginal so that OLS is biased and the copula correction has something to fix.
+
+```{r copula-dgp}
+library(tidyverse)
+library(boot)
+library(moments)
+
+set.seed(2026)
+n <- 2000
+
+# Gaussian copula: (a, e) are bivariate standard normal with correlation rho.
+# 'a' generates the regressor; 'e' generates the error. Their correlation is
+# the source of endogeneity.
+rho <- 0.6
+a <- rnorm(n)
+e <- rho * a + sqrt(1 - rho^2) * rnorm(n)
+
+# Endogenous regressor: skewed exponential marginal built from 'a' by the
+# inverse-CDF transform P = F_P^{-1}(Phi(a)).
+P <- qexp(pnorm(a), rate = 1)
+
+# Exogenous control, independent of the error
+x <- rnorm(n)
+
+# Structural error: normal, correlated with P through the copula
+sigma_eps <- 1.5
+eps <- sigma_eps * e
+
+beta0_true <- 0.5
+betaP_true <- 1.5
+gamma_true <- 0.8
+Y <- beta0_true + betaP_true * P + gamma_true * x + eps
+
+dat <- tibble(Y, P, x)
+
+# The identifying feature: the regressor is far from normal
+c(skewness = skewness(P), kurtosis = kurtosis(P))
+shapiro.test(sample(P, 1000))$p.value
+```
+
+A naive regression is biased upward, because the positive regressor-error correlation loads onto $\hat{\beta}_P$:
+
+```{r copula-ols}
+m_ols <- lm(Y ~ P + x, data = dat)
+coef(m_ols)["P"]
+```
+
+The copula correction adds the single generated term $P_i^*$ and recovers the truth. Because $P_i^*$ is estimated from the data, the conventional OLS standard errors understate uncertainty, so they are obtained by a nonparametric bootstrap that regenerates the term inside each resample.
+
+```{r copula-manual}
+# Gaussian copula control term: rank -> uniform -> normal quantile
+copula_term <- function(p) {
+    n <- length(p)
+    qnorm((rank(p) - 0.5) / n)
+}
+
+dat <- dat %>% mutate(Pstar = copula_term(P))
+m_cop <- lm(Y ~ P + x + Pstar, data = dat)
+coef(m_cop)["P"]
+
+# Bootstrap standard error, regenerating Pstar in each resample
+boot_betaP <- function(data, idx) {
+    d <- data[idx, ]
+    d$Pstar <- copula_term(d$P)
+    coef(lm(Y ~ P + x + Pstar, data = d))["P"]
+}
+
+set.seed(1)
+b <- boot(dat[, c("Y", "P", "x")], boot_betaP, R = 1000)
+c(estimate = b$t0, boot_se = sd(b$t))
+```
+
+The `REndo` package implements the same estimator (and its multi-regressor and joint-likelihood variants) directly. The pipe in the formula separates the full regressor list from the endogenous, continuous regressors:
+
+```{r copula-rendo}
+library(REndo)
+m_rendo <- copulaCorrection(
+    Y ~ P + x | continuous(P),
+    data = dat,
+    num.boots = 1000,
+    verbose = FALSE
+)
+summary(m_rendo)$coefficients
+```
+
+To see that the correction is not noise, the small Monte Carlo below contrasts the sampling distribution of the OLS and copula estimators across repeated samples. The copula estimator centers on the true value while OLS is systematically off (Figure \@ref(fig:copula-monte-carlo)).
+
+```{r copula-monte-carlo, fig.cap="Sampling distributions of the OLS and Gaussian copula estimators of the endogenous coefficient across 500 simulated samples. OLS is centered well above the true value (dashed line); the copula correction recenters the estimator on the truth."}
+sim_once <- function(n = 1000, rho = 0.6, sigma_eps = 1.5) {
+    a <- rnorm(n)
+    e <- rho * a + sqrt(1 - rho^2) * rnorm(n)
+    P <- qexp(pnorm(a), rate = 1)
+    x <- rnorm(n)
+    eps <- sigma_eps * e
+    Y <- 0.5 + 1.5 * P + 0.8 * x + eps
+    Pstar <- qnorm((rank(P) - 0.5) / n)
+    c(
+        OLS = coef(lm(Y ~ P + x))["P"],
+        Copula = coef(lm(Y ~ P + x + Pstar))["P"]
+    )
+}
+
+set.seed(123)
+mc <- map_dfr(1:500, ~ as_tibble_row(sim_once())) %>%
+    set_names(c("OLS", "Copula")) %>%
+    pivot_longer(everything(), names_to = "Estimator", values_to = "betaP")
+
+ggplot(mc, aes(x = betaP, fill = Estimator)) +
+    geom_density(alpha = 0.5) +
+    geom_vline(xintercept = 1.5, linetype = "dashed") +
+    labs(x = expression(hat(beta)[P]), y = "Density") +
+    causalverse::ama_theme()
+```
+
+### When the Endogenous Regressor Is Normal
+
+The failure mode from Section \@ref(sec-copula-nonnormality) is worth seeing in code, because in practice a near-normal regressor produces an unstable correction rather than an error message. Rebuilding the regressor as normal makes $P_i^*$ almost perfectly collinear with $P_i$:
+
+```{r copula-normal-fail}
+set.seed(7)
+a2 <- rnorm(n)
+e2 <- 0.6 * a2 + sqrt(1 - 0.6^2) * rnorm(n)
+Pn <- a2                         # normal marginal, no skew transform
+eps2 <- 1.5 * e2
+Yn <- 0.5 + 1.5 * Pn + 0.8 * x + eps2
+
+Pstar_n <- copula_term(Pn)
+cor(Pn, Pstar_n)                 # near 1: severe collinearity
+
+m_fail <- lm(Yn ~ Pn + x + Pstar_n)
+summary(m_fail)$coefficients["Pn", c("Estimate", "Std. Error")]
+```
+
+The point estimate is erratic and the standard error explodes. The lesson is that the copula correction quietly stops working precisely when the identifying assumption is weak, so the skewness and normality checks above are mandatory before reporting it, not optional.
+
+### Diagnostics and Assumptions
+
+Simulation evidence shows the estimator is reliable only inside a fairly narrow envelope [@becker2022revisiting; @eckert2023addressing]. Before applying it, work through the following checklist.
+
+1.  Confirm strong non-normality of the endogenous regressor. Inspect a histogram, report skewness and kurtosis, and run a formal test such as Shapiro-Wilk or Anderson-Darling. @becker2022revisiting find the correction unreliable unless the regressor departs clearly from normality; a regressor that merely fails a normality test in a large sample is not enough, the departure must be substantial.
+
+2.  Take the normal-error assumption seriously. @eckert2023addressing show that a non-normal structural error degrades the estimator, sometimes leaving it more biased than OLS. The error is unobserved, so this cannot be tested directly, but heavy skew or fat tails in the residuals of a benchmark model are a warning sign.
+
+3.  Use a large sample. The empirical CDF transform and the bootstrap both rely on sample size; the method is fragile in samples of a few hundred observations and is best reserved for the thousands.
+
+4.  Always bootstrap the standard errors. The copula term is a generated regressor, so analytic OLS standard errors are too small and overstate precision.
+
+5.  Be cautious with several endogenous regressors at once and with regressors that are themselves correlated. The original estimator assumes the exogenous controls are uncorrelated with the endogenous regressor, and it deteriorates when that fails, which motivates the refinement in the next subsection.
+
+### Extensions and Recent Advances
+
+The basic estimator has known weak spots, and a sequence of published refinements has addressed them.
+
+-   Correlated and non-continuous regressors. The original method can be badly biased when the endogenous regressor is correlated with the exogenous controls, or when it is discrete or close to normal. @yang2025addressing develop a two-stage copula generated regressor estimator, *2sCOPE*, that first partials the regressors out of one another and yields consistent estimates even with correlated, normally distributed, or discrete endogenous regressors. It is the natural upgrade when the diagnostics above raise concerns.
+
+-   Higher-order and nonlinear terms. When the model includes a square or interaction of the endogenous regressor, each non-redundant endogenous term needs its own copula control. @qian2025practical detail how to construct the copula control function in these cases and how to handle several endogenous regressors jointly.
+
+-   Nonlinear outcome models. Because the copula term enters as an additive control, the approach carries over to logit, probit, and count models in the same way the [control function](#sec-control-function-approach) does, where it is often preferable to [2SLS](#sec-two-stage-least-squares-estimation).
+
+### Recommendations
+
+The copula correction is genuinely useful when no instrument is available, but it is also easy to misuse. A defensible application looks like this.
+
+1.  Treat it as a complement, not a replacement. Where a plausible instrument or design exists, lead with it and use the copula estimate as a robustness check. Agreement across the two strategies is far more convincing than either alone.
+
+2.  Earn the assumption before you use it. Report the distribution of the endogenous regressor and a formal non-normality test, and decline the method when the regressor is close to normal rather than forcing a correction that Section \@ref(sec-copula-correction) shows will be unstable.
+
+3.  Report bootstrapped inference and a sensitivity analysis. Show the OLS estimate, the corrected estimate, and the bootstrap standard error side by side, and where feasible compare the basic estimator against 2sCOPE so readers can judge robustness to correlated regressors.
+
+4.  Prefer the modern variant in hard cases. With multiple, correlated, discrete, or weakly skewed endogenous regressors, use 2sCOPE [@yang2025addressing] rather than the original joint-likelihood estimator.
+
+5.  Be transparent about what identifies the estimate. The result is driven entirely by a functional-form assumption on the regressor and a normality assumption on the error. State this plainly, because a reader cannot assess the correction without it [@eckert2023addressing].
+
+Table \@ref(tab:copula-vs-iv) summarizes how the copula correction sits relative to instrument-based remedies.
+
++-------------------------+-------------------------------------------------+-------------------------------------------------+
+| Feature                 | Instrumental Variables / Control Function       | Gaussian Copula Correction                      |
++=========================+=================================================+=================================================+
+| Identifying assumption  | Valid instrument (relevant and excludable)      | Non-normal regressor and normal error           |
++-------------------------+-------------------------------------------------+-------------------------------------------------+
+| Extra data required     | At least one instrument                         | None beyond the model variables                 |
++-------------------------+-------------------------------------------------+-------------------------------------------------+
+| Main failure mode       | Weak or invalid instrument                      | Near-normal regressor; non-normal error         |
++-------------------------+-------------------------------------------------+-------------------------------------------------+
+| Testability             | Overidentification tests when instruments exceed | Regressor non-normality is checkable; the error |
+|                         | regressors                                      | assumption is not                               |
++-------------------------+-------------------------------------------------+-------------------------------------------------+
+| Inference               | Standard analytic or robust errors              | Bootstrap (generated regressor)                 |
++-------------------------+-------------------------------------------------+-------------------------------------------------+
+
+Table: (\#tab:copula-vs-iv) Instrument-based remedies versus the Gaussian copula correction for an endogenous regressor.
+
+------------------------------------------------------------------------
+
 ## Endogenous Sample Selection {#sec-endogenous-sample-selection}
 
 Endogenous sample selection arises in **observational** or **non-experimental** research whenever the inclusion of observations (or assignment to treatment) is **not random**, and the same unobservable factors influencing selection also affect the outcome of interest. This scenario leads to **biased and inconsistent** estimates of causal parameters (e.g., [Average Treatment Effect](#sec-notation-quasi-experimental)) if not properly addressed.

@@ -4,7 +4,85 @@ Hypothesis testing is one of the cornerstones of statistical inference, used wid
 
 However, as data collection has become easier and cheaper, especially in the age of big data, there is a growing awareness that *large sample sizes* (large $n$) can inflate the likelihood of finding statistically significant but practically negligible effects. Moreover, this can lead to "p-value hacking," where researchers run numerous tests or adopt flexible analytical approaches until they find a (sometimes minuscule) effect that achieves a conventional significance level (often $p < .05$).
 
+## Multiple Comparisons and the False Discovery Rate {#sec-multiple-comparisons}
 
+A single hypothesis test is calibrated so that, when the null is true, the chance of a false rejection equals the chosen significance level $\alpha$. The trouble begins once we test many hypotheses at once, which is the norm in modern empirical work: a regression with dozens of coefficients, a genomics study scanning thousands of genes, an A/B testing platform evaluating hundreds of metrics, or a heterogeneous-treatment-effect analysis cutting the data by many subgroups. Each test carries its own probability of a false positive, and these probabilities accumulate.
+
+The arithmetic is unforgiving. If we perform $m$ independent tests, each at level $\alpha = 0.05$, and every null is in fact true, the probability that at least one test rejects by chance is $1 - (1 - 0.05)^m$. For $m = 10$ this is already about $0.40$, and for $m = 100$ it is greater than $0.99$. In other words, run enough tests and you are essentially guaranteed to "discover" something that is not there. Reporting only the comparisons that crossed $p < 0.05$, without acknowledging how many were attempted, is one of the most common ways that an honest analysis nonetheless misleads. The remedy is to adjust the decision rule so that some error rate is controlled across the entire family of tests rather than one comparison at a time.
+
+Two broad targets for control have emerged, and the right choice depends on the cost of a false positive in the application at hand.
+
+### Family-Wise Error Rate Control
+
+The **family-wise error rate** (FWER) is the probability of making even one false rejection among all the tests in the family. Controlling the FWER at level $\alpha$ guarantees that the chance of any false discovery whatsoever is at most $\alpha$. This is the appropriate standard when a single false positive is costly or embarrassing, for example when a regulator must decide whether a drug has any genuine effect, or when one spurious finding would undermine the credibility of a confirmatory study.
+
+The simplest procedure is the **Bonferroni** correction: with $m$ tests, compare each p-value to $\alpha / m$ rather than $\alpha$. Equivalently, multiply each p-value by $m$ and compare to $\alpha$. A union bound shows this controls the FWER at $\alpha$ for any dependence structure among the tests. Its simplicity is also its weakness. Bonferroni is conservative, and when $m$ is large the per-test threshold becomes so small that genuine effects are routinely missed, sacrificing power.
+
+Holm's step-down procedure [@holm1979simple] dominates Bonferroni: it controls the FWER under the same assumption-free conditions but rejects at least as many hypotheses, often more. The procedure orders the p-values from smallest to largest, $p_{(1)} \le p_{(2)} \le \dots \le p_{(m)}$. It compares $p_{(1)}$ to $\alpha / m$, then $p_{(2)}$ to $\alpha / (m-1)$, and in general $p_{(i)}$ to $\alpha / (m - i + 1)$, stopping at the first index where the comparison fails and retaining all remaining hypotheses. Because the smallest p-value faces the same stringent threshold as Bonferroni but later ones face progressively looser thresholds, Holm is uniformly more powerful while giving up nothing in error control. There is rarely a reason to prefer plain Bonferroni over Holm.
+
+### False Discovery Rate Control
+
+Requiring that the probability of *any* false positive be small is often stricter than the science demands. In a screening study with thousands of tests, an analyst may be perfectly willing to tolerate a handful of false discoveries as long as they are a small fraction of the discoveries actually reported. This is the motivation for the **false discovery rate** (FDR), introduced by @benjamini1995controlling, defined as the expected proportion of false rejections among all rejections (taken to be zero when nothing is rejected). Controlling the FDR at level $q$ guarantees that, on average, no more than a fraction $q$ of the findings you announce are false. Because this is a weaker requirement than FWER control, FDR procedures reject more hypotheses and recover far more true effects, which is why they have become the default in genomics, neuroimaging, and large-scale experimentation.
+
+The foundational method is the **Benjamini-Hochberg** (BH) procedure [@benjamini1995controlling]. Order the p-values $p_{(1)} \le \dots \le p_{(m)}$, find the largest index $k$ for which $p_{(k)} \le \frac{k}{m} q$, and reject all hypotheses with p-values at or below $p_{(k)}$. The step-up threshold $\frac{k}{m} q$ is far more permissive than the Bonferroni or Holm thresholds, which is the source of BH's greater power. BH provably controls the FDR when the test statistics are independent, and also under the broader condition of positive regression dependence on the subset of true nulls (PRDS), a form of positive correlation that holds, for instance, among one-sided tests with positively correlated normal statistics.
+
+When the assumptions are too weak for BH and the dependence among tests is unknown or possibly negative, the **Benjamini-Yekutieli** (BY) procedure [@benjamini2001control] applies. It uses the same step-up logic but deflates the threshold by the factor $c(m) = \sum_{i=1}^{m} 1/i$, the $m$-th harmonic number, comparing $p_{(k)}$ to $\frac{k}{m \, c(m)} q$. This guarantees FDR control under *arbitrary* dependence, at the cost of being noticeably more conservative, since $c(m)$ grows like $\ln m$. BY is the safe choice when nothing can be assumed about the correlation structure and the consequences of exceeding the nominal FDR are serious.
+
+In the common situation where many of the null hypotheses are in fact false, BH leaves power on the table because it implicitly assumes that all $m$ nulls are true when it sets the threshold. Adaptive procedures first estimate the number of true nulls, $m_0$, and then apply the BH rule using $\widehat{m}_0$ in place of $m$, which loosens the threshold. The **Benjamini-Krieger-Yekutieli** (BKY) two-stage linear step-up procedure [@benjamini2006adaptive] does exactly this: a first BH pass estimates the proportion of true nulls from the number of rejections, and a second pass uses that estimate to gain power. BKY makes the same independence or PRDS assumptions as BH but is uniformly more powerful, so it is an attractive default whenever those assumptions are tenable and a non-trivial share of effects is expected to be real.
+
+These three FDR methods form an **assumption ladder**. BKY assumes independence or PRDS and adaptively estimates the fraction of true nulls, giving the most power; use it when those assumptions hold and you expect many genuine effects. BH assumes the same independence or PRDS conditions without the adaptive step, and is the well-understood standard that most readers and reviewers expect. BY makes no assumption about dependence at all and is therefore the most conservative; reserve it for settings where the correlation among tests is unknown or could be negative. Moving down the ladder buys robustness and pays for it in power.
+
+### q-Values
+
+A **q-value** attaches an FDR interpretation to each individual test, in the same way that a p-value attaches a per-test error rate. The q-value of a given finding is, loosely, the smallest FDR at which that finding would be declared a discovery, so it is the FDR analogue of the p-value [@storey2003positive]. Reporting q-values lets a reader choose their own tolerance for false discoveries after the fact rather than committing to a single threshold, and it is the standard output of FDR analysis in genomics software. Like any estimate, a q-value is itself subject to sampling variability and can understate the true FDR in finite samples, so it should be read as an estimate rather than a guarantee.
+
+### Choosing Between FWER and FDR
+
+The two frameworks answer different questions. FWER control bounds the probability of making any false discovery at all and is the right standard when even one false positive is unacceptable, as in confirmatory or regulatory settings. FDR control bounds the expected share of false discoveries among those reported and is the right standard for exploratory, high-throughput work where a few false leads are an acceptable price for detecting many real effects. In short, if you must guarantee essentially no false positives, control the FWER with Holm; if you can tolerate a controlled fraction of false positives in exchange for substantially more discoveries, control the FDR with BH, BKY, or BY according to what you are willing to assume.
+
+A related but distinct concern is selective reporting across the published literature, where the issue is not the number of tests within one study but the bias introduced when only significant results survive to publication. Corrections for that form of distortion, including selection models and meta-analytic adjustments, are treated separately in Section \@ref(sec-publication-bias-phacking).
+
+### Demonstration in R
+
+The function `p.adjust()` in base R implements all of these corrections except BKY, returning adjusted p-values that can be compared directly to the desired level. The simulation below generates $m = 1000$ tests, of which the first 100 correspond to genuine effects and the remaining 900 are true nulls, then applies the Bonferroni, Holm, BH, and BY adjustments and tabulates how many discoveries each method makes together with how many of those discoveries are false.
+
+```{r fdr-simulation}
+set.seed(2026)
+
+m       <- 1000   # total number of tests
+m_true  <- 100    # number of genuine effects (non-null)
+alpha   <- 0.05   # target level (FWER for Bonferroni/Holm, FDR for BH/BY)
+
+# Simulate one z-statistic per test. True nulls have mean 0; genuine
+# effects are shifted by mu so that they tend to produce small p-values.
+mu      <- 3
+is_null <- c(rep(FALSE, m_true), rep(TRUE, m - m_true))
+z       <- rnorm(m, mean = ifelse(is_null, 0, mu))
+
+# Two-sided p-values from the standard normal.
+p <- 2 * pnorm(-abs(z))
+
+methods <- c("bonferroni", "holm", "BH", "BY")
+
+results <- lapply(methods, function(meth) {
+  p_adj      <- p.adjust(p, method = meth)
+  discovered <- p_adj <= alpha
+  data.frame(
+    method      = meth,
+    discoveries = sum(discovered),
+    true_pos    = sum(discovered & !is_null),
+    false_pos   = sum(discovered &  is_null),
+    realized_fdr = ifelse(sum(discovered) > 0,
+                          sum(discovered & is_null) / sum(discovered),
+                          0)
+  )
+})
+
+summary_table <- do.call(rbind, results)
+summary_table
+```
+
+The pattern is the one the theory predicts. Bonferroni and Holm make the fewest discoveries and almost never admit a false positive, since they bound the probability of *any* false rejection; Holm finds at least as many true effects as Bonferroni. The BH procedure makes substantially more discoveries by allowing a controlled fraction of them to be false, with a realized false-discovery proportion that stays near the target $0.05$. BY is the most conservative of the FDR methods, recovering fewer true effects in exchange for validity under arbitrary dependence. The exact counts will shift with the seed and the effect size `mu`, but the ordering of the methods, and the trade-off between power and the strength of the error guarantee, is stable.
 
 > **This chapter is fully available in the published Springer volumes.**\
 > The online preview is limited per publisher guidelines.

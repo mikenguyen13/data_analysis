@@ -153,6 +153,60 @@ By balancing flexibility and robustness, local regression techniques are often p
 
 **Best Practice:** Use multiple model specifications to check for consistency in results.
 
+### Distinguishing Nonlinearity from a Discontinuity {#sec-rd-nonlinearity-vs-discontinuity}
+
+The central inferential risk in an RD design is mistaking a smooth nonlinear trend for a causal jump. A regression that imposes a linear fit on either side of the cutoff will report a discontinuity whenever the true relationship curves, even when nothing actually happens at the threshold. Figure \@ref(fig:rd-nonlinearity-vs-discontinuity) contrasts three cases. The first two show genuine discontinuities, one with a linear trend and one with a nonlinear trend, where a real jump separates the two sides. The third shows a single smooth cubic relationship with no jump at all, yet a naive linear fit on each side (the dashed segments) manufactures an apparent gap purely from the curvature.
+
+```{r rd-nonlinearity-vs-discontinuity, fig.cap="Three running-variable scenarios. Cases 1 and 2 are true discontinuities at the cutoff; case 3 is a smooth cubic trend with no jump, where a piecewise-linear fit (dashed) spuriously suggests one."}
+library(ggplot2)
+library(dplyr)
+
+set.seed(123)
+
+make_rd_case <- function(case_number) {
+    n <- 1000
+    x <- runif(n, -1, 1)
+    if (case_number == 1) {
+        y <- ifelse(x < 0, 2 * x + 3, 2 * x + 5) + rnorm(n, sd = 0.5)
+        label <- "Case 1: Linear trend, true jump"
+        fit <- "lm"
+    } else if (case_number == 2) {
+        y <- ifelse(x < 0, 2 * x^2 + 3, 2 * x^2 + 5) + rnorm(n, sd = 0.5)
+        label <- "Case 2: Nonlinear trend, true jump"
+        fit <- "loess"
+    } else {
+        y <- 2 * x^3 + rnorm(n, sd = 0.5)
+        label <- "Case 3: Smooth cubic, no jump"
+        fit <- "spurious"
+    }
+    tibble(x = x, y = y, case = label, fit = fit)
+}
+
+rd_cases <- bind_rows(lapply(1:3, make_rd_case))
+
+ggplot(rd_cases, aes(x, y)) +
+    geom_point(alpha = 0.3, size = 0.6) +
+    # honest fit on each side for the two true-jump cases
+    geom_smooth(
+        data = filter(rd_cases, fit != "spurious"),
+        aes(group = interaction(case, x >= 0), method = NULL),
+        method = "loess", se = FALSE, color = "#1b9e77", formula = y ~ x
+    ) +
+    # spurious piecewise-linear fit that fakes a jump from curvature
+    geom_smooth(
+        data = filter(rd_cases, fit == "spurious"),
+        aes(group = x >= 0),
+        method = "lm", se = FALSE, linetype = "dashed",
+        color = "#d95f02", formula = y ~ x
+    ) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
+    facet_wrap(~case, scales = "free_y") +
+    labs(x = "Running variable", y = "Outcome") +
+    causalverse::ama_theme()
+```
+
+Two habits guard against this mistake. The first is to model the nonlinearity directly, fitting a polynomial or local regression flexible enough to absorb the curvature, while recognizing that the chosen degree is a judgment call that should be subjected to sensitivity analysis [@gelman2019high]. The second is to narrow the window to observations near the cutoff, where any smooth function is approximately linear, so that a local linear fit is unlikely to confuse curvature with a jump. The two strategies reinforce each other: a result that survives both a flexible global fit and a tight local one is far more credible than one that depends on a particular functional form.
+
 ------------------------------------------------------------------------
 
 ## Formal Definition

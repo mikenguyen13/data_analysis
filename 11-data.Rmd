@@ -2023,6 +2023,111 @@ This would confirm that **teacher characteristics are uncorrelated with measurem
 
 ------------------------------------------------------------------------
 
+### Bridging Fixed and Random Effects: Mundlak's Device and the Hausman Test {#sec-mundlak-hausman}
+
+The [pooled OLS](#sec-pooled-ols-estimator), [random effects](#sec-random-effects-estimator), and [fixed effects](#sec-fixed-effects-estimator) estimators developed above can all be written as generalized least squares applied to the same underlying model. What truly separates them is not the arithmetic of demeaning or quasi-demeaning but a modeling decision about the unit-specific effect $c_i$. Historically, the fixed effects estimator entered economics with @mundlak1961empirical, while the random effects estimator was introduced by @balestra1966pooling in their study of the demand for natural gas. For decades the applied question was simply which of the two to adopt.
+
+#### Fixed or Random: A Modeling Choice, Not a Computational One
+
+The distinction turns on how we regard $c_i$. In the fixed effects view, $c_i$ is an unknown parameter attached to each unit, a fixed quantity we either estimate directly through individual dummies or sweep away through the within transformation. In the random effects view, $c_i$ is a random draw from a population distribution, an unobserved component of the error that we model rather than estimate unit by unit.
+
+This difference matters because of one assumption. Random effects requires that $c_i$ be uncorrelated with the regressors, $E(\mathbf{x}_{it}' c_i) = 0$. When that holds, random effects uses both within-individual and between-individual variation and is therefore more efficient. Fixed effects makes no such requirement. By differencing out $c_i$, it stays consistent even when the unit effect is correlated with the covariates, at the cost of discarding between-individual variation and any time-invariant regressor. The estimators are thus not competing computational recipes but two ends of a single specification, distinguished by what we are willing to assume about the correlation between $c_i$ and $\mathbf{x}_{it}$.
+
+#### Mundlak's Device
+
+@mundlak1978pooling dissolved the dichotomy by making that correlation an object of estimation rather than an untestable assumption. Rather than assuming $c_i$ is orthogonal to the regressors, he modeled the unit effect as a linear projection on the within-unit means of the covariates:
+
+$$
+c_i = \bar{\mathbf{x}}_i' \gamma + \nu_i
+$$
+
+where $\bar{\mathbf{x}}_i = \frac{1}{T} \sum_{t} \mathbf{x}_{it}$ collects the time averages for unit $i$ and $\nu_i$ is orthogonal to those means by construction. Substituting this into the individual-effects model gives the **Mundlak regression**:
+
+$$
+y_{it} = \alpha + \mathbf{x}_{it}' \beta + \bar{\mathbf{x}}_i' \gamma + \nu_i + u_{it}
+$$
+
+which is estimated by random effects with the group means $\bar{\mathbf{x}}_i$ added as regressors. The augmented specification has two instructive limiting cases.
+
+-   If $\gamma = 0$, the unit effect is uncorrelated with the regressors and we recover the standard random effects model.
+-   If $\gamma \neq 0$, the group means absorb exactly the part of $c_i$ that is correlated with $\mathbf{x}_{it}$, and the coefficient $\beta$ on the time-varying regressors equals the fixed effects (within) estimate.
+
+The second case is the key result. Random effects augmented with the group means reproduces the fixed effects estimator, so the two are endpoints of one specification rather than rival procedures. The coefficient $\gamma$ on the group means measures the discrepancy between the within and between sources of variation, which is precisely the quantity that a correlation between $c_i$ and the regressors would induce.
+
+#### The Hausman Test
+
+@hausman1978specification turned Mundlak's insight into a formal specification test by comparing the two estimators directly. Under the null that random effects is consistent and efficient (that is, $c_i$ is uncorrelated with the regressors), the random effects and fixed effects estimates of $\beta$ should differ only by sampling noise. Under the alternative, random effects is inconsistent while fixed effects remains consistent, so the two diverge systematically. The test statistic is
+
+$$
+H = (\hat{\beta}_{RE} - \hat{\beta}_{FE})' \left[ \operatorname{Var}(\hat{\beta}_{RE}) - \operatorname{Var}(\hat{\beta}_{FE}) \right]^{-1} (\hat{\beta}_{RE} - \hat{\beta}_{FE}) \sim \chi^2_k
+$$
+
+where $k$ is the number of time-varying regressors being compared. A large statistic, and correspondingly small p-value, leads us to reject random effects in favor of fixed effects. Because the null requires random effects to be efficient, the variance of the difference simplifies to the difference of the variances, which is what appears inside the inverse. Testing $\gamma = 0$ in the Mundlak regression is an algebraically equivalent route to the same conclusion, and it has the practical advantage of remaining well defined when the variance difference is not positive definite.
+
+A modern caveat is in order. The strict exogeneity that makes random effects efficient is hard to defend in most observational settings, since unit-specific traits such as ability, managerial quality, or institutional context are routinely correlated with the regressors. For that reason many applied researchers no longer treat the Hausman test as a gatekeeper. They default to fixed effects paired with [cluster-robust standard errors](#sec-demean-within-transformation), accepting the loss of efficiency in exchange for robustness, and reserve random effects for cases where between-individual variation is genuinely informative or where the effect of a time-invariant regressor is of interest. The enduring lesson of Mundlak's device is that the substantive issue is whether unobserved heterogeneity is correlated with the covariates, not the choice of label.
+
+The following table summarizes the contrast.
+
+| Feature | Fixed Effects | Random Effects |
+|------------------------|---------------------------|---------------------|
+| Treatment of $c_i$ | Fixed parameter per unit | Random draw from a distribution |
+| Allows $c_i$ correlated with $\mathbf{x}_{it}$ | Yes | No, unless augmented via Mundlak |
+| Efficient under exogeneity | No | Yes |
+| Estimation | Within (demeaning) | GLS |
+| Time-invariant regressors | Dropped | Identified |
+
+: Fixed effects and random effects as two ends of one specification
+
+#### A Short Demonstration
+
+The simulation below builds a small panel in which the unit effect $c_i$ is deliberately correlated with the regressor, so that random effects is inconsistent and fixed effects is not. We fit both estimators with `plm`, run the Hausman test with `plm::phtest`, and then fit the Mundlak regression by adding the group mean of the regressor to a random effects model. The Mundlak coefficient on the time-varying regressor recovers the within estimate, and the coefficient on the group mean is the discrepancy the Hausman test detects.
+
+```{r mundlak-simulate-panel}
+library(plm)
+
+set.seed(123)
+n_id <- 100 # number of units
+n_t  <- 6   # time periods per unit
+
+# unit effect correlated with the unit's average regressor level
+c_i   <- rnorm(n_id)
+x_bar <- 0.8 * c_i + rnorm(n_id) # between-unit regressor mean tied to c_i
+
+panel <- data.frame(
+  id   = rep(seq_len(n_id), each = n_t),
+  time = rep(seq_len(n_t), times = n_id)
+)
+panel$x <- x_bar[panel$id] + rnorm(n_id * n_t)        # within + between variation
+panel$y <- 1 + 2 * panel$x + c_i[panel$id] + rnorm(n_id * n_t)
+
+pdata <- pdata.frame(panel, index = c("id", "time"))
+```
+
+```{r mundlak-fit-fe-re}
+fe <- plm(y ~ x, data = pdata, model = "within")
+re <- plm(y ~ x, data = pdata, model = "random")
+
+coef(fe)["x"]            # within (fixed effects) slope
+coef(re)["x"]            # random effects slope (biased here)
+```
+
+```{r mundlak-hausman}
+plm::phtest(fe, re)      # rejects RE because c_i is correlated with x
+```
+
+```{r mundlak-regression}
+# add the within-unit mean of x, then estimate by random effects
+pdata$x_bar <- ave(pdata$x, pdata$id)
+mundlak <- plm(y ~ x + x_bar, data = pdata, model = "random")
+
+coef(mundlak)["x"]       # matches the fixed effects slope above
+coef(mundlak)["x_bar"]   # the FE-RE discrepancy Hausman detects
+```
+
+The slope on `x` in the Mundlak regression coincides with the fixed effects estimate, confirming that random effects augmented with the group means reproduces the within estimator. The slope on `x_bar` is nonzero precisely because $c_i$ was constructed to be correlated with the regressor, which is the same misspecification the Hausman test flags.
+
+------------------------------------------------------------------------
+
 ### Tests for Assumptions in Panel Data Analysis
 
 We typically don't test heteroskedasticity explicitly because robust covariance matrix estimation is used. However, other key assumptions should be tested before choosing the appropriate panel model.

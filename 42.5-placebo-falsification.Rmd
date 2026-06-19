@@ -79,3 +79,174 @@ A second pitfall is the power of the test. A placebo test that fails to reject t
 A third concern is the validity of the negative control itself. The entire argument depends on the control sharing the confounding structure of the primary analysis while having no causal link to the comparison variable. If the chosen control is in fact affected by the treatment through an unrecognized pathway, then a nonzero estimate is not evidence of confounding but of a real effect, and the test misleads. Conversely, if the control does not share the relevant confounders, a null result provides no reassurance about the main analysis, because there was never any bias for the control to detect. Choosing negative controls is therefore a substantive exercise in subject-matter reasoning rather than a mechanical one, and the credibility of the test rests on the credibility of those judgments.
 
 Finally, multiplicity deserves attention. Researchers often run many falsification checks, and with enough of them some will reject by chance even in a perfectly valid design. The remedy is to specify the falsification tests in advance, to interpret the full pattern of results rather than cherry-picking the comforting ones, and to treat a single isolated rejection among many tests differently from a coherent pattern of failures. Used in this disciplined way, placebo and negative-control tests are among the most credible tools available for stress-testing a causal claim, precisely because they make the design vulnerable to refutation.
+
+### Measurement-Error Diagnostics: Balance Tests vs. Coefficient Stability {#sec-pei-diagnostic}
+
+A recurring question in applied work is how to use an imperfectly measured confounder. Suppose theory identifies a variable that ought to absorb the bias in a comparison, but the available measure of it is noisy. Two diagnostic strategies present themselves. The first, coefficient stability, adds the proxy to the regression and asks whether the treatment coefficient moves, treating a stable coefficient as evidence that confounding is mild. This logic underlies the family of selection-on-observables bounds discussed earlier in connection with @oster2019unobservable. The second, a balance test, puts the proxy on the left-hand side and asks whether the treatment predicts it, treating a null association as evidence that the confounder is balanced across treatment status.
+
+@pei2019poorly show that when the confounder is poorly measured, these two strategies are not equally informative, and the balance test is usually the more powerful of the two. The intuition is a direct consequence of attenuation bias (Section \@ref(sec-proxy-variables)). A noisy proxy on the right-hand side is a weak control. Measurement error attenuates its ability to soak up the omitted variable, so the treatment coefficient can barely move even when confounding is severe, manufacturing a false impression of robustness. The same noisy proxy on the left-hand side suffers no such handicap as a detector. If the treatment is correlated with the latent confounder, and the proxy loads on that confounder, then the treatment will predict the proxy whether or not the proxy is measured precisely. Noise inflates the standard error of the balance coefficient, but it does not bias the test toward a null. A poorly measured confounder is therefore more useful on the left than on the right, which is the sense in which a balance test dominates a coefficient-stability check under measurement error.
+
+The following simulation makes the comparison concrete. A latent confounder $U$ drives both the treatment $A$ and the outcome $Y$, and the analyst observes only a noisy proxy $X = U + \eta$. The treatment has no true effect on the outcome, so any apparent effect is pure confounding. We compute two diagnostics across a range of measurement-error magnitudes: the coefficient-stability check, which asks whether adding $X$ shifts the treatment coefficient, and the balance test, which regresses $X$ on $A$. For each level of noise we record how often each diagnostic correctly fires at the five percent level, that is, its power to detect the confounding we know is present.
+
+```{r nc-pei-power, eval=FALSE}
+library(tidyverse)
+
+set.seed(1)
+
+# One draw: latent confounder U, noisy proxy X = U + eta, no true effect of A on Y.
+sim_once <- function(n = 2000, gamma = 1, pi = 1,
+                     sigma_eps = 1, sigma_nu = 1, sigma_eta = 1) {
+  U   <- rnorm(n)
+  A   <- pi * U + rnorm(n, sd = sigma_nu)
+  Y   <- gamma * U + rnorm(n, sd = sigma_eps)   # true effect of A on Y is zero
+  X   <- U + rnorm(n, sd = sigma_eta)           # proxy measured with error
+
+  # Coefficient-stability diagnostic: does adding X move A's coefficient?
+  tau_short <- coef(lm(Y ~ A))["A"]
+  tau_long  <- coef(lm(Y ~ A + X))["A"]
+  diff_obs  <- unname(tau_short - tau_long)
+
+  # Bootstrap reference distribution for the coefficient shift.
+  B <- 200
+  diffs <- replicate(B, {
+    idx <- sample.int(n, n, replace = TRUE)
+    ts  <- coef(lm(Y[idx] ~ A[idx]))[2]
+    tl  <- coef(lm(Y[idx] ~ A[idx] + X[idx]))[2]
+    unname(ts - tl)
+  })
+  p_diff <- mean(abs(diffs - mean(diffs)) >= abs(diff_obs - mean(diffs)))
+
+  # Balance diagnostic: does A predict the proxy X?
+  p_bal <- summary(lm(X ~ A))$coefficients["A", "Pr(>|t|)"]
+
+  tibble(p_diff = p_diff, p_bal = p_bal)
+}
+
+power_curve <- function(sigmas, reps = 200, alpha = 0.05) {
+  map_dfr(sigmas, function(s) {
+    res <- map_dfr(seq_len(reps), ~ sim_once(sigma_eta = s))
+    tibble(
+      sigma_eta            = s,
+      power_coef_stability = mean(res$p_diff < alpha),
+      power_balance_test   = mean(res$p_bal  < alpha)
+    )
+  })
+}
+
+sigmas <- seq(0.2, 5, length.out = 10)
+pow    <- power_curve(sigmas)
+
+pow_long <- pow |>
+  pivot_longer(cols = starts_with("power_"),
+               names_to = "Diagnostic", values_to = "power") |>
+  mutate(Diagnostic = recode(Diagnostic,
+                             power_coef_stability = "Coefficient stability",
+                             power_balance_test   = "Balance test"))
+
+ggplot(pow_long, aes(x = sigma_eta, y = power, linetype = Diagnostic)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Measurement-error SD in the proxy (sigma_eta)",
+       y = "Probability of detecting confounding",
+       linetype = "Diagnostic") +
+  causalverse::ama_theme()
+```
+
+As the proxy becomes noisier, the coefficient-stability diagnostic loses power quickly, because a noisy $X$ cannot absorb the confounding and the treatment coefficient stops moving. The balance test degrades far more gracefully, since it only requires that the treatment remain correlated with the latent confounder through the proxy, not that the proxy fully control for it. The practical lesson carries over directly to the falsification tests described above. When an analyst regresses predetermined covariates or lagged outcomes on a treatment or an instrument, that is a balance test, and by the logic of @pei2019poorly it is often a sharper probe of residual confounding than comparing estimates across alternating sets of imperfect controls.
+
+### From Detection to Correction: Linear Proximal Estimation {#sec-proximal-correction}
+
+The diagnostics above stop at detection. They tell us whether confounding is present, not how to remove it. Proximal causal inference takes the additional step of using negative controls to correct the bias rather than merely flag it, and the cross-references to the proxy-variable discussion in Section \@ref(sec-proxy-variables) supply the identification theory. The essential requirement is a pair of proxies for the unmeasured confounder $U$: a treatment-side proxy $Z$, associated with $U$ and with the treatment but excluded from the outcome except through $U$, and an outcome-side proxy $W$, associated with $U$ and with the outcome but unaffected by the treatment. Under completeness conditions on how these proxies relate to $U$, the causal effect is identified even though $U$ is never observed, a result due to @miao2018identifying and surveyed by @tchetgen2024proximal.
+
+In the linear-Gaussian special case the estimator has a transparent two-stage form that mirrors two-stage least squares. The first stage regresses the outcome-side proxy $W$ on the treatment, the treatment-side proxy $Z$, and the covariates, producing fitted values that purge $W$ of the variation correlated with the treatment-side proxy. The second stage regresses the outcome on the treatment, these fitted values, and the covariates. The coefficient on the treatment in the second stage is consistent for the causal effect. The following simulation shows the correction at work. The treatment loads heavily on a confounder that is omitted from any regression, so a naive estimate is badly biased, yet the two proxies recover the true effect of one.
+
+```{r nc-proximal-linear, eval=FALSE}
+library(sandwich)
+library(lmtest)
+
+set.seed(2)
+n <- 5000
+
+U <- rnorm(n)            # unmeasured confounder
+X <- rnorm(n)            # measured covariate
+
+A <- 0.8 * U + 0.3 * X + rnorm(n)             # treatment, confounded by U
+Y <- 1.0 * A + 1.2 * U + 0.2 * X + rnorm(n)   # true effect of A on Y is 1.0
+
+Z <- 1.0 * U + 0.2 * X + rnorm(n)   # treatment-inducing proxy (excluded from Y given U)
+W <- 1.0 * U + 0.2 * X + rnorm(n)   # outcome-inducing proxy (unaffected by A)
+
+dat <- data.frame(Y, A, X, Z, W)
+
+# Naive regression: U is omitted, so the estimate of A is biased upward.
+m_naive <- lm(Y ~ A + X, data = dat)
+
+# Linear proximal two-stage estimator.
+stage1    <- lm(W ~ A + Z + X, data = dat)
+dat$What  <- predict(stage1)
+stage2    <- lm(Y ~ A + What + X, data = dat)
+
+coeftest(m_naive, vcov = vcovHC(m_naive, type = "HC1"))["A", ]
+coeftest(stage2,  vcov = vcovHC(stage2,  type = "HC1"))["A", ]
+```
+
+The naive coefficient on the treatment sits well above the true value of one, because the treatment carries the confounder with it. The proximal estimate returns to the neighborhood of one, having used the proxy pair to net out the unmeasured confounding. The linear version shown here is the most accessible case, but it is not the most general. When the proxies and confounder are categorical rather than continuous, identification can proceed through matrix and rank conditions, and @shi2020multiply develop multiply robust estimators that remain consistent even if part of the model is misspecified, a property that is valuable when the proxy relationships are difficult to specify exactly. The broader nonparametric machinery, including the bridge-function formulation and its estimation, is developed in Section \@ref(sec-proxy-variables) and is best treated there. The point to carry forward is that the same negative controls that power the falsification tests in this chapter can, under stronger but explicit assumptions, be promoted from diagnostics into a constructive identification strategy.
+
+### Practical Workflow Templates {#sec-nc-workflow}
+
+The tests described throughout this chapter are easy to state and easy to run inconsistently. A small set of reusable templates helps enforce discipline. The templates below use the `fixest` package for fast fixed-effects estimation with clustered standard errors, and they assume a panel data frame with a unit identifier, a time variable, a treatment or instrument, several candidate outcomes, and an indicator marking units that the mechanism could plausibly reach. They are written as functions so that the same code runs every balance test, every subgroup reduced form, and the multiplicity adjustment that ties them together. The chunks are marked non-evaluating because they reference a dataset that is defined by the analyst rather than in the text.
+
+The first template runs a balance test for each candidate outcome, regressing it on the treatment or instrument while absorbing the panel fixed effects, and returns one tidy row per outcome. Predetermined covariates and lagged outcomes belong here, since under a valid design the treatment should not predict anything measured before it was assigned.
+
+```{r nc-balance-template, eval=FALSE}
+library(fixest)
+library(tidyverse)
+library(broom)
+
+# Panel data frame `panel_df` is assumed to contain:
+#   id, year, z_treat, several outcome columns, and an `eligible` indicator.
+
+run_balance_tests <- function(df, z, outcomes,
+                              fe = "id + year", cluster = "id") {
+  map_dfr(outcomes, function(y) {
+    fml <- as.formula(paste0(y, " ~ ", z, " | ", fe))
+    m   <- feols(fml, data = df, cluster = as.formula(paste0("~", cluster)))
+    tidy(m) |>
+      filter(term == z) |>
+      transmute(outcome = y, estimate, std.error, statistic, p.value)
+  })
+}
+
+# bal <- run_balance_tests(
+#   df = panel_df, z = "z_treat",
+#   outcomes = c("pre_cites_1", "pre_cites_2", "pre_cites_3", "pre_pubs")
+# )
+```
+
+The second template implements the negative-control-outcome test by subgroup. It estimates the reduced form separately among units the mechanism can reach and units it cannot, returning both so they can be compared. The estimate in the ineligible subgroup is the negative control, and it should be null if the exclusion and independence assumptions hold.
+
+```{r nc-subgroup-template, eval=FALSE}
+run_subgroup_rf <- function(df, z, y, subgroup_var = "eligible",
+                            fe = "id + year", cluster = "id") {
+  map_dfr(c(eligible = 1, ineligible = 0), function(g) {
+    dfg <- df |> filter(.data[[subgroup_var]] == g)
+    fml <- as.formula(paste0(y, " ~ ", z, " | ", fe))
+    m   <- feols(fml, data = dfg, cluster = as.formula(paste0("~", cluster)))
+    tidy(m) |> filter(term == z) |> mutate(group = g, outcome = y)
+  }, .id = "subgroup")
+}
+
+# rf_nc <- run_subgroup_rf(panel_df, "z_treat", "y_cites")
+```
+
+The third template addresses the multiplicity concern raised in the discussion of pitfalls. Running many falsification checks invites false rejections, so the p-values from the templates above should be collected and adjusted before they are interpreted. The function applies the Benjamini-Hochberg procedure to control the false discovery rate, and reporting both the raw and adjusted p-values lets readers see the effect of the correction.
+
+```{r nc-fdr-template, eval=FALSE}
+adjust_fdr <- function(tbl, p_col = "p.value") {
+  tbl |> mutate(p_fdr = p.adjust(.data[[p_col]], method = "BH"))
+}
+
+# bind_rows(bal, rf_nc) |> adjust_fdr()
+```
+
+Reporting the precision of each falsification estimate alongside its adjusted p-value, rather than its significance alone, keeps the interpretation honest. A tightly estimated null is reassuring, a wide interval around zero is not, and a coherent pattern of adjusted rejections is a far stronger signal of trouble than a single isolated one.
