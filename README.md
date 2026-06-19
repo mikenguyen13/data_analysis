@@ -97,24 +97,25 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 40. Instrumental Variables
 41. Matching Methods
 42. Machine Learning for Causal Inference
-43. Text as Data and NLP for Causal Inference
+43. Uplift Modeling and Heterogeneous Treatment Effects
+44. Text as Data and NLP for Causal Inference
 
 - *C. Other Concerns*
 
-44. Endogeneity
-45. Biases
-46. Directed Acyclic Graphs
-47. Controls
+45. Endogeneity
+46. Biases
+47. Directed Acyclic Graphs
+48. Controls
 
 **Part V. Miscellaneous**
 
-48. Reporting Your Analysis
-49. Exploratory Data Analysis
-50. Sensitivity Analysis and Robustness Checks
-51. Replication and Synthetic Data
-52. Differential Privacy
-53. High-Performance Computing
-54. Clustered and Robust Inference
+49. Reporting Your Analysis
+50. Exploratory Data Analysis
+51. Sensitivity Analysis and Robustness Checks
+52. Replication and Synthetic Data
+53. Differential Privacy
+54. High-Performance Computing
+55. Clustered and Robust Inference
 
 **Appendix**
 
