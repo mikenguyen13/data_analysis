@@ -54,68 +54,72 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 9. Nonlinear and Generalized Linear Mixed Models
 10. Nonparametric Regression
 11. Quantile Regression and Distributional Methods
-12. Frontier and Efficiency Analysis
-13. Structural Econometrics and Demand Estimation
 
 **Part III. Ramifications**
 
-14. Data
-15. Time Series Analysis
-16. Variable Transformation
-17. Imputation (Missing Data)
-18. Model Specification Tests
-19. Variable Selection
-20. Hypothesis Testing
-21. Marginal Effects
-22. Moderation
-23. Mediation
-24. Prediction and Estimation
+12. Data
+13. Time Series Analysis
+14. Variable Transformation
+15. Imputation (Missing Data)
+16. Model Specification Tests
+17. Variable Selection
+18. Hypothesis Testing
+19. Marginal Effects
+20. Moderation
+21. Mediation
+22. Prediction and Estimation
 
 **Part IV. Causal Inference**
 
-25. Causal Inference
+23. Causal Inference
 
 - *A. Experimental Design*
 
-26. Experimental Design
-27. Interference and Spillover Effects
-28. Sampling
-29. Survey and Response Quality
-30. Analysis of Variance
-31. Multivariate Methods
+24. Experimental Design
+25. Interference and Spillover Effects
+26. Sampling
+27. Survey and Response Quality
+28. Analysis of Variance
+29. Multivariate Methods
 
 - *B. Quasi-Experimental Design*
 
-32. Quasi-Experimental Methods
-33. Regression Discontinuity
-34. Temporal Discontinuity Designs
-35. Synthetic Difference-in-Differences
-36. Difference-in-Differences
-37. Changes-in-Changes
-38. Synthetic Control
-39. Event Studies
-40. Instrumental Variables
-41. Matching Methods
-42. Machine Learning for Causal Inference
-43. Uplift Modeling and Heterogeneous Treatment Effects
-44. Text as Data and NLP for Causal Inference
+30. Quasi-Experimental Methods
+31. Regression Discontinuity
+32. Temporal Discontinuity Designs
+33. Synthetic Difference-in-Differences
+34. Difference-in-Differences
+35. Changes-in-Changes
+36. Synthetic Control
+37. Event Studies
+38. Instrumental Variables
+39. Matching Methods
+40. Machine Learning for Causal Inference
+41. Uplift Modeling and Heterogeneous Treatment Effects
+42. Text as Data and NLP for Causal Inference
 
 - *C. Other Concerns*
 
-45. Endogeneity
-46. Biases
-47. Directed Acyclic Graphs
-48. Controls
+43. Endogeneity
+44. Biases
+45. Directed Acyclic Graphs
+46. Controls
 
 **Part V. Miscellaneous**
 
-49. Reporting Your Analysis
-50. Exploratory Data Analysis
-51. Sensitivity Analysis and Robustness Checks
-52. Replication and Synthetic Data
-53. Differential Privacy
-54. High-Performance Computing
-55. Clustered and Robust Inference
+47. Reporting Your Analysis
+48. Exploratory Data Analysis
+49. Sensitivity Analysis and Robustness Checks
+50. Replication and Synthetic Data
+51. Differential Privacy
+52. High-Performance Computing
+53. Clustered and Robust Inference
+54. Estimation Methods for Structural Models
+55. Structural Econometrics and Demand Estimation
+56. Dynamic Discrete Choice
+57. Dynamic Games
+58. Structural Models of Selection and Unobserved Heterogeneity
+59. Frontier and Efficiency Analysis
 
 **Appendix**
 
