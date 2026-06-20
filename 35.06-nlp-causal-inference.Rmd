@@ -4,6 +4,8 @@ Much of the information that social scientists, economists, and business analyst
 
 This chapter treats text as data in the sense of @gentzkow2019text, whose review in the Journal of Economic Literature frames the core problem clearly. A corpus of documents is extraordinarily high dimensional, the number of possible word sequences vastly exceeds the number of documents, so any useful analysis must impose structure that reduces dimensionality while retaining the signal relevant to the question at hand. The methods differ, but they share a common shape. We map raw documents into a numerical representation, we use that representation to recover a lower dimensional quantity of interest such as sentiment, topic, ideology, or a predicted label, and then we feed that quantity into a downstream statistical model. When the downstream model is causal, the fact that our key variable was estimated from text rather than observed directly creates problems that do not arise when we use a clean administrative measure. Most of this chapter is about those problems and how to manage them.
 
+The supervised side of this enterprise, where text is mapped to a known label, and the unsupervised side, where structure is discovered without labels, are surveyed in the foundational treatment of @grimmer2013text, whose central admonition is that automated content methods amplify rather than replace careful human reading and that every such method must be validated rather than trusted. Their warning that no method should be applied without validation runs through everything below. The newer causal turn in this literature is organized most clearly by @egami2022make, who lay out a framework for what they call making texts count, the deliberate translation of a corpus into the specific quantity a causal estimand requires. Their framing supplies the spine of this chapter. Two ideas in particular recur. The first is that the analyst must commit to a **codebook**, an explicit definition of the latent quantity the text is meant to measure, before estimating any effect, because a quantity defined after seeing the results is not identified in any useful sense. The second is that the discovery of a text based variable and the estimation of its effect must be separated by a train and test split, so that the flexibility used to read meaning out of language cannot be turned, knowingly or not, into the flexibility to manufacture a finding.
+
 ## Why Text Matters for Measurement
 
 The first reason to take text seriously is coverage. Many constructs of genuine economic and political importance have no off the shelf numeric counterpart. The tone of a Federal Reserve statement, the partisanship of a speech, the novelty of a patent, the affect in a customer email, or the presence of a particular policy commitment in a contract are all things we can articulate and recognize but cannot download as a column. Text lets us construct these measures at scale and at low marginal cost, which is precisely the comparative advantage @gentzkow2019text emphasize.
@@ -56,7 +58,11 @@ It is useful to organize the field by the role text plays in the causal diagram 
 
 In the first role the text is the cause. A randomized message, an email tone, a framing of a policy, or the readability of a disclosure is varied, and we want its effect on a behavioral outcome. The conceptual difficulty here is that a document is not a scalar. When we say we estimated the effect of a more negative tone, we have implicitly defined a treatment by projecting the document onto one dimension, and many other features of the text moved along with tone. The estimand is the effect of a latent treatment that we have inferred, and unless the text generating process was controlled, that latent feature may be entangled with others.
 
-The cleanest version of this problem arises when researchers manipulate text and then must define the treatment that was actually delivered. @fong2016discovery formalize a setting in which the treatment is an unknown function of the text and develop a procedure that discovers treatments and estimates their effects while guarding against the temptation to define the treatment using the same data that estimate its effect. Their central methodological point generalizes well beyond their specific model. If you let the outcome data influence which textual feature you call the treatment, you will find effects whether or not any exist, so the discovery of the treatment and the estimation of its effect must be separated.
+The cleanest version of this problem arises when researchers manipulate text and then must define the treatment that was actually delivered. @fong2016discovery formalize a setting in which the treatment is an unknown function of the text and develop a procedure that discovers treatments and estimates their effects while guarding against the temptation to define the treatment using the same data that estimate its effect. Their central methodological point generalizes well beyond their specific model. If you let the outcome data influence which textual feature you call the treatment, you will find effects whether or not any exist, so the discovery of the treatment and the estimation of its effect must be separated. @egami2022make sharpen this into a concrete recipe. A discovery split of the corpus is used to read latent treatments out of the text and to fix a codebook that names them; the codebook is then frozen, the latent treatments are measured on a separate split, and only those held-out measurements enter the effect estimate. The split is what licenses the analyst to use unconstrained, data-driven reading on the discovery half without contaminating inference on the other.
+
+A second strategy treats a document as a bundle of separable features and asks for the effect of each, in the spirit of the conjoint designs used to decompose multidimensional treatments. If the text-generating process can be controlled, for instance by composing messages from independently randomized components such as tone, length, source cue, and policy content, then the effect of each component is identified by its own randomization and the entanglement problem dissolves. The harder observational case, where the components are merely measured rather than assigned, returns the analyst to the confounding concerns that occupy the rest of this chapter, because the textual features now covary with one another and with unobserved writer characteristics.
+
+The newest practice uses large language models as the instrument that reads latent treatments out of the text, classifying each document for tone, frame, or rhetorical strategy at a scale that hand coding cannot reach. This is powerful and changes nothing about the underlying logic. An LLM label is an estimate of a latent treatment, so the discovery-then-measurement split, the frozen codebook, and the validation against human labels remain mandatory; the model is a faster coder, not a license to skip the design. Two validity concerns deserve separate billing here. **Internal validity** asks whether the estimated effect is the effect of the feature the codebook names rather than of some correlate that moved with it, which is the entanglement problem restated. **External validity** asks whether an effect estimated on one corpus, one population of writers, and one model's reading of the text transports to another, and text based treatments are unusually fragile on this axis because the meaning of a linguistic feature is bound to the linguistic and cultural context in which it was produced.
 
 ### Text as Outcome
 
@@ -70,6 +76,12 @@ In the third role text is neither cause nor effect but a record of confounding. 
 
 The core tension is one of dimensionality and overlap. The text representation that is rich enough to capture a subtle confounder is typically so high dimensional that no two units share it, which destroys the overlap that adjustment requires. The representation that is coarse enough to permit overlap, a handful of topics, may not contain the confounder at all. Methods in this area, including those built on supervised dimension reduction and on double machine learning ideas in the spirit of @chernozhukov2018double, try to learn a representation that retains exactly the part of the text relevant to both treatment and outcome, but the validity of the resulting adjustment depends on assumptions about what the text captures that data alone cannot test.
 
+Two families of representation are used as confounder proxies. The first uses **topic models**, the latent Dirichlet allocation of @blei2003latent or the structural topic model of @roberts2014structural, and treats the estimated topic shares as a low dimensional summary of the document to condition on. @roberts2020adjusting build matching directly on this idea, projecting documents into a topic space and matching treated to control units that are close in that space, which restores overlap by construction while retaining the textual information the topics encode. Their text matching estimator is the canonical worked instance of using text to close a backdoor path, and it makes the central assumption visible: adjustment is valid only if the topics span the confounding, a substantive claim about the corpus that no amount of data can verify on its own. The second family uses **text embeddings**, the dense vectors of @pennington2014glove or their contextual successors, as the proxy. @veitch2020adapting show how to adapt such embeddings for causal adjustment, fine-tuning the representation so that it predicts both treatment and outcome and thereby retains the part of the text that lies on the backdoor path while discarding the rest.
+
+This last point exposes a subtle failure mode that is easy to create and hard to detect. A representation learned to be predictive can **leak the treatment**, encoding so much treatment-relevant information that conditioning on it induces the kind of overadjustment that destroys overlap or, worse, blocks a path that should remain open. The goal is a representation that is causally sufficient, one that captures the confounding part of the text and only that part. @veitch2020adapting frame this explicitly as the search for a sufficient adjustment, a representation rich enough to deconfound yet disciplined enough not to absorb the treatment itself, and they show that naively maximizing predictive accuracy does not deliver it. The lesson is that the representation is not a neutral preprocessing step but a modeling choice with its own identifying assumptions.
+
+Once a low dimensional, causally sufficient representation of the text is in hand, the downstream estimation problem is the standard one of adjusting for a high dimensional set of controls, and the tools of the machine learning for causal inference chapter (Chapter \@ref(sec-ml-causal)) apply directly. **Double or debiased machine learning** in the sense of @chernozhukov2018double is the natural estimator here. The text representation enters as the covariate vector, flexible learners estimate the outcome regression and the treatment propensity as nuisance functions, Neyman orthogonality makes the treatment effect estimate first-order insensitive to errors in those nuisances, and cross-fitting prevents the overfitting that the high dimensionality of text would otherwise inject. The cross-fitting of double machine learning and the train and test split of @egami2022make are the same discipline applied at two stages, learning the representation on one fold and estimating the effect on another, and together they are what make text-adjusted estimates trustworthy rather than merely flexible.
+
 ## Estimands and Identification When Variables Come From Text
 
 The unifying lesson across all three roles is that a variable estimated from text is not the same as a variable observed directly, and treating it as if it were observed is the source of most errors in this literature. Three issues deserve explicit attention.
@@ -82,6 +94,115 @@ The third is the danger of in-sample fitting. A model that is trained and then a
 
 Closely tied to sample splitting is the case for held-out human measurement. Because every automated text measure is an estimate, its quality has to be established against a gold standard that humans produce on documents the model never saw. Hand coding a validation sample, comparing the model's labels to the human labels, and reporting that agreement is not optional polish, it is the only evidence that the construct being measured is the construct claimed. Some recent methods go further and use a small validated sample to correct the bias that an imperfect classifier introduces into the downstream estimate, which makes explicit that the validation data are doing inferential work, not just reassuring the reader.
 
+## A Worked Example of Text-Based Confounding Adjustment
+
+The clearest way to see why a text representation can rescue a causal estimate is to build a small data generating process in which a confounder is recorded only in the words of each document. The simulation below creates a set of documents whose term frequencies depend on a binary latent confounder. That same confounder drives both the probability of treatment and the level of the outcome, so a naive comparison of treated and control outcomes is biased. The confounder itself is never placed in a clean column. It survives only in the bag-of-words counts, exactly the situation in which text-based adjustment is supposed to help.
+
+We keep the example deliberately compact so that it runs in a base R session augmented only with packages confirmed to be available in the project library. The document term matrix is constructed by direct simulation rather than by tokenizing real text, which lets the example focus on the inferential point without depending on any natural language processing package.
+
+```{r nlpci-sim-confounding, message=FALSE, warning=FALSE}
+set.seed(2026)
+
+n <- 2000 # documents
+V <- 40   # vocabulary size
+
+# Latent confounder recorded only in the text (e.g., a firm's risk posture).
+U <- rbinom(n, 1, 0.5)
+
+# Two clusters of words. The first ten terms are far more likely when U = 1,
+# so the bag of words carries information about the otherwise unobserved U.
+base_rate <- 0.05
+lift <- 0.12
+word_prob <- matrix(base_rate, nrow = n, ncol = V)
+word_prob[, 1:10] <- base_rate + lift * U # confounder-laden terms
+
+# Document term matrix: presence/absence of each term in each document.
+X <- matrix(rbinom(n * V, size = 1, prob = word_prob), nrow = n, ncol = V)
+colnames(X) <- paste0("term", seq_len(V))
+
+# Treatment depends on the latent confounder, not on the words directly.
+p_treat <- plogis(-0.5 + 1.6 * U)
+D <- rbinom(n, 1, p_treat)
+
+# Outcome: true treatment effect is exactly 1; U adds a confounding shift of 2.
+tau <- 1
+Y <- 0.5 + tau * D + 2 * U + rnorm(n, sd = 1)
+
+dat <- data.frame(Y = Y, D = D, X)
+```
+
+A naive estimate regresses the outcome on treatment alone, ignoring the text. Because treated documents are disproportionately drawn from the high confounder group, this estimate inherits the confounding shift and overstates the effect. We contrast it with an oracle estimate that adjusts for the true confounder, which no analyst would have, and then with the feasible text-adjusted estimate that conditions on the bag-of-words representation in place of the unobserved confounder.
+
+```{r nlpci-estimators, message=FALSE, warning=FALSE}
+# 1. Naive: outcome on treatment only.
+fit_naive <- lm(Y ~ D, data = dat)
+
+# 2. Oracle: adjust for the true (normally unobserved) confounder.
+fit_oracle <- lm(Y ~ D + U)
+
+# 3. Text-adjusted: condition on the bag-of-words representation.
+term_names <- grep("^term", names(dat), value = TRUE)
+form_text <- as.formula(paste("Y ~ D +", paste(term_names, collapse = " + ")))
+fit_text <- lm(form_text, data = dat)
+
+get_est <- function(fit) {
+  ct <- summary(fit)$coefficients
+  c(estimate = unname(ct["D", "Estimate"]),
+    std_error = unname(ct["D", "Std. Error"]))
+}
+
+results <- rbind(
+  Naive = get_est(fit_naive),
+  `Text-adjusted` = get_est(fit_text),
+  Oracle = get_est(fit_oracle)
+)
+results <- data.frame(
+  Estimator = rownames(results),
+  Estimate = round(results[, "estimate"], 3),
+  `Std. Error` = round(results[, "std_error"], 3),
+  Bias = round(results[, "estimate"] - tau, 3),
+  check.names = FALSE,
+  row.names = NULL
+)
+```
+
+The table collects the three estimates against the known truth of one. The naive estimate is badly biased upward because the words that signal the confounder are also the words that predict treatment, and ignoring them leaves the backdoor path open. Conditioning on the bag-of-words representation recovers an estimate close to the truth, because the confounder-laden terms proxy for the confounder well enough to close that path. The oracle confirms the target the text-adjusted estimator is approaching.
+
+```{r nlpci-results-table, echo=FALSE}
+knitr::kable(
+  results,
+  caption = "Naive, text-adjusted, and oracle estimates of a treatment effect whose true value is one. The confounder is recorded only in the document term matrix.",
+  align = c("l", "r", "r", "r")
+)
+```
+
+A figure makes the bias visible at a glance. The plot shows each estimate with a ninety-five percent interval against the dashed line marking the true effect, so the distance of the naive point from that line is the confounding bias and the near-coincidence of the text-adjusted and oracle points with the line is the adjustment doing its work.
+
+```{r nlpci-bias-figure, fig.cap="Estimated treatment effects with ninety-five percent confidence intervals. The dashed line is the true effect of one. The naive estimate is biased upward; adjusting for the bag-of-words representation removes most of the bias.", message=FALSE, warning=FALSE}
+library(ggplot2)
+
+plot_df <- results
+plot_df$Estimator <- factor(
+  plot_df$Estimator,
+  levels = c("Naive", "Text-adjusted", "Oracle")
+)
+plot_df$lower <- plot_df$Estimate - 1.96 * plot_df$`Std. Error`
+plot_df$upper <- plot_df$Estimate + 1.96 * plot_df$`Std. Error`
+
+ggplot(plot_df, aes(x = Estimator, y = Estimate)) +
+  geom_hline(yintercept = tau, linetype = "dashed") +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.15) +
+  labs(
+    x = NULL,
+    y = "Estimated treatment effect",
+    title = "Text adjustment removes confounding bias"
+  ) +
+  causalverse::ama_theme()
+```
+
+The example also illustrates the limits of the procedure, which is why it is a demonstration rather than a template. The confounder here is recoverable because it is encoded redundantly across ten terms in a forty word vocabulary, giving the adjustment ample overlap. Real corpora rarely cooperate so neatly. As the representation grows toward the dimensionality needed to capture a subtle confounder, the overlap that makes the linear adjustment work begins to fail, and the analyst is pushed toward the topic-space matching of @roberts2020adjusting, the sufficient embedding of @veitch2020adapting, or the cross-fitting machinery of @chernozhukov2018double precisely to manage that failure. The simulation shows the mechanism in its most favorable case; the cited methods exist because the favorable case is uncommon.
+
 ## Practical Workflow and Pitfalls
 
 A defensible text-as-data causal study tends to follow the same sequence regardless of the specific representation. Begin by writing down the causal diagram and locating the text in it, deciding before touching the data whether the text is the treatment, the outcome, or a control, because that decision determines the estimand and the assumptions. Construct the document term representation next, making the preprocessing choices explicit and, where possible, fixed in advance so they cannot be tuned to the result. Split the corpus, reserving documents for training the measurement model, for validating it against human coding, and for the final causal estimation, so that no document ever serves two roles. Estimate or apply the measurement model on the appropriate split, carry the resulting low dimensional measure into the causal model, and propagate the measurement uncertainty into the final standard errors rather than treating the estimated variable as if it were observed without error.
@@ -89,3 +210,35 @@ A defensible text-as-data causal study tends to follow the same sequence regardl
 Several pitfalls recur often enough to name. The first is treating a predicted label as ground truth, which understates uncertainty and can bias point estimates when the prediction error correlates with the outcome. The second is letting the topic model or classifier see the full corpus, including the outcome relevant documents, before the causal step, which reintroduces the overfitting that splitting was meant to remove. The third is overinterpreting unsupervised topics, reading a substantive story into clusters that the algorithm produced to fit word co-occurrence and that may not be stable across reasonable specifications, a point that the structural topic model documentation of @roberts2014structural is careful to raise. The fourth is the overlap failure described above, where a representation rich enough to capture a confounder is too high dimensional for any comparison to be made. The fifth is the portability problem with embeddings, where vectors trained on one corpus encode associations specific to that corpus and import them silently into a new application.
 
 None of these pitfalls argues against using text. They argue for the same humility that good measurement always demands. Text gives us access to quantities that were previously unmeasurable, and @gentzkow2019text are right that this expands the reach of empirical economics and social science considerably. The price is that the variable we analyze is the output of a model, and a credible causal claim built on text has to treat that output as an estimate, validate it against something external, and design the study so that the act of measuring the variable cannot manufacture the effect we then claim to have found.
+
+## Modern Practice with Embeddings and Large Language Models
+
+The practical landscape has shifted quickly. Where a decade ago an analyst would hand code a few hundred documents or fit a topic model, the default first move is now to hand the corpus to a pretrained embedding model or a large language model and ask it to produce a measure, a sentiment score, a frame label, a topic, or a judgment of whether a document contains some construct of interest. These tools are genuine advances. They read context, they generalize across phrasings that a bag of words would treat as unrelated, and they make measures feasible at scales that were previously out of reach. None of that changes the inferential status of what they produce, which remains an estimate of a latent quantity and not the quantity itself.
+
+The discipline that makes such measures usable in a causal argument is validation against human labels, and the framework of @egami2022make makes the requirement precise rather than aspirational. A model derived label is admissible as a treatment, outcome, or confounder proxy only to the extent that its agreement with careful human coding has been measured on documents the model did not help define. The validation sample is not decorative. When the classifier is imperfect, and it always is, the validated subsample is what lets the analyst correct the bias that the measurement error would otherwise inject into the effect estimate, which is why @egami2022make treat the human-coded data as doing inferential work rather than merely reassuring the reader. A large language model that labels a million documents still needs a few hundred of those documents read by a human, and the reported agreement on that holdout is the evidence that the construct measured is the construct claimed.
+
+Two cautions are specific to the large language model era and have no clean analogue in the topic-model workflow. The first is **prompt stability**. A measure produced by prompting a model is a function of the exact wording of the prompt, and small, semantically innocuous changes to that wording can move the labels enough to move the downstream estimate. A defensible study fixes the prompt in advance, reports it verbatim, and ideally checks that the conclusions survive reasonable paraphrases of it, treating the prompt as a preprocessing choice that must be pinned down before the data are analyzed rather than tuned afterward. The second is **reproducibility**. Commercial models are updated and occasionally retired, their outputs can be nondeterministic even at fixed settings, and a measure produced today may not be reproducible next year. The mitigations are mundane and essential, recording the model version and decoding parameters, fixing seeds and temperature where the interface allows, archiving the raw model outputs alongside the derived measures, and where feasible preferring an open model whose weights can be retained so that the measurement step can be rerun. Because any call to such a model depends on an external service and on packages outside the project library, the code that would implement it is shown for reference only and is not run as part of this book.
+
+```{r nlpci-llm-measure, eval=FALSE}
+# Illustrative only. Requires an API client and network access, so this chunk
+# is not evaluated. The pattern: fix a prompt, label documents, then validate
+# the labels against a human-coded holdout before using them downstream.
+
+label_with_llm <- function(text, prompt_template, model = "a-fixed-model-version") {
+  # Pseudocode: send prompt_template + text to the model and parse a 0/1 label.
+  # In a real study: pin the model version, set temperature = 0, set a seed,
+  # and archive the raw responses so the step can be reproduced.
+  stop("Provide a real client; this is a template, not a runnable call.")
+}
+
+# A human-coded validation sample drives the bias correction. The reported
+# agreement between machine and human labels is the evidence that the measure
+# is trustworthy enough to carry into the causal model.
+# human_labels  <- read_validation_sample()
+# machine_labels <- vapply(validation_docs, label_with_llm,
+#                          FUN.VALUE = numeric(1),
+#                          prompt_template = my_prompt)
+# agreement <- mean(human_labels == machine_labels)
+```
+
+The throughline of the chapter survives this technological shift intact. Whether the text variable comes from a word count, a topic share, an embedding, or a frontier language model, it is an estimate; it must be defined by a codebook fixed before estimation, learned and applied on separate splits, validated against an external standard, and carried into the causal model with its uncertainty propagated rather than ignored. The tools have improved dramatically. The design requirements have not relaxed at all.

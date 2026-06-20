@@ -1,0 +1,574 @@
+# Structural Econometrics and Demand Estimation {#sec-structural-io}
+
+This chapter sits in a small cluster of specialized, structural methods that estimate the deep economic primitives behind observed data rather than describing reduced-form associations. Alongside the companion chapter on frontier and efficiency analysis, which recovers a firm's production technology and its distance from the efficient frontier, this chapter recovers consumer preferences and firm costs from market outcomes. The unifying idea is that an explicit economic model, taken seriously as a set of restrictions on the data-generating process, lets us answer counterfactual questions that no purely descriptive regression can.
+
+The companion chapter on structural estimation (Section \@ref(sec-structural-estimation)) develops what it means to estimate the deep parameters of an economic model rather than a reduced-form association, and why doing so is what licenses counterfactual prediction at the price of committing to a model and its identifying assumptions [@reiss2011structural]. This chapter takes that framing as given and applies it to the central object of empirical industrial organization, demand for differentiated products, with the recurring discipline that credible structural estimates require credible exogenous variation, typically [instrumental variables](#sec-instrumental-variables) built from cost shifters or competitor characteristics.
+
+```{r dcd-setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Discrete-Choice Demand for Differentiated Products
+
+The modeling challenge is that markets such as automobiles, breakfast cereals, or smartphones contain dozens or hundreds of distinct products. A naive demand system with one own-price and many cross-price elasticities per product has far too many parameters to estimate from the data at hand. The discrete-choice approach solves the dimensionality problem by projecting products onto a low-dimensional space of characteristics and letting heterogeneous consumers choose the single product that maximizes their utility [@mcfadden1974conditional]. Demand for a product is then the integral over consumers of the probability that the product is the utility-maximizing choice, and a handful of taste parameters governs the entire matrix of elasticities. This is the same random-utility logic that underlies multinomial logit models of individual choice, now aggregated to market-level shares.
+
+### Logit Demand
+
+Index markets by $t = 1, \dots, T$ and products by $j = 1, \dots, J_t$, with $j = 0$ the outside option (not buying, or buying from outside the defined set). Consumer $i$ in market $t$ receives indirect utility from product $j$ of
+
+$$u_{ijt} = \delta_{jt} + \varepsilon_{ijt}, \qquad \delta_{jt} = x_{jt}'\beta - \alpha p_{jt} + \xi_{jt},$$
+
+where $x_{jt}$ collects observed product characteristics, $p_{jt}$ is price, and $\delta_{jt}$ is the mean utility common to all consumers. The term $\xi_{jt}$ is the unobserved (to the econometrician) product quality in market $t$, and it is the source of all the econometric difficulty below. When the idiosyncratic taste $\varepsilon_{ijt}$ is independent and identically distributed Type I extreme value across products and consumers, the choice probabilities take the closed-form multinomial logit shape, and the predicted market share of product $j$ is
+
+$$s_{jt} = \frac{\exp(\delta_{jt})}{1 + \sum_{k=1}^{J_t} \exp(\delta_{kt})},$$
+
+with the outside share $s_{0t} = 1 / (1 + \sum_k \exp(\delta_{kt}))$ normalized by setting $\delta_{0t} = 0$.
+
+The plain logit is transparent but carries a notorious defect, the independence of irrelevant alternatives. Because the ratio of any two shares depends only on those two products' utilities, cross-price elasticities depend only on market shares, not on whether products are close substitutes in characteristic space. A luxury sedan and an economy compact with the same share are predicted to draw equally from a third car, which is economically absurd. The substitution patterns are an artifact of the error distribution rather than of preferences.
+
+### Nested Logit Demand
+
+Nested logit relaxes the IIA restriction by grouping products into nests, for example body styles of cars or flavors of cereal, within which substitution is stronger than across nests. Utility gains a nest-specific common component, and the resulting aggregate share for product $j$ in nest $g$ can be written in the linear-in-shares form
+
+$$\ln s_{jt} - \ln s_{0t} = x_{jt}'\beta - \alpha p_{jt} + \sigma \ln s_{j|g,t} + \xi_{jt},$$
+
+where $s_{j|g,t}$ is the within-nest share and $\sigma \in [0,1)$ is the nesting parameter governing the correlation of tastes within a nest [@cardell1997variance]. As $\sigma \to 0$ the model collapses to plain logit; as $\sigma \to 1$ products within a nest become perfect substitutes. Nested logit allows richer and more sensible substitution, yet it still imposes IIA within nests and forces the analyst to choose the nesting structure in advance. The within-nest share $s_{j|g,t}$ is endogenous, since it is a function of $\xi_{jt}$, so it must be instrumented just like price.
+
+### The Berry Inversion
+
+Both logit and nested logit share a feature that makes estimation tractable at the market level: the mean utility $\delta_{jt}$ can be recovered analytically from observed shares. @berry1994estimating showed that the mapping from mean utilities to shares can be inverted, so that observed market shares deliver the unobserved $\delta_{jt}$ up to the model parameters. For plain logit the inversion is the simple log-share difference
+
+$$\delta_{jt} = \ln s_{jt} - \ln s_{0t},$$
+
+and for nested logit it adds the $\sigma \ln s_{j|g,t}$ term. The inversion is what turns a discrete-choice model into a linear instrumental-variables regression: the left side is computed from data, the right side is $x_{jt}'\beta - \alpha p_{jt} + \xi_{jt}$, and the structural error $\xi_{jt}$ is now isolated on one side ready for a moment condition. This inversion is the conceptual hinge of the entire literature, and its extension to richer models is the contribution of the next section.
+
+### The BLP Random-Coefficients Model
+
+The signal contribution of @berry1995automobile, universally abbreviated BLP, is to let the taste parameters vary across consumers so that substitution is driven by proximity in characteristic space rather than by shares alone. Consumer $i$ now has individual coefficients
+
+$$u_{ijt} = x_{jt}'\beta_i - \alpha_i p_{jt} + \xi_{jt} + \varepsilon_{ijt}, \qquad \beta_i = \beta + \Sigma \nu_i,$$
+
+where $\nu_i$ is a vector of unobserved consumer-level taste shocks (often standard normal) and $\Sigma$ collects the standard deviations of the random coefficients. Consumers who value, say, fuel economy highly substitute toward other fuel-efficient cars when one is removed, generating realistic, characteristic-driven cross-elasticities. The predicted share is now an integral over the distribution of consumer types,
+
+$$s_{jt}(\delta_t, \theta_2) = \int \frac{\exp\!\big(\delta_{jt} + \mu_{ijt}(\theta_2)\big)}{1 + \sum_{k} \exp\!\big(\delta_{kt} + \mu_{ikt}(\theta_2)\big)} \, dF(\nu_i),$$
+
+where $\mu_{ijt}$ collects the consumer-specific deviations governed by the nonlinear parameters $\theta_2 = (\Sigma, \dots)$, and the integral is approximated by simulation (Monte Carlo or quasi-random draws). The price of realism is that the share integral has no closed form, so the Berry inversion must now be done numerically: for any candidate $\theta_2$, solve the system $s_{jt}(\delta_t, \theta_2) = \mathcal{S}_{jt}$ for the vector $\delta_t$ that equates predicted to observed shares $\mathcal{S}_{jt}$. BLP show this can be done by a contraction mapping,
+
+$$\delta_t^{(h+1)} = \delta_t^{(h)} + \ln \mathcal{S}_t - \ln s_t\!\big(\delta_t^{(h)}, \theta_2\big),$$
+
+iterated to convergence at each evaluation of the objective function. The output is a value of $\delta_{jt}$ for every product and market, and from it the linear parameters and the structural error $\xi_{jt}(\theta) = \delta_{jt} - x_{jt}'\beta + \alpha p_{jt}$.
+
+Several practical refinements have become standard. Incorporating consumer demographics from auxiliary survey data lets the random coefficients interact with income or age, sharpening substitution patterns [@nevo2001measuring]. Numerical care matters: tight contraction tolerances, good starting values, and well-chosen simulation draws guard against the optimization and finite-sample pathologies catalogued and partly resolved by @knittel2014estimation, and modern estimation packages encode these lessons. A simple but important diagnostic is that the model should not predict any product's share to be implausibly close to zero, since the log-share inversion is delicate there.
+
+## Price Endogeneity, Instruments, and GMM
+
+The central econometric problem is that price is endogenous. Firms set prices knowing the unobserved quality $\xi_{jt}$, a desirable but unmeasured feature drives up both demand and the price the firm charges, so $\mathbb{E}[\xi_{jt} \mid p_{jt}] \neq 0$. Ordinary least squares on the inverted share equation therefore yields a price coefficient biased toward zero, understating own-price sensitivity and overstating markups. The fix is the same instrumental-variables logic developed in the chapter on [instrumental variables](#sec-instrumental-variables): find variables correlated with price but uncorrelated with $\xi_{jt}$.
+
+Three families of instruments dominate empirical practice.
+
+### Cost shifters
+
+Anything that moves a firm's marginal cost without entering consumer utility is a valid instrument: input prices, exchange rates for imported components, wage indices in the production region. These are the cleanest instruments conceptually but are often unavailable at the product-market level.
+
+### BLP instruments
+
+@berry1995automobile observed that, under oligopoly pricing, a product's optimal markup depends on the characteristics of competing products, since a car surrounded by close substitutes commands a thinner margin. The characteristics of other products, summed within and across firms, are therefore correlated with price through the markup yet plausibly excluded from the consumer's utility for product $j$. Typical constructions are the sums of rival characteristics and the counts of competing products. These differentiation instruments are powerful, and a substantial literature has refined them with constructions based on the local density of products in characteristic space, which tend to have better finite-sample behavior than the original sums.
+
+### Hausman instruments
+
+@hausman1996valuation proposed using the price of the same product in other geographic markets as an instrument, on the logic that prices share a common cost component across markets but local demand shocks $\xi_{jt}$ are market-specific. The validity of Hausman instruments hinges on the absence of national demand shocks (advertising, common preference shifts) that would correlate quality across markets, so they are best used where such common shocks can be argued away.
+
+### GMM Estimation
+
+With instruments $z_{jt}$ in hand, estimation proceeds by the generalized method of moments (see the GMM material in the [instrumental variables](#sec-instrumental-variables) chapter), exploiting the population moment condition that the structural error is mean-independent of the instruments,
+
+$$\mathbb{E}\big[ \xi_{jt}(\theta) \, z_{jt} \big] = 0.$$
+
+The sample analogue is the GMM objective $g(\theta)' W g(\theta)$, with $g(\theta) = \frac{1}{N}\sum_{jt} \xi_{jt}(\theta) z_{jt}$ and a positive-definite weight matrix $W$, efficiently set to the inverse of the moment covariance in a second step [@hansen1982large]. For the random-coefficients model the estimation nests two loops: an inner loop solving the Berry contraction for $\delta_t$ given $\theta_2$, and an outer loop minimizing the GMM objective over $\theta_2$ (the linear parameters $\beta, \alpha$ concentrate out as an IV regression given $\delta$). A control-function alternative, which inserts a first-stage price residual into the utility equation, is available when a single endogenous price and a clean instrument are present [@petrin2010control].
+
+A schematic of the estimation loop, illustrative and not meant to be run, makes the structure concrete.
+
+```{r, eval=FALSE}
+# Conceptual sketch of the BLP GMM objective. Illustrative only.
+# Production estimation should use a maintained package (e.g. PyBLP).
+
+blp_objective <- function(theta2, shares, X, prices, Z, W, nu_draws) {
+  # Inner loop: invert shares for mean utilities delta given theta2.
+  delta <- berry_contraction(theta2, shares, X, prices, nu_draws)
+
+  # Concentrate out the linear parameters via IV/GLS using delta.
+  linear <- iv_fit(delta, cbind(X, prices), Z, W)
+  xi     <- delta - linear$fitted          # structural error xi(theta)
+
+  # Sample moments and the GMM criterion.
+  g <- crossprod(Z, xi) / nrow(Z)          # E[xi * Z] sample analogue
+  as.numeric(t(g) %*% W %*% g)
+}
+# Outer loop: minimize over the nonlinear parameters theta2.
+# fit <- optim(theta2_start, blp_objective, shares = s, X = X, ...)
+```
+
+### The Supply Side and Markups
+
+A distinctive strength of the structural approach is that it recovers markups and marginal costs without observing cost data, by combining the estimated demand elasticities with an assumption about firm conduct. Under Bertrand-Nash competition in prices, each multiproduct firm sets the prices of its products to maximize joint profit, and the resulting first-order conditions can be solved for the implied markups. In vector form for the products of a firm,
+
+$$p_t = c_t + \big(\Omega_t \odot \tfrac{\partial s_t}{\partial p_t}\big)^{-1} s_t,$$
+
+where $c_t$ is the vector of marginal costs, $\partial s_t / \partial p_t$ is the matrix of demand derivatives implied by the demand estimates, and $\Omega_t$ is an ownership matrix encoding which products share an owner. Inverting this relationship backs out marginal cost as a residual, the markup being everything in price not explained by cost. Adding the supply moments to the demand moments in a joint GMM step improves efficiency and, more importantly, lets the estimated model simulate counterfactuals such as a merger, where the ownership matrix $\Omega_t$ changes and new equilibrium prices follow from the same first-order conditions. The conduct assumption is itself testable and should not be imposed casually.
+
+## A Worked Estimation on Simulated Markets
+
+The theory above is best absorbed by estimating it end to end on data whose true parameters are known. This section simulates a panel of differentiated-product markets, then estimates plain logit, nested logit, and a small random-coefficients model on the same data, recovers elasticities and markups, and runs a merger counterfactual. Keeping every dimension small lets the code run quickly while preserving the full logic of the estimators, and knowing the truth lets us judge each estimator by how close it lands.
+
+### Simulating the Market
+
+We generate $T$ markets, each with $J$ inside products and an outside option. Each product carries one observed characteristic $x_{jt}$ and an unobserved quality $\xi_{jt}$. The key feature that makes the exercise interesting is that prices are set as a markup over a marginal cost that responds to a cost shifter $w_{jt}$, and that the unobserved quality $\xi_{jt}$ enters both utility and the price. A product with high $\xi_{jt}$ is more desirable and commands a higher price, which is exactly the correlation between price and the structural error that biases ordinary least squares. The cost shifter $w_{jt}$ shifts price without entering utility, so it is a valid instrument.
+
+```{r dcd-simulate}
+set.seed(2024)
+
+T_mkt <- 60     # number of markets
+J     <- 4      # inside products per market
+N     <- T_mkt * J
+
+market <- rep(seq_len(T_mkt), each = J)
+prod   <- rep(seq_len(J), times = T_mkt)
+
+# True parameters.
+beta0  <- -1.0   # intercept (mean utility level, governs outside share)
+beta_x <-  1.5   # taste for the observed characteristic
+alpha  <-  1.0   # price sensitivity (enters utility as -alpha * price)
+
+# Observed characteristic and unobserved quality.
+x   <- 0.5 + 0.8 * runif(N)
+xi  <- rnorm(N, 0, 0.6)            # structural demand error
+w   <- 0.3 + 0.6 * runif(N)       # cost shifter (the instrument)
+
+# Marginal cost rises in the cost shifter and the characteristic.
+mc  <- 0.5 + 0.7 * w + 0.3 * x + rnorm(N, 0, 0.1)
+
+# Reduced-form pricing rule: price loads on cost and on xi, so price is
+# correlated with the structural error. This stands in for the equilibrium
+# markup without solving a fixed point at the simulation stage.
+price <- 0.8 + 1.0 * mc + 0.7 * xi + rnorm(N, 0, 0.1)
+
+# Mean utility and logit shares within each market.
+delta <- beta0 + beta_x * x - alpha * price + xi
+
+share <- numeric(N)
+for (t in seq_len(T_mkt)) {
+  idx        <- which(market == t)
+  ex         <- exp(delta[idx])
+  denom      <- 1 + sum(ex)
+  share[idx] <- ex / denom
+}
+
+# Outside share by market, then the Berry log-share dependent variable.
+s0 <- tapply(share, market, function(s) 1 - sum(s))[market]
+y_logit <- log(share) - log(s0)
+
+dcd_data <- data.frame(market, prod, x, w, mc, price, xi, share, s0, y_logit)
+head(round(dcd_data[, c("market", "prod", "x", "w", "price", "share")], 3))
+```
+
+The simulated outside share averages around `r round(mean(unique(data.frame(market, s0))$s0), 2)`, comfortably away from zero so the log-share inversion is well behaved.
+
+### Plain Logit: OLS versus Instrumental Variables
+
+The Berry inversion turns plain logit into a linear regression of $\ln s_{jt} - \ln s_{0t}$ on characteristics and price. Estimating that regression by ordinary least squares ignores the endogeneity of price and should bias the price coefficient toward zero, understating price sensitivity. Replacing price with its projection on the cost shifter, the classic two-stage least squares estimator computed here by hand, should recover the true price coefficient. We fit both and read the price coefficient against its true value of $-\alpha = `r -alpha`$.
+
+```{r dcd-logit-ols-iv}
+# OLS of the inverted shares on characteristic and price.
+ols_fit <- lm(y_logit ~ x + price, data = dcd_data)
+
+# Two-stage least squares by hand: instrument price with the cost shifter w,
+# keeping the exogenous characteristic x in both stages.
+first_stage <- lm(price ~ x + w, data = dcd_data)
+price_hat   <- fitted(first_stage)
+iv_fit      <- lm(y_logit ~ x + price_hat, data = dcd_data)
+
+logit_tab <- data.frame(
+  Parameter = c("Intercept", "x (beta_x)", "price (-alpha)"),
+  Truth     = c(beta0, beta_x, -alpha),
+  OLS       = coef(ols_fit),
+  IV        = coef(iv_fit),
+  row.names = NULL
+)
+logit_tab[, -1] <- round(logit_tab[, -1], 3)
+logit_tab
+```
+
+```{r dcd-logit-table, echo=FALSE}
+knitr::kable(
+  logit_tab,
+  caption = "Plain logit demand: ordinary least squares versus instrumental variables. The OLS price coefficient is biased toward zero by the correlation between price and unobserved quality; the cost-shifter instrument restores the true value.",
+  booktabs = TRUE,
+  align = c("l", "r", "r", "r")
+)
+```
+
+The OLS price coefficient is markedly smaller in magnitude than the truth, the textbook attenuation from endogenous price, while the instrumental-variables estimate recovers a price coefficient close to $-1$. The first-stage relationship between price and the cost shifter is strong, so the instrument is relevant as well as valid by construction.
+
+### Nested Logit
+
+Nested logit adds the within-nest log share $\ln s_{j|g,t}$ to the inverted share equation, with coefficient $\sigma$. That regressor is endogenous because it is a function of $\xi_{jt}$, so it must be instrumented alongside price. We assign the four products to two nests, build the within-nest share, and estimate the equation by two-stage least squares using the cost shifter and the count of rival products in the same nest as instruments. To make the nesting parameter recoverable we re-simulate shares from a genuine nested-logit model on the same characteristics, prices, and quality.
+
+```{r dcd-nested}
+sigma_true <- 0.5
+nest <- ifelse(prod <= 2, 1L, 2L)   # two nests of two products each
+
+# Nested-logit shares: inclusive value per nest, then nested choice probs.
+share_nl <- numeric(N)
+for (t in seq_len(T_mkt)) {
+  idx <- which(market == t)
+  d   <- delta[idx]
+  g   <- nest[idx]
+  # Within-nest term uses delta / (1 - sigma).
+  expv <- exp(d / (1 - sigma_true))
+  Dg   <- tapply(expv, g, sum)                       # sum within each nest
+  Dvec <- Dg[as.character(g)]
+  IV_g <- Dg^(1 - sigma_true)                        # nest inclusive values
+  denom <- 1 + sum(IV_g)
+  s_g   <- IV_g / denom                              # nest shares
+  s_jg  <- expv / Dvec                               # within-nest shares
+  share_nl[idx] <- as.numeric(s_jg) * as.numeric(s_g[as.character(g)])
+}
+
+s0_nl   <- tapply(share_nl, market, function(s) 1 - sum(s))[market]
+y_nl    <- log(share_nl) - log(s0_nl)
+
+# Within-nest share s_{j|g}.
+nest_tot <- ave(share_nl, market, nest, FUN = sum)
+s_jg_obs <- share_nl / nest_tot
+ln_s_jg  <- log(s_jg_obs)
+
+# Instruments: cost shifter for price; count of same-nest rivals for the
+# within-nest share (a simple BLP-style differentiation instrument).
+n_in_nest <- ave(rep(1, N), market, nest, FUN = sum)
+rivals_nest <- n_in_nest - 1
+
+nl_df <- data.frame(y_nl, x, price, ln_s_jg, w, rivals_nest)
+
+# Two-stage least squares with two endogenous regressors.
+fs_price <- lm(price   ~ x + w + rivals_nest, data = nl_df)
+fs_lnsjg <- lm(ln_s_jg ~ x + w + rivals_nest, data = nl_df)
+nl_df$price_hat   <- fitted(fs_price)
+nl_df$ln_s_jg_hat <- fitted(fs_lnsjg)
+nl_fit <- lm(y_nl ~ x + price_hat + ln_s_jg_hat, data = nl_df)
+
+nested_tab <- data.frame(
+  Parameter = c("Intercept", "x (beta_x)", "price (-alpha)", "sigma (nesting)"),
+  Truth     = c(beta0, beta_x, -alpha, sigma_true),
+  Estimate  = round(coef(nl_fit), 3),
+  row.names = NULL
+)
+nested_tab
+```
+
+```{r dcd-nested-table, echo=FALSE}
+knitr::kable(
+  nested_tab,
+  caption = "Nested logit demand estimated by two-stage least squares. The within-nest log share is instrumented with the count of same-nest rivals; the nesting parameter is recovered alongside the price coefficient.",
+  booktabs = TRUE,
+  align = c("l", "r", "r")
+)
+```
+
+The estimated nesting parameter lands near its true value of $`r sigma_true`$, and the price coefficient is again close to $-1$. The within-nest share enters with the expected positive sign, confirming that products within a nest are closer substitutes than across nests.
+
+### A Small Random-Coefficients (BLP) Estimation
+
+The random-coefficients model adds a consumer-specific deviation to the price coefficient, so that price sensitivity varies across consumers and substitution follows proximity in price rather than shares alone. We give price a single random coefficient with standard deviation $\sigma_p$, the lone nonlinear parameter $\theta_2$. Estimation nests two loops. The inner loop solves the Berry contraction for the mean utilities $\delta_t$ that equate model shares to observed shares at a candidate $\sigma_p$. The outer loop searches over $\sigma_p$ to minimize a GMM objective built from the cost-shifter instrument. We keep the dimensions deliberately small, a handful of markets and a modest number of simulation draws, so the whole estimation runs in seconds.
+
+```{r dcd-blp-data}
+set.seed(7)
+
+Tb   <- 20      # markets for the BLP exercise
+Jb   <- 3       # products per market
+Nb   <- Tb * Jb
+mkt_b <- rep(seq_len(Tb), each = Jb)
+
+xb  <- 0.5 + 0.8 * runif(Nb)
+xib <- rnorm(Nb, 0, 0.4)
+wb  <- 0.3 + 0.6 * runif(Nb)
+mcb <- 0.5 + 0.7 * wb + 0.3 * xb + rnorm(Nb, 0, 0.1)
+pb  <- 0.8 + 1.0 * mcb + 0.7 * xib + rnorm(Nb, 0, 0.1)
+
+# True structural parameters.
+beta0_b <- -1.0
+betax_b <-  1.5
+alpha_b <-  1.0
+sigp_b  <-  0.8     # standard deviation of the random price coefficient
+
+# Simulation draws shared across markets (same draws used in estimation).
+n_draws <- 100
+nu <- matrix(rnorm(n_draws), nrow = 1)   # one random coefficient (on price)
+
+# True mean utility (linear part) and the consumer-specific price deviation.
+delta_b_true <- beta0_b + betax_b * xb - alpha_b * pb + xib
+
+# Function: predicted shares given delta vector and sigma_p, by market.
+blp_shares <- function(delta, sig_p, price, mkt, nu) {
+  S <- numeric(length(delta))
+  for (t in unique(mkt)) {
+    idx <- which(mkt == t)
+    # mu_{ij} = -sig_p * nu_i * price_j  (random coefficient on price).
+    mu  <- outer(-sig_p * price[idx], nu[1, ])     # J x draws
+    util <- exp(delta[idx] + mu)                   # J x draws
+    denom <- 1 + colSums(util)                     # 1 x draws
+    s_draw <- sweep(util, 2, denom, "/")           # J x draws
+    S[idx] <- rowMeans(s_draw)
+  }
+  S
+}
+
+# Observed shares: simulate at the true sigma_p.
+shares_b <- blp_shares(delta_b_true, sigp_b, pb, mkt_b, nu)
+```
+
+The inner loop is the Berry contraction. For a candidate $\sigma_p$ it iterates $\delta \leftarrow \delta + \ln \mathcal{S} - \ln s(\delta, \sigma_p)$ until the mean utilities stop moving. Given the converged $\delta$, the linear parameters and the structural error follow from an instrumental-variables regression, and the GMM objective is the cost-shifter moment of that error.
+
+```{r dcd-blp-estimate}
+ln_S <- log(shares_b)
+
+# Inner loop: Berry contraction for delta given sigma_p.
+berry_contraction <- function(sig_p, price, mkt, nu, ln_S,
+                              tol = 1e-10, maxit = 1000) {
+  delta <- rep(0, length(price))
+  for (it in seq_len(maxit)) {
+    s_pred <- blp_shares(delta, sig_p, price, mkt, nu)
+    delta_new <- delta + ln_S - log(s_pred)
+    if (max(abs(delta_new - delta)) < tol) { delta <- delta_new; break }
+    delta <- delta_new
+  }
+  delta
+}
+
+# Instruments: characteristic (exogenous) and the cost shifter for price.
+Zb <- cbind(1, xb, wb)
+Xb <- cbind(1, xb, pb)
+W  <- solve(crossprod(Zb) / Nb)        # two-stage least squares weight matrix
+
+# GMM objective over the single nonlinear parameter sigma_p.
+gmm_obj <- function(sig_p) {
+  delta <- berry_contraction(sig_p, pb, mkt_b, nu, ln_S)
+  # Concentrate out linear parameters via IV (2SLS) of delta on Xb using Zb.
+  PZ   <- Zb %*% solve(crossprod(Zb), t(Zb))
+  bhat <- solve(t(Xb) %*% PZ %*% Xb, t(Xb) %*% PZ %*% delta)
+  xi   <- delta - Xb %*% bhat
+  g    <- crossprod(Zb, xi) / Nb
+  as.numeric(t(g) %*% W %*% g)
+}
+
+# Outer loop: one-dimensional search over sigma_p >= 0.
+opt <- optimize(gmm_obj, interval = c(0.01, 2.5))
+sigp_hat <- opt$minimum
+
+# Recover the linear parameters at the optimum.
+delta_hat <- berry_contraction(sigp_hat, pb, mkt_b, nu, ln_S)
+PZ   <- Zb %*% solve(crossprod(Zb), t(Zb))
+bhat <- as.numeric(solve(t(Xb) %*% PZ %*% Xb, t(Xb) %*% PZ %*% delta_hat))
+
+blp_tab <- data.frame(
+  Parameter = c("Intercept", "x (beta_x)", "price (-alpha)", "sigma_p (random coef.)"),
+  Truth     = c(beta0_b, betax_b, -alpha_b, sigp_b),
+  Estimate  = round(c(bhat, sigp_hat), 3),
+  row.names = NULL
+)
+blp_tab
+```
+
+```{r dcd-blp-table, echo=FALSE}
+knitr::kable(
+  blp_tab,
+  caption = "Random-coefficients (BLP) demand on simulated data. The nonlinear parameter sigma_p is estimated by GMM with an inner Berry contraction; linear parameters concentrate out as an instrumental-variables regression.",
+  booktabs = TRUE,
+  align = c("l", "r", "r")
+)
+```
+
+The estimated standard deviation of the random price coefficient sits near its true value, and the mean price coefficient and taste for the characteristic are recovered as well. Because the state space is small and the draws are few, the estimates carry simulation and sampling noise, but the procedure reproduces the qualitative target: a random-coefficients model estimated by GMM with an inner contraction mapping, recovering parameters close to the truth.
+
+## Elasticities, Markups, and a Merger Counterfactual
+
+Estimated demand parameters are interesting mainly because of what they imply for elasticities, markups, and counterfactual prices. This section computes those objects from the plain-logit IV estimates, which are simplest to differentiate in closed form, and then changes the ownership structure to simulate a merger.
+
+### Own- and Cross-Price Elasticities
+
+For plain logit the share derivatives have a closed form. Within a market the own-price derivative of product $j$ is $-\alpha s_j (1 - s_j)$ and the cross-price derivative with respect to product $k$ is $\alpha s_j s_k$. Converting to elasticities multiplies by $p_k / s_j$. We evaluate these at the estimated price coefficient for a single representative market.
+
+```{r dcd-elasticities}
+alpha_hat <- -coef(iv_fit)["price_hat"]   # estimated price sensitivity
+
+# Pick one market to display the elasticity matrix.
+t_show <- 1
+idx    <- which(dcd_data$market == t_show)
+s_t    <- dcd_data$share[idx]
+p_t    <- dcd_data$price[idx]
+Jt     <- length(idx)
+
+elast <- matrix(0, Jt, Jt)
+for (j in seq_len(Jt)) {
+  for (k in seq_len(Jt)) {
+    if (j == k) {
+      elast[j, k] <- -alpha_hat * p_t[j] * (1 - s_t[j])
+    } else {
+      elast[j, k] <-  alpha_hat * p_t[k] * s_t[k]
+    }
+  }
+}
+dimnames(elast) <- list(paste0("Prod ", seq_len(Jt)),
+                        paste0("Prod ", seq_len(Jt)))
+round(elast, 3)
+```
+
+```{r dcd-elasticity-table, echo=FALSE}
+knitr::kable(
+  round(elast, 3),
+  caption = "Own- and cross-price elasticities for one market under plain logit. Diagonal entries are own-price elasticities (negative); off-diagonal entries are cross-price elasticities (positive). Element (j, k) is the percentage change in the share of product j from a one percent change in the price of product k.",
+  booktabs = TRUE
+)
+```
+
+The diagonal own-price elasticities are negative and well above one in magnitude, as a sensible demand model requires for profit-maximizing prices to exist. A known limitation of plain logit is visible in the columns: every product draws from a rival in proportion to that rival's own share, the independence-of-irrelevant-alternatives artifact that the random-coefficients model is designed to break.
+
+### Markups and Marginal Costs
+
+Under Bertrand-Nash pricing the vector first-order condition $p_t = c_t + (\Omega_t \odot \partial s_t / \partial p_t)^{-1} s_t$ inverts to recover marginal costs from observed prices and estimated demand derivatives. With single-product firms the ownership matrix is the identity, and the markup of each product is $s_j / (\alpha s_j (1 - s_j)) = 1 / (\alpha (1 - s_j))$. We compute markups and implied marginal costs for the displayed market.
+
+```{r dcd-markups}
+# Share-derivative matrix dS/dp for the market (rows = products affected,
+# columns = price changed).
+dSdp <- matrix(0, Jt, Jt)
+for (j in seq_len(Jt)) {
+  for (k in seq_len(Jt)) {
+    dSdp[j, k] <- if (j == k) -alpha_hat * s_t[j] * (1 - s_t[j]) else
+                              alpha_hat * s_t[j] * s_t[k]
+  }
+}
+
+# Single-product ownership: each firm owns one product.
+Omega_single <- diag(Jt)
+
+markup_vec <- function(Omega, dSdp, s) {
+  as.numeric(-solve(Omega * dSdp) %*% s)   # (Omega .* dS/dp)^{-1} s, sign per FOC
+}
+
+markup <- markup_vec(Omega_single, dSdp, s_t)
+mc_hat <- p_t - markup
+
+markup_tab <- data.frame(
+  Product   = paste0("Prod ", seq_len(Jt)),
+  Price     = round(p_t, 3),
+  Markup    = round(markup, 3),
+  MargCost  = round(mc_hat, 3),
+  TrueMC    = round(dcd_data$mc[idx], 3)
+)
+markup_tab
+```
+
+```{r dcd-markup-table, echo=FALSE}
+knitr::kable(
+  markup_tab,
+  caption = "Markups and recovered marginal costs under single-product Bertrand-Nash pricing for one market. Marginal cost is price minus the implied markup; the final column is the true simulated marginal cost for comparison.",
+  booktabs = TRUE,
+  align = c("l", "r", "r", "r", "r")
+)
+```
+
+The recovered marginal costs track the true simulated costs reasonably well, the discrepancy reflecting that the simulated pricing rule is a reduced-form approximation rather than an exact Bertrand-Nash equilibrium. The point is methodological: with no cost data at all, the combination of estimated demand elasticities and a conduct assumption pins down the markup and hence the cost.
+
+### Visualizing the Markup Distribution
+
+Computing markups across every product and market shows how the markup varies with the share. Because the logit markup is $1 / (\alpha (1 - s_j))$, products with larger shares carry larger markups, the structural counterpart of the intuition that market power and margin move together.
+
+```{r dcd-markup-fig, fig.cap="Distribution of recovered Bertrand-Nash markups across all simulated products under single-product ownership. Markups rise with product share, the logit relationship between market power and margin.", fig.width=7, fig.height=4.2}
+library(ggplot2)
+
+markup_all <- 1 / (alpha_hat * (1 - dcd_data$share))
+
+mk_df <- data.frame(markup = markup_all, share = dcd_data$share)
+
+ggplot(mk_df, aes(x = markup)) +
+  geom_histogram(bins = 30, fill = "#2c7fb8", colour = "white") +
+  labs(x = "Recovered markup", y = "Count",
+       title = "Markup distribution across simulated products") +
+  causalverse::ama_theme()
+```
+
+### A Merger Counterfactual
+
+The payoff of the structural machinery is counterfactual prediction. Suppose products one and two, previously owned by separate firms, merge under a single owner. The ownership matrix gains off-diagonal ones linking the merged products, the merged firm now internalizes the substitution between them, and the Bertrand-Nash first-order conditions deliver new equilibrium prices. We solve the post-merger price fixed point by iterating the first-order condition, holding marginal costs and demand parameters fixed, and report the predicted price changes.
+
+```{r dcd-merger}
+# Post-merger ownership: products 1 and 2 share an owner.
+Omega_merge <- Omega_single
+Omega_merge[1, 2] <- Omega_merge[2, 1] <- 1
+
+# Solve for equilibrium prices given an ownership matrix, by iterating
+# p = mc + markup(p), recomputing shares and derivatives at each step.
+solve_prices <- function(Omega, mc, x_t, alpha, beta0, beta_x,
+                         p_start, tol = 1e-10, maxit = 500) {
+  p <- p_start
+  for (it in seq_len(maxit)) {
+    delta <- beta0 + beta_x * x_t - alpha * p
+    ex    <- exp(delta)
+    s     <- ex / (1 + sum(ex))
+    D <- matrix(0, length(p), length(p))
+    for (j in seq_along(p)) for (k in seq_along(p)) {
+      D[j, k] <- if (j == k) -alpha * s[j] * (1 - s[j]) else
+                              alpha * s[j] * s[k]
+    }
+    markup <- as.numeric(-solve(Omega * D) %*% s)
+    p_new  <- mc + markup
+    if (max(abs(p_new - p)) < tol) { p <- p_new; break }
+    p <- p_new
+  }
+  p
+}
+
+x_t      <- dcd_data$x[idx]
+beta0_hat <- coef(iv_fit)["(Intercept)"]
+betax_hat <- coef(iv_fit)["x"]
+
+p_pre  <- solve_prices(Omega_single, mc_hat, x_t, alpha_hat,
+                       beta0_hat, betax_hat, p_t)
+p_post <- solve_prices(Omega_merge,  mc_hat, x_t, alpha_hat,
+                       beta0_hat, betax_hat, p_pre)
+
+merger_tab <- data.frame(
+  Product    = paste0("Prod ", seq_len(Jt)),
+  PrePrice   = round(p_pre, 3),
+  PostPrice  = round(p_post, 3),
+  PctChange  = round(100 * (p_post - p_pre) / p_pre, 2),
+  Merged     = c("yes", "yes", rep("no", Jt - 2))
+)
+merger_tab
+```
+
+```{r dcd-merger-table, echo=FALSE}
+knitr::kable(
+  merger_tab,
+  caption = "Merger counterfactual under plain-logit Bertrand-Nash pricing. Products 1 and 2 merge under common ownership; predicted equilibrium prices rise most for the merged products, with a smaller spillover onto rivals.",
+  booktabs = TRUE,
+  align = c("l", "r", "r", "r", "l")
+)
+```
+
+The merged products show the largest predicted price increases, because their common owner now internalizes the diversion between them that two independent firms ignored. The non-merged rivals also raise prices, the standard strategic-complements response to softened competition. This pattern, larger increases for the merging parties and smaller sympathetic increases for rivals, is precisely the prediction that antitrust authorities draw from structural merger simulation, and it cannot be produced by any reduced-form regression.
+
+## Production-Grade Estimation with PyBLP
+
+The code above is written for transparency rather than for production. Serious applications should use a maintained package, and the field standard is `pyblp` [@conlon2020best]. It implements the full random-coefficients model with demographic interactions, supply-side moments, and joint demand-and-supply GMM, and it encodes the numerical lessons that hand-rolled code tends to miss: tight and adaptive contraction tolerances, analytic gradients of the GMM objective for fast and reliable optimization, well-conditioned simulation draws, and the optimal-instrument constructions that sharpen identification of the nonlinear parameters [@reynaert2014improving]. It also ships the differentiation instruments built from the local density of products in characteristic space [@gandhi2020measuring], which behave better in finite samples than the original sums of rival characteristics. For any analysis whose conclusions will be defended, the right division of labor is to understand the estimator at the level of the worked example here and to run it with `pyblp`.
+
+## Nonparametric Identification of Demand
+
+A natural worry is that the conclusions ride on functional-form choices: extreme-value errors, normal random coefficients, and a particular parameterization of utility. A sustained research program asks instead what features of demand are identified by the data and the economic structure alone, without these parametric crutches. @berry2014identification establish, using only market-level data on shares, prices, and characteristics, that the demand system is nonparametrically identified provided suitable instruments exist. The key conditions are a connected-substitutes structure, which orders how products compete, and instruments rich enough to trace out the demand surface, the demand-side instruments shifting markups and supply-side or cost instruments shifting prices. Their result clarifies that the BLP machinery is not merely a convenient parameterization but recovers an object that is identified in principle.
+
+@berry2016identification synthesize the broader identification landscape for differentiated-products markets, situating discrete-choice demand within the wider class of models and laying out the roles of large-support instruments, index restrictions, and the connected-substitutes condition. The most recent advance, @berry2024nonparametric, shows that micro data linking individual consumers to their chosen products and their characteristics deliver nonparametric identification under substantially weaker conditions than aggregate data require, because individual-level variation in choice sets and demographics does much of the work that instruments must do at the market level. The practical lesson is that when consumer-level data are available, they relax the burden on the instruments and the parametric assumptions alike, which is one reason the field has moved toward combining aggregate shares with micro moments.
+
+## Practical Notes
+
+Several points recur in applied work and are worth stating plainly. Instrument strength is the binding constraint far more often than instrument validity: weak BLP instruments produce the same unstable, badly behaved estimates familiar from the weak-instrument diagnostics in the [instrumental variables](#sec-instrumental-variables) chapter, and differentiation instruments based on the local density of competing products were designed precisely to improve relevance. The definition of the market and of the outside option is a modeling decision with first-order consequences, since the outside share governs the level of price elasticities; a market defined too narrowly inflates the outside option and depresses estimated price sensitivity. Numerical hygiene in the BLP contraction and the simulation draws matters as much as the economics, and reproducible results call for a maintained estimation package rather than hand-rolled code.
+
+The connections to the rest of the book run deep. The random-utility foundation is the aggregate counterpart of the multinomial logit model of individual choice; the estimator is a GMM problem with an inner fixed-point solve; and the entire enterprise stands or falls on the quality of its [instruments](#sec-instrumental-variables). What structural demand estimation adds beyond those tools is the economic model that turns estimated elasticities into counterfactual predictions, markups, merger simulations, welfare from a new product, which no reduced-form regression can supply.

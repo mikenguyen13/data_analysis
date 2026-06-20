@@ -1,0 +1,205 @@
+# Dynamic Games {#sec-dynamic-games}
+
+The dynamic discrete choice models of Chapter \@ref(sec-dynamic-discrete-choice) describe a single agent who solves a forward-looking optimization problem against a fixed and exogenous environment. A bus engine ages, a worker accumulates experience, a machine wears down, and in each case the state evolves according to a transition law that the agent takes as given. Many of the most interesting questions in empirical industrial organization, however, involve several forward-looking agents whose decisions feed back into one another. A firm decides whether to enter a market knowing that its entry will depress the profits of incumbents and may trigger their exit; a firm invests in capacity or quality knowing that its rivals are doing the same and that today's investment shapes tomorrow's competitive position. The environment is no longer exogenous to the agent, because the state transition is partly the aggregate of every agent's strategic choices. This chapter develops the tools for estimating such models, building directly on the conditional choice probability (CCP) machinery introduced for the single-agent case.
+
+The central practical message is that the two-step logic that tamed single-agent dynamics extends, with care, to strategic settings. Rather than solving for equilibrium behavior at every candidate parameter vector, the analyst first recovers players' policies and the state transition from the data, then searches for the structural parameters that make the observed policies consistent with equilibrium play. This sidesteps the heaviest computation and is the reason dynamic games became empirically tractable in the decade following the foundational work.
+
+## From Single-Agent to Strategic Dynamics
+
+In the single-agent problem the object of interest is a value function $V(s)$ that solves a Bellman equation, and the agent's optimal policy is a deterministic or probabilistic mapping from the state $s$ to actions. The presence of other strategic players changes the nature of the solution concept. Each player now needs beliefs about how rivals will behave, and an equilibrium requires those beliefs to be correct. The state must be expanded to include everything payoff relevant about all players, for instance the identities of active firms, their productivity levels, or their installed capacities.
+
+Let there be $n$ players indexed by $i = 1, \dots, n$. The payoff-relevant state is $s_t$, observed by all players and by the econometrician, together with private shocks $\varepsilon_{it}$ that each player observes only for itself. Player $i$ chooses an action $a_{it}$ from a finite set to maximize the expected present discounted value of profits,
+
+$$
+\mathbb{E}\left[ \sum_{\tau = t}^{\infty} \beta^{\tau - t} \, \pi_i\!\left(a_{i\tau}, a_{-i\tau}, s_\tau\right) + \varepsilon_{it}(a_{it}) \,\middle|\, s_t \right],
+$$
+
+where $a_{-it}$ denotes the actions of every player other than $i$, $\pi_i$ is the per-period profit, and $\beta$ is the common discount factor. The dependence of $i$'s profit on $a_{-it}$ is what makes the problem a game rather than a collection of separate decision problems. The private shocks $\varepsilon_{it}$, typically assumed independent across players and over time and drawn from a known distribution such as the Type I extreme value, play the same role they did in the single-agent model: they smooth choice probabilities and deliver a tractable likelihood, and their independence across players is what permits the CCP representation to carry over.
+
+### Markov Perfect Equilibrium
+
+The equilibrium concept is **Markov perfect equilibrium** (MPE), in which each player's strategy depends on the history only through the current payoff-relevant state. A Markov strategy for player $i$ is a mapping $\sigma_i(s, \varepsilon_i)$ from the common state and the player's private shock to an action. The restriction to Markov strategies is both a substantive assumption, ruling out the trigger strategies that sustain collusion in repeated games, and a tractability device that keeps the state space finite-dimensional [@maskin2001markov].
+
+Integrating over the private shocks yields conditional choice probabilities $P_i(a \mid s)$, the probability that player $i$ chooses action $a$ in state $s$. These are precisely the objects the econometrician can estimate from data. In equilibrium each player's CCP is a best response to the CCPs of the others. Define player $i$'s expected value, given that all players follow their equilibrium policies, as $V_i(s)$. The Bellman equation that characterizes equilibrium is
+
+$$
+V_i(s) = \mathbb{E}_{\varepsilon}\,\max_{a}\left\{ \bar{\pi}_i(a, s; P_{-i}) + \varepsilon_i(a) + \beta \sum_{s'} V_i(s') \, g(s' \mid a, s; P_{-i}) \right\},
+$$
+
+where $\bar{\pi}_i(a, s; P_{-i})$ is player $i$'s expected current profit when it chooses $a$ and rivals randomize according to $P_{-i}$, and $g(s' \mid a, s; P_{-i})$ is the state transition implied by $i$'s action together with the rivals' policies. The notation makes the strategic interdependence explicit: a player's payoffs and the state transition both depend on the rivals' choice probabilities $P_{-i}$. An MPE is a profile of CCPs $\{P_i\}$ such that each $P_i$ is the choice probability generated by the value function above when the rivals play $P_{-i}$. This is a fixed point in the space of choice probabilities, and the existence of such a fixed point follows from standard arguments, but it need not be unique, a point that returns below with some force.
+
+### The Ericson and Pakes Framework
+
+The canonical model of industry dynamics is that of @ericson1995markov, which provides a tractable structure for entry, exit, and investment in a concentrated industry. Firms differ in a state variable that can be read as productivity, product quality, or cost position. In each period an incumbent firm chooses an investment level that stochastically improves its own state, while industry-wide shocks can erode every firm's position. Incumbents that anticipate low future profits exit and collect a scrap value; potential entrants that anticipate positive value pay a sunk entry cost and join the industry. The equilibrium is a Markov perfect equilibrium in investment, entry, and exit policies, and the model generates a stationary distribution of industry structures, the ebb and flow of firms and their states, that can be confronted with data.
+
+The framework is attractive because it nests the three margins that drive industry evolution within a single equilibrium object and because it produces simulable paths of the industry that map naturally to panel data on firms. Its computational burden in the original formulation is severe, since solving for the equilibrium requires iterating on value functions and policies over a state space that grows combinatorially with the number of firms and the richness of the firm-level state. This curse of dimensionality is the obstacle that the two-step estimators were designed to circumvent, and the influential treatment of @doraszelski2010computable clarifies the conditions under which a well-behaved equilibrium of this class exists and can be computed.
+
+## Two-Step Estimation of Dynamic Games
+
+The estimation strategy mirrors the single-agent CCP approach of Hotz and Miller. The insight that made single-agent dynamics tractable, that choice probabilities reveal differences in continuation values without solving the dynamic program, applies equally to games once each player's beliefs about rivals are pinned down by the observed CCPs. The first stage is descriptive and the second stage is structural.
+
+### First Stage: Policies and Transitions
+
+In the first stage the analyst estimates two objects directly from the data, with no reference to the structural parameters. The first is the profile of conditional choice probabilities $\widehat{P}_i(a \mid s)$, recovered by a flexible reduced-form estimator, a multinomial logit, a sieve, or a simple nonparametric frequency estimator when the state space is small enough. The second is the state transition $\widehat{g}(s' \mid a, s)$, the empirical law of motion for the state given the realized actions. Because every player conditions on the same observed state and the private shocks are independent across players, the joint behavior of rivals is summarized by the product of their individual CCPs, which the data deliver.
+
+These first-stage estimates serve as each player's beliefs about how the rest of the industry behaves. Under the assumption that the data are generated by a single equilibrium that is played consistently across the sampled markets, the observed frequencies are consistent estimates of the equilibrium CCPs. This assumption, that one and the same equilibrium underlies all the data, is doing real work and is examined in the discussion of multiplicity below.
+
+### Second Stage: Structural Parameters
+
+Given first-stage CCPs and transitions, the second stage searches for the structural parameters of the profit function, entry costs, scrap values, investment costs, and the slope of per-period profits, that rationalize the observed behavior as an equilibrium. Several closely related estimators implement this idea, and they differ chiefly in how they convert the equilibrium conditions into a sample objective.
+
+The estimator of @bajari2007estimating, known by the authors' initials as **BBL**, exploits the equilibrium requirement that each player's observed policy be a best response. Using forward simulation, the analyst computes the expected discounted profit a player earns under its observed policy and compares it to the profit it would earn under a perturbed, suboptimal policy. Equilibrium implies that no profitable unilateral deviation exists, which yields a family of inequality conditions: the value under the equilibrium policy must weakly exceed the value under any alternative. The structural parameters are estimated by choosing values that minimize the extent to which these inequalities are violated. Because the value functions enter linearly in the parameters for many specifications, the forward-simulated values can be precomputed, and the second stage reduces to a tractable minimization over the parameter space without ever solving for the equilibrium.
+
+The nested pseudo-likelihood estimator of @aguirregabiria2007sequential, denoted **NPL**, takes a likelihood-based route. Given first-stage CCPs, the structural parameters that best explain the observed choices are obtained by maximizing a pseudo-likelihood in which the rivals' behavior is held at its estimated values. The distinctive feature is the option to iterate: the parameter estimates and the implied best-response CCPs can be fed back as updated beliefs, and the procedure repeated until the CCPs and parameters reach a mutually consistent fixed point. A single iteration delivers a two-step estimator in the spirit of Hotz and Miller, while iterating to convergence can reduce the sensitivity to first-stage estimation error, at the cost of requiring the iteration to converge to the equilibrium that generated the data.
+
+Two further contributions complete the standard toolkit. @pakes2007simple develop simple, computationally light estimators for dynamic games and for single-agent dynamic problems, casting the equilibrium conditions as moment restrictions that can be estimated by least squares or method-of-moments once the CCPs are in hand, and they pay particular attention to the additional sampling error that the first-stage estimates inject into the second stage. @pesendorfer2008asymptotic provide the asymptotic theory for this class of two-step and iterative estimators, characterizing consistency and the limiting distribution and clarifying when iteration improves efficiency and when it does not. Together these papers establish that the parameters of a dynamic game are estimable without the analyst ever computing an equilibrium, provided the data identify the policies and the transition.
+
+A schematic of the two-step program, written for clarity rather than execution, makes the division of labor concrete.
+
+```{r dg-two-step-sketch, eval=FALSE}
+# Conceptual sketch of two-step dynamic-game estimation. Illustrative only.
+# Production work should use a maintained implementation.
+
+# First stage: estimate policies (CCPs) and the state transition from data.
+P_hat <- estimate_ccps(actions, states)          # e.g. flexible multinomial logit
+g_hat <- estimate_transition(states, actions)    # empirical law of motion
+
+# Second stage (BBL flavor): forward-simulate values under the observed policy
+# and under perturbed deviations, then choose parameters so that the
+# no-profitable-deviation inequalities hold as closely as possible.
+obj <- function(theta) {
+  v_eq  <- forward_simulate(P_hat, g_hat, theta)              # value of observed policy
+  v_dev <- forward_simulate(perturb(P_hat), g_hat, theta)     # value of deviations
+  viol  <- pmax(0, v_dev - v_eq)                              # violated inequalities
+  sum(viol^2)
+}
+# theta_hat <- optim(theta_start, obj)$par
+```
+
+## Key Challenges
+
+Three difficulties pervade the empirical analysis of dynamic games, and a credible application has to confront each of them explicitly.
+
+### Multiplicity of Equilibria
+
+A dynamic game can admit many Markov perfect equilibria, and the structural model places no restriction on which one the data reflect. The two-step estimators sidestep this by assuming that the data come from a single equilibrium, recovering that equilibrium's CCPs nonparametrically rather than predicting them from the model. This is a strength for estimation, since it avoids the need to solve and select among equilibria, but it has two consequences. First, if different markets in a pooled sample play different equilibria, the first-stage CCPs blend incompatible policies and the estimates are inconsistent, so pooling requires the assumption that one equilibrium is common across markets, or a way to group markets by equilibrium. Second, counterfactual prediction does require solving the model, at which point the analyst must take a stand on equilibrium selection, since the policy-relevant question may land on an equilibrium other than the estimated one. Multiplicity is therefore most benign for estimation and most demanding for counterfactuals.
+
+### The Curse of Dimensionality
+
+The payoff-relevant state must encode the situation of every player, so the state space grows combinatorially in the number of players and the richness of each player's individual state. A direct solution of the equilibrium, iterating value functions over the full state space, becomes infeasible well before the number of firms reaches double digits. The two-step estimators relieve this burden at the estimation stage, because they never solve the equilibrium, but the curse returns for counterfactual analysis, which does require a solution. A substantial literature addresses this through approximation, including the oblivious-equilibrium concept that replaces a firm's belief about the full state with a belief about a long-run average, which renders large games tractable [@weintraub2008markov].
+
+### Identification
+
+The structural parameters are identified only through the variation that the model maps from states to choices, and several parameters are notoriously fragile. The discount factor $\beta$ is the canonical case: in many specifications it is not separately identified from the per-period profit function without an exclusion restriction, a variable that shifts continuation values but not current payoffs. Entry costs and scrap values are identified from the frequency of entry and exit conditional on the state, and their identification can be weak when entry or exit is rare. The analyst should treat the discount factor and the distribution of private shocks as assumptions to be defended rather than quantities the data will reveal unaided, and should report how the conclusions move when these assumptions are varied.
+
+## A Worked Illustration
+
+To fix the equilibrium logic with a minimum of machinery, consider a static entry game between two symmetric firms, which is the strategic kernel inside the richer dynamic model. Each firm $i$ decides whether to be active, $a_i = 1$, or to stay out, $a_i = 0$. A firm that stays out earns zero. A firm that enters earns a profit that depends on whether it is a monopolist or shares the market with the rival,
+
+$$
+\pi_i(a_i = 1, a_{-i}) = \alpha - \delta \, a_{-i} + \epsilon_i,
+$$
+
+where $\alpha > 0$ is the monopoly profit, $\delta > 0$ is the competitive effect by which a rival's presence reduces profit, and $\epsilon_i$ is a profit shock. Setting aside the shock for the deterministic core, a firm wants to enter whenever its profit is positive. When $\alpha > 0$ but $\alpha - \delta < 0$, the market supports one active firm but not two. The pure-strategy equilibria are then asymmetric: one firm enters and the other stays out. There are two such equilibria, distinguished only by which firm is the entrant, and this is the simplest possible instance of the multiplicity that pervades the dynamic case. The data reveal that exactly one firm is active, but not a structural reason for which one, so the parameters $\alpha$ and $\delta$ are identified from the frequency of the monopoly outcome while the selection between the two equilibria is not.
+
+The same primitives admit a symmetric equilibrium in mixed strategies, in which each firm enters with probability $p$. A firm is willing to randomize only when it is indifferent between entering and staying out, so its expected profit from entry must equal zero. With the rival entering with probability $p$, the expected profit from entering is the monopoly profit weighted by the chance the rival stays out plus the duopoly profit weighted by the chance the rival enters,
+
+$$
+(1 - p)\,\alpha + p\,(\alpha - \delta) = 0,
+$$
+
+which rearranges to the entry probability
+
+$$
+p^\star = \frac{\alpha}{\delta}.
+$$
+
+This mixing probability is the static analogue of a conditional choice probability, the object the first stage of a dynamic-game estimator would recover from data. The following short computation, which runs in base R, solves for the symmetric mixed-strategy entry probability and verifies the indifference condition that defines it.
+
+```{r dg-entry-mixed}
+# Static two-firm entry game: symmetric mixed-strategy entry probability.
+# alpha = monopoly profit, delta = competitive effect of a rival's entry.
+alpha <- 1.2
+delta <- 2.0
+
+# Indifference between entering and staying out pins down the entry probability.
+p_star <- alpha / delta
+
+# Verify: expected profit from entering equals zero at p_star.
+exp_profit_enter <- (1 - p_star) * alpha + p_star * (alpha - delta)
+
+cat(sprintf("Symmetric entry probability p* = %.3f\n", p_star))
+cat(sprintf("Expected profit from entry at p* = %.3e (should be 0)\n",
+            exp_profit_enter))
+```
+
+The computation confirms that at $p^\star = \alpha / \delta$ each firm is exactly indifferent, so randomizing with this probability is a best response to the rival doing the same. The comparative statics are economically sensible: a larger competitive effect $\delta$ lowers the equilibrium entry probability, because a firm is more reluctant to enter when a rival's presence is more damaging, while a larger monopoly profit $\alpha$ raises it.
+
+The bridge to the dynamic model is short to describe. In the dynamic entry and exit problem the per-period profit takes the same shape, monopoly profit eroded by the presence of rivals, but the entry decision now weighs a sunk entry cost against the discounted stream of future profits, and the exit decision weighs a scrap value against the discounted stream of continuing. The equilibrium entry and exit probabilities become state-dependent CCPs rather than a single number, and the indifference condition that pinned down $p^\star$ becomes a Bellman equation in which the continuation value reflects the rivals' own entry and exit policies. The two-step estimator recovers those state-dependent CCPs in the first stage and then asks what entry costs, scrap values, and profit parameters make the observed policies an equilibrium, exactly the logic illustrated here in its simplest static form.
+
+To see how state-dependent policies translate into the dynamics of an industry, the next computation simulates a short path of market structure from a small set of CCP-implied transition probabilities. The market occupies one of three states, a monopoly, a duopoly, or an empty market, and moves between them according to probabilities that one would, in an application, read off the estimated first-stage policies and transition.
+
+```{r dg-ccp-transition}
+# Simulate market-structure transitions implied by CCP-based policies.
+# States: 1 = monopoly, 2 = duopoly, 3 = empty market.
+states <- c("monopoly", "duopoly", "empty")
+
+# Row-stochastic transition matrix implied by entry/exit CCPs.
+# Each row gives next-period state probabilities given the current state.
+P <- matrix(c(
+  0.70, 0.20, 0.10,   # from monopoly: stay, attract entry, or exit
+  0.25, 0.65, 0.10,   # from duopoly: lose one, stay, or empty out
+  0.40, 0.05, 0.55    # from empty: one enters, two enter, or stay empty
+), nrow = 3, byrow = TRUE, dimnames = list(states, states))
+
+set.seed(46)
+n_periods <- 20
+path <- integer(n_periods)
+path[1] <- 3                                  # start from an empty market
+for (t in 2:n_periods) {
+  path[t] <- sample(1:3, size = 1, prob = P[path[t - 1], ])
+}
+
+cat("Simulated market-structure path:\n")
+print(states[path])
+```
+
+The simulated path shows the industry cycling through monopoly, duopoly, and empty configurations as firms enter and exit, which is the kind of sample trajectory that the Ericson and Pakes framework generates and that a panel of markets would record. In a full analysis the transition matrix would not be assumed but estimated, the off-diagonal probabilities would carry the structural content of entry costs and scrap values, and the simulation would be used both to compute the forward-simulated values in the second-stage objective and to trace out counterfactual industry paths under a policy change.
+
+A full dynamic-game estimation, with state-dependent value functions solved by forward simulation and structural parameters recovered from the equilibrium inequalities, is far heavier and is left as illustrative code rather than a runnable example.
+
+```{r dg-full-estimation, eval=FALSE}
+# Illustrative skeleton of a dynamic entry/exit game estimator. Not runnable.
+# Combines a first-stage CCP/transition estimate with a BBL-style second stage.
+
+first_stage <- function(panel) {
+  list(
+    P = estimate_ccps(panel$action, panel$state),       # entry/exit policies
+    g = estimate_transition(panel$state, panel$action)  # state law of motion
+  )
+}
+
+# Forward-simulate the discounted value of a policy from each state.
+value_of_policy <- function(policy, g, theta, beta = 0.95, horizon = 200,
+                            n_paths = 1000) {
+  # Average discounted per-period profit over simulated paths under `policy`.
+  # profit(state, action; theta) encodes monopoly profit, competitive effect,
+  # entry cost, and scrap value, all functions of the structural theta.
+  NA_real_
+}
+
+second_stage <- function(fs, theta_start, beta = 0.95) {
+  objective <- function(theta) {
+    v_obs <- value_of_policy(fs$P, fs$g, theta, beta)
+    v_dev <- value_of_policy(perturb_policy(fs$P), fs$g, theta, beta)
+    sum(pmax(0, v_dev - v_obs)^2)            # no-profitable-deviation inequalities
+  }
+  optim(theta_start, objective)
+}
+```
+
+## Practical Notes
+
+A handful of points recur in applied work and deserve to be stated plainly. The credibility of a dynamic-game estimate rests first on the assumption that the sampled markets play a common equilibrium, so the analyst should ask whether the markets are similar enough for that to be plausible and should be wary of pooling markets that may have coordinated on different equilibria. The discount factor and the distribution of private shocks are assumptions rather than estimated quantities in most applications, and the sensitivity of the conclusions to them should be reported. First-stage estimation error propagates into the second stage and inflates standard errors in a way that the naive two-step variance ignores, so inference should account for the first stage, whether through the asymptotic corrections of @pesendorfer2008asymptotic or through a bootstrap that resamples the whole two-step procedure. Finally, counterfactuals require solving the model and therefore confronting both the curse of dimensionality and equilibrium selection, which are exactly the difficulties that estimation was able to avoid, so a paper that estimates cleanly can still stumble at the counterfactual stage if these are not handled with care.
+
+The connections to the rest of the book are direct. The CCP representation that powers the first stage is the same device introduced for single-agent dynamics in Chapter \@ref(sec-dynamic-discrete-choice), now applied to each player in turn. The demand and cost primitives that enter the per-period profit function are the objects recovered by the structural demand estimation of Chapter \@ref(sec-structural-io), and a fully specified industry-dynamics model often takes an estimated demand system as a maintained input. What dynamic games add beyond those tools is the equilibrium discipline that turns a collection of forward-looking single-agent problems into a coherent model of an evolving industry, capable of answering counterfactual questions about entry, exit, and investment that no single-agent or static model can address.

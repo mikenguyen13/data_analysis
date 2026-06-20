@@ -108,9 +108,9 @@ A restrictive feature of these early models is that inefficiency is constant ove
 
 ### Estimation in R
 
-The `frontier` package implements the cross-sectional and the @battese1992frontier and @battese1995model panel models via maximum likelihood, and the `sfaR` package offers a broader menu of inefficiency distributions and the Jondrow and Battese-Coelli efficiency predictors. The canonical example below fits a half-normal Cobb-Douglas production frontier to the package's `front41Data`.
+Two specialized packages dominate applied work. The `frontier` package implements the cross-sectional model and the @battese1992frontier and @battese1995model panel models via maximum likelihood, and the `sfaR` package offers a broader menu of inefficiency distributions together with the Jondrow and Battese-Coelli efficiency predictors. The reference syntax below fits a half-normal Cobb-Douglas production frontier and would run unchanged on either package's bundled `front41Data`. Because neither package is part of this book's locked environment, these two chunks are shown for orientation only and are not executed; the runnable estimation that follows reproduces their output from first principles in base R.
 
-```{r sfa-frontier, eval=FALSE}
+```{r fe-sfa-frontier-pkg, eval=FALSE}
 # install.packages("frontier")
 library(frontier)
 
@@ -131,65 +131,189 @@ summary(cobb_douglas)
 efficiencies(cobb_douglas)
 ```
 
-The same package estimates a cost frontier by supplying a cost equation and declaring the inefficiency to be cost-increasing through the `ineffDecrease` argument, and it fits the time-varying panel model when given a panel data structure.
-
-```{r sfa-cost, eval=FALSE}
-# Cost frontier: inefficiency raises cost, so it is "cost increasing".
-cost_frontier <- sfa(
-    log(cost) ~ log(output) + log(price_capital) + log(price_labour),
-    data       = firm_cost_data,
-    ineffDecrease = FALSE
-)
-summary(cost_frontier)
-```
-
 The `sfaR` package exposes alternative distributions through a single interface, which is useful for checking whether efficiency rankings are robust to the assumed shape of $u_i$.
 
-```{r sfar, eval=FALSE}
+```{r fe-sfar-pkg, eval=FALSE}
 # install.packages("sfaR")
 library(sfaR)
 
 # Compare half-normal, truncated-normal, and exponential inefficiency.
-fit_hnorm <- sfacross(
-    log(output) ~ log(capital) + log(labour),
-    udist = "hnormal",  data = front41Data
-)
-fit_tnorm <- sfacross(
-    log(output) ~ log(capital) + log(labour),
-    udist = "tnormal",  data = front41Data
-)
-fit_exp <- sfacross(
-    log(output) ~ log(capital) + log(labour),
-    udist = "exponential", data = front41Data
-)
+fit_hnorm <- sfacross(log(output) ~ log(capital) + log(labour),
+                      udist = "hnormal",     data = front41Data)
+fit_tnorm <- sfacross(log(output) ~ log(capital) + log(labour),
+                      udist = "tnormal",     data = front41Data)
+fit_exp   <- sfacross(log(output) ~ log(capital) + log(labour),
+                      udist = "exponential", data = front41Data)
 
 # Efficiency scores and a side-by-side likelihood comparison.
 efficiencies(fit_hnorm)
 lapply(list(fit_hnorm, fit_tnorm, fit_exp), logLik)
 ```
 
-A small self-contained simulation illustrates the composed-error structure and the diagnostic skewness without requiring any external package. We draw a symmetric noise component and a half-normal inefficiency component, combine them, and confirm the negative skewness that signals genuine inefficiency in production data.
+### A Runnable Half-Normal Frontier from First Principles
 
-```{r sfa-sim}
+The closed-form composed-error density in equation \@ref(eq:composed-density) makes the half-normal model entirely self-contained: the log likelihood can be written in a few lines and maximized with base R's `optim`, so the estimation runs in any environment without a frontier package. We first simulate a Cobb-Douglas production process with known parameters, then recover them, which lets us check the estimates against the truth.
+
+```{r fe-sfa-simulate}
 set.seed(2024)
-n <- 2000
+n <- 400
 
-# Two-sided noise.
-v <- rnorm(n, mean = 0, sd = 0.3)
-# One-sided half-normal inefficiency u >= 0.
-u <- abs(rnorm(n, mean = 0, sd = 0.6))
-# Composed production-frontier error: noise minus inefficiency.
-epsilon <- v - u
+# True technology: ln(y) = b0 + b1 ln(K) + b2 ln(L) + v - u.
+b0_true <- 1.0; b1_true <- 0.35; b2_true <- 0.55
+sigma_v_true <- 0.20   # noise scale
+sigma_u_true <- 0.45   # inefficiency scale
 
-# Production data: output is the frontier exp(noise) shrunk by exp(-u).
-data.frame(
-    mean_eps      = mean(epsilon),
-    sd_eps        = sd(epsilon),
-    skewness_sign = sign(mean((epsilon - mean(epsilon))^3))
+ln_K <- log(runif(n, 10, 100))
+ln_L <- log(runif(n, 10, 100))
+
+v <- rnorm(n, 0, sigma_v_true)        # two-sided noise
+u <- abs(rnorm(n, 0, sigma_u_true))   # half-normal inefficiency u >= 0
+
+ln_y <- b0_true + b1_true * ln_K + b2_true * ln_L + v - u
+firm  <- data.frame(ln_y, ln_K, ln_L, te_true = exp(-u))
+head(firm)
+```
+
+Before estimating the full model we run the **wrong-skew diagnostic**. Fitting the frontier by ordinary least squares ignores the one-sided term, but the asymmetry of the inefficiency leaves a fingerprint in the OLS residuals: for a genuine production frontier they should be negatively skewed, because inefficiency can only push output down. A positive sample skewness is the warning sign of @waldman1982note that the data contain no inefficiency in the expected direction, in which case the maximum likelihood estimate of $\sigma_u$ collapses to zero and the frontier reduces to the regression line.
+
+```{r fe-ols-skew}
+ols <- lm(ln_y ~ ln_K + ln_L, data = firm)
+res <- residuals(ols)
+
+# Sample skewness of the OLS residuals.
+res_skewness <- mean((res - mean(res))^3) / sd(res)^3
+res_skewness
+```
+
+The residual skewness is negative, confirming that ordinary least squares has detected the one-sided inefficiency and that fitting the stochastic frontier is warranted. We now code the half-normal log likelihood directly from equation \@ref(eq:composed-density), parameterizing the variance components through $\sigma$ and $\lambda = \sigma_u / \sigma_v$, and maximize it from OLS starting values.
+
+```{r fe-sfa-mle}
+# Negative log likelihood of the half-normal composed-error model.
+# theta = (b0, b1, b2, log_sigma, log_lambda); logs keep sigma, lambda > 0.
+neg_loglik <- function(theta, y, X) {
+    k       <- ncol(X)
+    beta    <- theta[1:k]
+    sigma   <- exp(theta[k + 1])
+    lambda  <- exp(theta[k + 2])
+    eps     <- y - X %*% beta
+    ll <- log(2) - log(sigma) +
+          dnorm(eps / sigma, log = TRUE) +
+          pnorm(-eps * lambda / sigma, log.p = TRUE)
+    -sum(ll)
+}
+
+X <- model.matrix(ols)            # intercept, ln_K, ln_L
+y <- firm$ln_y
+
+# OLS-based starting values; sigma_u, sigma_v split the residual variance.
+start <- c(coef(ols), log(sd(res)), log(1))
+fit   <- optim(start, neg_loglik, y = y, X = X,
+               method = "BFGS", hessian = TRUE)
+
+# Recover the structural variance parameters from sigma and lambda.
+k        <- ncol(X)
+sigma    <- exp(fit$par[k + 1])
+lambda   <- exp(fit$par[k + 2])
+sigma_v  <- sigma / sqrt(1 + lambda^2)
+sigma_u  <- sigma_v * lambda
+gamma    <- sigma_u^2 / (sigma_u^2 + sigma_v^2)
+```
+
+Table \@ref(tab:fe-sfa-coef) collects the estimated technology coefficients and variance parameters next to the values that generated the data. The slope coefficients on capital and labour, the noise and inefficiency scales, and the variance ratio $\gamma$ of equation \@ref(eq:gamma) are all close to the truth, which is the reassurance that the hand-coded likelihood is correct.
+
+```{r fe-sfa-coef}
+coef_tbl <- data.frame(
+    Parameter = c("Intercept (b0)", "ln K (b1)", "ln L (b2)",
+                  "sigma_v", "sigma_u", "gamma"),
+    Estimate  = round(c(fit$par[1:3], sigma_v, sigma_u, gamma), 3),
+    Truth     = round(c(b0_true, b1_true, b2_true,
+                        sigma_v_true, sigma_u_true,
+                        sigma_u_true^2 /
+                          (sigma_u_true^2 + sigma_v_true^2)), 3)
+)
+knitr::kable(
+    coef_tbl,
+    caption = "Maximum likelihood estimates of the half-normal Cobb-Douglas stochastic production frontier, with the data-generating values for comparison.",
+    booktabs = TRUE
 )
 ```
 
-A negative sign on the residual skewness is the empirical fingerprint of a production frontier with detectable inefficiency. Positive skewness is the wrong-skew warning that the model has no inefficiency to separate from noise.
+### Predicting and Visualizing Technical Efficiency
+
+With the parameters in hand we apply the @jondrow1982estimation conditional-mean predictor to each firm's composed residual, then convert it to the @battese1988prediction efficiency score $\widehat{TE}_i = E(\exp(-u_i) \mid \varepsilon_i)$. Both predictors have closed forms under the half-normal model, so the computation is a direct vectorized evaluation of $\phi$ and $\Phi$.
+
+```{r fe-te-scores}
+eps      <- as.vector(y - X %*% fit$par[1:k])
+sig_star <- sigma_u * sigma_v / sigma          # sigma_*
+mu_star  <- -eps * sigma_u^2 / sigma^2         # mode of u | eps
+
+# Jondrow et al. (1982) conditional mean E(u | eps).
+lambda_ratio <- mu_star / sig_star
+u_hat <- sig_star * (dnorm(lambda_ratio) / pnorm(lambda_ratio) + lambda_ratio)
+
+# Battese-Coelli (1988) point predictor E(exp(-u) | eps).
+te_hat <- exp(-mu_star + 0.5 * sig_star^2) *
+          pnorm(mu_star / sig_star - sig_star) / pnorm(mu_star / sig_star)
+
+summary(te_hat)
+```
+
+The score distribution is the headline output of any frontier study, since it ranks the units and quantifies the aggregate efficiency loss. Figure \@ref(fig:fe-te-dist) plots the predicted scores against the (here known) true efficiencies and shows their distribution, confirming that the predictor tracks the latent efficiency closely even though no single firm's score is consistently estimated.
+
+```{r fe-te-dist, fig.cap="Predicted Battese-Coelli technical efficiency scores. Left: the distribution of scores across firms, concentrated near the best-practice frontier at one. Right: predicted against true efficiency, scattered around the 45-degree line.", fig.width=8, fig.height=3.6, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(patchwork)
+
+eff_df <- data.frame(te_hat = te_hat, te_true = firm$te_true)
+
+p_hist <- ggplot(eff_df, aes(x = te_hat)) +
+    geom_histogram(bins = 30, fill = "#1b9e77", color = "white") +
+    labs(x = "Predicted technical efficiency", y = "Number of firms") +
+    causalverse::ama_theme()
+
+p_scatter <- ggplot(eff_df, aes(x = te_true, y = te_hat)) +
+    geom_point(alpha = 0.4, color = "#7570b3") +
+    geom_abline(slope = 1, intercept = 0,
+                linetype = "dashed", color = "grey40") +
+    labs(x = "True efficiency", y = "Predicted efficiency") +
+    causalverse::ama_theme()
+
+p_hist + p_scatter
+```
+
+A complementary view places the estimated frontier against the data. Holding labour at its median, Figure \@ref(fig:fe-frontier) draws the fitted production frontier as a function of capital and overlays the observed firms, the vertical gap from each point up to the frontier being that firm's combined noise and inefficiency.
+
+```{r fe-frontier, fig.cap="Estimated stochastic production frontier (holding labour at its median) with observed firms below it. The deterministic frontier is the solid line; each firm sits below its own noise-perturbed ceiling by its inefficiency.", fig.width=6.5, fig.height=4}
+ln_L_med <- median(firm$ln_L)
+grid <- data.frame(ln_K = seq(min(firm$ln_K), max(firm$ln_K),
+                              length.out = 100))
+grid$ln_y_hat <- fit$par[1] + fit$par[2] * grid$ln_K +
+                 fit$par[3] * ln_L_med
+
+ggplot() +
+    geom_point(data = firm, aes(x = ln_K, y = ln_y),
+               alpha = 0.35, color = "#7570b3") +
+    geom_line(data = grid, aes(x = ln_K, y = ln_y_hat),
+              color = "#d95f02", linewidth = 1) +
+    labs(x = "ln capital", y = "ln output") +
+    causalverse::ama_theme()
+```
+
+### Cost Frontiers
+
+The production frontier describes maximum output; its economic dual, the cost frontier of equation \@ref(eq:cost-frontier), describes minimum cost and flips the sign on the inefficiency term so that $u_i \geq 0$ raises cost above the boundary. In the `frontier` package a cost frontier is fit by supplying a cost equation and declaring the inefficiency to be cost-increasing through the `ineffDecrease` argument; the chunk is reference syntax and is not executed.
+
+```{r fe-sfa-cost-pkg, eval=FALSE}
+# Cost frontier: inefficiency raises cost, so it is "cost increasing".
+cost_frontier <- sfa(
+    log(cost) ~ log(output) + log(price_capital) + log(price_labour),
+    data          = firm_cost_data,
+    ineffDecrease = FALSE
+)
+summary(cost_frontier)
+```
+
+The same first-principles likelihood handles the cost case after one change: the composed error becomes $\varepsilon_i = v_i + u_i$, so replacing $\lambda$ with $-\lambda$ inside the `pnorm` term of `neg_loglik` (equivalently, flipping the sign of `eps`) estimates a cost frontier without any package. Cost inefficiency conflates technical and allocative inefficiency, and separating the two requires either added structure or joint estimation of the cost-share equations.
 
 ## Data Envelopment Analysis
 
@@ -225,9 +349,9 @@ DEA shares Farrell's two orientations. The input-oriented program in equation \@
 
 ### Estimation in R
 
-Several R packages solve the DEA programs. The `Benchmarking` package accompanies a standard textbook treatment and exposes orientation and returns-to-scale options directly, and `rDEA` adds the bias correction and bootstrap inference of @simar1998sensitivity, which is important because raw DEA scores are biased upward and have no off-the-shelf standard errors.
+Several R packages solve the DEA programs. The `Benchmarking` package accompanies a standard textbook treatment and exposes orientation and returns-to-scale options directly, while `deaR` offers the same with a tidy interface and `rDEA` adds the bias correction and bootstrap inference of @simar1998sensitivity, which matters because raw DEA scores are biased upward and have no off-the-shelf standard errors. None of these are in this book's locked environment, so the syntax below is shown for orientation only and is not executed; the runnable estimation that follows solves the linear programs directly with `lpSolve`.
 
-```{r dea-benchmarking, eval=FALSE}
+```{r fe-dea-benchmarking-pkg, eval=FALSE}
 # install.packages("Benchmarking")
 library(Benchmarking)
 
@@ -235,50 +359,120 @@ library(Benchmarking)
 X <- as.matrix(firm_data[, c("capital", "labour")])
 Y <- as.matrix(firm_data[, c("output")])
 
-# Constant returns to scale (CCR), input oriented.
-dea_crs <- dea(X, Y, RTS = "crs", ORIENTATION = "in")
-
-# Variable returns to scale (BCC), input oriented.
-dea_vrs <- dea(X, Y, RTS = "vrs", ORIENTATION = "in")
+# Constant returns to scale (CCR) and variable returns (BCC), input oriented.
+dea_crs   <- dea(X, Y, RTS = "crs", ORIENTATION = "in")
+dea_vrs   <- dea(X, Y, RTS = "vrs", ORIENTATION = "in")
 
 # Scale efficiency is the ratio of CRS to VRS technical efficiency.
 scale_eff <- eff(dea_crs) / eff(dea_vrs)
+
+# Bias-corrected bootstrap (rDEA) for confidence intervals on the scores.
+# library(rDEA)
+# dea.robust(X = X, Y = Y, model = "input", RTS = "VRS", B = 2000)
 ```
 
-The bias-corrected bootstrap from `rDEA` provides confidence intervals for the scores, addressing DEA's lack of a built-in stochastic component.
+### Solving the DEA Programs with lpSolve
 
-```{r dea-rdea, eval=FALSE}
-# install.packages("rDEA")
-library(rDEA)
+The envelopment program in equation \@ref(eq:dea-ccr) is a small linear program, one per unit, and the `lpSolve` package in this book's environment solves it directly. The function below sets up the input-oriented program for a chosen unit: the objective is to minimize $\theta$, the input constraints are $\sum_j \lambda_j x_{nj} - \theta x_{no} \leq 0$, the output constraints are $\sum_j \lambda_j y_{mj} \geq y_{mo}$, and adding the convexity row $\sum_j \lambda_j = 1$ switches the technology from constant returns (CCR) to variable returns (BCC).
 
-# Bias-corrected, bootstrapped input-oriented VRS efficiency.
-dea_boot <- dea.robust(
-    X = X, Y = Y,
-    model = "input", RTS = "VRS", B = 2000
+```{r fe-dea-lp}
+library(lpSolve)
+
+# Input-oriented radial efficiency of unit `o` given input matrix X
+# (units x N) and output matrix Y (units x M). vrs = TRUE adds the
+# convexity constraint sum(lambda) = 1 for the BCC model.
+dea_eff <- function(o, X, Y, vrs = FALSE) {
+    J <- nrow(X); N <- ncol(X); M <- ncol(Y)
+    # Decision variables: theta, then lambda_1..lambda_J.
+    obj <- c(1, rep(0, J))
+    # Input rows: sum_j lambda_j x_nj - theta x_no <= 0.
+    in_rows  <- cbind(-X[o, ], t(X))
+    # Output rows: sum_j lambda_j y_mj >= y_mo.
+    out_rows <- cbind(rep(0, M), t(Y))
+    mat <- rbind(in_rows, out_rows)
+    dir <- c(rep("<=", N), rep(">=", M))
+    rhs <- c(rep(0, N), Y[o, ])
+    if (vrs) {                      # convexity: sum(lambda) = 1
+        mat <- rbind(mat, c(0, rep(1, J)))
+        dir <- c(dir, "=")
+        rhs <- c(rhs, 1)
+    }
+    sol <- lp("min", obj, mat, dir, rhs)
+    sol$solution[1]                 # optimal theta
+}
+```
+
+We apply it to a small set of decision-making units with two inputs and one output, computing both the constant-returns (CCR) and variable-returns (BCC) input-oriented scores for every unit, together with the scale efficiency that their ratio defines.
+
+```{r fe-dea-scores}
+dmu <- data.frame(
+    unit    = LETTERS[1:6],
+    capital = c(2, 3, 3, 4, 5, 6),
+    labour  = c(2, 2, 4, 3, 5, 4),
+    output  = c(1, 3, 4, 4, 5, 6)
 )
-dea_boot$theta_hat_hat   # bias-corrected efficiency scores
+X <- as.matrix(dmu[, c("capital", "labour")])
+Y <- as.matrix(dmu[, "output", drop = FALSE])
+
+dmu$te_crs <- vapply(seq_len(nrow(dmu)),
+                     function(o) dea_eff(o, X, Y, vrs = FALSE), numeric(1))
+dmu$te_vrs <- vapply(seq_len(nrow(dmu)),
+                     function(o) dea_eff(o, X, Y, vrs = TRUE),  numeric(1))
+dmu$scale  <- dmu$te_crs / dmu$te_vrs
+
+knitr::kable(
+    dmu, digits = 3,
+    caption = "Input-oriented DEA efficiency scores for six decision-making units. te_crs is the CCR (constant returns) score, te_vrs the BCC (variable returns) score, and scale their ratio. VRS scores are weakly larger because the VRS technology envelops the data more tightly.",
+    booktabs = TRUE
+)
 ```
 
-A compact illustration with no external dependency solves the constant-returns input-oriented program directly with base R's linear-programming-free ratio for a single input and output, where the frontier is simply the maximum output-to-input ratio.
+Each VRS score is at least as large as its CRS counterpart, as the theory requires, and a unit with a scale efficiency below one is operating away from its most productive scale. To visualize the frontier we use a single-input, single-output slice where the envelope is a curve in the plane. Figure \@ref(fig:fe-dea-frontier) draws the constant-returns frontier (a ray through the origin with the steepest output-per-input slope) and the variable-returns frontier (the upper piecewise-linear hull), making concrete how the BCC envelope wraps the data more tightly than the CCR ray.
 
-```{r dea-sim}
-# Five units, one input and one output.
-units  <- data.frame(
-    unit   = LETTERS[1:5],
-    input  = c(1, 2, 3, 4, 5),
-    output = c(1, 3, 4, 4, 5)
+```{r fe-dea-frontier, fig.cap="DEA frontiers for six units with one input and one output. The CRS frontier is the ray through the origin with the highest output-per-input ratio; the VRS frontier is the piecewise-linear upper hull. Inefficient units lie below both.", fig.width=6.5, fig.height=4.2, message=FALSE}
+library(ggplot2)
+
+d1 <- data.frame(
+    unit   = LETTERS[1:6],
+    input  = c(1, 2, 3, 4, 5, 6),
+    output = c(1, 3, 3.5, 5, 5, 5.5)
 )
 
-# Under CRS with one input and one output, the frontier is the
-# best observed output-per-input ratio; efficiency is each unit's
-# ratio relative to that best.
-units$ratio   <- units$output / units$input
-best          <- max(units$ratio)
-units$te_crs  <- units$ratio / best
-units
+# CRS ray: slope = best output-per-input ratio.
+crs_slope <- max(d1$output / d1$input)
+
+# VRS frontier: the upper-left convex hull (efficient units only).
+ord  <- order(d1$input)
+ds   <- d1[ord, ]
+keep <- logical(nrow(ds)); cummax_out <- -Inf
+for (i in seq_len(nrow(ds))) {       # an output dominates if nothing
+    if (ds$output[i] > cummax_out) { # to its left produces at least as much
+        keep[i] <- TRUE; cummax_out <- ds$output[i]
+    }
+}
+vrs_pts <- ds[keep, ]
+
+ggplot(d1, aes(input, output)) +
+    geom_abline(slope = crs_slope, intercept = 0,
+                color = "#d95f02", linewidth = 1) +
+    geom_line(data = vrs_pts, aes(input, output),
+              color = "#1b9e77", linewidth = 1) +
+    geom_point(size = 2.5, color = "#7570b3") +
+    geom_text(aes(label = unit), vjust = -0.8, size = 3.5) +
+    labs(x = "Input", y = "Output") +
+    causalverse::ama_theme()
 ```
 
-Unit B attains the highest output-per-input ratio and defines the constant-returns frontier, so it scores one, while the others are measured by how far their own ratio falls short of B's.
+### The Malmquist Productivity Index
+
+When units are observed over time, efficiency analysis turns from a static ranking to the measurement of productivity change, and the standard tool is the Malmquist productivity index introduced into the DEA literature by @fare1994productivity. For a unit observed in periods $t$ and $t+1$, the index compares its input-output bundle against the frontiers of both periods through distance functions $D^{s}(\mathbf{x}_r, \mathbf{y}_r)$, the efficiency of period-$r$ data measured against the period-$s$ technology,
+
+$$
+M_{t,t+1} = \left[ \frac{D^{t}(\mathbf{x}_{t+1}, \mathbf{y}_{t+1})}{D^{t}(\mathbf{x}_{t}, \mathbf{y}_{t})} \times \frac{D^{t+1}(\mathbf{x}_{t+1}, \mathbf{y}_{t+1})}{D^{t+1}(\mathbf{x}_{t}, \mathbf{y}_{t})} \right]^{1/2}.
+(\#eq:malmquist)
+$$
+
+A value above one signals productivity growth. The geometric-mean form factors cleanly into the product of an **efficiency-change** component, how much the unit closed the gap to its own period's frontier (catching up), and a **technical-change** component, how much the frontier itself shifted between periods (innovation). Each of the four distance functions in equation \@ref(eq:malmquist) is exactly the DEA program already solved above, two evaluating data against the contemporaneous frontier and two against the other period's frontier, so the Malmquist index requires no new machinery beyond running the `dea_eff` solver across the pooled panel. This decomposition is what lets analysts ask whether observed productivity gains came from laggards catching up to best practice or from best practice itself advancing.
 
 ## Parametric SFA versus Nonparametric DEA
 
