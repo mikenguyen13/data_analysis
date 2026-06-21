@@ -114,12 +114,20 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 51. Differential Privacy
 52. High-Performance Computing
 53. Clustered and Robust Inference
+
+**Part VI. Structural Econometrics**
+
 54. Estimation Methods for Structural Models
 55. Structural Econometrics and Demand Estimation
 56. Dynamic Discrete Choice
 57. Dynamic Games
 58. Structural Models of Selection and Unobserved Heterogeneity
-59. Frontier and Efficiency Analysis
+59. Production Functions and Productivity
+60. Frontier and Efficiency Analysis
+61. Markups, Market Power, and Mergers
+62. Demand Systems
+63. Structural Models of Auctions
+64. Machine Learning and AI for Structural Estimation
 
 **Appendix**
 
