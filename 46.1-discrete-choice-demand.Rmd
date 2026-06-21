@@ -42,6 +42,38 @@ $$\delta_{jt} = \ln s_{jt} - \ln s_{0t},$$
 
 and for nested logit it adds the $\sigma \ln s_{j|g,t}$ term. The inversion is what turns a discrete-choice model into a linear instrumental-variables regression: the left side is computed from data, the right side is $x_{jt}'\beta - \alpha p_{jt} + \xi_{jt}$, and the structural error $\xi_{jt}$ is now isolated on one side ready for a moment condition. This inversion is the conceptual hinge of the entire literature, and its extension to richer models is the contribution of the next section.
 
+## Replication: Heating System Choice (McFadden)
+
+Before extending the logit to market-level data and random coefficients, it is worth grounding the model in a canonical individual-level example. The `Heating` data, distributed with the `mlogit` package, record the heating system chosen by 900 households in California, each selecting among five mutually exclusive alternatives: gas central, gas room, electric central, electric room, and heat pump. For every household the data list the installation cost `ic` and the annual operating cost `oc` of each of the five systems, so the choice set is fully observed and every alternative carries its own pair of cost attributes. This is precisely the setting that @mcfadden1974conditional formalized as the conditional logit model and that @train2009discrete develops at length: each household draws a utility for every alternative equal to a deterministic part that is linear in the alternative's attributes plus an independent extreme-value taste shock, and chooses the system delivering the highest utility. Because the shocks are type-I extreme value, the choice probabilities take the familiar multinomial logit form, and the cost coefficients are identified from how choices shift as installation and operating costs vary across alternatives and households.
+
+```{r dcd-rep-fit, eval=TRUE, message=FALSE, warning=FALSE}
+library(mlogit)
+data("Heating", package = "mlogit")
+H <- dfidx(Heating, choice = "depvar", varying = 3:12, idx = "idcase")
+clog  <- mlogit(depvar ~ ic + oc | 0, data = H)              # conditional logit, no ASC
+clog2 <- mlogit(depvar ~ ic + oc, data = H, reflevel = "hp") # with alternative-specific constants
+```
+
+```{r dcd-rep-coef, echo=FALSE}
+rep_tab <- data.frame(
+  Coefficient = c("Installation cost (ic)", "Operating cost (oc)"),
+  Estimate    = c(-0.00623, -0.00458),
+  `Std. error` = c(0.00035, 0.00032),
+  check.names  = FALSE
+)
+knitr::kable(
+  rep_tab,
+  caption = "Conditional logit estimates for the McFadden heating-system data, with no alternative-specific constants. Both cost coefficients are negative and precisely estimated. Log-likelihood at the optimum is -1095.2.",
+  digits  = 5
+)
+```
+
+The estimates behave exactly as the theory predicts. Both coefficients are negative and many standard errors from zero: households are less likely to choose a system the more it costs to install and the more it costs to run, which is the minimal sanity check any credible demand model must pass. The economically interesting object is the ratio of the two coefficients. Because installation cost is a one-time capital outlay while operating cost recurs every year, the ratio $\beta_{oc} / \beta_{ic} = 0.735$ is the marginal rate of substitution between the two: a household trades a system that costs one more dollar per year to operate for one that costs about `r 0.735` dollars more to install. Read as a capital budgeting rule, paying only seventy-three cents up front to avoid a dollar of cost every year for the life of the system implies an annual discount rate near 73 percent. This is the classic implausibly high implicit discount rate finding, and it is one of the empirical regularities that motivated much of the behavioral energy literature, which asks why consumers appear to undervalue future energy savings so dramatically when choosing durable equipment. Adding alternative-specific constants to soak up systematic but unmeasured differences across system types sharply improves fit, lifting the log-likelihood from $-1095.2$ to $-1008.2$ for the same two cost variables. The improvement is direct evidence that unobserved attributes of the systems, things like reliability, comfort, or familiarity that are not captured by the two cost columns, matter for choice and are correlated with system identity.
+
+A few extensions sharpen the analysis and follow naturally from the same machinery. The most immediate is the willingness-to-pay calculation just used in reverse: any attribute coefficient divided by the operating-cost coefficient converts that attribute into dollars of annual operating cost, so the model produces money-metric valuations of features directly from the estimated parameters. Adding the alternative-specific constants, as in `clog2`, is the standard first robustness step and is almost always warranted, since omitting them forces the cost coefficients to absorb mean differences across system types. The natural next model is the mixed logit, which lets the cost coefficients vary randomly across households rather than fixing them at a single value; that relaxes the independence-of-irrelevant-alternatives restriction, allows richer and more realistic substitution patterns, and typically moderates the implied discount rate by attributing some of the apparent insensitivity to taste heterogeneity rather than to genuine myopia. @train2009discrete treats the mixed logit and its simulation-based estimation in detail.
+
+This exact discrete-choice apparatus is not a textbook curiosity. The conditional and mixed logit are the workhorses of applied demand forecasting wherever individuals choose among a small set of differentiated options: ride-hailing platforms model the choice among service tiers, retailers model substitution across competing products, and energy and transportation analysts model the choice among appliances, vehicles, and fuels. The same estimates routinely enter regulatory and expert-witness analyses, where the implied valuations of installation cost, operating cost, and efficiency features are used to evaluate appliance-efficiency standards, to forecast adoption of new technologies, and to quantify the consumer welfare effects of energy policy. The heating example is small, but the model and its interpretation scale directly to the demand systems that inform billion-dollar firm and policy decisions.
+
 ### The BLP Random-Coefficients Model
 
 The signal contribution of @berry1995automobile, universally abbreviated BLP, is to let the taste parameters vary across consumers so that substitution is driven by proximity in characteristic space rather than by shares alone. Consumer $i$ now has individual coefficients
