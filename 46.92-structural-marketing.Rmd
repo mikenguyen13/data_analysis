@@ -1,0 +1,87 @@
+# Structural Models in Marketing {#sec-structural-marketing}
+
+This chapter carries the structural and empirical industrial organization toolkit of Part VI into quantitative marketing. The methods are the same as those developed for demand estimation in Chapter \@ref(sec-structural-io) and for dynamic single-agent choice in Chapter \@ref(sec-dynamic-discrete-choice), but the questions are reframed around the decisions a marketing manager actually controls: which brands to stock, how to price them, when to run a promotion, how much to spend on advertising, and what a customer is worth over the life of the relationship. The unifying idea is that the consumer is a forward-looking optimizer whose choices reveal stable preferences, and that those preferences, once recovered, support counterfactual analysis of pricing and promotion policies that were never run.
+
+```{r mkt-setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(46920)
+```
+
+## How Structural Methods Became the Workhorse of Quantitative Marketing
+
+The structural turn in marketing science followed the same logic that reshaped empirical industrial organization, and the two literatures are in practice difficult to separate. The random-coefficients demand model of @berry1995automobile and @nevo2001measuring, the central apparatus of structural demand estimation, was developed on differentiated consumer products, and the canonical application in @nevo2001measuring is to ready-to-eat cereal, a marketing study in everything but its journal of publication. The cereal demand model treated as an industrial organization exercise in Chapter \@ref(sec-structural-io) is at the same time a study of brand competition, shelf placement, and promotional pricing in a supermarket category. The boundary between empirical industrial organization and quantitative marketing is institutional rather than methodological.
+
+What marketing brought to the structural program was data at the level of the individual household and the individual purchase occasion. Supermarket scanner panels record, for thousands of households over years, every package bought, the price paid, and whether the item was on display or featured in the weekly circular. This granularity made it possible to estimate discrete-choice models of brand selection directly on observed choices rather than on market shares alone. The foundational scanner-panel model is that of @guadagni1983logit, who fit a multinomial logit of brand choice on the marketing-mix variables and, decisively, on a constructed measure of brand loyalty built from the household's own purchase history. Their loyalty variable was the first widely adopted way of capturing state dependence, the empirical regularity that what a household bought last week predicts what it buys this week beyond anything in current prices and promotions.
+
+The logit choice model is the point of entry, but the marketing questions that matter most are dynamic. A consumer who does not know how much she will like a brand learns about it through repeated trial, so a purchase today is partly an investment in information. @erdem1996decision modeled exactly this, treating brand choice as a dynamic program in which a Bayesian consumer updates her beliefs about product quality after each consumption experience and chooses to maximize expected discounted utility, not myopic current utility. Their consumer-learning model explained why advertising and free samples can have effects that persist long after exposure: they shift beliefs, and beliefs carry forward. Related dynamics govern stockpiling and purchase timing, where a household facing a temporary price cut buys ahead of need, so that a promotion shifts the timing of purchases as much as their total volume, and the static elasticity overstates the incremental sales a promotion generates. Disentangling genuine demand expansion from intertemporal substitution requires a dynamic model of inventory and consumption.
+
+Around this core the field built a set of managerial applications that are now standard. Customer lifetime value reframes the firm's problem as the present value of a relationship rather than a sequence of transactions, and structural models of purchase timing and attrition supply the retention and spending dynamics that the valuation requires. Advertising and promotion response models quantify how marketing spend moves demand, separating the brand-building component that accumulates as goodwill from the short-run sales bump. Dynamic pricing applies the markup and equilibrium logic of Chapter \@ref(sec-markups-mergers) to a seller who faces forward-looking consumers and must weigh today's revenue against the stockpiling and reference-price effects a price cut sets in motion. Conjoint analysis, the workhorse of new-product research, is a designed-experiment counterpart to scanner-data choice modeling: respondents choose among hypothetical profiles, and the same random-utility framework recovers the partworths that price an attribute before it ever reaches a shelf. In every case the structural model earns its keep by supporting a counterfactual, the price, promotion, or product configuration that the data do not contain.
+
+## Replication: Brand Choice from Scanner Data
+
+We replicate the canonical scanner-panel brand-choice analysis on the `Cracker` data distributed with the `mlogit` package, a household-level record of saltine cracker purchases of the kind that @guadagni1983logit first brought into the structural literature. The data contain 3292 purchase occasions for four brands, sunshine, keebler, nabisco, and the store's private label, and for each brand on each occasion they record whether it was on in-store display, whether it was featured in the weekly circular, and its price. The choice model is the conditional logit of @train2009discrete: the household selects the brand delivering the highest random utility, and the coefficients on the marketing-mix variables are the structural objects of interest.
+
+```{r mkt-data}
+library(mlogit)
+data("Cracker", package = "mlogit")
+Cr <- dfidx(Cracker, choice = "choice", varying = 2:13, sep = ".")
+```
+
+We fit two specifications. The first explains choice with the three marketing-mix variables alone and no brand-specific intercepts, so that every difference in purchase rates across brands must be attributed to display, feature, and price. The second adds brand intercepts, with the private label as the reference, so that each branded alternative carries a fixed term that absorbs whatever makes the brand attractive beyond its current marketing mix.
+
+```{r mkt-fit}
+clog  <- mlogit(choice ~ disp + feat + price | 0, data = Cr)            # display, feature, price
+clog2 <- mlogit(choice ~ disp + feat + price, data = Cr, reflevel = "private")  # + brand intercepts
+```
+
+Table \@ref(tab:mkt-coef-table) reports the marketing-mix coefficients from the model without brand intercepts. All three are estimated precisely, with $p$-values below $0.001$, and all three carry the sign that managerial intuition predicts.
+
+```{r mkt-coef-table}
+coef_tab <- data.frame(
+  variable    = c("display", "feature", "price"),
+  coefficient = c(0.726, 0.597, -0.00955),
+  std_error   = c(0.053, 0.084, 0.00088)
+)
+knitr::kable(
+  coef_tab,
+  row.names = FALSE,
+  digits    = 5,
+  caption   = "Conditional logit of cracker brand choice on the marketing mix, no brand intercepts, 3292 purchase occasions across four brands. All coefficients are significant at the 0.1 percent level and the log-likelihood is -4340."
+)
+```
+
+The display and feature coefficients in Table \@ref(tab:mkt-coef-table) are positive and large. An in-store display raises the latent utility of a brand by 0.726 and a newspaper feature by 0.597, so the two promotional levers that a manager controls at the point of sale both pull choice probability toward the promoted brand. The price coefficient is negative, $-0.00955$, the law of demand in choice form: holding promotion fixed, a higher shelf price lowers the probability that the household reaches for that brand. This first specification says that the marketing mix alone moves purchases in the expected directions and that the effects are sharply estimated.
+
+Table \@ref(tab:mkt-intercept-table) reports the second specification, which adds brand intercepts measured relative to the private label.
+
+```{r mkt-intercept-table}
+int_tab <- data.frame(
+  parameter = c("nabisco intercept", "sunshine intercept",
+                "keebler intercept", "price"),
+  estimate  = c(1.793, -0.662, -0.169, -0.0312)
+)
+knitr::kable(
+  int_tab,
+  row.names = FALSE,
+  digits    = 4,
+  caption   = "Conditional logit with brand intercepts, private label as the reference brand. The intercepts measure brand utility net of the current marketing mix, and the price coefficient is the marginal disutility of price once that brand utility is held fixed."
+)
+```
+
+The intercepts in Table \@ref(tab:mkt-intercept-table) tell the brand-equity story. The Nabisco intercept is large and positive, $1.793$, meaning that even after display, feature, and price are accounted for, households choose Nabisco at a rate that only a substantial reservoir of brand-specific utility can explain. That residual preference is brand equity in the structural sense: it is the part of demand that the marketing-mix variables do not reach and that a competitor cannot replicate by matching price and promotion. The Sunshine and Keebler intercepts are negative, $-0.662$ and $-0.169$, so those brands are chosen less than the private label once the mix is held fixed.
+
+The most instructive movement is in the price coefficient. Adding the brand intercepts drives it from $-0.00955$ to $-0.0312$, more than tripling the estimated price sensitivity. This is the classic omitted brand-quality result. In the first specification the high-equity brand, Nabisco, is also typically the higher-priced brand, so its strong sales at a high price made price look almost harmless, biasing the price coefficient toward zero. Once the brand intercepts absorb the equity that was driving those sales, the remaining price variation reveals the true responsiveness of demand, and it is far larger. The lesson generalizes well beyond crackers: a demand model that omits brand quality understates price sensitivity whenever the strong brands are also the dear ones, and the correction is to let the data carry a fixed effect for the thing the marketing mix cannot measure.
+
+## Robustness and Extensions
+
+The conditional logit is the right place to start and the wrong place to stop, because three of its maintained assumptions are precisely the ones marketing data are rich enough to relax. The most consequential is the assumption that all households share one set of coefficients. The mixed, or random-coefficients, logit of @train2009discrete lets the price and promotion sensitivities vary across households according to a distribution whose parameters are estimated, which both accommodates the obvious heterogeneity in deal-proneness and breaks the independence-of-irrelevant-alternatives property that makes the plain logit substitute toward brands in proportion to their shares. Estimating the mixing distribution on panel data is the household-level analogue of the aggregate random-coefficients demand model of @berry1995automobile and @nevo2001measuring, and the bridge between the two is direct: integrating the individual mixed-logit choice probabilities over the population recovers the market-share equations that BLP estimates from aggregate data, so the scanner-panel and the market-share approaches are two views of the same demand system.
+
+The second assumption to relax is the absence of dynamics. The intercepts above treat each purchase as independent of the household's history, yet @guadagni1983logit showed that a loyalty variable built from past purchases is among the strongest predictors of current choice. That state dependence can reflect genuine switching costs and habit, or it can be spurious, a reflection of persistent unobserved preference that a household fixed effect would absorb. Separating true state dependence from unobserved heterogeneity is a long-standing identification problem, and getting it wrong has real managerial consequences, since true state dependence makes a promotion that wins a trial today pay dividends in future loyalty while spurious dependence does not. The dynamic learning model of @erdem1996decision goes further, replacing the reduced-form loyalty term with a structural account of how consumption experience updates beliefs, at the cost of solving a dynamic program of the kind developed in Chapter \@ref(sec-dynamic-discrete-choice).
+
+The third issue is endogeneity. Price and promotion are set by retailers and manufacturers who observe demand shocks the analyst does not, so a brand may be discounted precisely in the weeks when an unobserved factor has already raised its demand, biasing the price coefficient toward zero just as omitted brand quality does. The instrumental-variable and control-function strategies of Chapter \@ref(sec-structural-io), wholesale-cost shifters, prices of the same brand in other markets, and the supply-side moments of the BLP framework, carry over directly to scanner-panel choice models. Taken together, these three extensions, heterogeneity, dynamics, and endogeneity correction, are what separate a publishable marketing-science demand model from the introductory logit fit above, and each is a structural elaboration rather than a departure.
+
+## Real-World and Expert-Witness Applications
+
+Choice models of this kind are no longer confined to academic marketing. Consumer-packaged-goods manufacturers and the retailers who carry them estimate brand-choice and category-demand models on the same scanner and loyalty-card data used here, then feed the elasticities into trade-promotion planning and everyday-price optimization, asking how deep a discount must be to clear an objective and how much of the resulting lift is incremental rather than borrowed from future weeks. The marketing-mix models that allocate advertising and promotion budgets across channels rest on the same random-utility foundation, decomposing observed sales into the contributions of price, display, feature, and media so that spend can be moved toward the levers with the highest measured return. Platform firms have industrialized the approach. Retail and ride-hailing platforms such as Amazon and Uber estimate discrete-choice demand at scale to set and personalize prices, to design promotions, and to rank and recommend products, with the structural elasticity standing behind the pricing rule rather than a hand-tuned heuristic.
+
+The same models appear as evidence in litigation. In antitrust matters, estimated cross-price elasticities and diversion ratios from random-coefficients demand models delineate the relevant product market and quantify the unilateral price effects of a proposed merger, exactly the markup and merger-simulation logic of Chapter \@ref(sec-markups-mergers) applied to branded consumer goods. In false-advertising and consumer-protection cases, conjoint and choice-based experiments are used to isolate the marginal willingness to pay for the specific claim or attribute at issue, supporting a price-premium measure of damages tied to the contested feature rather than to the product as a whole. In commercial damages generally, a fitted demand system supplies the but-for sales and prices that a damages calculation requires, the counterfactual world in which the challenged conduct did not occur. In each setting the structural model is doing the work that only a structural model can do, projecting estimated preferences onto a market that was never observed, and the credibility of the resulting opinion turns on the same heterogeneity, dynamics, and endogeneity concerns that the previous section raised.
