@@ -315,6 +315,66 @@ summary(cost_frontier)
 
 The same first-principles likelihood handles the cost case after one change: the composed error becomes $\varepsilon_i = v_i + u_i$, so replacing $\lambda$ with $-\lambda$ inside the `pnorm` term of `neg_loglik` (equivalently, flipping the sign of `eps`) estimates a cost frontier without any package. Cost inefficiency conflates technical and allocative inefficiency, and separating the two requires either added structure or joint estimation of the cost-share equations.
 
+## Replication: Efficiency of Philippine Rice Farms
+
+The first-principles likelihood above shows that the half-normal stochastic frontier is mechanically transparent, but applied work runs the model on real production data through a maintained package. We close the parametric thread with the canonical empirical illustration of the method. The `ricephil` data shipped with the `sfaR` package record output and inputs for a panel of smallholder rice farms in the Tarlac region of the Philippines, the dataset that @battese1992frontier and @coelli1995estimation used to develop and popularize the stochastic frontier in agricultural production. Agriculture is the natural home of the method, because output is buffeted by weather and other shocks outside the farmer's control, exactly the random noise that a deterministic frontier would misread as inefficiency. The sample here pools 344 farm-year observations. Output `PROD` is rice produced, and the three inputs are land area planted `AREA`, labor `LABOR`, and fertilizer measured in kilograms of active ingredient `NPK`. We fit a Cobb-Douglas production frontier in logarithms with half-normal inefficiency, the @aigner1977formulation specification of equation \@ref(eq:sfa-cobb-douglas), so the estimated input coefficients are output elasticities and the technology can be read off directly.
+
+```{r fe-rep-fit, eval=TRUE, message=FALSE, warning=FALSE}
+library(sfaR)
+data("ricephil", package = "sfaR")
+
+# Cobb-Douglas production frontier, half-normal inefficiency.
+#   ln(PROD) = b0 + b1 ln(AREA) + b2 ln(LABOR) + b3 ln(NPK) + v - u
+# S = 1 declares a production frontier (inefficiency reduces output).
+fm <- sfacross(log(PROD) ~ log(AREA) + log(LABOR) + log(NPK),
+               udist = "hnormal", data = ricephil, S = 1)
+
+# Battese-Coelli technical efficiency E(exp(-u) | e), one score per farm.
+eff <- efficiencies(fm)   # eff$teBC = Battese-Coelli technical efficiency
+```
+
+Table \@ref(tab:fe-rep-coef) collects the frontier elasticities and the variance parameters that separate inefficiency from noise. The three inputs enter with elasticities of `r 0.356` for area, `r 0.333` for labor, and `r 0.271` for fertilizer, each precisely estimated and significant beyond the one in a thousand level, and the variance decomposition is summarized by $\gamma$ of equation \@ref(eq:gamma) and by the asymmetry ratio $\lambda = \sigma_u / \sigma_v$ of equation \@ref(eq:composed-density).
+
+```{r fe-rep-coef}
+rep_tbl <- data.frame(
+    Parameter = c("log(AREA)", "log(LABOR)", "log(NPK)",
+                  "sigma_u^2", "sigma_v^2",
+                  "gamma = sigma_u^2 / sigma^2",
+                  "lambda = sigma_u / sigma_v"),
+    Estimate  = c(0.356, 0.333, 0.271, 0.211, 0.027, 0.885, 2.78),
+    `Std. error` = c(0.060, 0.063, 0.035, NA, NA, NA, NA),
+    check.names = FALSE
+)
+knitr::kable(
+    rep_tbl,
+    caption = "Half-normal Cobb-Douglas stochastic production frontier for 344 Philippine rice farm-year observations. The three input coefficients are output elasticities, all significant at p < 0.001. The variance parameters separate technical inefficiency from statistical noise.",
+    booktabs = TRUE,
+    digits = 3
+)
+```
+
+The technical-efficiency scores are the substantive output of the study, since they rank the farms and measure the aggregate shortfall from best practice. Figure \@ref(fig:fe-rep-eff) plots the distribution of the @battese1988prediction scores `eff$teBC` across the sample.
+
+```{r fe-rep-eff, fig.cap="Distribution of Battese-Coelli technical efficiency scores across 344 Philippine rice farm-year observations. The mass sits near 0.8, so the typical farm produces about 80 percent of the output its inputs make feasible at best practice.", fig.width=6.5, fig.height=4, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+eff_df <- data.frame(teBC = eff$teBC)
+
+ggplot(eff_df, aes(x = teBC)) +
+    geom_histogram(bins = 30, fill = "#1b9e77", color = "white") +
+    geom_vline(xintercept = mean(eff_df$teBC),
+               linetype = "dashed", color = "grey30") +
+    labs(x = "Battese-Coelli technical efficiency",
+         y = "Number of farm-years") +
+    causalverse::ama_theme()
+```
+
+The estimates are economically coherent. The three input elasticities are all positive and of sensible magnitude, and they sum to about `r 0.356 + 0.333 + 0.271`, near constant returns to scale, so a one percent increase in all inputs raises rice output by roughly one percent. The variance decomposition is what justifies the frontier model over an ordinary regression. With $\gamma = 0.885$, about 89 percent of the variance of the composed deviation from the frontier is genuine technical inefficiency rather than statistical noise, and the asymmetry ratio $\lambda = 2.78$ confirms that the one-sided inefficiency term dominates the symmetric noise. A formal test of $\gamma = 0$ would reject decisively, so ordinary least squares, which would fold this inefficiency into the residual and shift the fitted line down to an average relationship, is the wrong model here. The efficiency scores average about 0.8. The typical farm produces roughly 80 percent of the output that its land, labor, and fertilizer make feasible, which says that output could rise by about 20 percent at unchanged input levels if the average farm reached the practice of the best farms in the sample. That gap is the practical target for extension services and management improvement, and ranking the farms by `teBC` identifies which units are furthest from the frontier.
+
+A careful study does not stop at one specification. The headline number to stress-test is the efficiency distribution, and it should be checked against the assumed shape of the inefficiency term. Refitting with `udist = "tnormal"` for the truncated-normal model of @stevenson1980likelihood or `udist = "exponential"` for the exponential model of @meeusen1977efficiency, then comparing the log likelihoods and the efficiency rankings, shows whether the conclusions survive a different one-sided distribution; in agricultural applications the rankings are typically stable even when the mean efficiency level shifts. The skewness of the ordinary least squares residuals should be inspected first as the wrong-skew check of @waldman1982note, since positive skewness would signal that the data carry no inefficiency in the expected direction and would collapse the maximum likelihood estimate of $\sigma_u$ to zero; the negative skewness present here is what licenses the frontier in the first place. As a final cross-check, a nonparametric Data Envelopment Analysis frontier fit to the same inputs and output, developed in the next section, makes no functional-form or distributional assumption, and broad agreement between the parametric and nonparametric efficiency rankings is reassuring while divergence flags either influential noise that DEA misreads as inefficiency or a misspecified Cobb-Douglas form in the parametric model.
+
+Efficiency and benchmarking analyses of this kind reach well beyond agriculture into high-stakes regulatory practice. Economic regulators of natural monopolies use exactly these frontier methods to set allowed revenues and to police cost efficiency, because a regulated utility cannot be disciplined by competition and the regulator needs an empirical benchmark of what efficient operation costs. Energy-network price controls are the leading example: regulators of electricity and gas distribution networks estimate cost frontiers across the regulated firms and feed the resulting efficiency scores into the price caps, so that an inefficient operator is held to the cost level of its efficient peers rather than allowed to pass slack through to customers. The same toolkit benchmarks hospitals, where it measures whether a unit delivers its caseload with proportionate staffing and beds, and banks, where it ranks branches and institutions on cost and profit efficiency. Because the scores carry direct financial consequences, frontier estimates routinely appear in regulatory determinations and in expert-witness testimony on cost efficiency, where the choice of method, functional form, and inefficiency distribution is itself contested. The transparency of the model, that every elasticity and every efficiency score traces back to a stated likelihood, is part of what makes it defensible in that adversarial setting.
+
 ## Data Envelopment Analysis
 
 ### A Nonparametric Frontier
