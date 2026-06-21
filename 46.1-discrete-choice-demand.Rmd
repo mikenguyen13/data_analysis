@@ -589,9 +589,54 @@ knitr::kable(
 
 The merged products show the largest predicted price increases, because their common owner now internalizes the diversion between them that two independent firms ignored. The non-merged rivals also raise prices, the standard strategic-complements response to softened competition. This pattern, larger increases for the merging parties and smaller sympathetic increases for rivals, is precisely the prediction that antitrust authorities draw from structural merger simulation, and it cannot be produced by any reduced-form regression.
 
-## Production-Grade Estimation with PyBLP
+## Replication: Nevo (2001) Cereal Demand
 
-The code above is written for transparency rather than for production. Serious applications should use a maintained package, and the field standard is `pyblp` [@conlon2020best]. It implements the full random-coefficients model with demographic interactions, supply-side moments, and joint demand-and-supply GMM, and it encodes the numerical lessons that hand-rolled code tends to miss: tight and adaptive contraction tolerances, analytic gradients of the GMM objective for fast and reliable optimization, well-conditioned simulation draws, and the optimal-instrument constructions that sharpen identification of the nonlinear parameters [@reynaert2014improving]. It also ships the differentiation instruments built from the local density of products in characteristic space [@gandhi2020measuring], which behave better in finite samples than the original sums of rival characteristics. For any analysis whose conclusions will be defended, the right division of labor is to understand the estimator at the level of the worked example here and to run it with `pyblp`.
+The worked example above used simulated data so that every step was visible. We now run the identical estimator on the data of @nevo2001measuring, the canonical random-coefficients application in empirical industrial organization, using the maintained R package `BLPestimatoR`. The data cover 24 brands of ready-to-eat cereal across 94 city-quarter markets, with observed market shares, prices, the sugar and mushiness characteristics, demographic draws for income, its square, age, and the presence of children, and the cost-shifting instruments that Nevo constructs. The four-part formula lists the mean-utility variables, the exogenous variables, the characteristics that carry random coefficients, and the instruments in turn.
+
+```{r dcd-nevo, eval=TRUE, cache=TRUE, message=FALSE, warning=FALSE}
+library(BLPestimatoR)
+data("productData_cereal"); data("demographicData_cereal")
+data("originalDraws_cereal"); data("theta_guesses_cereal")
+
+nevos_model <- as.formula("share ~ price + productdummy |
+    0 + productdummy |
+    price + sugar + mushy |
+    0 + IV1 + IV2 + IV3 + IV4 + IV5 + IV6 + IV7 + IV8 + IV9 + IV10 +
+    IV11 + IV12 + IV13 + IV14 + IV15 + IV16 + IV17 + IV18 + IV19 + IV20")
+
+names(originalDraws_cereal)[1] <- "(Intercept)"
+
+cereal_data <- BLP_data(
+  model = nevos_model, market_identifier = "cdid",
+  product_identifier = "product_id", productData = productData_cereal,
+  demographic_draws = demographicData_cereal,
+  blp_inner_tol = 1e-6, blp_inner_maxit = 5000,
+  integration_draws = originalDraws_cereal, integration_weights = rep(1 / 20, 20))
+
+theta_guesses_cereal[theta_guesses_cereal == 0] <- NA
+colnames(theta_guesses_cereal) <- c("unobs_sd", "income", "incomesq", "age", "child")
+rownames(theta_guesses_cereal) <- c("(Intercept)", "price", "sugar", "mushy")
+
+nevo_est <- estimateBLP(blp_data = cereal_data, par_theta2 = theta_guesses_cereal,
+                        solver_method = "BFGS", solver_maxit = 1000,
+                        solver_reltol = 1e-6, printLevel = 0)
+```
+
+The estimated random coefficients in Table \@ref(tab:dcd-nevo-rc) are the substantive payoff. They quantify how price and characteristic sensitivities vary across consumers.
+
+```{r dcd-nevo-rc, eval=TRUE}
+rc <- nevo_est$theta_rc
+ord <- order(abs(rc), decreasing = TRUE)
+rc_df <- data.frame(Parameter = names(rc)[ord], Estimate = round(rc[ord], 3))
+knitr::kable(rc_df[!is.na(rc_df$Estimate) & rc_df$Estimate != 0, ], row.names = FALSE,
+             caption = "Estimated random-coefficient parameters, Nevo (2001) cereal demand. Each entry interacts a product characteristic (rows of the structural matrix) with a source of consumer heterogeneity (an unobserved standard deviation or an observed demographic).")
+```
+
+The mean price coefficient is large and negative, and the random-coefficient block recovers the heterogeneity that motivates the whole approach. The positive `income` interaction with `price` is the headline finding: richer households are substantially less price-sensitive, so a uniform price cut draws disproportionately on lower-income consumers, and the cross-price substitution patterns this implies are far richer than plain logit allows. The `age` and `child` interactions with sugar and price capture the familiar fact that households with children sort toward sweeter cereals and respond differently to price. These demographically driven substitution patterns are exactly what a merger or pricing analysis needs and exactly what the independence-of-irrelevant-alternatives logit assumes away.
+
+## Production-Grade Estimation with R and PyBLP
+
+The from-scratch code earlier in this chapter is written for transparency rather than for production; the Nevo replication just above shows the production path. In R the maintained package is `BLPestimatoR`, used here, and in Python the field standard is `pyblp` [@conlon2020best]. It implements the full random-coefficients model with demographic interactions, supply-side moments, and joint demand-and-supply GMM, and it encodes the numerical lessons that hand-rolled code tends to miss: tight and adaptive contraction tolerances, analytic gradients of the GMM objective for fast and reliable optimization, well-conditioned simulation draws, and the optimal-instrument constructions that sharpen identification of the nonlinear parameters [@reynaert2014improving]. It also ships the differentiation instruments built from the local density of products in characteristic space [@gandhi2020measuring], which behave better in finite samples than the original sums of rival characteristics. For any analysis whose conclusions will be defended, the right division of labor is to understand the estimator at the level of the worked example here and to run it with `pyblp`.
 
 ## Nonparametric Identification of Demand
 
