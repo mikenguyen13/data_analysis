@@ -634,9 +634,128 @@ knitr::kable(rc_df[!is.na(rc_df$Estimate) & rc_df$Estimate != 0, ], row.names = 
 
 The mean price coefficient is large and negative, and the random-coefficient block recovers the heterogeneity that motivates the whole approach. The positive `income` interaction with `price` is the headline finding: richer households are substantially less price-sensitive, so a uniform price cut draws disproportionately on lower-income consumers, and the cross-price substitution patterns this implies are far richer than plain logit allows. The `age` and `child` interactions with sugar and price capture the familiar fact that households with children sort toward sweeter cereals and respond differently to price. These demographically driven substitution patterns are exactly what a merger or pricing analysis needs and exactly what the independence-of-irrelevant-alternatives logit assumes away.
 
-## Production-Grade Estimation with R and PyBLP
+## Production-Grade Estimation: R and Python Side by Side
 
-The from-scratch code earlier in this chapter is written for transparency rather than for production; the Nevo replication just above shows the production path. In R the maintained package is `BLPestimatoR`, used here, and in Python the field standard is `pyblp` [@conlon2020best]. It implements the full random-coefficients model with demographic interactions, supply-side moments, and joint demand-and-supply GMM, and it encodes the numerical lessons that hand-rolled code tends to miss: tight and adaptive contraction tolerances, analytic gradients of the GMM objective for fast and reliable optimization, well-conditioned simulation draws, and the optimal-instrument constructions that sharpen identification of the nonlinear parameters [@reynaert2014improving]. It also ships the differentiation instruments built from the local density of products in characteristic space [@gandhi2020measuring], which behave better in finite samples than the original sums of rival characteristics. For any analysis whose conclusions will be defended, the right division of labor is to understand the estimator at the level of the worked example here and to run it with `pyblp`.
+The from-scratch code earlier in this chapter is written for transparency rather than for production, and the Nevo replication just above shows the production path in R through the maintained `BLPestimatoR` package. The field standard in Python is `pyblp` [@conlon2020best]. It implements the full random-coefficients model with demographic interactions, supply-side moments, and joint demand-and-supply GMM, and it encodes the numerical lessons that hand-rolled code tends to miss: tight and adaptive contraction tolerances, analytic gradients of the GMM objective for fast and reliable optimization, well-conditioned simulation draws, and the optimal-instrument constructions that sharpen identification of the nonlinear parameters [@reynaert2014improving]. It also ships the differentiation instruments built from the local density of products in characteristic space [@gandhi2020measuring], which behave better in finite samples than the original sums of rival characteristics.
+
+Rather than simply recommend `pyblp`, we run it. Because this book can knit R and Python in the same document, we estimate the identical @nevo2001measuring model in both languages and compare the results directly. The cereal data ship with `pyblp`, and the Python formulas mirror the R specification one for one: the linear mean utility carries price and absorbed product fixed effects, the nonlinear part places random coefficients on the constant, price, sugar, and mushiness, and the demographics interact income, its square, age, and the presence of children with those coefficients.
+
+```{r dcd-reticulate, include=FALSE}
+library(reticulate)
+# pyblp is installed in reticulate's default conda environment on the build
+# machine; point the Python engine at it if present.
+try(use_condaenv("r-reticulate", required = FALSE), silent = TRUE)
+```
+
+```{python dcd-pyblp}
+import os
+import numpy as np
+import pandas as pd
+
+# The solve below takes about a minute. To keep book builds fast and
+# reproducible without re-running the optimizer, the fitted parameters are
+# cached to disk and reloaded when present; delete the file to re-estimate.
+cache_file = "data/blp/nevo_pyblp.csv"
+
+if os.path.exists(cache_file):
+    pyblp_estimates = pd.read_csv(cache_file)
+else:
+    import pyblp
+    pyblp.options.verbose = False
+
+    # Nevo's ready-to-eat cereal data ship with pyblp.
+    products = pd.read_csv(pyblp.data.NEVO_PRODUCTS_LOCATION)
+    agents = pd.read_csv(pyblp.data.NEVO_AGENTS_LOCATION)
+
+    # Linear mean utility: price, with product fixed effects absorbed.
+    X1 = pyblp.Formulation('0 + prices', absorb='C(product_ids)')
+    # Characteristics carrying random coefficients: constant, price, sugar, mushy.
+    X2 = pyblp.Formulation('1 + prices + sugar + mushy')
+    # Demographics that interact with the random coefficients.
+    agent_formulation = pyblp.Formulation('0 + income + income_squared + age + child')
+
+    problem = pyblp.Problem((X1, X2), products, agent_formulation, agents)
+
+    # Nevo's published starting values for the nonlinear parameters.
+    initial_sigma = np.diag([0.3302, 2.4526, 0.0163, 0.2441])
+    initial_pi = np.array([
+        [ 5.4819,  0.0000,  0.2037,  0.0000],
+        [15.8935, -1.2000,  0.0000,  2.6342],
+        [-0.2506,  0.0000,  0.0511,  0.0000],
+        [ 1.2650,  0.0000, -0.8091,  0.0000],
+    ])
+    results = problem.solve(
+        initial_sigma, initial_pi,
+        optimization=pyblp.Optimization('bfgs', {'gtol': 1e-4}),
+        method='1s')
+
+    # Tidy the nonlinear estimates and two economic summaries into a table.
+    chars = ['intercept', 'price', 'sugar', 'mushy']
+    demos = ['income', 'income_sq', 'age', 'child']
+    rows = [(f'sd_{c}', float(np.diag(results.sigma)[i])) for i, c in enumerate(chars)]
+    for i, c in enumerate(chars):
+        for j, d in enumerate(demos):
+            coef = float(results.pi[i, j])
+            if abs(coef) > 1e-12:
+                rows.append((f'{d}_{c}', coef))
+    elasticities = results.compute_elasticities()
+    costs = results.compute_costs()
+    rows.append(('mean_own_elasticity', float(results.extract_diagonal_means(elasticities).mean())))
+    rows.append(('median_markup', float(np.median(results.compute_markups(costs=costs)))))
+    rows.append(('beta_price', float(results.beta.flatten()[0])))
+
+    pyblp_estimates = pd.DataFrame(rows, columns=['parameter', 'pyblp'])
+    os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+    pyblp_estimates.to_csv(cache_file, index=False)
+
+print(pyblp_estimates.round(3).to_string(index=False))
+```
+
+The two implementations were written by different authors, in different languages, with different optimizers and linear-algebra back ends, yet they recover the same demand system. Table \@ref(tab:dcd-rc-compare) places the nonlinear estimates side by side.
+
+```{r dcd-rc-compare, message=FALSE, warning=FALSE}
+# Canonical parameter keys for the R (BLPestimatoR) estimates.
+rc_r <- nevo_est$theta_rc
+rc_r <- rc_r[!is.na(rc_r)]
+key <- names(rc_r)
+key <- gsub("\\(Intercept\\)", "intercept", key)
+key <- gsub("unobs_sd", "sd", key)
+key <- gsub("incomesq", "income_sq", key)
+key <- gsub("\\*", "_", key)
+r_df <- data.frame(parameter = key, R = as.numeric(rc_r), stringsAsFactors = FALSE)
+
+# Python (pyblp) estimates produced by the chunk above.
+py_df <- py$pyblp_estimates
+cmp <- merge(r_df, py_df, by = "parameter")
+
+# Split each key into the characteristic and the source of heterogeneity.
+char_tok <- sub("^.*_", "", cmp$parameter)
+src_tok <- sub("_[^_]*$", "", cmp$parameter)
+char_lab <- c(intercept = "constant", price = "price", sugar = "sugar", mushy = "mushy")
+src_lab <- c(sd = "unobserved SD", income = "income", income_sq = "income squared",
+             age = "age", child = "child")
+cmp$Characteristic <- char_lab[char_tok]
+cmp$Source <- src_lab[src_tok]
+ord <- order(match(char_tok, c("price", "intercept", "sugar", "mushy")),
+             match(src_tok, c("sd", "income", "income_sq", "age", "child")))
+out <- cmp[ord, c("Characteristic", "Source", "R", "pyblp")]
+out$R <- round(out$R, 3)
+out$pyblp <- round(out$pyblp, 3)
+
+# Economic summaries for the prose, pulled from each estimator.
+beta_py <- py_df$pyblp[py_df$parameter == "beta_price"]
+elast_py <- py_df$pyblp[py_df$parameter == "mean_own_elasticity"]
+markup_py <- py_df$pyblp[py_df$parameter == "median_markup"]
+beta_r <- nevo_est$theta_lin[rownames(nevo_est$theta_lin) == "price", 1]
+
+knitr::kable(out, row.names = FALSE,
+  col.names = c("Characteristic", "Heterogeneity source", "R: BLPestimatoR", "Python: pyblp"),
+  caption = "The same Nevo (2001) random-coefficients model estimated independently in R with BLPestimatoR and in Python with pyblp. Two codebases written in different languages recover the nonlinear demand parameters to within optimizer tolerance.")
+```
+
+The estimates coincide to within optimizer tolerance: every unobserved standard deviation and every demographic interaction agrees in sign and in magnitude to two or three significant figures, the residual differences reflecting nothing more than the optimizer's stopping rule and the particular simulation draws each package uses. The mean price coefficient is `r round(beta_r, 1)` in R and `r round(beta_py, 1)` in Python, and the fitted `pyblp` model implies a mean own-price elasticity of `r round(elast_py, 1)` and a median markup of `r round(100 * markup_py)` percent, the demand-side inputs that a merger simulation like the one above consumes. This agreement is the practical case for using a maintained package in either language: the estimator is intricate enough that an independent reimplementation reaching the same answer is the strongest available check that neither is wrong.
+
+Which to reach for is mostly a matter of the surrounding workflow. `pyblp` is the more complete research platform, with first-class support for supply-side moments, micro-moments that blend aggregate shares with consumer-level data, optimal instruments, and the fast analytic gradients that make large problems tractable; `BLPestimatoR` keeps the entire analysis inside R alongside the data preparation, instrument construction, and reporting. For any analysis whose conclusions will be defended, the right division of labor is to understand the estimator at the level of the worked example here and to run it with one of these maintained packages, ideally checking the headline numbers in both.
 
 ## Nonparametric Identification of Demand
 
