@@ -368,6 +368,89 @@ ggplot(df, aes(y, color = dist)) +
 
 The empirical distribution function of $Y_1$ lies everywhere below that of $Y_2$, the graphical signature of first-order dominance, so every increasing-utility decision maker prefers $Y_1$.
 
+## Recent Developments: Distributional Machine Learning and Causal Frontiers {#sec-qd-frontier}
+
+The classical apparatus above estimates linear conditional quantiles and distribution functions. Three strands of recent work extend it toward flexible function classes, valid finite-sample inference, and modern causal designs, and they define the current frontier.
+
+The first strand replaces the linear index with machine learning. Quantile regression forests grow a random forest and reuse its adaptive neighborhoods to estimate the entire conditional distribution rather than only the conditional mean, delivering conditional quantiles at any level without a parametric form [@meinshausen2006quantile]. The generalized random forest of @athey2019generalized places this idea in a local moment framework that also yields heterogeneous treatment effects and instrumental quantile effects, and gradient boosting under the check loss provides a boosting counterpart. These methods shine when the conditional distribution depends on many covariates in unknown, interacting ways, the regime in which a linear quantile slope is too rigid. A separate and important advance attaches distribution-free guarantees to any such estimator: conformalized quantile regression calibrates the intervals produced by a fitted quantile model against a held-out set so that the resulting prediction bands attain exact finite-sample coverage regardless of whether the quantile model is correctly specified [@romano2019conformalized], marrying the adaptivity of quantile machine learning with the honesty of conformal inference.
+
+The second strand brings distributional targets into the high-dimensional and doubly robust causal toolkit. Program evaluation with high-dimensional controls delivers honest inference on local quantile treatment effects after selecting controls by regularization [@belloni2017program], and the double machine learning framework of @chernozhukov2018double supplies the Neyman-orthogonal scores that make quantile and distributional causal parameters robust to first-order error in flexibly estimated nuisances. The sorted effects method reports the percentiles of the distribution of partial effects, with uniform inference, turning a single average effect into a full picture of who is affected and by how much [@chernozhukov2018sorted], a distributional reading of heterogeneity that complements the quantile and distribution regressions of the previous sections.
+
+The third strand embeds distributions in modern causal designs. The changes-in-changes model identifies the entire counterfactual outcome distribution under a nonlinear difference-in-differences assumption, and hence quantile treatment effects, where the ordinary parallel-trends design would identify only a mean [@athey2006identification]; panel extensions estimate quantile treatment effects on the treated under a distributional-stability condition [@callaway2019quantile]. Distributional synthetic controls reconstruct the treated unit's entire counterfactual quantile function as a weighted barycenter of control quantile functions, extending the synthetic control idea from a single time series to a whole distribution [@gunsilius2023distributional]. For high-dimensional panels, quantile factor models let latent factors shift the quantiles, not merely the mean, of every series, capturing common movements in tails and dispersion that a mean factor model misses [@chen2021quantile]. Across all three strands the theme is constant: the object of interest is the conditional distribution, and the methodological progress is in estimating it flexibly, defensibly, and causally.
+
+## Quantile and Distributional Methods in Business Research {#sec-qd-business}
+
+These methods earn their place in empirical business research wherever the tails, the spread, or the shape of an outcome distribution carry the economic content, and the densest concentration of top-journal applications is in finance. The growth-at-risk program of @adrian2019vulnerable, replicated below, regresses future GDP growth on financial conditions across quantiles and finds that the lower quantiles deteriorate sharply when financial conditions tighten while the upper quantiles barely move, so the downside of the macroeconomic outlook, not its center, is what financial stress threatens. The same regression-quantile logic underlies the leading measures of financial-market risk. The conditional autoregressive value-at-risk model estimates a firm's value-at-risk directly as a dynamic conditional quantile of its returns [@engle2004caviar]; the CoVaR measure of systemic risk reads the value-at-risk of the financial system conditional on an individual institution being in distress off a quantile regression, converting a tail co-movement into a supervisory statistic [@adrian2016covar]; and capital-shortfall measures such as SRISK quantify the recapitalization a firm would need in a systemic tail event [@brownlees2017srisk]. Because value-at-risk and expected shortfall are the regulatory language of market risk, joint regression models that estimate both simultaneously, exploiting their joint elicitability, are an active methodological frontier [@patton2019dynamic].
+
+Beyond finance, distributional methods are the natural tool wherever a policy or intervention is expected to reshape an outcome distribution rather than shift it uniformly. In public and labor economics, quantile treatment effects reveal heterogeneity that average effects conceal: distributional analysis of welfare-reform experiments shows effects concentrated in parts of the earnings distribution that the mean impact entirely misses [@bitler2006mean], instrumental quantile methods recover the effect of training on the quantiles of trainee earnings for compliers [@abadie2002instrumental], and bunching-and-distributional designs trace how minimum wages reshape the lower tail of the wage distribution [@cengiz2019effect]. Unconditional quantile regression and its decompositions remain the workhorse for attributing changes in wage inequality to covariates and to returns [@firpo2009unconditional]. In marketing and operations the use of these tools is newer but growing: the debiased machine learning that powers distributional causal inference has been applied to decompose targeted-promotion effects in marketing [@ellickson2023estimating], and the feature-based newsvendor recognizes that the profit-maximizing order quantity is itself a conditional quantile of demand, so that a quantile objective, rather than a mean forecast, is the correct learning target for inventory decisions [@ban2019big]. The common thread is that a manager who cares about stockouts, downside risk, worst-case service, or the bottom of a customer-value distribution is asking a quantile question, and these methods answer it directly.
+
+## Replication: Growth-at-Risk {#sec-qd-gar}
+
+We replicate the central result of @adrian2019vulnerable on current data. The exercise regresses annualized real GDP growth one quarter ahead on current growth and the Chicago Fed's National Financial Conditions Index, separately at five quantiles, using quarterly series from FRED spanning 1973 to 2025. The coefficient on financial conditions across quantiles is the whole story.
+
+```{r qd-gar-fit, message=FALSE, warning=FALSE}
+library(quantreg)
+gar <- read.csv("data/gar/vulnerable_growth.csv")
+gar$date <- as.Date(gar$date)
+gar$y_next <- c(gar$gdp_growth[-1], NA)      # annualized real GDP growth, next quarter
+gar <- gar[complete.cases(gar), ]
+
+taus  <- c(0.05, 0.25, 0.50, 0.75, 0.95)
+qfits <- lapply(taus, function(t) rq(y_next ~ gdp_growth + nfci, tau = t, data = gar))
+nfci_coef <- vapply(qfits, function(f) coef(f)[["nfci"]], numeric(1))
+knitr::kable(
+  data.frame(Quantile = taus, `NFCI coefficient` = round(nfci_coef, 2), check.names = FALSE),
+  caption = "Quantile regression of one-quarter-ahead annualized real GDP growth on the National Financial Conditions Index and current growth, 1973-2025. A one-unit tightening of financial conditions lowers the 5th percentile of future growth by far more than it lowers the median, and the 95th percentile is essentially unaffected."
+)
+```
+
+The asymmetry is the point. Tightening financial conditions by one index unit cuts the 5th percentile of next-quarter growth by roughly two annualized percentage points but moves the 95th percentile hardly at all, so financial stress acts almost entirely on the downside of the growth distribution. Reading the fitted 5th-percentile forecast over time gives the growth-at-risk series, the conditional worst case that supervisors watch.
+
+```{r qd-gar-series, fig.width=7, fig.height=4, message=FALSE, warning=FALSE, fig.cap="Realized one-quarter-ahead growth (grey) and the conditional 5th-percentile forecast, growth-at-risk (red). The downside forecast collapses precisely in the financial crises of 2008 and 2020, when the National Financial Conditions Index spiked."}
+library(ggplot2)
+gar$gar5 <- predict(qfits[[1]], gar)         # fitted 5th-percentile = growth-at-risk
+ggplot(gar, aes(date)) +
+  geom_hline(yintercept = 0, color = "grey80") +
+  geom_line(aes(y = y_next), color = "grey65") +
+  geom_line(aes(y = gar5), color = "firebrick", linewidth = 0.9) +
+  labs(x = NULL, y = "Annualized real GDP growth, next quarter (%)")
+```
+
+To turn the five fitted quantiles into a full predictive density, @adrian2019vulnerable fit a skewed-$t$ distribution that matches them, which smooths the quantile estimates into a density whose skewness varies with financial conditions. Comparing a calm quarter with a crisis quarter shows what the average forecast hides.
+
+```{r qd-gar-density, fig.width=7, fig.height=4, message=FALSE, warning=FALSE, fig.cap="Conditional predictive density of next-quarter growth, fit as a skewed-t to the quantile-regression forecasts, in a calm quarter (2005 Q4) and a crisis quarter (2008 Q4). Financial stress shifts the whole distribution left and stretches its lower tail, driving growth-at-risk (dashed) sharply negative."}
+library(sn)
+fit_skewt <- function(qv) {
+  obj <- function(p) {
+    v <- tryCatch(qst(taus, xi = p[1], omega = exp(p[2]), alpha = p[3], nu = 2 + exp(p[4])),
+                  error = function(e) NA)
+    if (any(!is.finite(v))) return(1e8)
+    sum((v - qv)^2)
+  }
+  optim(c(median(qv), log(sd(qv)), -1, log(3)), obj,
+        method = "Nelder-Mead", control = list(maxit = 3000))$par
+}
+grid <- seq(-16, 12, length.out = 400)
+dens <- do.call(rbind, lapply(as.Date(c("2005-10-01", "2008-10-01")), function(dt) {
+  i  <- which(gar$date == dt)
+  qv <- vapply(qfits, function(f) predict(f, gar[i, ]), numeric(1))
+  p  <- fit_skewt(qv)
+  pars <- list(xi = p[1], omega = exp(p[2]), alpha = p[3], nu = 2 + exp(p[4]))
+  data.frame(
+    period = paste0(format(dt, "%Y"), " Q4"),
+    y = grid,
+    density = do.call(dst, c(list(x = grid), pars)),
+    gar5 = do.call(qst, c(list(p = 0.05), pars))
+  )
+}))
+ggplot(dens, aes(y, density, color = period)) +
+  geom_line(linewidth = 0.9) +
+  geom_vline(aes(xintercept = gar5, color = period), linetype = "dashed") +
+  labs(x = "Annualized real GDP growth, next quarter (%)", y = "Predictive density", color = NULL)
+```
+
+The crisis-quarter density is not the calm-quarter density shifted bodily to the left; it is stretched and skewed, with a long lower tail that pulls growth-at-risk far below the median while the upper tail barely changes. This is the distributional content that a mean forecast, or even a symmetric interval around it, would erase, and it is the reason quantile regression became the standard tool for monitoring macro-financial risk.
+
 ## Summary {#sec-qd-summary}
 
 Quantile and distributional methods move econometric attention from the conditional mean to the conditional distribution. The check function characterizes quantiles as optimal predictors under asymmetric loss, and minimizing its empirical analog yields the quantile regression estimator of @koenker1978regression. Allowing the coefficients to vary with the quantile level lets the method describe effects on spread, skewness, and tails that mean regression averages away. Censored quantile regression in the manner of @powell1986censored exploits the fact that lower quantiles are identified even when the upper tail is top-coded. Quantile treatment effects compare entire outcome distributions and must not be confused with the distribution of individual treatment effects, and instrumental quantile methods extend the analysis to endogenous treatments. Distribution regression and recentered influence function regression estimate the whole conditional distribution and unconditional quantile effects respectively, and stochastic dominance uses these curves to rank distributions for broad classes of preferences. Together with the nonparametric mean regression of Chapter \@ref(sec-nonparametric-regression), and meeting it in nonparametric quantile regression, these tools complete a flexible account of how covariates shape not just the average outcome but the full distribution of outcomes.
