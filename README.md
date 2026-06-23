@@ -129,7 +129,8 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 63. Structural Models of Auctions
 64. Machine Learning and AI for Structural Estimation
 65. Structural Models in Marketing
-66. Structural Models in Finance
+66. Branding and Brand Equity
+67. Structural Models in Finance
 
 **Appendix**
 
