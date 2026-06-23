@@ -100,16 +100,51 @@ Several methods build on semiparametric theory or deep learning. **Double machin
 
 ### Optimal Policy Learning
 
-A complementary strategy skips the estimation of $\tau(x)$ and learns the assignment rule directly. Since the optimal policy maximizes $\mathbb{E}[\pi(X)\,\tau(X)]$, policy learning can be cast as a weighted classification problem in which doubly robust scores supply the labels and the learner searches over an interpretable policy class such as shallow trees [@athey2021policy]. The object of interest is then the regret, the gap between the value of the optimal policy and the value of the learned policy, and modern results bound this regret for policies estimated from experimental or observational data [@athey2021policy]. The `policytree` package implements policy-tree learning from doubly robust scores.
+A complementary strategy skips the estimation of $\tau(x)$ and learns the assignment rule directly. Since the optimal policy maximizes $\mathbb{E}[\pi(X)\,\tau(X)]$, policy learning can be cast as a weighted classification problem in which doubly robust scores supply the labels and the learner searches over an interpretable policy class such as shallow trees [@athey2021policy]. The object of interest is then the regret, the gap between the value of the optimal policy and the value of the learned policy, and modern results bound this regret for policies estimated from experimental or observational data [@athey2021policy]. The `policytree` package implements exactly this idea: it computes doubly robust reward estimates for each action from a fitted causal forest and then finds the shallow tree that maximizes the estimated reward.
 
-```{r uplift-policytree, eval=FALSE}
-# Optimal policy trees from doubly robust scores (requires policytree + grf).
+The demonstration below makes the logic concrete on confounded data whose true effect, $\tau(x) = 1 + 2X_1$, implies a known optimal rule, treat whenever $X_1 > -0.5$. A causal forest supplies doubly robust reward scores, and a depth-one policy tree searches for the single threshold that best separates whom to treat.
+
+```{r uplift-policytree, message=FALSE, warning=FALSE}
+library(grf)
 library(policytree)
-# dr_scores is an n-by-2 matrix of doubly robust reward estimates per action,
-# typically produced from a fitted causal forest via double_robust_scores().
-opt_tree <- policy_tree(X, dr_scores, depth = 2)
-pi_hat <- predict(opt_tree, X)
+set.seed(123)
+
+# Confounded data with a known optimal rule: tau(x) = 1 + 2*X1, so the optimal
+# policy treats whenever X1 > -0.5.
+n <- 3000; p <- 5
+Xp  <- matrix(runif(n * p, -2, 2), n, p)
+colnames(Xp) <- paste0("X", 1:p)
+e   <- plogis(1 + 1.5 * Xp[, 1] + 0.5 * Xp[, 2])   # propensity depends on X
+W   <- rbinom(n, 1, e)
+tau <- 1 + 2 * Xp[, 1]
+Y   <- 2 + Xp[, 1] + 0.5 * Xp[, 2] + W * tau + rnorm(n)
+
+# Doubly robust reward scores per action from a causal forest, then the optimal
+# depth-one policy tree that maximizes the estimated reward.
+cf <- causal_forest(Xp, Y, W, W.hat = e)
+dr <- double_robust_scores(cf)        # n-by-2 AIPW rewards: {control, treat}
+opt_tree <- policy_tree(Xp, dr, depth = 1)
+opt_tree
 ```
+
+The tree recovers a single split on $X_1$ near the true cutoff of $-0.5$, assigning treatment above it and control below, which is the optimal rule read directly off the data without ever inspecting $\tau(x)$. The value of a policy, $\mathbb{E}[\pi(X)\,\tau(X)]$, can be computed here because the simulation knows the truth, so the learned policy can be scored against treating everyone and against the oracle.
+
+```{r uplift-policytree-value}
+pi_hat <- predict(opt_tree, Xp) == 2L          # action 2 = treat
+value  <- function(rule) mean(tau * rule)
+knitr::kable(
+  data.frame(
+    Policy = c("Treat everyone", "Learned policy tree", "Oracle (treat if tau > 0)"),
+    `Policy value` = c(value(rep(TRUE, n)), value(pi_hat), value(tau > 0)),
+    `Agreement with oracle` = c(mean(tau > 0), mean(pi_hat == (tau > 0)), 1),
+    check.names = FALSE
+  ),
+  digits = 3,
+  caption = "Value of the learned policy tree against benchmarks on confounded data. The interpretable rule learned from doubly robust scores nearly attains the oracle value and agrees with the optimal assignment for the vast majority of units."
+)
+```
+
+The learned policy attains a value within a hair of the oracle and agrees with the optimal assignment for the vast majority of units, even though treatment was confounded, because the doubly robust scores correct for the propensity before the tree is grown. Two features make this attractive in practice. The policy is a short, auditable rule that a manager or regulator can read and defend, unlike a black-box ranking of $\hat\tau(x)$, and the doubly robust construction means the regret bound degrades gracefully when the nuisance models are imperfect. Increasing the depth lets the tree capture interactions among covariates at the cost of interpretability, but when the true rule is a simple threshold, as here, the depth-one tree already captures almost all of the available value.
 
 ### Sensitivity Analysis
 
