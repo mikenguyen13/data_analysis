@@ -265,6 +265,50 @@ knitr::kable(
 
 The estimates recover both the central tendency and the spread of tastes, which is the whole point of the random-coefficient specification: a model with a single fixed coefficient could match the average choice pattern but would miss the heterogeneity that drives realistic substitution. That heterogeneity, and the simulated integration needed to estimate it, is exactly what the [demand chapter](#sec-structural-io) carries into the BLP model, where the same logic operates on market-level shares rather than individual choices.
 
+## The Choice of Moments: Sensitivity and Informativeness {#sec-se-sensitivity}
+
+Everything in this chapter so far has taken the estimation moments as given, but in a structural exercise the moments are a choice, and an extraordinarily flexible one. The method of moments asks only that the analyst supply functions of the data whose population values the model can reproduce, and almost anything qualifies: raw moments of the outcome, regression coefficients, an elasticity estimated off a quasi-experiment, the coefficients of an auxiliary reduced-form model, or the event-study path around a policy change. This flexibility is the source of both the power and the fragility of structural work. The same parameters can be estimated by matching many different sets of statistics, and the choice determines which features of the data the conclusions actually rest on. The frontier in applied structural estimation has accordingly shifted away from matching whatever moments are analytically convenient and toward matching descriptive statistics that are economically interpretable and precisely estimated, and then documenting transparently which of those statistics identify which parameters. This is the indirect-inference logic of an auxiliary model, where the auxiliary statistics are well-understood reduced-form quantities, carried to its transparent conclusion.
+
+@andrews2017measuring make this discipline operational with a single object, the sensitivity of the parameter estimates to the estimation moments. For a minimum-distance estimator that chooses $\theta$ to drive a vector of sample moments $\hat g(\theta)$ toward zero under the weight matrix $W$, a first-order expansion around the truth gives $\hat\theta - \theta_0 \approx \Lambda\, \hat g(\theta_0)$, where the sensitivity matrix is $\Lambda = -(G'WG)^{-1}G'W$ and $G = \partial \mathbb{E}[\hat g]/\partial\theta'$ is the Jacobian of the moments. The matrix $\Lambda$ is a local, linear map from the moments to the estimates, and it answers two questions at once. Read column by column, it shows how much each parameter estimate would move if a given moment shifted, so it reveals which moments a result leans on. Read as a bias calculation, it shows that if a moment is misspecified, so that its population value is $\mu \neq 0$ rather than zero, the induced asymptotic bias in the estimates is approximately $\Lambda\mu$, so a parameter whose row in $\Lambda$ places large weight on a fragile moment inherits that moment's misspecification. Crucially, $\Lambda$ costs almost nothing to compute, since it needs only the Jacobian and weight matrix the estimation already produces, so it can be reported even for an elaborate structural model whose mapping from moments to estimates is otherwise opaque.
+
+The mechanics are concrete. Consider estimating the mean and standard deviation of a normal outcome by matching three data moments to their model counterparts, the mean, the variance, and the share of observations above a threshold. Three moments and two parameters make the system overidentified, so the moments do not all bind equally, and the sensitivity matrix discloses how the estimates apportion their dependence among them.
+
+```{r se-sensitivity, message=FALSE, warning=FALSE}
+# Andrews, Gentzkow, and Shapiro (2017) sensitivity of estimates to moments.
+# Model: y ~ Normal(mu, sigma), estimated by matching three data moments to
+# their model values: the mean, the variance, and P(y > c).
+mu0 <- 0; sigma0 <- 1; c_thr <- 1
+
+# Model-implied moments as a function of theta = (mu, sigma).
+model_moments <- function(theta) {
+  mu <- theta[1]; s <- theta[2]
+  c(mean = mu, variance = s^2, tail = 1 - pnorm((c_thr - mu) / s))
+}
+
+# Analytic Jacobian G = d(model moments)/d theta', evaluated at the truth.
+z <- (c_thr - mu0) / sigma0
+G <- rbind(
+  mean     = c(1, 0),
+  variance = c(0, 2 * sigma0),
+  tail     = c(dnorm(z) / sigma0, dnorm(z) * (c_thr - mu0) / sigma0^2)
+)
+
+# Identity-weighted sensitivity: each entry is the change in a parameter
+# estimate induced by a marginal change in an estimation moment.
+W <- diag(3)
+Lambda <- solve(t(G) %*% W %*% G) %*% t(G) %*% W
+rownames(Lambda) <- c("mu (mean)", "sigma (sd)")
+colnames(Lambda) <- c("mean", "variance", "tail prob.")
+knitr::kable(round(Lambda, 3),
+  caption = "Sensitivity matrix (Andrews, Gentzkow, and Shapiro 2017) for a normal model estimated by matching the mean, the variance, and a tail probability. Each entry is the change in a parameter estimate induced by a marginal change in an estimation moment.")
+```
+
+The reading is immediate. The mean estimate is governed almost entirely by the sample mean, the standard-deviation estimate by the sample variance, and the tail probability contributes modestly to both, exactly as intuition would suggest for a normal model, but now quantified rather than asserted. In a genuine structural model the same table is far less obvious and far more valuable, because it can disclose that an estimated adjustment cost is driven by the serial correlation of investment rather than by its level, or that a risk-aversion parameter rests on a single tail moment that the data pin down poorly.
+
+The companion question is which descriptive statistics a reader should be shown to understand the estimates. Structural papers routinely present a handful of reduced-form descriptive statistics, a difference in means, a regression slope, an elasticity, and argue informally that these are what identify the structural parameters. @andrews2020informativeness formalize when that argument is correct. They show that a structural estimate is, asymptotically, approximately a function of the reduced-form descriptive statistics, and they define an informativeness measure that quantifies how much of the sampling variation in a structural estimate a candidate set of descriptive statistics accounts for, a quantity that behaves like an $R^2$ running from zero to one. When the measure equals one the descriptive statistics are sufficient: they carry all the identifying information the structural estimator uses, and a reader who understands how those statistics move understands how the structural estimate moves. The framework turns the loose claim that a reduced-form pattern identifies a parameter into a checkable statement, and it tells the analyst which well-estimated moments are worth matching in the first place, since an informative, precisely measured descriptive statistic is exactly the kind of moment that disciplines a structural parameter without importing noise.
+
+Taken together, sensitivity and informativeness convert the flexibility of moment matching from a liability into a discipline. The recommended practice in frontier structural work is to choose estimation moments that correspond to transparent, well-estimated descriptive statistics, to report the sensitivity of each headline parameter to those moments, and to document how much of the estimate the descriptive statistics explain. A structural conclusion whose drivers are visible and precisely measured is far more credible than one whose link to the data is buried in a high-dimensional criterion. The same logic recurs throughout the structural cluster: every estimate in the [BLP demand](#sec-structural-io), [dynamic-choice](#sec-dynamic-discrete-choice), and [structural finance](#sec-structural-finance) chapters should be readable as a response to a small number of identifiable moments, and the tools here are what make that reading possible.
+
 ## Connections {#sec-se-connections}
 
 The estimators in this chapter are the common foundation for the structural cluster that follows. GMM and its simulated counterpart MSM underlie the [BLP demand](#sec-structural-io) estimator, where the moments come from instruments interacted with the structural demand error. Maximum likelihood and its simulated counterpart MSL underlie the [discrete-choice](#sec-discrete-choice) and dynamic-choice models, where the likelihood integrates over unobserved heterogeneity or unobserved states. The identifying variation that disciplines all of them is, in the credible cases, the same [instrumental-variables](#sec-instrumental-variables) logic that runs through the reduced-form half of the book. The general theory of the likelihood objects used here is developed in the chapter on [likelihood and theories of inference](#sec-likelihood-inference). With the toolkit in place, the chapters that follow can focus on the economics of each structural setting rather than on the estimator.
