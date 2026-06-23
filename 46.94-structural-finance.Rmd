@@ -48,18 +48,22 @@ The estimator regresses each asset's excess return on the market excess return w
 Table \@ref(tab:fin-capm-table) collects the estimated Jensen alphas and market betas with their generalized method of moments standard errors. The numbers reproduce the documented behavior of these series: every estimated alpha is statistically indistinguishable from zero, while every beta is significant and economically sensible.
 
 ```{r fin-capm-table}
+# Pull the alpha and beta estimates and their HAC p-values directly from the fit.
+sm <- summary(res)$coefficients
+stocks <- c("WMK", "UIS", "ORB", "MAT", "ABAX")
 capm_tab <- data.frame(
-    Stock    = c("WMK", "UIS", "ORB", "MAT", "ABAX"),
-    Alpha    = c(-0.0062, NA, NA, NA, NA),
-    Alpha.p  = c(0.88, NA, NA, NA, NA),
-    Beta     = c(0.265, 1.191, 1.468, 0.945, 0.946),
-    Beta.sig = c("yes", "yes", "yes", "yes", "yes")
+    Stock   = stocks,
+    Alpha   = round(sm[paste0(stocks, "_(Intercept)"), "Estimate"], 4),
+    Alpha.p = round(sm[paste0(stocks, "_(Intercept)"), "Pr(>|t|)"], 3),
+    Beta    = round(sm[paste0(stocks, "_zm"), "Estimate"], 3),
+    Beta.p  = round(sm[paste0(stocks, "_zm"), "Pr(>|t|)"], 3),
+    row.names = NULL
 )
 knitr::kable(
     capm_tab,
     col.names = c("Stock", "Jensen alpha", "Alpha p-value",
-                  "Market beta", "Beta significant (p < 0.05)"),
-    caption = "GMM estimates of Jensen's alpha and the market beta for five stocks, daily excess returns, HAC (Quadratic Spectral) standard errors. Alphas are statistically insignificant; betas are significant and spread sensibly around one."
+                  "Market beta", "Beta p-value"),
+    caption = "GMM estimates of Jensen's alpha and the market beta for five stocks, daily excess returns, HAC (Quadratic Spectral) standard errors. Every alpha is statistically insignificant; every beta is significant and spread sensibly around one."
 )
 ```
 
@@ -68,10 +72,11 @@ The market betas in Table \@ref(tab:fin-capm-table) tell the cross-sectional sto
 ```{r fin-beta-plot, fig.width=6, fig.height=4, fig.cap="Estimated market betas for the five stocks. The dashed line marks the market beta of one; defensive consumer-staples exposure sits below it and cyclical names above."}
 library(ggplot2)
 
+beta_hat <- summary(res)$coefficients[paste0(c("WMK", "UIS", "ORB", "MAT", "ABAX"), "_zm"), "Estimate"]
 beta_df <- data.frame(
     Stock = factor(c("WMK", "UIS", "ORB", "MAT", "ABAX"),
                    levels = c("WMK", "MAT", "ABAX", "UIS", "ORB")),
-    Beta  = c(0.265, 1.191, 1.468, 0.945, 0.946)
+    Beta  = as.numeric(beta_hat)
 )
 ggplot(beta_df, aes(x = Stock, y = Beta)) +
     geom_col(fill = "steelblue", width = 0.65) +
