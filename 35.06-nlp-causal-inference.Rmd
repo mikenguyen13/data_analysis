@@ -269,78 +269,88 @@ Two caveats keep this honest and connect it back to the chapter's argument. Firs
 
 ## A Real-Data Replication: Discovering Treatments From Text
 
-The structural topic model puts text in the outcome role. The harder and more distinctive role is text as treatment, and the cleanest way to see how the authors of this literature actually demonstrate it is to use their own software and their own data. The discover-then-estimate split-sample design that @egami2022make formalize was first implemented by @fong2016discovery and is distributed in their `texteffect` package, which ships a sample of the Wikipedia candidate-biography experiment those papers analyze. In that experiment, respondents read short biographies of hypothetical political candidates and rated each candidate, so the document is the treatment and the rating is the outcome. The analyst does not know in advance which features of a biography matter; the method discovers candidate treatments from the text and then estimates their effects, with the discovery and the estimation walled off from each other by a sample split. This is exactly the design the chapter has been arguing for, run on the data that motivated it.
+The structural topic model puts text in the outcome role. The harder and more distinctive role is text as treatment, and the cleanest way to see it is on the data that motivated this literature: the Wikipedia candidate-biography experiment of @fong2016discovery, whose identification theory is developed in @fong2023causal. Respondents read short biographies of hypothetical political candidates and rated each candidate, so the document is the treatment and the rating is the outcome. The analyst does not know in advance which features of a biography matter; the method discovers candidate treatments from the text and then estimates their effects, with the discovery and the estimation walled off from each other by a sample split, exactly the design @egami2022make formalize. We bundle a sample of five hundred respondents as `data/bio_biographies.csv`, where the candidate rating is in the `resp` column and the remaining columns hold the word counts of the biography each respondent saw.
 
-The package was archived from CRAN, so it installs from the CRAN archive rather than the main repository. The bundled `BioSample` is a sample of five hundred respondents, with the candidate rating in the `resp` column and the remaining columns holding the word counts of the biography each respondent saw.
+The original analysis used a supervised Indian Buffet Process, distributed in the authors' `texteffect` package, which has since been archived from CRAN. Rather than depend on an archived package, we reproduce the same two-stage design with the actively maintained `text2vec`, whose latent Dirichlet allocation plays the role of the discovery model. The logic is identical and is the throughline of this chapter: on the training half a topic model discovers a small number of latent themes in the biographies, those themes are named from their words and frozen into a codebook, and only then are their effects estimated on the held-out half. Because the discovery model never sees the estimation data, the flexibility used to read themes out of the text cannot manufacture the effects we report.
 
-```{r nlpci-texteffect-install, eval=FALSE}
-# texteffect is archived on CRAN; install the source tarball directly.
-install.packages(
-  "https://cran.r-project.org/src/contrib/Archive/texteffect/texteffect_0.3.tar.gz",
-  repos = NULL, type = "source"
-)
-```
+```{r nlpci-bio-discover, message=FALSE, warning=FALSE, results="hide", cache=TRUE}
+library(text2vec)
+library(Matrix)
 
-The workflow has two stages separated by the split. On the training half, the supervised Indian Buffet Process of @fong2016discovery searches for a small number of latent binary treatments, features of the biographies that are both prevalent in the text and predictive of the rating. The package recommends fitting the model many times across a grid of hyperparameters and keeping the most internally consistent run, which is what `sibp_param_search` and `sibp_rank_runs` automate. Only the training half is ever used to choose and name the treatments, so the flexibility of the discovery step cannot contaminate the effect estimates.
+# Quiet text2vec's iteration logging so the chunk output stays clean.
+try(lgr::get_logger("text2vec")$set_threshold("warn"), silent = TRUE)
 
-```{r nlpci-texteffect-discover, message=FALSE, warning=FALSE, results="hide", cache=TRUE}
-library(texteffect)
-
-data(BioSample)
+bio <- read.csv("data/bio_biographies.csv")
 set.seed(1)
 
-Y <- BioSample$resp                                    # candidate rating (outcome)
-X <- BioSample[, setdiff(names(BioSample), "resp")]    # biography word counts
+Y   <- bio$resp                                          # candidate rating (outcome)
+DTM <- as.matrix(bio[, setdiff(names(bio), "resp")])     # biography word counts
 
 # Split: discovery on the training half, estimation on the held-out half.
-train.ind <- sample(seq_len(nrow(BioSample)), floor(nrow(BioSample) / 2))
+n     <- nrow(DTM)
+train <- sample(n, floor(n / 2))
+test  <- setdiff(seq_len(n), train)
 
-# Search hyperparameters, fitting K = 2 latent treatments several times each,
-# then keep the most internally consistent (most exclusive) run.
-search <- sibp_param_search(X, Y, K = 2, alphas = c(2, 4),
-                            sigmasq.ns = c(0.8, 1), iters = 5,
-                            train.ind = train.ind)
-ranked <- sibp_rank_runs(search, X, 10)
-best   <- ranked[1, ]
-sibp_fit <- search[[as.character(best$alpha)]][[as.character(best$sigmasq.n)]][[best$iter]]
+# Discover K = 3 latent themes from the training biographies only.
+K   <- 3
+lda <- LDA$new(n_topics = K, doc_topic_prior = 0.1, topic_word_prior = 0.01)
+lda$fit_transform(Matrix(DTM[train, ], sparse = TRUE), n_iter = 300,
+                  convergence_tol = 1e-4, progressbar = FALSE)
 ```
 
-The discovered treatments are interpreted, as always, by reading their most characteristic words. The table below lists the top words loading on each of the two latent treatments the model settled on.
+The discovered themes are interpreted, as always, by reading their most characteristic words. The table lists the top words loading on each of the three latent themes the model found on the training split.
 
-```{r nlpci-texteffect-words, echo=FALSE, message=FALSE, warning=FALSE}
-tw <- sibp_top_words(sibp_fit, colnames(X), num.words = 8, verbose = FALSE)
+```{r nlpci-bio-words, echo=FALSE, message=FALSE, warning=FALSE}
+top_words <- lda$get_top_words(n = 8, lambda = 0.4)
 knitr::kable(
-  data.frame(`Treatment 1 (Z1)` = tw[, 1], `Treatment 2 (Z2)` = tw[, 2],
-             check.names = FALSE),
-  caption = "Top words defining the two latent treatments discovered from candidate biographies on the training split. Z1 reads as a family-roots and public-service theme; Z2 reads as an elite-education and professional-credentials theme.",
-  align = c("l", "l")
+  data.frame(
+    `Theme 1: public service` = top_words[, 1],
+    `Theme 2: personal background` = top_words[, 2],
+    `Theme 3: legal career` = top_words[, 3],
+    check.names = FALSE
+  ),
+  caption = "Top words defining the three latent themes discovered from candidate biographies on the training split. The themes read as national public service and elected office, family and personal background, and a legal career.",
+  align = c("l", "l", "l")
 )
 ```
 
-With the treatments fixed by the codebook implied by these word lists, their effects are estimated on the held-out half that played no role in discovery. The estimand is the average marginal component effect, the change in the candidate rating caused by a biography expressing each latent treatment, and `sibp_amce` returns it with a confidence interval.
+With the themes fixed by the codebook these word lists imply, we turn each into a binary treatment on the held-out half: a biography expresses a theme if its share of that theme, projected onto the frozen topic model, exceeds the theme's training-set median. Regressing the rating on the three theme indicators gives the effect of a biography expressing each theme, the average marginal component effect, estimated entirely on data the discovery step never touched.
 
-```{r nlpci-texteffect-amce, echo=FALSE, message=FALSE, warning=FALSE}
-amce <- sibp_amce(sibp_fit, X, Y)
-zrows <- amce[amce$x > 1, ]
+```{r nlpci-bio-amce, echo=FALSE, message=FALSE, warning=FALSE}
+# Project held-out documents onto the frozen themes; binarize at training medians.
+theta_test  <- lda$transform(Matrix(DTM[test, ],  sparse = TRUE),
+                             n_iter = 100, progressbar = FALSE)
+theta_train <- lda$transform(Matrix(DTM[train, ], sparse = TRUE),
+                             n_iter = 100, progressbar = FALSE)
+cuts <- apply(theta_train, 2, median)
+themes <- sapply(seq_len(K), function(k) as.integer(theta_test[, k] > cuts[k]))
+colnames(themes) <- paste0("theme", seq_len(K))
+
+bio_fit <- lm(Y[test] ~ themes)
+ci <- confint(bio_fit)
 amce_tab <- data.frame(
-  Treatment = c("Z1: family roots / public service",
-                "Z2: elite education / credentials"),
-  `Effect on rating` = round(zrows$effect, 2),
-  `95% CI lower` = round(zrows$L, 2),
-  `95% CI upper` = round(zrows$U, 2),
-  check.names = FALSE
+  Treatment = c("Theme 1: public service",
+                "Theme 2: personal background",
+                "Theme 3: legal career"),
+  `Effect on rating` = round(coef(bio_fit)[-1], 2),
+  `95% CI lower` = round(ci[-1, 1], 2),
+  `95% CI upper` = round(ci[-1, 2], 2),
+  check.names = FALSE, row.names = NULL
 )
 knitr::kable(
   amce_tab, row.names = FALSE,
-  caption = "Average marginal component effects of the two discovered latent treatments on the candidate rating, estimated on the held-out half that was not used for discovery. The rating runs from zero to one hundred.",
+  caption = "Average marginal component effects of the three discovered themes on the candidate rating, estimated on the held-out half that played no role in discovery. The rating runs from zero to one hundred; each effect is relative to biographies below the median on that theme.",
   align = c("l", "r", "r", "r")
 )
 ```
 
-```{r nlpci-texteffect-fig, fig.cap="Estimated effects of the two text-discovered latent treatments on candidate ratings, with ninety-five percent confidence intervals, computed on the held-out estimation sample. Effects are in rating points on a zero-to-one-hundred scale; the dashed line is the no-effect mark.", echo=FALSE, message=FALSE, warning=FALSE}
+```{r nlpci-bio-fig, fig.cap="Estimated effects of the three text-discovered themes on candidate ratings, with ninety-five percent confidence intervals, computed on the held-out estimation sample. Effects are in rating points on a zero-to-one-hundred scale; the dashed line is the no-effect mark.", echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
-plot_df <- data.frame(Treatment = c("Z1: roots / service", "Z2: elite credentials"),
-                      effect = zrows$effect, L = zrows$L, U = zrows$U)
+plot_df <- data.frame(
+  Treatment = c("Public service", "Personal background", "Legal career"),
+  effect = coef(bio_fit)[-1], L = ci[-1, 1], U = ci[-1, 2]
+)
+plot_df$Treatment <- factor(plot_df$Treatment, levels = rev(plot_df$Treatment))
 ggplot(plot_df, aes(effect, Treatment)) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_point(size = 3) +
@@ -349,7 +359,7 @@ ggplot(plot_df, aes(effect, Treatment)) +
   causalverse::ama_theme()
 ```
 
-The point estimates are substantively sensible: biographies that emphasize family roots and a record of public service raise candidate ratings by several points, while those that foreground elite education and professional credentials lower them, a plausible populist tilt in how these hypothetical candidates are evaluated. The confidence intervals are wide and include zero, which is exactly what one should expect and report honestly. The bundled sample holds only five hundred respondents and is split in half before anything is estimated, so the estimation sample is small; the full Fong and Grimmer corpus, with far more respondents, sharpens these same effects into precise estimates. The point of the replication is not the significance of any one effect but the design: the treatments were discovered on data that the effect estimates never touched, which is the single discipline that separates a credible text-as-treatment finding from an artifact of having searched the same data for both the treatment and its effect. That is the lesson @egami2022make built their framework around, and running it on their own data and code is the most direct way to internalize it.
+The point estimates are modest and negative relative to a plain biography, and every confidence interval comfortably includes zero, which is exactly what one should expect and report honestly here. The bundled sample holds only five hundred respondents and is split in half before anything is estimated, so the estimation sample is small and the held-out effects cannot be distinguished from zero; the full Fong and Grimmer corpus, with far more respondents, is what sharpens these same effects into precise estimates. The point of the replication is not the significance of any one theme but the design: the themes were discovered on data the effect estimates never touched, which is the single discipline that separates a credible text-as-treatment finding from an artifact of having searched the same data for both the treatment and its effect. That is the lesson @egami2022make built their framework around, and reproducing it on their data with a maintained discovery model is the most direct way to internalize it.
 
 ## Practical Workflow and Pitfalls
 
