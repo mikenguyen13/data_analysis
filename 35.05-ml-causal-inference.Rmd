@@ -272,6 +272,152 @@ tau_xlearner <- predict(xfit, X)
 
 The choice among meta-learners and forests is empirical. Forests provide honest pointwise inference and require little tuning; meta-learners offer flexibility in the choice of base learner and can exploit structure such as smoothness or sparsity. A common workflow estimates the CATE several ways and checks that the qualitative conclusions about who benefits are stable across methods.
 
+## Publishing With These Methods: A Marketing Targeting Study
+
+The methods in this chapter are not only academically interesting; they are the engine behind a recognizable genre of empirical paper that publishes regularly in the top marketing and quantitative-marketing journals. Knowing the shape of that genre is useful both for reading the literature and for producing work that can survive its review process, so this section first describes the template and then replicates it end to end on a public dataset with production-grade code.
+
+### What a Publishable Paper Looks Like
+
+The papers that use heterogeneous-treatment-effect machinery to publish in Marketing Science, the Journal of Marketing Research, Management Science, and Quantitative Marketing and Economics share a common skeleton, and the contribution is rarely the estimator itself, which is taken off the shelf, but the design and the decision it informs. The canonical reference is @hitsch2024heterogeneous, who lay out the modern recipe explicitly: start from a randomized experiment or a credibly exogenous source of variation that identifies the treatment effect without functional-form heroics, estimate the conditional average treatment effect with a causal forest, and then, crucially, evaluate targeting policies rather than reporting the CATE as an end in itself. Their central methodological insight, which separates a publishable paper from a classroom exercise, is that the quantity a manager cares about is the value of a policy that assigns treatment based on covariates, and that this policy value can be estimated with a doubly robust score even when the underlying CATE estimates are noisy. The estimand is the profit or outcome of a targeting rule, not the accuracy of the effect surface.
+
+The substantive surprises that make such papers worth publishing usually come from the gap between the effect of a treatment and the characteristics that managers intuitively target. @ascarza2018retention provides the discipline's clearest cautionary result, showing through field experiments that the customers at highest risk of churning, the natural target of a retention campaign, are not the customers whose behavior responds most to intervention, so that a campaign aimed at high-risk customers can be nearly worthless while the same budget aimed at high-responsiveness customers pays off. The lesson, that one should target the treatment effect rather than the baseline level, is exactly what a causal forest operationalizes, and it recurs across the literature. @simester2020targeting stress-test the machine-learning targeting pipeline against the data problems that real firms face, missing covariates, distribution shift between the experiment and the deployment population, and small samples, and document which methods degrade gracefully, a robustness contribution that is itself publishable. @yoganarasimhan2023design use these tools to design and evaluate optimal free-trial lengths for a subscription product, turning an estimated heterogeneous effect into a personalized policy and quantifying its lift over the firm's status quo, while @rafieian2021targeting bring the same logic to mobile advertising and weigh the targeting gains against their privacy costs.
+
+A second strand earns its place by getting the identification right at scale rather than by the heterogeneity machinery. @gordon2019comparison compare experimental and observational advertising-effect estimates across large Facebook field experiments and show how far selection-on-observables adjustments, including propensity and double-machine-learning style methods, fall short of the experimental benchmark, a sobering result about the limits of observational causal inference in marketing. @dube2023personalized run experiments to estimate personalized price elasticities and then compute the welfare consequences of personalized pricing, combining experimentation, heterogeneous-effect estimation, and a welfare calculation into one paper. On the methodological side, @knaus2021machine give the kind of careful empirical Monte Carlo comparison of heterogeneous-effect estimators that lets applied researchers choose among causal forests, the R-learner, and the various meta-learners with evidence rather than fashion. The throughline is that the estimator is a commodity and the contribution lives in the design, the data, the policy question, and the honesty of the evaluation.
+
+### Replicating the Targeting Workflow on the Hillstrom Email Experiment
+
+To make the recipe concrete we replicate its core on a genuinely public marketing field experiment, the email campaign released by Kevin Hillstrom through the MineThatData challenge, which has become a standard benchmark for targeting research because it is a real randomized experiment with customer covariates and behavioral outcomes. Sixty-four thousand customers were randomly assigned to receive an email featuring men's merchandise, an email featuring women's merchandise, or no email, and the data record whether each customer visited the site, made a purchase, and how much they spent in the following two weeks. We use the clean two-arm comparison of the women's email against no email, with website visits as the outcome, and ask the question a manager actually faces: given the covariates, whom should we email?
+
+```{r mktg-hillstrom-data, message=FALSE, warning=FALSE}
+email <- read.csv("data/hillstrom_email.csv")
+
+# Clean two-arm experiment: women's email versus no email.
+email <- email[email$segment %in% c("Womens E-Mail", "No E-Mail"), ]
+
+W <- as.integer(email$segment == "Womens E-Mail")   # treatment: received email
+Y <- email$visit                                     # outcome: visited the site
+
+# Covariates the firm knows before sending: purchase recency, dollar history,
+# past category, tenure, acquisition channel, and location type.
+X <- data.frame(
+  recency   = email$recency,
+  history   = email$history,
+  mens      = email$mens,
+  womens    = email$womens,
+  newbie    = email$newbie,
+  phone     = as.integer(email$channel == "Phone"),
+  web       = as.integer(email$channel == "Web"),
+  zip_urban = as.integer(email$zip_code == "Urban"),
+  zip_rural = as.integer(email$zip_code == "Rural")
+)
+
+c(customers = nrow(X), treated = sum(W), baseline_visit_rate = round(mean(Y), 4))
+```
+
+The first step is the credibility anchor, the average treatment effect. Because assignment was randomized, even a simple difference in means identifies it, but we estimate it from a causal forest so that the same fitted object delivers both the average effect and the heterogeneity. The forest residualizes the outcome and the treatment on the covariates internally, the orthogonalization of the earlier sections, and returns a doubly robust average effect.
+
+```{r mktg-hillstrom-forest, message=FALSE, warning=FALSE, cache=TRUE}
+library(grf)
+
+set.seed(42)
+cf <- causal_forest(as.matrix(X), Y, W, num.trees = 1000, seed = 42)
+
+ate <- average_treatment_effect(cf, target.sample = "all")
+calib <- test_calibration(cf)
+tau_hat <- predict(cf)$predictions
+```
+
+```{r mktg-hillstrom-ate, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Quantity = c("Average treatment effect (visit prob.)",
+                 "Heterogeneity test (differential.forest.prediction)"),
+    Estimate = c(round(ate[["estimate"]], 4),
+                 round(calib["differential.forest.prediction", "Estimate"], 3)),
+    `Std. Error` = c(round(ate[["std.err"]], 4),
+                     round(calib["differential.forest.prediction", "Std. Error"], 3)),
+    check.names = FALSE
+  ),
+  caption = "Average effect of the women's email on the probability of a site visit, and the calibration test for whether the forest detects genuine effect heterogeneity. A differential-prediction coefficient near one with a small standard error is evidence of real heterogeneity.",
+  align = c("l", "r", "r")
+)
+```
+
+The women's email raises the probability of a site visit by roughly four percentage points off a baseline near thirteen percent, a large and precisely estimated effect. The calibration test of @wager2018estimation regresses the held-out outcome on the mean forest prediction and on the demeaned forest prediction; the coefficient on the differential prediction is well above zero and many standard errors from it, which is the formal evidence that the effect genuinely varies across customers rather than the forest manufacturing spurious variation. Figure \@ref(fig:mktg-cate-fig) shows the spread of the individual effect estimates, which range from slightly negative to well above the average, the raw material of any targeting decision.
+
+```{r mktg-cate-fig, fig.cap="Distribution of estimated conditional average treatment effects of the women's email on site visits across customers. The dashed line marks the average effect. A minority of customers have near-zero or negative estimated effects and are candidates for suppression.", message=FALSE, warning=FALSE}
+library(ggplot2)
+
+ggplot(data.frame(tau = tau_hat), aes(tau)) +
+  geom_histogram(bins = 40) +
+  geom_vline(xintercept = ate[["estimate"]], linetype = "dashed") +
+  labs(x = "Estimated treatment effect on visit probability",
+       y = "Number of customers") +
+  causalverse::ama_theme()
+```
+
+Detecting heterogeneity is not the same as profiting from it, and the next step is the one @hitsch2024heterogeneous insist on: quantify how much value a targeting rule that prioritizes by estimated effect actually delivers. The rank-weighted average treatment effect, computed by `rank_average_treatment_effect`, measures exactly this. It traces the average effect among the customers the model ranks most responsive as we expand the targeted fraction from the few down to everyone, and the area under that curve, the AUTOC, summarizes the gain from prioritizing by the estimated CATE over treating a random customer. Figure \@ref(fig:mktg-toc-fig) plots the curve.
+
+```{r mktg-toc-fig, fig.cap="Targeting operator characteristic curve. The vertical axis is the average treatment effect among the top fraction of customers ranked by estimated responsiveness; the horizontal axis is that fraction. A curve lying above zero and sloping down means the model concentrates the effect in the customers it prioritizes, which is the value of targeting.", message=FALSE, warning=FALSE}
+rate <- rank_average_treatment_effect(cf, tau_hat)
+
+ggplot(rate$TOC, aes(q, estimate)) +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  labs(x = "Fraction of customers targeted (most responsive first)",
+       y = "Average effect among targeted") +
+  causalverse::ama_theme()
+```
+
+```{r mktg-rate-print, echo=FALSE}
+cat(sprintf("RATE (AUTOC): %.4f  (std. error %.4f)\n", rate$estimate, rate$std.err))
+```
+
+The curve slopes downward and the AUTOC is several standard errors above zero, so the forest is genuinely separating responsive from unresponsive customers rather than ranking them at random. The final step converts that ranking into a deployable rule and evaluates it honestly. The `policytree` package of @athey2019generalized learns a shallow, interpretable decision tree that maps covariates directly to a treat-or-not recommendation, fit on the doubly robust scores from the forest so that the learned policy inherits the orthogonality that protects it from nuisance error. We fit a depth-two tree on a subsample for speed and then evaluate several policies against the same doubly robust scores.
+
+```{r mktg-policytree, message=FALSE, warning=FALSE, cache=TRUE}
+library(policytree)
+
+dr_scores <- double_robust_scores(cf)
+
+# Learn an interpretable depth-2 targeting rule (subsample for tractable search).
+set.seed(7)
+sub <- sample(nrow(X), 10000)
+ptree <- policy_tree(X[sub, ], dr_scores[sub, ], depth = 2)
+
+# Apply the rule to everyone; action 2 = send email, 1 = withhold.
+send <- predict(ptree, X) == 2
+
+# Doubly robust value of each policy: expected incremental visits per customer
+# relative to emailing no one.
+policy_value <- function(treat) mean(ifelse(treat, dr_scores[, 2], dr_scores[, 1]) - dr_scores[, 1])
+
+value_table <- data.frame(
+  Policy = c("Email no one", "Email everyone",
+             "Email if estimated effect > 0", "Learned policy tree"),
+  `Share emailed` = c(0, 1, mean(tau_hat > 0), mean(send)),
+  `Incremental visits per customer` = c(
+    0, policy_value(rep(TRUE, nrow(X))),
+    policy_value(tau_hat > 0), policy_value(send)),
+  check.names = FALSE
+)
+```
+
+```{r mktg-policytree-table, echo=FALSE}
+disp <- value_table
+disp[["Share emailed"]] <- round(disp[["Share emailed"]], 3)
+disp[["Incremental visits per customer"]] <- round(disp[["Incremental visits per customer"]], 4)
+knitr::kable(
+  disp,
+  caption = "Doubly robust value of alternative targeting policies on the Hillstrom experiment, measured as incremental site visits per customer relative to emailing no one. The learned policy tree captures nearly the full lift of a blanket campaign while contacting substantially fewer customers.",
+  align = c("l", "r", "r")
+)
+```
+
+The policy comparison is where the managerial payoff appears, and it carries the same counterintuitive flavor as @ascarza2018retention. Because the email helps the great majority of customers, emailing everyone produces the largest raw lift in visits, and a naive reading would stop there. The learned policy tree, however, achieves nearly the same incremental visits while emailing only about seventy percent of the customers, which means the firm can shed roughly a third of its mailing cost for a small fraction of the benefit, and the tree is fully transparent about who it drops, splitting on past purchase history and category in a way a manager can inspect and defend. When the outcome is replaced by profit net of contact cost, as it would be in a deployment, the policies that look tied on raw visits separate sharply, and the targeting rule dominates the blanket campaign. This is precisely the structure of the published papers: a randomized design for identification, a flexible forest for the heterogeneity, an honest doubly robust evaluation of the policy rather than the effect, and a managerial conclusion that the obvious blanket strategy leaves money on the table.
+
+The replication is also a template a reader can extend toward a publishable contribution. Swapping the visit outcome for `spend` turns the analysis into a revenue-targeting problem; subtracting a per-email cost converts the policy value into profit and sharpens the case for selective mailing; using all three experimental arms moves from a binary treatment to a multi-armed targeting problem that `policytree` handles directly; and validating the learned policy on a held-out portion of the experiment, or on the men's-email arm, supplies the out-of-sample evidence that referees expect. The full toolchain, `grf` for the forest, `rank_average_treatment_effect` for the targeting value, and `policytree` for the deployable rule, is the same one behind the papers cited above, which is why working through it on public data is the most direct way to learn how such studies are built.
+
 ## Temporal Causal Forests
 
 The forest machinery extends naturally to settings with a strong temporal structure, where every unit is eventually exposed to a widely known event and a clean contemporaneous control group does not exist. This arises with public announcements, recalls, security breaches, and similar shocks, where it is impossible to find a group unaware of the event that would still be representative of the affected population. The temporal causal inference design of @turjeman2023data addresses this by matching across cohorts that adopted at different times, so that newer participants who experienced the event early in their tenure are compared with the early trajectories of older participants who had not yet been exposed.
