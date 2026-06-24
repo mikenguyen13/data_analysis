@@ -69,7 +69,13 @@ The common value case is far harder, a difficulty made precise by @laffont1995ec
 
 ## Extensions {#sec-auction-extensions}
 
-The baseline estimator extends in several directions that matter for applied work. **Risk aversion** breaks the neutral first-order condition above, because a risk averse bidder values the certainty of winning more and therefore bids more aggressively; the same observed bids are then consistent with a different and less dispersed valuation distribution, so risk attitudes and valuation heterogeneity are entangled and require either functional form restrictions or exclusion variation to separate. **Unobserved heterogeneity** across auctions, where some auctions attract systematically higher or lower valuations for reasons the analyst does not record, contaminates the pooled bid distribution and biases the naive inversion. @krasnokutskaya2011identification showed how to identify and strip out such auction level unobserved heterogeneity using deconvolution, exploiting the multiplicative or additive separability of the unobserved component from the idiosyncratic bidder draw. **Entry** introduces a prior stage in which potential bidders decide whether to incur a cost to participate, so the set of actual bidders is selected and the number of bidders is endogenous, which must be modeled jointly with the bidding stage to avoid confounding selection with valuation differences. Finally, **testing private versus common values** uses the comparative statics of bids in the number of competitors, since adding rivals intensifies the winner's curse correction under common values but only the competition effect under private values, giving a testable distinction grounded in the identification difficulties noted above.
+The baseline estimator extends in several directions that matter for applied work. **Risk aversion** breaks the neutral first-order condition above, because a risk averse bidder values the certainty of winning more and therefore bids more aggressively; the same observed bids are then consistent with a different and less dispersed valuation distribution, so risk attitudes and valuation heterogeneity are entangled. @guerre2009nonparametric show that risk aversion is nonetheless nonparametrically identified using exclusion restrictions, exogenous variation in the number of bidders or in covariates that shift competition without shifting values, and @campo2011semiparametric supply an implementable semiparametric estimator with a parametric utility and a nonparametric value distribution. A practical refinement to the GPV second step replaces the ad hoc boundary trimming used in the simulation below with a principled boundary correction, recovering the efficiency that trimming discards [@hickman2015replacing].
+
+**Affiliated and common values** generalize the independent-private-values benchmark. The affiliated private value model is identified and estimable when bidder signals are positively dependent [@li2002structural; @li2000conditionally], and the common value model, in which the object is worth the same unknown amount to all bidders, brings the winner's curse to center stage. Recovering common values is harder because a bid reflects both a valuation and the inference a rational bidder draws from winning, but the equilibrium imposes testable restrictions [@hendricks2003empirical], and structural estimation shows that adding bidders intensifies the winner's-curse correction and induces more cautious bidding, a comparative static that distinguishes common from private values [@hong2002increasing; @paarsch1992deciding]. The general question of which paradigm is identified from bids alone was settled format by format by @athey2002identification.
+
+**Unobserved heterogeneity** across auctions, where some attract systematically higher valuations for reasons the analyst does not record, contaminates the pooled bid distribution. @krasnokutskaya2011identification strips out auction-level unobserved heterogeneity by deconvolution, exploiting the separability of the common component from the idiosyncratic bidder draw, while @roberts2013unobserved uses the seller's reserve price as a control function for it, and @an2010estimating treat even the number of potential bidders as latent and recover it by a misclassification argument. **Entry** introduces a prior stage in which potential bidders decide whether to incur a cost to participate, so the bidder set is selected and the number of bidders is endogenous. Ignoring it confounds selection with valuation differences, and a literature models the two stages jointly, allowing entry to be selective on value [@li2009entry; @gentry2014identification] and showing empirically that auction format affects participation and revenue together [@athey2011comparing].
+
+**Ascending auctions** raise a different difficulty: the English auction ends when the second-to-last bidder drops out, so the winner's valuation is never observed, only bounded. Rather than impose the strong button-auction assumptions that would point-identify the model, @haile2003inference replace them with two weak behavioral inequalities and obtain partial-identification bounds on the valuation distribution, a leading example of the bounds approach in structural econometrics and a natural complement to the point-identified first-price estimator developed here.
 
 ## Policy and Counterfactual Design {#sec-auction-policy}
 
@@ -140,6 +146,54 @@ ggplot(plot_df, aes(value, color = series, fill = series)) +
 ```
 
 The two densities are nearly coincident over the interior of the support, with the familiar boundary degradation that motivates the trimming: the kernel density of bids is biased near the edges of its support, which inflates the markup term $G(b)/g(b)$ there and distorts the recovered values at the extreme quantiles. The exercise is a self-contained demonstration of the structural logic of the chapter. The auction rules supplied the first-order condition, the first-order condition supplied the inversion, and the inversion turned a distribution of observed bids into the distribution of unobserved valuations that the seller would need to choose a reserve price or compare formats.
+
+## Counterfactual: The Optimal Reserve Price
+
+The recovered valuation distribution is not the end of the analysis but its beginning, because it lets the seller evaluate designs that were never run. The leading example is the optimal reserve price. Using the pseudo-values from the simulation above as the estimated valuation distribution, we compute the expected revenue of the auction as a function of the reserve and locate the revenue-maximizing reserve, which by @myerson1981optimal solves $r - (1 - F(r))/f(r) = v_0$ and, for the uniform valuations of the simulation with a seller value of zero, equals one half.
+
+```{r auc-reserve, fig.width=7, fig.height=4.2, fig.cap="Expected auction revenue as a function of the reserve price, computed from the GPV-recovered valuation distribution. The revenue-maximizing reserve (dashed) is near the theoretical optimum of 0.5 for uniform valuations with a zero seller value, demonstrating that the recovered primitive supports counterfactual mechanism design."}
+set.seed(8)
+# Resample bidders' valuations from the GPV-recovered distribution, then compute
+# expected revenue under a reserve r. By revenue equivalence (IPV) the expected
+# revenue equals that of a second-price auction: the winner pays max(r, second
+# highest value) when the highest value clears the reserve, and zero otherwise.
+n_sim <- 8000
+V <- matrix(sample(v_hat_trim, n_sim * n_bidders, replace = TRUE),
+            nrow = n_sim, ncol = n_bidders)
+top2 <- t(apply(V, 1, function(x) sort(x, decreasing = TRUE)[1:2]))
+highest <- top2[, 1]; second <- top2[, 2]
+revenue_at <- function(r) mean((highest >= r) * pmax(r, second))
+
+r_grid   <- seq(0, 0.95, by = 0.025)
+rev_grid <- vapply(r_grid, revenue_at, numeric(1))
+r_star   <- r_grid[which.max(rev_grid)]
+
+library(ggplot2)
+ggplot(data.frame(reserve = r_grid, revenue = rev_grid), aes(reserve, revenue)) +
+  geom_line(color = "#1b9e77", linewidth = 0.9) +
+  geom_vline(xintercept = r_star, linetype = "dashed", color = "firebrick") +
+  labs(x = "Reserve price", y = "Expected revenue",
+       subtitle = paste0("Revenue-maximizing reserve = ", r_star)) +
+  causalverse::ama_theme()
+```
+
+The revenue curve is single-peaked: a reserve that is too low forgoes the leverage a credible outside option provides, while a reserve that is too high too often kills the sale, and the optimum balances the two near the theoretical value. That this number can be computed at all is the entire point of the structural exercise, because the optimal reserve depends on the valuation distribution, which is unobserved and which only the inversion recovers. A reduced-form regression of prices on observed reserves could never deliver it, since changing the reserve changes the equilibrium bidding strategy and hence the very price data the regression uses.
+
+## Collusion and Bid-Rigging Detection
+
+One of the most consequential applications of structural auction analysis is the detection of collusion, because bid-rigging is both common in procurement and hard to prove without a model of how competitive bids should behave. The classic approach compares the bidding of suspected ring members with the competitive benchmark: cartel members' losing bids fail to respond to cost shifters the way competitive bids do [@porter1993detection], and the geographic and bid-pattern signatures of collusion can be read from procurement data [@pesendorfer2000study]. Modern tests use the structural restrictions of competitive bidding directly, asking whether bids satisfy the conditional independence and exchangeability that competition implies and that collusion violates [@bajari2003deciding]. Where the cartel's internal records are available, the structural model can even recover the side payments and the efficiency cost of the ring, as in the analysis of a stamp-dealer bidding cartel that quantified the damages collusion imposed [@asker2010study]. These methods are squarely in the domain of expert-witness economics, where the question is not academic but whether a pattern of bids is consistent with competition.
+
+## Multi-Unit, Treasury, and Position Auctions
+
+The single-object framework generalizes to settings where many units are sold at once or where the good is divisible. In divisible-good and share auctions, bidders submit demand schedules rather than single bids, and structural estimation recovers the marginal valuations behind those schedules, which supports the comparison of discriminatory and uniform pricing that treasury and central-bank auctions turn on [@hortacsu2010mechanism; @kastl2011discrete]. The same toolkit, applied to the US Treasury, quantifies the bid shading and the informational rents that different classes of bidders extract [@hortacsu2018bid], and applied to European Central Bank liquidity operations, reads banks' willingness to pay for funds as a barometer of financial stress [@cassola2013subprime]. A distinct and economically enormous application is the sponsored-search or position auction that allocates advertising slots: the generalized second-price mechanism is not truthful, and characterizing its equilibrium is the foundation of the empirical analysis of keyword auctions [@edelman2007internet; @varian2007position]. Online consumer auctions add their own features of endogenous entry and the winner's curse, studied structurally on eBay data [@bajari2003winner].
+
+## Applications in Procurement and Markets
+
+Structural auction models are the standard tool of empirical procurement and market-design economics. In highway and public procurement they separate adaptation and renegotiation costs from markups, showing that the cost of incomplete contracts is a large share of winning bids [@bajari2014bidding], and they evaluate the bid-preference and set-aside programs that favor small or disadvantaged bidders, where the endogenous-participation response can overturn the naive policy conclusion [@krasnokutskaya2011bid]. In timber sales they compare auction formats and quantify the revenue and efficiency consequences of opening participation [@athey2011comparing]. Across these settings the structural estimate is the input to a concrete policy question, the right reserve, the right format, the right preference program, that observed bids alone cannot answer because each policy changes the equilibrium that generated the bids.
+
+## Frontier: Learning and Mechanism Design
+
+The newest work at the boundary of auctions and machine learning concerns the computation and design of mechanisms rather than the estimation of value distributions from bids. Neural networks have been trained to compute approximate Bayes-Nash equilibria of complex auction games, and differentiable-economics methods learn revenue-optimal mechanisms directly, recovering and extending the classical optimal-auction theory [@dutting2024optimal]. It is worth stating honestly that, as of this writing, the machine-learning advances in auctions live primarily in the computer-science literature on mechanism design and equilibrium computation, and a published, top-economics-journal application of machine learning to the structural estimation of value distributions from bid data has yet to appear. The structural estimation toolkit of this chapter, the inversion of bids into values and the counterfactuals it supports, remains the empirical standard, and the most promising frontier is the integration of flexible machine-learning approximators into that toolkit rather than their replacement of it.
 
 ## Summary {#sec-structural-auctions-summary}
 
