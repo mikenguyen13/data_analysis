@@ -2,7 +2,7 @@
 
 Many outcomes that we want to model are a mixture of an exact zero and a continuous positive amount. The total dollar amount a policyholder claims from an insurer in a year is zero for most customers and a positive, right skewed number for the rest. The rainfall at a weather station on a given day is zero unless it rains. The biomass of a species caught in a trawl is zero in most hauls and positive in the rest. The total spend of a customer in a month is zero for the inactive and positive for the active. Each of these is a continuous variable with a spike of probability mass at zero, and neither the Gaussian, the Gamma, nor the Poisson distribution can describe it. The Gaussian ignores the skew and the floor at zero, the Gamma has no mass at zero because it is strictly positive, and the Poisson is for counts rather than amounts. The distribution that fits this shape, and the regression model built on it, is the Tweedie.
 
-Tweedie regression is the member of the generalized linear model family whose variance is a power of the mean, $\operatorname{Var}(Y) = \phi\,\mu^{p}$. For the power $p$ between one and two the Tweedie distribution is a compound Poisson sum of Gamma increments, which is exactly the random variable described by "a random number of positive amounts," and it places a genuine point mass at zero while remaining continuous on the positive line. It is the workhorse of actuarial pricing, where the quantity of interest is the pure premium, the expected claim cost per policy, and it appears throughout climatology, ecology, and any setting where a continuous response is zero a meaningful fraction of the time. This chapter develops the distribution and its regression model from the exponential dispersion family, derives the compound Poisson representation, explains how the intractable density is evaluated and how the three parameters are estimated, and then replicates the canonical insurance application on real data before turning to modern extensions.
+Tweedie regression is the member of the generalized linear model family whose variance is a power of the mean, $\operatorname{Var}(Y) = \phi\,\mu^{p}$. For the power $p$ between one and two the Tweedie distribution is a compound Poisson sum of Gamma increments, which is exactly the random variable described by "a random number of positive amounts," and it places a genuine point mass at zero while remaining continuous on the positive line. It is the workhorse of actuarial pricing, where the quantity of interest is the pure premium, the expected claim cost per policy, and it appears throughout climatology, ecology, and any setting where a continuous response is zero a meaningful fraction of the time. This chapter develops the distribution and its regression model from the exponential dispersion family, derives the compound Poisson representation, explains how the intractable density is evaluated and how the three parameters are estimated, and then works through the canonical insurance application on real data, checking its conclusions against the published analysis of the same dataset, before turning to modern extensions.
 
 ## The Tweedie Family Within Generalized Linear Models
 
@@ -188,9 +188,9 @@ knitr::kable(
 
 The profile peaks at the true power and the coefficients and dispersion land on their data generating values, confirming that the three part estimation scheme works as intended.
 
-## Real-Data Replication: Insurance Pure Premium
+## Real-Data Application: Insurance Pure Premium
 
-The canonical application of the Tweedie, the one that motivated @jorgensen1994fitting and @smyth2002fitting, is modeling insurance claim costs. We replicate that analysis on the `dataCar` portfolio from the `insuranceData` package, a real Australian automobile insurance dataset of 67,856 one year policies. The response `claimcst0` is the total claim cost incurred by each policy, and the covariates are the usual rating factors: the vehicle value and body type, the vehicle age, the driver's age band and gender, and the geographic area. Each policy is observed for a known fraction of a year, the `exposure`, which enters the model as a weight so that the estimated mean is a rate per unit exposure, the pure premium.
+Modeling insurance claim costs is the application that drove the development of the Tweedie GLM by @jorgensen1994fitting and @smyth2002fitting, and it remains the textbook use of the model. Those authors worked with their own proprietary portfolios, so rather than reproduce their exact numbers we apply the same method to a standard public benchmark, the `dataCar` portfolio distributed with the `insuranceData` package and analyzed at length in the insurance GLM textbook of @dejong2008glm. It is a real Australian automobile insurance dataset of 67,856 one year policies. The response `claimcst0` is the total claim cost incurred by each policy, and the covariates are the usual rating factors: the vehicle value and body type, the vehicle age, the driver's age band and gender, and the geographic area. Each policy is observed for a known fraction of a year, the `exposure`, which enters the model as a weight so that the estimated mean is a rate per unit exposure, the pure premium. Because @dejong2008glm fit and interpret frequency and severity GLMs on exactly this data, their conclusions give us an external benchmark against which to check our own, which is the right way to read a replication: the test is whether the substantive findings agree, not merely whether the code runs.
 
 ```{r tweedie-data, fig.height=4, fig.cap="Distribution of annual claim cost in the dataCar portfolio. About 93 percent of policies cost zero (the bar at the origin), and the rest form a long right tail. This zero-inflated, continuous, right-skewed shape is the signature of a Tweedie response."}
 library(insuranceData)
@@ -233,7 +233,7 @@ p_hat <- p_grid[which.max(logL)]
 p_hat
 ```
 
-The likelihood favors a power near $1.7$, in the range that @smyth2002fitting report for automobile claims and consistent with a portfolio in which most policies have no claim and the positive costs are heavily skewed. With the power fixed, the coefficients are an ordinary GLM fit, and because of the log link each exponentiated coefficient is a multiplicative **relativity**, the factor by which a rating cell scales the baseline pure premium.
+The likelihood favors a power near $1.7$, within the range of roughly $1.5$ to $1.8$ typically reported for automobile claim costs and consistent with a portfolio in which most policies have no claim and the positive costs are heavily skewed. The value sits a little above the estimate that the smooth `mgcv` fit returns later in the chapter, a reminder that the power estimate moves with the mean specification and the estimation method. With the power fixed, the coefficients are an ordinary GLM fit, and because of the log link each exponentiated coefficient is a multiplicative **relativity**, the factor by which a rating cell scales the baseline pure premium.
 
 ```{r tweedie-real-fit}
 fit <- glm(form, data = d, weights = exposure,
@@ -245,16 +245,17 @@ knitr::kable(
   data.frame(
     Factor = rownames(co)[keep],
     Relativity = round(exp(co[keep, "Estimate"]), 3),
-    `Std. Error` = round(co[keep, "Std. Error"], 3),
+    `Std. Error (log)` = round(co[keep, "Std. Error"], 3),
+    `p-value` = round(co[keep, "Pr(>|t|)"], 3),
     check.names = FALSE
   ),
   row.names = FALSE,
-  caption = "Selected pure-premium relativities from the Tweedie GLM on the dataCar portfolio. A relativity below one means that cell is cheaper than the baseline (youngest drivers, female); above one means more expensive.",
-  align = c("l", "r", "r")
+  caption = "Pure-premium relativities for driver age band and gender from the Tweedie GLM on the dataCar portfolio (baseline: youngest age band, female). A relativity below one means cheaper than baseline. The standard error and p-value are on the log (coefficient) scale. The age-band effects are strongly significant; the gender effect is not.",
+  align = c("l", "r", "r", "r")
 )
 ```
 
-The relativities tell the actuarial story directly. Relative to the youngest drivers, every older age band carries a pure premium well below one, with the lowest risk middle aged bands around forty to fifty percent of the baseline, and male drivers cost about fifteen percent more than female drivers in this portfolio. These are the numbers that go into a rate table.
+The relativities tell a clear and, importantly, externally corroborated story. The age bands run from one, the youngest drivers, to six, the oldest, and the youngest band is the most expensive: every older band has a relativity below one, the cost of insuring a policy falling from the young baseline to roughly forty three percent for the second oldest band before ticking back up slightly for the very oldest, the mild U shape that actuaries expect when both inexperienced young drivers and the very old are riskier than those in between. Four of the five age coefficients are significant at conventional levels, so this pattern is real. The gender relativity is a different matter and is where reading the table honestly matters. The point estimate suggests male policies cost about fifteen percent more, but its p value is roughly $0.27$, so the effect is not statistically distinguishable from zero once the other rating factors are controlled for. This is exactly what @dejong2008glm find on the same data, that gender carries little signal for this portfolio, and it is a useful caution against reading a rate relativity off a point estimate without checking whether the data support it. Age belongs in the rating table; gender, on this evidence, does not.
 
 A first check on any pure premium model is whether it reproduces the total cost of the portfolio, since a model used to set prices must at least get the aggregate right. The Tweedie GLM with a log link has this calibration built in through its score equations.
 
