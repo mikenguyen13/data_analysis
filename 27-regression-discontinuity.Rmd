@@ -136,6 +136,43 @@ However, using high-order polynomials comes with challenges. @gelman2019high hig
 
 For these reasons, researchers are often advised to avoid global high-order polynomials and instead rely on alternative approaches (i.e., [nonparametric](#sec-nonparametric-regression) version).
 
+#### Parametric Model Specifications
+
+To make these ideas concrete, consider the simplest sharp RD model:
+
+$$
+Y = \alpha + \rho D_x + \gamma X + \epsilon
+$$
+
+where $Y$ is the outcome, $X$ is the running variable, $D_x$ is the treatment dummy, and $\rho$ is the treatment effect at the cutoff.
+
+**(nonlinear trend only)** A quadratic term absorbs smooth curvature in the running variable:
+
+$$
+Y = \alpha + \rho D_x + \gamma_1 X + \gamma_2 X^2 + \epsilon
+$$
+
+Higher-degree polynomial terms can be added, but sensitivity analysis across polynomial orders is always warranted to ensure results are not driven by functional form.
+
+**(slope change at the cutoff only)** To allow the slope of the running variable to differ on each side of the cutoff, interact $D_x$ with the running variable centered at the cutoff $X_0$:
+
+$$
+Y = \alpha + \rho D_x + \gamma (X - X_0) + \delta (X - X_0) D_x + \epsilon
+$$
+
+Centering at $X_0$ ensures that $\rho$ retains its interpretation as the average treatment effect at the cutoff. Away from the cutoff, the treatment effect is $\rho + \delta(X - X_0)$, though external validity in that region is questionable.
+
+**(nonlinear trend and slope change)** The most flexible parametric specification accommodates both curvature and slope changes:
+
+$$
+\begin{aligned}
+Y &= \alpha + \rho D_x + \gamma_1 (X - X_0) + \gamma_2 (X - X_0)^2 \\
+  &+ \delta_1 (X - X_0) D_x + \delta_2 (X - X_0)^2 D_x + \epsilon
+\end{aligned}
+$$
+
+where the treatment effect away from the cutoff is $\rho + \delta_1(X - X_0) + \delta_2(X - X_0)^2$. Again, external validity away from the cutoff is tenuous, and the degree of nonlinearity to model is always a judgment call requiring sensitivity analysis.
+
 ### Nonparametric Models: Local Regression
 
 [Nonparametric models](#sec-nonparametric-regression), such as local polynomial regression, offer greater flexibility by avoiding strong assumptions about functional form. Instead of fitting a single equation to the entire dataset, these methods estimate relationships **locally**, often using linear or quadratic polynomials within a neighborhood of each data point.
@@ -150,6 +187,17 @@ Local regression methods, such as local linear regression, address the shortcomi
 -   **Improving inference**, ensuring more reliable confidence intervals.
 
 By balancing flexibility and robustness, local regression techniques are often preferred over global polynomial models in applied research.
+
+Local regression estimators weight observations according to their distance from the cutoff using a **kernel function**. The choice of kernel affects how rapidly the influence of an observation falls off with distance. Common kernels used in RD analysis are:
+
+1.  **Uniform Kernel**: All observations within the bandwidth receive equal weight. Simple but does not down-weight units far from the cutoff.
+2.  **Triangular Kernel**: Weight decreases linearly with distance from the cutoff. Often preferred in RD because it assigns maximum weight to observations closest to the threshold.
+3.  **Epanechnikov Kernel**: A parabolic (quadratic) weighting function that minimizes the mean integrated squared error among kernel estimators and is thus theoretically optimal.
+4.  **Quartic (Biweight) Kernel**: A higher-degree parabolic kernel that provides a smoother taper than Epanechnikov.
+5.  **Triweight Kernel**: A cubic weighting function yielding even smoother estimates at the cost of slightly more boundary sensitivity.
+6.  **Gaussian Kernel**: Uses the normal distribution for weighting, so every observation receives positive (though rapidly diminishing) weight. Provides smooth estimates but is unbounded in support.
+
+In practice, the triangular kernel is the default choice in modern RD software (e.g., `rdrobust`) because it is boundary-optimal for local linear regression. The choice among the others rarely changes results substantially; sensitivity across kernels is nonetheless a standard robustness check.
 
 **Best Practice:** Use multiple model specifications to check for consistency in results.
 
