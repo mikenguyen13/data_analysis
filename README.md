@@ -50,87 +50,88 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 5. Non-Linear Regression
 6. Generalized Linear Models
 7. Discrete Choice and Limited Dependent Variables
-8. Linear Mixed Models
-9. Nonlinear and Generalized Linear Mixed Models
-10. Nonparametric Regression
-11. Quantile Regression and Distributional Methods
+8. Tweedie Regression
+9. Linear Mixed Models
+10. Nonlinear and Generalized Linear Mixed Models
+11. Nonparametric Regression
+12. Quantile Regression and Distributional Methods
 
 **Part III. Ramifications**
 
-12. Data
-13. Time Series Analysis
-14. Variable Transformation
-15. Imputation (Missing Data)
-16. Model Specification Tests
-17. Variable Selection
-18. Hypothesis Testing
-19. Marginal Effects
-20. Moderation
-21. Mediation
-22. Prediction and Estimation
+13. Data
+14. Time Series Analysis
+15. Variable Transformation
+16. Imputation (Missing Data)
+17. Model Specification Tests
+18. Variable Selection
+19. Hypothesis Testing
+20. Marginal Effects
+21. Moderation
+22. Mediation
+23. Prediction and Estimation
 
 **Part IV. Causal Inference**
 
-23. Causal Inference
+24. Causal Inference
 
 - *A. Experimental Design*
 
-24. Experimental Design
-25. Interference and Spillover Effects
-26. Sampling
-27. Survey and Response Quality
-28. Analysis of Variance
-29. Multivariate Methods
+25. Experimental Design
+26. Interference and Spillover Effects
+27. Sampling
+28. Survey and Response Quality
+29. Analysis of Variance
+30. Multivariate Methods
 
 - *B. Quasi-Experimental Design*
 
-30. Quasi-Experimental Methods
-31. Regression Discontinuity
-32. Temporal Discontinuity Designs
-33. Synthetic Difference-in-Differences
-34. Difference-in-Differences
-35. Changes-in-Changes
-36. Synthetic Control
-37. Event Studies
-38. Instrumental Variables
-39. Matching Methods
-40. Machine Learning for Causal Inference
-41. Uplift Modeling and Heterogeneous Treatment Effects
-42. Text as Data and NLP for Causal Inference
+31. Quasi-Experimental Methods
+32. Regression Discontinuity
+33. Temporal Discontinuity Designs
+34. Synthetic Difference-in-Differences
+35. Difference-in-Differences
+36. Changes-in-Changes
+37. Synthetic Control
+38. Event Studies
+39. Instrumental Variables
+40. Matching Methods
+41. Machine Learning for Causal Inference
+42. Uplift Modeling and Heterogeneous Treatment Effects
+43. Text as Data and NLP for Causal Inference
 
 - *C. Other Concerns*
 
-43. Endogeneity
-44. Biases
-45. Directed Acyclic Graphs
-46. Controls
+44. Endogeneity
+45. Biases
+46. Directed Acyclic Graphs
+47. Controls
 
 **Part V. Miscellaneous**
 
-47. Reporting Your Analysis
-48. Exploratory Data Analysis
-49. Sensitivity Analysis and Robustness Checks
-50. Replication and Synthetic Data
-51. Differential Privacy
-52. High-Performance Computing
-53. Clustered and Robust Inference
+48. Reporting Your Analysis
+49. Exploratory Data Analysis
+50. Sensitivity Analysis and Robustness Checks
+51. Replication and Synthetic Data
+52. Differential Privacy
+53. High-Performance Computing
+54. Clustered and Robust Inference
 
 **Part VI. Structural Econometrics**
 
-54. Estimation Methods for Structural Models
-55. Structural Econometrics and Demand Estimation
-56. Dynamic Discrete Choice
-57. Dynamic Games
-58. Structural Models of Selection and Unobserved Heterogeneity
-59. Production Functions and Productivity
-60. Frontier and Efficiency Analysis
-61. Markups, Market Power, and Mergers
-62. Demand Systems
-63. Structural Models of Auctions
-64. Machine Learning and AI for Structural Estimation
-65. Structural Models in Marketing
-66. Branding and Brand Equity
-67. Structural Models in Finance
+55. Estimation Methods for Structural Models
+56. Structural Econometrics and Demand Estimation
+57. Dynamic Discrete Choice
+58. Dynamic Games
+59. Structural Models of Selection and Unobserved Heterogeneity
+60. Production Functions and Productivity
+61. Frontier and Efficiency Analysis
+62. Markups, Market Power, and Mergers
+63. Demand Systems
+64. Structural Models of Auctions
+65. Machine Learning and AI for Structural Estimation
+66. Structural Models in Marketing
+67. Branding and Brand Equity
+68. Structural Models in Finance
 
 **Appendix**
 
