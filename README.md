@@ -98,40 +98,41 @@ The book is organized into five parts plus an appendix. This section is auto-gen
 41. Machine Learning for Causal Inference
 42. Uplift Modeling and Heterogeneous Treatment Effects
 43. Text as Data and NLP for Causal Inference
+44. Panel Matching for Time-Series Cross-Sectional Data
 
 - *C. Other Concerns*
 
-44. Endogeneity
-45. Biases
-46. Directed Acyclic Graphs
-47. Controls
+45. Endogeneity
+46. Biases
+47. Directed Acyclic Graphs
+48. Controls
 
 **Part V. Miscellaneous**
 
-48. Reporting Your Analysis
-49. Exploratory Data Analysis
-50. Sensitivity Analysis and Robustness Checks
-51. Replication and Synthetic Data
-52. Differential Privacy
-53. High-Performance Computing
-54. Clustered and Robust Inference
+49. Reporting Your Analysis
+50. Exploratory Data Analysis
+51. Sensitivity Analysis and Robustness Checks
+52. Replication and Synthetic Data
+53. Differential Privacy
+54. High-Performance Computing
+55. Clustered and Robust Inference
 
 **Part VI. Structural Econometrics**
 
-55. Estimation Methods for Structural Models
-56. Structural Econometrics and Demand Estimation
-57. Dynamic Discrete Choice
-58. Dynamic Games
-59. Structural Models of Selection and Unobserved Heterogeneity
-60. Production Functions and Productivity
-61. Frontier and Efficiency Analysis
-62. Markups, Market Power, and Mergers
-63. Demand Systems
-64. Structural Models of Auctions
-65. Machine Learning and AI for Structural Estimation
-66. Structural Models in Marketing
-67. Branding and Brand Equity
-68. Structural Models in Finance
+56. Estimation Methods for Structural Models
+57. Structural Econometrics and Demand Estimation
+58. Dynamic Discrete Choice
+59. Dynamic Games
+60. Structural Models of Selection and Unobserved Heterogeneity
+61. Production Functions and Productivity
+62. Frontier and Efficiency Analysis
+63. Markups, Market Power, and Mergers
+64. Demand Systems
+65. Structural Models of Auctions
+66. Machine Learning and AI for Structural Estimation
+67. Structural Models in Marketing
+68. Branding and Brand Equity
+69. Structural Models in Finance
 
 **Appendix**
 
