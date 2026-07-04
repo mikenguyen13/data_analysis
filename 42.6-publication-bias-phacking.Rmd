@@ -30,6 +30,41 @@ A complementary approach examines the distribution of significant p-values thems
 
 By examining only the statistically significant findings on a topic and testing whether their distribution is right-skewed, flat, or left-skewed, the p-curve provides a diagnostic that distinguishes evidential value from its absence. A right-skewed curve indicates that the studies contain real evidential value. A flat or left-skewed curve indicates that the significant findings are consistent with selective reporting of nulls and carry little evidential weight. @simonsohn2014pa extended the method to recover effect-size estimates from significant results while correcting for the selection that publication bias induces, so that the p-curve serves both as a detection tool and as a bias-corrected estimator. A practical caution is that the p-curve assumes the analyst can identify the correct test corresponding to each study's hypothesis and that the studies share a common effect, assumptions that require careful judgment when assembling the curve.
 
+### Formal Tests of the p-Value Distribution
+
+The heuristic diagnostics above were put on rigorous econometric footing by @elliott2022detecting, who derive the sharpest testable implications that the absence of p-hacking places on the distribution of reported p-values. Their starting point is a characterization result: if researchers do not p-hack, then for a wide class of test statistics the density of p-values across studies must be *non-increasing*, and beyond monotonicity it must satisfy explicit upper bounds on its level and derivatives. These restrictions hold regardless of the distribution of true effects across studies, which is what makes them a valid null hypothesis for the whole literature rather than for any single study. p-Hacking that shifts marginal results across a threshold violates them by creating a local increase, a hump, in the p-curve just below the significance cutoff.
+
+The paper turns each restriction into a statistical test. A binomial test compares the mass of p-values in the upper and lower halves of a narrow window such as $[0.04, 0.05]$, since a non-increasing density implies the upper half can hold at most half of the window's mass. Fisher's test aggregates evidence of non-uniformity across the window. A density discontinuity test checks for a jump in the p-curve at the threshold itself. The most powerful members of the family are conditional chi-squared tests in the tradition of Cox and Shi, which test the full set of inequality restrictions (monotonicity together with the bounds on the density and its first derivative) on a histogram of p-values. A final test exploits the fact that the restrictions imply concavity of the p-value CDF and measures the distance between the empirical CDF and its least concave majorant (LCM). Applying this battery to the large collections of test statistics assembled by Brodeur and coauthors, @elliott2022detecting reject the no-p-hacking null decisively in observational research designs, and much less so for randomized experiments, mirroring the discretion gradient documented by @brodeur2020methods.
+
+A minimal version of the binomial test illustrates the logic. We simulate an honest literature, in which p-values inherit a decreasing density from a mix of true effects, and a hacked literature in which some near-misses are nudged just under the threshold, and then ask whether the upper half of the $[0.04, 0.05]$ window is too full.
+
+```{r phacking-binomial-test}
+set.seed(2026)
+n_tests <- 5000
+
+# Honest literature: z-statistics from studies with true effects
+z_honest <- abs(rnorm(n_tests, mean = 1))
+p_honest <- 2 * pnorm(-z_honest)
+
+# Hacked literature: nudge 40% of near-misses to just below 0.05
+p_hacked <- p_honest
+marginal <- which(p_hacked > 0.05 & p_hacked < 0.09)
+nudged   <- sample(marginal, floor(0.4 * length(marginal)))
+p_hacked[nudged] <- runif(length(nudged), 0.045, 0.0499)
+
+# Binomial test: under a non-increasing density, at most half of the
+# p-values in [0.04, 0.05] should lie above the midpoint 0.045
+binom_bunching <- function(p, lo = 0.04, hi = 0.05) {
+    window <- p[p >= lo & p <= hi]
+    k <- sum(window > (lo + hi) / 2)
+    binom.test(k, length(window), p = 0.5, alternative = "greater")$p.value
+}
+
+c(honest = binom_bunching(p_honest), hacked = binom_bunching(p_hacked))
+```
+
+The honest literature survives the test while the hacked one fails it decisively. Two practical lessons from @elliott2022detecting deserve emphasis. First, rounding of reported statistics generates spurious mass points, so the tests should be run on de-rounded data or on a random draw of one test per article to avoid dependence across tests from the same study. Second, the tests differ sharply in power depending on where in the distribution the manipulation occurs, so the battery should be applied jointly rather than relying on any single member.
+
 ### Specification Curve and Multiverse Analysis
 
 The within-study counterpart to detecting p-hacking after the fact is to forestall it by reporting the entire distribution of defensible specifications rather than a single chosen one. Specification curve analysis, developed by @simonsohn2020specification and treated in detail in Section \@ref(sec-specification-curve-analysis), enumerates the reasonable analytic choices, estimates the effect under every combination, and displays the resulting set of estimates together with a test of whether the observed distribution of results is more extreme than would be expected by chance. By making the full multiverse of choices visible, the approach removes the analyst's ability to present a favorable specification as if it were the only one and lets readers see how sensitive the conclusion is to discretionary decisions. In the context of publication bias and p-hacking, the specification curve is best understood as a disclosure device. It does not prevent a determined researcher from misreporting, but it raises the cost of selective presentation and converts the researcher degrees of freedom that enable p-hacking into a reported object that readers can scrutinize.

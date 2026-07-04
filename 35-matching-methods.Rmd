@@ -379,6 +379,116 @@ A short translation of the algorithmic choices into applied guidance: reach for 
 
 ------------------------------------------------------------------------
 
+## Inverse Probability Weighting {#sec-inverse-probability-weighting}
+
+Weighting deserves a closer look than the brief mention it received among the matching algorithms above, because it is the direct bridge between matching and the estimating equations used by modern doubly robust and machine-learning estimators. The central insight is that inverse probability weighting (IPW) is not a causal invention at all. It is the Horvitz-Thompson estimator of survey sampling [@horvitz1952generalization], applied to the missing data problem that treatment assignment creates.
+
+### The Horvitz-Thompson Foundation
+
+In sampling theory, a finite population of units $i = 1, \dots, N$ carries fixed attributes $Y_i$, and each unit is sampled with known inclusion probability $\pi_i = P(S_i = 1)$. The Horvitz-Thompson estimator of the population mean is
+
+$$
+\hat{\mu}_{HT} = \frac{1}{N} \sum_{i=1}^N \frac{S_i Y_i}{\pi_i},
+$$
+
+which is unbiased because $E[S_i Y_i / \pi_i] = Y_i$. Each observed unit stands in for $1/\pi_i$ population units, so rarely sampled units are upweighted to undo the selection.
+
+Causal inference under the potential outcomes framework poses the same problem. Each unit has two fixed potential outcomes $Y_i(1)$ and $Y_i(0)$, but treatment assignment reveals only one of them. Treatment plays the role of the sampling indicator, and the propensity score $e(X_i) = P(D_i = 1 \mid X_i)$ plays the role of the inclusion probability. Because $E[D / e(X) \mid X] = 1$, we obtain
+
+$$
+E[Y(1)] = E\left[\frac{D\, Y}{e(X)}\right], \qquad
+E[Y(0)] = E\left[\frac{(1-D)\, Y}{1 - e(X)}\right],
+$$
+
+and the sample analog
+
+$$
+\widehat{ATE}_{IPW} = \frac{1}{N} \sum_{i=1}^N \left( \frac{D_i Y_i}{\hat{e}(X_i)} - \frac{(1 - D_i) Y_i}{1 - \hat{e}(X_i)} \right)
+$$
+
+is algebraically a Horvitz-Thompson estimator applied separately to the treated and control potential-outcome populations. The correspondence is exact:
+
+| Sampling theory | Causal inference |
+|---------------------------------|---------------------------------------|
+| Population units | Units with potential outcomes |
+| Sampling indicator $S_i$ | Treatment indicator $D_i$ |
+| Inclusion probability $\pi_i$ | Propensity score $e(X_i)$ |
+| Missing by sampling design | Missing counterfactual |
+| Positive inclusion probability | Overlap, $0 < e(X) < 1$ |
+| Selection on known design | [Selection on observables](#sec-selection-on-observables) |
+
+This mapping clarifies two things at once. First, the identification assumptions of IPW are sampling assumptions in disguise: unconfoundedness is the analog of a known selection mechanism, and overlap is the analog of every unit having a positive chance of being sampled. Horvitz-Thompson fails when $\pi_i = 0$, and IPW fails when $e(X)$ hits 0 or 1. Second, the variance pathologies of IPW are structural rather than incidental. The Horvitz-Thompson estimator is unbiased but can have enormous variance when some inclusion probabilities are tiny, and the same heavy tails in $1/e(X)$ dominate finite samples in causal applications. Trimming and stabilized weights are variance-control devices, not identification tools.
+
+### Weights, Estimands, and the Density-Ratio View
+
+Different target estimands correspond to different weight functions, and the cleanest way to see this is through density ratios. Let $f(x)$ denote the marginal covariate density and $f(x \mid D=1)$, $f(x \mid D=0)$ the group-specific densities. Bayes' rule gives $f(x) = P(D=1)\, f(x \mid D=1) / e(x)$, so reweighting treated units by $1/e(x)$ transforms their covariate distribution into that of the full population. The same logic for other targets yields the standard menu:
+
+| Target estimand | Treated weight | Control weight | Main risk |
+|------------------|------------------|------------------|-------------------|
+| ATE | $1/e(X)$ | $1/(1-e(X))$ | Extreme weights on both sides |
+| ATT | $1$ | $e(X)/(1-e(X))$ | Extreme weights on controls |
+| ATO (overlap) | $1-e(X)$ | $e(X)$ | None, but estimand changes |
+
+A useful summary of how much information survives reweighting is the effective sample size,
+
+$$
+ESS = \frac{\left(\sum_i w_i\right)^2}{\sum_i w_i^2},
+$$
+
+which shrinks as the weights become more dispersed. Even a nominally large control group contributes little if the target population forces a handful of controls with large $e(X)$ to carry most of the weight.
+
+### Overlap Weights
+
+When overlap is limited, plain ATE weights explode near $e(X) = 0$ or $1$. The overlap weights of @li2018balancing replace $1/e(X)$ and $1/(1-e(X))$ with $1-e(X)$ for treated units and $e(X)$ for controls. Three properties make them attractive in practice. They are bounded by construction, so no observation can dominate. They achieve exact mean balance on any covariate included in a logistic propensity model, a small-sample property rather than an asymptotic one. And they minimize the asymptotic variance of the weighted estimator within the class of balancing weights. The price is a change of estimand: overlap weights target the average treatment effect in the overlap population, the units most in equipoise between treatment and control, rather than the full-population ATE. In settings such as clinical decision-making or marginal policy expansion this subpopulation is often the one of substantive interest, which is why overlap weighting has moved quickly from a variance fix to a first-choice design.
+
+### A Small Simulation
+
+The simulation below generates a confounded treatment with true ATE equal to 1 and compares the naive difference in means, regression adjustment, ATE-targeted IPW, and overlap weighting, along with the effective sample size each weighting scheme retains in the control group.
+
+```{r ipw-overlap-simulation}
+set.seed(123)
+n  <- 5000
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+x3 <- rbinom(n, 1, 0.4)
+
+# Confounded assignment and outcomes, true ATE = 1
+e_true <- plogis(-0.5 + 0.8 * x1 - 0.6 * x2 + 0.4 * x3)
+d  <- rbinom(n, 1, e_true)
+y0 <- 2 + 1.0 * x1 + 0.5 * x2 + 0.3 * x3 + rnorm(n)
+y  <- ifelse(d == 1, y0 + 1, y0)
+dat <- data.frame(y, d, x1, x2, x3)
+
+ps_fit <- glm(d ~ x1 + x2 + x3, data = dat, family = binomial())
+e_hat  <- fitted(ps_fit)
+
+ate_naive <- mean(dat$y[dat$d == 1]) - mean(dat$y[dat$d == 0])
+ate_reg   <- coef(lm(y ~ d + x1 + x2 + x3, data = dat))["d"]
+
+# ATE weights (Horvitz-Thompson)
+w_ipw <- ifelse(dat$d == 1, 1 / e_hat, 1 / (1 - e_hat))
+ate_ipw <- weighted.mean(dat$y[dat$d == 1], w_ipw[dat$d == 1]) -
+    weighted.mean(dat$y[dat$d == 0], w_ipw[dat$d == 0])
+
+# Overlap weights
+w_ow <- ifelse(dat$d == 1, 1 - e_hat, e_hat)
+ate_ow <- weighted.mean(dat$y[dat$d == 1], w_ow[dat$d == 1]) -
+    weighted.mean(dat$y[dat$d == 0], w_ow[dat$d == 0])
+
+ess <- function(w) sum(w)^2 / sum(w^2)
+
+data.frame(
+    estimator = c("Naive", "Regression", "IPW (ATE)", "Overlap"),
+    estimate  = round(c(ate_naive, ate_reg, ate_ipw, ate_ow), 3),
+    ess_controls = round(c(NA, NA, ess(w_ipw[dat$d == 0]),
+                           ess(w_ow[dat$d == 0])))
+)
+```
+
+The naive comparison overstates the effect because treatment is concentrated where baseline outcomes are high, while regression adjustment, IPW, and overlap weighting all recover the truth. In this design overlap is healthy, so IPW and overlap weights perform similarly; as overlap deteriorates, the IPW estimate becomes erratic while the overlap-weighted estimate remains stable, at the cost of answering the question for the overlap population only. In applied work the `WeightIt` package estimates all of these weighting schemes with balance diagnostics, and weighting is usually paired with an outcome model in a doubly robust estimator, a combination developed in [Matching vs. Regression] below and in the machine-learning treatment of Chapter \@ref(sec-ml-causal).
+
+------------------------------------------------------------------------
+
 ## Matching vs. Regression
 
 Matching and regression are two core strategies used in observational studies to adjust for differences in covariates $X$ and estimate causal effects. While both aim to remove bias due to confounding, they approach the problem differently, particularly in how they weight observations, handle functional form assumptions, and address covariate balance.
@@ -554,7 +664,7 @@ Many R packages provide functionality for implementing the various matching meth
     Estimates propensity scores such that covariate balance is directly optimized. This can help avoid iterative re-specification of the propensity score model.
 
 -   PanelMatch [@rauh2025panelmatch]:\
-    Tailored to panel (longitudinal) data settings, providing matching methods that exploit repeated observations over time (e.g., for DID-type analyses in a time-series cross-sectional environment).
+    Tailored to panel (longitudinal) data settings, providing matching methods that exploit repeated observations over time (e.g., for DID-type analyses in a time-series cross-sectional environment). Covered in depth, with a full replication and diagnostics, in [Panel Matching for Time-Series Cross-Sectional Data](#sec-panel-matching).
 
 -   PSAgraphics:\
     Specializes in visual diagnostics for propensity score analyses, offering graphical tools to inspect balance and common support.

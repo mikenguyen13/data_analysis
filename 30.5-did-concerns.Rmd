@@ -498,13 +498,78 @@ In cases where the parallel trends assumption is questionable, researchers shoul
 
 -   Sensitivity Analysis: Evaluate how sensitive the results are to potential deviations from parallel trends.
 
-To implement these approaches, the `HonestDiD` package by @rambachan2023more provides robust statistical tools:
+To implement these approaches, the `HonestDiD` package by @rambachan2023more provides robust statistical tools. The demonstration below builds a panel in which the parallel trends assumption fails in a way that an event study cannot flag: the treated group suffers a one-time dip in the reference period $t = 5$ (an anticipation shock), so every event-study coefficient is measured against a contaminated baseline. The true post-treatment effect is 1, yet the conventional confidence interval for the period 6 effect sits well above it.
 
-```{r}
-# https://github.com/asheshrambachan/HonestDiD
-# remotes::install_github("asheshrambachan/HonestDiD")
-# library(HonestDiD)
+```{r honestdid-dgp, warning=FALSE, message=FALSE}
+library(fixest)
+library(HonestDiD)
+
+set.seed(123)
+n_id <- 500
+n_t  <- 10
+
+panel <- expand.grid(id = 1:n_id, t = 1:n_t)
+panel$g <- as.integer(panel$id <= n_id / 2)
+
+unit_fe <- rnorm(n_id)
+time_fe <- rnorm(n_t, 0, 0.1)
+
+# True effect of 1 from t = 6 onward, but the reference period t = 5
+# suffers a one-time dip of 1 in the treated group
+panel$y <- 1 + 2 * panel$g +
+    1 * (panel$t >= 6 & panel$g == 1) -
+    1 * (panel$t == 5 & panel$g == 1) +
+    unit_fe[panel$id] + time_fe[panel$t] + rnorm(nrow(panel), 0, 5)
+
+es <- feols(y ~ i(t, g, ref = 5) | id + t, cluster = "id", data = panel)
+iplot(es, main = "Event study with a contaminated reference period")
 ```
+
+The event-study coefficients feed directly into `HonestDiD`, which needs only the coefficient vector and its variance-covariance matrix. The conventional confidence set treats the pre-period deviations as zero; the robust confidence sets bound the post-treatment violation by a multiple $\bar{M}$ of the largest pre-treatment violation (the relative magnitudes restriction).
+
+```{r honestdid-rm, warning=FALSE, message=FALSE}
+betahat <- coef(es)
+sigma   <- vcov(es)
+npre  <- 4
+npost <- 5
+
+# Conventional CI for the period 6 effect (excludes the true effect of 1)
+orig_ci <- constructOriginalCS(
+    betahat = betahat, sigma = sigma,
+    numPrePeriods = npre, numPostPeriods = npost,
+    l_vec = basisVector(1, npost)
+)
+orig_ci
+
+# Robust CIs: post-treatment violation at most Mbar times the pre-treatment one
+rm_ci <- createSensitivityResults_relativeMagnitudes(
+    betahat = betahat, sigma = sigma,
+    numPrePeriods = npre, numPostPeriods = npost,
+    l_vec = basisVector(1, npost),
+    Mbarvec = seq(0.5, 1.5, by = 0.5)
+)
+rm_ci
+
+createSensitivityPlot_relativeMagnitudes(rm_ci, orig_ci)
+```
+
+At $\bar{M} = 1$, meaning the post-treatment violation may be as large as the largest pre-treatment violation, the robust confidence set contains the true effect of 1 that the conventional interval excludes. The point at which the robust set first includes zero is the *breakdown value*, a single number summarizing how severe a violation would need to be to erase the finding.
+
+When the worry is a smooth secular trend rather than a discrete shock, the smoothness restriction is the natural alternative: it allows the counterfactual trend to deviate from linearity by at most $M$ per period.
+
+```{r honestdid-smooth, warning=FALSE, message=FALSE}
+sm_ci <- createSensitivityResults(
+    betahat = betahat, sigma = sigma,
+    numPrePeriods = npre, numPostPeriods = npost,
+    l_vec = basisVector(1, npost),
+    Mvec = seq(0, 0.2, by = 0.1)
+)
+sm_ci
+
+createSensitivityPlot(sm_ci, orig_ci)
+```
+
+Reporting either family of robust confidence sets alongside the conventional event study, together with the breakdown value, has become the standard way to communicate how much the conclusions lean on the parallel trends assumption. Averaging the post-treatment effects instead of isolating one period only requires replacing `l_vec` with a vector of equal weights.
 
 Alternatively, @ban2022generalized propose a method that incorporates pre-treatment covariates as an information set and makes an assumption about the selection bias in the post-treatment period. Specifically, they assume that the selection bias lies within the convex hull of all pre-treatment selection biases. Under this assumption:
 

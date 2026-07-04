@@ -142,6 +142,39 @@ y <- cumsum(arima.sim(model = list(ar = 0.4), n = 400))  # integrated series
 arima(y, order = c(1, 1, 0))
 ```
 
+### Seasonal ARIMA Models
+
+Many economic and business series carry a repeating seasonal pattern (quarterly GDP, monthly retail sales, weekly web traffic) on top of the trend and short-run dynamics ARIMA($p,d,q$) already captures. The seasonal ARIMA model, written ARIMA($p,d,q$)($P,D,Q$)$_m$ following @hyndman2018forecasting, adds a second, seasonal set of autoregressive, differencing, and moving average operators at lag $m$ (the seasonal period, e.g. $m=4$ for quarterly or $m=12$ for monthly data) on top of the non-seasonal operators already introduced:
+
+$$
+\phi(L)\,\Phi(L^m)\,(1-L)^d(1-L^m)^D\, y_t = c + \theta(L)\,\Theta(L^m)\,\varepsilon_t,
+$$
+
+where lowercase $\phi(L)$, $\theta(L)$ are the ordinary AR and MA polynomials from the previous section and uppercase $\Phi(L^m)$, $\Theta(L^m)$ are the seasonal AR and MA polynomials, operating on lags that are multiples of $m$. The seasonal difference $(1-L^m)^D$ removes seasonal unit roots the same way $(1-L)^d$ removes a non-seasonal one, and the two differencing orders are chosen separately: $d$ from an ordinary unit root test on the seasonally adjusted series, $D$ from a seasonal unit root test (or, in practice, from whether a seasonal difference visibly stabilizes the seasonal ACF spikes at lags $m, 2m, 3m,\dots$).
+
+```{r ts-sarima, message=FALSE, warning=FALSE}
+library(forecast)
+
+# a monthly series with trend and seasonality
+y_seasonal <- ts(
+    cumsum(rnorm(120)) + 3 * sin(2 * pi * (1:120) / 12),
+    frequency = 12
+)
+
+# inspect seasonal differencing needs
+nsdiffs(y_seasonal)   # suggested seasonal differencing order D
+ndiffs(y_seasonal)    # suggested non-seasonal differencing order d
+
+fit_sarima <- Arima(y_seasonal, order = c(1, 1, 1), seasonal = c(0, 1, 1))
+summary(fit_sarima)
+
+# automated search over both seasonal and non-seasonal orders
+auto_sarima <- auto.arima(y_seasonal, seasonal = TRUE)
+summary(auto_sarima)
+```
+
+A useful diagnostic before fitting is to plot the series after non-seasonal differencing, then after both non-seasonal and seasonal differencing, and read the residual ACF/PACF at the seasonal lags $m, 2m, \dots$ to propose $P$ and $Q$, exactly as the ordinary ACF/PACF at lags $1,2,\dots$ propose $p$ and $q$ for the non-seasonal part.
+
 ## Models for the Conditional Variance
 
 ### Autoregressive Conditional Heteroskedasticity
@@ -255,6 +288,45 @@ summary(lm(y ~ y_lag1 + x_lag1, data = adl_data))
 
 Selecting how many lags to include balances bias against variance. Too few lags leave residual autocorrelation that biases inference, while too many lags consume degrees of freedom and risk fitting spurious dynamics. Three complementary strategies are common. The first adds or removes lags sequentially based on the statistical significance of the longest lag. The second compares information criteria such as the Akaike or Schwarz Bayesian criterion across candidate lag lengths and selects the minimizer. The third adds lags until the residuals resemble white noise, verified with the Breusch-Godfrey or Ljung-Box tests discussed in Section \@ref(diagnostics-and-robust-inference). In practice the criteria are used together, and the Schwarz criterion, being more parsimonious, is often preferred for forecasting.
 
+### Regression with ARIMA Errors and Prewhitening
+
+The ADL model above assumes the regression error $\varepsilon_t$ is white noise once enough lags of $y$ and $x$ are included. An alternative, useful when the researcher wants to keep a simple contemporaneous regression $y_t = \beta_0 + \beta_1 x_t + \eta_t$ rather than an ADL, is to let $\eta_t$ itself follow an ARIMA process and estimate the two pieces jointly, a transfer function model in the Box-Jenkins tradition. The workflow is: fit the regression by OLS, examine the residual ACF/PACF for leftover structure, and if structure remains, refit the regression and the residual ARIMA model jointly by maximum likelihood rather than by OLS.
+
+```{r ts-arima-errors, message=FALSE, warning=FALSE}
+library(forecast)
+
+n <- 200
+x_reg <- rnorm(n)
+eta   <- arima.sim(model = list(ar = 0.6), n = n)  # AR(1) regression error
+y_reg <- 2 + 1.5 * x_reg + eta
+
+ols_fit <- lm(y_reg ~ x_reg)
+acf(residuals(ols_fit), main = "OLS residual ACF: AR(1) structure remains")
+
+# refit jointly: regression coefficients + AR(1) error structure by ML
+arima_err_fit <- Arima(y_reg, order = c(1, 0, 0), xreg = x_reg)
+summary(arima_err_fit)
+```
+
+The Cochrane and Orcutt (1949) two-step procedure predates the maximum-likelihood version above and is worth knowing because it makes the correction mechanics explicit: estimate the AR(1) coefficient $\hat\rho$ from the OLS residuals, quasi-difference both $y_t$ and $x_t$ as $y_t^{*}=y_t-\hat\rho y_{t-1}$ and $x_t^{*}=x_t-\hat\rho x_{t-1}$, and re-run OLS on the quasi-differenced series, iterating to convergence [@cochrane1949application]. The maximum-likelihood joint fit above is the modern, more efficient version of the same idea and is preferred in practice, but the two-step logic is what the `xreg` argument to `Arima()` is doing internally.
+
+A closely related problem arises when the object of interest is not a regression coefficient but the cross-correlation function (CCF) between two series, used to detect a lagged relationship or as an input to Granger-style analysis in the next section. If either series is itself autocorrelated, the raw sample CCF can show spurious peaks driven entirely by each series' own dynamics rather than by genuine cross-series dependence. Prewhitening removes this artifact: fit a univariate ARIMA model to one series (conventionally the presumed input series $x$), apply that same filter to both $x$ and $y$, and compute the CCF of the filtered series, which is now a valid guide to the lag and sign of any genuine relationship.
+
+```{r ts-prewhiten, message=FALSE, warning=FALSE}
+library(TSA)
+
+x_input  <- arima.sim(model = list(ar = 0.7), n = 300)
+y_output <- stats::filter(x_input, filter = 0.5, method = "recursive") + rnorm(300, sd = 0.5)
+
+# raw CCF: contaminated by each series' own autocorrelation
+ccf(as.numeric(x_input), as.numeric(y_output), main = "Raw CCF")
+
+# prewhiten: fit an AR model to x, apply the same filter to x and y, then take the CCF
+prewhiten(as.numeric(x_input), as.numeric(y_output), main = "Prewhitened CCF")
+```
+
+The prewhitened CCF isolates lags at which $x$ genuinely leads $y$, which is the appropriate diagnostic to run before interpreting a raw cross-correlation as evidence of a lead-lag relationship, and before moving to the multivariate VAR and Granger causality machinery of the next section, which imposes the same white-noise-residual logic on a full system rather than a single pair.
+
 ## Vector Autoregressions {#vector-autoregressions}
 
 ### The VAR Model
@@ -314,7 +386,7 @@ y_t &= \sum_{j=1}^{p} \psi_{2j}\, y_{t-j} + \sum_{j=1}^{p} \phi_{2j}\, x_{t-j} +
 \end{aligned}
 $$
 
-the off diagonal lag coefficients identify the direction of temporal influence, with $y$ Granger causing $x$ when the $\phi_{1j}$ are jointly nonzero. This temporal logic lets the analyst trace indirect effects through chains of stationary series, although it inherits the same limitations as ordinary Granger analysis: it speaks to predictive ordering rather than structural causation, requires stationarity, and is sensitive to the conditioning information set.
+the off diagonal lag coefficients identify the direction of temporal influence, with $y$ Granger causing $x$ when the $\phi_{1j}$ are jointly nonzero. This temporal logic lets the analyst trace indirect effects through chains of stationary series, although it inherits the same limitations as ordinary Granger analysis: it speaks to predictive ordering rather than structural causation, requires stationarity, and is sensitive to the conditioning information set. A formal estimator built on this idea, which folds the mediator and outcome equations' own errors into the VAR and tests a single correlation parameter for unmeasured mediator-outcome confounding, is developed in [Mediation with Time Series Data](#sec-granger-mediation).
 
 #### Nonlinear and Nonparametric Extensions
 

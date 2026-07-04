@@ -1,0 +1,194 @@
+# Panel Matching for Time-Series Cross-Sectional Data {#sec-panel-matching}
+
+The [matching methods](#sec-selection-on-observables) covered earlier in this part treat each unit as a single cross-sectional observation. Time-series cross-sectional (TSCS) data, where the same units are observed repeatedly over time and treatment can switch on and off, calls for a different matching logic: instead of matching a treated unit to similar control units at a single point in time, we match a treated unit-period to control unit-periods that share its recent treatment history. Imai, Kim, and Wang (2023) formalize this as panel matching, implemented in the `PanelMatch` package, and show that a properly weighted matching estimator is what a dynamic two-way fixed-effects regression is implicitly trying, and often failing, to approximate under treatment effect heterogeneity [@imai2021matching].
+
+This section develops the panel matching framework, replicates the package's canonical democratization-and-growth application, and works through the diagnostics that distinguish a credible panel matching estimate from an unweighted two-way fixed-effects regression that happens to produce a similar point estimate.
+
+------------------------------------------------------------------------
+
+## Why Two-Way Fixed Effects Is Not Enough
+
+A common dynamic linear specification for TSCS data with a policy indicator $X_{it}$ regresses the outcome on current and lagged treatment, unit and time fixed effects, and lagged outcomes to soak up serial correlation:
+$$
+Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \sum_{\ell=1}^{L}\left(\rho_\ell Y_{i,t-\ell} + \zeta_\ell' Z_{i,t-\ell}\right) + \varepsilon_{it}.
+$$
+Imai and Kim (2019, 2021) show that this specification, and the simpler static two-way fixed-effects model without lagged outcomes, is approximately equivalent to a variance-weighted average of all pairwise comparisons between units and between time periods, and that these weights can be negative whenever treatment effects vary over time or across units [@imai2019should; @imai2021use]. When that happens, the sign of the estimated $\hat\beta$ can differ from the sign of every unit-level effect actually in the data, the same "forbidden comparison" problem that motivates the [Goodman-Bacon decomposition](#sec-goodman-bacon-decomposition) for two-period-style difference-in-differences. Panel matching addresses the same underlying problem from a design-based rather than a regression-based angle.
+
+------------------------------------------------------------------------
+
+## The Panel Matching Framework
+
+Let $X_{it} \in \{0,1\}$ denote the treatment, $D_{it} = X_{it}(1-X_{i,t-1})$ the event of treatment onset, and $L$ the number of pre-treatment periods used to define comparability.
+
+### Matched Sets
+
+For every treated onset $(i,t)$ with $D_{it}=1$, the matched set collects control units that share the treated unit's treatment history over the preceding $L$ periods and were themselves untreated at $t$:
+$$
+\mathcal{M}_{it} = \{\, i' : i' \neq i,\ X_{i't}=0,\ X_{i't'} = X_{it'} \text{ for } t'=t-1,\dots,t-L \,\}.
+$$
+This is the panel analogue of a risk set in survival analysis, restricted to comparisons with an identical recent treatment trajectory rather than merely a shared time index.
+
+### Refinement
+
+Raw matched sets can be large and heterogeneous on other pre-treatment characteristics, so they are refined either by Mahalanobis distance,
+$$
+S_{it}(i') = \frac{1}{L}\sum_{\ell=1}^{L} \sqrt{(V_{i,t-\ell}-V_{i',t-\ell})' \Sigma_{i,t-\ell}^{-1} (V_{i,t-\ell}-V_{i',t-\ell})},
+$$
+or by a propensity score for treatment onset conditional on the same lagged covariate history, $e_{it}(\{V_{i,t-\ell}\}_{\ell=1}^L) = \Pr(X_{it}=1 \mid \{V_{i,t-\ell}\}_{\ell=1}^L)$, used either to keep the $J$ closest controls or to weight all controls in the set.
+
+### Estimator
+
+The treatment effect at horizon $F$ periods after onset is the weighted difference-in-differences,
+$$
+\widehat{\text{ATT}}(F) = \frac{1}{\sum_i\sum_t D_{it}} \sum_i \sum_{t} D_{it}
+\left[ (Y_{i,t+F}-Y_{i,t-1}) - \sum_{i' \in \mathcal{M}_{it}} w_{it}^{i'} (Y_{i',t+F}-Y_{i',t-1}) \right],
+$$
+which Imai, Kim, and Wang show is numerically equivalent to a properly weighted two-way fixed-effects regression, so panel matching does not discard the fixed-effects machinery, it corrects the implicit weights that machinery uses [@imai2021matching].
+
+### Identifying Assumptions
+
+Three assumptions justify the estimator: no interference between units (a unit's outcome does not depend on other units' treatment status), limited treatment carryover (the effect of treatment onset is fully realized within the $L$-period matching window plus $F$-period lead), and parallel trends conditional on matched treatment history, meaning treated and matched control units would have followed the same outcome trajectory absent the treated unit's onset, given that both share the same treatment, outcome, and covariate history over the preceding $L$ periods.
+
+------------------------------------------------------------------------
+
+## Replication: Democratization and Economic Growth
+
+We replicate the package's canonical application, based on Acemoglu, Naidu, Restrepo, and Robinson's data on democratic transitions and growth, bundled directly with the package.
+
+```{r, message=FALSE, warning=FALSE}
+# install.packages("PanelMatch")
+library(PanelMatch)
+library(tidyverse)
+
+data(dem)
+head(dem[, c("wbcode2", "year", "dem", "y", "tradewb")])
+```
+
+`dem` is binary (democratization), `y` is log GDP per capita, and `tradewb` is a time-varying covariate (trade openness) used for refinement. Since version 3 of the package, the panel structure is declared once in a `PanelData` object, which every downstream function then consumes.
+
+```{r, message=FALSE, warning=FALSE}
+dem_panel <- PanelData(
+    panel.data = dem,
+    unit.id    = "wbcode2",
+    time.id    = "year",
+    treatment  = "dem",
+    outcome    = "y"
+)
+
+DisplayTreatment(
+    dem_panel,
+    xlab = "year",
+    ylab = "country code",
+    legend.position = "none"
+)
+```
+
+### Constructing and Refining Matched Sets
+
+```{r, message=FALSE, warning=FALSE}
+pm_obj <- PanelMatch(
+    lag = 4,
+    panel.data = dem_panel,
+    refinement.method = "mahalanobis",
+    covs.formula = ~ tradewb,
+    size.match = 5,
+    qoi = "att",
+    lead = 0:4,
+    match.missing = TRUE,
+    forbid.treatment.reversal = FALSE,
+    use.diagonal.variance.matrix = TRUE
+)
+
+summary(pm_obj$att)
+```
+
+`lag = 4` sets $L=4$: only control units with the same democratization status over the preceding four years enter a treated unit's matched set. `size.match = 5` keeps the five Mahalanobis-nearest controls per matched set.
+
+### Estimating the Treatment Effect
+
+```{r, message=FALSE, warning=FALSE}
+pe_obj <- PanelEstimate(
+    sets = pm_obj,
+    panel.data = dem_panel,
+    se.method = "bootstrap",
+    number.iterations = 1000
+)
+
+summary(pe_obj)
+plot(pe_obj, ylab = "Estimated ATT of democratization on log GDP", main = "")
+```
+
+The estimated effects at each lead $F=0,\dots,4$ trace out the dynamic path of democratization's effect on income, directly comparable to an event-study plot but built from matched-set weighted differences rather than TWFE regression coefficients.
+
+------------------------------------------------------------------------
+
+## Show and Tell: Covariate Balance and Comparison to TWFE
+
+### Balance Diagnostics
+
+Refinement should bring the treated and matched-control groups close on pre-treatment covariate trajectories; this is checked directly rather than assumed.
+
+```{r, message=FALSE, warning=FALSE}
+balance_check <- get_covariate_balance(
+    pm_obj,
+    panel.data = dem_panel,
+    covariates = c("tradewb")
+)
+summary(balance_check)
+```
+
+Standardized differences well outside $\pm 0.1$ at any lag indicate the refinement is not achieving comparability on that covariate, in which case the matching formula, the number of matches retained (`size.match`), or the lag window (`lag`) should be revisited before the effect estimate is treated as credible.
+
+### Comparison to a Naive Dynamic TWFE Regression
+
+```{r, message=FALSE, warning=FALSE}
+library(fixest)
+
+twfe_fit <- feols(
+    y ~ dem | wbcode2 + year,
+    data = dem,
+    cluster = ~wbcode2
+)
+
+modelsummary::modelsummary(
+    list("Static TWFE" = twfe_fit),
+    stars = TRUE,
+    gof_omit = "IC|Log|Adj"
+)
+```
+
+The static TWFE coefficient on `dem` collapses every lead and every matched-set weight into a single number; comparing it to the leadwise panel matching estimates from `pe_obj` shows directly whether the TWFE estimate is an artifact of its implicit weighting or a reasonable summary of the panel matching dynamic path. A substantial divergence, particularly a sign flip or an estimate outside the panel matching confidence bands, is the signature of the negative-weighting problem discussed above.
+
+------------------------------------------------------------------------
+
+## Extension: Refinement Choice and Robustness
+
+Two robustness checks are standard before reporting a panel matching estimate.
+
+1.  **Refinement method.** Reestimate with `refinement.method = "ps.match"` or `"ps.weight"` in place of `"mahalanobis"` and confirm the ATT path is qualitatively stable; propensity-score refinement can behave differently than distance matching when the covariate history is high-dimensional relative to the number of treated onsets.
+2.  **Lag window.** Reestimate with `lag = 2` and `lag = 6` in place of `lag = 4`. A short lag window risks matching on too little treatment history to satisfy parallel trends; an overly long window shrinks the usable sample of matched sets and can induce more missingness in the refinement covariates.
+
+```{r, message=FALSE, warning=FALSE}
+pm_obj_ps <- PanelMatch(
+    lag = 4,
+    panel.data = dem_panel,
+    refinement.method = "ps.weight",
+    covs.formula = ~ tradewb,
+    qoi = "att",
+    lead = 0:4,
+    match.missing = TRUE,
+    forbid.treatment.reversal = FALSE
+)
+
+pe_obj_ps <- PanelEstimate(sets = pm_obj_ps, panel.data = dem_panel,
+                           se.method = "bootstrap", number.iterations = 1000)
+summary(pe_obj_ps)
+```
+
+------------------------------------------------------------------------
+
+## Applied Relevance
+
+Panel matching is the natural tool whenever a policy or business intervention rolls out to different units at different times and the analyst wants to avoid the implicit, potentially negative weighting a dynamic fixed-effects regression can silently impose. Typical applications include state-level policy adoption studies, staggered product or feature launches across markets, and firm-level technology adoption, all settings already discussed from the difference-in-differences side in [Staggered Difference-in-Differences](#sec-staggered-difference-in-differences). Panel matching is a complementary, not competing, estimator in these settings: it targets the same group-time treatment effects as Callaway and Sant'Anna's estimator, but does so by explicit unit matching on treatment history rather than by group-time aggregation, and comparing the two is itself a useful robustness check when both are available.
+
+> Key Takeaway: with repeated observations on the same units and treatment that turns on at different times, match unit-periods on their recent treatment history before comparing outcomes, rather than relying on a two-way fixed-effects regression to do that weighting implicitly. The two approaches coincide when treatment effects are homogeneous and diverge, sometimes in sign, when they are not.

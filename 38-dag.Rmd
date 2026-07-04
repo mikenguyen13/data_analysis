@@ -413,6 +413,66 @@ Causal discovery involves algorithmically identifying causal relationships from 
 
 In applied work, causal discovery is best treated as a hypothesis-generation tool rather than a substitute for substantive theory: the algorithms recover a graph that is consistent with the conditional-independence structure of the data, but several DAGs typically share that structure, and only domain knowledge can distinguish between them.
 
+### Structure Learning with bnlearn
+
+The PC, GES, and FCI algorithms above are named rather than implemented in the discussion so far. The `bnlearn` package [@scutari2010learning] implements a full suite of structure-learning algorithms for discrete, Gaussian, and mixed (conditional Gaussian) data, split into three families: constraint-based algorithms that test conditional independence directly (PC-Stable, Grow-Shrink, IAMB and its variants), score-based algorithms that search the space of DAGs to maximize a penalized likelihood (hill-climbing, tabu search), and hybrid algorithms that use constraint-based tests to restrict the search space before a score-based search (Max-Min Hill-Climbing).
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+library(bnlearn)
+
+# constraint-based: PC-stable
+dag_pc <- pc.stable(learning.test)
+
+# score-based: hill-climbing with the BIC score
+dag_hc <- hc(learning.test, score = "bic")
+
+# hybrid: Max-Min Hill-Climbing
+dag_mmhc <- mmhc(learning.test)
+
+plot(dag_hc)
+```
+
+Score-based search requires a scoring function; the default BIC penalizes model complexity, while a Bayesian Dirichlet equivalent (BDe) score is preferred for small discrete samples where BIC's asymptotic justification is weakest. Whichever family is used, the output is a completed partially directed acyclic graph (CPDAG), not a single DAG: edges that are compelled by the data's independence structure are directed, and edges whose direction cannot be determined from observational data alone are left undirected, exactly the identifiability limit that motivates treating discovery as hypothesis generation rather than a final answer.
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+# arc strength via bootstrap resampling, a standard robustness check
+boot_strength <- boot.strength(learning.test, R = 200, algorithm = "hc")
+plot(boot_strength)
+
+# whitelist/blacklist arcs from domain knowledge before learning
+dag_constrained <- hc(learning.test, whitelist = data.frame(from = "A", to = "B"))
+```
+
+Domain knowledge enters `bnlearn` the same way it enters `dagitty`, through whitelisted arcs that must appear and blacklisted arcs that must not, which is the practical bridge between the algorithmic output and the substantive DAG the analyst is prepared to defend.
+
+### Simulating from a Structural Causal Model with simcausal
+
+Once a DAG and adjustment set are fixed, a natural robustness check is to simulate data from a structural causal model consistent with the DAG and confirm that the chosen estimator recovers the known, simulation-truth treatment effect. The `simcausal` package [@sofrygin2017simcausal] builds a structural causal model node by node, each node's distribution specified as a function of its parents, and evaluates counterfactual (intervened) distributions directly rather than only observational ones.
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+library(simcausal)
+
+D <- DAG.empty() +
+    node("W1", distr = "rbern", prob = plogis(-0.5)) +
+    node("W2", distr = "rbern", prob = plogis(-0.5 + 0.5 * W1)) +
+    node("A",  distr = "rbern", prob = plogis(-0.5 - 0.3 * W1 - 0.3 * W2)) +
+    node("Y",  distr = "rbern", prob = plogis(-0.1 + 1.2 * A + 0.3 * W1 + 0.3 * W2))
+
+D_set <- set.DAG(D)
+
+# define two interventions: treat none, treat all
+D_set <- D_set +
+    action("A0", nodes = node("A", distr = "rbern", prob = 0)) +
+    action("A1", nodes = node("A", distr = "rbern", prob = 1))
+
+# simulate under each regime and compute the true ATE by construction
+obs_data   <- sim(D_set, n = 5000)
+true_effect <- eval.target(D_set, n = 50000, target = "A1-A0")$res
+true_effect
+```
+
+Because the data-generating process is fully known by construction, `eval.target()` returns the exact treatment-specific means and average treatment effect implied by the DAG, which is the ground truth against which any adjustment-set-based estimator applied to `obs_data` can be checked. This closes the loop opened at the start of this chapter: a DAG is not just a device for choosing what to adjust for, it is also, when combined with `simcausal`, a device for verifying that the chosen estimator actually recovers the effect the DAG implies before that estimator is trusted on real data.
+
 ## Practical workflow
 
 A defensible DAG-based analysis proceeds in four steps.

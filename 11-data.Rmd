@@ -3288,3 +3288,113 @@ Regardless of data type, data quality is crucial. Poor data, whether incomplete,
 -   Protect Confidentiality and Privacy: Particularly in panel studies with repeated contact, store data securely and follow ethical guidelines.
 
 -   Obtain Proper Consent: Inform participants about study details, usage of data, and rights to withdraw.
+
+## Documenting Sample Construction {#sec-documenting-sample-construction}
+
+Every empirical paper contains a sentence of the form "starting from 1.2 million records, we drop observations with missing prices, merge in firm characteristics, and arrive at an analysis sample of 214,000." That sentence compresses a long chain of joins and filters, and each link in the chain is a place where the sample can silently change in ways that matter. A many-to-many merge can duplicate rows and inflate the sample; an inner join can drop the very units whose absence biases the estimate; a filter written for one wave of the data can behave differently on the next. Reviewers, replicators, and, in litigation support work, opposing experts will ask exactly how the analysis sample was built, and "rerun the script and see" is not an acceptable answer.
+
+The discipline that solves this is an audit trail: a table that records, for every join and filter, how many rows entered, how many left, and why. Producing it by hand invites transcription errors, but a small wrapper around the usual `dplyr` verbs can generate it automatically. The utility below wraps a data frame in a `TrackedData` object whose join and filter methods log every step.
+
+```{r sample-construction-tracker, warning=FALSE, message=FALSE}
+library(dplyr)
+library(tibble)
+library(ggplot2)
+
+track_data <- function(df, label = deparse(substitute(df))) {
+    structure(
+        list(
+            data = df,
+            log = tibble::tibble(
+                step        = "Start",
+                description = paste("Initial dataset:", label),
+                rows_before = NA_integer_,
+                rows_after  = nrow(df),
+                row_change  = NA_integer_
+            )
+        ),
+        class = "TrackedData"
+    )
+}
+
+log_step <- function(x, step, description, new_data) {
+    n_before <- nrow(x$data)
+    x$data   <- new_data
+    x$log    <- dplyr::bind_rows(x$log, tibble::tibble(
+        step        = step,
+        description = description,
+        rows_before = n_before,
+        rows_after  = nrow(new_data),
+        row_change  = nrow(new_data) - n_before
+    ))
+    x
+}
+
+left_join.TrackedData <- function(x, y, by = NULL,
+                                  name = deparse(substitute(y)), ...) {
+    log_step(x, "Left join", paste("Left join with", name),
+             dplyr::left_join(x$data, y, by = by, ...))
+}
+inner_join.TrackedData <- function(x, y, by = NULL,
+                                   name = deparse(substitute(y)), ...) {
+    log_step(x, "Inner join", paste("Inner join with", name),
+             dplyr::inner_join(x$data, y, by = by, ...))
+}
+filter.TrackedData <- function(.data, ..., .preserve = FALSE) {
+    log_step(.data, "Filter",
+             paste(deparse(substitute(...)), collapse = ""),
+             dplyr::filter(.data$data, ..., .preserve = .preserve))
+}
+
+get_data <- function(tracked) tracked$data
+get_log  <- function(tracked) tracked$log
+```
+
+Because `dplyr`'s verbs are S3 generics, the wrapped object slots into an ordinary pipeline. The example below merges a survey with purchase records and demographics, then applies the analysis filters.
+
+```{r sample-construction-demo}
+set.seed(1)
+survey    <- tibble(id = 1:1000, x = rnorm(1000))
+purchases <- tibble(id = sample(1:1200, 700), spend = rexp(700, 0.01))
+demogr    <- tibble(id = sample(1:1000, 950), age = sample(18:80, 950, TRUE))
+
+sample_log <- track_data(survey, label = "survey responses") |>
+    inner_join(purchases, by = "id", name = "purchase records") |>
+    left_join(demogr, by = "id", name = "demographics") |>
+    filter(!is.na(age), spend > 0)
+
+get_log(sample_log)
+```
+
+The log is already a publishable supplementary table. A waterfall chart makes the same information legible at a glance, which is useful in presentations and in reports for non-technical audiences.
+
+```{r sample-construction-waterfall, fig.cap="Waterfall chart of the analysis sample construction. Each bar shows the row count entering and leaving a merge or filter step.", fig.alt="Waterfall chart showing the number of rows in the analysis sample after each join and filter step, with losses shown as descending bars."}
+plot_waterfall <- function(log_df) {
+    log_df <- log_df |>
+        dplyr::mutate(
+            step_num = dplyr::row_number(),
+            label    = paste0(step_num, ". ", step),
+            ymin     = dplyr::lag(rows_after, default = dplyr::first(rows_after)),
+            ymax     = rows_after
+        )
+    ggplot(log_df) +
+        geom_rect(aes(
+            xmin = step_num - 0.4, xmax = step_num + 0.4,
+            ymin = pmin(ymin, ymax), ymax = pmax(ymin, ymax),
+            fill = rows_after >= ymin
+        ), color = "black", show.legend = FALSE) +
+        geom_text(aes(
+            x = step_num, y = pmax(ymin, ymax),
+            label = ifelse(is.na(row_change), rows_after,
+                           sprintf("%+d", row_change))
+        ), vjust = -0.5, size = 3.5) +
+        scale_x_continuous(breaks = log_df$step_num, labels = log_df$label) +
+        scale_fill_manual(values = c("TRUE" = "grey70", "FALSE" = "grey35")) +
+        labs(x = NULL, y = "Rows in analysis sample") +
+        theme_minimal(base_size = 12) +
+        theme(axis.text.x = element_text(angle = 20, hjust = 1))
+}
+
+plot_waterfall(get_log(sample_log))
+```
+
+Three habits make the audit trail most useful. First, log the reason for each filter in words at the moment the code is written, not after the fact; the description column is the difference between an audit trail and a row count. Second, treat any step with an unexpected sign as a bug until proven otherwise: a left join should never change the row count, so a positive change there is the signature of a duplicated key on the right-hand table. Third, archive the log alongside the analysis output, so that when the raw data are refreshed the two logs can be diffed line by line. The same table doubles as the attrition documentation that journals increasingly require and that expert reports in litigation must provide as a matter of course.
