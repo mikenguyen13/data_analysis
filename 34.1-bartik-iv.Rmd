@@ -193,12 +193,30 @@ devtools::install_github("kylebutts/ssaggregate")
 devtools::install_github("jjchern/bartik.weight")
 ```
 
-A representative call to `ShiftShareSE` on the bundled @autor2013china replication data:
+A representative call to `ShiftShareSE` on the bundled @autor2013china replication data, which the package ships internally as `ADH`:
 
-```{r, eval = FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(ShiftShareSE)
-ivreg_ss(d_sh_empl ~ 1 | shock, X = IV, data = ADH$reg, W = ADH$W,
-         method = c("ehw", "akm", "akm0"))
+adh_fit <- ivreg_ss(d_sh_empl ~ 1 | shock, X = IV, data = ADH$reg, W = ADH$W,
+                     method = c("ehw", "akm", "akm0"))
+```
+
+```{r, echo=FALSE}
+adh_table <- data.frame(
+  Method     = c("EHW", "AKM", "AKM0"),
+  Estimate   = adh_fit$beta,
+  `Std. Error` = adh_fit$se[c("EHW", "AKM", "AKM0")],
+  `p-value`  = adh_fit$p[c("EHW", "AKM", "AKM0")],
+  `CI lower` = adh_fit$ci.l[c("EHW", "AKM", "AKM0")],
+  `CI upper` = adh_fit$ci.r[c("EHW", "AKM", "AKM0")],
+  check.names = FALSE
+)
+knitr::kable(
+  adh_table,
+  digits = 3,
+  row.names = FALSE,
+  caption = "Shift-share IV estimate of the effect of Chinese import exposure on manufacturing employment shares, from the Autor-Dorn-Hanson replication data bundled with `ShiftShareSE`, with EHW, AKM, and AKM0 standard errors."
+)
 ```
 
 #### Extensions

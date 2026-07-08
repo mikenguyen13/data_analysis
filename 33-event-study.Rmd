@@ -609,11 +609,11 @@ wilcox.test(CAR, mu = 0)
 
 #### Generalized Sign Test
 
-A more advanced sign test, comparing the proportion of positive abnormal returns to historical norms.
+A more advanced sign test, comparing the proportion of positive abnormal returns to historical norms, proposed by @cowan1992nonparametric.
 
 #### Corrado Rank Test
 
-The Corrado Rank Test is a rank-based test for abnormal returns.
+The Corrado Rank Test [@corrado1989nonparametric] is a rank-based test for abnormal returns.
 
 -   Advantage: Accounts for cross-sectional dependence.
 
@@ -1084,11 +1084,87 @@ Two strands of evidence push directly against the CAR-as-value-creation interpre
 
 Two of their secondary results matter for how to read the broader literature. First, a simple characteristics-based model using only information publicly available at announcement time predicts ex-post outcomes reasonably well, that is, the missing relation is not because outcomes are intrinsically unpredictable. Second, decomposing CAR into a component driven by acquirer characteristics and a component driven by deal characteristics shows that the acquirer-specific component dominates: announcement-period CAR is mostly news about the standalone acquirer that happens to arrive on the deal date, not news about the deal itself. This rationalises the @golubov2015extraordinary persistence finding and explains why CAR fails as a deal-quality signal in the first place: it is mostly not measuring the deal.
 
+### A Replication on Public Data {#sec-car-bhar-replication}
+
+@bendavid2026missing work from a large proprietary panel of deals matched to SDC Platinum and Compustat, which is not reproducible without a WRDS subscription. Under the *Journal of Finance*'s Data and Code Sharing Policy, the authors' code is deposited alongside the published article, but the underlying SDC, CRSP, and Compustat inputs remain restricted to WRDS subscribers, so the official package documents rather than removes this barrier. What *is* reproducible with nothing more than free daily stock prices is the closely related question that motivates the Loughran-Ritter strand of the literature discussed above: does the market's announcement-window verdict on a deal (CAR) line up with what happened to the acquirer's stock over the following three years (BHAR)? The two measures are not identical to the operating-performance and impairment measures in @bendavid2026missing, a price-based long-run return is itself a noisy, discount-rate-contaminated object, but the exercise is a direct, from-scratch test of the same underlying claim: that a short announcement window is a poor guide to how a deal actually turns out.
+
+The replication uses nineteen large, well-documented US acquisitions announced between 2005 and 2018, chosen because each acquirer traded under a single unchanged ticker for years before and after the deal, which keeps the exercise a plain market-model calculation with no ticker-splicing. The list deliberately spans both deals with a reputation for destroying value (HP/Autonomy, eBay/Skype, Bank of America/Countrywide) and deals with a reputation for creating it (Disney/Pixar, Disney/Marvel, Amazon/Whole Foods), so the sample is not selected on the outcome being tested.
+
+```{r mna-car-bhar-data, message=FALSE, warning=FALSE}
+library(tidyverse)
+
+deals <- read.csv("data/car_bhar_replication.csv") %>%
+  mutate(date = as.Date(date), announce_date = as.Date(announce_date))
+
+# One row per firm-day: rel_day = 0 is the announcement's first trading day
+# (Disney/Lucasfilm uses Oct 31, 2012, the first day markets reopened after
+# Hurricane Sandy closed the NYSE on the announcement date itself).
+c(n_deals = n_distinct(deals$deal), n_firm_days = nrow(deals))
+```
+
+For each deal the estimation window is trading days -260 to -31 relative to the announcement, exactly the market-model setup from Step 2 and Step 3 of Section \@ref(sec-event-studies). CAR is the sum of market-model abnormal returns over the three-day window (-1, +1). BHAR is the buy-and-hold abnormal return, computed with the same product formula as Section \@ref(sec-buy-and-hold-abnormal-returns-bhar), from two trading days after the announcement out to roughly three years later (trading day +761), against SPY as the benchmark in both stages.
+
+```{r mna-car-bhar-compute, message=FALSE, warning=FALSE}
+compute_deal <- function(sub) {
+  est <- filter(sub, rel_day >= -260, rel_day <= -31)
+  ev  <- filter(sub, rel_day >= -1,  rel_day <= 1)
+  lr  <- filter(sub, rel_day >= 2,   rel_day <= 761)
+
+  mm <- lm(ret_stock ~ ret_mkt, data = est)
+  ar_event <- ev$ret_stock - predict(mm, newdata = ev)
+  car <- sum(ar_event)
+
+  stock_gross <- prod(1 + (exp(lr$ret_stock) - 1))
+  mkt_gross   <- prod(1 + (exp(lr$ret_mkt) - 1))
+  bhar <- stock_gross - mkt_gross
+
+  tibble(CAR = car, BHAR = bhar, beta = coef(mm)[["ret_mkt"]])
+}
+
+results <- deals %>%
+  group_by(deal) %>%
+  group_modify(~ compute_deal(.x)) %>%
+  ungroup() %>%
+  arrange(desc(CAR))
+```
+
+```{r mna-car-bhar-table, echo=FALSE}
+knitr::kable(
+  results %>%
+    mutate(across(c(CAR, BHAR, beta), ~ round(.x, 3))) %>%
+    rename(`3-day CAR` = CAR, `3-year BHAR` = BHAR, `Market beta` = beta),
+  caption = "Three-day announcement-window CAR versus three-year buy-and-hold abnormal return (BHAR) for nineteen large US acquisitions, both measured against SPY. Deals are sorted by announcement CAR.",
+  align = c("l", "r", "r", "r")
+)
+```
+
+HP/Autonomy shows the most extreme announcement reaction, a `r sprintf("%.0f", results$CAR[results$deal == "HP / Autonomy"] * 100)` percent three-day CAR, but that number is not a clean read on the Autonomy deal at all: HP bundled the acquisition announcement with news that it was considering spinning off its PC business and killing the webOS TouchPad on the same day, August 18, 2011, so the announcement window absorbed three pieces of firm-specific news at once. It is the muddiest event in the sample, exactly the case the Implications for Practice discussion below warns about, and it happens to be the deal later confirmed, via an \$8.8 billion goodwill impairment and a UK High Court fraud finding against Autonomy's founder, to have destroyed the most value.
+
+```{r mna-car-bhar-plot, fig.cap="Three-day announcement CAR against three-year buy-and-hold abnormal return for nineteen large US acquisitions. The dashed line is the OLS fit; a flat or noisy relationship is what the missing-relation result predicts.", message=FALSE, warning=FALSE}
+ggplot(results, aes(CAR, BHAR)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = TRUE, linetype = "dashed") +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_vline(xintercept = 0, linetype = "dotted") +
+  labs(x = "3-day announcement CAR", y = "3-year BHAR") +
+  causalverse::ama_theme()
+```
+
+```{r mna-car-bhar-cor, echo=FALSE}
+ct <- cor.test(results$CAR, results$BHAR)
+cat(sprintf(
+  "Pearson correlation: %.2f (95%% CI %.2f to %.2f, p = %.2f, n = %d)\n",
+  ct$estimate, ct$conf.int[1], ct$conf.int[2], ct$p.value, nrow(results)
+))
+```
+
+The correlation is positive but small, imprecisely estimated, and not distinguishable from zero at conventional levels with a sample this size. That is the point: even on a hand-picked set of highly visible deals with three-day CARs ranging from minus 27 percent to plus 8 percent, the announcement's verdict does not reliably forecast where the stock stands three years later. Disney's four acquisitions in the table make the case in miniature. Pixar and Marvel earned negative announcement CAR (the market's initial reaction was that Disney overpaid) but went on to strong positive three-year BHAR, while Lucasfilm's announcement CAR was the most negative of the four and its long-run BHAR the most positive, the opposite of what a CAR-as-value-creation reading would predict. This is a small, non-random, US-only, price-based replication, not a substitute for the accounting-based panel in @bendavid2026missing, but it reproduces the qualitative result with nothing more than free data and a market model: the announcement window and the long run are, empirically, close to unrelated objects. A natural extension is to pull a larger sample from CRSP and SDC Platinum, add the impairment- and divestiture-based outcomes from Compustat that @bendavid2026missing and @masulis2023sources use, and check whether the weak correlation survives the larger, unselected sample, exactly the robustness check the chapter's [Sample in Event Studies](#sample-in-event-studies) guidance recommends before generalising from a small hand-picked set of deals.
+
 ### Implications for Practice
 
 The Ben-David et al. result does not invalidate event studies, but it sharply constrains what claims they can support. Three implications are worth flagging.
 
-First, for M&A specifically, *announcement CAR is a poor proxy for expected value creation*. Treating it as one, for example by using it as the dependent variable in a cross-sectional regression of "what deal characteristics create value", is essentially regressing on an outcome whose signal-to-noise ratio for the deal is close to zero. Modern best practice in M&A empirics increasingly pairs CAR with ex-post measures, operating-performance changes [@healy1992corporate], productivity gains [@maksimovic2001market; @maksimovic2011postmerger], or impairment- and divestiture-based outcomes [@bendavid2026missing], and treats agreement between the two as the substantive finding.
+First, for M&A specifically, *announcement CAR is a poor proxy for expected value creation*. Treating it as one, for example by using it as the dependent variable in a cross-sectional regression of "what deal characteristics create value", is essentially regressing on an outcome whose signal-to-noise ratio for the deal is close to zero. Modern best practice in M&A empirics increasingly pairs CAR with ex-post measures, operating-performance changes [@healy1992corporate], productivity gains [@maksimovic2001market; @maksimovic2011postmerger], impairment- and divestiture-based outcomes [@bendavid2026missing], or asset-level decompositions of where the gains actually originate [@masulis2023sources, who trace acquirer value creation in intangible-asset deals to the target's pre-deal innovation efficiency and the acquirer's post-deal ability to redeploy the acquired intangibles], and treats agreement between the two as the substantive finding.
 
 Second, the result generalises to event studies in any setting where the focal event arrives bundled with substantial firm-specific information. Earnings announcements, regulatory rulings affecting a single firm, and major product launches all share the structural feature that the announcement-window CAR is dominated by news about the firm that happens to arrive on the event date. The cleaner the event (a regulatory decision affecting many firms simultaneously, a court ruling with timing exogenous to the firm), the closer CAR comes to measuring the event's effect; the muddier the event (a strategic firm choice with substantial coincident firm-specific news), the more the warning applies.
 

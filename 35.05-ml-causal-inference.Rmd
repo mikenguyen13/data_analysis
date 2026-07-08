@@ -186,6 +186,439 @@ sl_fit  # prints the learned ensemble weights
 
 Several learners recur as components of these ensembles and as standalone nuisance estimators. The Lasso of @tibshirani1996 performs variable selection and shrinkage, and its high-dimensional inference theory underpins the post-double-selection approach of @belloni2014inference and @belloni2014high, an early and influential instance of orthogonalized estimation that prefigures double machine learning. Random forests, introduced by @breiman2001random and based on the recursive partitioning of @breiman2017classification, provide flexible, low-tuning regression for both the outcome and the propensity score. Gradient boosting machines build additive ensembles of shallow trees and are common for propensity score estimation. Bayesian additive regression trees offer a flexible, regularized sum-of-trees prior with automatic uncertainty quantification and are widely used for the outcome surface in causal applications, including the endogeneity-aware formulation of @hill2021endogeneity. The unifying message is that any of these can serve as a nuisance learner, and the orthogonal-score plus cross-fitting machinery makes the downstream causal estimate robust to the particular choice.
 
+## Deep Learning for Large-Scale Combinatorial Experiments
+
+The double machine learning machinery of this chapter was built for a single treatment. Large online platforms face a harder version of the problem: they run hundreds of randomized experiments concurrently, and any given user is enrolled in many of them at once. @ye2025deep study this setting, which they call combinatorial experimentation, and develop a debiased deep learning (DeDL) framework that extends the Neyman-orthogonality and cross-fitting ideas of double machine learning to the case where the treatment itself is a high-dimensional combination of binary A/B tests. This section develops their framework, reports their empirical validation on a large-scale video-sharing platform, and then replicates the mechanics end to end on synthetic data built to their own specification, using a genuine deep network trained with `torch`.
+
+### The Combinatorial Experimentation Problem
+
+To use user traffic efficiently, a large platform typically randomizes each of its many concurrent experiments independently, an orthogonal traffic assignment design. Orthogonality guarantees a credible causal estimate for each individual experiment, but it means that the joint effect of any particular combination of treatments is essentially never directly observed: with $m$ concurrent binary experiments there are $2^m$ possible treatment combinations, and testing all of them exhaustively with a classical full factorial design requires traffic that grows exponentially in $m$. Practitioners' default workaround is to assume treatment effects are linearly additive, so that the effect of running two experiments together is simply the sum of their solo effects, and to make expansion decisions for each experiment independently of the others.
+
+@ye2025deep show empirically that this assumption is not innocuous. Collaborating with a large-scale short-video platform that, for one unusual set of three experiments, tested every one of the $2^3 = 8$ treatment combinations on the same population, they document combinations whose true joint effect diverges sharply from the linear-addition prediction, with the direction and magnitude of the gap varying by user subgroup: some segments show increasing marginal returns to combined treatment and others show decreasing marginal returns, exactly the heterogeneity that a flexible nuisance model can capture but a linear rule cannot.
+
+Formally, let $T \in \{0,1\}^m$ denote a user's combination of treatments across $m$ concurrent experiments, $X$ her pre-treatment covariates, and $Y$ her outcome. The framework assumes a semiparametric data-generating process
+$$
+\mathbb{E}[Y \mid X = x, T = t] = G(\theta^*(x), t),
+$$
+where $G$ is a known link function and $\theta^*(\cdot)$ is an unknown, potentially high-dimensional nuisance function of the covariates, estimated with a deep neural network. The link function is the interpretable, structural piece of the model; the network supplies the flexibility needed to capture rich covariate heterogeneity in how users respond.
+
+### Link Functions and the Structured Network
+
+The choice of $G$ encodes the economic content of the model. @ye2025deep propose four link functions, differing in how they let individual treatment effects combine. The multiplicative form, $G(\theta(x),t) = \theta_0(x)\prod_{k=1}^m (1+\theta_k(x)t_k)$, captures relative, compounding effects but only increasing marginal returns. The sigmoid forms instead use the convex-concave shape of the logistic curve to capture both increasing and decreasing marginal returns within the same model, which is essential given the heterogeneity documented above. The generalized sigmoid form II,
+$$
+G(\theta(x), t) = \frac{\theta_{m+1}(x)}{1+\exp\bigl(-(\theta_0(x) + \theta_1(x)t_1 + \cdots + \theta_m(x)t_m)\bigr)},
+$$
+is the most flexible of the four, letting $\theta_{m+1}(x)$ set an individual-specific ceiling on the outcome, and is the specification @ye2025deep adopt for their empirical analysis and their main simulation study. A user near the bottom or top of the sigmoid experiences diminishing returns to further treatment, while a user in the linear part of the curve experiences roughly additive or even accelerating returns, so the same link function nests both of the patterns observed in Figure 1 of the paper.
+
+The network architecture mirrors the link function directly. Two small feed-forward networks with ReLU activations map covariates $x$ to the parameters $\theta_0(x), \theta_1(x), \dots, \theta_m(x)$; a final layer produces $\theta_{m+1}(x)$; and a fixed, non-trainable sigmoid layer combines these estimated parameters with the observed treatment vector $t$ to produce the predicted outcome. Training minimizes ordinary mean squared error, $\ell(y,t,\theta(x)) = (y - G(\theta(x),t))^2$, exactly as in a standard regression network; the only departure from an off-the-shelf DNN is that the treatment enters through the final structural layer rather than as an ordinary input feature.
+
+This structure has a striking practical payoff. Because the link function has only $m+2$ free nuisance components per individual ($\theta_0,\ldots,\theta_m,\theta_{m+1}$), identification and convergence of $\hat\theta(\cdot)$ require observing only $m+2$ of the $2^m$ treatment combinations, the control condition, each of the $m$ individual experiments, and one combination of two, rather than all $2^m$. For ten concurrent experiments this is $12$ combinations instead of $1{,}024$, a reduction from exponential to linear traffic requirements that is what makes the framework usable on a real platform.
+
+### Debiasing via the Influence Function
+
+A network trained this way delivers an accurate predictor of $\mathbb{E}[Y\mid X,T]$, but the plug-in estimator of the average treatment effect,
+$$
+\hat\mu(t) = \frac{1}{n}\sum_{i=1}^n \Bigl(G(\hat\theta(x_i), t) - G(\hat\theta(x_i), t_0)\Bigr),
+$$
+inherits the same regularization bias problem that motivated double machine learning earlier in this chapter, now amplified by the fact that $\theta(\cdot)$ is vector-valued and the link function is nonlinear in $\theta$. @ye2025deep derive the semiparametric influence function for $\mu(t)$ using the pathwise-derivative method, obtaining a plug-in term corrected by a debiasing term,
+$$
+\psi(z,\theta,\Lambda; t, t_0) = \underbrace{H(x,\theta(x); t,t_0)}_{\text{plug-in}} - \underbrace{H_\theta(x,\theta(x);t,t_0)' \Lambda(x)^{-1} \ell_\theta(y,\check t,\theta(x))}_{\text{debiasing term}},
+$$
+where $H(x,\theta(x);t,t_0) = G(\theta(x),t) - G(\theta(x),t_0)$ is the advantage of combination $t$ over the control, $H_\theta$ and $\ell_\theta$ are the gradients of $H$ and of the training loss with respect to $\theta$, and $\Lambda(x) = 2\,\mathbb{E}[G_\theta(\theta(x),T)G_\theta(\theta(x),T)' \mid X=x]$ is a generalized information matrix computed from the known treatment-assignment mechanism. Because the debiasing term removes the first-order sensitivity of $\hat\mu(t)$ to errors in $\hat\theta$, the resulting estimator is Neyman orthogonal, exactly the property that made double machine learning valid earlier in the chapter, now derived for a vector-valued nuisance sitting inside a nonlinear structural layer rather than a scalar regression function.
+
+Combined with cross-fitting, this yields the DeDL algorithm: split the data, train the structured network on one part to obtain $\hat\theta(\cdot)$ and $\hat\Lambda(\cdot)$, then average the influence function $\psi$ over the held-out part to construct
+$$
+\hat\mu_{\text{DeDL}}(t) = \frac{1}{|S|}\sum_{i \in S} \psi(z_i, \hat\theta(x_i), \hat\Lambda(x_i); t, t_0), \qquad
+\hat\Psi_{\text{DeDL}}(t;\mu) = \frac{1}{|S|}\sum_{i \in S}\bigl(\psi_i - \hat\mu_{\text{DeDL}}(t)\bigr)^2,
+$$
+with the resulting Wald confidence interval $\hat\mu_{\text{DeDL}}(t) \pm z_{1-\alpha/2}\sqrt{\hat\Psi_{\text{DeDL}}(t;\mu)/n}$. Under regularity conditions that require the network to converge at the rate $\|\hat\theta - \theta^*\|_{L^2} = o(n^{-1/4})$, standard for DNN estimators, @ye2025deep prove $\hat\mu_{\text{DeDL}}(t)$ is $\sqrt n$-consistent and asymptotically normal for every treatment combination $t$ simultaneously, and that the empirically best combination $\hat t^* = \arg\max_t \hat\mu_{\text{DeDL}}(t)$ agrees with the true best combination with probability approaching one. The same influence-function machinery, applied to the advantage of $\hat t^*$ over any other combination, delivers valid inference for the best-arm identification problem as well.
+
+### Evidence from a Large-Scale Platform
+
+@ye2025deep validate the framework on data from three concurrent A/B tests on a short-video platform, each testing a recommendation-algorithm change on a different product surface (a discovery page, a live-stream page, and a personalized feed). Because the platform ran all three experiments on the same population under a fully factorial deployment, the outcomes of all $2^3=8$ treatment combinations are genuinely observed for roughly 2.07 million stratified users, which lets the authors treat five combinations as "observed" (the control, the three individual experiments, and the fully combined treatment, the combinations a platform would realistically see from independent A/B tests followed by one back-test) and three as artificially "unobserved," then check whether DeDL, trained only on the observed combinations, recovers the true, independently measured effects of the held-out ones.
+
+```{r combexp-platform-o-table, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Combination = c("(0,0,0)", "(0,0,1)", "(0,1,0)", "(1,0,0)", "(1,1,1)", "(1,1,0)", "(1,0,1)", "(0,1,1)"),
+    `Relative ATE` = c("0.000%", "-1.091%", "-0.267%", "-0.758%", "-2.121%", "-0.689%", "-2.299%", "-1.387%"),
+    `Observed?` = c("Yes", "Yes", "Yes", "Yes", "Yes", "No", "No", "No"),
+    check.names = FALSE
+  ),
+  caption = "Ground-truth relative average treatment effect for all eight combinations of three concurrent experiments on Platform O, and which were treated as observed versus artificially held out for validation. The best arm is $t^*=(1,0,1)$. Source: @ye2025deep, Table 2.",
+  align = c("l", "r", "c")
+)
+```
+
+```{r combexp-platform-o-metrics, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Estimator = c("Linear addition", "Linear regression", "Pure DNN", "Structured DNN (no debias)", "DeDL"),
+    `Correct direction (held out)` = c("2/3", "2/3", "2/3", "2/3", "3/3"),
+    `MAPE (held out)` = c("30.06%", "4.90%", "6.86%", "14.71%", "1.75%"),
+    `Correct direction (all 8)` = c("7/8", "7/8", "6/8", "6/8", "8/8"),
+    `MAPE (all 8)` = c("12.02%", "17.37%", "14.76%", "14.03%", "3.07%"),
+    check.names = FALSE
+  ),
+  caption = "Performance of DeDL against linear-addition, linear-regression, pure-DNN, and undebiased structured-DNN benchmarks in recovering the ATE of held-out treatment combinations and of all eight combinations. Source: @ye2025deep, Table 3.",
+  align = c("l", "r", "r", "r", "r")
+)
+```
+
+The comparison in the second table is the paper's central empirical result: DeDL dominates every benchmark on every metric, correctly signing and identifying the significance of all three held-out combinations while the linear-addition and linear-regression benchmarks each miss one, and cutting the mean absolute percentage error on held-out combinations by roughly two-thirds relative to the next-best method. Comparing the undebiased structured DNN (SDL) against DeDL isolates the value of the influence-function correction specifically: without debiasing, the confidence intervals are too narrow and understate the true sampling variability, which would inflate false discovery rates in a platform that used them to decide which combination to ship, while DeDL's intervals have the correct coverage. The authors also report a revealing interaction with training quality: the advantage of debiasing over the plug-in SDL estimator only appears once the network is trained to convergence, tracking the same $o(n^{-1/4})$ rate condition that the theory requires; with an undertrained network, or with a badly misspecified link function, debiasing can inject more noise than it removes, so in practice one should monitor the network's cross-validation loss, and compare it to an unrestricted DNN that also takes treatment as a direct input, before trusting the debiased estimates.
+
+### Official Replication Package
+
+@ye2025deep have released an official code and data package at [github.com/zikunye2/deep_learning_based_causal_inference_for_combinatorial_experiments](https://github.com/zikunye2/deep_learning_based_causal_inference_for_combinatorial_experiments), which is worth knowing about independently of the replication below. The repository ships two Jupyter notebooks, `main.ipynb` and `figure1.ipynb`, that reproduce every table and figure in the paper, including the heterogeneity plot in Figure 1, Tables 2 through 4 above, and the CATE and four-fold-DeDL results in Tables 5 through 7 that space does not permit covering here. Because Platform O's real data are proprietary, the authors instead release a synthetic stand-in, `synthetic_data.csv`, with 50,000 rows carrying the same schema as the real deployment: 78 pre-treatment covariates (device, browsing, geography, follower and fan counts, activity level), the three binary treatment indicators `is_DP`, `is_LP`, `is_FYP`, an outcome `y`, and a pre-assigned `kfold` column for the four-way cross-fitting behind Table 7. The synthetic outcome does not reproduce the literal proprietary effect sizes in Table 2, so it validates the pipeline rather than the published numbers, but it is a substantially more realistic covariate structure than a hand-rolled simulation, and readers who want to run the authors' own PyTorch implementation on data with genuine platform-scale dimensionality should start there.
+
+### Replicating the Framework End to End
+
+Because the released synthetic data intentionally does not carry the paper's true effect sizes, we build our own synthetic environment with a known, checkable ground truth to validate the DeDL machinery, generated to the authors' own specification for their simulation study (their Section 5). This has the advantage of letting us confirm that the estimator, implemented independently in R with a real neural network rather than the authors' Python code, recovers a ground truth we control exactly, which is a complementary check to running their notebooks: an independent reimplementation in a different language reaching the same qualitative conclusions is stronger evidence that the result is about the method and not about a particular codebase. We generate $m$ concurrent binary experiments, covariates $X \sim U(0,1)^{10}$, and nuisance functions $\theta_j^*(x) = (A_j'x)^3$ for a random coefficient matrix $A$, combined through the generalized sigmoid form II link. Consistent with the platform setting, only $m+2$ of the $2^m$ treatment combinations are ever observed during training, so the estimator never sees most of the combinations whose effects it is asked to recover.
+
+```{r combexp-single-run, message=FALSE, warning=FALSE, cache=TRUE}
+library(torch)
+
+set.seed(2025); torch_manual_seed(2025)
+
+dX <- 10L; m <- 4L
+
+# True nuisance functions: cubic transforms of a random linear index.
+A <- matrix(runif((m + 1) * dX, -0.5, 0.5), nrow = m + 1)
+theta_m1_true <- runif(1, 10, 20)
+theta_star <- function(X) { raw <- X %*% t(A); sign(raw) * abs(raw)^3 }
+G_true <- function(X, Tmat) {
+  th <- theta_star(X)
+  u <- th[, 1] + rowSums(th[, -1, drop = FALSE] * Tmat)
+  theta_m1_true / (1 + exp(-u))
+}
+
+# Partial-observation support: control, each single treatment, and one pair (m + 2 combinations).
+all_combos <- as.matrix(expand.grid(rep(list(0:1), m)))
+obs_support <- all_combos[rowSums(all_combos) %in% c(0, 1), , drop = FALSE]
+extra <- rep(0, m); extra[1:2] <- 1
+obs_support <- rbind(obs_support, extra)
+storage.mode(obs_support) <- "double"
+n_support <- nrow(obs_support)
+t0 <- rep(0, m)
+
+sample_partial <- function(n) {
+  X <- matrix(runif(n * dX), n, dX)
+  idx <- sample.int(n_support, n, replace = TRUE)
+  Tmat <- obs_support[idx, , drop = FALSE]
+  y <- G_true(X, Tmat) + runif(n, -0.05, 0.05)
+  list(X = X, T = Tmat, y = y)
+}
+
+train <- sample_partial(500L * m)
+
+# Structured network: two-layer MLP maps X to theta_0(x),...,theta_m(x);
+# theta_{m+1} is a single trainable scale parameter, as in the paper's simulation.
+net <- nn_module(
+  initialize = function(dX, hidden, out_dim) {
+    self$fc1 <- nn_linear(dX, hidden)
+    self$fc2 <- nn_linear(hidden, hidden)
+    self$fc3 <- nn_linear(hidden, out_dim)
+  },
+  forward = function(x) x |> self$fc1() |> nnf_relu() |> self$fc2() |> nnf_relu() |> self$fc3()
+)
+model <- net(dX, hidden = 10L, out_dim = m + 1L)
+theta_m1_hat <- torch_tensor(15, requires_grad = TRUE)
+
+Xtr <- torch_tensor(train$X, dtype = torch_float())
+Ttr <- torch_tensor(train$T, dtype = torch_float())
+ytr <- torch_tensor(train$y, dtype = torch_float())
+opt <- optim_adam(c(model$parameters, list(theta_m1_hat)), lr = 0.01)
+
+forward_G <- function(X, Tt) {
+  th <- model(X)
+  u <- th[, 1] + torch_sum(th[, 2:(m + 1)] * Tt, dim = 2)
+  theta_m1_hat / (1 + torch_exp(-u))
+}
+for (epoch in seq_len(500L)) {
+  opt$zero_grad()
+  loss <- nnf_mse_loss(forward_G(Xtr, Ttr), ytr)
+  loss$backward(); opt$step()
+}
+
+theta_hat_fn <- function(X) {
+  with_no_grad({ th <- model(torch_tensor(X, dtype = torch_float())) })
+  as.matrix(th)
+}
+theta_m1_val <- as.numeric(theta_m1_hat)
+
+# Closed-form sigmoid gradients (G is a sigmoid, so its theta-gradient has a simple form).
+G_hat_row <- function(th_row, t) theta_m1_val / (1 + exp(-(th_row[1] + sum(th_row[-1] * t))))
+Gtheta_hat_row <- function(th_row, t) {
+  u <- th_row[1] + sum(th_row[-1] * t)
+  s <- 1 / (1 + exp(-u)); ds <- s * (1 - s)
+  c(theta_m1_val * ds, theta_m1_val * ds * t, s)
+}
+
+inf_data <- sample_partial(500L * m)
+th_inf <- theta_hat_fn(inf_data$X)
+d <- m + 2L
+
+# Per-unit debiasing correction Lambda(x_i)^{-1} ell_theta(y_i, t_i, theta_hat(x_i));
+# this does not depend on the target combination t, so it is computed once and reused.
+correction <- matrix(0, nrow(inf_data$X), d)
+for (i in seq_len(nrow(inf_data$X))) {
+  th_i <- th_inf[i, ]
+  Lam <- matrix(0, d, d)
+  for (k in seq_len(n_support)) {
+    g <- Gtheta_hat_row(th_i, obs_support[k, ])
+    Lam <- Lam + outer(g, g)
+  }
+  Lam <- Lam * 2 / n_support + diag(0.0005, d)
+  g_ti <- Gtheta_hat_row(th_i, inf_data$T[i, ])
+  ell_th <- 2 * g_ti * (G_hat_row(th_i, inf_data$T[i, ]) - inf_data$y[i])
+  correction[i, ] <- solve(Lam, ell_th)
+}
+
+# Linear-addition and linear-regression benchmarks, fit on the same observed data.
+lr_dat <- data.frame(y = train$y, train$X, train$T)
+names(lr_dat) <- c("y", paste0("x", seq_len(dX)), paste0("t", seq_len(m)))
+lr_fit <- lm(y ~ ., data = lr_dat)
+
+y0 <- mean(train$y[rowSums(train$T) == 0])
+la_effects <- sapply(seq_len(m), function(k) {
+  sel <- train$T[, k] == 1 & rowSums(train$T) == 1
+  mean(train$y[sel]) - y0
+})
+
+Xmc <- matrix(runif(10000L * dX), 10000L, dX)
+mu_true <- function(t) mean(G_true(Xmc, matrix(t, nrow(Xmc), m, byrow = TRUE))) -
+                        mean(G_true(Xmc, matrix(t0, nrow(Xmc), m, byrow = TRUE)))
+
+combo_results <- data.frame()
+for (k in seq_len(nrow(all_combos))) {
+  t_target <- as.numeric(all_combos[k, ])
+  if (all(t_target == t0)) next
+  n_inf <- nrow(inf_data$X)
+
+  Hx  <- sapply(seq_len(n_inf), function(i) G_hat_row(th_inf[i, ], t_target) - G_hat_row(th_inf[i, ], t0))
+  Hth <- t(sapply(seq_len(n_inf), function(i) Gtheta_hat_row(th_inf[i, ], t_target) - Gtheta_hat_row(th_inf[i, ], t0)))
+  psi <- Hx - rowSums(Hth * correction)
+
+  newx  <- data.frame(matrix(runif(2000L * dX), 2000L, dX)); names(newx) <- paste0("x", seq_len(dX))
+  newt1 <- as.data.frame(matrix(t_target, 2000L, m, byrow = TRUE)); names(newt1) <- paste0("t", seq_len(m))
+  newt0 <- as.data.frame(matrix(t0, 2000L, m, byrow = TRUE)); names(newt0) <- paste0("t", seq_len(m))
+
+  combo_results <- rbind(combo_results, data.frame(
+    combo = paste(t_target, collapse = ""),
+    truth = mu_true(t_target),
+    LA    = sum(la_effects[t_target == 1]),
+    LR    = mean(predict(lr_fit, cbind(newx, newt1))) - mean(predict(lr_fit, cbind(newx, newt0))),
+    SDL   = mean(Hx),
+    DeDL  = mean(psi),
+    DeDL_se = sd(psi) / sqrt(n_inf),
+    observed = any(apply(obs_support, 1, function(s) all(s == t_target)))
+  ))
+}
+```
+
+```{r combexp-single-table, echo=FALSE}
+disp <- combo_results[, c("combo", "truth", "LA", "LR", "SDL", "DeDL", "DeDL_se", "observed")]
+disp[c("truth", "LA", "LR", "SDL", "DeDL", "DeDL_se")] <-
+  lapply(disp[c("truth", "LA", "LR", "SDL", "DeDL", "DeDL_se")], round, 4)
+knitr::kable(
+  disp,
+  col.names = c("Combination", "True ATE", "Linear addition", "Linear regression", "Structured DNN (no debias)", "DeDL", "DeDL SE", "Observed?"),
+  caption = "Estimated average treatment effect of every non-control combination of four synthetic concurrent experiments, against ground truth, for four benchmark estimators trained on only $m+2=6$ of the $2^4=16$ possible combinations.",
+  align = c("l", rep("r", 6), "c")
+)
+```
+
+```{r combexp-mae, echo=FALSE}
+mae <- sapply(c("LA", "LR", "SDL", "DeDL"), function(col) mean(abs(combo_results[[col]] - combo_results$truth)))
+knitr::kable(
+  data.frame(Estimator = names(mae), MAE = round(mae, 4)),
+  caption = "Mean absolute error against ground truth across all fifteen non-control treatment combinations."
+)
+```
+
+```{r combexp-ci-fig, fig.cap="DeDL point estimates and 95 percent confidence intervals against ground truth for every treatment combination in the synthetic replication. Combinations marked as observed were part of the training support; the rest were never seen during training.", message=FALSE, warning=FALSE}
+library(ggplot2)
+
+combo_results$combo <- factor(combo_results$combo, levels = combo_results$combo[order(combo_results$observed, decreasing = TRUE)])
+
+ggplot(combo_results, aes(x = combo)) +
+  geom_point(aes(y = truth, color = "Truth"), size = 2.5, shape = 18) +
+  geom_pointrange(aes(y = DeDL, ymin = DeDL - 1.96 * DeDL_se, ymax = DeDL + 1.96 * DeDL_se, color = "DeDL")) +
+  labs(x = "Treatment combination", y = "Average treatment effect", color = NULL) +
+  causalverse::ama_theme() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+The DeDL confidence intervals cover the true effect for essentially every combination, including those the network never saw a single training example of, which is the payoff of Neyman orthogonality: the debiasing term corrects for the network's residual approximation error well enough to deliver valid inference on combinations entirely outside the training support.
+
+### The Cost of Linear Additivity as Experiments Scale Up
+
+The platform's central practical question is how badly the default linear-addition heuristic degrades as more experiments run concurrently. We repeat the exercise above for $m \in \{3,4,5\}$ concurrent experiments, each replicated twice with independently redrawn nuisance functions to average out simulation noise, exactly the design of the paper's own Section 5.1 robustness check.
+
+```{r combexp-sweep, message=FALSE, warning=FALSE, cache=TRUE}
+run_dedl_experiment <- function(m, dX = 10L, n_epochs = 400L, seed = 1) {
+  set.seed(seed); torch_manual_seed(seed)
+
+  A <- matrix(runif((m + 1) * dX, -0.5, 0.5), nrow = m + 1)
+  theta_m1_true <- runif(1, 10, 20)
+  theta_star <- function(X) { raw <- X %*% t(A); sign(raw) * abs(raw)^3 }
+  G_true <- function(X, Tmat) {
+    th <- theta_star(X)
+    u <- th[, 1] + rowSums(th[, -1, drop = FALSE] * Tmat)
+    theta_m1_true / (1 + exp(-u))
+  }
+
+  all_combos <- as.matrix(expand.grid(rep(list(0:1), m)))
+  obs_support <- all_combos[rowSums(all_combos) %in% c(0, 1), , drop = FALSE]
+  extra <- rep(0, m); extra[1:2] <- 1
+  obs_support <- rbind(obs_support, extra)
+  storage.mode(obs_support) <- "double"
+  n_support <- nrow(obs_support)
+  t0 <- rep(0, m)
+
+  sample_partial <- function(n) {
+    X <- matrix(runif(n * dX), n, dX)
+    idx <- sample.int(n_support, n, replace = TRUE)
+    Tmat <- obs_support[idx, , drop = FALSE]
+    y <- G_true(X, Tmat) + runif(n, -0.05, 0.05)
+    list(X = X, T = Tmat, y = y)
+  }
+
+  train <- sample_partial(500L * m)
+
+  net <- nn_module(
+    initialize = function(dX, hidden, out_dim) {
+      self$fc1 <- nn_linear(dX, hidden)
+      self$fc2 <- nn_linear(hidden, hidden)
+      self$fc3 <- nn_linear(hidden, out_dim)
+    },
+    forward = function(x) x |> self$fc1() |> nnf_relu() |> self$fc2() |> nnf_relu() |> self$fc3()
+  )
+  model <- net(dX, hidden = 10L, out_dim = m + 1L)
+  theta_m1_hat <- torch_tensor(15, requires_grad = TRUE)
+
+  Xtr <- torch_tensor(train$X, dtype = torch_float())
+  Ttr <- torch_tensor(train$T, dtype = torch_float())
+  ytr <- torch_tensor(train$y, dtype = torch_float())
+  opt <- optim_adam(c(model$parameters, list(theta_m1_hat)), lr = 0.01)
+
+  forward_G <- function(X, Tt) {
+    th <- model(X)
+    u <- th[, 1] + torch_sum(th[, 2:(m + 1)] * Tt, dim = 2)
+    theta_m1_hat / (1 + torch_exp(-u))
+  }
+  for (epoch in seq_len(n_epochs)) {
+    opt$zero_grad()
+    loss <- nnf_mse_loss(forward_G(Xtr, Ttr), ytr)
+    loss$backward(); opt$step()
+  }
+
+  theta_hat_fn <- function(X) {
+    with_no_grad({ th <- model(torch_tensor(X, dtype = torch_float())) })
+    as.matrix(th)
+  }
+  theta_m1_val <- as.numeric(theta_m1_hat)
+
+  G_hat_row <- function(th_row, t) theta_m1_val / (1 + exp(-(th_row[1] + sum(th_row[-1] * t))))
+  Gtheta_hat_row <- function(th_row, t) {
+    u <- th_row[1] + sum(th_row[-1] * t)
+    s <- 1 / (1 + exp(-u)); ds <- s * (1 - s)
+    c(theta_m1_val * ds, theta_m1_val * ds * t, s)
+  }
+
+  inf_data <- sample_partial(500L * m)
+  th_inf <- theta_hat_fn(inf_data$X)
+  d <- m + 2L
+  n_inf <- nrow(inf_data$X)
+
+  correction <- matrix(0, n_inf, d)
+  for (i in seq_len(n_inf)) {
+    th_i <- th_inf[i, ]
+    Lam <- matrix(0, d, d)
+    for (k in seq_len(n_support)) {
+      g <- Gtheta_hat_row(th_i, obs_support[k, ])
+      Lam <- Lam + outer(g, g)
+    }
+    Lam <- Lam * 2 / n_support + diag(0.0005, d)
+    g_ti <- Gtheta_hat_row(th_i, inf_data$T[i, ])
+    ell_th <- 2 * g_ti * (G_hat_row(th_i, inf_data$T[i, ]) - inf_data$y[i])
+    correction[i, ] <- solve(Lam, ell_th)
+  }
+
+  lr_dat <- data.frame(y = train$y, train$X, train$T)
+  names(lr_dat) <- c("y", paste0("x", seq_len(dX)), paste0("t", seq_len(m)))
+  lr_fit <- lm(y ~ ., data = lr_dat)
+
+  y0 <- mean(train$y[rowSums(train$T) == 0])
+  la_effects <- sapply(seq_len(m), function(k) {
+    sel <- train$T[, k] == 1 & rowSums(train$T) == 1
+    mean(train$y[sel]) - y0
+  })
+
+  Xmc <- matrix(runif(10000L * dX), 10000L, dX)
+  mu_true <- function(t) mean(G_true(Xmc, matrix(t, nrow(Xmc), m, byrow = TRUE))) -
+                          mean(G_true(Xmc, matrix(t0, nrow(Xmc), m, byrow = TRUE)))
+
+  out <- data.frame()
+  for (k in seq_len(nrow(all_combos))) {
+    t_target <- as.numeric(all_combos[k, ])
+    if (all(t_target == t0)) next
+    truth <- mu_true(t_target)
+
+    Hx  <- sapply(seq_len(n_inf), function(i) G_hat_row(th_inf[i, ], t_target) - G_hat_row(th_inf[i, ], t0))
+    Hth <- t(sapply(seq_len(n_inf), function(i) Gtheta_hat_row(th_inf[i, ], t_target) - Gtheta_hat_row(th_inf[i, ], t0)))
+    psi <- Hx - rowSums(Hth * correction)
+
+    newx  <- data.frame(matrix(runif(2000L * dX), 2000L, dX)); names(newx) <- paste0("x", seq_len(dX))
+    newt1 <- as.data.frame(matrix(t_target, 2000L, m, byrow = TRUE)); names(newt1) <- paste0("t", seq_len(m))
+    newt0 <- as.data.frame(matrix(t0, 2000L, m, byrow = TRUE)); names(newt0) <- paste0("t", seq_len(m))
+
+    out <- rbind(out, data.frame(
+      m = m, truth = truth,
+      LA = sum(la_effects[t_target == 1]),
+      LR = mean(predict(lr_fit, cbind(newx, newt1))) - mean(predict(lr_fit, cbind(newx, newt0))),
+      SDL = mean(Hx), DeDL = mean(psi)
+    ))
+  }
+  rm(model, opt, Xtr, Ttr, ytr, th_inf, correction)
+  out
+}
+
+# Two replicates per m keep the sweep's total runtime bounded; gc() after each
+# replicate prevents torch's per-call tensor allocations from accumulating
+# across the loop, which otherwise slows later iterations substantially.
+sweep_results <- data.frame()
+for (m_val in c(3L, 4L, 5L)) {
+  for (rep in 1:2) {
+    r <- run_dedl_experiment(m_val, n_epochs = 300L, seed = 100 * m_val + rep)
+    sweep_results <- rbind(sweep_results, r)
+    gc(full = TRUE)
+  }
+}
+
+mae_by_m <- aggregate(
+  cbind(LA = abs(LA - truth), LR = abs(LR - truth), SDL = abs(SDL - truth), DeDL = abs(DeDL - truth)) ~ m,
+  data = sweep_results, FUN = mean
+)
+```
+
+```{r combexp-sweep-fig, fig.cap="Mean absolute error against ground truth as the number of concurrent experiments m increases, averaged over two independently redrawn synthetic environments per m. The linear-addition and linear-regression benchmarks assume additive effects and degrade as more experiments interact; the structured deep network, with or without debiasing, uses the same $m+2$ observed combinations regardless of m and remains comparatively stable.", message=FALSE, warning=FALSE}
+mae_long <- reshape(mae_by_m, direction = "long", varying = c("LA", "LR", "SDL", "DeDL"),
+                     v.names = "MAE", timevar = "Estimator", times = c("LA", "LR", "SDL", "DeDL"))
+
+ggplot(mae_long, aes(x = m, y = MAE, color = Estimator)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Number of concurrent experiments (m)", y = "Mean absolute error vs. ground truth") +
+  causalverse::ama_theme()
+```
+
+The qualitative pattern matches the paper's own Figure 8: the linear-addition and linear-regression estimators, which hard-code an additive structure that becomes more wrong as more experiments interact, do not improve as $m$ grows and often worsen, while the structured network, trained on only $m+2$ observed combinations no matter how large $m$ is, holds up because its sigmoid link nests genuine nonlinear interaction. This is the practical case for the framework: a platform that already runs hundreds of concurrent experiments cannot expand its factorial coverage as $m$ grows, but a structured, orthogonalized deep network can still deliver valid, increasingly necessary estimates of combinations it has never tested.
+
+### Practical Guidance
+
+Three lessons from @ye2025deep are worth carrying forward whenever deep learning is combined with Neyman orthogonality on a structural model layer rather than an unrestricted regression. First, the debiasing term is only as good as the first-stage network; when training has not converged, plain plug-in and debiased estimates are similar, and the value of debiasing appears only once training loss is genuinely small, so cross-validation loss during training is a useful diagnostic before trusting the debiased estimate. Second, a misspecified link function is more dangerous with debiasing than without, because the correction term amplifies rather than removes bias from a structural form that does not nest the truth; comparing the structured network's validation loss against an unrestricted "pure DNN" that takes treatment as a raw input alongside the covariates, exactly the PDL benchmark @ye2025deep use in Table 3, is a practical specification check that does not require knowing the true link function in advance. Third, and most important for scale, the framework's traffic requirement grows linearly rather than exponentially in the number of concurrent experiments, which is what turns a theoretically elegant debiasing result into something a platform running hundreds of A/B tests can actually deploy.
+
 ## Heterogeneous Treatment Effects
 
 Average effects answer whether a treatment works on the whole. Many questions instead concern for whom it works, which is captured by the conditional average treatment effect (CATE)
