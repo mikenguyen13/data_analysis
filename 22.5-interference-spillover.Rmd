@@ -2,7 +2,7 @@
 
 Most of the causal-inference machinery in this book rests, often silently, on the assumption that one unit's treatment does not affect another unit's outcome. That assumption is convenient and frequently false. When a vaccinated person lowers an unvaccinated neighbor's risk of infection, when a price promotion to one customer cannibalizes a friend's purchase, when a deworming program in one school reduces transmission in a nearby school, or when a regulatory shock to one bank propagates through interbank exposures, the outcome of a unit depends on the treatment status of others. This phenomenon goes by two closely related names. Statisticians tend to call it interference, meaning a violation of the no-interference half of the Stable Unit Treatment Value Assumption. Economists and applied researchers more often call it spillover, peer effect, externality, or contagion. The vocabulary differs but the structural problem is the same, and the goal of this chapter is to make that problem precise, to show what is and is not identified once we admit it, and to connect the experimental theory to the quasi-experimental and observational designs developed elsewhere in the book.
 
-The chapter proceeds in three movements. First, it defines interference and the SUTVA assumption it violates, then rebuilds the potential-outcomes framework to accommodate it, introducing exposure mappings as the central device for taming an otherwise unmanageable number of potential outcomes. Second, it develops the partial-interference designs that make estimation tractable, principally the two-stage randomized designs of @hudgens2008toward and the direct, indirect, total, and overall effects they identify, together with the design-based estimators for general experiments and the long-standing identification problems in peer-effects regressions associated with @manski1993identification. Third, it turns to interference in quasi-experimental and observational work, where spillovers contaminate difference-in-differences control units, threaten the exclusion restriction in instrumental-variables designs, and undermine the stable-comparison logic of matching. This chapter is cross-referenced from the discussion of modern concerns in difference-in-differences (Section \@ref(sec-modern-concerns-in-did)) and from the quasi-experimental foundations (Section \@ref(sec-quasi-experimental)), and it is meant to be read as the place where the no-interference assumption invoked there is examined head on.
+The chapter proceeds from designs the analyst controls toward data the analyst merely observes. It first defines interference and the SUTVA assumption it violates, rebuilds the potential-outcomes framework around exposure mappings, and develops the design-based Horvitz-Thompson estimators that exploit a known randomization [@aronow2017estimating], together with the modern theory of what remains estimable when the exposure mapping is unknown or wrong [@savje2021average; @leung2022causal] and the randomization tests that stay exact under interference [@athey2018exact; @basse2019randomization]. It then develops the partial-interference designs that make spillover estimation routine: the two-stage randomized designs of @hudgens2008toward with their direct, indirect, total, and overall effects, inverse probability weighted estimation of those effects with the `inferference` package [@saul2017recipe], a replication of the household voter-mobilization experiment of @nickerson2008voting, and the randomized saturation experiments with which economists measure displacement and general-equilibrium spillovers [@crepon2013labor; @egger2022general]. The observational movements treat the reflection problem in peer-effects regressions associated with @manski1993identification, causal inference on observed networks, bipartite and clustered interference, the marketplace and temporal interference that dominate industry experimentation, and the connectedness measures used in empirical finance. The chapter closes with interference as a threat to quasi-experimental designs, where spillovers contaminate difference-in-differences control units, threaten the exclusion restriction in instrumental-variables designs, and undermine the stable-comparison logic of matching. It is cross-referenced from the discussion of modern concerns in difference-in-differences (Section \@ref(sec-modern-concerns-in-did)) and from the quasi-experimental foundations (Section \@ref(sec-quasi-experimental)), and it is meant to be read as the place where the no-interference assumption invoked there is examined head on.
 
 ## SUTVA and the Meaning of No Interference {#sec-sutva-no-interference}
 
@@ -24,7 +24,7 @@ It helps to distinguish three regimes that the literature treats quite different
 
 ## Potential Outcomes Under Interference and Exposure Mappings {#sec-exposure-mappings}
 
-Once we admit that $Y_i$ depends on others' assignments, we need a language for the kinds of effects that become meaningful. Following the draft framework and the formal development in @hudgens2008toward, write the assignment of all units other than $i$ as $\mathbf{D}_{-i}$, so that $Y_i = Y_i(D_i, \mathbf{D}_{-i})$. Two conceptually distinct contrasts emerge.
+Once we admit that $Y_i$ depends on others' assignments, we need a language for the kinds of effects that become meaningful. Following the formal development in @hudgens2008toward, write the assignment of all units other than $i$ as $\mathbf{D}_{-i}$, so that $Y_i = Y_i(D_i, \mathbf{D}_{-i})$. Two conceptually distinct contrasts emerge.
 
 The direct effect holds the rest of the world fixed at some configuration $\mathbf{d}$ and toggles only unit $i$'s own treatment,
 $$
@@ -40,7 +40,134 @@ capturing how much $i$'s outcome moves when the surrounding pattern shifts from 
 
 The practical difficulty is that $\mathbf{d}$ and $\mathbf{d}'$ range over an astronomically large space, so these contrasts are not directly usable. The key simplifying device, developed rigorously by @aronow2017estimating, is the exposure mapping. An exposure mapping is a function $f(\mathbf{D}, \theta_i)$ that reduces the high-dimensional assignment vector, together with unit-specific attributes $\theta_i$ such as a unit's position in a network, to a low-dimensional exposure value. The substantive assumption is that potential outcomes depend on $\mathbf{D}$ only through this exposure: if two assignment vectors induce the same exposure for unit $i$, they induce the same potential outcome. Common choices include an indicator for whether any network neighbor is treated, the count or fraction of treated neighbors, or a binary "treated versus untreated" exposure that simply recovers the classical setup. @aronow2017estimating show that, given a correctly specified exposure mapping and a known randomization, one can construct Horvitz-Thompson and Hajek estimators of average potential outcomes under each exposure level, with variance estimators that account for the dependence the design induces across units. The honesty of this approach is that the exposure mapping is an explicit, falsifiable modeling assumption rather than a hidden one, and misspecifying it (for example, assuming only first-order neighbor effects when second-order effects are present) reintroduces bias in a way that can in principle be probed.
 
-The graph-cluster randomization of @ugander2013graph is a complementary engineering response to the same problem: by assigning treatment to coarse network clusters rather than to individuals, the design increases the probability that a unit and all of its neighbors share a treatment status, which makes a "fully treated neighborhood" exposure occur often enough to be estimated. The general lesson is that under interference the design and the estimand must be chosen together, because the randomization scheme determines which exposure contrasts are estimable at all.
+The graph-cluster randomization of @ugander2013graph is a complementary engineering response to the same problem: by assigning treatment to coarse network clusters rather than to individuals, the design increases the probability that a unit and all of its neighbors share a treatment status, which makes a "fully treated neighborhood" exposure occur often enough to be estimated. @eckles2017design develop this design logic further and show, in theory and in experiments on real social networks, that cluster randomization combined with exposure-based analysis substantially reduces the bias that interference induces in standard estimators. The general lesson is that under interference the design and the estimand must be chosen together, because the randomization scheme determines which exposure contrasts are estimable at all.
+
+### Design-Based Estimation with Known Exposure Probabilities {#sec-design-based-interference}
+
+Once an exposure mapping is adopted, estimation proceeds exactly as in design-based survey sampling, with the randomization itself supplying the probabilities. Suppose the mapping assigns each unit one of a finite set of exposure levels $k$, and define the generalized probability of exposure
+$$
+\pi_i(k) = \Pr[f(\mathbf{D}, \theta_i) = k],
+$$
+which is computable, at least by simulation, because the assignment mechanism is known. For a concrete case that recurs below, let treatment be assigned independently as Bernoulli with probability $p$ and let the exposure be own treatment crossed with an indicator that at least one network neighbor is treated. A unit with degree $d_i$ then has
+$$
+\begin{aligned}
+\pi_i(11) &= p\,\{1 - (1-p)^{d_i}\}, &\qquad \pi_i(10) &= p\,(1-p)^{d_i},\\
+\pi_i(01) &= (1-p)\,\{1 - (1-p)^{d_i}\}, &\qquad \pi_i(00) &= (1-p)^{\,d_i + 1},
+\end{aligned}
+$$
+where the first digit is own treatment and the second is the neighborhood indicator. Writing $\mu(k) = N^{-1} \sum_i Y_i(k)$ for the average potential outcome under exposure $k$, the Horvitz-Thompson estimator of @aronow2017estimating is
+$$
+\hat{\mu}_{HT}(k) = \frac{1}{N} \sum_{i=1}^{N} \frac{\mathbf{1}\{f(\mathbf{D}, \theta_i) = k\}\, Y_i}{\pi_i(k)},
+$$
+which is unbiased whenever every unit has $\pi_i(k) > 0$ (a positivity condition that fails, for example, for the neighborhood exposures of an isolated unit) and the exposure mapping is correctly specified. The Hajek variant normalizes by the sum of the inverse probabilities rather than by $N$; it is only approximately unbiased but typically far less variable when the weights are dispersed. Causal contrasts are differences $\tau(k, k') = \mu(k) - \mu(k')$, and @aronow2017estimating derive conservative variance estimators built from the joint exposure probabilities of unit pairs. Precision is governed by the design: under Bernoulli assignment an exposure like "treated with no treated neighbors" is vanishingly rare for high-degree units, so its weights explode, and the cluster randomization designs above are best understood as devices for raising the probability of extreme exposures that the estimand needs.
+
+### What the Naive Contrast Estimates, and What It Misses
+
+A short simulation on a random network makes the design-based machinery concrete and exposes a subtle point about the naive difference in means. Outcomes rise by one with own treatment and by one and a half when at least one neighbor is treated, so the global policy contrast, everyone treated versus no one treated, is two and a half.
+
+```{r interference-ht-network, message=FALSE, warning=FALSE}
+set.seed(2026)
+library(igraph)
+
+n <- 4000
+g <- sample_gnp(n, p = 6 / (n - 1))
+# Keep units with at least one neighbor so every exposure level has
+# positive probability for every unit in the estimand (positivity).
+g <- induced_subgraph(g, which(degree(g) > 0))
+n <- vcount(g)
+A <- as_adjacency_matrix(g, sparse = TRUE)
+deg <- degree(g)
+
+p_treat <- 0.5
+
+# Closed-form exposure probabilities under iid Bernoulli(p) assignment.
+pi_c11 <- p_treat * (1 - (1 - p_treat)^deg)
+pi_c10 <- p_treat * (1 - p_treat)^deg
+pi_c01 <- (1 - p_treat) * (1 - (1 - p_treat)^deg)
+pi_c00 <- (1 - p_treat)^(deg + 1)
+
+one_draw <- function() {
+  D <- rbinom(n, 1, p_treat)
+  S <- as.numeric(as.numeric(A %*% D) > 0)   # any treated neighbor
+  Y <- 0.5 + 1.0 * D + 1.5 * S + rnorm(n)
+
+  exposure <- ifelse(D == 1 & S == 1, "c11",
+              ifelse(D == 1 & S == 0, "c10",
+              ifelse(D == 0 & S == 1, "c01", "c00")))
+  pi_i <- cbind(c11 = pi_c11, c10 = pi_c10, c01 = pi_c01, c00 = pi_c00)
+
+  ht <- sapply(c("c11", "c10", "c01", "c00"), function(k) {
+    ind <- as.numeric(exposure == k)
+    sum(ind * Y / pi_i[, k]) / n
+  })
+  hajek <- sapply(c("c11", "c10", "c01", "c00"), function(k) {
+    ind <- as.numeric(exposure == k)
+    sum(ind * Y / pi_i[, k]) / sum(ind / pi_i[, k])
+  })
+  c(naive        = mean(Y[D == 1]) - mean(Y[D == 0]),
+    ht_global    = unname(ht["c11"] - ht["c00"]),
+    hajek_global = unname(hajek["c11"] - hajek["c00"]),
+    hajek_direct = unname(hajek["c10"] - hajek["c00"]),
+    hajek_spill  = unname(hajek["c01"] - hajek["c00"]))
+}
+
+reps <- replicate(300, one_draw())
+round(cbind(mean = rowMeans(reps), sd = apply(reps, 1, sd)), 3)
+```
+
+Three lessons sit in this table. First, the naive difference in means is centered near one, the direct effect, not near the policy contrast of two and a half: because own treatment is independent of neighborhood exposure under Bernoulli assignment, the spillover term averages out of the comparison entirely, and an analyst who reads the difference in means as "the effect of rolling the treatment out" understates it by sixty percent. This is not a bias in the estimator so much as a mismatch between the estimator and the policy question, a point made precise by the estimand theory in the next section. Second, the Horvitz-Thompson and Hajek estimators built on the exposure mapping recover the global contrast, the direct effect, and the spillover separately and essentially without bias. Third, the Hajek estimator's standard deviation for the global contrast is roughly half the Horvitz-Thompson estimator's, the practical price of unnormalized inverse probability weights.
+
+## Estimation with Unknown or Misspecified Exposure Mappings {#sec-unknown-exposure-mappings}
+
+The design-based results above condition on getting the exposure mapping right, and the obvious worry is that no one ever quite does: second-order neighbors matter a little, the measured network omits some edges, spillovers travel through channels no adjacency matrix records. A line of work now characterizes what standard estimators estimate when the interference structure is unknown, misspecified, or only approximately local, and its conclusions are reassuring in a specific and useful way.
+
+@savje2021average study the expected average treatment effect,
+$$
+\tau_{EATE} = \frac{1}{N} \sum_{i=1}^{N} \Big( E[\,Y_i \mid D_i = 1\,] - E[\,Y_i \mid D_i = 0\,] \Big),
+$$
+where the expectations are taken over the realized assignments of all other units under the design, holding unit $i$'s own assignment fixed. This is the natural generalization of the average treatment effect to settings with interference: the average effect of a unit's own treatment in the treatment environment the experiment actually generates. Their central result is that the ordinary difference in means and its Hajek refinement are consistent for $\tau_{EATE}$ under essentially unknown interference, provided the aggregate amount of interference grows slower than the sample, in the sense that the average number of units whose assignment materially affects a given unit's outcome is small relative to $N$. Estimation requires no knowledge of the interference structure at all; the price is paid in the estimand, which is design-dependent, and in a convergence rate that degrades with the amount of interference. This is exactly the pattern in the simulation above: the naive contrast was a perfectly good estimate of an average direct effect and a poor answer to a global policy question. @savje2024misspecified extends the same honesty to exposure mappings themselves, separating the definitional role of a mapping, which specifies which contrast of assignment vectors one is averaging, from the modeling assumption that potential outcomes depend on assignments only through it, and showing that estimands defined by a misspecified mapping remain well-defined design averages with a coherent, if weaker, interpretation. @hu2022average give complementary decompositions of what difference-in-means style estimators converge to under Bernoulli and completely randomized designs, expressed as averages of unit-level direct effects plus design-weighted spillover terms.
+
+For settings where interference is genuinely local but not exactly so, @leung2022causal introduces approximate neighborhood interference, an assumption that the influence of assignments far from unit $i$ in the network decays with graph distance rather than vanishing at a known radius. Under this condition, estimators built from first-order neighborhood exposures remain consistent and asymptotically normal for well-defined exposure effects, and valid standard errors come from a network HAC variance estimator that sums covariances over pairs of units within a growing neighborhood radius, the network analogue of the serial-correlation-robust variance used in time series. Earlier results in @leung2020treatment develop inference when interference is exactly confined to immediate neighbors, and @li2022random supply the random-graph asymptotic theory for such estimators when the network itself is modeled as a draw from a graphon. Together these results justify the near-universal applied practice of specifying simple one-hop exposure mappings, while making precise the sense in which the resulting estimates are robust: they estimate averages of well-defined local contrasts, with inference that survives modest misspecification, but they do not recover global counterfactuals without the stronger exposure assumption.
+
+## Randomization Tests Under Interference {#sec-interference-randomization-tests}
+
+Estimation is one route; testing is another, and under interference it is in some ways cleaner, because Fisherian randomization tests require no asymptotics and no variance formulas, only the known assignment mechanism. The obstacle is that the interesting hypotheses are not sharp. Fisher's exact test works by imputing every unit's outcome under every counterfactual assignment, which the null of "no effect whatsoever" permits. The null an interference analyst actually cares about, that there are no spillovers, or that spillovers vanish beyond first-order neighbors, leaves own-treatment effects unrestricted, so re-randomizing a unit's own assignment changes its outcome in unknown ways and the naive permutation test is invalid.
+
+@athey2018exact resolve this with artificial experiments built around focal units. Choose, independently of the realized assignment, a subset of focal units; hold the focal units' own assignments fixed; and re-randomize only the assignments of non-focal units according to the design. Under the null hypothesis that non-focal assignments do not affect focal outcomes, every focal outcome is imputable under every draw of the artificial experiment, namely unchanged, so any test statistic computed from focal outcomes and the re-randomized assignment vector has a known exact distribution. Different choices of statistic and focal structure yield exact tests of no interference, of interference restricted to a given radius, and of other structural hypotheses about spillovers. @basse2019randomization generalize the idea into a theory of conditional randomization tests, showing how to construct conditioning events, in their development bicliques of the exposure design, that render a non-sharp null sharp within the conditioning set, and characterizing when such tests remain valid. For the two-stage designs of the next section, @liu2014large develop the complementary large-sample randomization inference.
+
+The following simulation implements a focal-unit test of the null hypothesis of no spillovers on the same kind of random network as before. Half the units are designated focal before assignment; the statistic is the absolute correlation, among untreated focal units, between the outcome and the fraction of treated neighbors; and the reference distribution re-randomizes only non-focal assignments.
+
+```{r interference-focal-test, message=FALSE, warning=FALSE}
+set.seed(2027)
+n2 <- 800
+g2 <- sample_gnp(n2, p = 8 / (n2 - 1))
+A2 <- as_adjacency_matrix(g2, sparse = TRUE)
+deg2 <- degree(g2)
+
+focal <- sample(c(TRUE, FALSE), n2, replace = TRUE)  # fixed before assignment
+
+focal_test <- function(tau_spill, n_perm = 500) {
+  D <- rbinom(n2, 1, 0.5)
+  frac_trt <- as.numeric(A2 %*% D) / pmax(deg2, 1)
+  Y <- 0.5 + 1.0 * D + tau_spill * frac_trt + rnorm(n2)
+
+  keep <- focal & D == 0 & deg2 > 0        # untreated focal units
+  t_obs <- abs(cor(Y[keep], frac_trt[keep]))
+
+  t_perm <- replicate(n_perm, {
+    D_new <- D
+    D_new[!focal] <- rbinom(sum(!focal), 1, 0.5)  # re-randomize non-focal only
+    frac_new <- as.numeric(A2 %*% D_new) / pmax(deg2, 1)
+    abs(cor(Y[keep], frac_new[keep]))      # focal outcomes fixed under the null
+  })
+  mean(t_perm >= t_obs)
+}
+
+c(p_with_spillover = focal_test(tau_spill = 1.5),
+  p_without       = focal_test(tau_spill = 0))
+```
+
+With a genuine spillover the test rejects decisively, and with no spillover it produces an unremarkable p-value, exactly the size and power behavior the construction promises. The test never needed an estimate of the spillover, a variance formula, or an asymptotic approximation; it needed only the design, which is the recurring Fisherian advantage.
 
 ## Partial Interference and Two-Stage Randomized Designs {#sec-two-stage-designs}
 
@@ -58,7 +185,7 @@ The total effect compares treated individuals under the high-coverage strategy w
 
 The overall effect compares the average outcome in a group under the high-coverage strategy with the average outcome under the low-coverage strategy, integrating over the treated and untreated members in their strategy-implied proportions. It is the policy-relevant summary for a planner choosing a coverage level for an entire group.
 
-These four estimands clarify a point that the introductory draft made informally. The choice of randomization scheme should be driven by which effect the researcher cares about. If only the direct effect is of interest and spillovers are a nuisance to be averaged out, individual-level complete randomization suffices, because a difference-in-means estimator under complete randomization recovers an average direct effect by averaging over the realized configurations of others. If the total effect is the target and partial interference holds at the cluster level, a cluster-randomized design, in which whole clusters are assigned to treatment or control, identifies it directly, because comparing fully treated clusters with fully untreated clusters bundles direct and spillover effects together. Only when the indirect effect itself, the spillover holding own treatment fixed, is the object of inquiry does one need the full two-stage design, because only the two-stage design varies neighborhood treatment intensity while independently randomizing own treatment. @baird2018optimal study the optimal allocation of units across the two stages, showing how the relative precision of the four effects depends on the number of clusters, the cluster size, and the saturation levels chosen, and providing power-calculation tools for partial-population (saturation) experiments of this kind. @sobel2006randomized gives an early and influential demonstration, in the context of a housing-mobility experiment, that ignoring interference can make a difference-in-means estimator a biased and substantively misleading estimate of any single well-defined effect.
+These four estimands clarify a practical point. The choice of randomization scheme should be driven by which effect the researcher cares about. If only the direct effect is of interest and spillovers are a nuisance to be averaged out, individual-level complete randomization suffices, because a difference-in-means estimator under complete randomization recovers an average direct effect by averaging over the realized configurations of others. If the total effect is the target and partial interference holds at the cluster level, a cluster-randomized design, in which whole clusters are assigned to treatment or control, identifies it directly, because comparing fully treated clusters with fully untreated clusters bundles direct and spillover effects together. Only when the indirect effect itself, the spillover holding own treatment fixed, is the object of inquiry does one need the full two-stage design, because only the two-stage design varies neighborhood treatment intensity while independently randomizing own treatment. @baird2018optimal study the optimal allocation of units across the two stages, showing how the relative precision of the four effects depends on the number of clusters, the cluster size, and the saturation levels chosen, and providing power-calculation tools for partial-population (saturation) experiments of this kind. @sobel2006randomized gives an early and influential demonstration, in the context of a housing-mobility experiment, that ignoring interference can make a difference-in-means estimator a biased and substantively misleading estimate of any single well-defined effect.
 
 A short simulation makes the bias from ignoring spillover concrete. Consider a cluster-structured population in which a unit's outcome rises with its own treatment and also with the fraction of treated peers in its cluster. A naive analyst who regresses the outcome on own treatment alone, ignoring the peer term, recovers something between the direct effect and the total effect, depending on how treatment correlates with peer exposure under the design.
 
@@ -100,6 +227,125 @@ round(c(naive_direct = unname(naive),
 
 The naive coefficient is biased relative to the true direct effect of one because own treatment is positively correlated with peer exposure under the random saturation, while the specification that conditions on peer exposure recovers both the direct effect near one and the spillover near two. The example is deliberately simple, with a correctly specified exposure (the leave-one-out treated fraction); the lesson generalizes, but so does the warning that the recovery depends on getting the exposure mapping right.
 
+### From Design to Estimate: Inverse Probability Weighting {#sec-ipw-two-stage}
+
+The estimands of @hudgens2008toward are defined with respect to counterfactual allocation programs: what would average outcomes be if each member of a group were treated independently with probability $\alpha$? @tchetgen2012causal supply the general-purpose estimator, an inverse probability weighted contrast that reweights the observed data to any allocation of interest. For group $g$ with members $j = 1, \dots, n_g$, observed treatments $\mathbf{A}_g$, and covariates $\mathbf{X}_g$, the estimated group-level average potential outcome at own-treatment level $d$ under allocation $\alpha$ is
+$$
+\hat{\bar{Y}}_g(d; \alpha)
+= \frac{1}{n_g} \sum_{j=1}^{n_g}
+\frac{\mathbf{1}\{A_{gj} = d\}\; \pi(\mathbf{A}_{g,-j};\, \alpha)}
+     {\hat{f}(\mathbf{A}_g \mid \mathbf{X}_g)}\; Y_{gj},
+\qquad
+\pi(\mathbf{a}; \alpha) = \prod_{j} \alpha^{a_j} (1 - \alpha)^{1 - a_j},
+$$
+where the numerator is the probability of the observed assignments of $j$'s groupmates under the counterfactual allocation and the denominator $\hat{f}$ is the estimated probability of the group's observed assignment vector, typically a mixed-effects logistic model with a group random effect integrated out. Averaging over groups gives population-level averages $\hat{\bar{Y}}(d; \alpha)$, and the four effects are the corresponding contrasts: the direct effect $\hat{\bar{Y}}(0; \alpha) - \hat{\bar{Y}}(1; \alpha)$, the indirect effect $\hat{\bar{Y}}(0; \alpha) - \hat{\bar{Y}}(0; \alpha')$, and so on. Large-sample theory treats the propensity parameters and the weighted averages as a stacked m-estimation problem, yielding sandwich variance estimators that account for estimating the propensity model [@perez2014assessing; @liu2014large].
+
+### Software and a Vaccine Application: The inferference Package {#sec-inferference-package}
+
+The estimator above is implemented in the `inferference` package [@saul2017recipe], written by the group responsible for much of the partial-interference theory. The motivating application is @perez2014assessing, who reanalyzed a large individually randomized cholera vaccine trial in Matlab, Bangladesh, grouping households into spatial clusters and exploiting the variation in vaccine coverage across clusters to estimate direct, indirect, total, and overall effects of vaccination. Because the underlying trial data are not publicly distributable, the package ships `vaccinesim`, a simulated dataset built to mimic the structure of the real study: an infection indicator `Y`, a vaccination indicator `A`, a trial-participation indicator `B`, two covariates, and 250 groups, with vaccine assignment made at random with probability two thirds among participants. The call below estimates the full effect surface across allocations from twenty to eighty percent coverage.
+
+```{r interference-ipw-vaccine, message=FALSE, warning=FALSE}
+library(inferference)
+
+vaccine_ipw <- interference(
+  formula = Y | A | B ~ X1 + X2 + (1 | group) | group,
+  allocations = c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8),
+  data = vaccinesim,
+  randomization = 2 / 3,
+  method = "simple"
+)
+
+rbind(
+  direct   = direct_effect(vaccine_ipw, 0.3)[, c("estimate", "conf.low", "conf.high")],
+  indirect = ie(vaccine_ipw, 0.3, 0.6)[, c("estimate", "conf.low", "conf.high")],
+  total    = te(vaccine_ipw, 0.3, 0.6)[, c("estimate", "conf.low", "conf.high")],
+  overall  = oe(vaccine_ipw, 0.3, 0.6)[, c("estimate", "conf.low", "conf.high")]
+)
+```
+
+Every entry has the herd-immunity interpretation the two-stage estimands were built for. The direct effect at thirty percent coverage is about 0.16: holding the environment fixed at thirty percent coverage, being unvaccinated rather than vaccinated raises infection risk by sixteen percentage points. The indirect effect of about 0.16 says that an unvaccinated person's risk falls by roughly the same amount when their group's coverage rises from thirty to sixty percent, pure spillover with no change in the person's own status. The total effect, about 0.27, is what separates an unvaccinated person in a low-coverage group from a vaccinated person in a high-coverage group, and the overall effect of about 0.18 is the planner's summary comparing the two coverage policies. Plotting the direct effect across the whole allocation grid shows it shrinking as coverage rises, the signature of herd protection: vaccination buys an individual less and less additional protection as the surrounding group becomes safer.
+
+```{r interference-vaccine-deff, fig.cap="Estimated direct effect of vaccination at each counterfactual allocation, with a pointwise 95 percent confidence band. The direct effect shrinks as coverage rises because unvaccinated individuals are increasingly protected by the vaccinated around them.", fig.width=6, fig.height=4.5}
+deff <- direct_effect(vaccine_ipw)
+x <- deff$alpha1
+y <- as.numeric(deff$estimate)
+u <- as.numeric(deff$conf.high)
+l <- as.numeric(deff$conf.low)
+plot(range(x), c(0, 0.25), type = "n", bty = "l",
+     xlab = "allocation (coverage)", ylab = "direct effect")
+polygon(c(x, rev(x)), c(u, rev(l)), col = "skyblue", border = NA)
+lines(x, y, lwd = 2)
+```
+
+Two cautions travel with the method. Allocations far from the coverage levels the data actually contain are extrapolations, purchased entirely through the propensity model, and the group-level product weights degrade quickly as group sizes grow or allocations drift from the data; the package's `diagnose_weights()` exists precisely to inspect this. And the estimand is a stochastic policy, treatment assigned independently at rate $\alpha$, which is the right abstraction for vaccines and outreach programs but not for policies that target deterministically.
+
+### Replication: Is Voting Contagious Within Households? {#sec-voting-contagion-replication}
+
+For a replication on real, publicly available data we turn to a canonical spillover experiment in political science. @nickerson2008voting ran door-to-door get-out-the-vote experiments in Denver and Minneapolis before the 2002 primary elections, targeting households with exactly two registered voters. Canvassers delivered either a voter-mobilization appeal or a placebo appeal about recycling, randomized at the door with probability one half among households where someone answered. Only one member of the household ever received the message, so the design separates the direct effect on the person contacted from the contagion effect on the housemate who never spoke to a canvasser. Nickerson's published finding is that contact raised the contacted person's turnout by roughly ten percentage points and the untreated housemate's turnout by roughly six, the famous conclusion that about sixty percent of the propensity to vote is passed on within the household. The raw data ship with `inferference`, and @saul2017recipe reanalyze them in the partial-interference framework, treating each household as a group of size two and estimating the indirect effect of a program that treats half of answering households against a program that treats none. We reproduce that analysis.
+
+```{r interference-nickerson, message=FALSE, warning=FALSE}
+data(voters)
+
+voters <- within(voters, {
+  treated <- (treatment == 1 & reached == 1) * 1
+  c_age   <- (age - mean(age)) / 10
+})
+# Keep contacted households where exactly one member answered the door.
+reach_cnt <- tapply(voters$reached, voters$family, sum)
+voters <- voters[!(voters$family %in% names(reach_cnt[reach_cnt > 1])), ]
+voters <- voters[voters$hsecontact == 1, ]
+
+# Propensity of the answering member to be reached, one row per household.
+voters1 <- do.call(rbind, by(voters, voters[, "family"], function(x) x[1, ]))
+coef.voters <- coef(glm(reached ~ c_age, data = voters1,
+                        family = binomial(link = "logit")))
+
+# The design is known: among reached households the script is randomized
+# with probability one half, so the propensity is an oracle, not a model.
+household_propensity <- function(b, X, A, parameters,
+                                 group.randomization = .5) {
+  if (!is.matrix(X)) X <- as.matrix(X)
+  if (sum(A) == 0) {
+    pr <- group.randomization
+  } else {
+    X.1 <- X[1, ]; A.1 <- A[1]
+    h  <- plogis(X.1 %*% parameters)
+    pr <- group.randomization * dbinom(A.1, 1, h)
+  }
+  pr * dnorm(b)
+}
+
+contagion <- interference(
+  formula = voted02p | treated | reached ~ c_age | family,
+  propensity_integrand = "household_propensity",
+  data = voters,
+  model_method = "oracle",
+  model_options = list(fixed.effects = coef.voters, random.effects = NULL),
+  allocations = c(0, .5),
+  integrate_allocation = FALSE,
+  causal_estimation_options = list(variance_estimation = "robust"),
+  conf.level = .9
+)
+
+ie(contagion, .5, 0)[, c("estimate", "std.error", "conf.low", "conf.high")]
+```
+
+The estimated indirect effect is about 3.2 percentage points with a ninety percent confidence interval of roughly 0.2 to 6.1: turnout among people who were never themselves contacted is meaningfully higher under a program that reaches half of answering households than under no program at all. The estimate is smaller than Nickerson's six-point secondhand effect because the estimand is different, an average over a stochastic fifty percent program rather than a comparison conditional on the household actually being contacted, but the qualitative replication is exact: voting is contagious within households, and the contagion is large enough to matter for the cost-effectiveness of canvassing, since every door knocked buys votes from people the canvasser never meets.
+
+### Noncompliance and Model-Assisted Refinements
+
+Real two-stage designs rarely achieve the clean compliance the estimands assume, and two JASA papers extend the framework accordingly. @basse2018analyzing develop improved analysis for two-stage experiments, with an application to a school attendance intervention in which households containing several students generate within-household spillovers, deriving variance results and normal approximations that make the Hudgens and Halloran estimands practical at realistic sample sizes. @imai2021causal treat two-stage randomized designs with noncompliance, where assignment encourages but does not compel treatment, define complier versions of the direct and spillover effects such as the complier average direct effect, and apply the machinery to a large randomized evaluation of India's national health insurance program, showing how encouragement designs and interference interact when both stages of randomization can be defied.
+
+## Randomized Saturation Designs in Economics {#sec-randomized-saturation}
+
+Economists arrived at the same two-stage logic under the name randomized saturation, and the empirical literature built on it is now one of the field's principal instruments for measuring displacement, market-level effects, and general-equilibrium spillovers. The design guidance of @baird2018optimal, discussed above, formalizes the tradeoffs; the studies below show what the designs deliver.
+
+The classic demonstration that spillovers can decide a policy question is @miguel2004worms. Deworming was phased across seventy five Kenyan primary schools, and infection travels between children across school boundaries, so untreated children near treated schools are partially treated. Comparing across schools at different distances from treatment, the study finds large cross-school health and attendance externalities, and the cost-effectiveness calculation reverses once they are counted: evaluated as if SUTVA held, the program looks far less attractive than it is, because much of its benefit accrues to children outside the treated schools. @duflo2003role supply the information-diffusion counterpart within organizations: when randomly selected university employees received a small incentive to attend a benefits fair, enrollment in the retirement plan rose not only for them but for their untreated departmental colleagues, so the information treatment propagated through social interaction, and a person-level comparison would misattribute the channel.
+
+@crepon2013labor is the sharpest displacement result. Intensive job-placement assistance was randomized in two stages across French labor markets, first the fraction of eligible jobseekers to be treated in each market, from zero to one hundred percent, then the individuals within markets. Treated jobseekers found jobs faster, but in markets with higher treatment saturation the untreated found jobs more slowly, and the net employment effect was close to zero in slack markets: the program reshuffled a queue more than it lengthened the amount of work. Only the saturation design can see this, because the displacement operates exactly on the within-market control group that a conventional evaluation would use as its counterfactual. @sinclair2012detecting make the same point for political mobilization with a multilevel design randomizing at the household and neighborhood levels, detecting within-household spillovers of social-pressure mail while ruling out detectable diffusion at larger scales.
+
+At the largest scale, saturation designs shade into experimental general-equilibrium economics. @egger2022general randomized unconditional cash transfers of about one thousand dollars across villages in rural Kenya, with the share of treated villages randomized across sublocations and outcomes measured along spatial gradients. Consumption and assets rise for untreated households in high-saturation areas, local enterprises sell more without meaningful price inflation, and the implied local fiscal multiplier is about 2.5, so the spillover is not leakage but the majority of the program's effect. @muralidharan2023general randomize an improvement to India's rural employment guarantee, biometric payment infrastructure, across sub-districts covering millions of people and find that most of the income gain for poor households arrives through higher market wages rather than through the program payments themselves, a pure general-equilibrium effect that a household-level experiment would have missed entirely. The methodological through line is the one this chapter keeps returning to: the spillover is frequently the economically decisive quantity, and it is estimable only when the design varies treatment intensity at the level where the interference operates.
+
 ## Peer Effects and the Reflection Problem {#sec-reflection-problem}
 
 The experimental designs above achieve identification by manufacturing exogenous variation in a unit's environment. In observational data, where the environment is chosen rather than assigned, identifying spillover as a causal peer effect is far harder, and the central obstacle was named by @manski1993identification: the reflection problem. Manski distinguishes three reasons a person's outcome may move with the average outcome of a reference group. Endogenous effects arise when a person's behavior responds to the behavior of the group, which is the genuine peer effect of interest. Contextual (exogenous) effects arise when behavior responds to the group's fixed characteristics rather than its behavior. Correlated effects arise when group members behave similarly because they face common environments or because similar people sort into the same group. The reflection problem is that, in the standard linear-in-means model, the endogenous effect cannot be separated from the contextual effect, because mean outcome and mean characteristics move together in a way that is collinear, much as a person and their mirror image move in lockstep.
@@ -107,6 +353,28 @@ The experimental designs above achieve identification by manufacturing exogenous
 The implication is that a regression of an individual outcome on the group-average outcome, however natural, generally does not identify a causal peer effect. @moffitt2001policy develops the consequences for policy analysis and shows how partial population (saturation) interventions, which exogenously vary the share of a group exposed to treatment, can break the impasse precisely because they supply variation in group behavior that is not a deterministic function of group characteristics. This is the observational counterpart of the two-stage experimental logic above. @bramoulle2009identification show that the reflection problem is not insurmountable when peer groups are defined by a social network rather than by a single shared reference group: when two individuals are linked but one's contacts are not all the other's contacts, the network's intransitivity furnishes instruments (the characteristics of a friend's friends who are not one's own friends) that separate endogenous from contextual effects under stated conditions. @lee2007identification develops related identification results for the linear-in-means model when group sizes vary, using the resulting nonlinearity to achieve identification, and @goldsmith2013social bring this network-econometrics apparatus to social and economic applications while emphasizing how fragile the conclusions are to the assumed network and to unmodeled correlated effects.
 
 Two cautions deserve emphasis because they recur throughout applied work. The first is endogenous sorting: people choose their peers, so similarity in outcomes may reflect selection into groups rather than influence within them, and no amount of within-group regression cures a selection problem that operates on the group-formation margin. The second is the sensitivity of network-based identification to the measured network. Links are typically observed with error, the relevant network may differ from the measured one, and small changes in who is assumed connected to whom can move estimates substantially. The credible studies in this literature lean on exogenous group assignment, randomized saturation, or plausibly exogenous network variation rather than on functional form alone.
+
+## Interference in Observational Studies on Networks {#sec-observational-network-interference}
+
+Between the fully designed experiment and the reflection-problem regression sits a rapidly maturing middle ground: observational studies in which treatments are self-selected but a network is observed, and the analyst is willing to assume selection on observables for both a unit's own treatment and its neighborhood's. The conceptual move is to treat the pair $(D_i, G_i)$, own treatment and a summary of neighbors' treatments such as the treated share, as a joint treatment, and to require unconfoundedness of the pair,
+$$
+Y_i(d, g) \perp (D_i, G_i) \mid X_i, X_i^{\mathcal{N}},
+$$
+where $X_i^{\mathcal{N}}$ collects covariates of $i$'s neighborhood. @forastiere2021identification develop this framework, define a joint propensity score for own and neighborhood treatment, propose estimators that subclassify or weight on it, and, usefully for practice, derive the bias of a conventional analysis that adjusts only for own-treatment confounding: ignoring interference contaminates the estimated direct effect by a term proportional to the spillover effect times the dependence between own and neighborhood treatment, which is exactly the informal warning of the sections above made quantitative.
+
+Two further strands push the observational frontier. @tchetgen2021auto treat the hardest version of the problem, a single connected network in which everyone potentially interferes with everyone nearby and only one realization of the network is observed. They encode the dependence with a chain-graph model and generalize Robins's g-computation to auto-g-computation, a Gibbs-sampling algorithm that evaluates counterfactual allocation policies on the network; the approach trades the design assumptions of the experimental literature for an explicit outcome-and-interference model. @ogburn2024causal develop semiparametric estimation for network data in the same single-sample setting, deriving targeted maximum likelihood estimators whose influence-function-based inference remains valid when outcomes are dependent through the observed network, and demonstrating the method on peer effects in social networks. The graphical groundwork for all of this is @ogburn2014causal, whose causal diagrams for interference distinguish the mechanisms that colloquial usage lumps together: direct interference through another's treatment, interference by contagion through another's outcome, and allocational interference through shared resources. The distinctions matter because different mechanisms demand different adjustment sets, and a diagram forces the analyst to say which mechanism the estimate is supposed to capture.
+
+## Bipartite and Clustered Interference {#sec-bipartite-interference}
+
+A structurally distinct and practically common variant is bipartite interference, where interventions occur on one class of units and outcomes on another. The motivating application is air quality regulation: emissions controls are installed at power plants, but health outcomes accrue to people in communities whose pollution exposure integrates over many plants through atmospheric transport, so no person is unambiguously assigned to one intervention unit. @zigler2021bipartite formalize this setting, defining exposure mappings that carry interventions on the treatment-unit set to exposures on the outcome-unit set and extending the potential-outcomes and weighting machinery of this chapter to the bipartite case. Relatedly, @papadogeorgou2019causal study clustered observational interference with estimands defined, as in the two-stage literature, by counterfactual stochastic allocation programs, and apply the framework to power plant emissions controls and ambient pollution. The bipartite template fits far more than environmental policy: hospital-level interventions with patient-level outcomes, platform-level algorithm changes with user-level outcomes, and upstream supply-chain shocks with downstream firm outcomes all share the structure.
+
+## Interference on Platforms and Over Time {#sec-platform-temporal-interference}
+
+The most commercially consequential interference problems today occur inside digital platforms, where the textbook A/B test meets a marketplace whose units are coupled through shared inventory, matching algorithms, and prices. Randomizing a new feature over listings in a lodging marketplace changes which listings get booked, which mechanically alters the bookings of control listings competing for the same guests; randomizing over customers does the converse. @johari2022experimental model this two-sided dynamics and show that both listing-side and customer-side randomization are biased for the total treatment effect of a platform-wide launch, that the bias can be large precisely when the market is tight, and that two-sided randomization designs, which cross-randomize both sides and compare cells, substantially reduce it. The marketing analogue is promotion cannibalization: a coupon randomized over customers shifts purchases between customers as much as it creates them, and the experiment's control group is the landing spot for the shifted demand.
+
+@wager2021experimenting offer a different resolution for equilibrium settings: rather than estimating the global effect of a discrete change, perturb the policy locally, for example prices in a ride-sharing market, with small random shocks, and use the perturbations to estimate the derivative of equilibrium outcomes with respect to the policy. Under mean-field asymptotics this marginal effect is identified even though every unit interferes with every other through the market-clearing mechanism, and it is the right input for the optimization problems platforms actually solve, which move policies incrementally.
+
+When interference couples units through time rather than across them, the design response is the switchback: the entire system alternates between treatment and control in blocks, so there are no contemporaneous control units to contaminate, and the threat becomes carryover from one block into the next. @bojinov2019time build the potential-outcomes foundation for treatment paths in time series, with exact randomization tests in the spirit of Section \@ref(sec-interference-randomization-tests) and an application to algorithmic trading. @bojinov2023design then derive optimal switchback designs under bounded carryover, showing how block length should trade off carryover bias against effective sample size and providing conservative variance estimators; their prescriptions formalize what ride-sharing and delivery platforms had been doing by rule of thumb for pricing and dispatch experiments. Across all three settings the chapter's design maxim reappears in new clothing: the randomization unit must be chosen at the level where the interference operates, whether that level is a market side, a price, or a block of time.
 
 ## Network and Connectedness Measures {#sec-connectedness}
 
@@ -124,13 +392,15 @@ Difference-in-differences identifies a treatment effect by differencing the post
 
 The remedy in the spatial-economics tradition is to model the spillover rather than to assume it away. A common approach estimates the treatment effect together with the geographic reach of spillovers by partitioning the control units into rings of increasing distance from treated units, including ring indicators in the regression, and using only the most distant, plausibly unaffected units as the true comparison group. The fitted ring coefficients trace out how the spillover decays with distance, which both purges the main effect of contamination and turns the spillover itself into an object of interest. The broader message is that a credible DiD under suspected interference does not simply assert clean controls; it either selects controls far enough from treatment that contamination is negligible or it explicitly models the spillover gradient and reads the treatment effect off the uncontaminated tail.
 
+@berg2021spillover formalize this practice for empirical corporate finance, where treatments assigned to some firms, a regulation or a credit-supply shock, spill onto peer firms through product-market competition, supply chains, and common lenders. Distinguishing the treated, the neighbors of the treated, and the pure controls, they show that the treated-versus-neighbor comparison recovers a relative effect while the treated-versus-pure-control comparison recovers the total effect inclusive of spillovers, that the two can differ in sign, and that a large fraction of published designs in the field implicitly mix them. @huber2021framework provide the observational counterpart for partial-population settings, defining individual and spillover effects under a joint unconfoundedness condition on own and peers' treatment and estimating them by inverse probability weighting, the estimand logic of Section \@ref(sec-ipw-two-stage) transported to nonexperimental data.
+
 ### Spillovers as a Threat to the Exclusion Restriction in IV {#sec-spillover-iv}
 
 Instrumental variables identify a causal effect under an exclusion restriction: the instrument affects the outcome only through the treatment. Interference quietly breaks this. If unit $i$'s instrument shifts unit $i$'s treatment, and unit $i$'s treatment then affects unit $j$'s outcome through a spillover, then $j$'s instrument is no longer excludable from $i$'s outcome, because instruments assigned to $j$'s neighbors move $j$'s outcome through their treatment uptake. In an encouragement design, encouragement assigned to one person can raise a friend's take-up or directly change the friend's outcome, so the standard local-average-treatment-effect interpretation, which presumes each unit's outcome responds only to its own treatment and instrument, no longer holds. The two-stage randomized encouragement designs of the partial-interference literature are in part a response to exactly this: by randomizing encouragement at two levels they make the spillover an estimand rather than a violated assumption. In observational IV work the practical implication is that one must argue, not assume, that the instrument has no cross-unit pathway to the outcome, and that the relevant units are isolated enough (geographically, socially, or in market terms) that one unit's instrument does not move another's outcome.
 
 ### Spillovers as a Threat to Matching {#sec-spillover-matching}
 
-Matching and other selection-on-observables methods (Section \@ref(sec-quasi-experimental)) estimate a treatment effect by comparing treated units to observationally similar control units, invoking SUTVA so that a matched control's outcome stands in for the treated unit's untreated counterfactual. Interference undermines this in two ways. First, if treated units exert spillovers on nearby control units, the matched controls are partially treated, so the comparison shrinks toward zero just as in the DiD case. Second, a unit's appropriate counterfactual under interference is not merely "the same unit untreated" but "the same unit untreated in a comparable treatment environment," and the standard matching estimand has no place for the environment. Credible practice therefore matches not only on individual covariates but on exposure-relevant features of a unit's neighborhood, or restricts the control pool to units whose neighborhoods are genuinely untreated, so that the matched comparison holds the spillover environment fixed rather than averaging over an uncontrolled mixture of environments.
+Matching and other selection-on-observables methods (Section \@ref(sec-quasi-experimental)) estimate a treatment effect by comparing treated units to observationally similar control units, invoking SUTVA so that a matched control's outcome stands in for the treated unit's untreated counterfactual. Interference undermines this in two ways. First, if treated units exert spillovers on nearby control units, the matched controls are partially treated, so the comparison shrinks toward zero just as in the DiD case. Second, a unit's appropriate counterfactual under interference is not merely "the same unit untreated" but "the same unit untreated in a comparable treatment environment," and the standard matching estimand has no place for the environment. Credible practice therefore matches not only on individual covariates but on exposure-relevant features of a unit's neighborhood, or restricts the control pool to units whose neighborhoods are genuinely untreated, so that the matched comparison holds the spillover environment fixed rather than averaging over an uncontrolled mixture of environments. @forastiere2021identification make this intuition exact: under joint unconfoundedness of own and neighborhood treatment, valid adjustment must condition on the propensity of both, and their neighborhood propensity score is the formal version of matching on the environment (Section \@ref(sec-observational-network-interference)).
 
 ### A General Stance {#sec-interference-general-stance}
 
@@ -138,4 +408,4 @@ Across all three designs the recurring theme is that no-interference is an ident
 
 ## Summary {#sec-interference-summary}
 
-Interference is the rule rather than the exception in social science, and treating it as a violation to be assumed away discards both validity and substance. The no-interference half of SUTVA, once relaxed, forces potential outcomes to depend on the full assignment vector, and exposure mappings are the device that makes this dependence estimable by reducing it to a low-dimensional summary. Partial interference and two-stage randomized designs identify a coherent quartet of direct, indirect, total, and overall effects, and the choice among individual, cluster, and two-stage randomization should follow from which of these the researcher wants. In observational peer-effects work the reflection problem warns that group-average outcomes do not by themselves identify influence, and network structure or randomized saturation is needed to separate endogenous from contextual and correlated effects. Connectedness measures built from variance decompositions quantify spillover in time-series and financial systems where experiments are impossible, at the cost of a predictive rather than manipulation-based interpretation. Finally, interference is a first-order threat to the quasi-experimental designs that anchor the rest of the book: it contaminates difference-in-differences controls, breaks the IV exclusion restriction across units, and corrupts matched comparisons, and in each case the remedy is to confront the spillover by design, by explicit modeling, or by redefining the estimand, rather than to assume it does not exist.
+Interference is the rule rather than the exception in social science, and treating it as a violation to be assumed away discards both validity and substance. The no-interference half of SUTVA, once relaxed, forces potential outcomes to depend on the full assignment vector; exposure mappings reduce that dependence to a low-dimensional summary, and with a known design the Horvitz-Thompson and Hajek estimators recover average outcomes under each exposure, including global policy contrasts that the naive difference in means silently misses. When the exposure mapping is unknown or wrong, the modern theory salvages a precise consolation: standard estimators remain consistent for design-dependent averages of direct effects, and approximately local interference supports inference through network-robust variance estimation, so the practical one-hop conventions of applied work have a defensible foundation. Randomization tests built on focal units and conditioning events deliver exact inference about spillover structure with no modeling at all. Partial interference and two-stage randomized designs identify the quartet of direct, indirect, total, and overall effects; inverse probability weighting turns those definitions into estimates, as the cholera-style vaccine analysis and the household voting-contagion replication showed, and the same design logic, under the name randomized saturation, is how economics measures displacement in labor markets and general-equilibrium effects of cash transfers, where the spillover is routinely the largest and most policy-relevant part of the answer. In observational work the reflection problem warns that group-average outcomes do not identify influence; joint unconfoundedness of own and neighborhood treatment, auto-g-computation, and network-aware semiparametric estimation now extend selection-on-observables reasoning to observed networks, while bipartite formulations handle interventions and outcomes living on different unit sets. Platforms face the same mathematics commercially: marketplace experiments are biased by design unless randomization respects the market's coupling, marginal equilibrium effects can substitute for unattainable global contrasts, and switchback designs trade contemporaneous contamination for carryover. Connectedness measures built from variance decompositions quantify spillover in financial systems where experiments are impossible, at the cost of a predictive rather than manipulation-based interpretation. Finally, interference is a first-order threat to the quasi-experimental designs that anchor the rest of the book: it contaminates difference-in-differences controls, breaks the IV exclusion restriction across units, and corrupts matched comparisons, and in each case the remedy is to confront the spillover by design, by explicit modeling, or by redefining the estimand, rather than to assume it does not exist.
