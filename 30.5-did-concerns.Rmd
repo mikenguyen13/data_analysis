@@ -836,11 +836,260 @@ The catalogue below collects the issues that recur most often in applied work an
 
 12. **Endogenous Timing**
 
-If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing. See Section \@ref(sec-instrumental-variables) for the IV machinery and Section \@ref(sec-design-based) for design-based alternatives.
+If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing. See Section \@ref(sec-instrumental-variables) for the IV machinery and Section \@ref(sec-design-based) for design-based alternatives. A distinct and easily missed version of this problem arises when the adoption date is not chosen by the unit at all but is *measured* by applying a detector to the outcome; see [Outcome-Triggered Treatment Timing](#sec-outcome-triggered-timing) below.
 
 13. **Questionable Counterfactuals**
 
 In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods]. When parallel trends in levels is implausible but the treated unit can be approximated by a weighted combination of controls, [synthetic control](#sec-synthetic-control) and the hybrid [synthetic DiD](#sec-synthetic-difference-in-differences) approach are natural fallbacks; the [panel-match estimator](#sec-panel-match-did-estimator-with-in-and-out-treatment-conditions) and the family of [counterfactual estimators](#sec-counterfactual-estimators) extend the idea to richer treatment-history settings.
+
+### Outcome-Triggered Treatment Timing {#sec-outcome-triggered-timing}
+
+Every concern above takes the adoption date $G_i$ as something the analyst observes. In a growing class of applications it is not observed but *inferred*: the researcher runs a detector over the data and declares that unit $i$ was treated in the first period the detector fires. Technology-adoption studies date a firm's adoption from the first patent, job posting, or product page mentioning the technology; studies of scientific practice date a researcher's adoption of a tool from the first paper in which the tool is detected; audit and enforcement studies date exposure from the first flagged filing. In each case the detector is applied to a stream of output that *is itself the outcome variable*, or is mechanically tied to it.
+
+@renault2026scientific show that this construction is enough, on its own, to manufacture a large and statistically significant event-study effect where none exists. Their target is @kusumegi2025scientific, who date a researcher's adoption of large language models as the first month in which at least one submitted abstract crosses an LLM-detection threshold, and report sharp productivity gains afterwards. The problem is that a researcher who submits more papers in a month is mechanically more likely to have at least one of them flagged that month, so the estimated adoption date is drawn toward high-output months. @renault2026scientific show that random treatment assignment, neutral-keyword triggers, inverted treatment, and pre-ChatGPT placebo windows all reproduce the reported dynamics.
+
+What makes this failure mode worth its own section is that it defeats the diagnostics the rest of this chapter relies on. It is not a heterogeneity problem, so the staggered-adoption estimators of Section \@ref(sec-modern-estimators-for-staggered-adoption) do not fix it. And, as the derivation below shows, it leaves pre-treatment coefficients *exactly flat in expectation*, so the [prior parallel trends test](#prior-parallel-trends-test) returns a clean bill of health precisely when the design is broken.
+
+#### Setup and Notation
+
+Let $Y_{it}$ be the outcome of unit $i$ in period $t$, $t = 1, \dots, T$, measured in units of output (papers, patents, filings, posts). Adoption is never directly observed. Instead, each of the $Y_{it}$ units of output is passed through a detector that flags it independently with probability $q \in (0,1)$. Write $F_{it}$ for the number of flagged units and
+
+$$
+D_{it} = \mathbf{1}\{F_{it} \ge 1\}, \qquad
+G_i = \min\{t : D_{it} = 1\},
+$$
+
+with $G_i = \infty$ (never-treated) if the detector never fires. Event time is $k = t - G_i$, and the analyst runs the usual event-study regression from the [prior parallel trends test](#prior-parallel-trends-test),
+
+$$
+Y_{it} = \alpha + \sum_{k \neq -1} \beta_k \mathbf{1}\{t - G_i = k\} + \lambda_i + \delta_t + \varepsilon_{it},
+$$
+
+normalizing $\beta_{-1} = 0$.
+
+**Assumption 1 (No treatment effect).** $Y_{it}$ is i.i.d. across $t$ within unit, with mean $\lambda$, and does not depend on $G_i$ or on any treatment. *Substantively:* the null we are simulating under is the sharpest possible one. There is no effect to find, no trend, no anticipation, and no heterogeneity. Anything the event study reports is an artifact.
+
+**Assumption 2 (Output-increasing detection).** Conditional on $Y_{it}$, the number of flags $F_{it} \sim \text{Binomial}(Y_{it}, q)$, independently across $t$. *Substantively:* the detector is applied unit-by-unit to output and has no other input. It is not biased, not strategic, and not correlated with anything unobserved; it is simply run more times in a period when more output exists. *What would violate it:* a detector applied to a fixed-size sample per period regardless of output, or an adoption date taken from an administrative record independent of the outcome.
+
+Note that Assumption 2 is deliberately benign. There is no strategic timing, no anticipation, and no selection on unobservables — exactly the conditions under which the analyst would ordinarily consider the timing exogenous.
+
+#### The Mechanism
+
+**Proposition.** Under Assumptions 1--2 with $Y_{it} \sim \text{Poisson}(\lambda)$, the expectation of $Y_{it}$ conditional on event time takes three values,
+
+$$
+E[Y_{it} \mid t < G_i] = \underbrace{\lambda(1-q)}_{\mu^-}, \qquad
+E[Y_{iG_i}] = \underbrace{\frac{\lambda\left[1 - (1-q)e^{-\lambda q}\right]}{1 - e^{-\lambda q}}}_{\mu^+}, \qquad
+E[Y_{it} \mid t > G_i] = \lambda,
+$$
+
+with $\mu^- < \lambda < \mu^+$. Consequently the population event-study coefficients are
+
+$$
+\beta_k = 0 \ \text{ for } k < 0, \qquad
+\beta_0 = \mu^+ - \mu^-, \qquad
+\beta_k = \lambda q \ \text{ for } k > 0 .
+$$
+
+*Derivation.* Fix a unit and condition on $G_i = g$. By definition of a first-hitting time, $G_i = g$ is the event $\{F_{i1} = 0, \dots, F_{i,g-1} = 0, F_{ig} \ge 1\}$, and because the flags are drawn independently across periods given the outputs, this event restricts each period separately.
+
+For $t < g$ the restriction is $F_{it} = 0$. Poisson thinning is what makes this tractable: if $Y \sim \text{Poisson}(\lambda)$ and $F \mid Y \sim \text{Binomial}(Y, q)$, then $F \sim \text{Poisson}(\lambda q)$ and $Y - F \sim \text{Poisson}(\lambda(1-q))$ *independently*. Hence $Y_{it} \mid F_{it} = 0$ is distributed as $Y - F \sim \text{Poisson}(\lambda(1-q))$, giving $E[Y_{it} \mid t < g] = \lambda(1-q) = \mu^-$. Crucially this does not depend on $t$ or on $g$: *every* pre-period is depressed by the same amount.
+
+For $t = g$ the restriction is $F_{ig} \ge 1$, which occurs with probability $1 - P(F = 0) = 1 - e^{-\lambda q}$. Decomposing the unconditional mean,
+$$
+\lambda = E[Y] = P(F = 0)\, E[Y \mid F = 0] + P(F \ge 1)\, E[Y \mid F \ge 1]
+= e^{-\lambda q}\lambda(1-q) + (1 - e^{-\lambda q})\, \mu^+,
+$$
+and solving for $\mu^+$ gives the expression above.
+
+For $t > g$ there is no restriction at all: once the detector has fired, later periods are unconstrained by the definition of a *first* hitting time. So $E[Y_{it} \mid t > g] = \lambda$.
+
+Because all three values are free of $g$, differencing against the reference period $k = -1$ (which has mean $\mu^-$) delivers the stated $\beta_k$, and the post-treatment plateau simplifies to
+$$
+\beta_k = \lambda - \lambda(1-q) = \lambda q, \qquad k > 0,
+$$
+which is exactly the expected number of flagged units of output per period. $\square$
+
+#### Intuition
+
+The event study is not measuring a response to treatment; it is measuring the shadow of the selection rule that defined the treatment date. Pre-treatment periods are, by construction, periods in which the detector *failed* to fire, and a period with unusually low output is a period in which failure was likely. Conditioning on non-detection therefore selects low draws, dragging every pre-period below the unit's own mean. The adoption period is the mirror image: it is the period in which detection *succeeded*, which selects high draws. Post-treatment periods carry no conditioning whatsoever and simply revert to the unconditional mean.
+
+The resulting profile is a step function — depressed, spike, flat-at-normal — and when it is normalized to the last pre-period it reads exactly like the textbook picture of a successful intervention: flat pre-trends, a sharp jump on impact, and a stable positive plateau. Nothing happened. The unit merely returned to its own average after a period of below-average output that the design guaranteed by selecting on it. This is a regression-to-the-mean artifact given a treatment date, and it is closely related to Ashenfelter's dip (item 5 above) with one important difference: here the dip is not a behavioral fact about program participants but a mechanical consequence of how the analyst constructed $G_i$.
+
+#### Simulation
+
+The DGP below implements Assumptions 1--2 exactly: i.i.d. Poisson output, no trend, no treatment effect, and an adoption date defined as the first flagged period. The first check is whether the closed-form event-time means hold.
+
+```{r outcome-triggered-dgp, message = FALSE, warning = FALSE}
+library(fixest)
+library(data.table)
+
+# Output is i.i.d. Poisson with no trend and no treatment effect. Each unit of
+# output is flagged independently with probability q, and the "adoption date" is
+# the first period in which at least one unit is flagged.
+sim_trigger_panel <- function(N, Tn, lambda, q, seed = NULL) {
+    if (!is.null(seed)) set.seed(seed)
+    Y  <- matrix(rpois(N * Tn, lambda), N, Tn)
+    Fl <- matrix(rbinom(N * Tn, as.vector(Y), q), N, Tn)
+    D  <- Fl >= 1
+    G  <- max.col(D, ties.method = "first")
+    G[rowSums(D) == 0] <- NA_integer_          # detector never fired
+    dt <- data.table(
+        id     = rep(1:N, each = Tn),
+        period = rep(1:Tn, times = N),
+        y      = as.vector(t(Y))
+    )
+    dt[, g := G[id]]
+    dt[]
+}
+
+lambda <- 4      # mean units of output per period
+q      <- 0.05   # per-unit probability of being flagged
+Tn     <- 12
+panel  <- sim_trigger_panel(N = 20000, Tn = Tn, lambda = lambda, q = q,
+                            seed = 20260812)
+
+# Closed-form event-time means from the Proposition
+p_flag   <- 1 - exp(-lambda * q)
+mu_minus <- lambda * (1 - q)
+mu_plus  <- lambda * (1 - (1 - q) * exp(-lambda * q)) / p_flag
+
+theory <- data.frame(
+    event_time = c("k < 0", "k = 0", "k > 0"),
+    theory     = c(mu_minus, mu_plus, lambda),
+    simulated  = c(
+        panel[!is.na(g) & period <  g, mean(y)],
+        panel[!is.na(g) & period == g, mean(y)],
+        panel[!is.na(g) & period >  g, mean(y)]
+    )
+)
+theory$implied_beta <- theory$theory - mu_minus
+round_df <- function(d) {
+    d[] <- lapply(d, function(x) if (is.numeric(x)) round(x, 3) else x)
+    d
+}
+round_df(theory)
+```
+
+The simulated means reproduce $\mu^- = 3.8$, $\mu^+ = 4.90$, and $\lambda = 4$ to three digits. The implied artifacts are a spike of $\mu^+ - \mu^- \approx 1.10$ on impact and a permanent plateau of $\lambda q = 0.2$, which on a base of $4$ is a $5\%$ "productivity gain" produced by a DGP containing no treatment effect.
+
+Fitting the event-study regression confirms that the regression recovers exactly these numbers, and that the pre-trend diagnostic passes.
+
+```{r fig-outcome-triggered-es, fig.cap = "Event-study coefficients under outcome-triggered treatment timing. The data-generating process contains no treatment effect of any kind. Pre-treatment coefficients are flat and insignificant, yet the on-impact and post-treatment coefficients are large and highly significant.", fig.alt = "Coefficient plot of event-study estimates by event time from a simulation with no true treatment effect. Coefficients for event times minus five through minus two lie on zero with confidence intervals covering zero. The coefficient at event time zero jumps to about 1.1, and coefficients from event time one onward sit on a plateau near 0.2, all with confidence intervals excluding zero.", message = FALSE, warning = FALSE}
+panel[, rel  := fifelse(is.na(g), 1000L, period - g)]
+panel[, relb := pmin(pmax(rel, -5L), 6L)]
+panel[is.na(g), relb := -1L]     # never-detected units absorbed into the reference
+
+es_trigger <- feols(y ~ i(relb, ref = -1) | id + period,
+                    data = panel, cluster = ~ id)
+
+iplot(es_trigger, main = "",
+      xlab = "Event time (periods from first detection)",
+      ylab = "Estimated coefficient", ref.line = -1, pt.join = TRUE)
+
+coeftable(es_trigger)
+```
+
+```{r outcome-triggered-pretrend, message = FALSE, warning = FALSE}
+# Joint test of the four pre-treatment coefficients
+pre_test <- fixest::wald(es_trigger,
+                         paste0("relb::-", 5:2, "$", collapse = "|"),
+                         print = FALSE)
+c(F_stat = pre_test$stat, df = pre_test$df1, p_value = pre_test$p)
+```
+
+The four pre-treatment coefficients are individually insignificant and jointly indistinguishable from zero, while $\hat\beta_0 \approx 1.10$ and the post-treatment coefficients sit on a plateau near $0.19$, matching the theoretical $1.103$ and $0.200$. An analyst following standard practice would report a passing pre-trend test alongside a highly significant dynamic effect.
+
+To separate the artifact from sampling noise, and to benchmark against the design the book normally assumes, the following Monte Carlo re-runs the experiment $200$ times under two designs. The first is the outcome-triggered rule. The second permutes the adoption dates across units, which preserves the marginal distribution of $G_i$ (and therefore the cohort structure, the share of never-treated units, and the event-time sample sizes) while severing the link between a unit's adoption date and its own output. Because the true effect is zero everywhere, the mean estimate *is* the bias and the rejection rate *is* the size of the test.
+
+```{r outcome-triggered-mc, message = FALSE, warning = FALSE}
+one_rep <- function(N, Tn, lambda, q, exogenous = FALSE) {
+    dt <- sim_trigger_panel(N, Tn, lambda, q)
+    if (exogenous) {                     # break the output-timing link only
+        gmap <- sample(dt[, .(g = g[1]), by = id]$g)
+        dt[, g := gmap[id]]
+    }
+    dt[, rel  := fifelse(is.na(g), 1000L, period - g)]
+    dt[, relb := pmin(pmax(rel, -5L), 6L)]
+    dt[is.na(g), relb := -1L]
+    fit <- feols(y ~ i(relb, ref = -1) | id + period, data = dt, cluster = ~ id)
+    ct  <- coeftable(fit)
+    grab <- function(k, j) {
+        r <- paste0("relb::", k)
+        if (r %in% rownames(ct)) unname(ct[r, j]) else NA_real_
+    }
+    w <- fixest::wald(fit, paste0("relb::-", 5:2, "$", collapse = "|"),
+                      print = FALSE)
+    c(b0 = grab(0, 1), p0 = grab(0, 4),
+      b3 = grab(3, 1), p3 = grab(3, 4),
+      pre_p = unname(w$p))
+}
+
+set.seed(20260812)
+R <- 200
+mc_trigger <- t(replicate(R, one_rep(1500, Tn, lambda, q, exogenous = FALSE)))
+mc_exog    <- t(replicate(R, one_rep(1500, Tn, lambda, q, exogenous = TRUE)))
+
+summarise_mc <- function(m, label) data.frame(
+    design          = label,
+    bias_k0         = mean(m[, "b0"]),
+    rmse_k0         = sqrt(mean(m[, "b0"]^2)),
+    reject_k0       = mean(m[, "p0"] < 0.05),
+    bias_k3         = mean(m[, "b3"]),
+    rmse_k3         = sqrt(mean(m[, "b3"]^2)),
+    reject_k3       = mean(m[, "p3"] < 0.05),
+    reject_pretrend = mean(m[, "pre_p"] < 0.05)
+)
+
+round_df(rbind(
+    summarise_mc(mc_trigger, "Outcome-triggered timing"),
+    summarise_mc(mc_exog,    "Exogenous timing")
+))
+```
+
+The contrast is stark. Under exogenous timing the estimator behaves exactly as it should: bias near zero at both event times, and rejection rates of $0.025$ and $0.055$ against a nominal $5\%$. Under outcome-triggered timing the on-impact coefficient is biased by $1.10$ and rejects in $100\%$ of replications, while the $k = 3$ coefficient is biased by $0.18$ and rejects in $52\%$ — a test with nominal size $5\%$ that falsely declares a significant effect in more than half of samples where no effect exists. The final column is the one that should worry practitioners most: the joint pre-trend test rejects in $2.5\%$ of replications under the broken design, no more often than under the valid one. **The pre-trend test has no power against this violation at all**, because the Proposition shows the pre-period means are equal to each other. A flat pre-trend is evidence about the pre-period; it is silent about how the treatment date was constructed.
+
+##### What Does Not Fix It
+
+Because the symptom — significant dynamic effects in a staggered panel — resembles the heterogeneity problems of Section \@ref(sec-modern-estimators-for-staggered-adoption), the natural reflex is to reach for a heterogeneity-robust estimator. That reflex fails here.
+
+```{r outcome-triggered-sunab, message = FALSE, warning = FALSE}
+sa_trigger <- feols(y ~ sunab(g, period) | id + period,
+                    data = panel[!is.na(g)], cluster = ~ id)
+
+sa_ct <- coeftable(sa_trigger)
+round(sa_ct[rownames(sa_ct) %in% paste0("period::", -3:4), ], 3)
+```
+
+The @sun2021estimating estimator returns an on-impact coefficient of $1.29$ and a post-treatment plateau near $0.40$ — larger, not smaller, than plain TWFE. This is the expected result: interaction-weighting repairs contaminated *comparisons* between cohorts, but the contamination here is inside every cohort's own pre-period, so no reweighting across cohorts can remove it. The same logic applies to @callaway2021difference and @borusyak2024revisiting: all of them take $G_i$ as given.
+
+The Sun--Abraham pre-period coefficients are, however, informative in a way the TWFE ones are not. They are small but strongly significant and negative ($-0.14$ and $-0.19$ at $k = -3$ and $k = -2$), because this estimator compares each cohort against later-treated and never-treated units whose pre-period depression is differently timed, so the selection artifact no longer differences out. Running both estimators and noticing that the pre-trend verdict flips between them is a useful warning sign, even though neither delivers an unbiased estimate. It also creates a trap: the natural response to a significant negative pre-trend is to add unit-specific linear trends, which fits the artificial pre-period dip and extrapolates it forward, inflating the post-treatment estimates further. The artifact is a level shift plus a step, not a trend, so trend adjustment can only make matters worse. Clustering, likewise, addresses the standard error and not the estimate; here the point estimate itself is the artifact, so tighter or looser standard errors change nothing.
+
+#### Replication
+
+@renault2026scientific work with a reconstruction of the arXiv submission histories underlying @kusumegi2025scientific. That reconstruction is not distributed with the comment and is not part of this book's datasets, so the published empirical result is not reproduced here. The simulation above is instead a self-contained replication of the paper's central claim — that first-detection timing alone generates the reported dynamics — under a DGP transparent enough to admit a closed-form solution.
+
+#### Practical Guidance
+
+The question to ask of any staggered design is not whether the pre-trends are flat but **where the treatment date came from**. If the answer involves running a classifier, keyword search, or threshold rule over a stream that is the outcome or is mechanically tied to it, the design is suspect regardless of what the event-study plot looks like. Three checks are worth running.
+
+*Neutral-trigger placebo.* Re-run the entire pipeline with a detector that fires on something irrelevant — a common word, a random subset of output, a fixed per-unit hazard — while preserving the property that firing probability rises with output. Under a genuine effect the placebo returns nothing; under an outcome-triggered artifact it reproduces the original dynamics. This is the sharpest available diagnostic and it is cheap.
+
+*Pre-period placebo.* Re-run the design on a window ending before the treatment could possibly have existed. @renault2026scientific use a pre-ChatGPT window; the analogue in most settings is a window before the technology, policy, or program was available.
+
+*Independent dating.* The real fix is to date adoption from a source that does not pass through the outcome — an administrative record, a procurement or licensing database, a survey, a disclosure filing. When no such source exists, an alternative is to define $G_i$ from a *rate* rather than a count (the first period in which the flagged share exceeds a threshold), which weakens but does not eliminate the dependence on output, or to condition the analysis on units whose output is stable enough that detection probability is roughly constant.
+
+If none of these is available, the honest response is to report the design as descriptive rather than causal. Note also that the artifact scales with $\lambda q$: it is worst in settings with high output volume and a sensitive detector, and it shrinks as detection approaches certainty ($q \to 1$, where the first period is always flagged) or vanishing rarity.
+
+#### Pitfalls
+
+- **Treating a flat pre-trend as design validation.** The Proposition shows pre-period coefficients are flat *in expectation* under the artifact. A passing pre-trend test is the expected outcome of a broken design here, not evidence against one.
+- **Dropping the on-impact coefficient.** Because $\beta_0$ is visibly the largest artifact, a tempting response is to drop $k = 0$ as "contaminated" and read the plateau. But the plateau is an artifact too, of size $\lambda q$, and it is the one that gets interpreted as the long-run effect.
+- **Assuming the problem is heterogeneity.** Modern staggered estimators leave the artifact intact, and Sun--Abraham makes it larger in the simulation above.
+- **Assuming a rare detector is safe.** Lowering $q$ shrinks the plateau proportionally but also pushes adoption dates later and concentrates them on ever more extreme output months, so the on-impact spike does not disappear.
+- **Reading the mirror image as a negative effect.** If the detector fires on *low* output (a first missed deadline, a first failed inspection), every sign flips and the same mechanism manufactures a spurious improvement after treatment.
+
+------------------------------------------------------------------------
 
 ### Matching Methods in DID
 
