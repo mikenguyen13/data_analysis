@@ -1704,6 +1704,82 @@ This study contributes to the broader discussion of [randomized experimental des
 
 ------------------------------------------------------------------------
 
+### Estimating Effects of Long-Term Treatments from Short Experiments {#sec-long-term-treatments}
+
+Product changes on digital platforms are launched to stay: a redesigned interface, a new recommendation algorithm, or a search feature persists after its A/B test ends. The launch decision therefore turns on the long-term effect of a long-term treatment, yet experiments are expensive to hold open, and practitioners routinely extrapolate from a few weeks of data. The two failure modes are familiar. Novelty effects inflate early impact that later fades, and primacy effects work in reverse, with users needing time to learn a feature before its benefit shows. Either way, the average effect during the experiment is a biased forecast of the effect that matters.
+
+@huang2026estimating, published in Management Science, formalize this problem and solve it with a longitudinal surrogate framework. Consider users $i$ randomized once at $t = 1$ to a treatment held fixed over a horizon $T = T_E + T_F$, where only the first $T_E$ periods are observed experimentally. The estimand is the effect of the sustained treatment at the end of the horizon,
+$$
+\tau_T = \mathbb{E}\bigl[Y_{iT}(\mathbf{1}_T) - Y_{iT}(\mathbf{0}_T)\bigr],
+$$
+where the potential outcomes are indexed by the entire treatment path. This differs from the target of the surrogate index literature descending from @prentice1989surrogate, which estimates the long-term effect of a treatment administered only during the experiment, a carryover effect. For a persistent product change, the treatment keeps acting in the future periods, and a method that ignores the direct effect of that ongoing exposure is biased for $\tau_T$; the authors show the static surrogate index systematically underestimates in their data for exactly this reason.
+
+Identification rests on three assumptions. Longitudinal surrogacy requires that intermediate metrics $\mathbf{S}_{it}$ (with covariates $\mathbf{X}_i$) at chosen checkpoints saturate all causal paths from earlier treatment to later outcomes, a sequential version of the classic surrogacy condition, made more plausible by including lagged outcomes among the surrogates. Comparability requires the conditional distribution of outcomes and surrogates given the recent surrogate history and treatment to be stable across time periods, which is what licenses extrapolating experiment-period dynamics into the unobserved future; unlike surrogacy it has testable implications, checked by matching users across periods on surrogate histories and testing whether their outcomes differ. A linearity assumption on the index functions then reduces estimation to ordinary least squares. Under surrogacy and comparability, the long-term effect is identified by a nested composition: estimate, separately by arm, the transition mapping from the surrogate vector in one period to the next, together with the mapping from surrogates to the outcome, all within the experimental window; then iterate the transition forward from the last observed surrogates to the end of the horizon and difference the arms.
+
+The following simulation implements the estimator in the leading linear case. Surrogate dynamics follow a stable per-arm linear transition, so the treatment effect builds toward a new steady state, the pattern of the authors' first field experiment, and the constant-extrapolation heuristic that averages the observed weeks underestimates the long-run effect.
+
+```{r longterm-surrogate-sim, message=FALSE, warning=FALSE}
+set.seed(88)
+n <- 20000
+T_E <- 4      # observed experimental weeks
+T_full <- 12  # decision horizon
+
+W <- rbinom(n, 1, 0.5)
+A <- matrix(c(0.6, 0.15, 0.1, 0.5), 2, 2, byrow = TRUE)  # stable transition
+b <- c(0.2, 0.1)                    # intercept
+gain <- c(0.5, 0.3)                 # per-period treatment lift on surrogates
+
+# Simulate the full horizon to know the ground truth
+S <- array(0, c(n, 2, T_full + 1))
+S[, , 1] <- matrix(rnorm(n * 2, 1, 0.5), n, 2)
+for (t in 1:T_full) {
+    S[, , t + 1] <- sweep(S[, , t] %*% t(A), 2, b, "+") +
+        outer(W, gain) + matrix(rnorm(n * 2, 0, 0.3), n, 2)
+}
+Y <- function(St) 1.0 * St[, 1] + 0.5 * St[, 2] + rnorm(nrow(St), 0, 0.2)
+Y_T <- Y(S[, , T_full + 1])
+truth <- mean(Y_T[W == 1]) - mean(Y_T[W == 0])
+
+# Estimation uses ONLY the first T_E weeks.
+# Per arm: pooled OLS of S_t on S_{t-1} (comparability), and Y_t on S_t.
+fit_arm <- function(w) {
+    idx <- which(W == w)
+    Sprev <- do.call(rbind, lapply(1:T_E, function(t) S[idx, , t]))
+    Snext <- do.call(rbind, lapply(1:T_E, function(t) S[idx, , t + 1]))
+    g1 <- lm(Snext[, 1] ~ Sprev)          # transition, first surrogate
+    g2 <- lm(Snext[, 2] ~ Sprev)          # transition, second surrogate
+    Y_E <- Y(S[idx, , T_E + 1])
+    h  <- lm(Y_E ~ S[idx, , T_E + 1])     # outcome index
+    list(g = rbind(coef(g1), coef(g2)), h = coef(h))
+}
+
+forecast_arm <- function(w) {
+    f <- fit_arm(w)
+    St <- S[W == w, , T_E + 1]            # last observed surrogates
+    for (t in (T_E + 1):T_full) {         # iterate the estimated transition
+        St <- cbind(1, St) %*% t(f$g)
+    }
+    mean(cbind(1, St) %*% f$h)
+}
+
+lsm <- forecast_arm(1) - forecast_arm(0)
+
+# Industry heuristic: average effect over the observed weeks
+ceb <- mean(sapply(1:T_E, function(t) {
+    Yt <- Y(S[, , t + 1])
+    mean(Yt[W == 1]) - mean(Yt[W == 0])
+}))
+
+round(c(truth_week12 = truth, longitudinal_surrogate = lsm,
+        constant_extrapolation = ceb), 3)
+```
+
+The longitudinal surrogate estimate, computed from four weeks of data, recovers the week-twelve effect closely, while the constant-extrapolation heuristic underestimates it because the effect was still building when the experiment ended. Inference in practice is randomization based, either a Fisher permutation test under the sharp null or a bootstrap over users, since the estimator is a smooth function of a collection of OLS fits.
+
+The authors validate the framework on two large WeChat experiments that were deliberately run long, so the future-period effects normally missing are observed and serve as ground truth. In the first, a search feature tested on 1.3 million users showed effects that rose for two weeks then stabilized; estimates using only the first two to four weeks tracked the week-seven truth closely (for instance 1.347 estimated from two weeks against 1.278 observed). In the second, a content discovery panel tested on 3.6 million users exhibited a long novelty effect that declined after week eight, and the framework again predicted the direction and magnitude of the decline. Across both experiments and multiple experiment lengths, the method reduced bias by about 60 percent on average relative to constant extrapolation and vector autoregression baselines, without inflating mean squared error, and it predicted the correct trend direction in both cases while the baselines missed it in opposite ways. Practical guidance from the paper: collect surrogates spanning upstream and downstream user behaviors, include the lagged primary outcome among them, prefer regularized linear index models over flexible learners (nearest-neighbor and forest versions produced unusably wide intervals), and run the comparability diagnostics, since a regime shift during the experiment is detectable and fatal.
+
+------------------------------------------------------------------------
+
 ### Handling Zero-Valued Outcomes {#sec-handling-zero-valued-outcomes}
 
 When analyzing treatment effects, a common issue arises when the outcome variable includes zero values.

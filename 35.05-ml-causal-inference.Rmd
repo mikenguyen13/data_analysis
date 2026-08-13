@@ -2,7 +2,7 @@
 
 Causal inference from observational data requires us to adjust for confounding variables that jointly influence the treatment and the outcome. The classical toolkit, built around linear regression, propensity score weighting, and parametric matching, assumes that the analyst can write down a correctly specified model for either the outcome surface or the treatment assignment mechanism. When the number of covariates is large, when their functional relationship to the outcome is unknown, or when treatment effects vary in complex ways across the population, these parametric assumptions become fragile. Machine learning offers flexible, data-adaptive estimators for exactly these high-dimensional nuisance functions. The central intellectual contribution of the modern literature is showing how to combine flexible prediction with the structure of semiparametric theory so that causal estimates retain valid confidence intervals despite being built on top of black-box learners.
 
-This chapter develops that synthesis. We begin with the reason naive plug-in machine learning fails for causal questions, namely the regularization bias problem. We then build up the machinery that solves it: Neyman-orthogonal scores, cross-fitting, and the double or debiased machine learning framework of @chernozhukov2018double. We connect this to the older doubly robust tradition of augmented inverse probability weighting and targeted maximum likelihood estimation, and to ensemble learning through the SuperLearner. We then turn to heterogeneity, where causal forests and generalized random forests recover how effects vary across individuals, and where meta-learners offer a complementary modular approach. Finally we describe a time-aware extension, temporal causal forests, and close with practical guidance and pitfalls.
+This chapter develops that synthesis. We begin with the reason naive plug-in machine learning fails for causal questions, namely the regularization bias problem. We then build up the machinery that solves it: Neyman-orthogonal scores, cross-fitting, and the double or debiased machine learning framework of @chernozhukov2018double. We connect this to the older doubly robust tradition of augmented inverse probability weighting and targeted maximum likelihood estimation, and to ensemble learning through the SuperLearner. We then take the orthogonality machinery to platform scale with the debiased deep learning framework for large-scale combinatorial experiments, where the treatment is itself a combination of many concurrent A/B tests and a structured deep network with an influence-function correction recovers the effect of combinations that were never run. We then turn to heterogeneity, where causal forests and generalized random forests recover how effects vary across individuals, and where meta-learners offer a complementary modular approach. Finally we describe a time-aware extension, temporal causal forests, and close with practical guidance and pitfalls.
 
 ## Why Machine Learning for Causal Inference
 
@@ -30,9 +30,9 @@ where the second term involves $\frac{1}{\sqrt{n}}\sum_i W_i \bigl(g_0(X_i) - \h
 
 Two ideas rescue us. The first is to construct the estimating equation so that it is insensitive, to first order, to errors in the nuisance functions. This is Neyman orthogonality. The second is to estimate the nuisance functions on data separate from the data used to form the final estimate, breaking the dependence that would otherwise reintroduce bias. This is cross-fitting. Together they are the heart of double machine learning.
 
-## Double and Debiased Machine Learning
+## Double and Debiased Machine Learning {#sec-double-ml}
 
-The double or debiased machine learning framework of @chernozhukov2018double provides a general recipe for estimating a low-dimensional causal parameter in the presence of high-dimensional nuisance functions estimated by arbitrary machine learning methods. It rests on two pillars, Neyman-orthogonal scores and cross-fitting.
+The double or debiased machine learning (DML) framework of @chernozhukov2018double, published in The Econometrics Journal, provides a general recipe for estimating a low-dimensional causal parameter in the presence of high-dimensional nuisance functions estimated by arbitrary machine learning methods. It rests on two pillars, Neyman-orthogonal scores and cross-fitting, and it delivers estimators that are root-$n$ consistent and asymptotically normal even though the first-stage learners converge slowly and are biased by regularization. This section develops the framework in full: the orthogonality condition and a complete derivation of why the canonical scores satisfy it, the two cross-fitting algorithms and their asymptotic theory, the four workhorse models of the paper, and then two replications on the paper's own empirical applications, the effect of 401(k) eligibility on household financial assets and the effect of institutions on economic growth. Throughout we use the `DoubleML` package [@bach2024doubleml], the object-oriented R implementation maintained by the paper's authors and collaborators, with learners drawn from the `mlr3` ecosystem.
 
 ### Neyman-Orthogonal Scores
 
@@ -42,29 +42,118 @@ $$
 $$
 Orthogonality means that small errors in $\hat{\eta}$ have only a second-order effect on the moment condition. Because machine learning errors are slow but not pathological, second-order terms of the form $\|\hat{\eta} - \eta_0\|^2$ vanish faster than $n^{-1/2}$ provided each nuisance is estimated at a rate faster than $n^{-1/4}$, a rate that flexible learners can attain. The first-order regularization bias is thus eliminated by construction.
 
-For the partially linear model, the naive score $W(Y - \theta W - g(X))$ is not orthogonal because it is sensitive to errors in $g$ through its correlation with $W$. The orthogonal score partials out the confounders from the treatment as well. Define the conditional treatment mean $m_0(X) = \mathbb{E}[W \mid X]$ and the residualized treatment $V = W - m_0(X)$. The Robinson-style orthogonal score is
+For the partially linear model, the naive score $\psi^{\text{naive}}(Z; \theta, g) = W\,(Y - \theta W - g(X))$ is not orthogonal because it is sensitive to errors in $g$ through its correlation with $W$. The orthogonal score partials out the confounders from the treatment as well. Define the two conditional means
 $$
-\psi(Z; \theta, \eta) = \bigl(Y - g(X) - \theta\,(W - m(X))\bigr)\,\bigl(W - m(X)\bigr),
+\ell_0(X) = \mathbb{E}[Y \mid X] = \theta_0\, m_0(X) + g_0(X), \qquad m_0(X) = \mathbb{E}[W \mid X],
 $$
-with nuisance $\eta = (g, m)$. This is the partialling-out estimator that underlies the classic semiparametric partially linear regression of @robinson1988root, now estimated with machine learning for both nuisance functions. Intuitively, we residualize $Y$ on $X$ and $W$ on $X$ using flexible learners, then regress the $Y$-residual on the $W$-residual. The mutual residualization is what makes the score robust to errors in either nuisance.
-
-### Cross-Fitting
-
-Even with an orthogonal score, reusing the same observations to estimate the nuisance functions and to evaluate the moment condition introduces an overfitting bias and requires strong empirical-process conditions on the learner. Cross-fitting removes this by sample splitting. Partition the data into $K$ folds. For each fold $k$, estimate the nuisance functions on all observations outside fold $k$, then evaluate the orthogonal score on the held-out fold $k$ using those out-of-fold nuisance estimates. Averaging the fold-specific moment conditions and solving for $\theta$ gives the cross-fitted estimator. Swapping the roles of the folds and averaging recovers full efficiency. Cross-fitting allows the use of essentially any learner without Donsker-type complexity restrictions, which is what makes the framework practical with modern, highly flexible models.
-
-The resulting estimator is $\sqrt{n}$-consistent and asymptotically normal,
+and the Robinson-style partialling-out score
 $$
-\sqrt{n}\,(\hat{\theta} - \theta_0) \;\xrightarrow{d}\; \mathcal{N}\!\left(0,\; \sigma^2\right),
+\psi(Z; \theta, \eta) = \bigl(Y - \ell(X) - \theta\,(W - m(X))\bigr)\,\bigl(W - m(X)\bigr),
 $$
-with a variance that can be estimated from the score, so ordinary Wald confidence intervals are valid despite the black-box first stage.
+with nuisance $\eta = (\ell, m)$. This is the estimator that underlies the classic semiparametric partially linear regression of @robinson1988root, now with machine learning for both nuisance functions. Intuitively, we residualize $Y$ on $X$ and $W$ on $X$ using flexible learners, then regress the $Y$-residual on the $W$-residual. The mutual residualization is what makes the score robust to errors in either nuisance.
 
-### Partially Linear and Interactive Models
+#### Verifying Orthogonality: A Derivation {#sec-dml-orthogonality-derivation}
 
-The framework covers two leading specifications. The partially linear model above imposes a constant treatment effect $\theta_0$ but leaves the confounding function $g_0$ unrestricted. The interactive regression model relaxes the constant-effect assumption and targets the average treatment effect
+The orthogonality claims can be checked directly, and doing so once makes the whole framework transparent. Write $V = W - m_0(X)$ for the treatment residual and $\varepsilon = Y - \theta_0 W - g_0(X)$ for the structural error, so that $\mathbb{E}[\varepsilon \mid X, W] = 0$ and $\mathbb{E}[V \mid X] = 0$ by construction. Note first that at the true nuisance values the partialling-out residual reduces to the structural error,
+$$
+Y - \ell_0(X) - \theta_0\,(W - m_0(X)) = \theta_0 W + g_0(X) + \varepsilon - \theta_0 m_0(X) - g_0(X) - \theta_0 W + \theta_0 m_0(X) = \varepsilon,
+$$
+so the moment condition $\mathbb{E}[\psi(Z; \theta_0, \eta_0)] = \mathbb{E}[\varepsilon V] = 0$ holds.
+
+To check orthogonality, perturb each nuisance in an arbitrary direction and differentiate. For the outcome regression, replace $\ell_0$ by $\ell_0 + r \Delta_\ell$ for a scalar $r$ and any function $\Delta_\ell(X)$, and evaluate the derivative of the moment at $r = 0$:
+$$
+\frac{\partial}{\partial r}\, \mathbb{E}\Bigl[\bigl(Y - \ell_0(X) - r \Delta_\ell(X) - \theta_0 V\bigr) V\Bigr]\Big|_{r=0} = -\,\mathbb{E}\bigl[\Delta_\ell(X)\, V\bigr] = -\,\mathbb{E}\bigl[\Delta_\ell(X)\, \underbrace{\mathbb{E}[V \mid X]}_{=\,0}\bigr] = 0.
+$$
+For the propensity, replace $m_0$ by $m_0 + r \Delta_m$, which perturbs both appearances of $m$ in the score:
+$$
+\frac{\partial}{\partial r}\, \mathbb{E}\Bigl[\bigl(\varepsilon + r\,\theta_0 \Delta_m(X)\bigr)\bigl(V - r \Delta_m(X)\bigr)\Bigr]\Big|_{r=0} = \theta_0\, \mathbb{E}\bigl[\Delta_m(X)\, V\bigr] - \mathbb{E}\bigl[\varepsilon\, \Delta_m(X)\bigr] = 0,
+$$
+where the first term vanishes because $\mathbb{E}[V \mid X] = 0$ and the second because $\mathbb{E}[\varepsilon \mid X] = 0$. Both derivatives are exactly zero, so first-order errors in either learner do not move the moment condition. Contrast the naive score: perturbing $g$ gives
+$$
+\frac{\partial}{\partial r}\, \mathbb{E}\Bigl[W\bigl(Y - \theta_0 W - g_0(X) - r \Delta_g(X)\bigr)\Bigr]\Big|_{r=0} = -\,\mathbb{E}\bigl[W \Delta_g(X)\bigr] = -\,\mathbb{E}\bigl[m_0(X)\, \Delta_g(X)\bigr],
+$$
+which is nonzero whenever the treatment is correlated with the confounders, precisely the situation that makes causal inference hard. The regularization bias of the naive plug-in is this nonzero derivative multiplied by the slowly vanishing learner error, inflated by the $\sqrt{n}$ scaling. Orthogonalization removes the term entirely rather than hoping the learner error is small.
+
+The same calculation explains the second-order remainder. A Taylor expansion of the moment in the nuisances has no linear term, so the leading remainder is quadratic, of order $\|\hat{\ell} - \ell_0\|\,\|\hat{m} - m_0\|$. This product structure is what the formal theory exploits: it suffices that the product of the two nuisance errors vanish faster than $n^{-1/2}$, for instance because each is $o(n^{-1/4})$, a rate attainable by lasso, random forests, boosting, and neural networks under structured sparsity or smoothness conditions. One learner may even converge more slowly if the other compensates, a trade-off familiar from the doubly robust literature discussed below.
+
+### Cross-Fitting and the Two DML Algorithms
+
+Even with an orthogonal score, reusing the same observations to estimate the nuisance functions and to evaluate the moment condition introduces an overfitting bias and requires strong empirical-process (Donsker) conditions on the learner, conditions that highly flexible modern learners violate. Cross-fitting removes this by sample splitting. Partition the observation indices $\{1, \dots, N\}$ into $K$ folds $I_1, \dots, I_K$ of roughly equal size, and for each fold $k$ let $\hat{\eta}_k$ denote the nuisance estimates computed on the complement $I_k^c$, that is, on all data outside fold $k$. Each observation's score is then evaluated with nuisance functions that never saw that observation, which breaks the dependence driving the overfitting bias, while rotating through all $K$ folds ensures every observation contributes to the final estimate, so no efficiency is lost. Cross-fitting allows the use of essentially any learner without complexity restrictions, which is what makes the framework practical.
+
+@chernozhukov2018double define two ways to combine the folds. The DML1 estimator solves the moment condition separately within each fold and averages the solutions,
+$$
+\check{\theta}_k \; \text{solves} \;\; \frac{1}{|I_k|} \sum_{i \in I_k} \psi\bigl(Z_i; \check{\theta}_k, \hat{\eta}_k\bigr) = 0, \qquad \hat{\theta}_{\text{DML1}} = \frac{1}{K} \sum_{k=1}^{K} \check{\theta}_k.
+$$
+The DML2 estimator pools the folds into a single estimating equation,
+$$
+\frac{1}{N} \sum_{k=1}^{K} \sum_{i \in I_k} \psi\bigl(Z_i; \hat{\theta}_{\text{DML2}}, \hat{\eta}_k\bigr) = 0.
+$$
+The two are first-order equivalent, but DML2 is generally preferred and is the default in software: pooling stabilizes the estimating equation in small samples and avoids folds where the within-fold equation is ill-conditioned. For the linear scores used throughout this chapter, which take the form $\psi(Z; \theta, \eta) = \psi^a(Z; \eta)\,\theta + \psi^b(Z; \eta)$, DML2 has the closed form
+$$
+\hat{\theta} = -\Biggl(\frac{1}{N} \sum_{k}\sum_{i \in I_k} \psi^a\bigl(Z_i; \hat{\eta}_k\bigr)\Biggr)^{-1} \frac{1}{N} \sum_{k}\sum_{i \in I_k} \psi^b\bigl(Z_i; \hat{\eta}_k\bigr).
+$$
+The number of folds $K$ is not a tuning parameter in the usual sense; theory holds for any fixed $K \ge 2$, and $K = 5$ is the practical default, with $K = 10$ sometimes preferred in moderate samples because each nuisance fit then uses more data. The replication below varies $K$ as a robustness check.
+
+### Asymptotic Normality and Valid Confidence Intervals
+
+The main inferential result of @chernozhukov2018double states that under Neyman orthogonality, the product-rate condition on the nuisance errors described above, and mild regularity conditions, the cross-fitted estimator satisfies
+$$
+\sqrt{N}\,\bigl(\hat{\theta} - \theta_0\bigr) \;\xrightarrow{d}\; \mathcal{N}\bigl(0, \sigma^2\bigr), \qquad \sigma^2 = J_0^{-2}\; \mathbb{E}\bigl[\psi\bigl(Z; \theta_0, \eta_0\bigr)^2\bigr], \qquad J_0 = \mathbb{E}\bigl[\psi^a\bigl(Z; \eta_0\bigr)\bigr],
+$$
+and the variance is consistently estimated by the plug-in
+$$
+\hat{\sigma}^2 = \hat{J}^{-2}\, \frac{1}{N} \sum_{k}\sum_{i \in I_k} \psi\bigl(Z_i; \hat{\theta}, \hat{\eta}_k\bigr)^2, \qquad \hat{J} = \frac{1}{N} \sum_{k}\sum_{i \in I_k} \psi^a\bigl(Z_i; \hat{\eta}_k\bigr).
+$$
+Ordinary Wald confidence intervals $\hat{\theta} \pm z_{1-\alpha/2}\, \hat{\sigma} / \sqrt{N}$ are therefore valid despite the black-box first stage. Importantly, the result is uniform over large classes of data-generating processes: it does not rely on the perfect model selection that invalidates naive post-selection inference, a failure documented in the post-double-selection literature [@belloni2014inference] that this framework generalizes.
+
+One practical wrinkle remains. The estimate depends on the random fold partition, and two analysts using different seeds will report slightly different numbers. @chernozhukov2018double recommend repeating the entire cross-fitting procedure $S$ times over independent partitions and reporting the median estimate $\hat{\theta} = \operatorname{median}_s\, \hat{\theta}^{(s)}$ together with the split-adjusted variance
+$$
+\hat{\sigma}^2 = \operatorname{median}_s \Bigl\{ \hat{\sigma}^2_{(s)} + \bigl(\hat{\theta}^{(s)} - \hat{\theta}\bigr)^2 \Bigr\},
+$$
+which charges the reported uncertainty for the variability induced by the sample splitting itself. This is the `n_rep` argument in `DoubleML`, exercised in the robustness analysis below.
+
+### The Four Canonical Models
+
+@chernozhukov2018double work out the framework for four workhorse specifications that between them cover most applied selection-on-observables and instrumental-variables problems. Each is defined by an estimand, a set of nuisance functions, and a Neyman-orthogonal score.
+
+The partially linear regression (PLR) model is the specification developed above. It imposes a constant treatment effect $\theta_0$ but leaves the confounding function unrestricted, and its orthogonal score is the partialling-out score already derived, with nuisances $\ell_0(X) = \mathbb{E}[Y \mid X]$ and $m_0(X) = \mathbb{E}[W \mid X]$.
+
+The partially linear instrumental variable (PLIV) model handles the case where the treatment $D$ is endogenous even conditional on $X$, but an instrument $Z$ is available that is relevant and excluded conditional on $X$:
+$$
+Y = \theta_0 D + g_0(X) + \zeta, \qquad \mathbb{E}[\zeta \mid X, Z] = 0.
+$$
+The orthogonal score residualizes all three observables on the confounders,
+$$
+\psi(Z; \theta, \eta) = \bigl(Y - \ell(X) - \theta\,(D - r(X))\bigr)\,\bigl(Z - m(X)\bigr),
+$$
+with nuisances $\ell_0(X) = \mathbb{E}[Y \mid X]$, $r_0(X) = \mathbb{E}[D \mid X]$, and $m_0(X) = \mathbb{E}[Z \mid X]$. This is exactly the logic of two-stage least squares after flexibly partialling out the controls, and it reduces to the classical IV estimator when the nuisances are estimated by linear regression. The orthogonality verification mirrors the PLR derivation, using $\mathbb{E}[Z - m_0(X) \mid X] = 0$ in place of the treatment residual.
+
+The interactive regression model (IRM) drops the constant-effect restriction for a binary treatment and targets the average treatment effect
 $$
 \theta_0 = \mathbb{E}\bigl[\mu_0(1, X) - \mu_0(0, X)\bigr],
 $$
-where $\mu_0(w, x) = \mathbb{E}[Y \mid W = w, X = x]$. Its orthogonal score is the augmented inverse probability weighting (AIPW) score introduced in the next section, with the outcome regression $\mu_0$ and the propensity score $e_0(X) = \mathbb{P}(W = 1 \mid X)$ as nuisances. Double machine learning for the interactive model is therefore AIPW with cross-fitted, machine-learned nuisances.
+where $\mu_0(w, x) = \mathbb{E}[Y \mid W = w, X = x]$. Its orthogonal score is the augmented inverse probability weighting (AIPW) score
+$$
+\psi(Z; \theta, \eta) = \mu(1, X) - \mu(0, X) + \frac{W\,\bigl(Y - \mu(1, X)\bigr)}{e(X)} - \frac{(1 - W)\,\bigl(Y - \mu(0, X)\bigr)}{1 - e(X)} - \theta,
+$$
+with the outcome regressions and the propensity score $e_0(X) = \mathbb{P}(W = 1 \mid X)$ as nuisances. This score is the efficient influence function for the ATE, and the next section develops its doubly robust interpretation in detail. Double machine learning for the interactive model is AIPW with cross-fitted, machine-learned nuisances. In practice the propensity denominators require trimming, and the replication below trims estimated propensities at 0.01.
+
+The interactive instrumental variable model (IIVM) combines heterogeneity and endogeneity for a binary treatment $D$ and binary instrument $Z$, targeting the local average treatment effect (LATE) of @imbens1994identification, the effect among compliers. Its orthogonal score is a ratio of two AIPW-type constructions, one for the outcome and one for the treatment,
+$$
+\psi(Z; \theta, \eta) = \mu(1, X) - \mu(0, X) + \frac{Z\,\bigl(Y - \mu(1, X)\bigr)}{\pi(X)} - \frac{(1 - Z)\,\bigl(Y - \mu(0, X)\bigr)}{1 - \pi(X)} - \theta \Biggl[ r(1, X) - r(0, X) + \frac{Z\,\bigl(D - r(1, X)\bigr)}{\pi(X)} - \frac{(1 - Z)\,\bigl(D - r(0, X)\bigr)}{1 - \pi(X)} \Biggr],
+$$
+where $\mu_0(z, x) = \mathbb{E}[Y \mid Z = z, X = x]$, $r_0(z, x) = \mathbb{E}[D \mid Z = z, X = x]$, and $\pi_0(x) = \mathbb{P}(Z = 1 \mid X = x)$. The numerator part is the intent-to-treat effect of the instrument on the outcome and the bracketed part is its effect on takeup, so the estimator is a doubly robust, machine-learned Wald ratio.
+
+| Model | Estimand | Endogeneity | Nuisance functions |
+|:------|:---------|:------------|:-------------------|
+| PLR | Constant effect $\theta_0$ | None given $X$ | $\mathbb{E}[Y \mid X]$, $\mathbb{E}[W \mid X]$ |
+| PLIV | Constant effect $\theta_0$ | Instrument $Z$ | $\mathbb{E}[Y \mid X]$, $\mathbb{E}[D \mid X]$, $\mathbb{E}[Z \mid X]$ |
+| IRM | ATE (or ATT) | None given $X$ | $\mathbb{E}[Y \mid W, X]$, $\mathbb{P}(W = 1 \mid X)$ |
+| IIVM | LATE | Instrument $Z$ | $\mathbb{E}[Y \mid Z, X]$, $\mathbb{E}[D \mid Z, X]$, $\mathbb{P}(Z = 1 \mid X)$ |
+
+Table: (\#tab:dml-four-models) The four canonical double machine learning models, their estimands, and the nuisance functions each requires.
+
+The framework has an important precursor in the post-double-selection estimator of @belloni2014inference. There the nuisances are estimated by lasso regressions of $Y$ on $X$ and of $W$ on $X$, the union of the selected controls is taken, and $\theta_0$ is estimated by ordinary least squares of $Y$ on $W$ and the selected union. Selecting controls relevant to either equation is precisely what makes the procedure immune to the model-selection mistakes that break single-selection inference, and it is the special case of the PLR score with lasso nuisances. Double machine learning generalizes the insight from lasso to arbitrary learners and from the partially linear model to any orthogonal moment problem. The `hdm` package implements post-double-selection directly, and the 401(k) replication below uses it as a cross-check on the DML estimates.
 
 ### A Runnable Partially Linear Example
 
@@ -109,14 +198,15 @@ theta_dml <- sum(vW * vY) / sum(vW * vW)
 c(naive = theta_naive, dml = theta_dml, truth = theta_true)
 ```
 
-The orthogonal, cross-fitted estimate sits close to the true value of one, while the naive plug-in is biased because it fails to residualize the treatment. With genuine machine learning learners in place of the polynomial regressions, the same logic delivers valid inference in far higher dimensions. In practice the `DoubleML` package implements this machinery with a wide range of learners.
+The orthogonal, cross-fitted estimate sits close to the true value of one, while the naive plug-in is biased because it fails to residualize the treatment. With genuine machine learning learners in place of the polynomial regressions, the same logic delivers valid inference in far higher dimensions. The `DoubleML` package [@bach2024doubleml] implements this machinery for any learner in the `mlr3` ecosystem. Rerunning the same problem with random forest nuisances reproduces the from-scratch estimate and adds the score-based standard error from the asymptotic theory above.
 
-```{r dml-package, eval=FALSE}
-# Production implementation with the DoubleML package and a random forest.
+```{r dml-package, message=FALSE, warning=FALSE}
 library(DoubleML)
 library(mlr3)
 library(mlr3learners)
+lgr::get_logger("mlr3")$set_threshold("warn")
 
+set.seed(123)
 dml_data <- DoubleMLData$new(
     dat,
     y_col = "Y",
@@ -124,7 +214,7 @@ dml_data <- DoubleMLData$new(
     x_cols = paste0("X", 1:p)
 )
 
-learner <- lrn("regr.ranger", num.trees = 500)
+learner <- lrn("regr.ranger", num.trees = 200, min.node.size = 20)
 dml_plr <- DoubleMLPLR$new(
     dml_data,
     ml_l = learner$clone(),
@@ -134,6 +224,217 @@ dml_plr <- DoubleMLPLR$new(
 dml_plr$fit()
 dml_plr$summary()
 ```
+
+The point estimate agrees with the hand-rolled cross-fitting loop, and the reported standard error is the plug-in estimator $\hat{\sigma}/\sqrt{N}$ from the asymptotic normality result, so the printed confidence interval is the honest Wald interval that the theory licenses.
+
+### Replication: 401(k) Eligibility and Household Financial Assets {#sec-dml-401k}
+
+The flagship empirical application of @chernozhukov2018double asks what effect eligibility for a 401(k) pension plan has on a household's net financial assets, using data on 9,915 households from the 1991 Survey of Income and Program Participation. The question, whether 401(k) saving crowds out other saving or represents new wealth accumulation, is a classic in public economics [@poterba1995do]. The identification argument is that eligibility is determined by employers, so once we condition on the job and income characteristics that drive both employer plan offerings and saving behavior, eligibility is plausibly unconfounded, even though actual participation is a household choice and clearly endogenous. The covariates are age, income, education, family size, marital status, two-earner status, defined-benefit pension coverage, IRA participation, and homeownership. Income enters saving behavior nonlinearly, which is exactly why flexible nuisance estimation matters here: the sample includes households with net financial assets ranging from heavy debt to more than half a million dollars, and misspecifying the income-assets relationship contaminates a parametric estimate.
+
+The same data support all three selection-on-observables and instrumental-variables estimands from the model taxonomy above. The PLR and IRM models estimate the effect of eligibility itself, an intention-to-treat quantity. The IIVM model estimates the LATE of actual participation, instrumented by eligibility. The instrument is relevant because eligibility is a precondition for participation, satisfies monotonicity trivially for the same reason (there are no always-takers, since nobody can participate without being eligible), and inherits its conditional exogeneity from the eligibility argument. We tell `DoubleML` about the absent always-takers through the `subgroups` argument, which fixes the takeup regression at zero in the uninstrumented arm rather than asking a classifier to fit a degenerate outcome.
+
+The dataset ships with the `hdm` package [@chernozhukov2016hdm], so the analysis is fully reproducible offline. Following the paper, we give the lasso a flexible dictionary of transformed controls, quadratics in the continuous variables plus income interactions, while the tree-based learners receive the raw covariates and are left to find the nonlinearities themselves.
+
+```{r dml-401k-setup, message=FALSE, warning=FALSE}
+library(DoubleML)
+library(mlr3)
+library(mlr3learners)
+library(data.table)
+library(hdm)
+lgr::get_logger("mlr3")$set_threshold("warn")
+
+data(pension, package = "hdm")
+pen <- data.table(pension)
+
+# Raw controls for the tree-based learners
+xs <- c("age", "inc", "educ", "fsize", "marr", "twoearn", "db", "pira", "hown")
+
+# Flexible dictionary for the lasso: quadratics in the continuous controls,
+# main effects for the indicators, income interactions with the indicators
+flex <- model.matrix(
+    ~ 0 + poly(age, 2, raw = TRUE) + poly(inc, 2, raw = TRUE) +
+        poly(educ, 2, raw = TRUE) + poly(fsize, 2, raw = TRUE) +
+        marr + twoearn + db + pira + hown +
+        inc:(marr + twoearn + db + pira + hown),
+    data = pen
+)
+colnames(flex) <- paste0("x", seq_len(ncol(flex)))
+pen_flex <- data.table(net_tfa = pen$net_tfa, e401 = pen$e401,
+                       p401 = pen$p401, flex)
+
+c(households = nrow(pen), eligible = sum(pen$e401),
+  participants = sum(pen$p401))
+```
+
+About 37 percent of households are eligible and 26 percent participate, and participation implies eligibility, the no-always-takers structure noted above. We now run the full grid: three estimands (PLR, IRM ATE, IIVM LATE) by three learners (lasso, random forest, gradient boosting), each with five-fold cross-fitting and propensity trimming at 0.01.
+
+```{r dml-401k-fit, message=FALSE, warning=FALSE}
+fit_401k <- function(kind) {
+    if (kind == "lasso") {
+        reg <- lrn("regr.cv_glmnet", s = "lambda.min")
+        cls <- lrn("classif.cv_glmnet", s = "lambda.min")
+        xcols <- colnames(flex); dat_use <- pen_flex
+    } else if (kind == "forest") {
+        reg <- lrn("regr.ranger", num.trees = 200, min.node.size = 20)
+        cls <- lrn("classif.ranger", num.trees = 200, min.node.size = 20)
+        xcols <- xs; dat_use <- pen[, c("net_tfa", "e401", "p401", xs), with = FALSE]
+    } else {
+        reg <- lrn("regr.xgboost", nrounds = 150, eta = 0.1, max_depth = 4,
+                   objective = "reg:squarederror", verbose = 0)
+        cls <- lrn("classif.xgboost", nrounds = 150, eta = 0.1, max_depth = 4,
+                   objective = "binary:logistic", verbose = 0)
+        xcols <- xs; dat_use <- pen[, c("net_tfa", "e401", "p401", xs), with = FALSE]
+    }
+
+    d_elig <- DoubleMLData$new(dat_use[, c("net_tfa", "e401", xcols), with = FALSE],
+                               y_col = "net_tfa", d_cols = "e401", x_cols = xcols)
+    plr <- DoubleMLPLR$new(d_elig, ml_l = reg$clone(), ml_m = reg$clone(),
+                           n_folds = 5)
+    plr$fit()
+
+    irm <- DoubleMLIRM$new(d_elig, ml_g = reg$clone(), ml_m = cls$clone(),
+                           n_folds = 5, trimming_threshold = 0.01)
+    irm$fit()
+
+    d_late <- DoubleMLData$new(dat_use, y_col = "net_tfa", d_cols = "p401",
+                               z_cols = "e401", x_cols = xcols)
+    iiv <- DoubleMLIIVM$new(d_late, ml_g = reg$clone(), ml_m = cls$clone(),
+                            ml_r = cls$clone(), n_folds = 5,
+                            trimming_threshold = 0.01,
+                            subgroups = list(always_takers = FALSE,
+                                             never_takers = TRUE))
+    iiv$fit()
+
+    data.table(
+        learner  = kind,
+        model    = c("PLR (eligibility)", "IRM ATE (eligibility)",
+                     "IIVM LATE (participation)"),
+        estimate = c(plr$coef, irm$coef, iiv$coef),
+        se       = c(plr$se, irm$se, iiv$se)
+    )
+}
+
+set.seed(3141)
+res_401k <- rbindlist(lapply(c("lasso", "forest", "boost"), fit_401k))
+res_401k[, `:=`(lower = estimate - 1.96 * se, upper = estimate + 1.96 * se)]
+```
+
+```{r dml-401k-table, echo=FALSE}
+knitr::kable(
+    res_401k[order(model, learner),
+             .(Model = model, Learner = learner,
+               Estimate = round(estimate), SE = round(se),
+               Lower = round(lower), Upper = round(upper))],
+    caption = "Double machine learning estimates of the effect of 401(k)
+    eligibility and participation on net financial assets in dollars,
+    SIPP 1991, across nuisance learners. Replication of the empirical
+    application in Chernozhukov et al. (2018).",
+    format.args = list(big.mark = ",")
+)
+```
+
+```{r dml-401k-plot, echo=FALSE, fig.cap="Estimates and 95 percent confidence intervals for the three 401(k) estimands across nuisance learners. The estimates are stable across learners within each estimand, the pattern the orthogonality theory predicts.", fig.width=8, fig.height=4}
+library(ggplot2)
+ggplot(res_401k,
+       aes(x = learner, y = estimate, ymin = lower, ymax = upper)) +
+    geom_pointrange(size = 0.4) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+    facet_wrap(~ model) +
+    labs(x = NULL, y = "Effect on net financial assets (USD)") +
+    theme_minimal()
+```
+
+Three findings line up with the published results. First, eligibility raises net financial assets by roughly nine thousand dollars on the partially linear specification and about eight thousand dollars on the interactive (ATE) specification, and the gap between the two is informative: the IRM model reweights toward the covariate distribution of the whole population, so the difference reflects effect heterogeneity that the constant-effect PLR model averages differently. Second, the LATE of actual participation is larger, on the order of eleven to twelve thousand dollars, which is mechanical once one recalls that only about seven in ten eligible households participate: diluting the participation effect over all eligibles yields the intention-to-treat magnitude. Third, and most important for the methodological message, the estimates are stable across the three very different learners within each estimand. Orthogonality plus cross-fitting makes the causal estimate insensitive to the details of the first stage, which is visible here as the flat profile within each panel of the figure.
+
+As a cross-check, the post-double-selection estimator of @belloni2014inference, the lasso-specific precursor to double machine learning, gives a same-ballpark answer on the identical flexible dictionary.
+
+```{r dml-401k-pds, message=FALSE, warning=FALSE}
+set.seed(3141)
+pds <- rlassoEffect(x = flex, y = pen$net_tfa, d = pen$e401,
+                    method = "double selection")
+summary(pds)
+```
+
+The point estimate sits somewhat below the tree-based DML estimates, a reminder that with a fixed dictionary the lasso can only capture the nonlinearities the analyst wrote into it, while forests and boosting adapt their functional form to the data.
+
+### Replication: Institutions and Growth with Partially Linear IV {#sec-dml-ajr}
+
+The second empirical application in @chernozhukov2018double revisits the institutions-and-growth question of @acemoglu2001colonial with the PLIV model. The outcome is log GDP per capita in 1995 across 64 former colonies, the endogenous treatment is a measure of protection against expropriation risk, and the instrument is the log of early European settler mortality: where settlers faced deadly disease environments, colonial powers built extractive institutions rather than settler institutions, and those institutional differences persisted. The exclusion restriction requires that settler mortality affect modern output only through institutions, conditional on geography. That conditionality is where machine learning earns its place: rather than betting on a particular parametric form for latitude and continent effects, the PLIV model partials all three variables, outcome, treatment, and instrument, on a flexible function of the geographic controls.
+
+```{r dml-ajr-pliv, message=FALSE, warning=FALSE}
+data(AJR, package = "hdm")
+ajr <- data.table(AJR)[, .(GDP, Exprop, logMort, Latitude, Latitude2,
+                           Africa, Asia, Namer, Samer)]
+
+d_ajr <- DoubleMLData$new(
+    ajr, y_col = "GDP", d_cols = "Exprop", z_cols = "logMort",
+    x_cols = c("Latitude", "Latitude2", "Africa", "Asia", "Namer", "Samer")
+)
+
+set.seed(42)
+pliv_lasso <- DoubleMLPLIV$new(
+    d_ajr,
+    ml_l = lrn("regr.cv_glmnet", s = "lambda.min"),
+    ml_m = lrn("regr.cv_glmnet", s = "lambda.min"),
+    ml_r = lrn("regr.cv_glmnet", s = "lambda.min"),
+    n_folds = 5
+)
+pliv_lasso$fit()
+
+set.seed(42)
+pliv_forest <- DoubleMLPLIV$new(
+    d_ajr,
+    ml_l = lrn("regr.ranger", num.trees = 500, min.node.size = 5),
+    ml_m = lrn("regr.ranger", num.trees = 500, min.node.size = 5),
+    ml_r = lrn("regr.ranger", num.trees = 500, min.node.size = 5),
+    n_folds = 5
+)
+pliv_forest$fit()
+
+rbind(
+    data.frame(learner = "lasso", estimate = pliv_lasso$coef, se = pliv_lasso$se),
+    data.frame(learner = "forest", estimate = pliv_forest$coef, se = pliv_forest$se)
+)
+```
+
+Both learners put the effect of institutions on log output near one, close to the two-stage least squares estimates in @acemoglu2001colonial, with confidence intervals that comfortably exclude zero. Two cautions are in order. With 64 observations the machine learning is doing modest work, and the exercise is best read as a demonstration that the framework nests and reproduces a canonical IV study rather than as an improvement on it. And the small sample makes the estimate more sensitive to the particular fold partition than in the 401(k) application, which is precisely the situation where the repeated cross-fitting of the next subsection matters.
+
+### Robustness: Folds, Sample Splits, and Learner Choice {#sec-dml-robustness}
+
+The asymptotic theory holds for any fixed number of folds, but in finite samples the choice can matter, so a serious application reports a sensitivity analysis. We rerun the forest-based PLR estimate of the 401(k) eligibility effect across two, five, and ten folds, and then address the remaining seed dependence with repeated cross-fitting.
+
+```{r dml-robust-folds, message=FALSE, warning=FALSE}
+d_elig <- DoubleMLData$new(pen[, c("net_tfa", "e401", xs), with = FALSE],
+                           y_col = "net_tfa", d_cols = "e401", x_cols = xs)
+forest_reg <- lrn("regr.ranger", num.trees = 200, min.node.size = 20)
+
+set.seed(7)
+fold_sweep <- rbindlist(lapply(c(2, 5, 10), function(K) {
+    m <- DoubleMLPLR$new(d_elig, ml_l = forest_reg$clone(),
+                         ml_m = forest_reg$clone(), n_folds = K)
+    m$fit()
+    data.table(folds = K, estimate = m$coef, se = m$se)
+}))
+fold_sweep
+```
+
+The estimate moves by well under one standard error as the fold count varies, which is the expected behavior in a sample of nearly ten thousand observations. The last source of arbitrariness is the random partition itself. Following the recommendation of @chernozhukov2018double, we repeat the entire procedure over independent partitions and aggregate by the median, with the split-adjusted variance from the theory section.
+
+```{r dml-robust-reps, message=FALSE, warning=FALSE}
+set.seed(7)
+m_rep <- DoubleMLPLR$new(d_elig, ml_l = forest_reg$clone(),
+                         ml_m = forest_reg$clone(),
+                         n_folds = 5, n_rep = 5)
+m_rep$fit()
+data.frame(
+    aggregated = m_rep$coef, se = m_rep$se,
+    min_split = min(m_rep$all_coef), max_split = max(m_rep$all_coef)
+)
+```
+
+The spread across partitions is small relative to the sampling uncertainty here, but it need not be in smaller samples or with more variable learners, and reporting the median-aggregated estimate with the adjusted standard error costs nothing. In published work a larger number of repetitions, fifty or one hundred, is standard.
+
+Taken together, the two replications illustrate the practical workflow this section has built up piece by piece: choose the model class by the estimand and the endogeneity structure, pick several dissimilar learners, give dictionary-based learners a rich feature expansion, cross-fit with five folds and repeat over partitions, trim propensities, and report the full grid so readers can see that the causal conclusion does not hinge on any single machine learning choice.
 
 ## Doubly Robust Estimation and Targeted Learning
 
@@ -188,67 +489,163 @@ Several learners recur as components of these ensembles and as standalone nuisan
 
 ## Deep Learning for Large-Scale Combinatorial Experiments
 
-The double machine learning machinery of this chapter was built for a single treatment. Large online platforms face a harder version of the problem: they run hundreds of randomized experiments concurrently, and any given user is enrolled in many of them at once. @ye2025deep study this setting, which they call combinatorial experimentation, and develop a debiased deep learning (DeDL) framework that extends the Neyman-orthogonality and cross-fitting ideas of double machine learning to the case where the treatment itself is a high-dimensional combination of binary A/B tests. This section develops their framework, reports their empirical validation on a large-scale video-sharing platform, and then replicates the mechanics end to end on synthetic data built to their own specification, using a genuine deep network trained with `torch`.
+The double machine learning machinery of this chapter was built for a single treatment. Large online platforms face a harder version of the problem: they run hundreds of randomized experiments concurrently, and any given user is enrolled in many of them at once. @ye2026deep, published in Management Science, study this setting, which they call combinatorial experimentation, and develop a debiased deep learning (DeDL) framework that extends the Neyman-orthogonality and cross-fitting ideas of double machine learning to the case where the treatment itself is a high-dimensional combination of binary A/B tests. The paper pairs a complete semiparametric theory (identification, influence functions, asymptotic normality, and best-arm inference) with one of the cleanest large-scale empirical validations of debiased machine learning to date, a field deployment in which the ground-truth effect of every treatment combination is observable. This section develops the framework in full: the structural model and its link functions, the identification argument that turns an exponential design burden into a linear one, the derivation of the influence function by the pathwise-derivative method, the cross-fitting algorithm and its asymptotic theory including inference on the best arm, the platform evidence, and an end-to-end replication on synthetic data built to the authors' own specification, using a genuine deep network trained with `torch`, followed by a Monte Carlo study of coverage and best-arm selection under controlled first-stage bias.
 
 ### The Combinatorial Experimentation Problem
 
 To use user traffic efficiently, a large platform typically randomizes each of its many concurrent experiments independently, an orthogonal traffic assignment design. Orthogonality guarantees a credible causal estimate for each individual experiment, but it means that the joint effect of any particular combination of treatments is essentially never directly observed: with $m$ concurrent binary experiments there are $2^m$ possible treatment combinations, and testing all of them exhaustively with a classical full factorial design requires traffic that grows exponentially in $m$. Practitioners' default workaround is to assume treatment effects are linearly additive, so that the effect of running two experiments together is simply the sum of their solo effects, and to make expansion decisions for each experiment independently of the others.
 
-@ye2025deep show empirically that this assumption is not innocuous. Collaborating with a large-scale short-video platform that, for one unusual set of three experiments, tested every one of the $2^3 = 8$ treatment combinations on the same population, they document combinations whose true joint effect diverges sharply from the linear-addition prediction, with the direction and magnitude of the gap varying by user subgroup: some segments show increasing marginal returns to combined treatment and others show decreasing marginal returns, exactly the heterogeneity that a flexible nuisance model can capture but a linear rule cannot.
+@ye2026deep show empirically that this assumption is not innocuous. Collaborating with a large-scale short-video platform that, for one unusual set of three experiments, tested every one of the $2^3 = 8$ treatment combinations on the same population, they divide the experimented users into 1,254 subgroups by pre-treatment covariates (gender, age, location, and degree of activeness) and document subgroup joint effects that diverge sharply from the linear-addition prediction, with the direction and magnitude of the gap varying across subgroups: some segments show increasing marginal returns to combined treatment and others show decreasing marginal returns, exactly the heterogeneity that a flexible nuisance model can capture but a linear rule cannot.
 
-Formally, let $T \in \{0,1\}^m$ denote a user's combination of treatments across $m$ concurrent experiments, $X$ her pre-treatment covariates, and $Y$ her outcome. The framework assumes a semiparametric data-generating process
+Formally, let $T \in \{0,1\}^m$ denote a user's combination of treatments across $m$ concurrent experiments, $X$ her pre-treatment covariates, and $Y$ her outcome. In potential-outcomes language each user carries $2^m$ potential outcomes $Y(t)$, one per combination, which is the same combinatorial explosion discussed for interference in Chapter \@ref(sec-interference-spillover), now arising within a single user rather than across users. The treatment assignment mechanism $\nu(t \mid x) = \mathbb{P}[T = t \mid X = x]$ is known by design; under the orthogonal assignment used in practice it is a product of independent Bernoulli draws, one per experiment, so every combination receives positive probability but most receive far too little traffic for cell-by-cell estimation. The framework assumes a semiparametric data-generating process
 $$
 \mathbb{E}[Y \mid X = x, T = t] = G(\theta^*(x), t),
 $$
-where $G$ is a known link function and $\theta^*(\cdot)$ is an unknown, potentially high-dimensional nuisance function of the covariates, estimated with a deep neural network. The link function is the interpretable, structural piece of the model; the network supplies the flexibility needed to capture rich covariate heterogeneity in how users respond.
+where $G$ is a known link function and $\theta^*(\cdot): \mathbb{R}^{d_X} \to \mathbb{R}^{d_\theta}$ is an unknown, potentially high-dimensional nuisance function of the covariates, estimated with a deep neural network. The link function is the interpretable, structural piece of the model; the network supplies the flexibility needed to capture rich covariate heterogeneity in how users respond. Training minimizes the empirical mean squared error, whose population minimizer is $\theta^*(\cdot)$ because the true regression function solves the least-squares problem by construction.
+
+Two estimands carry all the managerial content. The average treatment effect of combination $t$ against the all-control condition $t_0 = \mathbf{0}$ is
+$$
+\mu(t) := \mathbb{E}\bigl[G(\theta^*(X), t)\bigr] - \mathbb{E}\bigl[G(\theta^*(X), t_0)\bigr],
+$$
+and the platform wants $\mu(t)$ for all $2^m$ combinations, including the never-observed ones. The best arm is $t^* := \arg\max_{t} \mu(t)$, and the regret of deploying any other combination is $\tau(t) := \mu(t^*) - \mu(t)$, so identifying the best arm and testing whether its lead over the runners-up is real amounts to inference on $\tau(\cdot)$. Choosing the combination that maximizes an outcome is a policy learning problem in the sense of @kitagawa2018should and @athey2021policy, with the policy space being the $2^m$ treatment combinations themselves.
+
+### Where the Framework Sits in the Literature
+
+The statistical problem of learning all $2^m$ joint effects is old, and the framework sits at the junction of three literatures. The classical answer is the factorial experiment, the workhorse of industrial experimentation. @dasgupta2015causal recast $2^K$ factorial designs in the potential-outcomes framework, defining factorial effects as contrasts among each unit's $2^K$ potential outcomes and deriving randomization-based inference for them, and @li2020rerandomization extend rerandomization to factorial settings so that covariate balance can be enforced jointly across many factors at design time. On a platform running hundreds of concurrent tests, however, the factorial toolkit stops scaling: a full factorial design needs traffic exponential in $m$, and a fractional factorial design identifies only on the order of $m$ effects while deliberately aliasing away the rest, an acceptable sacrifice when high-order interactions are ignorable but not when the interactions are the business question. @egami2019causal confront the same combinatorial explosion in conjoint experiments, where the number of potential causal interactions forces both regularization and a careful choice of estimand. The DeDL move is different in kind: rather than restricting which interactions exist, it restricts how effects combine, through a structural link function, and in exchange recovers the entire $2^m$ surface from $m + 2$ observed cells.
+
+The second stream is experimentation practice on online platforms, treated in Chapter \@ref(sec-experimental-design). The overlapping, orthogonally hashed traffic assignment that makes hundreds of concurrent tests possible was formalized at Google by @tang2010overlapping, and precisely this infrastructure produces the combinatorial blind spot: every user experiences a random combination of many treatments, yet each test is analyzed marginally and joint effects are filled in by linear addition. The platform literature has documented other failures of the one-test-at-a-time lens, including marketplace interference in two-sided platforms [@johari2022experimental] and temporal carryover addressed by switchback designs [@bojinov2023design]; combinatorial experimentation is the complementary failure, arising even with perfectly isolated users because treatments interact within a user. Because the end goal is to ship the estimated best combination, the selection problem also looms: picking the arm with the largest estimate and then reporting that same estimate overstates the winner, the winner's curse for which @andrews2024inference develop exact corrected inference. The best-arm theory below is the asymptotic answer to the same problem.
+
+The third stream is the semiparametric and debiased machine learning theory developed earlier in this chapter. The influence-function calculus behind DeDL is the pathwise-derivative method of @newey1994asymptotic; the orthogonal score plus cross-fitting recipe is @chernozhukov2018double; and the guarantee that a deep network can estimate the nuisance functions at the $o(n^{-1/4})$ rate the second stage requires comes from the deep learning estimation theory of @farrell2021deep, built on approximation results for ReLU networks of the kind established by @schmidthieber2020nonparametric. Where deriving the correction term analytically is impractical, @chernozhukov2022automatic show how to learn it from data with a Lasso-based Riesz representer; DeDL is the opposite design point, a hand-derived correction made possible because both the link function and the assignment mechanism are known. Finally, the empirical stakes are set by @gordon2023close, who show across a large collection of advertising experiments that debiased machine learning applied to observational data can miss the experimental benchmark badly when unconfoundedness fails. The DeDL validation is the mirror image: with experimental data, where unconfoundedness holds by design, the debiased estimator tracks ground truth almost exactly, locating the failure mode of observational applications in the identification assumptions rather than in the estimation machinery.
 
 ### Link Functions and the Structured Network
 
-The choice of $G$ encodes the economic content of the model. @ye2025deep propose four link functions, differing in how they let individual treatment effects combine. The multiplicative form, $G(\theta(x),t) = \theta_0(x)\prod_{k=1}^m (1+\theta_k(x)t_k)$, captures relative, compounding effects but only increasing marginal returns. The sigmoid forms instead use the convex-concave shape of the logistic curve to capture both increasing and decreasing marginal returns within the same model, which is essential given the heterogeneity documented above. The generalized sigmoid form II,
+The choice of $G$ encodes the economic content of the model. @ye2026deep propose four link functions, differing in how they let individual treatment effects combine, and prove identification for each:
 $$
-G(\theta(x), t) = \frac{\theta_{m+1}(x)}{1+\exp\bigl(-(\theta_0(x) + \theta_1(x)t_1 + \cdots + \theta_m(x)t_m)\bigr)},
+\begin{aligned}
+\text{Multiplicative:} \quad & G(\theta(x), t) = \theta_0(x)\prod_{k=1}^m \bigl(1+\theta_k(x)\,t_k\bigr), \\
+\text{Standard sigmoid:} \quad & G(\theta(x), t) = \frac{a}{1+\exp\bigl(-(\theta_0(x) + \textstyle\sum_{k=1}^m \theta_k(x)t_k)\bigr)} + b, \\
+\text{Generalized sigmoid I:} \quad & G(\theta(x), t) = \frac{\theta_{m+1}(x)}{1+\exp\bigl(-\textstyle\sum_{k=1}^m \theta_k(x)t_k\bigr)}, \\
+\text{Generalized sigmoid II:} \quad & G(\theta(x), t) = \frac{\theta_{m+1}(x)}{1+\exp\bigl(-(\theta_0(x) + \textstyle\sum_{k=1}^m \theta_k(x)t_k)\bigr)}.
+\end{aligned}
 $$
-is the most flexible of the four, letting $\theta_{m+1}(x)$ set an individual-specific ceiling on the outcome, and is the specification @ye2025deep adopt for their empirical analysis and their main simulation study. A user near the bottom or top of the sigmoid experiences diminishing returns to further treatment, while a user in the linear part of the curve experiences roughly additive or even accelerating returns, so the same link function nests both of the patterns observed in Figure 1 of the paper.
+The multiplicative form requires uniform bounds $0 < \mu \le \theta_0(x) \le M$ and $\mu \le 1 + \theta_k(x) \le M$, under which taking logarithms shows it is an exponentiated linear index in $t$: two treatments that each raise the outcome by ten percent combine to $(1.1)(1.1) - 1 = 21$ percent. It captures relative, compounding effects but, being globally convex, only increasing marginal returns. The sigmoid forms instead use the convex-concave shape of the logistic curve to capture both increasing and decreasing marginal returns within the same model, which is essential given the heterogeneity documented above. The standard form fixes known constants $a \neq 0$ and $b$, forcing a common outcome range on everyone. The generalized forms free that range through the individual ceiling $\theta_{m+1}(x)$, and form II, which nests the other sigmoid forms, is the specification @ye2026deep adopt for their empirical analysis and their main simulation study. A user near the bottom or top of the sigmoid experiences diminishing returns to further treatment, while a user in the steep middle of the curve experiences roughly additive or even accelerating returns, so the same link function nests both of the patterns observed in Figure 1 of the paper.
 
-The network architecture mirrors the link function directly. Two small feed-forward networks with ReLU activations map covariates $x$ to the parameters $\theta_0(x), \theta_1(x), \dots, \theta_m(x)$; a final layer produces $\theta_{m+1}(x)$; and a fixed, non-trainable sigmoid layer combines these estimated parameters with the observed treatment vector $t$ to produce the predicted outcome. Training minimizes ordinary mean squared error, $\ell(y,t,\theta(x)) = (y - G(\theta(x),t))^2$, exactly as in a standard regression network; the only departure from an off-the-shelf DNN is that the treatment enters through the final structural layer rather than as an ordinary input feature.
+The point is easiest to see with the paper's own two-user illustration, which the following chunk reproduces exactly. Both user types have an expected outcome of 5 under control and 7 under either single treatment, so any linearly additive rule predicts $5 + 2 + 2 = 9$ under the combined treatment, an ATE of 4. The two types differ only in their ceiling $\theta_{m+1}$.
 
-This structure has a striking practical payoff. Because the link function has only $m+2$ free nuisance components per individual ($\theta_0,\ldots,\theta_m,\theta_{m+1}$), identification and convergence of $\hat\theta(\cdot)$ require observing only $m+2$ of the $2^m$ treatment combinations, the control condition, each of the $m$ individual experiments, and one combination of two, rather than all $2^m$. For ten concurrent experiments this is $12$ combinations instead of $1{,}024$, a reduction from exponential to linear traffic requirements that is what makes the framework usable on a real platform.
+```{r combexp-sigmoid-example, fig.cap="The generalized sigmoid link resolves identical single-treatment effects into opposite interaction patterns. Both user types move from an expected outcome of 5 under control to 7 under either single treatment, so an additive rule predicts 9 under the combined treatment (dotted line). The type with ceiling 10 is already high on its curve, so the combined treatment yields 8.45, diminishing returns; the type with ceiling 20 sits on the steep part of its curve, so the combined treatment yields 9.30, increasing returns.", message=FALSE, warning=FALSE}
+library(ggplot2)
 
-### Debiasing via the Influence Function
+sigmoid_curve <- function(ceiling) {
+  th0 <- qlogis(5 / ceiling)              # control point solves G = 5
+  thk <- qlogis(7 / ceiling) - th0        # single-treatment point solves G = 7
+  u <- seq(th0 - 1.5, th0 + 2 * thk + 1.5, length.out = 300)
+  data.frame(u = u, G = ceiling * plogis(u),
+             ceiling = paste("Ceiling", ceiling),
+             u0 = th0, u1 = th0 + thk, u2 = th0 + 2 * thk)
+}
+curves <- rbind(sigmoid_curve(10), sigmoid_curve(20))
+pts <- do.call(rbind, lapply(split(curves, curves$ceiling), function(d) {
+  cl <- as.numeric(sub("Ceiling ", "", d$ceiling[1]))
+  u_pts <- c(d$u0[1], d$u1[1], d$u2[1])
+  data.frame(ceiling = d$ceiling[1], u = u_pts, G = cl * plogis(u_pts),
+             label = c("control", "one treatment", "both treatments"))
+}))
+
+ggplot(curves, aes(u, G)) +
+  geom_line() +
+  geom_point(data = pts, aes(shape = label), size = 2.5) +
+  geom_hline(yintercept = 9, linetype = "dotted") +
+  facet_wrap(~ ceiling, scales = "free_x") +
+  labs(x = "Linear index u", y = "Expected outcome", shape = NULL) +
+  causalverse::ama_theme()
+
+combined <- sapply(c(10, 20), function(cl)
+  cl * plogis(qlogis(5 / cl) + 2 * (qlogis(7 / cl) - qlogis(5 / cl))))
+round(c(ceiling10 = combined[1], ceiling20 = combined[2]), 3)
+```
+
+The combined-treatment outcomes are 8.45 for the first type and 9.30 for the second, ATEs of 3.45 and 4.30 against the additive prediction of 4. A population mixing the two types has a diminishing-returns aggregate exactly when the first type's share exceeds $(4.30 - 4)/(4.30 - 3.45) \approx 36$ percent, so the same platform can flip between synergy and crowd-out as its user mix shifts, a fact no additive model can represent and precisely the heterogeneity in Figure 1 of @ye2026deep.
+
+The network architecture mirrors the link function directly. Two small feed-forward networks with ReLU activations map covariates $x$ to the parameters $\theta_0(x), \theta_1(x), \dots, \theta_m(x)$; a final layer produces $\theta_{m+1}(x)$; and a fixed, non-trainable sigmoid layer combines these estimated parameters with the observed treatment vector $t$ to produce the predicted outcome. In the empirical deployment each subnetwork has three hidden layers of 20 nodes, the input layer has 87 nodes (the platform's 26 raw covariates after dummy coding), and the ceiling is a single trainable scalar interpretable as the maximum feasible daily watch time; the whole model is trained with Adam under ordinary mean squared error, $\ell(y,t,\theta(x)) = (y - G(\theta(x),t))^2$, exactly as in a standard regression network. The only departure from an off-the-shelf DNN is that the treatment enters through the final structural layer rather than as an ordinary input feature.
+
+### Identification with m + 2 Observed Combinations
+
+The structural layer has a striking payoff: the entire $2^m$ response surface is identified from $m + 2$ observed combinations. The formal requirements are mild. On the data side, observations are i.i.d. and bounded, and each component of $\theta^*(\cdot)$ is uniformly bounded and $p$-smooth (it lies in a Hölder ball), the standard smoothness currency of nonparametric estimation. On the design side, two conditions on the assignment mechanism do all the work. First, writing $\tilde T = (1, T')'$, the matrix $\mathbb{E}[\tilde T \tilde T' \mid X = x]$ must be positive definite uniformly in $x$, which holds as soon as the control condition and each of the $m$ single-treatment conditions receive positive probability. Second, for the generalized sigmoid form II the ceiling must be pinned down, which requires $|\theta_{m+1}(x)| > 0$ and one overlapping pair of treatment sets: a triplet $(i, S_1, S_2)$ with $i \notin S_1 \cup S_2$ and $S_1 \neq S_2$ such that the four combinations $t(S_1)$, $t(S_1 \cup \{i\})$, $t(S_2)$, $t(S_2 \cup \{i\})$ all occur with positive probability, plus a non-degeneracy condition ruling out a knife-edge coincidence among their conditional means. Observing the control, the $m$ singletons, and one pair such as $t(\{1,2\})$ satisfies everything, taking $i = 1$, $S_1 = \{2\}$, $S_2 = \emptyset$: hence $m + 2$ cells.
+
+The identification argument is a ratio trick worth seeing. Under form II,
+$$
+\frac{\theta_{m+1}(x)}{G(\theta(x), t)} - 1 = \exp\bigl(-(\theta_0(x) + \theta_1(x)t_1 + \cdots + \theta_m(x)t_m)\bigr),
+$$
+so adding treatment $i$ to any set $S$ multiplies the left side by the same factor $e^{-\theta_i(x)}$ regardless of $S$. Equating that factor across the two sets,
+$$
+\frac{\theta_{m+1}/G(\theta, t(S_1 \cup \{i\})) - 1}{\theta_{m+1}/G(\theta, t(S_1)) - 1}
+=
+\frac{\theta_{m+1}/G(\theta, t(S_2 \cup \{i\})) - 1}{\theta_{m+1}/G(\theta, t(S_2)) - 1},
+$$
+gives one equation in the single unknown $\theta_{m+1}(x)$ whose coefficients are four observable conditional means, and the non-degeneracy condition guarantees a unique solution. With the ceiling known, dividing it out and inverting the logistic function recovers the linear index $\theta_0(x) + \theta(x)'t$ at every observed cell, and the rank condition on $\mathbb{E}[\tilde T \tilde T' \mid x]$ identifies $(\theta_0, \dots, \theta_m)$ exactly as in a linear regression of the inverted index on $\tilde T$. Nothing in this argument uses more than $m + 2$ cells. For ten concurrent experiments that is 12 combinations instead of $1{,}024$, about one percent of the full factorial burden, and the traffic requirement grows linearly rather than exponentially in $m$, which is what makes the framework usable on a real platform.
+
+Convergence comes packaged with identification. @ye2026deep prove that with a structured network of width $O\bigl(n^{d_X / (2(p + d_X))} \log^2 n\bigr)$ and depth $O(\log n)$, the empirical-loss minimizer satisfies, with probability approaching one,
+$$
+\bigl\|\hat\theta_k - \theta^*_k\bigr\|_{L^2(X)}^2 \;\le\; C\left(n^{-\frac{p}{p + d_X}} \log^8 n + \frac{\log\log n}{n}\right)
+$$
+for each component $k$. The proof sandwiches the nuisance error between multiples of the excess prediction risk, $c_1\,\mathbb{E}\|\theta - \theta^*\|_2^2 \le \mathbb{E}[\ell(\theta)] - \mathbb{E}[\ell(\theta^*)] \le c_2\,\mathbb{E}\|\theta - \theta^*\|_2^2$, so the deep learning theory that controls how well the network predicts outcomes [@farrell2021deep; @schmidthieber2020nonparametric] transfers to how well it recovers the structural parameters. The lower inequality, called sufficient curvature, is exactly where the identification conditions and the assignment design earn their keep. The resulting rate is $o(n^{-1/4})$, as the second stage requires, whenever the smoothness $p$ exceeds the covariate dimension $d_X$ up to logarithmic factors, the familiar semiparametric trade-off between dimension and smoothness.
+
+### Deriving the Influence Function
 
 A network trained this way delivers an accurate predictor of $\mathbb{E}[Y\mid X,T]$, but the plug-in estimator of the average treatment effect,
 $$
 \hat\mu(t) = \frac{1}{n}\sum_{i=1}^n \Bigl(G(\hat\theta(x_i), t) - G(\hat\theta(x_i), t_0)\Bigr),
 $$
-inherits the same regularization bias problem that motivated double machine learning earlier in this chapter, now amplified by the fact that $\theta(\cdot)$ is vector-valued and the link function is nonlinear in $\theta$. @ye2025deep derive the semiparametric influence function for $\mu(t)$ using the pathwise-derivative method, obtaining a plug-in term corrected by a debiasing term,
+inherits the same regularization bias problem that motivated double machine learning earlier in this chapter, now amplified by the fact that $\theta(\cdot)$ is vector-valued and the link function is nonlinear in $\theta$. The remedy is the influence function for $\mu(t)$, which @ye2026deep derive by the pathwise-derivative method of @newey1994asymptotic. Define the advantage function $H(x, \theta(x); t, t_0) := G(\theta(x), t) - G(\theta(x), t_0)$, so that $\mu(t) = \mathbb{E}[H(X, \theta^*(X); t, t_0)]$, and let $\ell_\theta = 2\,(G - y)\,G_\theta$ denote the gradient of the squared loss with respect to $\theta$. Differentiating the loss twice and taking conditional expectations gives the generalized information matrix
+$$
+\Lambda(x) := \mathbb{E}\bigl[\ell_{\theta\theta} \mid X = x\bigr]
+= 2\,\mathbb{E}\bigl[G_\theta G_\theta' \mid X = x\bigr] + 2\,\mathbb{E}\bigl[G_{\theta\theta}\,(G - Y) \mid X = x\bigr]
+= 2\,\mathbb{E}\bigl[G_\theta(\theta^*(x), T)\,G_\theta(\theta^*(x), T)' \mid X = x\bigr],
+$$
+where the middle term vanishes because $\mathbb{E}[Y \mid X, T] = G$ at the truth. Because the assignment mechanism $\nu(\cdot \mid x)$ is known, $\Lambda(x)$ is a finite weighted sum over the observed support and requires no additional estimation, one of the two places where the experimental setting pays off (the other being that unconfoundedness holds by design).
+
+The derivation runs along a smooth parametric submodel indexed by $\eta$, with score $S(z)$ and truth at $\eta = 0$, under which both the covariate density $f(x;\eta)$ and the nuisance $\theta(x; \eta)$ vary, and asks which function $\psi$ satisfies $\partial_\eta\, \mu(\eta)\vert_{\eta=0} = \mathbb{E}[\psi(Z) S(Z)]$ for every such submodel; by the Riesz-representation logic of @newey1994asymptotic that $\psi$, centered at $\mu(t)$, is the influence function. Differentiating $\mu(\eta) = \int H(x, \theta(x; \eta); t, t_0)\, f(x; \eta)\, dx$ by the product rule gives a term through the density, which the usual score identities turn into $\mathbb{E}[H\,S(Z)]$, and a term through the nuisance path, $\mathbb{E}[H_\theta' \,\partial_\eta \theta(X; \eta)]$. The key step eliminates the unknowable path derivative $\partial_\eta \theta$: because $\theta(\cdot; \eta)$ minimizes squared loss at every $\eta$, the conditional first-order condition $\mathbb{E}_\eta[\ell_\theta(Z, \theta(X;\eta)) \mid X = x] \equiv 0$ holds identically in $\eta$, and differentiating this identity in $\eta$ and solving yields
+$$
+\partial_\eta \theta(x; \eta)\big\vert_{\eta=0} = -\,\Lambda(x)^{-1}\, \mathbb{E}\bigl[\ell_\theta\, S(Y, T \mid X)\ \big\vert\ X = x\bigr].
+$$
+Substituting back and collecting both pieces as a single expectation against the score produces
 $$
 \psi(z,\theta,\Lambda; t, t_0) = \underbrace{H(x,\theta(x); t,t_0)}_{\text{plug-in}} - \underbrace{H_\theta(x,\theta(x);t,t_0)' \Lambda(x)^{-1} \ell_\theta(y,\check t,\theta(x))}_{\text{debiasing term}},
 $$
-where $H(x,\theta(x);t,t_0) = G(\theta(x),t) - G(\theta(x),t_0)$ is the advantage of combination $t$ over the control, $H_\theta$ and $\ell_\theta$ are the gradients of $H$ and of the training loss with respect to $\theta$, and $\Lambda(x) = 2\,\mathbb{E}[G_\theta(\theta(x),T)G_\theta(\theta(x),T)' \mid X=x]$ is a generalized information matrix computed from the known treatment-assignment mechanism. Because the debiasing term removes the first-order sensitivity of $\hat\mu(t)$ to errors in $\hat\theta$, the resulting estimator is Neyman orthogonal, exactly the property that made double machine learning valid earlier in the chapter, now derived for a vector-valued nuisance sitting inside a nonlinear structural layer rather than a scalar regression function.
+where $\check t$ is the treatment combination the user actually received and $H_\theta = G_\theta(\theta(x), t) - G_\theta(\theta(x), t_0)$. The debiasing term is a product of three computable gradients, and for the generalized sigmoid form II every piece is available in closed form: writing $s = 1/(1 + e^{-u})$ with $u = \theta_0(x) + \theta(x)'t$, the gradient is $G_{\theta_k} = \theta_{m+1}\, s(1-s)\,\tilde t_k$ for $k = 0, \dots, m$ (with $\tilde t = (1, t')'$) and $G_{\theta_{m+1}} = s$.
 
-Combined with cross-fitting, this yields the DeDL algorithm: split the data, train the structured network on one part to obtain $\hat\theta(\cdot)$ and $\hat\Lambda(\cdot)$, then average the influence function $\psi$ over the held-out part to construct
+Two properties make $\psi$ work. First, at the truth the debiasing term has conditional mean zero given $X$, because it is a linear transformation of $\ell_\theta$ and the first-order condition sets $\mathbb{E}[\ell_\theta \mid X] = 0$; so $\mathbb{E}[\psi] = \mu(t)$, and the correction adds no bias, only the sampling variability that the plug-in estimator wrongly ignores. Second, $\psi$ is Neyman orthogonal. Perturb the nuisance $\theta^* \to \theta^* + r\delta$ and differentiate at $r = 0$: the plug-in piece moves by $\mathbb{E}[H_\theta'\delta]$, while the correction piece moves by $\mathbb{E}[H_\theta' \Lambda^{-1}\, \mathbb{E}(\ell_{\theta\theta} \mid X)\, \delta] = \mathbb{E}[H_\theta' \Lambda^{-1} \Lambda\, \delta] = \mathbb{E}[H_\theta'\delta]$, and the two movements cancel exactly. First-order errors in the trained network therefore do not propagate into the estimate, the same cancellation that drove the partially linear model earlier in this chapter, now executed for a vector-valued nuisance inside a nonlinear structural layer. Invertibility of $\Lambda(x)$ reduces, under the $m+2$ design, to the same kind of knife-edge exclusion as in the identification argument: the gradient vectors across the observed cells form a matrix of full rank $m + 2$ except on a measure-zero coincidence. In practice one adds a small ridge, $\hat\Lambda(x) + 0.0005\, I$, the moral equivalent of propensity-score trimming, which is exactly what the authors' own implementation does.
+
+### Cross-Fitting, Confidence Intervals, and Best-Arm Inference
+
+Combined with cross-fitting, the influence function yields the DeDL algorithm. Split the sample into $S$ folds. For each fold $s$, train the structured network on the other folds to obtain $\hat\theta_s(\cdot)$, compute $\hat\Lambda_s(\cdot)$ directly from $\hat\theta_s$ and the known assignment mechanism, and average the influence function over the held-out fold:
 $$
-\hat\mu_{\text{DeDL}}(t) = \frac{1}{|S|}\sum_{i \in S} \psi(z_i, \hat\theta(x_i), \hat\Lambda(x_i); t, t_0), \qquad
-\hat\Psi_{\text{DeDL}}(t;\mu) = \frac{1}{|S|}\sum_{i \in S}\bigl(\psi_i - \hat\mu_{\text{DeDL}}(t)\bigr)^2,
+\hat\mu_{\text{DeDL}}(t) = \frac{1}{S}\sum_{s=1}^S \frac{1}{|S_s|}\sum_{i \in S_s} \psi(z_i, \hat\theta_s(x_i), \hat\Lambda_s(x_i); t, t_0), \qquad
+\hat\Psi_{\text{DeDL}}(t;\mu) = \frac{1}{S}\sum_{s=1}^S \frac{1}{|S_s|}\sum_{i \in S_s}\bigl(\psi_i - \hat\mu_{\text{DeDL}}(t)\bigr)^2,
 $$
-with the resulting Wald confidence interval $\hat\mu_{\text{DeDL}}(t) \pm z_{1-\alpha/2}\sqrt{\hat\Psi_{\text{DeDL}}(t;\mu)/n}$. Under regularity conditions that require the network to converge at the rate $\|\hat\theta - \theta^*\|_{L^2} = o(n^{-1/4})$, standard for DNN estimators, @ye2025deep prove $\hat\mu_{\text{DeDL}}(t)$ is $\sqrt n$-consistent and asymptotically normal for every treatment combination $t$ simultaneously, and that the empirically best combination $\hat t^* = \arg\max_t \hat\mu_{\text{DeDL}}(t)$ agrees with the true best combination with probability approaching one. The same influence-function machinery, applied to the advantage of $\hat t^*$ over any other combination, delivers valid inference for the best-arm identification problem as well.
+with the Wald confidence interval $\hat\mu_{\text{DeDL}}(t) \pm z_{1-\alpha/2}\sqrt{\hat\Psi_{\text{DeDL}}(t;\mu)/n}$. Because the treatment distribution is known, two-way splitting suffices; with an unknown assignment mechanism a third split would be needed to estimate $\Lambda$ separately. Under the conditions above, with the network converging at $\|\hat\theta - \theta^*\|_{L^2} = o(n^{-1/4})$, @ye2026deep prove that $\sqrt{n}\,\hat\Psi_{\text{DeDL}}(t;\mu)^{-1/2}\,(\hat\mu_{\text{DeDL}}(t) - \mu(t)) \to_d \mathcal{N}(0,1)$ for every treatment combination $t$, observed or not, so Wald intervals are valid across the whole lattice of combinations.
+
+Best-arm identification rides on the same machinery with one genuine subtlety. The natural estimator $\hat t^* := \arg\max_t \hat\mu_{\text{DeDL}}(t)$ and the regret estimator $\hat\tau_{\text{DeDL}}(t) := \hat\mu_{\text{DeDL}}(\hat t^*) - \hat\mu_{\text{DeDL}}(t)$ are built from an arm that was itself chosen with the data, so fixed-parameter asymptotics do not apply directly. The proof introduces an infeasible companion anchored at the true best arm, $\hat\zeta(t) := \hat\mu(t^*) - \hat\mu(t)$, which is asymptotically normal by the fixed-arm theory since $\psi(z, \theta, \Lambda; t^*, t)$ is just the influence function with the control condition replaced by $t$. If the best arm is unique, consistency of every $\hat\mu(t)$ plus a union bound over the $2^m - 1$ competitors gives $\mathbb{P}[\hat t^* = t^*] \to 1$, so the feasible and infeasible estimators coincide with probability approaching one and, by Slutsky's theorem, $\hat\tau_{\text{DeDL}}(t)$ inherits the normal limit. Testing whether the winner's lead is real then amounts to checking which combinations have $\hat\tau$ significantly above zero, and the set of arms whose regret interval covers zero is the honest statement of what the experiment ruled in. The caveat is that the selection argument is asymptotic: when the top arms are nearly tied relative to sampling noise, the event $\hat t^* \neq t^*$ retains nonvanishing probability at any finite $n$ and the winner's estimate is biased upward, the winner's curse. In that regime the conditional and hybrid corrections of @andrews2024inference are the finite-sample complement to the DeDL asymptotics, and reporting the full set of statistically indistinguishable arms rather than a single point winner is the sensible practice, especially as $m$ grows and near-ties multiply.
 
 ### Evidence from a Large-Scale Platform
 
-@ye2025deep validate the framework on data from three concurrent A/B tests on a short-video platform, each testing a recommendation-algorithm change on a different product surface (a discovery page, a live-stream page, and a personalized feed). Because the platform ran all three experiments on the same population under a fully factorial deployment, the outcomes of all $2^3=8$ treatment combinations are genuinely observed for roughly 2.07 million stratified users, which lets the authors treat five combinations as "observed" (the control, the three individual experiments, and the fully combined treatment, the combinations a platform would realistically see from independent A/B tests followed by one back-test) and three as artificially "unobserved," then check whether DeDL, trained only on the observed combinations, recovers the true, independently measured effects of the held-out ones.
+@ye2026deep validate the framework on three concurrent A/B tests run between January 10 and February 1, 2021 on Platform O, a short-video platform serving billions of users. Each test changed the video recommendation algorithm on a different product surface: the discovery page (first coordinate), the live-stream page (second), and the personalized feed (third). Every user was independently assigned to each test's treatment with probability $0.6$, an orthogonal design whose product-Bernoulli assignment mechanism is known exactly, and the three tests happened to target the same population of $4.45$ million users, so all $2^3=8$ treatment combinations are genuinely observed, the rare architecture that makes ground-truth validation possible. The outcome is each user's total daily screen time across the three pages, the platform's primary engagement metric. Because some of the $26$ pre-treatment covariates ($16$ discrete and $10$ continuous, spanning demographics, device type, social-graph size, and pre-period watch behavior) were imperfectly balanced in the raw data, the authors stratify: they discretize the continuous covariates by quartiles, partition users into $69{,}111$ strata, and sample equal numbers per treatment cell within each stratum, yielding a stratified sample of $2{,}066{,}606$ users, roughly $258{,}000$ per combination, that passes randomization checks on demographics and pre-period behavior (all $p > 0.05$). For validation they then treat five combinations as observed (the control, the three individual experiments, and the fully combined treatment, the cells a platform would realistically see from independent A/B tests followed by one back-test) and three as artificially unobserved, and ask whether DeDL, fit on the roughly $1.29$ million observed-cell users with four-fold cross-fitting, recovers the true, independently measured effects of the held-out cells.
 
 ```{r combexp-platform-o-table, echo=FALSE}
 knitr::kable(
   data.frame(
     Combination = c("(0,0,0)", "(0,0,1)", "(0,1,0)", "(1,0,0)", "(1,1,1)", "(1,1,0)", "(1,0,1)", "(0,1,1)"),
-    `Relative ATE` = c("0.000%", "-1.091%", "-0.267%", "-0.758%", "-2.121%", "-0.689%", "-2.299%", "-1.387%"),
+    `Relative ATE` = c("0.000%", "+1.091%", "-0.267%", "+0.758%", "+2.121%", "+0.689%", "+2.299%", "+1.387%"),
+    `Significance` = c("reference", "p < 0.01", "not significant", "p < 0.05", "p < 0.0001", "not significant", "p < 0.0001", "p < 0.001"),
     `Observed?` = c("Yes", "Yes", "Yes", "Yes", "Yes", "No", "No", "No"),
     check.names = FALSE
   ),
-  caption = "Ground-truth relative average treatment effect for all eight combinations of three concurrent experiments on Platform O, and which were treated as observed versus artificially held out for validation. The best arm is $t^*=(1,0,1)$. Source: @ye2025deep, Table 2.",
-  align = c("l", "r", "c")
+  caption = "Ground-truth relative average treatment effect on total daily screen time for all eight combinations of three concurrent experiments on Platform O, and which combinations were treated as observed versus artificially held out for validation. The best arm is $t^*=(1,0,1)$: treat the discovery page and the personalized feed, leave the live page at control. Source: @ye2026deep, Table 2.",
+  align = c("l", "r", "l", "c")
 )
 ```
+
+The ground truth alone already refutes linear additivity. Adding the individual effects predicts $1.091 + 0.758 = 1.849$ percent for the combination $(1,0,1)$, understating its true effect of $2.299$ percent by roughly a fifth: the discovery-page and feed treatments are synergistic. In the other direction, the fully combined deployment $(1,1,1)$, the one configuration platforms do routinely back-test, delivers $2.121$ percent, less than $(1,0,1)$ alone, so layering the live-page treatment on top of the best pair destroys about $0.18$ points of engagement even though that treatment is close to neutral on its own. A platform that shipped everything and trusted the back-test would leave roughly eight percent of the attainable engagement gain on the table, and discovering that requires estimating precisely the combinations nobody tested. The linear-addition heuristic does point at the right arm in this particular configuration, because the live-page treatment's solo estimate is already negative, but it misprices that arm by twenty percent and misjudges the direction or significance of other combinations, and in the synthetic experiments reported below its best-arm accuracy collapses as $m$ grows.
 
 ```{r combexp-platform-o-metrics, echo=FALSE}
 knitr::kable(
@@ -260,16 +657,33 @@ knitr::kable(
     `MAPE (all 8)` = c("12.02%", "17.37%", "14.76%", "14.03%", "3.07%"),
     check.names = FALSE
   ),
-  caption = "Performance of DeDL against linear-addition, linear-regression, pure-DNN, and undebiased structured-DNN benchmarks in recovering the ATE of held-out treatment combinations and of all eight combinations. Source: @ye2025deep, Table 3.",
+  caption = "Performance of DeDL against linear-addition, linear-regression, pure-DNN, and undebiased structured-DNN benchmarks in recovering the ATE of held-out treatment combinations and of all eight combinations. Source: @ye2026deep, Table 3.",
   align = c("l", "r", "r", "r", "r")
 )
 ```
 
 The comparison in the second table is the paper's central empirical result: DeDL dominates every benchmark on every metric, correctly signing and identifying the significance of all three held-out combinations while the linear-addition and linear-regression benchmarks each miss one, and cutting the mean absolute percentage error on held-out combinations by roughly two-thirds relative to the next-best method. Comparing the undebiased structured DNN (SDL) against DeDL isolates the value of the influence-function correction specifically: without debiasing, the confidence intervals are too narrow and understate the true sampling variability, which would inflate false discovery rates in a platform that used them to decide which combination to ship, while DeDL's intervals have the correct coverage. The authors also report a revealing interaction with training quality: the advantage of debiasing over the plug-in SDL estimator only appears once the network is trained to convergence, tracking the same $o(n^{-1/4})$ rate condition that the theory requires; with an undertrained network, or with a badly misspecified link function, debiasing can inject more noise than it removes, so in practice one should monitor the network's cross-validation loss, and compare it to an unrestricted DNN that also takes treatment as a direct input, before trusting the debiased estimates.
 
+```{r combexp-platform-o-bestarm, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Estimator = c("Linear addition", "Linear regression", "Pure DNN", "Structured DNN (no debias)", "DeDL"),
+    `Correct direction` = c("7/8", "7/8", "7/8", "8/8", "8/8"),
+    `MAPE` = c("21.92%", "11.86%", "12.83%", "17.45%", "5.97%"),
+    check.names = FALSE
+  ),
+  caption = "Best-arm identification on Platform O: accuracy of each estimator for the regret of every combination relative to the identified best arm. Correct direction counts combinations whose regret is correctly signed with the correct significance. Source: @ye2026deep, Table 4.",
+  align = c("l", "r", "r")
+)
+```
+
+Best-arm identification sharpens the same message. Every estimator points at $(1,0,1)$ as the winner in this three-experiment problem, but they differ sharply in how well they measure each arm's regret $\tau(t)$, which is what a manager needs in order to know how much worse any alternative deployment would be. DeDL signs every regret correctly with the right significance and estimates regret magnitudes with a mean absolute percentage error near six percent, half the error of the next-best benchmark; the undebiased structured network also signs everything correctly but misprices regrets by seventeen percent. The regret scale is the platform's decision currency, and in a closer contest a mispricing of that size is the difference between ranking two adjacent arms correctly and shipping the wrong one.
+
+The fold-level detail behind these averages carries a practical lesson of its own. In the four-fold cross-fitting, individual folds can be far off: for the fully combined arm $(1,1,1)$, three folds estimate between $2.30$ and $2.46$ percent while one fold lands at $1.25$ percent, an absolute percentage error above forty percent, yet the cross-fitted average comes in at $2.118$ percent against a truth of $2.121$, an error of about a tenth of a percent. The pattern repeats for the held-out arm $(0,1,1)$, where fold estimates range from $0.70$ to $2.13$ percent but the average misses the truth by under three percent. Single-fold estimates from a trained network are noisy in exactly the way the theory predicts, and averaging over folds is not a cosmetic refinement but the mechanism that delivers the accuracy, one more reason never to skip or truncate the cross-fitting step.
+
 ### Official Replication Package
 
-@ye2025deep have released an official code and data package at [github.com/zikunye2/deep_learning_based_causal_inference_for_combinatorial_experiments](https://github.com/zikunye2/deep_learning_based_causal_inference_for_combinatorial_experiments), which is worth knowing about independently of the replication below. The repository ships two Jupyter notebooks, `main.ipynb` and `figure1.ipynb`, that reproduce every table and figure in the paper, including the heterogeneity plot in Figure 1, Tables 2 through 4 above, and the CATE and four-fold-DeDL results in Tables 5 through 7 that space does not permit covering here. Because Platform O's real data are proprietary, the authors instead release a synthetic stand-in, `synthetic_data.csv`, with 50,000 rows carrying the same schema as the real deployment: 78 pre-treatment covariates (device, browsing, geography, follower and fan counts, activity level), the three binary treatment indicators `is_DP`, `is_LP`, `is_FYP`, an outcome `y`, and a pre-assigned `kfold` column for the four-way cross-fitting behind Table 7. The synthetic outcome does not reproduce the literal proprietary effect sizes in Table 2, so it validates the pipeline rather than the published numbers, but it is a substantially more realistic covariate structure than a hand-rolled simulation, and readers who want to run the authors' own PyTorch implementation on data with genuine platform-scale dimensionality should start there.
+@ye2026deep have released an official code and data package at [github.com/zikunye2/deep_learning_based_causal_inference_for_combinatorial_experiments](https://github.com/zikunye2/deep_learning_based_causal_inference_for_combinatorial_experiments), which is worth knowing about independently of the replication below. The repository ships two Jupyter notebooks, `main.ipynb` and `figure1.ipynb`, that reproduce every table and figure in the paper, including the heterogeneity plot in Figure 1, the ground-truth, benchmark, and fold-level results reproduced above, and the CATE analyses that space does not permit covering here. Because Platform O's real data are proprietary, the authors instead release a synthetic stand-in, `synthetic_data.csv`, with 50,000 rows carrying the same schema as the real deployment: 87 pre-treatment covariate columns (device, browsing, geography, follower and fan counts, and activity level, dummy coded exactly as in the deployed model's 87-node input layer), the three binary treatment indicators `is_DP`, `is_LP`, `is_FYP`, an outcome `y`, and a pre-assigned `kfold` column for the four-way cross-fitting behind Table 7. The synthetic outcome does not reproduce the literal proprietary effect sizes in Table 2, so it validates the pipeline rather than the published numbers, but it is a substantially more realistic covariate structure than a hand-rolled simulation, and readers who want to run the authors' own PyTorch implementation on data with genuine platform-scale dimensionality should start there.
 
 ### Replicating the Framework End to End
 
@@ -615,9 +1029,182 @@ ggplot(mae_long, aes(x = m, y = MAE, color = Estimator)) +
 
 The qualitative pattern matches the paper's own Figure 8: the linear-addition and linear-regression estimators, which hard-code an additive structure that becomes more wrong as more experiments interact, do not improve as $m$ grows and often worsen, while the structured network, trained on only $m+2$ observed combinations no matter how large $m$ is, holds up because its sigmoid link nests genuine nonlinear interaction. This is the practical case for the framework: a platform that already runs hundreds of concurrent experiments cannot expand its factorial coverage as $m$ grows, but a structured, orthogonalized deep network can still deliver valid, increasingly necessary estimates of combinations it has never tested.
 
+Against the paper's own full-scale version of this sweep (200 replications per configuration, Tables 8 and 9 of @ye2026deep), the ordering here is the same. Their DeDL estimator holds a mean absolute percentage error of 7 to 17 percent as $m$ rises from 4 to 10 while linear addition sits at 23 to 32 percent, and DeDL still finds the exact best arm among $1{,}024$ combinations in 79 percent of replications at $m = 10$, against 59 percent for linear addition and 56 percent for the undebiased network. Their sweeps hold the network width fixed at ten hidden nodes for comparability, and the authors verify that the mild degradation of the structured estimators with $m$ disappears when the width grows with the problem, so the binding constraint is network capacity rather than the framework itself.
+
+### Coverage and Best-Arm Selection under Controlled First-Stage Bias
+
+The deepest claim of the theory is not point-estimate accuracy but the validity of the confidence intervals, and that claim is hard to check with a trained network because the network's true estimation error is unknown. @ye2026deep resolve this in their second synthetic study with a device in the spirit of @chernozhukov2018double: skip training entirely and manufacture the first-stage error by hand. The true nuisances are linear, $\theta_j^*(x) = A_{[j+1]} x$, and the estimator handed to the second stage is $\hat\theta_j(x) = (1 + \mathrm{err}_j)\,\theta_j^*(x)$ with $\mathrm{err}_j$ drawn uniformly from $[-\delta, \delta]$, so the bias level $\delta$ is a dial rather than an unknown. A fixed bias of this kind deliberately violates the $o(n^{-1/4})$ premise, which makes it the right stress test: it reveals what the debiasing term buys when the first stage is mediocre, the realistic operating condition. We replicate the design exactly ($m = 4$, the same $m+2$ partially observed cells, 200 replications per bias level) and add the two diagnostics the paper does not report directly: the empirical coverage of nominal 95 percent intervals, and the best-arm hit rate of every estimator.
+
+```{r combexp-bias-fn, cache=TRUE}
+sig_of <- function(th, Tmat) {
+  u <- th[, 1] + rowSums(th[, -1, drop = FALSE] * Tmat)
+  1 / (1 + exp(-u))
+}
+
+run_bias_rep <- function(m = 4L, dX = 10L, n = 2000L, delta, seed) {
+  set.seed(seed)
+  A <- matrix(runif((m + 1) * dX, -0.5, 0.5), nrow = m + 1)
+  th_m1 <- runif(1, 10, 20)
+
+  all_combos <- as.matrix(expand.grid(rep(list(0:1), m)))
+  storage.mode(all_combos) <- "double"
+  obs_support <- rbind(all_combos[rowSums(all_combos) <= 1, , drop = FALSE],
+                       c(1, 1, rep(0, m - 2)))
+  n_support <- nrow(obs_support)
+  t0 <- rep(0, m)
+
+  X <- matrix(runif(n * dX), n, dX)
+  Tmat <- obs_support[sample.int(n_support, n, replace = TRUE), , drop = FALSE]
+  th_star <- X %*% t(A)
+  y <- th_m1 * sig_of(th_star, Tmat) + runif(n, -0.05, 0.05)
+
+  # Injected first-stage bias in place of a trained network.
+  err <- runif(m + 2, -delta, delta)
+  th_hat <- th_star * matrix(1 + err[1:(m + 1)], n, m + 1, byrow = TRUE)
+  th_m1_hat <- (1 + err[m + 2]) * th_m1
+
+  # True ATEs by sample average approximation.
+  Xmc <- matrix(runif(10000L * dX), 10000L, dX)
+  th_mc <- Xmc %*% t(A)
+  s0_mc <- sig_of(th_mc, matrix(t0, 10000L, m, byrow = TRUE))
+  mu_true <- apply(all_combos, 1, function(t)
+    mean(th_m1 * sig_of(th_mc, matrix(t, 10000L, m, byrow = TRUE))) -
+      mean(th_m1 * s0_mc))
+
+  # Per-unit debiasing correction Lambda^{-1} ell_theta; the gradient of the
+  # generalized sigmoid II link is (th_m1 * s(1-s) * (1, t), s), all closed form.
+  d <- m + 2L
+  s_obs <- sapply(seq_len(n_support), function(k)
+    sig_of(th_hat, matrix(obs_support[k, ], n, m, byrow = TRUE)))
+  s_i <- sig_of(th_hat, Tmat)
+  resid_i <- th_m1_hat * s_i - y
+  correction <- matrix(0, n, d)
+  for (i in seq_len(n)) {
+    Lam <- matrix(0, d, d)
+    for (k in seq_len(n_support)) {
+      sk <- s_obs[i, k]
+      g <- c(th_m1_hat * sk * (1 - sk) * c(1, obs_support[k, ]), sk)
+      Lam <- Lam + outer(g, g)
+    }
+    Lam <- Lam * 2 / n_support + diag(5e-4, d)
+    g_i <- c(th_m1_hat * s_i[i] * (1 - s_i[i]) * c(1, Tmat[i, ]), s_i[i])
+    correction[i, ] <- solve(Lam, 2 * g_i * resid_i[i])
+  }
+
+  # Linear benchmarks fit on the same observed sample.
+  y0bar <- mean(y[rowSums(Tmat) == 0])
+  la <- sapply(seq_len(m), function(k) {
+    sel <- Tmat[, k] == 1 & rowSums(Tmat) == 1
+    mean(y[sel]) - y0bar
+  })
+  lr_dat <- data.frame(y = y, X, Tmat)
+  names(lr_dat) <- c("y", paste0("x", 1:dX), paste0("t", 1:m))
+  lr_coefs <- coef(lm(y ~ ., data = lr_dat))[paste0("t", 1:m)]
+
+  s_0 <- sig_of(th_hat, matrix(t0, n, m, byrow = TRUE))
+  out <- data.frame()
+  for (k in seq_len(nrow(all_combos))) {
+    t_t <- all_combos[k, ]
+    if (all(t_t == t0)) next
+    Tk <- matrix(t_t, n, m, byrow = TRUE)
+    s_t <- sig_of(th_hat, Tk)
+    Hx <- th_m1_hat * (s_t - s_0)
+    Hth <- cbind(th_m1_hat * (s_t * (1 - s_t) - s_0 * (1 - s_0)),
+                 th_m1_hat * (s_t * (1 - s_t) * Tk),
+                 s_t - s_0)
+    psi <- Hx - rowSums(Hth * correction)
+    out <- rbind(out, data.frame(
+      truth = mu_true[k],
+      SDL = mean(Hx), SDL_se = sd(Hx) / sqrt(n),
+      DeDL = mean(psi), DeDL_se = sd(psi) / sqrt(n),
+      LA = sum(la[t_t == 1]),
+      LR = sum(lr_coefs[t_t == 1])))
+  }
+  out
+}
+```
+
+```{r combexp-bias-run, cache=TRUE, dependson="combexp-bias-fn"}
+R <- 200
+rows <- list()
+for (dl in c(0.1, 0.2, 0.3)) {
+  for (r in seq_len(R)) {
+    res <- run_bias_rep(delta = dl, seed = 7000 + 97 * r + round(1000 * dl))
+    pick <- function(v) which.max(c(0, v))        # include the control arm
+    rows[[length(rows) + 1]] <- data.frame(
+      delta = dl,
+      MAE_LA = mean(abs(res$LA - res$truth)),
+      MAE_LR = mean(abs(res$LR - res$truth)),
+      MAE_SDL = mean(abs(res$SDL - res$truth)),
+      MAE_DeDL = mean(abs(res$DeDL - res$truth)),
+      cover_SDL = mean(abs(res$SDL - res$truth) <= qnorm(0.975) * res$SDL_se),
+      cover_DeDL = mean(abs(res$DeDL - res$truth) <= qnorm(0.975) * res$DeDL_se),
+      bai_LA = pick(res$LA) == pick(res$truth),
+      bai_LR = pick(res$LR) == pick(res$truth),
+      bai_SDL = pick(res$SDL) == pick(res$truth),
+      bai_DeDL = pick(res$DeDL) == pick(res$truth))
+  }
+}
+bias_mc <- aggregate(. ~ delta, data = do.call(rbind, rows), FUN = mean)
+```
+
+```{r combexp-bias-tables, echo=FALSE}
+disp <- bias_mc
+disp[-1] <- round(disp[-1], 3)
+knitr::kable(
+  disp[, c("delta", "MAE_LA", "MAE_LR", "MAE_SDL", "MAE_DeDL", "cover_SDL", "cover_DeDL")],
+  col.names = c("Bias level", "MAE linear addition", "MAE linear regression",
+                "MAE plug-in (SDL)", "MAE DeDL",
+                "Coverage plug-in", "Coverage DeDL"),
+  caption = "Mean absolute error and empirical coverage of nominal 95 percent intervals across 200 replications per bias level. The plug-in intervals come from the pairwise t-test on predicted outcomes, as in the SDL benchmark; the DeDL intervals come from the influence-function variance.",
+  align = c("l", rep("r", 6))
+)
+```
+
+```{r combexp-bias-bai, echo=FALSE}
+knitr::kable(
+  disp[, c("delta", "bai_LA", "bai_LR", "bai_SDL", "bai_DeDL")],
+  col.names = c("Bias level", "Linear addition", "Linear regression", "Plug-in (SDL)", "DeDL"),
+  caption = "Share of replications in which each estimator exactly identifies the best treatment combination (the control arm included as a candidate).",
+  align = c("l", rep("r", 4))
+)
+```
+
+Three findings emerge, each matching or sharpening the paper's Table 11. First, the point estimates: debiasing cuts the mean absolute error by roughly sixty percent at every bias level, and the gap widens with $\delta$ because the plug-in error grows almost linearly in the injected bias while the orthogonal correction absorbs its first-order component. From $\delta = 0.2$ onward the undebiased network is worse than the linear benchmarks it was meant to replace, while DeDL remains the best estimator throughout, exactly the ordering in the paper's version of this experiment. Second, the coverage results, which are the new information here: the plug-in intervals cover the truth in only a third of cases at $\delta = 0.1$ and barely a seventh at $\delta = 0.3$, and they deteriorate as the bias grows because the prediction-spread variance reflects neither the bias nor the estimation noise. The DeDL intervals hold near 93 percent at every bias level. The remaining shortfall from the nominal 95 is itself informative: a bias that does not shrink with $n$ deliberately violates the $o(n^{-1/4})$ premise, and orthogonality removes only the first-order term, leaving a second-order residual that no correction can eliminate. Under the theory's actual conditions coverage converges to nominal; under honest mediocrity it lands within a couple of points, which is the practically reassuring version of the claim. Third, best-arm selection: with $m = 4$ and well-separated arms, every estimator identifies the winner in the low-to-high nineties, and the plug-in actually edges out DeDL in our draws because a shared multiplicative distortion of the fitted surface rarely reorders arms, while the correction adds arm-specific noise; in the paper's own draws the ranking favors DeDL (97 versus 92.5 percent at $\delta = 0.1$, 92.5 versus 80 at $\delta = 0.3$), so which estimator ranks best is design dependent. The two tables together make the practical division of labor precise: point rankings can survive moderate first-stage bias when arms are far apart, but inference cannot, and only the debiased intervals mean what they say. The authors also report that at extreme bias ($\delta$ near one) debiasing can hurt even the point estimates, the same regime as the undertrained networks in their Figure 7, so the correction is a complement to, not a substitute for, a decently estimated first stage.
+
+### Robustness: Misspecified Links, Unstructured Networks, and Imbalanced Covariates
+
+Debiasing is a bet on the link function, and the paper's third synthetic study prices that bet. The data-generating process is contaminated with an additive linear term, $y = G(\theta^*(x), t) + \gamma\,(\beta_0^*(x) + \sum_k \beta_k^*(x)\,t_k) + \epsilon$, while the estimator continues to assume the pure generalized sigmoid, so $\gamma$ dials the misspecification from none to severe.
+
+```{r combexp-gamma-table, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Misspecification = c("gamma = 0", "gamma = 1", "gamma = 3", "gamma = 5"),
+    `LA` = c(0.167, 0.189, 0.210, 0.263),
+    `LR` = c(0.125, 0.124, 0.135, 0.170),
+    `SDL` = c(0.075, 0.100, 0.199, 0.277),
+    `DeDL` = c(0.024, 0.056, 0.181, 0.333),
+    `DeDL best arm` = c("99.0%", "92.5%", "92.5%", "84.5%"),
+    check.names = FALSE
+  ),
+  caption = "Mean absolute error of each estimator, and the best-arm identification rate of DeDL, as the true data-generating process departs from the assumed generalized sigmoid link (200 replications per level). Debiasing helps until the misspecification is severe, then hurts. Source: @ye2026deep, Table 12.",
+  align = c("l", rep("r", 5))
+)
+```
+
+The results draw a sharp boundary. At $\gamma \in \{0, 1\}$ DeDL dominates everything; at $\gamma = 3$ it still has the lowest absolute error but its advantage over the plug-in network has largely evaporated (and its squared error is already worse); at $\gamma = 5$ the ordering inverts and DeDL is the worst of the four on every metric. The mechanism is exactly the one flagged in the derivation: the correction term is built from the gradients of the assumed model, and when that model does not nest the truth the correction amplifies rather than removes the error. Misspecification hurts the debiased estimator more than the biased one, while the linear benchmarks, which never pretended to fit the surface, degrade only gently.
+
+The practical defense is a specification check that needs no ground truth: fit an unstructured network of comparable size that takes $(x, t)$ as raw inputs and compare cross-validation losses. In the paper's experiments the structured network's validation MSE is a fraction of the pure network's when the link is right (about $0.013$ against $0.048$ at $\gamma = 0$) and remains comparable through $\gamma = 3$, but at $\gamma = 5$ the ranking flips ($0.25$ against $0.17$), flagging the misspecification precisely where debiasing starts to hurt. The operating rule: debias when the structured network's validation loss is on par with or better than an unstructured benchmark of similar capacity, and distrust the link, or at least the correction term, when it is not.
+
+The unstructured network is not itself a fallback for the actual task. With only $m + 2$ observed cells, a pure DNN has never seen a single example of the interactions it is asked to predict, and it fails badly out of support: in the paper's sweeps its MAPE exceeds 60 percent at $m = 4$ and 160 percent at $m = 10$, with a best-arm rate of five percent, despite excellent in-sample fit. Quadrupling the width barely moves this, and dropout or L1 regularization trade in-sample accuracy for modest out-of-support gains that cannot be tuned, because the tuning target is precisely the unobserved ground truth. Trained on all $2^m$ cells the same architecture matches DeDL, which locates the value of the structural layer exactly where it should be: not in fitting the observed data better but in extrapolating to combinations that were never run.
+
+Finally, the framework inherits the vulnerability of any average-over-covariates estimand to a mismatch between the analysis sample and the target population. In a fourth synthetic study the authors contaminate one covariate's distribution (exponential draws in place of uniform, with the estimand still defined over the uniform population) and every estimator degrades, with DeDL losing its edge entirely at strong imbalance; stratified rebalancing to the target distribution restores the full ranking, with DeDL again best. The empirical stratification on Platform O's 69,111 strata is the field version of the same repair, and rerandomization at design time [@li2020rerandomization] prevents the problem before it occurs. The debiasing term corrects for estimation error in $\hat\theta$, not for averaging over the wrong population.
+
 ### Practical Guidance
 
-Three lessons from @ye2025deep are worth carrying forward whenever deep learning is combined with Neyman orthogonality on a structural model layer rather than an unrestricted regression. First, the debiasing term is only as good as the first-stage network; when training has not converged, plain plug-in and debiased estimates are similar, and the value of debiasing appears only once training loss is genuinely small, so cross-validation loss during training is a useful diagnostic before trusting the debiased estimate. Second, a misspecified link function is more dangerous with debiasing than without, because the correction term amplifies rather than removes bias from a structural form that does not nest the truth; comparing the structured network's validation loss against an unrestricted "pure DNN" that takes treatment as a raw input alongside the covariates, exactly the PDL benchmark @ye2025deep use in Table 3, is a practical specification check that does not require knowing the true link function in advance. Third, and most important for scale, the framework's traffic requirement grows linearly rather than exponentially in the number of concurrent experiments, which is what turns a theoretically elegant debiasing result into something a platform running hundreds of A/B tests can actually deploy.
+Three lessons from @ye2026deep are worth carrying forward whenever deep learning is combined with Neyman orthogonality on a structural model layer rather than an unrestricted regression. First, the debiasing term is only as good as the first-stage network; when training has not converged, plain plug-in and debiased estimates are similar, and the value of debiasing appears only once training loss is genuinely small, so cross-validation loss during training is a useful diagnostic before trusting the debiased estimate. Second, a misspecified link function is more dangerous with debiasing than without, because the correction term amplifies rather than removes bias from a structural form that does not nest the truth; comparing the structured network's validation loss against an unrestricted "pure DNN" that takes treatment as a raw input alongside the covariates, exactly the PDL benchmark @ye2026deep use in Table 3, is a practical specification check that does not require knowing the true link function in advance. Third, and most important for scale, the framework's traffic requirement grows linearly rather than exponentially in the number of concurrent experiments, which is what turns a theoretically elegant debiasing result into something a platform running hundreds of A/B tests can actually deploy.
+
+Four more operational rules emerge from the appendices and from the replications above. Aggregate across folds and never read a single fold: fold-level estimates on Platform O miss by as much as forty percent while their average lands within a fraction of a percent. Exploit the known assignment mechanism, which makes $\Lambda(x)$ computable rather than estimable and lets two-way cross-fitting replace the three-way splitting an observational application would need; porting the framework to observational data means giving up both conveniences and defending unconfoundedness besides. Regularize the inversion of $\hat\Lambda(x)$ with a small ridge and treat it like propensity trimming, a numerical guard rather than a tuning knob, and check that the covariate distribution in the inference sample matches the population the estimand refers to, rebalancing by stratification or reweighting when it does not, because the correction fixes estimation error in $\hat\theta$, not evaluation over the wrong population. On the selection side, treat best-arm point identification as an asymptotic statement: report the regret estimates $\hat\tau$ with their intervals, flag near-ties as undecided, and reach for the winner's-curse corrections of @andrews2024inference when the leaderboard is tight.
 
 ## Heterogeneous Treatment Effects
 
@@ -627,9 +1214,15 @@ $$
 $$
 Estimating $\tau(x)$ is a function-estimation problem rather than a scalar-estimation problem, and it is where tree-based and meta-learning methods come into their own.
 
+### Causal Trees: Honest Recursive Partitioning
+
+The tree-based line of attack begins with the causal tree of @athey2016recursive, published in the Proceedings of the National Academy of Sciences. A regression tree partitions the covariate space and predicts within each leaf; a causal tree partitions the covariate space and estimates a treatment effect within each leaf, the difference in mean outcomes between treated and control observations falling in that leaf. Two modifications turn this simple idea into a valid inferential procedure. First, the splitting criterion changes: rather than rewarding splits that predict the outcome, the tree rewards splits that maximize the variance of the estimated treatment effects across leaves, penalized by their estimation variance, an expected mean squared error criterion for the treatment effect itself. A tree grown to predict outcomes well can be useless for heterogeneity, because the strongest predictors of the outcome level need not moderate the treatment effect at all.
+
+Second, and more consequentially, @athey2016recursive introduce honest estimation. The sample is split in half: one half chooses the tree structure, the other half estimates the leaf-level effects. Because the estimation sample played no role in selecting the partition, the leaf estimates are unbiased conditional on the tree, and standard confidence intervals within leaves are valid no matter how aggressively the structure search overfit. Honesty costs data, since each half sees only half the observations, but it buys valid inference after a data-driven model search, the same trade that cross-fitting makes for double machine learning. The two ideas are siblings: honesty separates model selection from estimation across a single split, cross-fitting separates nuisance estimation from score evaluation across rotating folds.
+
 ### Causal Forests and Generalized Random Forests
 
-Causal forests, introduced by @wager2018estimation, adapt the random forest to estimate $\tau(x)$ rather than a conditional mean. The key conceptual move, developed more generally in the generalized random forest of @athey2019generalized, is to view a forest not as an ensemble of predictions but as an adaptive kernel or weighting function. A forest grown on the data assigns to a target point $x$ a set of similarity weights $\alpha_i(x)$, the frequency with which training observation $i$ falls in the same leaf as $x$ across the trees,
+Causal forests, introduced by @wager2018estimation, aggregate honest causal trees into an ensemble and adapt the random forest to estimate $\tau(x)$ rather than a conditional mean. The key conceptual move, developed more generally in the generalized random forest of @athey2019generalized, is to view a forest not as an ensemble of predictions but as an adaptive kernel or weighting function. A forest grown on the data assigns to a target point $x$ a set of similarity weights $\alpha_i(x)$, the frequency with which training observation $i$ falls in the same leaf as $x$ across the trees,
 $$
 \alpha_i(x) = \frac{1}{B}\sum_{b=1}^{B} \frac{\mathbf{1}\{X_i \in L_b(x)\}}{\lvert L_b(x)\rvert},
 $$
@@ -903,6 +1496,8 @@ Temporal causal forests then extend the causal forest in two ways identified by 
 Several practical considerations govern whether these methods deliver on their promise.
 
 Cross-fitting is not optional. The asymptotic guarantees of double machine learning depend on estimating the nuisance functions on data separate from the data used to form the final estimate. Skipping this step reintroduces overfitting bias and invalidates the confidence intervals, even when an orthogonal score is used.
+
+The software ecosystem is mature, and there is little reason to hand-roll these estimators outside of teaching. The `DoubleML` package used throughout this chapter [@bach2024doubleml] implements the four canonical models plus difference-in-differences and quantile variants over any `mlr3` learner, with a parallel implementation in Python; `hdm` [@chernozhukov2016hdm] covers the lasso-specific post-double-selection and rigorous-lasso methods; `grf` provides orthogonalized forests with honest inference; and `EconML` in Python implements the meta-learner and orthogonal-learning families. What the software cannot automate is the identification argument, the choice of estimand, and the reporting discipline of the replications above: learner grids, fold and split sensitivity, and propensity diagnostics.
 
 Orthogonality protects only against slow nuisance errors, not against violations of identification. If unconfoundedness fails because an important confounder is unobserved, no amount of flexible nuisance estimation will recover the causal effect. Machine learning strengthens the case for conditional ignorability by allowing a rich conditioning set, but it cannot test the assumption itself. The role of these methods is to remove functional-form and high-dimensionality concerns, leaving the identifying assumptions to be defended on substantive grounds.
 

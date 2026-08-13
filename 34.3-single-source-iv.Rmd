@@ -1,0 +1,76 @@
+### Quasi-Random Ad Timing: Single-Source TV Advertising IV {#sec-single-source-tv-iv}
+
+Measuring the causal effect of television advertising on purchase behavior is one of the oldest and hardest identification problems in marketing. Randomized experiments are infeasible in linear broadcast TV, where every viewer of a show sees the same feed, and observational estimates are contaminated by two distinct sources of endogeneity. Targeting bias arises because advertisers choose which shows to buy based on information about audience purchase propensity, some of it unobservable to the analyst. Activity bias arises because household viewing behavior itself moves with the household's demand: a household that spends an unexpected evening at home both watches more TV and orders more food delivery, generating a spurious exposure-purchase correlation that no fixed effect can absorb because the confounder varies within household over time. Benchmark comparisons against experimental ground truth show that rich controls and flexible models do not fix this [@gordon2019comparison].
+
+@hsieh2026leveraging, published in Marketing Science, develop an identification strategy that solves both problems using modern single-source data, second-by-second viewing records from ACR-enabled smart TVs merged at the household level with an advertiser's first-party purchase records. Their panel covers 1.4 million households over 133 days for a large food delivery platform, at least two orders of magnitude larger than the classic single-source panels of @ackerberg2001empirically. The scale matters because the identification strategy consumes data: it discards all variation except a narrow, quasi-random slice.
+
+#### The Institutional Source of Exogeneity
+
+The strategy exploits a division of labor inside the television industry. Advertisers choose which shows to target, but the network decides when within the show each ad airs, rotating advertisers across commercial break positions on an equitable-rotation basis. Within-show airing time is therefore out of the advertiser's control and, the authors argue, quasi-random with respect to both the brand's targeting rule and any household's viewing habits.
+
+For a household that watches a show from start to finish, this randomness is irrelevant: exposure is certain given the brand aired. But most viewing is partial. In their data only 7.6 percent of household-show sessions are watched in full, while half involve less than 10 percent of the show. For a partial viewer, exposure depends on whether the ad happened to fall inside the watched segments, and that coincidence is driven by the network's timing decision, not by the household or the brand.
+
+Formally, normalize the show's duration to $[0, 1]$. Let $A_s^b \in \{0, 1\}$ indicate that the brand aired in show $s$, let $View_{is} \subseteq [0, 1]$ be the set of segments household $i$ watched, and let $l_s(x)$ be the density of within-show airing times set by the network. The probability that the household's watched segments contain the ad, conditional on its viewing, is
+$$
+P_{is} = \Pr\bigl(T_s^b \in View_{is} \mid View_{is}\bigr) = \int_{View_{is}} l_s(x)\, dx,
+$$
+which is zero for non-viewers, one for complete viewers, and strictly between for partial viewers. Realized exposure decomposes into an expected component and a surprise,
+$$
+A_{is} = \underbrace{A_s^b\, P_{is}}_{\text{expected exposure}} + \underbrace{A_s^b\,\bigl(\mathbf{1}\{T_s^b \in View_{is}\} - P_{is}\bigr)}_{\text{instrument } IV_{is}},
+$$
+and the second term is the proposed instrument: the network-induced deviation of realized exposure from its expectation given viewing. By construction it is mean zero, nonzero only for partial viewers of targeted shows, and driven entirely by where in the show the network placed the ad.
+
+Two assumptions deliver validity. Quasi-random ordering requires the airing-time density $l_s$ to be common across brands and households, which fails if the advertiser pre-books a specific pod position or if addressable TV tailors timing to the viewer. Non-strategic viewership requires households not to adjust their viewing to the focal brand's ad timing specifically, which general ad avoidance does not violate. Both have testable implications. The authors show the focal brand's airing-time distribution is indistinguishable from other brands on the same networks (a Kolmogorov-Smirnov test cannot reject equality), the constructed instrument has mean near zero and is uncorrelated with targeting and with viewing intensity, while correlating strongly with realized exposure (correlation 0.42, first-stage F statistic in the millions), and a placebo using another advertiser's ads produces a null effect.
+
+#### Estimation with a Control Function
+
+Because the outcome is a binary daily purchase indicator and the model includes ad stock dynamics and random coefficients, the authors embed the instrument in a control function rather than two-stage least squares (see Section \@ref(sec-control-function-approach)). The first stage regresses daily exposure on controls and the instrument, the residual is accumulated into a stock with its own decay rate mirroring the ad stock, and the second-stage probit includes that control function stock alongside the ad stock. A significant control function coefficient is direct evidence of the endogeneity the design corrects, and the authors find it strongly positive: naive exposure effects are inflated by the confounding.
+
+The correction matters economically. The estimated same-day advertising elasticity falls from 0.072 (naive) to 0.045 (corrected), and the 30-day elasticity from 0.222 to 0.143, so a naive analyst would overstate the effect by more than half. The naive numbers land near the meta-analytic averages of the older single-source literature, suggesting that part of what that literature measured was targeting and activity bias. The corrected dynamics are also informative: ad effects decay at a daily rate of 0.7, far faster than the near-permanent carryover assumed in classic CPG studies, and ad responsiveness varies with the customer lifecycle, peaking for lapsed customers several weeks after their last purchase, with direct implications for retargeting policy.
+
+#### A Simulation of the Partial-Viewer Instrument
+
+The mechanics of the instrument are easy to see in a stylized simulation. We generate households whose viewing duration and purchase propensity share an unobserved activity shock, so realized exposure is endogenous, then construct the timing instrument exactly as above and compare estimators.
+
+```{r ssiv-sim, message=FALSE, warning=FALSE}
+set.seed(2026)
+n <- 50000
+
+# Unobserved activity shock: drives both viewing time and baseline demand
+u <- rnorm(n)
+
+# Household watches a contiguous window of the (unit-length) show.
+# Longer windows for high-activity households, truncated to [0.05, 1].
+len <- pmin(pmax(0.35 + 0.15 * u + 0.2 * runif(n), 0.05), 1)
+start <- runif(n) * (1 - len)
+
+# Network airs the ad at a quasi-random time, common density (uniform here),
+# independent of households and of the brand's targeting.
+ad_time <- runif(n)
+
+# Exposure: ad time falls inside the watched window
+A <- as.numeric(ad_time >= start & ad_time <= start + len)
+
+# Exposure probability given viewing (uniform density: the window length),
+# and the timing instrument
+P <- len
+IV <- A - P
+
+# Purchase intensity: true ad effect 0.10, activity confounding through u
+Y <- 0.10 * A + 0.25 * u + rnorm(n)
+
+naive <- coef(lm(Y ~ A))["A"]
+iv_est <- coef(ivreg::ivreg(Y ~ A | IV))["A"]
+
+# Control-function variant: include the first-stage residual
+cf_res <- resid(lm(A ~ IV))
+cf_est <- coef(lm(Y ~ A + cf_res))["A"]
+
+round(c(naive = naive, iv = iv_est, control_fn = cf_est), 4)
+```
+
+The naive regression overstates the exposure effect because heavy viewers are also high-demand households, while the timing instrument recovers an estimate close to the truth: conditional on how long a household watched, whether the ad fell inside the watched window is as good as random. The simulation also shows why the design needs scale. The instrument only varies among partial viewers of targeted shows, so its effective sample is a fraction of the panel, and the authors' 1.4 million households are what make the strategy feasible in practice.
+
+#### Scope and Limitations
+
+The design travels to any setting with the same institutional structure: an intermediary controls fine-grained timing that the advertiser cannot choose and the audience does not anticipate, and the analyst observes consumption granularly enough to compute expected exposure. Within TV, it fails where advertisers buy specific pod positions or where addressable systems personalize timing. The estimand is also local in the LATE sense: identification comes from partial viewers, so extrapolating to households that always watch shows in full requires the additional assumption that their responsiveness is similar. And the strategy addresses targeting and activity bias, not every endogeneity concern; creative content matched to show audiences, for example, remains outside its reach.
