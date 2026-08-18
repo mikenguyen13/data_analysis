@@ -1,0 +1,616 @@
+## Factorial Difference-in-Differences {#sec-factorial-did}
+
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
+
+Everything so far in this chapter has assumed that some units get treated and others do not. The [canonical 2x2 design](#sec-simple-difference-in-differences) needs a clean control group: a set of units that lives through the same calendar time but never receives the intervention. [Staggered adoption](#sec-modern-estimators-for-staggered-adoption) relaxes *when* units are treated but still relies on not-yet-treated or never-treated units as comparisons. Remove the untreated group entirely and the design appears to collapse.
+
+Yet a large body of empirical work runs the difference-in-differences estimator in exactly that situation. A famine, a war, a financial crisis, a pandemic, a regulatory overhaul, or a platform policy change hits every unit in the sample. What varies across units is not exposure but a baseline characteristic measured before the event: how much social capital a county had, how anti-German a state was, how a bond was rated, how digitally mature a retailer was. Researchers regress the outcome on the interaction of that baseline factor with a post-event indicator inside a [two-way fixed effects](#sec-two-way-fixed-effects) model, report the interaction coefficient, and call the result a difference-in-differences estimate.
+
+Numerically it is one. As a research design it is something else, and @xu2026factorial give that something else a name and a formal treatment: factorial difference-in-differences (FDID). Their central message is uncomfortable and worth stating up front. Under the usual no-anticipation and parallel-trends assumptions, the DID estimator in this setting identifies a descriptive contrast, not a causal effect of the baseline factor. Turning it into a causal quantity requires an additional assumption that most applied papers never state.
+
+### The Design: An Event That Hits Everyone {#sec-fdid-design}
+
+@xu2026factorial catalogue six published studies that share this structure. The pattern is consistent enough that recognizing it is half the battle.
+
+| Study | Baseline factor $G$ | Event $Z$ | Outcome |
+|:------|:--------------------|:----------|:--------|
+| @cao2022clans | Genealogy book density (social capital) | China's Great Famine, 1958 to 1961 | County mortality rate |
+| @squicciarini2020devotion | 1791 share of refractory clergy | Second Industrial Revolution, post-1870 | Departmental industrial development |
+| @fouka2019immigrants | State-level anti-Germanism | US entry into World War I, 1917 | Foreign name index |
+| @charnysh2022explaining | District share of Muslims | Russian famine, 1891 to 1892 | District mortality |
+| Northern Wei study cited in @xu2026factorial | Fourth-century military strongholds | Empress Dowager Feng's state-building reform | Aristocrats recruited into the bureaucracy |
+| @chen2023pledgeability | Bond credit rating | 2014 Chinese collateral eligibility rule | Corporate bond prices |
+
+Table: (\#tab:fdid-examples) Published studies with the factorial difference-in-differences structure. In each case the event reaches every unit, and cross-sectional variation comes from a pre-event characteristic rather than from treatment assignment.
+
+Read the fourth column of any of these papers and you will find causal language. Read the identification section and you will usually find only parallel trends. The gap between the two is what FDID formalizes.
+
+The last row is the interesting exception. When Chinese regulators banned bonds rated below AAA from being pledged as collateral, AA and AA+ bonds lost eligibility while AA- bonds had never been eligible in the first place. The event technically touched everyone, but a subset of units was demonstrably unaffected by it. That extra piece of institutional knowledge is exactly what converts an FDID problem back into a canonical DID problem, as Section \@ref(sec-fdid-identification) makes precise.
+
+### Setup and Data Structure {#sec-fdid-setup}
+
+Consider $n$ units indexed by $i$, each observed before and after a one-time event. For unit $i$ we observe
+
+-   a binary baseline factor $G_i \in \{0, 1\}$, measured before the event,
+-   outcomes $Y_{i,\text{pre}}$ and $Y_{i,\text{post}}$,
+-   an exposure indicator $Z_i \in \{0, 1\}$.
+
+The defining feature of the design is **universal exposure**:
+
+$$
+Z_i = 1 \quad \text{for all } i = 1, \dots, n.
+$$
+
+Because $Z_i$ never varies, it looks redundant. It is not. Its role is to index counterfactual worlds: the potential outcomes that would have been realized had the event not occurred. Without $Z$ in the notation there is no language for "what mortality would have been absent the famine," and hence no way to write down the estimand or the identifying assumptions. @xu2026factorial trace this device to the treatment of Lord's paradox in the potential-outcomes literature, where an unvarying manipulation is retained precisely so that counterfactuals remain well defined.
+
+Let $\Delta Y_i = Y_{i,\text{post}} - Y_{i,\text{pre}}$. The DID estimator is
+
+$$
+\hat{\tau}_{\text{did}} = \frac{1}{n_1} \sum_{i: G_i = 1} \Delta Y_i - \frac{1}{n_0} \sum_{i: G_i = 0} \Delta Y_i,
+$$
+
+with probability limit
+
+$$
+\tau_{\text{did}} = \mathbb{E}[\Delta Y_i \mid G_i = 1] - \mathbb{E}[\Delta Y_i \mid G_i = 0].
+$$
+
+Two observations follow immediately, and both do a great deal of work later.
+
+First, $\hat{\tau}_{\text{did}}$ depends on the panel only through the first difference $\Delta Y_i$. It is numerically the difference-in-means estimator applied to the cross section $\{(G_i, \Delta Y_i)\}_{i=1}^{n}$. Every intuition and every tool from cross-sectional causal inference under unconfoundedness transfers directly, with $\Delta Y_i$ playing the role of the outcome and $G_i$ playing the role of the treatment. That is why covariate adjustment in FDID looks like [regression adjustment](#sec-conditional-ignorability-assumption) rather than like anything panel-specific.
+
+Second, nothing in the estimator knows that $Z_i$ is constant. The arithmetic is identical to canonical DID. Only the interpretation changes, which is precisely why the error is so easy to make.
+
+### Potential Outcomes with Two Factors {#sec-fdid-potential-outcomes}
+
+The key move is to define potential outcomes with respect to both factors. For $t \in \{\text{pre}, \text{post}\}$, let $Y_{it}(g, z)$ denote the outcome unit $i$ would realize if $G$ were set to $g$ and $Z$ to $z$. Observed outcomes satisfy $Y_{it} = Y_{it}(G_i, Z_i)$, which under universal exposure reduces to $Y_{it} = Y_{it}(G_i, 1)$.
+
+There are eight potential outcomes per unit (two periods, two levels of $G$, two levels of $Z$). Universal exposure makes all four with $z = 0$ unobservable for every unit in the sample. This is the sense in which FDID is harder than canonical DID: there is no group anywhere in the data that reveals the $z = 0$ world.
+
+|  | $z = 0$ (no event) | $z = 1$ (event) |
+|:---|:---|:---|
+| $g = 0$, pre | $Y_{i,\text{pre}}(0,0)$ (never observed) | $Y_{i,\text{pre}}(0,1)$ (observed if $G_i = 0$) |
+| $g = 0$, post | $Y_{i,\text{post}}(0,0)$ (never observed) | $Y_{i,\text{post}}(0,1)$ (observed if $G_i = 0$) |
+| $g = 1$, pre | $Y_{i,\text{pre}}(1,0)$ (never observed) | $Y_{i,\text{pre}}(1,1)$ (observed if $G_i = 1$) |
+| $g = 1$, post | $Y_{i,\text{post}}(1,0)$ (never observed) | $Y_{i,\text{post}}(1,1)$ (observed if $G_i = 1$) |
+
+Table: (\#tab:fdid-potential-outcomes) The eight potential outcomes under FDID. The entire $z = 0$ column is counterfactual for every unit, and the observed cells are split by the realized value of $G_i$.
+
+Define three unit-level effects:
+
+$$
+\begin{aligned}
+\tau_{i, Z \mid G = g} &= Y_{i,\text{post}}(g, 1) - Y_{i,\text{post}}(g, 0), \\
+\tau_{i, G \mid Z = z} &= Y_{i,\text{post}}(1, z) - Y_{i,\text{post}}(0, z), \\
+\tau_{i,\text{cm}} &= \tau_{i, Z \mid G = 1} - \tau_{i, Z \mid G = 0}.
+\end{aligned}
+$$
+
+The first is the effect of the event holding the baseline factor at $g$. The second is the effect of the baseline factor holding exposure at $z$. The third, the causal moderation, is the difference-in-differences of potential outcomes. Expanding it,
+
+$$
+\tau_{i,\text{cm}} = Y_{i,\text{post}}(1,1) - Y_{i,\text{post}}(1,0) - Y_{i,\text{post}}(0,1) + Y_{i,\text{post}}(0,0) = \tau_{i, G \mid Z = 1} - \tau_{i, G \mid Z = 0},
+$$
+
+so $\tau_{i,\text{cm}}$ is symmetric in the two factors. "Social capital blunted the famine's effect on mortality" and "the famine amplified social capital's effect on mortality" are the same statement. This symmetry is the reason the design deserves the label factorial: $G$ and $Z$ enter the causal structure as two crossed factors, exactly as in a $2^2$ factorial experiment [@dasgupta2015causal; @zhaoding2021regression], with the crucial difference that one factor is never randomized and the other never varies.
+
+### Four Estimands {#sec-fdid-estimands}
+
+Let $\tau_{i, Z \mid G}$ denote $\tau_{i, Z \mid G = g}$ evaluated at the unit's realized $G_i$. The two central estimands are **effect modification** and **causal moderation**:
+
+$$
+\begin{aligned}
+\tau_{\text{em}} &= \mathbb{E}[\tau_{i, Z \mid G = 1} \mid G_i = 1] - \mathbb{E}[\tau_{i, Z \mid G = 0} \mid G_i = 0], \\
+\tau_{\text{cm}} &= \mathbb{E}[\tau_{i,\text{cm}}] = \mathbb{E}[\tau_{i, Z \mid G = 1} - \tau_{i, Z \mid G = 0}].
+\end{aligned}
+$$
+
+Both compare the effect of exposure across levels of the baseline factor, but the comparisons are different in a way that matters enormously.
+
+Causal moderation $\tau_{\text{cm}}$ averages a within-unit contrast. It answers an interventional question: if you could reach into a county and change its level of social capital, would the famine's effect on its mortality change? Every unit contributes both terms, so no selection can contaminate the comparison.
+
+Effect modification $\tau_{\text{em}}$ averages $\tau_{i, Z \mid G = 1}$ over the high-$G$ units and $\tau_{i, Z \mid G = 0}$ over the low-$G$ units, each evaluated at its realized $G_i$. It answers a descriptive question: was the famine less deadly among high social capital counties than among low social capital counties? If high-$G$ counties are also richer, better governed, or closer to grain surpluses, all of that is baked into $\tau_{\text{em}}$. The distinction mirrors the older epidemiological one between interaction and effect modification [@vanderweele2009distinction] and its extension to non-randomized moderators [@bansak2021estimating], now transported to a panel setting.
+
+Two further estimands, both conditional causal effects, connect FDID back to familiar territory:
+
+$$
+\tau_{\text{att}} = \mathbb{E}[\tau_{i, Z \mid G = 1} \mid G_i = 1], \qquad
+\tau_{G \mid Z = 1} = \mathbb{E}[\tau_{i, G \mid Z = 1}].
+$$
+
+Here $\tau_{\text{att}}$ is the average effect of the event on the units with $G_i = 1$, the natural analogue of the ATT if you are willing to treat $\{i : G_i = 1\}$ as a treated group. And $\tau_{G \mid Z = 1}$ is the average causal effect of the baseline factor itself, given that the event occurred. Many applied papers write as though this last quantity is what they estimate, since "the effect of social capital during the famine" is a statement about $G$, not about $Z$.
+
+One caveat deserves emphasis. If $G$ is an immutable attribute such as geography, ethnicity, or coastal access, then $Y_{it}(g, z)$ is not well defined at counterfactual levels of $g$, and $\tau_{\text{cm}}$ is not a coherent estimand at all. In those settings $\tau_{\text{em}}$ is the only defensible target, and the honest report is a descriptive contrast. Manipulability of $G$ is a substantive judgment that has to be made before any estimation happens.
+
+### Identification {#sec-fdid-identification}
+
+Start with the two assumptions every DID paper already invokes. **No anticipation** says the event does not reach backwards in time:
+
+$$
+Y_{i,\text{pre}}(g, 0) = Y_{i,\text{pre}}(g, 1) \quad \text{for all } i \text{ and } g \in \{0,1\}.
+$$
+
+Writing $\Delta Y_i(g,z) = Y_{i,\text{post}}(g,z) - Y_{i,\text{pre}}(g,z)$, **canonical parallel trends** says the two groups would have drifted together absent the event:
+
+$$
+\mathbb{E}[\Delta Y_i(G_i, 0) \mid G_i = 1] = \mathbb{E}[\Delta Y_i(G_i, 0) \mid G_i = 0].
+$$
+
+Note that this holds $G$ fixed at its realized value. It restricts one object only, and it is exactly the assumption a pre-trend plot probes. The first identification result follows:
+
+$$
+\text{Universal exposure} + \text{no anticipation} + \text{canonical parallel trends} \;\Longrightarrow\; \tau_{\text{did}} = \tau_{\text{em}}.
+$$
+
+This is the central result, and it is a warning. Doing everything the DID literature tells you to do, passing every pre-trend test, gets you effect modification. It does not get you a causal effect of $G$, and it does not get you a causal effect of $Z$ either. In canonical DID the same two assumptions deliver the ATT because the control group's exposure effect is zero by construction. Strip away the clean control group and that free lunch disappears.
+
+#### Recovering canonical DID as a special case
+
+Suppose you have institutional knowledge that the event did not move the outcome for the $G_i = 0$ group. That is an **exclusion restriction on** $Z$:
+
+$$
+\mathbb{E}[Y_{i,\text{post}}(0,1) \mid G_i = 0] = \mathbb{E}[Y_{i,\text{post}}(0,0) \mid G_i = 0].
+$$
+
+Then those units are exposed but unaffected, which is operationally the same as being unexposed. This forces $\mathbb{E}[\tau_{i, Z \mid G = 0} \mid G_i = 0] = 0$, so $\tau_{\text{em}} = \tau_{\text{att}}$, and under the three earlier assumptions $\tau_{\text{did}} = \tau_{\text{att}}$. Canonical DID is FDID plus an exclusion restriction. The bond-collateral study of @chen2023pledgeability is the clean case: AA- rated bonds were already ineligible for pledging, so the rule change could not bind on them. The famine study is the opposite case: a claim that the Great Famine left low social capital counties untouched is not credible.
+
+#### Recovering causal moderation
+
+To move from $\tau_{\text{em}}$ to $\tau_{\text{cm}}$ you need a strictly stronger condition, **factorial parallel trends**:
+
+$$
+\mathbb{E}[\Delta Y_i(g, z) \mid G_i = 1] = \mathbb{E}[\Delta Y_i(g, z) \mid G_i = 0] \quad \text{for all } g, z \in \{0, 1\}.
+$$
+
+Compare the two carefully. Canonical parallel trends restricts one object, $\Delta Y_i(G_i, 0)$, evaluated at the realized $G_i$. Factorial parallel trends restricts all four, including the counterfactual-$g$ ones and the $z = 1$ ones. A sufficient condition is
+
+$$
+G_i \perp\!\!\!\perp \{\Delta Y_i(g,z) : g, z \in \{0,1\}\},
+$$
+
+which says the baseline factor is as good as randomly assigned with respect to the first-differenced potential outcomes. Recall that the DID estimator is a difference in means on $(G_i, \Delta Y_i)$. Factorial parallel trends is simply unconfoundedness for that cross section. The reason it is weaker than full random assignment of $G$ is that differencing sweeps out unit-level fixed heterogeneity: $G$ may be correlated with the *level* of mortality while remaining unrelated to the *change* in mortality.
+
+Adding it delivers the second identification result:
+
+$$
+\text{No anticipation} + \text{canonical PT} + \text{factorial PT} \;\Longrightarrow\; \tau_{\text{did}} = \tau_{\text{em}} = \tau_{\text{cm}}.
+$$
+
+One more exclusion restriction, this time on $G$ absent the event, takes you the rest of the way to the effect of $G$ itself:
+
+$$
+\mathbb{E}[Y_{i,\text{post}}(1,0)] = \mathbb{E}[Y_{i,\text{post}}(0,0)].
+$$
+
+That is, absent the famine, social capital would not have moved mortality on average. Under this condition $\tau_{\text{cm}} = \tau_{G \mid Z = 1}$, so the DID estimate becomes the average causal effect of $G$ during the event. This is a real restriction, and in the famine application it contradicts what the original authors argue, since clan networks plausibly affect mortality in ordinary times too.
+
+The roadmap is worth memorizing.
+
+| Estimand | Question in the famine example | Assumptions required |
+|:---|:---|:---|
+| $\tau_{\text{em}}$, effect modification | How did the famine's average effect on mortality differ between high and low social capital counties? | No anticipation, canonical parallel trends |
+| $\tau_{\text{att}}$, effect of exposure on $G = 1$ | What was the famine's average effect on mortality in high social capital counties? | Row 1, plus exclusion restriction on $Z$ for the $G = 0$ group |
+| $\tau_{\text{cm}}$, causal moderation | To what extent did high social capital mitigate the famine's effect on mortality? | Row 1, plus factorial parallel trends |
+| $\tau_{G \mid Z = 1}$, effect of $G$ given exposure | What was the average causal effect of social capital on mortality during the famine? | Row 3, plus exclusion restriction on $G$ absent the event |
+
+Table: (\#tab:fdid-roadmap) Estimands, interpretations, and identifying assumptions under factorial difference-in-differences, following @xu2026factorial.
+
+The practical discipline this table imposes is simple. Decide which row you are in before you run the regression, and write the corresponding assumption into the paper. The estimator is the same in all four rows; only the warrant differs [@lundberg2021estimand].
+
+### Conditioning on Covariates {#sec-fdid-covariates}
+
+Both parallel-trends assumptions are usually more plausible after conditioning on pre-event covariates $X_i$. Let $\pi(x) = \mathbb{P}(G_i = 1 \mid X_i = x)$ and assume overlap, $\pi(x) \in (0,1)$ for all $x$ in the support.
+
+Define the conditional estimands
+
+$$
+\begin{aligned}
+\tau_{\text{did}}(x) &= \mathbb{E}[\Delta Y_i \mid G_i = 1, X_i = x] - \mathbb{E}[\Delta Y_i \mid G_i = 0, X_i = x], \\
+\tau_{\text{em}}(x) &= \mathbb{E}[\tau_{i, Z \mid G = 1} \mid G_i = 1, X_i = x] - \mathbb{E}[\tau_{i, Z \mid G = 0} \mid G_i = 0, X_i = x], \\
+\tau_{\text{cm}}(x) &= \mathbb{E}[\tau_{i,\text{cm}} \mid X_i = x],
+\end{aligned}
+$$
+
+with marginal versions $\tau_{\text{did-x}} = \mathbb{E}[\tau_{\text{did}}(X_i)]$ and so on. Note that $\tau_{\text{did-x}} \neq \tau_{\text{did}}$ in general: averaging conditional contrasts over the marginal distribution of $X$ is not the same as one unconditional contrast unless $G$ and $X$ are independent.
+
+Replacing the two parallel-trends assumptions by their conditional-on-$X$ counterparts delivers the analogous result: $\tau_{\text{did}}(x) = \tau_{\text{em}}(x)$ under conditional canonical parallel trends, and $\tau_{\text{did}}(x) = \tau_{\text{em}}(x) = \tau_{\text{cm}}(x)$ once conditional factorial parallel trends is added. Averaging over any distribution of $X$ then recovers the corresponding average, including group-specific versions such as $\mathbb{E}[\tau_{\text{cm}}(X_i) \mid G_i = 1]$.
+
+#### Two regressions, and why centering matters
+
+Estimating $\tau_{\text{did}}(x)$ reduces to estimating $\mathbb{E}[\Delta Y_i \mid G_i = g, X_i = x]$. Two specifications dominate applied practice:
+
+$$
+\begin{aligned}
+\text{OLS}_{+}: \quad & \Delta Y_i = \beta_1 + \beta_G G_i + \beta_X^\top X_i + \epsilon_i, \\
+\text{OLS}_{*}: \quad & \Delta Y_i = \beta_1 + \beta_G G_i + \beta_X^\top X_i + \beta_{GX}^\top G_i X_i + \epsilon_i.
+\end{aligned}
+$$
+
+Under $\text{OLS}_{*}$, $\tau_{\text{did}}(x) = \beta_G + \beta_{GX}^\top x$ and $\tau_{\text{did-x}} = \beta_G + \beta_{GX}^\top \mathbb{E}[X_i]$. The coefficient $\hat\beta_G$ is therefore the conditional contrast at $x = 0$, which is a meaningless point unless the covariates have been centered. Center them so that $\bar{X} = 0$ and $\hat\beta_G$ becomes a consistent estimator of $\tau_{\text{did-x}}$, hence of $\tau_{\text{em-x}}$ or $\tau_{\text{cm}}$ under the corresponding assumptions. This is the same centering device that makes interacted regression adjustment work in randomized experiments [@hirano2001estimation; @lin2013agnostic].
+
+Under $\text{OLS}_{+}$ the interactions are omitted, so $\hat\beta_G$ is consistent only when $\mathbb{E}[\Delta Y_i \mid G_i, X_i]$ really is additively linear. When it is, no centering is needed because $\tau_{\text{did}}(x)$ does not vary with $x$ in the first place. When it is not, $\text{OLS}_{+}$ estimates a variance-weighted blend that need not correspond to any $\tau_{\text{did}}(x)$.
+
+For inference, a unit-level cluster bootstrap is the natural choice [@bertrand2004much]. One subtlety: resample the original uncentered $X_i$ and recenter within each replication. Resampling pre-centered covariates treats $\bar{X}$ as known and produces confidence intervals that are too narrow.
+
+#### The TWFE specifications are the same regressions
+
+Most applied papers do not run either OLS above. They run a two-way fixed effects model on long-format data:
+
+$$
+\begin{aligned}
+\text{TWFE}_{*}: \quad & Y_{it} = b_G G_i \cdot 1\{t = \text{post}\} + b_X^\top X_i \cdot 1\{t = \text{post}\} + b_{GX}^\top G_i X_i \cdot 1\{t = \text{post}\} + \alpha_i + \xi_t + \epsilon_{it}, \\
+\text{TWFE}_{+}: \quad & Y_{it} = b_G G_i \cdot 1\{t = \text{post}\} + b_X^\top X_i \cdot 1\{t = \text{post}\} + \alpha_i + \xi_t + \epsilon_{it}.
+\end{aligned}
+$$
+
+With two periods these are algebraically identical to $\text{OLS}_{*}$ and $\text{OLS}_{+}$: $\hat{b}_G = \hat\beta_G$ exactly, not approximately. Section \@ref(sec-fdid-famine) verifies this numerically. The consequence is that everything said above about centering, about what $\hat\beta_G$ identifies, and about which assumption licenses which interpretation, applies verbatim to the TWFE coefficient that applied papers actually report. Unit fixed effects are not doing any identification work here that first-differencing does not already do.
+
+### Extensions {#sec-fdid-extensions}
+
+Consider first repeated cross sections. When a new sample of units is drawn each period, $\Delta Y_i$ is never observed at the unit level, but the target $\tau_{\text{did}}(x) = \mathbb{E}[\Delta Y_i \mid G_i = g, X_i = x]$ can still be assembled from $\mathbb{E}[Y_{it} \mid G_i = g, X_i = x]$ period by period. Panel and repeated cross sections are then two sampling schemes for one population estimand. Stratification and TWFE regression remain available; regressions run directly on $\Delta Y_i$ do not.
+
+Nested sampling is the second complication. Many applications define $G$ at a regional level while measuring outcomes on individuals inside those regions, as in @fouka2019immigrants. Three schemes are common: panel regions with panel individuals, panel regions with repeated cross-sectional individuals, and repeated cross sections at both levels. Across all three, stratification and TWFE regression remain valid at both the individual and the aggregated regional level, with standard errors clustered at the region. The open practical difficulty is that individual covariates may lack common support across periods, which has no clean solution yet.
+
+The third extension allows a general baseline factor. When $G$ takes values in a general set, every result carries over to pairwise comparisons $g \to g'$, with
+
+$$
+\tau_{\text{cm}, g \to g'}(x) = \mathbb{E}[\tau_{i, Z \mid G = g'} - \tau_{i, Z \mid G = g} \mid X_i = x]
+$$
+
+and its marginal counterpart. The OLS and TWFE specifications and their numerical equivalence go through unchanged with a continuous $G_i$ in place of the binary one, and the resulting coefficient is a linear-in-$G$ approximation to the moderation surface. The famine replication below reports both a binary and a continuous version, and the discrepancy between them is instructive.
+
+### Replication: Social Capital and China's Great Famine {#sec-fdid-famine}
+
+@cao2022clans study whether clan networks, proxied by the per capita density of surviving genealogy books (*zupu*), softened mortality during China's Great Famine of 1958 to 1961. @xu2026factorial reanalyze that study as their running example, and the `fdid` package ships the balanced panel used in the paper: 921 counties observed annually from 1954 to 1966.
+
+The event, the famine, reached the entire country. There is no unexposed province. What varies is a pre-famine cultural endowment. This is FDID in its purest form.
+
+```{r fdid-setup, message=FALSE, warning=FALSE}
+library(fdid)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+data(fdid)
+
+covs <- c("avggrain", "nograin", "urban", "dis_bj", "dis_pc",
+          "rice", "minority", "edu", "lnpop")
+
+famine <- mortality %>%
+  mutate(
+    uniqueid = paste(provid, countyid, sep = "-"),
+    G_bin    = as.integer(pczupu >= median(pczupu, na.rm = TRUE))
+  )
+
+data.frame(
+  counties      = n_distinct(famine$uniqueid),
+  years         = n_distinct(famine$year),
+  rows          = nrow(famine),
+  share_high_G  = round(mean(famine$G_bin), 3)
+)
+```
+
+`fdid_prepare()` reshapes the long panel into the wide, one-row-per-unit format the estimators want, collapsing time-invariant covariates and renaming columns to the package's internal convention.
+
+```{r fdid-prepare}
+s_bin <- fdid_prepare(famine, Y_label = "mortality", X_labels = covs,
+                      G_label = "G_bin", unit_label = "uniqueid",
+                      time_label = "year")
+
+s_con <- fdid_prepare(famine, Y_label = "mortality", X_labels = covs,
+                      G_label = "lnpczupu", unit_label = "uniqueid",
+                      time_label = "year")
+
+dim(s_bin)
+```
+
+#### The raw picture
+
+Before any estimator runs, look at the two group means.
+
+```{r fdid-raw-means, fig.cap="County mortality by social capital group, 1954 to 1966. Shading marks the famine years and the dashed line marks the 1957 reference year. Both groups spike, which is what universal exposure looks like: there is no flat control series anywhere in this figure. What the DID estimator picks up is the difference in the size of the two spikes.", fig.width=6.5, fig.height=4}
+famine %>%
+  group_by(year, group = if_else(G_bin == 1, "High social capital",
+                                 "Low social capital")) %>%
+  summarise(meanY = mean(mortality), .groups = "drop") %>%
+  ggplot(aes(year, meanY, colour = group, shape = group)) +
+  annotate("rect", xmin = 1957.5, xmax = 1961.5, ymin = -Inf, ymax = Inf,
+           alpha = 0.12, fill = "grey40") +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 1.9) +
+  geom_vline(xintercept = 1957, linetype = "dashed", colour = "grey40") +
+  labs(x = NULL, y = "Mortality per 1,000", colour = NULL, shape = NULL) +
+  theme(legend.position = "bottom")
+```
+
+Both curves explode in 1959 and 1960. Neither group is a control. The estimand is the gap between the two spikes, and everything in Section \@ref(sec-fdid-identification) is about what that gap means.
+
+#### Table 1: three estimators, three windows, two measures of G
+
+The paper reports the DID estimator without covariates alongside $\text{OLS}_{*}$ and $\text{OLS}_{+}$ with the nine county covariates, using 1957 as the reference year and three post-periods: the famine years, a pre-famine placebo window, and a post-famine window. In the `fdid` package, `method = "did"` is the unadjusted estimator, `method = "ols1"` is $\text{OLS}_{+}$, and `method = "ols2"` is $\text{OLS}_{*}$ with covariates centered internally.
+
+```{r fdid-table1}
+one_row <- function(s, method) {
+  fit <- fdid(s, tr_period = 1958:1961, ref_period = 1957,
+              method = method, entire_period = c(1954:1956, 1958:1966))
+  fmt <- function(e) sprintf("%.2f [%.2f, %.2f]",
+                            e$Estimate, e$CI_Lower, e$CI_Upper)
+  c(`Famine (1958-1961)`      = fmt(fit$est$event),
+    `Pre-famine (1954-1956)`  = fmt(fit$est$pre),
+    `Post-famine (1962-1966)` = fmt(fit$est$post))
+}
+
+tab1 <- function(s) {
+  data.frame(
+    DID    = one_row(s, "did"),
+    `OLS*` = one_row(s, "ols2"),
+    `OLS+` = one_row(s, "ols1"),
+    check.names = FALSE
+  )
+}
+
+panel_a <- tab1(s_bin)
+panel_b <- tab1(s_con)
+
+knitr::kable(
+  rbind(
+    cbind(Panel = "A: binary G",     Window = rownames(panel_a), panel_a),
+    cbind(Panel = "B: continuous G", Window = rownames(panel_b), panel_b)
+  ),
+  row.names = FALSE,
+  caption = "Replication of Table 1 in Xu, Zhao and Ding (2026). Entries are point estimates with 95 percent heteroskedasticity-robust confidence intervals. The reference year is 1957 throughout."
+)
+```
+
+The point estimates reproduce the published table to two decimals. @xu2026factorial report $-2.32$, $-2.92$, and $-2.79$ for the famine years in Panel A, and $-5.85$, $-5.14$, and $-10.11$ in Panel B; the corresponding entries above are $-2.32$, $-2.93$, and $-2.80$, and $-5.85$, $-5.15$, and $-10.16$. The confidence intervals differ slightly because the table above uses the robust sandwich while the paper bootstraps, a gap closed in the next subsection. Substantively, high social capital counties saw roughly three fewer deaths per thousand people per year during the famine, close to twelve fewer deaths per thousand over the four-year episode.
+
+Three features of this table carry the substantive lesson.
+
+The pre-famine window is a placebo. All three estimates sit near $+0.3$ with intervals straddling zero, which is evidence for canonical parallel trends and therefore evidence that the famine-year number is $\tau_{\text{em}}$. It is not evidence for factorial parallel trends, because no observable pre-trend can speak to the counterfactual-$g$ potential outcomes that assumption restricts.
+
+The post-famine window is small but nonzero, suggesting the famine's mortality consequences did not fully dissipate by 1966.
+
+Panel B is the cautionary tale. With a continuous $G$, $\text{OLS}_{+}$ reports $-10.2$ while $\text{OLS}_{*}$ reports $-5.1$, a two-fold difference. The two specifications disagree precisely because the conditional contrast $\tau_{\text{did}}(x)$ varies with the covariates. $\text{OLS}_{+}$ imposes that it does not and returns a variance-weighted blend; $\text{OLS}_{*}$ allows it to vary and reports the average over the sample distribution of $X$. When the two diverge this sharply, the additive specification is misspecified and the interacted one is the estimand you actually want.
+
+#### The TWFE coefficient is the same number
+
+Applied papers report the TWFE interaction coefficient, so it is worth confirming by hand that this is the same estimator and not a cousin of it.
+
+```{r fdid-equivalence, message=FALSE, warning=FALSE}
+library(fixest)
+
+two_period <- famine %>%
+  filter(year %in% c(1957, 1958:1961)) %>%
+  mutate(period = if_else(year == 1957, "pre", "post")) %>%
+  group_by(uniqueid, period) %>%
+  summarise(Y = mean(mortality), G = first(G_bin),
+            across(all_of(covs), first), .groups = "drop") %>%
+  mutate(post = as.integer(period == "post"))
+
+cross_sec <- two_period %>%
+  select(uniqueid, period, Y, G, all_of(covs)) %>%
+  pivot_wider(names_from = period, values_from = Y) %>%
+  mutate(dY = post - pre)
+
+# centered covariates for the interacted specifications
+Xc <- as.data.frame(scale(cross_sec[, covs]))
+names(Xc) <- paste0("c_", covs)
+cross_sec_c <- bind_cols(cross_sec, Xc)
+
+f_plus <- reformulate(c("G", covs), response = "dY")
+f_star <- reformulate(paste0("G * (", paste(names(Xc), collapse = " + "), ")"),
+                      response = "dY")
+
+ols_plus <- lm(f_plus, data = cross_sec)
+ols_star <- lm(f_star, data = cross_sec_c)
+
+two_period_c <- bind_cols(
+  two_period,
+  setNames(as.data.frame(scale(two_period[, covs])), paste0("c_", covs))
+)
+
+twfe_plus <- feols(
+  reformulate(c("G:post", paste0(covs, ":post"), "uniqueid + period"),
+              response = "Y"),
+  data = two_period
+)
+twfe_star <- feols(
+  reformulate(c("G:post", paste0(names(Xc), ":post"),
+                paste0("G:", names(Xc), ":post"), "uniqueid + period"),
+              response = "Y"),
+  data = two_period_c
+)
+
+round(c(
+  `OLS+`  = unname(coef(ols_plus)["G"]),
+  `TWFE+` = unname(coef(twfe_plus)["G:post"]),
+  `OLS*`  = unname(coef(ols_star)["G"]),
+  `TWFE*` = unname(coef(twfe_star)["G:post"])
+), 4)
+```
+
+The pairs agree to the last reported digit. A TWFE regression of the outcome with a $G \times \text{post}$ interaction is a cross-sectional regression of the first difference wearing a panel costume. This is why the FDID framing is not a technicality: the estimator that thousands of papers describe as difference-in-differences is, in this design, ordinary regression adjustment on $\Delta Y_i$, and it inherits that method's identification requirements rather than DID's.
+
+#### Dynamics
+
+Estimating the contrast year by year against the 1957 reference produces the FDID analogue of an [event study](#sec-event-studies).
+
+```{r fdid-dynamic, fig.cap="Year-by-year FDID estimates against the 1957 reference, from the interacted specification with centered covariates. The contrast is small before the famine, troughs in 1959 and 1960, and leaves a smaller negative gap after the famine ends. The near-flat pre-period supports canonical parallel trends, so these are estimates of effect modification unless factorial parallel trends is additionally assumed.", fig.width=6.5, fig.height=4}
+fit_dyn <- fdid(s_bin, tr_period = 1958:1961, ref_period = 1957,
+                method = "ols2", entire_period = c(1954:1956, 1958:1966))
+
+dyn <- fit_dyn$dynamic %>%
+  as.data.frame() %>%
+  mutate(year = as.numeric(rownames(.)))
+
+ggplot(dyn, aes(year, Estimate)) +
+  annotate("rect", xmin = 1957.5, xmax = 1961.5, ymin = -Inf, ymax = Inf,
+           alpha = 0.12, fill = "grey40") +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_errorbar(aes(ymin = CI_Lower, ymax = CI_Upper), width = 0.15,
+                colour = "grey30") +
+  geom_point(size = 2) +
+  geom_line(linewidth = 0.4, colour = "grey50") +
+  labs(x = NULL, y = expression(hat(tau)[did] ~ "relative to 1957")) +
+  scale_x_continuous(breaks = seq(1954, 1966, 2))
+```
+
+The shape is what the original paper reports: a deep trough in 1959 and 1960 when the famine was most severe, and a partial but incomplete recovery afterwards. The pre-period deserves a closer look than it usually gets. The 1955 and 1956 estimates are indistinguishable from zero, but 1954 sits at about $+1.0$ with an interval that excludes zero. Relative to the famine-year magnitudes of $-3.6$ and $-5.8$ this is small, and it points in the direction that would understate the famine-year contrast rather than manufacture it. Still, it is a real deviation, and the honest reading is that canonical parallel trends is well supported over the immediate pre-period and shakier over the longer one. This is precisely the kind of judgment call that the [placebo tests](#sec-placebo-test-did) and [partial identification tools](#sec-partial-identification-did) discussed later in this chapter are designed to discipline.
+
+#### Bootstrap inference
+
+The published intervals come from a unit-level bootstrap rather than the robust sandwich. Reproducing that for the headline estimates costs a couple of minutes.
+
+```{r fdid-bootstrap, cache=TRUE}
+set.seed(20260724)
+
+boot_row <- function(method, nsims = 200) {
+  e <- fdid(s_bin, tr_period = 1958:1961, ref_period = 1957,
+            method = method, vartype = "bootstrap", nsims = nsims)$est$event
+  sprintf("%.2f [%.2f, %.2f]", e$Estimate, e$CI_Lower, e$CI_Upper)
+}
+
+data.frame(
+  Estimator = c("DID", "OLS*", "OLS+"),
+  `Bootstrap 95% CI` = vapply(c("did", "ols2", "ols1"), boot_row, character(1)),
+  row.names = NULL, check.names = FALSE
+)
+```
+
+Point estimates are identical by construction; the intervals shift slightly and remain comfortably away from zero. Note that the bootstrap here resamples units and, for the interacted specification, recenters covariates inside each replication, which is the procedure Section \@ref(sec-fdid-covariates) warned about getting wrong.
+
+#### Alternative adjustment strategies
+
+Because FDID reduces to a cross-sectional unconfoundedness problem in $\Delta Y_i$, the full toolkit of adjustment methods applies: [inverse probability weighting](#sec-inverse-probability-weighting) on the [propensity score](#sec-propensity-scores) for $G$, the doubly robust augmented version, and entropy balancing. Agreement across methods that make different modeling errors is a useful, if informal, specification check.
+
+```{r fdid-alt-estimators}
+alt <- function(method, target = "all") {
+  e <- fdid(s_bin, tr_period = 1958:1961, ref_period = 1957,
+            method = method, target.pop = target)$est$event
+  data.frame(Method = method, Target = target,
+             Estimate = round(e$Estimate, 3),
+             CI = sprintf("[%.2f, %.2f]", e$CI_Lower, e$CI_Upper))
+}
+
+bind_rows(
+  alt("did"), alt("ols1"), alt("ols2"),
+  alt("ipw"), alt("aipw"),
+  alt("ebal", target = "1"),
+  alt("ols2", target = "1"),
+  alt("ols2", target = "0")
+)
+```
+
+Everything lands between $-2.3$ and $-3.1$. The `target.pop` argument is worth dwelling on: it selects the distribution of $X$ over which $\tau_{\text{did}}(X_i)$ is averaged. Setting it to `"1"` reports $\mathbb{E}[\tau_{\text{cm}}(X_i) \mid G_i = 1]$, the moderation among high social capital counties, which is the analogue of an ATT-style target; `"all"` reports the sample-wide average. The estimates differ modestly here, which tells you the moderation surface is not wildly heterogeneous in the covariates. Entropy balancing is implemented only for the $G = 1$ target, which is why it appears with that setting.
+
+#### How much unobserved confounding would overturn this?
+
+Factorial parallel trends is untestable. What is testable is how fragile the conclusion is to violating it. Since the estimator is a regression of $\Delta Y_i$ on $G_i$ and $X_i$, omitted-variable-bias sensitivity analysis applies directly, with the important twist that the confounder must be correlated with the *change* in mortality, not its level.
+
+```{r fdid-sensitivity, message=FALSE, warning=FALSE}
+library(sensemakr)
+
+sens <- sensemakr(model = ols_plus, treatment = "G",
+                  benchmark_covariates = c("edu", "urban", "avggrain"),
+                  kd = 1:3)
+
+round(sens$sensitivity_stats[, c("rv_q", "rv_qa", "r2yd.x")], 4)
+
+sens$bounds %>%
+  transmute(
+    benchmark = bound_label,
+    R2_with_G = round(r2dz.x, 4),
+    R2_with_dY = round(r2yz.dx, 4),
+    adjusted = round(adjusted_estimate, 2),
+    adjusted_CI = sprintf("[%.2f, %.2f]", adjusted_lower_CI, adjusted_upper_CI)
+  )
+```
+
+The robustness value says an unobserved confounder would have to explain roughly twelve percent of the residual variance of both social capital and the mortality change to drive the estimate to zero, and about six percent to render it statistically indistinguishable from zero. The benchmark rows put that in perspective: a confounder three times as strong as county education, the most predictive observed covariate, still leaves a clearly negative estimate with an interval excluding zero.
+
+That is reassuring, and it is also exactly as far as the data can take you. Sensitivity analysis bounds the damage from a confounder of a given strength; it cannot rule out one that is stronger. The causal-moderation reading of this estimate rests on a judgment, informed but ultimately untestable, that no such confounder exists.
+
+### What the DID Estimator Cannot Tell You: A Simulation {#sec-fdid-simulation}
+
+The gap between $\tau_{\text{em}}$ and $\tau_{\text{cm}}$ can sound like scholastic hair-splitting. It is not. Under a plausible data-generating process the two can differ in sign, so that an analyst reading a DID estimate as causal moderation reaches the opposite of the truth. The following simulation, which goes beyond the paper's own exposition, makes that concrete.
+
+Construct a world in which canonical parallel trends holds exactly but factorial parallel trends fails. Let $U_i$ be an unobserved county attribute (call it institutional capacity). Social capital is assigned as a function of $U_i$. Absent the event, outcome trends are unrelated to $U_i$, so canonical parallel trends holds and any pre-trend test passes. But the *sensitivity to the event*, $\theta_i$, is increasing in $U_i$: places with more institutional capacity happen to be places where the shock bites harder. The true causal moderation $\delta$ is set to $-1$, so intervening to raise social capital genuinely softens the blow.
+
+```{r fdid-simulation}
+sim_once <- function(n = 4000, lambda = 2, delta = -1) {
+  U     <- rnorm(n)
+  G     <- rbinom(n, 1, plogis(1.5 * U))
+  mu    <- rnorm(n, 10, 2)          # unit level
+  trend <- rnorm(n, 0.5, 1)         # trend absent the event, independent of G
+  theta <- -3 + lambda * U          # effect of exposure when G = 0
+
+  Y_pre  <- mu + 1.0 * G
+  Y_post <- mu + 1.0 * G + trend + (theta + delta * G) * 1
+  dY     <- Y_post - Y_pre
+
+  c(did = mean(dY[G == 1]) - mean(dY[G == 0]),
+    em  = mean((theta + delta)[G == 1]) - mean(theta[G == 0]),
+    cm  = delta,
+    adj = unname(coef(lm(dY ~ G + U))["G"]))
+}
+
+set.seed(20260724)
+grid <- lapply(c(0, 0.5, 1, 1.5, 2), function(l) {
+  R <- t(replicate(300, sim_once(lambda = l)))
+  data.frame(lambda = l, t(colMeans(R)))
+}) %>% bind_rows()
+
+round(grid, 3)
+```
+
+```{r fdid-simulation-plot, fig.cap="Simulation in which canonical parallel trends holds by construction while factorial parallel trends fails increasingly with lambda. The DID estimate tracks effect modification exactly and diverges from the true causal moderation, crossing zero and changing sign. Adjusting for the confounder that drives the violation restores the causal quantity.", fig.width=6.5, fig.height=4}
+grid %>%
+  select(lambda, `DID estimate` = did, `True causal moderation` = cm,
+         `Adjusted for U` = adj) %>%
+  pivot_longer(-lambda, names_to = "quantity", values_to = "value") %>%
+  ggplot(aes(lambda, value, colour = quantity, shape = quantity)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 2.4) +
+  labs(x = expression("Dependence of exposure sensitivity on " * U * "  (" * lambda * ")"),
+       y = "Value", colour = NULL, shape = NULL) +
+  theme(legend.position = "bottom")
+```
+
+At $\lambda = 0$ the baseline factor is unrelated to the potential outcome changes, factorial parallel trends holds, and all three quantities coincide at the truth. As $\lambda$ grows, the DID estimate tracks $\tau_{\text{em}}$ perfectly, exactly as the identification result promises, and departs from $\tau_{\text{cm}}$. By $\lambda = 2$ the DID estimate is positive while the true causal moderation is negative. A researcher would report that the baseline factor made the shock worse when in fact it made it better.
+
+Nothing in the observed data flags the problem. Canonical parallel trends holds by construction, so a placebo window would come back clean. The point estimate is tightly estimated. The only thing that has failed is an assumption nobody wrote down.
+
+The last column shows the repair. Conditioning on $U$ recovers $\delta$ almost exactly, because conditional factorial parallel trends holds given $U$. In practice $U$ is unobserved, which is the entire difficulty, but the simulation clarifies what covariate adjustment in FDID is actually buying you: not better trend matching, but closure of the backdoor between the baseline factor and the outcome dynamics.
+
+### Beyond Historical Political Economy {#sec-fdid-applications}
+
+The design travels well, and once you know its shape you start seeing it everywhere in industry and litigation work. Three settings show why the FDID vocabulary earns its keep.
+
+Start with platform and privacy shocks. Apple's App Tracking Transparency rollout and the enforcement date of the GDPR hit every advertiser at once. There is no unexposed control firm. What varies is pre-shock reliance on third-party identifiers, a baseline factor $G$ measured from historical data. A TWFE regression of ad performance on $G \times \text{post}$ is FDID. Under parallel trends it tells you that low-reliance advertisers fared better, which is $\tau_{\text{em}}$ and is genuinely useful for describing incidence. It does not tell you that reducing third-party reliance would have caused a firm to fare better, which is $\tau_{\text{cm}}$ and requires ruling out that low-reliance firms differed in their capacity to adapt.
+
+A second case is demand shocks and channel readiness. The pandemic closed stores everywhere. Retailers differed in pre-pandemic ecommerce penetration. The estimand a strategy team usually wants is causal moderation, because the implied recommendation is "invest in the channel." The estimand the regression delivers under standard assumptions is effect modification, because firms that had built ecommerce early were also firms with better logistics, younger customer bases, and more capital. Naming the gap changes the recommendation from "invest in the channel" to "firms that had invested weathered it better, for reasons we have not separated."
+
+The third case is expert-witness and damages work. This design is common in antitrust and securities litigation, where a market-wide event (a merger, a disclosure, a rule change) affects all firms and the analyst compares outcomes across a pre-event characteristic. Opposing experts routinely attack the parallel-trends assumption. The FDID framework supplies a sharper line of attack and a sharper defense: the pre-trend evidence a testifying expert typically presents speaks only to canonical parallel trends and therefore only licenses effect modification. If the damages theory requires a causal effect of the baseline characteristic, the expert owes the court an argument for factorial parallel trends, plus the sensitivity analysis of Section \@ref(sec-fdid-famine) to show how much unobserved confounding the conclusion tolerates. Being explicit about which of the four rows of Table \@ref(tab:fdid-roadmap) the opinion occupies is both better practice and harder to impeach.
+
+The common thread is that the baseline factor is almost never as-if random with respect to outcome dynamics. Firms that prepared for a shock are different firms. Counties with dense clan networks are different counties. FDID does not solve that problem. It makes the problem impossible to leave implicit.
+
+### Practical Guidance {#sec-fdid-guidance}
+
+1.  Check whether you are in this design at all. If your "control group" is defined by a baseline characteristic rather than by non-exposure to the event, you are running FDID, whatever the paper says.
+
+2.  Name the estimand before running the regression. Table \@ref(tab:fdid-roadmap) has four rows and they carry different assumptions. Writing the target quantity into the paper is not a stylistic preference; it determines which assumption you owe the reader [@lundberg2021estimand].
+
+3.  Ask whether $G$ is manipulable. If it is an immutable attribute, $\tau_{\text{cm}}$ is not defined and $\tau_{\text{em}}$ is the honest target. Report it as a descriptive contrast and resist causal verbs.
+
+4.  Look for an exclusion restriction. If institutional detail tells you some group was exposed but unaffected, you are back in canonical DID and can identify an ATT-style quantity. Argue for it explicitly rather than assuming it silently.
+
+5.  Do not let a clean pre-trend plot do work it cannot do. Flat pre-trends support canonical parallel trends and therefore effect modification. They are silent on factorial parallel trends, which restricts counterfactual-$g$ potential outcomes that no pre-period reveals.
+
+6.  Center covariates in interacted specifications. Without centering, the coefficient on $G$ in $\text{OLS}_{*}$ or $\text{TWFE}_{*}$ is a conditional contrast at an arbitrary point, not an average effect. Bootstrap with the original covariates and recenter inside each replication.
+
+7.  Compare additive and interacted specifications. A large gap, as in Panel B of the famine replication, is a signal that the conditional contrast varies with $X$ and that the additive model is estimating a weighted blend of things you did not ask for.
+
+8.  Report sensitivity analysis, not just standard errors. The binding constraint in FDID is confounding between $G$ and outcome dynamics, and a robustness value benchmarked against observed covariates communicates fragility far better than a $p$-value.
+
+------------------------------------------------------------------------

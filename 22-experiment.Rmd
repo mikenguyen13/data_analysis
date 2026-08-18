@@ -1655,6 +1655,321 @@ Trade-offs. Cluster randomization trades higher implementation overhead and redu
 
 ------------------------------------------------------------------------
 
+## Sequential Selection Among Multiple Treatments {#sec-sequential-selection}
+
+A mature experimentation program rarely tests one idea at a time. A checkout page is tried in four layouts, a feed in six ranking rules, an onboarding sequence in three copy treatments. The design question stops being "does B beat A" and becomes "which of these arms should ship, and how many users must be spent to find out." The second half is the awkward part, because a sample size calculation needs the outcome variance, and the outcome variance is precisely what nobody knows before the experiment runs.
+
+Guessing wrong is costly in both directions. Overstate the variance and the experiment consumes traffic that other experiments needed, in an environment where participants, not ideas, are the binding constraint on how many hypotheses a firm can evaluate in a quarter. Understate it and the experiment finishes underpowered, a real winner goes undetected, and the incumbent wins by default.
+
+@stamey2026fast take this tension as their subject. They observe that the industrialization of digital experimentation has strained the supply of online participants while a large share of experiments are still not powered for the decision they exist to inform, and they propose a sequential hypothesis testing method that selects the best of several treatments at experimenter specified levels of statistical power and false positive rate, sampling no further than the power requirement demands. Two properties separate the method from the usual alternatives. The realized sample size has low variance, so the stopping point is itself a precise estimate of the sample size the problem required rather than a draw from a wide distribution, and the treatment effect estimates carry little bias, which is a recurring weakness of adaptive sampling. The authors demonstrate the method on a real multi-armed online experiment and distribute an R package with the article so the rule can be dropped into a running experimentation pipeline.
+
+The exact stopping boundary they propose, its finite sample calibration, and that package are in the article, which is not open access. What follows develops a purely sequential selection procedure of the same construction, in the tradition their earlier work established [@chattopadhyay2017estimating; @kelley2018accuracy; @kelley2019sequential; @chattopadhyay2025sequential], and reproduces the qualitative properties at issue. Treat it as a working template for understanding what this class of method buys, not as a transcription of their algorithm.
+
+### Four Ways to Decide When to Stop
+
+It helps to see the design space before writing any code.
+
+The first option is a fixed sample size computed from a planning value of $\sigma$. It is honest, it is auditable, and it is fragile in exactly one place: the planning value. Everything downstream inherits that guess.
+
+The second is continuous monitoring with always valid inference. Confidence sequences and mixture sequential probability ratio tests let an analyst look at the data as often as they like without inflating the false positive rate [@johari2022always; @howard2021time]. This solves the peeking problem, but it does not solve the planning problem. An always valid test stops when the realized effect happens to be large, so the stopping time is driven by the unknown effect size and its distribution is wide. There is also no guarantee attached to a specific minimum effect worth detecting.
+
+The third is adaptive allocation. Multi-armed bandits shift traffic toward arms that look good, minimizing regret while the experiment is live [@villar2015multi]. The price is paid at the analysis stage. Because the sampling probabilities depend on past outcomes, sample means are no longer unbiased for arm means, and valid inference requires purpose-built corrections [@hadad2021confidence].
+
+The fourth, and the one at issue here, holds the allocation fixed at $1/K$ throughout and lets only the total sample size adapt, driven by the accumulating variance estimate. This is the purely sequential construction of @chow1965asymptotic, transplanted from fixed width interval estimation to a selection decision. The randomization never changes, so the estimates behave like fixed design estimates, and yet the experiment stops as soon as the accumulated data show the power requirement has been met.
+
+The selection problem itself has an older pedigree. @bechhofer1954single formulated the indifference zone framework, in which the experimenter names a difference $\delta$ that is worth detecting and asks for a guaranteed probability of correct selection whenever the best arm leads the rest by at least $\delta$. @paulson1964sequential added sequential elimination of hopeless arms. @dunnett1955multiple solved the many to one comparison problem that digital experiments almost always face in practice, where a set of variants is compared against an incumbent control.
+
+### The Fixed-Sample Benchmark
+
+Index the arms $k = 0, 1, \dots, K-1$, with $k = 0$ the control and the remaining $K - 1$ arms the variants under test. Outcomes $Y_{ik}$ have mean $\mu_k$ and common variance $\sigma^2$, and each arm receives $n$ units. The contrast of interest for variant $k$ is $\bar{Y}_k - \bar{Y}_0$, with standard error $\sigma \sqrt{2/n}$, and the studentized statistic is
+
+$$
+T_k = \frac{\bar{Y}_k - \bar{Y}_0}{S_n \sqrt{2/n}}, \qquad k = 1, \dots, K-1 ,
+$$
+
+where $S_n^2$ is the pooled within arm variance. Declare a winner when $\max_k T_k$ exceeds $d_{\alpha, K-1}$, the equicoordinate upper $\alpha$ point of a $(K-1)$-variate normal distribution with all correlations equal to $1/2$. That correlation is not an assumption: under equal allocation, any two contrasts against a shared control correlate at exactly $1/2$, which is what makes Dunnett's constant the right multiplicity adjustment rather than a Bonferroni approximation. Under the global null, the probability of declaring any winner is $\alpha$.
+
+For power, suppose the best variant beats control by $\delta$ and no other variant does better. Requiring probability $1 - \beta$ of both declaring a winner and picking the right one gives the per-arm requirement
+
+$$
+n \;\ge\; \frac{2\sigma^2 \left(d_{\alpha, K-1} + z_{1-\beta}\right)^2}{\delta^2} \;\equiv\; C\,\sigma^2 ,
+$$
+
+which defines the design constant $C$ and the oracle sample size $n^{\ast} = C \sigma^2$. Note where the unknown sits. The constant $C$ depends only on quantities the experimenter chooses, namely $\alpha$, the power, the number of arms, and the smallest lift worth shipping. All of the uncertainty is in $\sigma^2$.
+
+### Turning the Sample Size into a Stopping Rule
+
+Since $n^{\ast} = C\sigma^2$ and $C$ is known, the natural move is to replace $\sigma^2$ by its running estimate and keep sampling until the accumulated $n$ overtakes the requirement it implies. The purely sequential rule takes the form
+
+$$
+N \;=\; \inf\left\{ n \ge m \;:\; n \;\ge\; C\left(S_n^2 + n^{-\gamma}\right) \right\},
+$$
+
+starting from a pilot of $m$ units per arm, with $\gamma > 0$. The additive $n^{-\gamma}$ term is the standard device in this literature and it earns its place twice: it guarantees $N$ is finite, and it prevents the rule from terminating early at a small $n$ where $S_n^2$ happens to come out small by chance. The term vanishes as $n$ grows, so it costs nothing asymptotically. Under mild moment conditions, $N / n^{\ast} \to 1$ almost surely and $E[N] / n^{\ast} \to 1$, which is asymptotic first order efficiency, and the sharper second order result bounds $E[N] - n^{\ast}$ [@chow1965asymptotic]. In words, the rule recovers the sample size an oracle who knew $\sigma$ would have chosen.
+
+The structural feature that matters most is easy to miss: the stopping rule reads $S_n^2$ and nothing else. It never looks at the arm means. Two consequences follow. First, the stopping time is close to independent of the treatment effects, so the terminal estimates behave nearly as they would in a fixed design and the terminal Dunnett test keeps close to its nominal size. Second, the dispersion of $N$ inherits the dispersion of a variance estimate rather than that of a mean difference, and variances concentrate quickly. This is the mechanism behind both properties @stamey2026fast emphasize, and it is exactly what a rule that stops when the observed lead looks large gives up: such a rule stops on lucky draws, which is the winner's curse.
+
+### Implementation
+
+The core is short. `seq_select()` takes the arriving outcomes as a matrix with one column per arm, the control first, and returns the stopping point together with the terminal decision.
+
+```{r seqsel-core, message=FALSE, warning=FALSE}
+library(mvtnorm)
+
+# One-sided Dunnett constant: K - 1 variants against one control under equal
+# allocation, so the K - 1 contrasts share correlation 1/2. qmvnorm is a
+# randomized quasi-Monte Carlo routine and is slow, so cache each (K, alpha)
+# pair; caching also holds the constant fixed across calls within a session.
+dunnett_crit <- local({
+    cache <- list()
+    function(K, alpha) {
+        key <- paste(K, alpha)
+        if (!is.null(cache[[key]])) return(cache[[key]])
+        value <- if (K == 2L) qnorm(1 - alpha) else {
+            R <- matrix(0.5, K - 1L, K - 1L)
+            diag(R) <- 1
+            as.numeric(mvtnorm::qmvnorm(1 - alpha, tail = "lower.tail",
+                                        sigma = R)$quantile)
+        }
+        cache[[key]] <<- value
+        value
+    }
+})
+
+# Per-arm sample size for the fixed design, given a planning value of sigma.
+n_fixed <- function(sigma, delta, K, alpha = 0.05, power = 0.80) {
+    ceiling(2 * sigma^2 * (dunnett_crit(K, alpha) + qnorm(power))^2 / delta^2)
+}
+
+# The design constant C, so that the oracle per-arm size is n_star = C sigma^2.
+stop_constant <- function(delta, K, alpha = 0.05, power = 0.80) {
+    2 * (dunnett_crit(K, alpha) + qnorm(power))^2 / delta^2
+}
+
+# Pooled within-arm variance from cumulative sums, evaluated row by row.
+pooled_var <- function(s1, s2, n, K) {
+    (rowSums(s2) - rowSums(s1^2) / n) / (K * (n - 1))
+}
+
+# Purely sequential selection. Y holds arriving outcomes, one column per arm,
+# column 1 the control. The rule inspects only the pooled variance, never the
+# arm means, so the stopping time is nearly independent of the effects.
+seq_select <- function(Y, delta, alpha = 0.05, power = 0.80,
+                       m = 250, batch = 250, gamma = 0.5) {
+    K <- ncol(Y)
+    C <- stop_constant(delta, K, alpha, power)
+    d <- dunnett_crit(K, alpha)
+    s1 <- apply(Y, 2, cumsum)
+    s2 <- apply(Y^2, 2, cumsum)
+    checks <- seq(m, nrow(Y), by = batch)
+    S2 <- pooled_var(s1[checks, , drop = FALSE], s2[checks, , drop = FALSE],
+                     checks, K)
+    hit <- which(checks >= C * (S2 + checks^(-gamma)))
+    n <- if (length(hit)) checks[hit[1]] else checks[length(checks)]
+    j <- match(n, checks)
+    means <- s1[n, ] / n
+    se <- sqrt(2 * S2[j] / n)
+    tstat <- (means[-1] - means[1]) / se
+    b <- which.max(tstat)
+    list(n_per_arm = n, n_total = K * n, sigma_hat = sqrt(S2[j]), means = means,
+         selected = b + 1L, declare = tstat[b] > d, se = se,
+         lift = means[b + 1L] - means[1],
+         lift_lo = means[b + 1L] - means[1] - d * se,
+         truncated = !length(hit))
+}
+
+K <- 4; sigma <- 1; delta <- 0.15
+c(dunnett = dunnett_crit(K, 0.05), n_star_per_arm = n_fixed(sigma, delta, K))
+```
+
+Passing the whole matrix at once is a convenience for simulation. In production the same rule runs incrementally against a live stream: maintain the running sums per arm, evaluate the inequality at each scheduled check, and stop the first time it holds. Checking in batches rather than after every single observation costs nothing asymptotically and matches how experimentation pipelines actually operate.
+
+### Operating Characteristics
+
+Take four arms, a control and three variants, unit outcome variance, and a smallest lift worth shipping of $\delta = 0.15$, at $\alpha = 0.05$ and 80 percent power. An oracle who knew $\sigma$ would run 750 units per arm, or 3,000 in total. Compare the sequential rule with three fixed designs: one built on the correct $\sigma$, one on a standard deviation guessed 30 percent too low, and one guessed 30 percent too high. Power is evaluated at the least favourable configuration, where a single variant leads the control by exactly $\delta$ and the others are no better than control, and the false positive rate is evaluated under the global null where nothing works.
+
+```{r seqsel-oc, message=FALSE, warning=FALSE}
+oc_sim <- function(mu, sigma, delta, alpha = 0.05, power = 0.80,
+                   reps = 1500, m = 100, batch = 50, seed = 2026) {
+    K <- length(mu); d <- dunnett_crit(K, alpha); best <- which.max(mu)
+    n_o  <- n_fixed(sigma, delta, K, alpha, power)
+    n_lo <- n_fixed(sigma * 0.7, delta, K, alpha, power)
+    n_hi <- n_fixed(sigma * 1.3, delta, K, alpha, power)
+    n_max <- max(n_hi, 3 * n_o)
+    fixed <- function(Y, n) {
+        mns <- colMeans(Y[seq_len(n), , drop = FALSE])
+        S2 <- mean(apply(Y[seq_len(n), , drop = FALSE], 2, var))
+        t <- (mns[-1] - mns[1]) / sqrt(2 * S2 / n)
+        b <- which.max(t)
+        c(n_total = K * n, win = (t[b] > d) && (b + 1L == best),
+          declare = t[b] > d)
+    }
+    set.seed(seed)
+    out <- vector("list", reps)
+    for (r in seq_len(reps)) {
+        Y <- matrix(rnorm(n_max * K, rep(mu, each = n_max), sigma), n_max, K)
+        s <- seq_select(Y, delta, alpha, power, m = m, batch = batch)
+        out[[r]] <- rbind(
+            c(n_total = s$n_total, win = s$declare && s$selected == best,
+              declare = s$declare),
+            fixed(Y, n_o), fixed(Y, n_lo), fixed(Y, n_hi))
+    }
+    lab <- c("Sequential rule", "Fixed n, variance correct",
+             "Fixed n, SD guessed 30% low", "Fixed n, SD guessed 30% high")
+    res <- as.data.frame(do.call(rbind, out))
+    res$design <- factor(rep(lab, reps), levels = lab)
+    res
+}
+
+oc_lfc  <- oc_sim(c(0, 0, 0, delta), sigma, delta)    # one true winner
+oc_null <- oc_sim(rep(0, K), sigma, delta, seed = 99) # nothing works
+
+oc_tab <- data.frame(
+    Design = levels(oc_lfc$design),
+    `Mean total N` = round(tapply(oc_lfc$n_total, oc_lfc$design, mean)),
+    `SD of total N` = round(tapply(oc_lfc$n_total, oc_lfc$design, sd), 1),
+    Power = round(tapply(oc_lfc$win, oc_lfc$design, mean), 3),
+    `False positive rate` = round(tapply(oc_null$declare, oc_null$design, mean), 3),
+    check.names = FALSE, row.names = NULL)
+knitr::kable(oc_tab, caption = "Operating characteristics of four multi-arm designs")
+```
+
+The pattern is the one that motivates the method. The oracle fixed design achieves its nominal power, but it is only available to an experimenter who already knew $\sigma$. Underestimating the standard deviation by 30 percent halves the sample and cuts realized power to roughly one in two, so the design fails at the one job it was commissioned for. Overestimating by 30 percent buys power far beyond what was asked and spends about 70 percent more traffic than necessary to get it. The sequential rule lands within about seven percent of the oracle sample size and delivers the requested power without ever being told $\sigma$, and it holds its false positive rate, because the stopping decision is made on the variance rather than on the means. The small overshoot is the price of the $n^{-\gamma}$ guard term and of checking in batches rather than continuously, and it buys a little power beyond the target.
+
+The standard deviation column is the quiet headline. Across replications the sequential rule's total sample size varies by under three percent of its mean, while the fixed designs are exactly predictable but predictably wrong whenever the planning variance was wrong. That stability is operationally valuable in its own right: an experimentation platform can quote a duration to a product team, and a portfolio manager can plan traffic across concurrent tests, because the stopping point is a tight estimate of the sample size the problem required rather than a lottery.
+
+```{r seqsel-oc-fig, message=FALSE, warning=FALSE, fig.cap="Distribution of the realized total sample size under the sequential rule, with the three fixed-sample designs marked."}
+library(ggplot2)
+
+vl <- data.frame(
+    design = levels(oc_lfc$design)[-1],
+    x = as.numeric(tapply(oc_lfc$n_total, oc_lfc$design, mean))[-1])
+
+ggplot(subset(oc_lfc, design == "Sequential rule"), aes(n_total)) +
+    # the rule checks every 50 units per arm, so N moves in steps of 4 x 50
+    geom_histogram(binwidth = 200, boundary = 0, fill = "grey70",
+                   colour = "white") +
+    geom_vline(data = vl, aes(xintercept = x, colour = design),
+               linewidth = 0.7, linetype = "dashed") +
+    scale_colour_brewer(palette = "Dark2", name = NULL) +
+    guides(colour = guide_legend(nrow = 3)) +
+    labs(x = "Total sample size across the four arms", y = "Replications",
+         title = "Realized sample size of the sequential rule",
+         subtitle = "Dashed lines mark the three fixed-sample designs") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+```
+
+### Why Allocation, Not Stopping, Is What Biases Estimates
+
+The second claim, that the treatment effect estimates stay nearly unbiased, deserves its own demonstration, because it is the property that separates a sequential stopping rule from a bandit. Give both designs the same total budget and compare what each recovers about every arm, not just the winner. Thompson sampling is the natural comparison, since it is the allocation rule most widely deployed on experimentation platforms.
+
+```{r seqsel-bias, message=FALSE, warning=FALSE}
+ts_means <- function(mu, sigma, budget, batch = 100, draws = 300) {
+    K <- length(mu)
+    n <- rep(20L, K)
+    s <- vapply(seq_len(K), function(k) sum(rnorm(20, mu[k], sigma)), 0)
+    while (sum(n) < budget) {
+        mhat <- s / n
+        post <- matrix(rnorm(draws * K, rep(mhat, each = draws),
+                             rep(sigma / sqrt(n), each = draws)), draws, K)
+        p <- tabulate(max.col(post), K) / draws
+        p <- pmax(p, 0.02); p <- p / sum(p)          # floor keeps every arm alive
+        take <- pmin(as.integer(round(p * batch)), budget - sum(n))
+        if (sum(take) == 0L) take[which.max(p)] <- budget - sum(n)
+        for (k in seq_len(K)) if (take[k] > 0L) {
+            s[k] <- s[k] + sum(rnorm(take[k], mu[k], sigma))
+            n[k] <- n[k] + take[k]
+        }
+    }
+    s / n
+}
+
+set.seed(7)
+mu_spread <- c(0, 0.05, 0.10, 0.15)
+budget <- K * n_fixed(sigma, delta, K)
+R <- 400
+eq <- ts <- matrix(NA_real_, R, K)
+for (r in seq_len(R)) {
+    eq[r, ] <- vapply(seq_len(K),
+                      function(k) mean(rnorm(budget / K, mu_spread[k], sigma)), 0)
+    ts[r, ] <- ts_means(mu_spread, sigma, budget)
+}
+
+bias_tab <- data.frame(
+    Arm = c("Control", paste("Variant", 1:3)),
+    `True mean` = mu_spread,
+    `Bias, equal allocation` = round(colMeans(eq) - mu_spread, 4),
+    `Bias, Thompson sampling` = round(colMeans(ts) - mu_spread, 4),
+    `RMSE, equal allocation` = round(sqrt(colMeans((eq - rep(mu_spread, each = R))^2)), 4),
+    `RMSE, Thompson sampling` = round(sqrt(colMeans((ts - rep(mu_spread, each = R))^2)), 4),
+    check.names = FALSE)
+knitr::kable(bias_tab, caption = "Estimation quality at equal total budget")
+```
+
+Equal allocation returns arm means that are unbiased to within Monte Carlo error. Thompson sampling, spending the identical budget, returns means biased downward on every arm, most severely on the arms it abandons, and roughly doubles the root mean squared error on those arms. The mechanism is straightforward: an arm that draws a run of bad luck early stops receiving traffic, so the unlucky sample is never diluted and the bias is frozen in. This is the phenomenon that motivates the corrected inference procedures of @hadad2021confidence and the cautions in @villar2015multi.
+
+The practical implication is a division of labour. If the goal is to maximize the outcome accumulated during the test itself, adaptive allocation is the right tool and the biased arm estimates are a price worth paying. If the goal is to learn which variant is best and to report a defensible effect size for the launch decision, hold the allocation fixed and adapt only the stopping time. Digital experimentation, where the value is realized after the rollout rather than during the test, usually belongs in the second category.
+
+### Replaying a Real Multi-Arm Experiment
+
+@stamey2026fast validate their procedure on data from a real multi-armed online experiment. The same exercise can be run here on the Hillstrom email campaign, a three-arm marketing experiment in which 64,000 past customers were randomized among a men's merchandise email, a women's merchandise email, and no email at all, with website visits tracked over the following two weeks. Treating the no-email condition as the control gives exactly the many-to-one structure the design assumes.
+
+The point of the exercise is counterfactual. The experiment as run consumed all 64,000 customers. How many would the sequential rule have needed? Shuffling each arm's outcomes into a random arrival order and replaying the rule answers that, and repeating over many shuffles shows how much the answer moves.
+
+```{r seqsel-hillstrom, message=FALSE, warning=FALSE}
+hs <- read.csv("data/hillstrom_email.csv")
+arms <- c("No E-Mail", "Mens E-Mail", "Womens E-Mail")
+pool <- lapply(arms, function(a) hs$visit[hs$segment == a])
+n_cap <- min(vapply(pool, length, 0L))
+sd_pool <- sqrt(mean(vapply(pool, var, 0)))
+delta_hs <- 0.02   # two percentage points on the visit rate
+
+c(pooled_sd = round(sd_pool, 4),
+  oracle_n_per_arm = n_fixed(sd_pool, delta_hs, 3),
+  available_per_arm = n_cap)
+
+set.seed(2026)
+replay <- replicate(200, simplify = FALSE, {
+    Y <- vapply(pool, function(y) sample(y, n_cap), numeric(n_cap))
+    seq_select(Y, delta_hs, m = 250, batch = 250)
+})
+
+n_tot <- vapply(replay, function(z) z$n_total, 0)
+hs_tab <- data.frame(
+    Quantity = c("Median total N", "SD of total N",
+                 "Share of the 64,000 customers used",
+                 "Share of replays selecting Mens E-Mail",
+                 "Share of replays declaring a winner",
+                 "Mean estimated lift in visit rate",
+                 "Full-sample lift in visit rate"),
+    Value = c(median(n_tot), round(sd(n_tot), 1),
+              round(median(n_tot) / nrow(hs), 3),
+              mean(vapply(replay, function(z) z$selected, 0L) == 2L),
+              mean(vapply(replay, function(z) z$declare, TRUE)),
+              round(mean(vapply(replay, function(z) z$lift, 0)), 4),
+              round(mean(pool[[2]]) - mean(pool[[1]]), 4)))
+knitr::kable(hs_tab, caption = "Sequential replay of the Hillstrom email experiment")
+```
+
+Every replay selects the men's email and declares it a winner, using around a quarter of the customers the original experiment consumed. The estimated lift matches the full-sample lift to within about three hundredths of a percentage point, which is the unbiasedness property in action: because the rule stopped on the variance rather than on the observed gap, the terminal estimate is not inflated by the decision to stop. The standard deviation of the total sample size is roughly two percent of its median, so the answer to "how many customers will this take" would have been reliable before the campaign launched, not merely in retrospect.
+
+The roughly 47,000 customers the sequential design leaves unspent are the real return. They are not saved; they are redeployed into the next experiment in the queue. In a program running dozens of concurrent tests, that is the difference between evaluating one idea and evaluating four.
+
+### Practical Guidance
+
+The indifference zone $\delta$ is a business quantity, not a statistical one. It is the smallest lift that would change the launch decision, and it should be elicited from whoever owns that decision. It is not a guess at the true effect, and setting it to a hoped-for effect is the most common way these designs go wrong.
+
+Because $N$ scales with $\sigma^2$, variance reduction and sequential stopping compound. Applying the CUPED or CUPAC adjustments from the [variance reduction](#sec-variance-reduction) discussion to the outcome before feeding it to the rule shrinks the residual variance by roughly $1 - \rho^2$, where $\rho$ is the correlation between the covariate and the outcome, and the expected sample size falls by the same factor. A pre-period covariate correlating at 0.6 with the outcome cuts the expected duration of every sequential experiment by more than a third, at no cost in bias.
+
+The pilot size $m$ must be large enough that $S_m^2$ is stable. Too small a pilot lets an unlucky variance estimate trigger immediate termination, which the $n^{-\gamma}$ term guards against but does not fully prevent. A few hundred units per arm is a safe default for web metrics. Relatedly, the theory behind first and second order efficiency requires a finite fourth moment. Binary and bounded metrics such as visit or conversion satisfy this comfortably. Revenue and session length do not, and heavy tails will both inflate the variance estimate and make the stopping time more dispersed. Winsorizing at a high percentile, or applying the rule to a bounded transform, restores the behaviour the theory promises, and either choice should be fixed in the design document before the experiment starts.
+
+Two further cautions carry over from fixed designs and are worth restating because sequential stopping repairs neither. The variance in the stopping rule must be the variance of the unit of randomization, so cluster-randomized experiments require the cluster-level variance rather than the user-level one. And the Dunnett constant controls multiplicity across the arms of one experiment only. A firm running two hundred experiments a quarter faces a second, larger multiplicity problem that this design does not touch.
+
+Finally, the same purely sequential machinery extends beyond the select-the-best question. @chattopadhyay2025sequential develop the noninferiority and equivalence analogues under explicit cost constraints, which is the relevant framing when the goal is to retire an expensive treatment without losing performance rather than to find a better one.
+
+------------------------------------------------------------------------
+
 ## Emerging Research
 
 Recent research highlights significant challenges in measuring the causal effects of ad content in online advertising experiments. Digital advertising platforms employ algorithmic targeting and dynamic ad delivery mechanisms, which can introduce systematic biases in A/B testing [@braun2025where]. Key concerns include:

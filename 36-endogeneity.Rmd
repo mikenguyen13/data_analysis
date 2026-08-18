@@ -868,6 +868,206 @@ cat("Frequentist 95% CI for r:",
 
 ------------------------------------------------------------------------
 
+### Measurement Error in Machine-Learning-Generated Regressors {#sec-ml-generated-regressors}
+
+A fast-growing empirical practice combines supervised machine learning with regression in a two-phase workflow. In the first phase, a model is trained on a labeled sample to predict a variable of interest from features. In the second phase, the model's predictions are used as an independent variable in a regression to draw a causal or descriptive inference. Researchers reach for this design whenever the variable they care about is expensive to observe but cheap to predict. @cengiz2022seeing train a boosted tree to predict which workers are affected by minimum-wage changes and then estimate the effect of those changes on labor-market outcomes. @moreno2014doing mine sentiment from user-generated text and study its effect on purchasing. @zhang2022makes use deep learning to score the quality of Airbnb listing photographs and then estimate how image quality drives demand. In each case a predicted variable stands in for one that was never directly measured at scale.
+
+The difficulty is that predictions are imperfect, and the prediction error becomes [measurement error](#sec-measurement-error) in the second-phase regression. This is the classical generated-regressor problem of @pagan1984econometric, now with a machine learning model supplying the generated variable. Writing the true second-phase model as
+$$
+Y = X\beta + W\Pi + \varepsilon, \qquad \mathbb{E}[\varepsilon \mid X, W] = 0,
+$$
+where $X$ is the variable of interest and $W$ collects exogenous controls, the analyst does not observe $X$ on the large sample and instead substitutes the prediction $\hat{X} = X + e$, with $e$ the prediction error. The regression actually estimated is
+$$
+Y = \hat{X}\beta + W\Pi + (\varepsilon - e\beta),
+$$
+and the composite error $u = \varepsilon - e\beta$ is correlated with the regressor:
+$$
+\mathrm{Cov}(\hat{X}, u) = \mathrm{Cov}(X + e,\, \varepsilon - e\beta) = -\beta\bigl(\mathrm{Cov}(X, e) + \mathrm{Var}(e)\bigr).
+$$
+Unless $\mathrm{Cov}(X, e)$ happens to cancel $\mathrm{Var}(e)$ exactly, ordinary least squares is biased and inconsistent, exactly the endogeneity mechanism analyzed for [classical measurement error](#sec-classical-measurement-error) above. Two features distinguish this modern version. First, no restriction is placed on whether $X$ is continuous or binary, nor on whether $e$ is independent of $X$ (classical error) or correlated with it (non-classical error), so the bias need not be simple attenuation. Second, and more usefully, the measurement error is not hidden. Because the machine learning model was trained and tested on a labeled sample where the ground truth of $X$ is known, the analyst can directly observe $e = \hat{X} - X$ on that sample and estimate its properties, an advantage that traditional measurement-error settings, where the error is fundamentally unobservable, never enjoy.
+
+That observability has produced a small literature of purpose-built corrections. SIMEX resamples the observed error to extrapolate the bias away [@stefanski1995simulation], with a misclassification variant for binary variables [@kuchenhoff2006general]; @yang2018mind bring SIMEX to the data-mining setting. Regression calibration replaces the prediction with its expectation given the true value, learned on the labeled sample [@gleser1992importance; @carroll2006measurement]. Newer methods target the machine learning case directly: @fong2021machine develop a GMM estimator, @qiao2021correcting correct misclassification bias, and @wang2020methods correct inference on machine-predicted outcomes. The method developed at length here, EnsembleIV of @burtch2026ensembleiv, published in Management Science, takes an instrumental-variables route that turns the ensemble model itself into a source of instruments and, unlike its predecessors, handles continuous and binary generated variables and classical and non-classical error within one framework.
+
+#### Ensemble Learners as Instruments
+
+The [instrumental variable remedy](#sec-instrumental-variables) for measurement error needs a variable $Z$ that is correlated with the mismeasured regressor (relevance) but uncorrelated with the composite error (exclusion). Finding such an instrument is normally the hard part, because the exclusion restriction cannot be checked and must be argued on substantive grounds. The insight of EnsembleIV is that an ensemble model hands the analyst a pool of candidate instruments for free. If the first-phase model is an ensemble of $M$ individual learners, for instance the $M$ trees of a random forest, then rather than using the aggregated prediction $\hat{X} = \frac{1}{M}\sum_i \hat{X}^{(i)}$, one can designate the prediction of one learner $\hat{X}^{(i)}$ as the mismeasured regressor and use the predictions of the other learners $\hat{X}^{(j)}$, $j \neq i$, as candidate instruments.
+
+Relevance holds automatically: different learners predict the same target, so their predictions are correlated, $\mathrm{Cov}(\hat{X}^{(j)}, \hat{X}^{(i)}) \neq 0$. Exclusion is the problem. A candidate instrument satisfies it only if $\mathrm{Cov}(\hat{X}^{(j)}, \hat{X}^{(i)} - X) = 0$, that is, if learner $j$'s prediction is uncorrelated with learner $i$'s prediction error, and there is no reason a raw pair of learners should comply. The earlier ForestIV method of @yang2022achieving relies on the chance that some pairs of trees in a random forest happen to have weakly correlated errors, exploiting the diversity property of random forests [@breiman2001random], and then searches for the combination of learners that best satisfies exclusion. EnsembleIV instead makes every candidate comply by construction, through a transformation.
+
+#### Transforming a Candidate Into a Valid Instrument
+
+The transformation adapts the imperfect-instruments idea of @nevo2012identification, who relax strict exclusion and work with instruments known only to be less correlated with the error than the endogenous regressor is. Define, for a candidate instrument $Z$ with composite error $u$,
+$$
+\lambda = \frac{\rho_{Zu}}{\rho_{\hat{X}u}} = \frac{\mathrm{Cov}(Z, u)}{\mathrm{Cov}(\hat{X}, u)} \cdot \frac{\sigma_{\hat{X}}}{\sigma_Z},
+$$
+which measures how much $Z$ violates the exclusion restriction relative to how much the endogenous regressor $\hat{X}$ does. The key result is that a simple linear recombination of $Z$ and $\hat{X}$ purges the violation.
+
+> **Lemma (Nevo-Rosen transformation).** Let $\tilde{Z} = \sigma_{\hat{X}} Z - \lambda \sigma_Z \hat{X}$. Then $\mathrm{Cov}(\tilde{Z}, u) = 0$, so $\tilde{Z}$ satisfies the exclusion restriction exactly.
+
+The proof is a one-line substitution:
+$$
+\mathrm{Cov}(\tilde{Z}, u) = \sigma_{\hat{X}}\mathrm{Cov}(Z, u) - \lambda \sigma_Z \mathrm{Cov}(\hat{X}, u) = \sigma_{\hat{X}}\mathrm{Cov}(Z, u) - \frac{\mathrm{Cov}(Z, u)}{\mathrm{Cov}(\hat{X}, u)}\frac{\sigma_{\hat{X}}}{\sigma_Z}\sigma_Z\mathrm{Cov}(\hat{X}, u) = 0.
+$$
+In a generic measurement-error problem $\lambda$ is unknowable because $u$, and hence the error $e$, is unobserved. Here it is estimable. Under the maintained assumptions that the structural error $\varepsilon$ is mean-independent of the covariates and that each learner's prediction error is uncorrelated with $\varepsilon$, the composite covariances reduce to error covariances, $\mathrm{Cov}(Z, u) = -\beta\,\mathrm{Cov}(Z, e)$ and $\mathrm{Cov}(\hat{X}, u) = -\beta\,\mathrm{Cov}(\hat{X}, e)$, so the unknown $\beta$ cancels and
+$$
+\lambda = \frac{\mathrm{Cov}(Z, e)}{\mathrm{Cov}(\hat{X}, e)} \cdot \frac{\sigma_{\hat{X}}}{\sigma_Z}.
+$$
+Every quantity on the right can be computed on the labeled test sample, where the prediction error $e = \hat{X} - X$ is observed. The algorithm therefore estimates $\hat{\lambda}$ on the test data and applies the transformation on the large unlabeled sample. @burtch2026ensembleiv show that the plug-in $\hat{\lambda}$ estimated on a sufficiently large test set converges almost surely to the (uncomputable) value defined on the unlabeled sample, so the swap is asymptotically innocuous.
+
+#### Selecting Strong Instruments, Averaging, and Cross-Fitting
+
+Applying the transformation to every other learner turns one designated endogenous covariate $\hat{X}^{(i)}$ into $M-1$ asymptotically valid instruments. Using all of them is unwise. Some are only weakly correlated with the regressor, and weak instruments are a well-known source of bias and distorted inference [@bound1995problems; @andrews2019weak]; too many instruments overfit the first stage. EnsembleIV therefore selects a small set of strong instruments through one of three routes: a top-$n$ heuristic that keeps the transformed instruments most correlated with the regressor; a principal-components condensation of the transformed instruments, following the factorized-instrument idea, whose components remain valid because they are linear combinations of valid instruments; or the LASSO instrument selection of @belloni2012sparse. The number of instruments to retain can itself be chosen to minimize an approximate mean-squared error [@donald2001choosing]; in practice a handful suffices.
+
+The selected instruments feed a standard IV regression: two-stage least squares for a linear second phase [@donald2001choosing], or two-stage residual inclusion, the control-function estimator, for a generalized linear second phase such as logistic regression [@terza2008two; @buzas1996instrumental]. Crucially, the procedure is repeated with each of the $M$ learners playing the role of the endogenous covariate in turn, and the resulting $M$ IV estimates are averaged. Because the individual estimates are far from perfectly correlated, averaging cuts the variance substantially, which is the source of EnsembleIV's efficiency edge over methods that commit to a single learner.
+
+One tension remains. The test sample does double duty, evaluating the first-phase model and estimating $\lambda$, so a large test set sharpens $\lambda$ but starves the training set, degrading the predictions. EnsembleIV resolves this with cross-fitting, the same sample-splitting logic that underlies double machine learning [@chernozhukov2018double]: partition the labeled data into $K$ folds, and in each iteration train on $K-1$ folds while estimating $\lambda$ on the held-out fold, then average the fold-specific estimates. Every labeled observation is used for both purposes without any single observation being used for both at once. The full estimator is consistent and asymptotically normal.
+
+> **Theorem (asymptotic normality, @burtch2026ensembleiv).** Let $\hat{\beta}_{IV}$ be the EnsembleIV estimator computed on the unlabeled sample of size $n_u$ using transformed instruments that asymptotically satisfy exclusion. Under the maintained assumptions, as $n_u, n_l \to \infty$,
+> $$
+> \sqrt{n_u}\bigl(\hat{\beta}_{IV} - \beta\bigr) \;\xrightarrow{d}\; \mathcal{N}\!\left(0,\ \frac{\sigma_\varepsilon^2}{\bar{f}^2}\right),
+> $$
+> where $\bar{f}^2$ is the average squared signal in the instruments. Because the finite-sample distribution of an IV estimator is often better approximated by the bootstrap than by first-order asymptotics, the authors recommend bootstrapping the entire pipeline, resampling within each data partition, to obtain standard errors.
+
+#### How EnsembleIV Compares
+
+Set against the alternatives, EnsembleIV's advantages are its generality and efficiency. SIMEX corrects only classical measurement error, and its misclassification variant only binary error [@stefanski1995simulation; @kuchenhoff2006general], whereas EnsembleIV handles continuous and binary generated variables and independent and correlated errors within a single procedure, a scope shared with the nonclassical-error treatment of @hu2008instrumental. Against its closest relative, ForestIV [@yang2022achieving], EnsembleIV is both more general and more efficient. ForestIV's validity is tied to the specific properties of the random forest and has been established only for continuous variables, and it is passive, relying on the chance discovery of tree pairs that satisfy exclusion. EnsembleIV is active, transforming every candidate into compliance, which lets it run on any ensemble, random forest, gradient boosting, or stacking, and even on ensembles of heterogeneous neural networks. For boosting, where trees are sequential and overlapping so their errors are far from independent, EnsembleIV uses the cumulative learners as the endogenous covariate and instruments, a case ForestIV cannot handle and a genuine test of the transformation, since the raw exclusion violation is severe by construction. Averaging over all learners rather than selecting one best combination is what gives EnsembleIV smaller standard errors than ForestIV in the same sample.
+
+The validity of the whole scheme rests on one substantive assumption that deserves scrutiny: that each learner's prediction error is uncorrelated with the structural error $\varepsilon$ once the covariates are controlled. This can fail if the machine learning model keys on peripheral features of the input that affect the outcome $Y$ directly but are excluded from $X$ and $W$, a concern raised in recent work. @burtch2026ensembleiv supply a data-driven diagnostic: on held-out labeled data, correlate each transformed instrument's error with the residual of the measurement-error-free regression, and use a permutation test on the average absolute correlation to check whether the exclusion restriction is empirically tenable. Applied to their real-world data, the test does not reject, licensing the standard estimator.
+
+#### Validating the Transformation Mechanics
+
+Before applying the method to realistic machine learning predictions, it is worth confirming that the transformation does what the lemma promises. The following self-contained simulation constructs two "learners" that predict a latent $X$ with errors that are deliberately correlated with each other, so a raw learner-as-instrument violates exclusion, and checks whether the transformed instrument recovers the true coefficient. The ground truth is $\beta = 1.5$.
+
+```{r eiv-transform-demo, message=FALSE, warning=FALSE}
+library(AER)  # ivreg for two-stage least squares
+
+set.seed(1)
+beta_true <- 1.5
+
+gen <- function(n) {
+  X  <- rnorm(n)
+  z1 <- rnorm(n); z2 <- rnorm(n)
+  # Two learners predict X with errors of variance 0.6 that are mutually
+  # correlated (Cov = 0.35), which makes a raw learner violate exclusion.
+  e1 <- sqrt(0.6) * z1
+  e2 <- (0.35 / sqrt(0.6)) * z1 + sqrt(0.6 - 0.35^2 / 0.6) * z2
+  data.frame(X = X, Xh1 = X + e1, Xh2 = X + e2, Y = beta_true * X + rnorm(n))
+}
+
+test <- gen(4000)      # labeled test sample: X observed, so error is observed
+unlab <- gen(20000)    # unlabeled sample: X not used in estimation
+
+# Estimate lambda on the test sample, where the prediction error is observable.
+e1_test <- test$Xh1 - test$X
+lambda  <- (cov(test$Xh2, e1_test) / cov(test$Xh1, e1_test)) *
+           (sd(test$Xh1) / sd(test$Xh2))
+
+# Transform the candidate instrument on the unlabeled sample (Nevo-Rosen lemma).
+unlab$Ztilde <- sd(unlab$Xh1) * unlab$Xh2 - lambda * sd(unlab$Xh2) * unlab$Xh1
+
+est <- c(
+  Biased            = coef(lm(Y ~ Xh1, data = unlab))[2],
+  `Raw learner IV`  = coef(ivreg(Y ~ Xh1 | Xh2,    data = unlab))[2],
+  `Transformed IV`  = coef(ivreg(Y ~ Xh1 | Ztilde, data = unlab))[2]
+)
+round(c(est, Truth = beta_true), 3)
+```
+
+The biased regression is heavily attenuated, the untransformed learner used as a raw instrument only partly corrects the bias because it still violates exclusion, and the transformed instrument lands essentially on the true value. This is the engine of EnsembleIV working in isolation.
+
+#### End-to-End Simulation With a Random Forest
+
+The realistic workflow trains an actual ensemble, uses its individual learners as endogenous covariate and instruments, and averages over learners. The next simulation generates a nonlinear ground truth $X$ from eight features, trains a random forest to predict it, and then runs the second-phase regression $Y = \beta_0 + 0.5\,X + 2 W_1 + W_2 + \varepsilon$ three ways: a Biased regression using the forest's aggregated prediction on the large unlabeled sample, an Unbiased regression using the true $X$ available only on the small labeled sample, and EnsembleIV. The hope is that EnsembleIV is less biased than the Biased estimator and more precise than the Unbiased one, since it leverages the large unlabeled sample.
+
+```{r eiv-forest-sim, message=FALSE, warning=FALSE, cache=TRUE}
+library(ranger)
+library(AER)
+
+run_ensembleIV <- function(seed, M = 50L, n_lab = 3000L, n_unlab = 9000L,
+                            n_top = 5L, endog_trees = 25L) {
+  set.seed(seed)
+  n <- n_lab + n_unlab; p <- 8L
+  Fmat <- matrix(runif(n * p, -1, 1), n, p); colnames(Fmat) <- paste0("f", 1:p)
+  # Nonlinear true target with irreducible noise, so the forest cannot predict it
+  # perfectly; that residual noise is what becomes measurement error downstream.
+  Xtrue <- 2 * sin(pi * Fmat[, 1]) + Fmat[, 2]^2 - 1.5 * Fmat[, 3] * Fmat[, 4] +
+           Fmat[, 5] + rnorm(n, sd = 1.2)
+  W1 <- runif(n, -10, 10); W2 <- rnorm(n, 0, 10)
+  Y  <- 1 + 0.5 * Xtrue + 2 * W1 + W2 + rnorm(n, sd = 2)
+
+  lab <- 1:n_lab; unlab <- (n_lab + 1):n
+  tr <- lab[1:(n_lab * 0.6)]; te <- lab[(n_lab * 0.6 + 1):n_lab]   # train / test split
+
+  rf <- ranger(x = Fmat[tr, ], y = Xtrue[tr], num.trees = M,
+               min.node.size = 20, num.threads = 1)
+  pt_te <- predict(rf, Fmat[te, ],    predict.all = TRUE, num.threads = 1)$predictions
+  pt_un <- predict(rf, Fmat[unlab, ], predict.all = TRUE, num.threads = 1)$predictions
+
+  biased   <- coef(lm(Y[unlab] ~ rowMeans(pt_un) + W1[unlab] + W2[unlab]))[2]
+  unbiased <- coef(lm(Y[lab] ~ Xtrue[lab] + W1[lab] + W2[lab]))[2]
+
+  # EnsembleIV: each of a subset of trees is the endogenous covariate in turn;
+  # transform every other tree into a valid instrument, keep the strongest, 2SLS.
+  Xte <- Xtrue[te]
+  est_i <- sapply(round(seq(1, M, length.out = endog_trees)), function(i) {
+    e_i <- pt_te[, i] - Xte
+    cov_Xe <- cov(pt_te[, i], e_i)
+    others <- setdiff(1:M, i)
+    Ztil <- sapply(others, function(j) {
+      lam <- (cov(pt_te[, j], e_i) / cov_Xe) * (sd(pt_te[, i]) / sd(pt_te[, j]))
+      sd(pt_un[, i]) * pt_un[, j] - lam * sd(pt_un[, j]) * pt_un[, i]
+    })
+    strong <- abs(cor(Ztil, pt_un[, i]))
+    sel <- order(strong, decreasing = TRUE)[1:n_top]
+    Zsel <- Ztil[, sel]; colnames(Zsel) <- paste0("Z", 1:n_top)
+    df <- data.frame(Y = Y[unlab], Xh = pt_un[, i], W1 = W1[unlab], W2 = W2[unlab], Zsel)
+    fml <- as.formula(paste0("Y ~ Xh + W1 + W2 | ",
+                             paste(colnames(Zsel), collapse = " + "), " + W1 + W2"))
+    coef(ivreg(fml, data = df))["Xh"]
+  })
+  c(Biased = unname(biased), Unbiased = unname(unbiased), EnsembleIV = mean(est_i))
+}
+
+reps <- 20L
+sim <- t(sapply(1:reps, function(r) run_ensembleIV(1000 + r)))
+eiv_summary <- data.frame(
+  Estimator = colnames(sim),
+  Mean = colMeans(sim),
+  SD   = apply(sim, 2, sd),
+  RMSE = sqrt(colMeans((sim - 0.5)^2))
+)
+```
+
+```{r eiv-forest-table, echo=FALSE}
+knitr::kable(
+  eiv_summary, row.names = FALSE, digits = 4,
+  col.names = c("Estimator", "Mean estimate", "SD across reps", "RMSE vs. truth"),
+  caption = "EnsembleIV on machine-learning-generated regressors, 20 simulation replications, true coefficient 0.5. The Biased estimator uses the aggregated random-forest prediction on the large unlabeled sample; the Unbiased estimator uses the true covariate on the small labeled sample; EnsembleIV uses the individual trees as endogenous covariate and instruments. EnsembleIV is closer to the truth than Biased and has a smaller standard deviation than Unbiased."
+)
+```
+
+```{r eiv-forest-fig, echo=FALSE, fig.cap="Point estimates of the machine-learning-generated covariate's coefficient across three estimators, with intervals spanning plus or minus 1.96 times the across-replication standard deviation. The dashed line marks the true value of 0.5. EnsembleIV corrects most of the bias in the naive Biased estimator while achieving tighter intervals than the Unbiased estimator that relies only on the small labeled sample.", message=FALSE, warning=FALSE}
+library(ggplot2)
+
+eiv_summary$Estimator <- factor(eiv_summary$Estimator,
+                                levels = c("Biased", "Unbiased", "EnsembleIV"))
+ggplot(eiv_summary, aes(Estimator, Mean)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  geom_pointrange(aes(ymin = Mean - 1.96 * SD, ymax = Mean + 1.96 * SD)) +
+  labs(x = NULL, y = "Estimated coefficient on generated regressor") +
+  causalverse::ama_theme()
+```
+
+The Biased estimator misses the true coefficient by a visible margin because the forest's prediction error contaminates the regressor. The Unbiased estimator, restricted to the small labeled sample, is roughly centered on the truth but imprecise. EnsembleIV removes most of the bias and, by exploiting the far larger unlabeled sample, delivers the tightest interval of the three, the same qualitative pattern @burtch2026ensembleiv report on their benchmark data.
+
+#### Field Application: Sentiment and Engagement on Facebook
+
+The method's intended use is on real data where the ground truth is unknown. @burtch2026ensembleiv apply it to 429,015 user-generated posts on the Facebook business pages of 41 Fortune 500 firms, of which about 10,000 were hand-labeled for sentiment by crowd workers. The second-phase question is how a post's sentiment affects engagement, measured by the log number of comments it receives. Sentiment is predicted by a first-phase classifier (a LightGBM ensemble applied to either bag-of-words or BERT text embeddings), so it is a machine-learning-generated binary regressor. Using the aggregated classifier prediction directly, the Biased regression underestimates the magnitude of the sentiment coefficient relative to the Unbiased benchmark fit on the labeled sample; EnsembleIV moves the estimate back toward the unbiased value while, because it draws on the full unlabeled corpus, reporting a smaller standard error than the unbiased estimator that uses the labeled posts alone. The application also exercises the diagnostic: the permutation test fails to reject the exclusion restriction, so the standard estimator is appropriate, and it demonstrates that EnsembleIV composes cleanly with modern deep-learning text encoders.
+
+Practical guidance from the study is straightforward. Invest in the first-phase model, since a better predictor means smaller measurement error and a better-behaved correction; the estimates converge to the truth as the labeled sample and prediction accuracy grow. Keep the number of cross-fitting folds small, because the test fold must stay large enough to estimate $\lambda$ well. A few strong instruments are enough, and because the best selection method varies with the data, it is prudent to repeat the estimation under top-$n$, PCA, and LASSO selection and confirm the conclusions are stable. Run the diagnostic before trusting the correction, and when peripheral features are a concern, prefer richer inputs or a model extension that accommodates the violation. The broad lesson is that predictions from a machine learning model should not be dropped into a regression as if they were the truth; the resulting measurement error is real, but when the model is an ensemble, the ensemble itself supplies the instruments needed to correct it.
+
+------------------------------------------------------------------------
+
 ### Simultaneity {#sec-simultaneity}
 
 Simultaneity arises when at least one of the explanatory variables in a regression model is **jointly determined** with the dependent variable, violating a critical assumption for causal inference: **temporal precedence**.

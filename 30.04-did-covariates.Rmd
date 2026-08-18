@@ -1,0 +1,611 @@
+## Covariates in Difference-in-Differences {#sec-did-covariates}
+
+Notation in this section follows the conventions of Table \@ref(tab:quasi-exp-notation) in the foundations chapter.
+
+Adding covariates to a difference-in-differences regression feels like the safest move in applied work. Parallel trends is not credible unconditionally, so you condition on observables, cite [@abadie2005semiparametric] or [@callaway2021difference], and move on. Referees ask for controls; you add controls; the estimate barely moves; everyone is reassured.
+
+That reflex imports an assumption almost nobody writes down. In a cross section, a good control is one that closes a backdoor path without opening a collider path, and the taxonomy in @cinelli2022crash tells you which is which from the causal graph alone. In a panel the graph is not enough. What matters is not only whether $X$ belongs in the model but whether the *effect* of $X$ on the outcome is the same in the treated group as in the comparison group, and the same before treatment as after. When it is not, a variable that is a textbook good control in the cross section becomes a source of bias in the panel, and the bias survives every diagnostic that applied papers usually run.
+
+@karim2024good give this condition a name and a formal treatment. Their common causal covariates assumption is the panel analogue of the good control condition, and their intersection difference-in-differences estimator is a way to do without it. The material below develops the argument from first principles, checks it against published estimators whose assumptions are known, and works through the diagnostics on two canonical datasets.
+
+::: {.rmdnote}
+The intersection estimator is drawn from a working paper [@karim2024good], as is the closely related treatment of time-varying covariates in @caetano2024difference. Everything in Sections \@ref(sec-didcov-why) through \@ref(sec-didcov-assumptions), and the whole of Section \@ref(sec-didcov-bad-controls), rests on published results. Treat the intersection estimator as a diagnostic and a robustness check rather than as a headline specification until the underlying paper clears peer review.
+:::
+
+### Why Covariate Adjustment Is Different in a Panel {#sec-didcov-why}
+
+Start with the canonical [2x2 design](#sec-simple-difference-in-differences): groups $g \in \{0, 1\}$, periods $t \in \{0, 1\}$, treatment applied to group 1 in period 1. Write untreated potential outcomes as
+
+$$
+Y_{it}(0) = \gamma_{g,t} X_{it} + \alpha_i + \delta_t + \varepsilon_{it},
+$$
+
+where $\alpha_i$ is a unit effect, $\delta_t$ a common time effect, and $\gamma_{g,t}$ the effect of the covariate, allowed to differ across groups and periods. Treated outcomes add an effect $\tau$.
+
+Take group by period means. The unadjusted difference-in-differences estimand is
+
+$$
+\tau_{\text{did}} = \tau + \underbrace{\left[\gamma_{1,1}\bar{X}_{1,1} - \gamma_{1,0}\bar{X}_{1,0}\right] - \left[\gamma_{0,1}\bar{X}_{0,1} - \gamma_{0,0}\bar{X}_{0,0}\right]}_{\text{covariate contamination}}.
+$$
+
+The bracketed term is what covariate adjustment is supposed to remove. Two special cases show why the standard tools do or do not remove it.
+
+If $\gamma_{g,t} = \gamma$ for all $g$ and $t$, the contamination collapses to
+
+$$
+\gamma \left[ (\bar{X}_{1,1} - \bar{X}_{1,0}) - (\bar{X}_{0,1} - \bar{X}_{0,0}) \right],
+$$
+
+which is $\gamma$ times the difference-in-differences of the covariate itself. A single coefficient on $X$ in a two-way fixed effects regression is exactly the right instrument for removing it, and that is why the reflex usually works.
+
+If instead $\gamma_{g,t}$ varies, no single number multiplies the covariate imbalance into the right correction. There are four distinct covariate effects in the expression and one coefficient available to absorb them. Adding $X$ to the regression removes part of the contamination and leaves the rest, and there is nothing in the regression output that tells you which part.
+
+The uncomfortable implication is that covariate imbalance and covariate effect heterogeneity are separate problems. Balance tests, propensity score overlap plots, and pre-trend tests all speak to the first. None of them speaks to the second.
+
+@zeldow2021confounding reach a related conclusion from the applied side: regression adjustment in difference-in-differences behaves differently depending on whether the covariate is time-invariant, time-varying and unaffected by treatment, or time-varying and treatment-affected, and the three cases call for different specifications rather than for the same control added to the same regression. The synthesis in @roth2023whats gives far more space to treatment timing than to covariates, which is a fair reflection of where the field's attention has gone and part of why this material is easy to skip.
+
+### A Model for Covariate Effects {#sec-didcov-model}
+
+Generalize to $S$ treatment timing groups indexed by $s$ (with $s = 0$ denoting never treated) and $T$ periods. Following @karim2024good, write
+
+$$
+\begin{aligned}
+Y_{i,s,t}(0) &= \sum_k \gamma^k_{s,t} \, f\!\left(X^k_{i,s,t}\right) + \alpha_i + \delta_t + \varepsilon_{i,s,t}, \\
+Y_{i,s,t}(1) &= Y_{i,s,t}(0) + \tau_{i,s,t}.
+\end{aligned}
+$$
+
+Two objects have to be chosen by the researcher. The first is $f(\cdot)$, the functional form through which the covariate enters. The second is the pattern of $\gamma^k_{s,t}$, that is, how much the covariate effect is allowed to move across groups and time. The literature on functional form in difference-in-differences [@roth2023parallel] deals with the first. The common causal covariates condition deals with the second.
+
+### The Common Causal Covariates Ladder {#sec-didcov-ccc}
+
+There is a natural ladder of restrictions, from the strongest to the weakest.
+
+| Restriction | Formal statement | What it permits |
+|:---|:---|:---|
+| Two-way common causal covariates | $\gamma_{s,t} = \gamma$ for all $s, t$ | A single covariate effect for the whole panel |
+| Group invariant | $\gamma_{s,t} = \gamma_t$ | The covariate effect drifts over time, identically in every group |
+| Time invariant | $\gamma_{s,t} = \gamma_s$ | Groups have different covariate effects, stable over time |
+| Unrestricted | $\gamma_{s,t}$ free | Every group by period cell has its own covariate effect |
+
+Table: (\#tab:didcov-ccc-ladder) The common causal covariates ladder. Each row is implied by the row above it, so a violation at one level is also a violation at every weaker level below.
+
+The substantive content is easier to see with an example. Suppose $X$ is a college degree indicator and $Y$ is log earnings. Two-way common causal covariates says the college wage premium is the same number in Ontario and Quebec, in 2008 and in 2019. Nobody believes that. Group invariance says the premium can rise over the decade but must rise identically in every province. Time invariance says provinces can have permanently different premia but each province's premium is frozen. The motivating exercise in @karim2024good estimates these premia province by province and year by year in the Canadian Labour Force Survey and finds that both dimensions move.
+
+The important asymmetry is that the ladder is about covariate effects, not covariate levels. A covariate can be perfectly balanced across groups in every period and still break the estimator if its effect differs, and it can be wildly imbalanced and cause no trouble at all if its effect is constant and its imbalance is stable.
+
+### What Standard Estimators Assume {#sec-didcov-assumptions}
+
+Where each estimator sits on the ladder follows from how it uses $X$.
+
+Two-way fixed effects with an additive covariate, $Y_{it} = \tau D_{it} + \beta X_{it} + \alpha_i + \delta_t + \varepsilon_{it}$, has one $\beta$ and therefore requires the top rung.
+
+The semiparametric and doubly robust estimators [@abadie2005semiparametric; @sant2020doubly] and the group-time estimator built on them [@callaway2021difference] model the conditional expectation of the *change* in the outcome given covariates, using the comparison group, and extrapolate that mapping to the treated group. The mapping they estimate in the comparison group is governed by $\gamma_{0,t} - \gamma_{0,t-1}$. Applying it to the treated group is valid when $\gamma_{1,t} - \gamma_{1,t-1}$ equals it, which is the group invariance rung. These estimators therefore buy robustness to time drift in the covariate effect, which the additive specification does not have, but they still rely on the covariate effect being common across groups.
+
+Imputation estimators [@borusyak2024revisiting] fit the untreated outcome model on untreated observations and predict the counterfactual for treated ones. With a covariate entering additively the fitted model again carries one coefficient, so the top rung is required unless the specification is deliberately enriched.
+
+A separate and equally important caveat applies to all of them. When covariates are time-varying, the packaged implementations typically condition on the covariate measured in a fixed base period. That is a sensible default, because a contemporaneous covariate might itself respond to treatment, but it means the adjustment cannot remove confounding that arrives through the covariate's own subsequent path. Section \@ref(sec-didcov-monte-carlo) shows what that costs, and @caetano2024difference develop the point at length.
+
+| Estimator | Covariate enters as | Rung required |
+|:---|:---|:---|
+| Two-way fixed effects, additive $X$ | One coefficient | Two-way |
+| Two-way fixed effects, $X$ interacted with period | One coefficient per period | Group invariant |
+| Two-way fixed effects, $X$ interacted with group | One coefficient per group | Time invariant |
+| Doubly robust and group-time estimators | Model for the change in $Y$ fitted on comparisons | Group invariant |
+| Imputation | Untreated outcome model, additive $X$ | Two-way |
+| Intersection estimator | One coefficient per group by period cell | Unrestricted |
+
+Table: (\#tab:didcov-estimator-rungs) Where each estimator sits on the ladder of Table \@ref(tab:didcov-ccc-ladder). The last column is the weakest restriction under which the estimator recovers the average treatment effect on the treated.
+
+### The Intersection Estimator {#sec-didcov-didint}
+
+The construction that sits at the bottom of the ladder is simple enough to write in a few lines. Estimate a saturated regression of the outcome on a full set of group by period indicators, with no intercept, and with the covariates interacted with those same indicators:
+
+$$
+Y_{i,s,t} = \sum_s \sum_t \lambda_{s,t} \, \mathbb{1}(s, t) + \sum_s \sum_t \sum_k \gamma^k_{s,t} \, \mathbb{1}(s, t) \, f\!\left(X^k_{i,s,t}\right) + \varepsilon_{i,s,t}.
+$$
+
+Because the specification is saturated, each $\hat{\lambda}_{s,t}$ is the intercept of a within-cell regression of $Y$ on $X$, that is, the cell's fitted outcome at a reference covariate value. It is the cell mean purged of the cell's own covariate composition. Group-time effects then come from a difference-in-differences of these purged means, taking $t^{-s}$ to be the last period before group $s$ is treated:
+
+$$
+\hat{\theta}_{s,t} = \left(\hat{\lambda}_{s,t} - \hat{\lambda}_{s,t^{-s}}\right) - \left(\hat{\lambda}_{s',t} - \hat{\lambda}_{s',t^{-s}}\right),
+$$
+
+with $s'$ a never treated or not-yet-treated comparison group, and an aggregate follows by weighting the $\hat{\theta}_{s,t}$ across cohorts and event times exactly as in the [group-time framework](#sec-group-time-average-treatment-effects-callaway2021difference). Substituting the model shows why it works: every $\hat{\lambda}_{s,t}$ equals $\bar{\alpha}_s + \delta_t$ plus the treatment effect where treatment is active, whatever the pattern of $\gamma_{s,t}$, so the double difference returns the treatment effect.
+
+The identifying assumption is parallel trends of the covariate purged outcome rather than of the raw outcome. That is a genuinely different assumption, not a weaker version of the same one, and Section \@ref(sec-didcov-price) explains what it costs.
+
+The implementation below covers the whole ladder through a single `flex` argument, handles staggered adoption, and returns delta method standard errors from a clustered variance matrix.
+
+```{r didcov-didint-fn}
+library(fixest)
+library(dplyr)
+library(ggplot2)
+
+#' Intersection difference-in-differences
+#'
+#' flex controls how much the covariate effect is allowed to move:
+#'   "none"        no covariates at all
+#'   "homogeneous" one coefficient (two-way CCC imposed)
+#'   "time"        one coefficient per period (group invariance imposed)
+#'   "cohort"      one coefficient per cohort (time invariance imposed)
+#'   "two-way"     one coefficient per cohort by period cell (nothing imposed)
+#'
+#' xref fixes the covariate value at which the purged cell means are read off.
+didint <- function(data, yname, tname, idname, gname, xvars = NULL,
+                   flex = c("two-way", "time", "cohort", "homogeneous", "none"),
+                   xref = c("zero", "mean", "treated_pre"),
+                   cluster = idname) {
+    flex <- match.arg(flex)
+    if (is.character(xref)) xref <- match.arg(xref)
+    d <- as.data.frame(data)
+    d$.y <- d[[yname]]
+    d$.t <- d[[tname]]
+    d$.g <- d[[gname]]
+    d$.cell <- interaction(d$.g, d$.t, drop = TRUE)
+
+    rhs <- "0 + i(.cell)"
+    if (length(xvars) && flex != "none") {
+        pre <- d$.g > 0 & d$.t < d$.g
+        for (v in xvars) {
+            x0 <- if (is.numeric(xref)) {
+                xref[[v]]
+            } else if (xref == "mean") {
+                mean(d[[v]])
+            } else if (xref == "treated_pre") {
+                mean(d[[v]][pre])
+            } else {
+                0
+            }
+            xv <- paste0(".x_", v)
+            d[[xv]] <- d[[v]] - x0
+            rhs <- paste(rhs, "+", switch(
+                flex,
+                homogeneous = xv,
+                time        = sprintf("i(factor(.t), %s)", xv),
+                cohort      = sprintf("i(factor(.g), %s)", xv),
+                `two-way`   = sprintf("i(.cell, %s)", xv)
+            ))
+        }
+    }
+
+    fit <- feols(stats::as.formula(paste(".y ~", rhs)), d,
+                 cluster = stats::as.formula(paste("~", cluster)))
+    b <- coef(fit)
+    V <- vcov(fit)
+    nm <- names(b)
+    # cell intercepts: ".cell::<g>.<t>" with no further interaction suffix
+    is_lam <- startsWith(nm, ".cell::") &
+        !grepl(":", substring(nm, 8), fixed = TRUE)
+    idx <- setNames(which(is_lam), substring(nm[is_lam], 8))
+
+    cohorts <- sort(unique(d$.g[d$.g > 0]))
+    periods <- sort(unique(d$.t))
+    sizes <- table(d$.g[!duplicated(d[[idname]])])
+    rows <- list()
+    contr <- list()
+    for (g in cohorts) {
+        base <- max(periods[periods < g])
+        for (tt in periods[periods >= g]) {
+            k <- c(paste0(g, ".", tt), paste0(g, ".", base),
+                   paste0(0, ".", tt), paste0(0, ".", base))
+            if (any(is.na(idx[k]))) next
+            cv <- numeric(length(b))
+            cv[idx[k]] <- c(1, -1, -1, 1)
+            rows[[length(rows) + 1]] <- data.frame(
+                cohort = g, period = tt, event_time = tt - g,
+                att = sum(cv * b),
+                se = sqrt(drop(t(cv) %*% V %*% cv)),
+                n = as.numeric(sizes[as.character(g)])
+            )
+            contr[[length(contr) + 1]] <- cv
+        }
+    }
+    gt <- do.call(rbind, rows)
+    C <- do.call(rbind, contr)
+    w <- gt$n / sum(gt$n)
+    agg <- drop(w %*% C)
+    list(
+        gt = gt,
+        overall = c(att = sum(agg * b),
+                    se = sqrt(drop(t(agg) %*% V %*% agg))),
+        fit = fit
+    )
+}
+```
+
+A simulated panel makes the ladder concrete. Half the units are treated from period 4 onward, the covariate has a group-specific trend so that ignoring it breaks parallel trends, and the `regime` argument controls where on the ladder the truth sits.
+
+```{r didcov-sim-fn}
+sim_did_cov <- function(n_units = 400, n_periods = 6, treat_time = 4,
+                        tau = 2, regime = "two-way", kappa = 0, seed = 1) {
+    set.seed(seed)
+    d <- expand.grid(id = seq_len(n_units), t = seq_len(n_periods))
+    d$g <- ifelse(d$id > n_units / 2, treat_time, 0)
+    treated <- as.integer(d$g > 0)
+    alpha <- rnorm(n_units)
+    u <- rnorm(n_units, 0, 0.5)
+
+    d$D <- as.integer(treated == 1 & d$t >= treat_time)
+    # covariate level and trend both differ by group, so it confounds
+    d$X <- 1 + 0.8 * treated + (0.10 + 0.20 * treated) * (d$t - 1) +
+        u[d$id] + rnorm(nrow(d), 0, 0.3) + kappa * d$D
+
+    gamma <- switch(
+        regime,
+        homogeneous = rep(1, nrow(d)),
+        time        = 1 + 0.25 * (d$t - 1),
+        cohort      = 1 + 0.8 * treated,
+        `two-way`   = (1 + 0.8 * treated) * (1 + 0.25 * (d$t - 1))
+    )
+    d$Y <- gamma * d$X + alpha[d$id] + 0.3 * d$t + tau * d$D +
+        rnorm(nrow(d), 0, 0.5)
+    d[order(d$id, d$t), ]
+}
+
+d_two_way <- sim_did_cov(regime = "two-way")
+head(d_two_way)
+```
+
+Running the whole ladder on one draw shows the estimates walking toward the truth of 2 as the restriction is relaxed.
+
+```{r didcov-ladder-onedraw}
+rungs <- c("none", "homogeneous", "cohort", "time", "two-way")
+one_draw <- sapply(rungs, function(fl) {
+    didint(d_two_way, "Y", "t", "id", "g",
+           xvars = if (fl == "none") NULL else "X",
+           flex = fl, xref = "zero")$overall[["att"]]
+})
+round(one_draw, 3)
+```
+
+### Monte Carlo: Climbing the Ladder {#sec-didcov-monte-carlo}
+
+One draw is a coincidence; the point is the sampling distribution. The design below crosses four truths against seven estimators. Alongside the intersection specifications it includes the two-way fixed effects workhorses and a doubly robust estimator conditioning on the base period covariate, which is what `did::att_gt(xformla = ~X)` does with a time-varying covariate.
+
+```{r didcov-monte-carlo, cache=TRUE}
+library(DRDID)
+
+est_twfe <- function(d, form) coef(feols(form, d))[["D"]]
+
+est_drdid <- function(d, post = 6, base = 3) {
+    xb <- d[d$t == base, c("id", "X")]
+    names(xb)[2] <- "Xb"
+    dd <- merge(d[d$t %in% c(base, post), ], xb, by = "id")
+    dd <- dd[order(dd$t, dd$id), ]
+    drdid_panel(
+        y1 = dd$Y[dd$t == post],
+        y0 = dd$Y[dd$t == base],
+        D  = as.integer(dd$g[dd$t == post] > 0),
+        covariates = cbind(1, dd$Xb[dd$t == post]),
+        inffunc = FALSE
+    )$ATT
+}
+
+one_rep <- function(d) {
+    c(
+        `no covariates`      = est_twfe(d, Y ~ D | id + t),
+        `TWFE + X`           = est_twfe(d, Y ~ D + X | id + t),
+        `TWFE + X by period` = est_twfe(d, Y ~ D + X:factor(t) | id + t),
+        `DR, base period X`  = est_drdid(d),
+        `INT homogeneous`    = didint(d, "Y", "t", "id", "g", "X",
+                                      flex = "homogeneous")$overall[["att"]],
+        `INT two-way`        = didint(d, "Y", "t", "id", "g", "X",
+                                      flex = "two-way",
+                                      xref = "zero")$overall[["att"]],
+        `INT two-way, centred` = didint(d, "Y", "t", "id", "g", "X",
+                                        flex = "two-way",
+                                        xref = "treated_pre")$overall[["att"]]
+    )
+}
+
+n_rep <- 200
+truths <- c("homogeneous", "time", "cohort", "two-way")
+mc <- do.call(rbind, lapply(truths, function(r) {
+    draws <- t(vapply(seq_len(n_rep),
+                      function(s) one_rep(sim_did_cov(regime = r, seed = s)),
+                      numeric(7)))
+    data.frame(
+        truth = r,
+        estimator = colnames(draws),
+        bias = colMeans(draws) - 2,
+        sd = apply(draws, 2, sd),
+        rmse = sqrt(colMeans((draws - 2)^2))
+    )
+}))
+mc$truth <- factor(mc$truth, levels = truths)
+```
+
+```{r didcov-mc-table}
+knitr::kable(
+    tidyr::pivot_wider(mc[, c("truth", "estimator", "bias")],
+                       names_from = truth, values_from = bias),
+    digits = 3,
+    caption = "Bias of each estimator across 200 replications, by where the truth sits on the covariate effect ladder. The true effect is 2."
+)
+```
+
+Five things are worth reading off that table.
+
+Without covariates the estimator is badly biased in every column, because the covariate trends differently in the two groups. This is the situation in which adding controls is obviously the right instinct.
+
+The additive specification is essentially unbiased when the truth is homogeneous and biased everywhere else, and the bias grows as you move down the ladder. Interacting the covariate with period fixes the group-invariant column and does nothing for the other two, exactly as Table \@ref(tab:didcov-estimator-rungs) predicts.
+
+The doubly robust estimator conditioning on the base period covariate is biased in every column, including the homogeneous one where the covariate effect is a single constant. That is not a failure of double robustness. It is the time-varying covariate problem: the confounding here arrives through the covariate's post-baseline path, and conditioning on its period 3 value cannot remove it. Anyone passing a genuinely time-varying control through `xformla` should read this row carefully.
+
+The two-way intersection specification is close to unbiased in all four columns, which is the claim the estimator is built to support.
+
+The final row is the catch, and Section \@ref(sec-didcov-price) is about it.
+
+```{r didcov-mc-sd, fig.width=7, fig.height=4.2, fig.cap="Bias against standard deviation across 200 replications. Robustness to covariate effect heterogeneity is bought with variance, and the purchase is not small."}
+ggplot(mc, aes(x = sd, y = bias, colour = estimator, shape = estimator)) +
+    geom_hline(yintercept = 0, linetype = 2, colour = "grey50") +
+    geom_point(size = 2.4) +
+    scale_shape_manual(values = 1:7) +
+    facet_wrap(~truth, nrow = 1) +
+    labs(x = "Standard deviation", y = "Bias", colour = NULL, shape = NULL) +
+    theme(legend.position = "bottom")
+```
+
+### The Price of Flexibility {#sec-didcov-price}
+
+The purged cell mean $\lambda_{s,t}$ is an intercept, so it is the fitted outcome at a particular covariate value. Nothing in the algebra forces that value to be zero, and the choice is not innocuous. Recentre the covariate at some $x_0$ and every purged mean shifts by $\gamma_{s,t} x_0$, so the group-time effect shifts by
+
+$$
+\left[ (\gamma_{s,t} - \gamma_{s,t^{-s}}) - (\gamma_{s',t} - \gamma_{s',t^{-s}}) \right] x_0 .
+$$
+
+That expression is zero precisely when the group invariance rung holds. In other words, the reference point is irrelevant exactly when you did not need the flexible specification in the first place, and it matters exactly when you did. The last two rows of the Monte Carlo table are the same estimator evaluated at two reference points, and they agree in three columns and disagree by a wide margin in the fourth.
+
+```{r didcov-xref-sensitivity, fig.width=6.5, fig.height=3.6, fig.cap="Estimated effect from the two-way intersection specification as the covariate reference point moves across the support of X. The dashed line is the true effect of 2."}
+grid <- seq(0, 3, by = 0.25)
+sens <- do.call(rbind, lapply(c("homogeneous", "two-way"), function(r) {
+    d <- sim_did_cov(regime = r)
+    data.frame(
+        truth = r,
+        x0 = grid,
+        att = vapply(grid, function(x0) {
+            didint(d, "Y", "t", "id", "g", "X", flex = "two-way",
+                   xref = c(X = x0))$overall[["att"]]
+        }, numeric(1))
+    )
+}))
+
+ggplot(sens, aes(x0, att, colour = truth)) +
+    geom_hline(yintercept = 2, linetype = 2, colour = "grey50") +
+    geom_line(linewidth = 0.8) +
+    geom_point(size = 1.6) +
+    labs(x = "Covariate reference point", y = "Estimated effect", colour = NULL)
+```
+
+This is a real constraint and it deserves to be stated plainly rather than buried. Under an unrestricted $\gamma_{s,t}$, conditional parallel trends cannot hold at every covariate value at once, because the group gap in untreated outcomes tilts with the covariate. It can hold at one value, and the researcher is choosing which one. Reporting a single number from the flexible specification without saying where the covariate was pinned is reporting half of an assumption.
+
+Three practical consequences follow.
+
+Pin the reference point somewhere interpretable and say so. The treated group's pre-treatment covariate mean is the natural choice, since it makes the identifying assumption a statement about parallel trends at the covariate profile the treated units actually had before treatment. Zero is defensible only when zero is a meaningful value of the covariate.
+
+Report the sensitivity curve above, not a point. If the estimate is flat over the region of covariate support that matters, the extra flexibility cost you nothing and the reader learns that. If it slopes, the reader has learned something important that a single specification would have hidden.
+
+Watch the variance. The scatter in Figure \@ref(fig:didcov-mc-sd) shows the flexible specification with several times the standard deviation of the additive one, and the uncentred version is worse than the centred one because it extrapolates each cell regression to a covariate value outside the data. In a panel with many cohorts and periods the flexible specification burns a covariate coefficient per cell, and cells can run out of data long before the researcher notices.
+
+### Diagnosing the Assumption {#sec-didcov-diagnostic}
+
+The ladder is testable, which is more than can be said for most difference-in-differences assumptions. Estimating the covariate effect cell by cell and looking at the spread is the whole diagnostic.
+
+```{r didcov-slopes-fn}
+#' Cell by cell covariate slopes
+ccc_slopes <- function(data, yname, xname, gname, tname) {
+    cells <- unique(data[, c(gname, tname)])
+    out <- lapply(seq_len(nrow(cells)), function(i) {
+        sub <- data[data[[gname]] == cells[[gname]][i] &
+                        data[[tname]] == cells[[tname]][i], ]
+        m <- lm(stats::reformulate(xname, yname), sub)
+        data.frame(
+            cohort = cells[[gname]][i],
+            period = cells[[tname]][i],
+            slope = coef(m)[[2]],
+            se = sqrt(diag(vcov(m)))[[2]],
+            n = nrow(sub)
+        )
+    })
+    do.call(rbind, out)
+}
+
+#' Wald test that all cell slopes in a saturated fit are equal
+ccc_test <- function(data, yname, xname, gname, tname, cluster) {
+    d <- as.data.frame(data)
+    d$.cell <- interaction(d[[gname]], d[[tname]], drop = TRUE)
+    d$.x <- d[[xname]] - mean(d[[xname]])
+    fit <- feols(stats::as.formula(paste(yname, "~ 0 + i(.cell) + i(.cell, .x)")),
+                 d, cluster = stats::as.formula(paste("~", cluster)))
+    b <- coef(fit)
+    V <- vcov(fit)
+    idx <- which(grepl(".x", names(b), fixed = TRUE))
+    k <- length(idx)
+    R <- matrix(0, k - 1, length(b))
+    for (j in 2:k) {
+        R[j - 1, idx[1]] <- -1
+        R[j - 1, idx[j]] <- 1
+    }
+    Rb <- R %*% b
+    W <- drop(t(Rb) %*% solve(R %*% V %*% t(R)) %*% Rb)
+    c(chisq = W, df = k - 1, p = pchisq(W, k - 1, lower.tail = FALSE))
+}
+```
+
+### Application: Minimum Wages and Teen Employment {#sec-didcov-mpdta}
+
+The `mpdta` data shipped with the `did` package is the county-level panel behind @callaway2021difference, covering teen employment in 500 counties from 2003 to 2007, with counties in states raising their minimum wage above the federal level in 2004, 2006, or 2007, and never-treated counties as the comparison. The one covariate is log county population.
+
+Start with the diagnostic.
+
+```{r didcov-mpdta-slopes, fig.width=6.5, fig.height=3.8, fig.cap="Cell by cell slope of log teen employment on log county population in the mpdta panel, with 95 percent confidence intervals. The covariate effect is close to one everywhere."}
+library(did)
+data(mpdta)
+
+sl <- ccc_slopes(mpdta, "lemp", "lpop", "first.treat", "year")
+sl$cohort <- factor(sl$cohort, labels = c("never", "2004", "2006", "2007"))
+
+ggplot(sl, aes(period, slope, colour = cohort, group = cohort)) +
+    geom_ribbon(aes(ymin = slope - 1.96 * se, ymax = slope + 1.96 * se,
+                    fill = cohort), alpha = 0.12, colour = NA) +
+    geom_line(linewidth = 0.7) +
+    geom_point(size = 1.7) +
+    labs(x = NULL, y = "Slope on log population", colour = NULL, fill = NULL)
+```
+
+```{r didcov-mpdta-test}
+round(ccc_test(mpdta, "lemp", "lpop", "first.treat", "year", "countyreal"), 4)
+```
+
+The picture and the test disagree in an instructive way. Every cell slope sits between roughly 1.02 and 1.18, which is about as stable as a real covariate effect is ever going to look. The Wald test nonetheless rejects equality comfortably. With 500 counties and a covariate this strong, the test has power to detect differences far too small to matter for the treatment effect, which is the usual fate of a specification test used as a decision rule.
+
+The right question is not whether the restriction is exactly true but whether relaxing it moves the answer. So relax it and look.
+
+```{r didcov-mpdta-ladder}
+mpdta$g <- mpdta$first.treat
+
+ladder <- do.call(rbind, lapply(rungs, function(fl) {
+    r <- didint(mpdta, "lemp", "year", "countyreal", "g",
+                xvars = if (fl == "none") NULL else "lpop",
+                flex = fl, xref = "treated_pre", cluster = "countyreal")
+    data.frame(spec = fl, att = r$overall[["att"]], se = r$overall[["se"]])
+}))
+
+cs <- function(x) {
+    a <- aggte(x, type = "simple", bstrap = FALSE)
+    data.frame(att = a$overall.att, se = a$overall.se)
+}
+cs_none <- cs(att_gt(yname = "lemp", tname = "year", idname = "countyreal",
+                     gname = "first.treat", data = mpdta,
+                     control_group = "nevertreated", bstrap = FALSE))
+cs_lpop <- cs(att_gt(yname = "lemp", tname = "year", idname = "countyreal",
+                     gname = "first.treat", xformla = ~ lpop, data = mpdta,
+                     control_group = "nevertreated", bstrap = FALSE))
+
+ladder <- rbind(
+    ladder,
+    data.frame(spec = "Callaway and Sant'Anna, no X", cs_none),
+    data.frame(spec = "Callaway and Sant'Anna, lpop", cs_lpop)
+)
+knitr::kable(ladder, digits = 4, row.names = FALSE,
+             caption = "Overall average treatment effect on the treated for teen employment, across the covariate effect ladder and against the published group-time estimator.")
+```
+
+The intersection estimator with no covariates reproduces the unconditional group-time estimate to four decimals, which is the reassuring check that the implementation is doing what it claims. Across the entire ladder the estimate moves from about $-0.040$ to about $-0.044$, well inside a single standard error. The formal test rejected the restriction; the estimate does not care. That combination is common and it is the reason the ladder should be reported as a sensitivity exercise rather than run as a pre-test.
+
+The group-time estimates carry the same message with more detail.
+
+```{r didcov-mpdta-gt, fig.width=6.5, fig.height=4, fig.cap="Group-time average treatment effects from the intersection estimator with and without flexible covariate adjustment, by cohort and event time."}
+gt_flex <- didint(mpdta, "lemp", "year", "countyreal", "g", "lpop",
+                  flex = "two-way", xref = "treated_pre",
+                  cluster = "countyreal")$gt
+gt_none <- didint(mpdta, "lemp", "year", "countyreal", "g",
+                  flex = "none", cluster = "countyreal")$gt
+gt_both <- rbind(
+    transform(gt_flex, spec = "two-way covariate effects"),
+    transform(gt_none, spec = "no covariates")
+)
+
+ggplot(gt_both, aes(event_time, att, colour = spec)) +
+    geom_hline(yintercept = 0, linetype = 2, colour = "grey50") +
+    geom_pointrange(aes(ymin = att - 1.96 * se, ymax = att + 1.96 * se),
+                    position = position_dodge(width = 0.3), fatten = 2) +
+    facet_wrap(~cohort, nrow = 1) +
+    labs(x = "Event time", y = "Effect on log teen employment", colour = NULL) +
+    theme(legend.position = "bottom")
+```
+
+### When the Panel Is Too Small {#sec-didcov-castle}
+
+The `mpdta` panel has 500 units spread over four cohorts and five years, so every cell has enough observations to estimate a covariate slope. State-level panels rarely do. The castle doctrine data of Section \@ref(sec-goodman-bacon-decomposition) has 50 states over eleven years, with adoption cohorts of 1, 13, 4, 2, and 1 states.
+
+```{r didcov-castle-cells}
+library(bacondecomp)
+data(castle, package = "bacondecomp")
+
+ca <- transform(castle, g = ifelse(is.na(effyear), 0, effyear))
+ca <- ca[, c("sid", "year", "g", "l_homicide", "l_police",
+             "l_income", "unemployrt", "poverty")]
+ca <- ca[complete.cases(ca), ]
+table(cohort = ca$g[!duplicated(ca$sid)])
+```
+
+A cohort with one state has one observation per cell, so a within-cell covariate slope does not exist. `fixest` drops the collinear terms rather than failing, which is exactly the behaviour that lets a researcher run the specification without noticing that most of it was never estimated.
+
+```{r didcov-castle-ladder, warning=TRUE}
+X <- c("l_police", "l_income", "unemployrt", "poverty")
+castle_ladder <- do.call(rbind, lapply(rungs, function(fl) {
+    r <- didint(ca, "l_homicide", "year", "sid", "g",
+                xvars = if (fl == "none") NULL else X,
+                flex = fl, xref = "treated_pre", cluster = "sid")
+    data.frame(spec = fl, att = r$overall[["att"]], se = r$overall[["se"]],
+               k = length(coef(r$fit)))
+}))
+knitr::kable(castle_ladder, digits = 3, row.names = FALSE,
+             caption = "Castle doctrine laws and log homicide across the covariate effect ladder, with the number of estimated coefficients in each specification.")
+```
+
+The estimate roughly triples as the specification is relaxed, the standard errors triple with it, and the fully flexible model spends 198 coefficients on 550 observations. That is not evidence that the covariate effects genuinely differ across cohorts and years. It is what happens when a saturated interaction is fitted in cells of size one or two: the diagnostic fires, the flexible estimator swings, and neither is informative. The honest reading of the castle data is that the design cannot support a test of the ladder at all, and reporting the additive specification with a note to that effect is better than reporting a flexible number that is mostly noise.
+
+The general rule follows from counting. The two-way specification needs a covariate coefficient for every cohort by period cell, so with $S$ cohorts, $T$ periods, and $K$ covariates it consumes $S \times T \times (K + 1)$ parameters. Panels of states, countries, or firms with a handful of adoption waves will exhaust their degrees of freedom long before panels of individuals or counties do. When they do, the group invariant or time invariant rungs are the useful compromise, since each costs only $T$ or $S$ coefficients per covariate.
+
+### Bad Controls Proper {#sec-didcov-bad-controls}
+
+Everything above concerns covariates whose effects are heterogeneous. A separate failure occurs when the covariate itself responds to treatment, and it is the panel version of the classic bad control problem [@angrist2009mostly; @cinelli2022crash].
+
+Suppose the covariate has parallel trends across groups, so there is no confounding to remove, but treatment shifts it. Then $X$ lies on a causal path from treatment to outcome, and conditioning on it blocks that path.
+
+```{r didcov-bad-control}
+sim_mediator <- function(n = 400, TT = 6, g = 4, tau = 2, kappa = 0.6, seed = 1) {
+    set.seed(seed)
+    d <- expand.grid(id = seq_len(n), t = seq_len(TT))
+    d$treated <- as.integer(d$id > n / 2)
+    a <- rnorm(n)
+    u <- rnorm(n, 0, 0.5)
+    d$D <- as.integer(d$treated == 1 & d$t >= g)
+    # no differential covariate trend, but treatment moves the covariate
+    d$X <- 1 + 0.8 * d$treated + 0.10 * (d$t - 1) + u[d$id] +
+        rnorm(nrow(d), 0, 0.3) + kappa * d$D
+    d$Y <- 1 * d$X + a[d$id] + 0.3 * d$t + tau * d$D + rnorm(nrow(d), 0, 0.5)
+    d
+}
+
+med <- t(vapply(1:200, function(s) {
+    d <- sim_mediator(seed = s)
+    c(`no covariates` = coef(feols(Y ~ D | id + t, d))[["D"]],
+      `controlling for X` = coef(feols(Y ~ D + X | id + t, d))[["D"]])
+}, numeric(2)))
+round(colMeans(med), 3)
+```
+
+The total effect of treatment is $\tau + \gamma \kappa = 2 + 0.6 = 2.6$ and the direct effect holding the covariate fixed is $2$. The unadjusted estimator recovers the first; adding the control recovers the second. Neither is wrong, but only one of them is what a policy evaluation usually wants, and the covariate-adjusted specification will look like the more careful one to a referee.
+
+This is where the panel setting is genuinely harder than the cross section. A contemporaneous covariate can be simultaneously a confounder, because its pre-treatment path differs across groups, and a mediator, because treatment moves it afterwards. Conditioning on its base period value avoids the mediation problem and, as the Monte Carlo showed, leaves the confounding. Conditioning on its contemporaneous value removes the confounding and induces the mediation bias. There is no specification that escapes both without further assumptions, which is the problem @caetano2024difference set out to formalize. In applied work the usable response is to decide which estimand you want, adjust accordingly, and say which one you reported.
+
+Three signs that a covariate is on the wrong side of this line: it is measured after treatment begins, its own event study shows a jump at treatment, and the treatment effect changes materially when it is dropped. The second is worth running as a matter of routine.
+
+```{r didcov-covariate-event-study, fig.width=6, fig.height=3.4, fig.cap="Event study with the covariate as the outcome. A jump at the treatment date means the covariate is affected by treatment and cannot be conditioned on without changing the estimand."}
+d_med <- sim_mediator()
+es <- feols(X ~ i(t, treated, ref = 3) | id + t, d_med, cluster = ~id)
+iplot(es, main = "", xlab = "Period",
+      ylab = "Effect of treatment on the covariate")
+```
+
+### Practical Guidance {#sec-didcov-guidance}
+
+Covariates in difference-in-differences deserve the same scrutiny as the parallel trends assumption itself, and the following sequence is what that scrutiny looks like in practice.
+
+Ask first whether the covariate can be affected by treatment. If it can, its post-treatment values are off limits, and the choice between adjusting on base period values and not adjusting at all is a choice between estimands, not between a careful and a careless specification.
+
+Plot the covariate effect cell by cell before choosing a specification. The plot in Figure \@ref(fig:didcov-mpdta-slopes) takes one function call and answers a question that no balance table addresses. Look at the spread relative to the confidence intervals, not at the p-value.
+
+Report the ladder rather than a rung. Running the additive, period-interacted, group-interacted, and fully flexible specifications side by side costs four lines of code and converts an untestable assumption into a visible sensitivity range. Stability across the ladder is real evidence; a single flexible estimate is not.
+
+Count your cells before reaching for flexibility. The saturated specification needs a covariate coefficient per cohort by period cell. If a cohort has one unit, that coefficient does not exist, and silently dropped collinear terms will not tell you so.
+
+Pin the covariate reference point, report where you pinned it, and show the sensitivity curve. This is specific to the flexible specifications, and it is the part most likely to be omitted.
+
+Finally, keep the estimator ladder and the good control taxonomy separate in your head. Table \@ref(tab:didcov-estimator-rungs) tells you which specification survives heterogeneous covariate effects. It says nothing about whether the covariate belongs in the model at all, which is a question about the causal graph [@cinelli2022crash] and about timing, and which no amount of flexibility can settle.
+
+Software note: @karim2024good distribute the intersection estimator as a Julia package with a Stata wrapper, with cluster jackknife and randomization inference for the small-cluster case that the delta method standard errors above do not handle well. The implementation in this section is deliberately transparent rather than complete; for panels with few clusters, pair it with the wild cluster bootstrap discussed in Section \@ref(sec-standard-errors-in-did).
