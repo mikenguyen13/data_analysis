@@ -2144,3 +2144,92 @@ This captures how treatment **affects the relative likelihood** of success in a 
 +------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 
 : Treatment Effect Estimands
+
+## Estimands Beyond the Average Treatment Effect {#sec-estimand-taxonomy}
+
+The table above catalogues the estimands defined by *whose* effect is being averaged: the treated, the untreated, the sample, the population, the compliers. Three other families of estimand are defined by different questions entirely, and confusing them with the average treatment effect is a recurring source of trouble. This section maps the whole space, and serves as a navigation guide to the rest of the book.
+
+The organizing question is what intervention the estimand describes. Every well-posed causal quantity is a contrast between two states of the world produced by two interventions, and naming the interventions makes the identification requirements obvious. When an estimand cannot be written that way, as is true of some path-specific quantities and of most regression coefficients on non-manipulable characteristics, that fact is itself the most important thing to know about it. @hernan2022target's target-trial framing makes this discipline concrete for observational work: specify the randomized trial you would have run, then say which of its features the data can emulate and which it cannot.
+
+### Effects Defined by Pathway
+
+These estimands hold the population and the treatment fixed and vary *which channel* the effect is allowed to travel through. They are developed in the [mediation](#sec-mediation) chapter.
+
+The **controlled direct effect** contrasts treatment and control with the mediator set by intervention to a common value. The **natural direct and indirect effects** set the mediator to the value it would have taken under one arm or the other, in pure and total versions, and decompose the total effect exactly in two different ways. The **interventional direct and indirect effects** replace the unit-specific counterfactual mediator with a random draw from the arm-specific mediator distribution, which keeps identification when the treatment moves an intermediate confounder. **Path-specific effects** generalize to arbitrary sets of directed paths and are identified only when the graph contains no recanting witness. **Separable effects** decompose the treatment rather than the effect, defining direct and indirect components as the effects of distinct treatment components.
+
+### Effects Defined by Exposure to Others
+
+When one unit's treatment affects another's outcome, the average treatment effect is not even well defined without saying what everyone else received. The [interference and spillover](#sec-interference-spillover) chapter develops the estimands. The **direct effect** varies a unit's own treatment holding the neighborhood allocation fixed. The **spillover** or **indirect effect** varies the neighborhood allocation holding the unit's own treatment fixed. The **total effect** varies both, and the **overall effect** compares two allocation policies applied to the whole population. Only the last of these answers a policy question about scaling an intervention up, and it is the one a naive difference in means never estimates.
+
+### Effects Defined by the Policy
+
+A third family asks what would happen under a policy that is not a deterministic assignment of everyone to treatment or control.
+
+**Marginal treatment effects** index the effect by the unobserved resistance to treatment, so that the average treatment effect, the effect on the treated, and the local average treatment effect are all weighted integrals of a single underlying function [@heckman2005structural]. The **policy-relevant treatment effect** is the weighted integral corresponding to a specific policy change, which is what makes the framework useful for extrapolating beyond the variation an instrument happens to supply. The [instrumental variables](#sec-instrumental-variables) chapter and the [structural selection](#sec-structural-selection) chapter develop these.
+
+**Incremental propensity score interventions** shift each unit's odds of treatment by a common multiplicative factor rather than assigning treatment outright [@kennedy2019nonparametric]. Because nobody is forced into a treatment arm they would never have entered, the estimand is identified without a positivity assumption, which is exactly the assumption that fails in observational studies with strong selection. The estimand traces a curve indexed by the shift factor, and reporting the curve is more informative than reporting a single average effect.
+
+**Modified treatment policies** generalize further: the intervention is a function of the unit's own natural treatment value, such as "reduce everyone's exposure by twenty percent" or "cap the dose at a threshold" [@haneuse2013estimation; @diaz2023nonparametric]. These are often the policies decision-makers can actually implement, particularly for continuous treatments where "treat everyone" is meaningless, and the longitudinal version handles sequences of such modifications.
+
+**Dynamic treatment regimes** assign treatment as a function of evolving covariates, which is the structure of clinical protocols, adaptive marketing policies, and inventory rules. The estimand is the value of a regime, and the optimization problem of finding the best regime is the subject of the policy-learning tools in the [machine learning for causal inference](#sec-ml-causal) chapter.
+
+### A Navigation Table
+
+```{r causality-estimand-map, echo=FALSE, message=FALSE, warning=FALSE}
+estimands <- data.frame(
+    Family = c("Population", "Population", "Population", "Population",
+               "Distributional", "Pathway", "Pathway", "Pathway",
+               "Interference", "Interference",
+               "Policy", "Policy", "Policy", "Policy"),
+    Estimand = c("ATE", "ATT / ATU", "LATE", "CATE",
+                 "QTE / distributional effects",
+                 "Controlled direct effect", "Natural direct and indirect",
+                 "Interventional and path-specific",
+                 "Direct and spillover effects", "Overall policy effect",
+                 "Marginal and policy-relevant treatment effects",
+                 "Incremental propensity score intervention",
+                 "Modified treatment policy", "Dynamic treatment regime value"),
+    `Question answered` = c(
+        "Effect of treating everyone versus no one",
+        "Effect for those who did (or did not) receive treatment",
+        "Effect for units whose treatment responds to an instrument",
+        "Effect for units with given covariates",
+        "Effect on quantiles or on the whole outcome distribution",
+        "Effect with the mediator fixed by intervention",
+        "Effect through, and around, a mediator",
+        "Effect through a channel when a treatment-induced confounder exists",
+        "Own-treatment effect, and effect of others' treatment",
+        "Effect of one allocation policy versus another",
+        "Effect as a function of resistance to treatment; effect of a specific policy shift",
+        "Effect of nudging everyone's treatment odds",
+        "Effect of a policy defined relative to natural treatment",
+        "Value of a covariate-dependent assignment rule"),
+    Chapter = c("This chapter", "This chapter", "Instrumental variables",
+                "Machine learning for causal inference",
+                "Quantile and distributional methods",
+                "Mediation", "Mediation", "Mediation",
+                "Interference and spillover", "Interference and spillover",
+                "Instrumental variables; structural selection",
+                "Not developed in depth", "Not developed in depth",
+                "Machine learning for causal inference"),
+    check.names = FALSE
+)
+knitr::kable(
+    estimands,
+    caption = paste("A map of causal estimands by the intervention they",
+                    "describe. Choosing the estimand is a substantive decision",
+                    "that precedes identification and estimation, and most",
+                    "disputes about method are really disputes about which",
+                    "row of this table the question belongs to.")
+)
+```
+
+### Why the Choice Comes First
+
+Three practical consequences follow from taking the estimand seriously as a separate decision.
+
+The identification assumptions are properties of the estimand, not of the estimator. Unconfoundedness identifies the average treatment effect and does not identify a natural indirect effect; parallel trends identifies a difference-in-differences contrast and does not identify anything about a mediator. An estimator applied to data whose design supports a different estimand is not approximately right, it is answering another question.
+
+Estimands differ in how much data they need. Interactions cost roughly an order of magnitude more sample than main effects, mechanism heterogeneity more still, and distributional effects in the tails more again. A study powered for the average treatment effect is usually not powered for anything else it reports.
+
+Some estimands are not defined at all for some variables. A causal effect of a non-manipulable characteristic has no target trial, and the honest reformulation is either a controlled direct effect with respect to a specified mediator or a disparity-reduction quantity under a specified intervention, as the [decomposition](#sec-decomposition) chapter discusses. Writing down the intervention first is the discipline that makes this visible before the regression is run rather than after it is published.
