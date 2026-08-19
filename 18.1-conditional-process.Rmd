@@ -1,0 +1,423 @@
+# Moderated Mediation and Conditional Process Analysis {#sec-conditional-process}
+
+The previous chapter treated moderation on its own: the effect of $X$ on $Y$ depends on a third variable $W$. The next chapter treats mediation on its own: the effect of $X$ on $Y$ runs through an intermediate variable $M$. Applied work almost never stays in either pure case. The question a manager, a regulator, or a referee actually asks is *whether the mechanism itself differs across people, markets, or conditions*. Does the advertising campaign raise sales through brand awareness for new customers but through price salience for repeat customers? Does a job training program work through skill acquisition in tight labor markets and through job search intensity in slack ones? Does an anxiety appeal shift immigration attitudes through emotion among the young and through something else among the old?
+
+These are questions about a mechanism that is contingent. The statistical literature calls the corresponding model **moderated mediation**, and the family of models that combine mediating and moderating paths in a single system is called **conditional process analysis** [@hayes2020conditional]. A closely related and much older term, **mediated moderation**, describes what looks like a different question: whether an interaction effect is itself transmitted through a mediator. Section \@ref(sec-cpa-mediated-moderation) shows that under the standard linear specification the two questions are algebraically the same question asked from different ends, which is why the second term has largely fallen out of careful use.
+
+This chapter does four things. It sets up the general conditional process model and derives the conditional indirect effect and the index of moderated mediation. It shows why probing a mechanism at conventional values of the moderator is not a test of moderated mediation, and quantifies how badly the common substitute fails. It gives the counterfactual reading of the whole apparatus, including the result that moderated mediation is identified under *weaker* confounding assumptions than mediation itself. And it works the whole machinery through a replication of a canonical framing experiment, with an extension to machine learning estimates of mechanism heterogeneity and an honest accounting of the sample sizes these questions require.
+
+Readers should have the [moderation](#sec-moderation) chapter and the [mediation](#sec-mediation) chapter in hand. The identification vocabulary of controlled, natural, and interventional direct and indirect effects is developed in the mediation chapter and used freely here.
+
+## The General Conditional Process Model {#sec-cpa-general-model}
+
+Let $X$ be the focal predictor or treatment, $M$ a single mediator, $Y$ the outcome, and $W$ a moderator measured before $X$. Write $C$ for a vector of covariates. The general linear conditional process model allows $W$ to enter every structural path:
+
+$$
+M = a_0 + a_1 X + a_2 W + a_3 XW + \boldsymbol{a}_c' C + \varepsilon_M,
+$$
+
+$$
+Y = c_0 + c_1' X + c_2' W + c_3' XW + b_1 M + b_2 MW + \boldsymbol{c}_c' C + \varepsilon_Y .
+$$
+
+Three coefficients carry the contingency. The term $a_3$ moderates the **first stage**, the path from treatment to mediator. The term $b_2$ moderates the **second stage**, the path from mediator to outcome. The term $c_3'$ moderates the **direct path** that bypasses $M$ altogether. Setting all three to zero recovers ordinary mediation; setting $b_1 = b_2 = 0$ recovers ordinary moderation.
+
+Substituting the mediator equation into the outcome equation and collecting terms in $X$ gives the quantity of interest. The **conditional indirect effect** of $X$ on $Y$ through $M$ at moderator value $W = w$ is the product of the two conditional path coefficients,
+
+$$
+\theta(w) \;=\; \underbrace{(a_1 + a_3 w)}_{\text{conditional } a\text{-path}} \times \underbrace{(b_1 + b_2 w)}_{\text{conditional } b\text{-path}},
+$$
+
+and the conditional direct effect is $c_1' + c_3' w$. Their sum is the conditional total effect. The decomposition holds pointwise in $w$: at every value of the moderator, the total effect splits into a part that runs through the mediator and a part that does not, exactly as in ordinary mediation, but with both parts now functions of $w$.
+
+That expression already contains the chapter's first substantive lesson. The conditional indirect effect is a **product of two linear functions of $w$**, which is quadratic in $w$ whenever both stages are moderated. It is linear in $w$ only in the two special cases where exactly one stage is moderated:
+
+$$
+\theta(w) = \begin{cases}
+(a_1 + a_3 w)\, b_1 & \text{first stage only } (b_2 = 0), \\[4pt]
+a_1 (b_1 + b_2 w) & \text{second stage only } (a_3 = 0), \\[4pt]
+(a_1 + a_3 w)(b_1 + b_2 w) & \text{both stages}.
+\end{cases}
+$$
+
+In the first two cases the derivative $\partial \theta / \partial w$ is a constant, and @hayes2015index calls that constant the **index of moderated mediation**:
+
+$$
+\text{index} = \frac{\partial \theta(w)}{\partial w} = \begin{cases} a_3 b_1 & \text{first stage only},\\ a_1 b_2 & \text{second stage only}.\end{cases}
+$$
+
+A test of $\text{index} = 0$ is a test of the hypothesis that the mechanism is invariant to the moderator, and it is the correct single test of moderated mediation in the linear model. In the both-stages case there is no single index, because $\partial \theta / \partial w = a_3 b_1 + a_1 b_2 + 2 a_3 b_2 w$ still depends on $w$. Papers that report "the index of moderated mediation" from a model with both $a_3$ and $b_2$ free are reporting a quantity that does not describe the model they fit. The correct object there is the whole function $\theta(\cdot)$ with a simultaneous confidence band, or a test of the joint null $a_3 = b_2 = 0$.
+
+### Where the Moderator Can Sit
+
+It helps to keep the possible configurations straight, because they answer genuinely different substantive questions and they are not equally credible.
+
+| Configuration | Free parameter | Substantive claim | Identification burden |
+|:--------------|:---------------|:------------------|:----------------------|
+| First stage | $a_3$ | The treatment moves the mediator more for some units than others | Lightest. If $X$ is randomized, $a_3$ is a causal interaction |
+| Second stage | $b_2$ | A given change in the mediator translates into more outcome for some units | Heaviest. $M$ is not randomized, so $b_2$ mixes moderation with confounding |
+| Direct path | $c_3'$ | Whatever bypasses $M$ is itself contingent | Light if $X$ randomized, but $c_3'$ is a controlled direct effect contrast |
+| First and second | $a_3, b_2$ | Both, and the conditional indirect effect is quadratic | Heaviest, and no single index exists |
+
+Table: (\#tab:cpa-configurations) Where a moderator can enter a conditional process model, what each configuration claims, and how much identification each demands. Second-stage moderation is the most commonly estimated and the least defensible, because the mediator whose slope is being moderated was never assigned.
+
+The asymmetry in the last column is the reason a great deal of published conditional process analysis is weaker than it appears. Randomizing $X$ buys a causal interpretation of $a_1$ and $a_3$ and of the total effect and its moderation. It buys nothing at all for $b_1$ and $b_2$, because no experiment assigned $M$. A significant $b_2$ is consistent with genuine second-stage moderation and equally consistent with a $W$-dependent pattern of mediator-outcome confounding, and nothing in the fitted model distinguishes them. Section \@ref(sec-cpa-counterfactual) makes this precise.
+
+## Mediated Moderation, and Why the Term Is Retired {#sec-cpa-mediated-moderation}
+
+The older literature posed a question that sounds different. Suppose the interaction $XW$ has an effect on $Y$. Is that *interaction effect* transmitted through $M$? This is **mediated moderation** [@baron1986moderator; @judd1981process; @muller2005moderation].
+
+Formalize it in the obvious way. Fit a total-effect equation
+
+$$
+Y = \tilde c_0 + \tilde c_1 X + \tilde c_2 W + \tilde c_3 XW + \boldsymbol{\tilde c}_c' C + \varepsilon,
+$$
+
+so $\tilde c_3$ is the total interaction effect, and compare it with $c_3'$ from the outcome equation above, the interaction effect that survives conditioning on $M$. In the first-stage-only model ($b_2 = 0$), the algebra of ordinary mediation applies coefficient by coefficient, and
+
+$$
+\tilde c_3 - c_3' = a_3 b_1 .
+$$
+
+The mediated part of the interaction effect is $a_3 b_1$. That is exactly the index of moderated mediation defined above. The two literatures had been computing the same number and giving it two names [@preacher2007addressing; @edwards2007methods].
+
+@muller2005moderation is the paper that made the equivalence explicit and, in doing so, clarified what does distinguish the two framings. It is not the arithmetic; it is which quantity the analyst declares to be the causal agent. Moderated mediation treats $X$ as the cause and asks whether its mechanism varies with $w$. Mediated moderation treats the *product* $XW$ as the cause and asks what channel it flows through. The second framing is difficult to sustain, because an interaction term is not a manipulable quantity: there is no intervention that sets $XW$ to a value while leaving $X$ and $W$ alone. @preacher2007addressing recommend abandoning the term for exactly this reason, and modern treatments follow them [@hayes2020conditional].
+
+Two practical consequences follow, and both are worth stating because they are the reason to care about a terminological dispute.
+
+First, if your design randomizes $X$ within levels of a naturally occurring $W$, the causal agent is $X$ and the correct framing is moderated mediation. Report $\theta(w)$ and the index. Do not report $\tilde c_3 - c_3'$ as though the interaction had been assigned.
+
+Second, if your design is a genuine two-factor experiment in which both $X$ and $W$ are randomized, then the interaction *is* a legitimate causal contrast, because the factorial design assigns the cell. In that case the mediated-moderation question is well posed, and the identity $\tilde c_3 - c_3' = a_3 b_1$ decomposes a causal interaction into a mediated and an unmediated part. This is the same structure that the [factorial difference-in-differences](#sec-factorial-did) section treats in a panel setting, and it is why factorial experiments are worth more than the sum of two single-factor experiments. Outside that case the framing does not survive contact with the potential-outcomes notation.
+
+## Probing Is Not Testing {#sec-cpa-probing}
+
+The dominant reporting convention in applied conditional process analysis is to estimate the conditional indirect effect at a small number of moderator values, conventionally the mean and one standard deviation on either side, bootstrap a confidence interval at each, and declare moderated mediation when the intervals differ in whether they contain zero. Sometimes the values are chosen instead by the Johnson-Neyman procedure, which at least locates the boundary of significance rather than imposing three arbitrary points.
+
+Neither convention is a test. The claim "the mechanism operates for the young but not for the old" is a claim about the *difference* between two conditional indirect effects, and the difference has its own sampling distribution. Two intervals that differ in whether they cover zero can easily be statistically indistinguishable from one another; this is the general point of @gelman2006difference applied to a mediation model. In the linear case the difference between $\theta(w_1)$ and $\theta(w_2)$ is $(w_1 - w_2)$ times the index, so testing the index *is* testing the difference, and reporting the index costs nothing.
+
+The following simulation puts a number on how bad the substitute is. It constructs a world in which the indirect effect is genuinely identical in two groups, so the true index of moderated mediation is exactly zero, and the only difference between groups is sample size: 400 units in one, 100 in the other. This is the ordinary situation of a moderator with unbalanced categories, an experiment with an oversampled majority group, or a platform test where one segment simply has more traffic. It then applies both rules: the differential-significance rule, and the index test.
+
+```{r cpa-probing-sim, message=FALSE, warning=FALSE}
+# True indirect effect is IDENTICAL in both groups; only n differs.
+sim_one <- function(n1 = 400, n2 = 100, a = 0.35, b = 0.35) {
+    n <- n1 + n2
+    W <- c(rep(0, n1), rep(1, n2))
+    X <- rbinom(n, 1, 0.5)
+    M <- a * X + rnorm(n)
+    Y <- b * M + 0.2 * X + rnorm(n)
+    d <- data.frame(X, M, Y, W)
+
+    # Rule 1: probe within each group, compare significance (the common practice)
+    pv <- sapply(0:1, function(g) {
+        dg <- d[d$W == g, ]
+        am <- summary(lm(M ~ X, dg))$coef["X", ]
+        bm <- summary(lm(Y ~ M + X, dg))$coef["M", ]
+        z <- (am[1] * bm[1]) /
+            sqrt(am[1]^2 * bm[2]^2 + bm[1]^2 * am[2]^2)   # Sobel
+        2 * pnorm(-abs(z))
+    })
+
+    # Rule 2: test the index of moderated mediation directly
+    mm <- lm(M ~ X * W, d)
+    mo <- lm(Y ~ M + X * W, d)
+    ix <- coef(mm)[["X:W"]] * coef(mo)[["M"]]
+    se <- abs(coef(mo)[["M"]]) * summary(mm)$coef["X:W", 2]
+
+    c(
+        differential_significance = as.numeric((pv[1] < 0.05) != (pv[2] < 0.05)),
+        index_test                = as.numeric(abs(ix / se) > 1.96)
+    )
+}
+
+set.seed(11)
+res <- t(replicate(1000, sim_one()))
+round(colMeans(res), 3)
+```
+
+The differential-significance rule declares moderated mediation in roughly three quarters of samples drawn from a world with no moderated mediation whatsoever. The index test rejects at close to its nominal five percent. The gap is not a subtle finite-sample distortion; it is the difference between a valid test and a procedure that mostly detects differences in group size. Any published claim of the form "the indirect effect was significant for group A ($p < .05$) but not for group B ($p = .21$), supporting moderated mediation" is, on this evidence, uninformative about the mechanism unless it is accompanied by a test of the difference.
+
+The corrective is cheap. Report the index with a bootstrap or Monte Carlo confidence interval [@preacher2012advantages], report the conditional effects as description rather than as evidence, and report the component paths $a_3$ and $b_1$ separately so a reader can see which stage is driving the result [@yzerbyt2018new].
+
+## The Counterfactual Reading {#sec-cpa-counterfactual}
+
+The regression algebra above is a description of a linear model, not of a causal quantity. Translating it requires the potential-outcomes notation from the mediation chapter. Write $M_i(x)$ for the mediator that unit $i$ would display under treatment $x$, and $Y_i(x, m)$ for the outcome under treatment $x$ and mediator value $m$. The natural indirect effect conditional on $W = w$ is
+
+$$
+\mathrm{NIE}(w) \;=\; \mathbb{E}\big[\,Y_i(1, M_i(1)) - Y_i(1, M_i(0)) \;\big|\; W_i = w\,\big],
+$$
+
+and moderated mediation is the statement that $\mathrm{NIE}(w)$ is not constant in $w$. In the linear model with no exposure-mediator interaction, $\mathrm{NIE}(w) = \theta(w)$ as defined above, which is what licenses reading the regression output causally. Once an $X \times M$ interaction is present in the outcome equation, the correspondence breaks, and the four-way decomposition of @vanderweele2014unification is the right frame: the total effect splits into a controlled direct effect, a reference interaction, a mediated interaction, and a pure indirect effect, and a moderator can shift any of the four. The mediation chapter develops that decomposition; here the point is only that "moderated mediation" in a model with exposure-mediator interaction is ambiguous until the analyst says which of the four components is supposed to be moderated.
+
+### Effect Modification Is Not Interaction
+
+The single most useful conceptual distinction in this area is @vanderweele2009distinction's separation of **interaction** from **effect modification**. Interaction concerns two variables that are both, at least in principle, subject to intervention: the question is what happens when you set $X = x$ and $W = w$ jointly. Effect modification concerns a variable that merely *stratifies* the population: the question is whether the effect of $X$ differs across strata defined by $W$, with no claim that $W$ could be set.
+
+Nearly all applied moderated mediation is effect modification. Age, prior purchase history, baseline severity, firm size, and market concentration are not assigned. This has three implications that are routinely ignored.
+
+Effect modification by $W$ requires no assumption about confounding of $W$ itself. If $X$ is randomized, $\mathrm{NIE}(w)$ is a well-defined conditional causal quantity for each $w$, and comparing across $w$ is a legitimate description of who the mechanism works for.
+
+Effect modification does not license a policy statement about changing $W$. "The mechanism is stronger for high-trust customers" does not imply "raising trust would strengthen the mechanism." That second claim requires $W$ to be manipulable and unconfounded, which is a separate design problem. @bansak2021estimating gives the formal treatment of what can and cannot be recovered when the treatment is randomized and the moderator is not, and provides estimators for the causal moderation effect under explicit sensitivity assumptions.
+
+Effect-modification estimates inherit whatever functional-form error the interaction specification carries. @blackwell2022reducing show that the ordinary multiplicative interaction model is badly non-robust to misspecification of how the covariates enter, and propose estimating interactions with methods that model the covariate function flexibly. Combined with the finding of @hainmueller2019much that multiplicative interactions frequently rest on regions of the moderator with almost no common support, and @simonsohn2024interacting's demonstration that a spurious linear interaction is the generic consequence of an unmodeled nonlinear main effect, the practical upshot is that a moderated mediation result should be probed for functional form before it is interpreted. The [binning versus generalized additive model debate](#sec-binning-estimator-approach) in the moderation chapter is directly relevant, and its conclusions carry over unchanged to the $a$-path and $b$-path of a mediation model.
+
+### Moderated Mediation Needs Weaker Assumptions Than Mediation
+
+There is a genuinely encouraging result in this literature, and it is not widely enough known. Mediation analysis requires the mediator-outcome relationship to be unconfounded, an assumption that is untestable and usually implausible. @loeys2016assessing show that assessing *moderated* mediation in linear models requires strictly fewer such assumptions than assessing mediation itself.
+
+The intuition is a differencing argument. Suppose there is unmeasured confounding $U$ of the mediator-outcome relationship, so the estimated $b$-path is biased by some amount $\delta$. Then $\hat\theta(w)$ is biased by $(a_1 + a_3 w)\delta$ at every $w$. If the confounding bias $\delta$ does not itself depend on $w$, the *difference* $\hat\theta(w_1) - \hat\theta(w_2) = (w_1 - w_2) a_3 (b_1 + \delta)$ is still contaminated through $\delta$, but the *sign and the presence* of first-stage moderated mediation are governed by $a_3$, which is identified from the randomized treatment alone. In the important special case where the analyst asks only whether the mechanism differs across levels of $w$ rather than how large it is, the $a_3$ coefficient carries the answer, and $a_3$ is a randomized-treatment interaction requiring no mediator-outcome assumption at all.
+
+This reverses the usual pecking order. A study that cannot credibly estimate an indirect effect may still be able to say something defensible about whether the treatment moves the candidate mediator differentially across groups. That is a weaker claim than "the mechanism is X," but it is a claim the data can support, and it is exactly the kind of evidence @yzerbyt2018new argue should be reported alongside, rather than buried beneath, the product term.
+
+The counterpart caution: none of this rescues second-stage moderation. A $W$-varying $b$-path is confounded by any $W$-varying mediator-outcome confounder, and there is no differencing trick that removes it. @coffman2012assessing develop marginal structural model estimators for mediation in the presence of both confounding and moderation, which is the principled route when second-stage moderation is genuinely the target; the [mediation](#sec-mediation) chapter develops the weighting machinery those estimators use.
+
+## Replication: Anxiety, Framing, and Immigration Attitudes {#sec-cpa-replication}
+
+@brader2008triggers ran a survey experiment on a nationally representative sample of white American adults. Respondents read a news story about immigration whose tone (positive or negative) and whose pictured immigrant (European or Latino) were randomly varied. The paper's argument is explicitly mechanistic: a negatively framed story featuring a Latino immigrant increases opposition to immigration *because* it induces anxiety, not merely because it conveys information. The design is the standard reference case for causal mediation analysis, and the data ship with the `mediation` package [@tingley2014mediation].
+
+The treatment `treat` is the negative-tone Latino-image condition. The mediator `emo` is self-reported anxiety on a scale from 3 to 12. Two outcomes are available: `cong_mesg`, a binary indicator of whether the respondent chose to send an anti-immigration message to Congress, and `immigr`, a four-point scale of support for restricting immigration. We use `immigr` for the closed-form work because a linear outcome makes the index of moderated mediation exactly the coefficient product derived above, and we return to the binary outcome when we use the design-based estimator.
+
+The moderator is age. The substantive hypothesis is that emotional appeals about immigration work differently across generations, which is a first-stage claim: the same story should provoke more anxiety in some age groups than others.
+
+```{r cpa-setup, message=FALSE, warning=FALSE}
+library(mediation)
+data("framing", package = "mediation")
+
+fr <- transform(framing, age_c = age - mean(age))
+c(n = nrow(fr), mean_age = round(mean(fr$age), 1),
+  min_age = min(fr$age), max_age = max(fr$age))
+```
+
+### The Conditional Process Model
+
+Fit the mediator and outcome equations of the first-stage-moderated model, setting $b_2 = 0$.
+
+```{r cpa-fit, message=FALSE, warning=FALSE}
+m_med <- lm(emo ~ treat * age_c + educ + gender + income, data = fr)
+m_out <- lm(immigr ~ emo + treat * age_c + educ + gender + income, data = fr)
+
+a1 <- coef(m_med)[["treat"]]        # a-path at mean age
+a3 <- coef(m_med)[["treat:age_c"]]  # first-stage moderation
+b1 <- coef(m_out)[["emo"]]          # b-path
+
+round(c(a1 = a1, a3 = a3, b1 = b1, index = a3 * b1), 4)
+```
+
+The treatment raises anxiety by about `r round(a1, 2)` scale points at the average age of `r round(mean(fr$age), 0)`, and that effect declines by about `r abs(round(a3, 3))` points per additional year of age. Each additional point of anxiety translates into about `r round(b1, 3)` scale points of additional restrictionism. The index of moderated mediation is the product of the second and third of those numbers.
+
+### Show and Tell: Conditional Effects Versus the Index
+
+Now bootstrap all three quantities together, so the conditional indirect effects and the index come from the same resamples and can be compared honestly.
+
+```{r cpa-bootstrap, message=FALSE, warning=FALSE}
+boot_stat <- function(d) {
+    mm <- lm(emo ~ treat * age_c + educ + gender + income, data = d)
+    mo <- lm(immigr ~ emo + treat * age_c + educ + gender + income, data = d)
+    a1 <- coef(mm)[["treat"]]
+    a3 <- coef(mm)[["treat:age_c"]]
+    b1 <- coef(mo)[["emo"]]
+    ctr <- mean(framing$age)
+    c(index      = a3 * b1,
+      theta_25   = (a1 + a3 * (25 - ctr)) * b1,
+      theta_65   = (a1 + a3 * (65 - ctr)) * b1,
+      difference = (a1 + a3 * (25 - ctr)) * b1 - (a1 + a3 * (65 - ctr)) * b1)
+}
+
+set.seed(3)
+B  <- 2000
+bs <- t(replicate(B, boot_stat(fr[sample(nrow(fr), replace = TRUE), ])))
+
+cpa_tab <- data.frame(
+    quantity = c("Index of moderated mediation (per year)",
+                 "Conditional indirect effect at age 25",
+                 "Conditional indirect effect at age 65",
+                 "Difference, age 25 minus age 65"),
+    estimate = round(boot_stat(fr), 4),
+    lower    = round(apply(bs, 2, quantile, 0.025), 4),
+    upper    = round(apply(bs, 2, quantile, 0.975), 4),
+    row.names = NULL
+)
+knitr::kable(
+    cpa_tab,
+    col.names = c("Quantity", "Estimate", "2.5%", "97.5%"),
+    caption = paste("Percentile bootstrap (2000 resamples) of the conditional",
+                    "indirect effect of the anxiety framing treatment on",
+                    "restrictionist immigration attitudes, at two ages, together",
+                    "with the index of moderated mediation. Both conditional",
+                    "effects are individually distinguishable from zero; their",
+                    "difference is not.")
+)
+```
+
+This is the pattern the simulation in Section \@ref(sec-cpa-probing) warned about, appearing in real data. The mechanism is present at both ages: anxiety mediates the framing effect for the young and for the old, and both conditional intervals exclude zero. A paper that stopped at the two conditional effects, noted that the point estimate at 25 is larger than at 65, and concluded that the emotional mechanism is stronger among younger respondents would have made a claim the data do not support. The index interval covers zero comfortably, and so does the interval for the difference. The correct summary is that the framing effect runs through anxiety, and that this study cannot detect any variation in that mechanism with age.
+
+Note also that the difference row and the index row carry the same information: the difference is exactly $40 \times \text{index}$, because the moderator enters linearly. Reporting both is redundant, but reporting the difference makes the comparison the reader cares about explicit in the units they care about.
+
+### Both Stages Moderated
+
+Freeing the second stage as well shows what happens to the index when the model no longer supports one.
+
+```{r cpa-both-stages, message=FALSE, warning=FALSE}
+m_out2 <- lm(immigr ~ emo * age_c + treat * age_c + educ + gender + income,
+             data = fr)
+b1f <- coef(m_out2)[["emo"]]
+b2f <- coef(m_out2)[["emo:age_c"]]
+
+ctr  <- mean(fr$age)
+ages <- seq(20, 80, by = 10)
+theta_quad <- (a1 + a3 * (ages - ctr)) * (b1f + b2f * (ages - ctr))
+
+round(rbind(age = ages, conditional_indirect = theta_quad), 4)
+```
+
+The conditional indirect effect is now a genuine quadratic in age, and $\partial\theta/\partial w = a_3 b_1 + a_1 b_2 + 2 a_3 b_2 w$ varies over the range of the data. Empirically the curvature here is slight, because $\hat b_2$ is close to zero, so the practical conclusion is unchanged. The structural point stands: in this specification there is no scalar index to report, and software that prints one is applying the first-stage formula to a model that has two moderated stages.
+
+There is also an identification point. The second-stage coefficient $b_2$ compares the outcome slope on anxiety across age groups, and anxiety was never assigned. Older and younger respondents who report the same anxiety level differ systematically in ways the model does not capture, so $\hat b_2$ absorbs any age-varying mediator-outcome confounding. Even a large and precisely estimated $\hat b_2$ would not by itself be evidence that the same emotional state translates into different attitudes at different ages.
+
+### The Design-Based Estimator
+
+The closed-form index requires a linear outcome. For the binary outcome `cong_mesg`, the natural-effects definitions no longer reduce to a coefficient product, and the simulation-based estimator of @imai2010general and @imai2010identsens is the appropriate tool. The `mediate` function estimates the average causal mediation effect at a fixed covariate profile, and `test.modmed` compares two profiles with a bootstrap test of the difference, which is the design-based analogue of the index test.
+
+```{r cpa-modmed, message=FALSE, warning=FALSE}
+med_fit <- lm(emo ~ treat * age_c + educ + gender + income, data = fr)
+out_fit <- glm(cong_mesg ~ emo + treat * age_c + educ + gender + income,
+               data = fr, family = binomial("probit"))
+
+set.seed(1)
+ctr <- mean(fr$age)
+m_young <- mediate(med_fit, out_fit, treat = "treat", mediator = "emo",
+                   covariates = list(age_c = 25 - ctr), sims = 500)
+m_old   <- mediate(med_fit, out_fit, treat = "treat", mediator = "emo",
+                   covariates = list(age_c = 65 - ctr), sims = 500)
+
+rbind(
+    `age 25` = c(ACME = m_young$d.avg, m_young$d.avg.ci),
+    `age 65` = c(ACME = m_old$d.avg,   m_old$d.avg.ci)
+) |> round(4)
+```
+
+```{r cpa-modmed-test, message=FALSE, warning=FALSE}
+m_init <- mediate(med_fit, out_fit, treat = "treat", mediator = "emo", sims = 2)
+set.seed(2)
+test.modmed(m_init,
+            covariates.1 = list(age_c = 25 - ctr),
+            covariates.2 = list(age_c = 65 - ctr),
+            sims = 500)
+```
+
+The binary-outcome analysis reproduces the linear one and adds something to it. Both conditional mediation effects are positive and individually significant. The test of their difference does not reject: the mechanism does not measurably vary with age. The *direct* effect, however, does differ across ages, and that difference is significant. Substantively this says that whatever the framing treatment does to congressional-message behavior that does not run through anxiety is age-dependent, while the anxiety channel itself is not. That is a sharper and more interesting finding than "the effect is moderated by age," and it is invisible to any analysis that reports only the indirect effect.
+
+## Extension: Machine Learning Estimates of Mechanism Heterogeneity {#sec-cpa-ml}
+
+The conditional process model imposes a functional form. It says the mechanism varies linearly in one pre-specified moderator. Two problems follow. The moderator has to be chosen in advance, which invites specification search across the covariates until one interaction is significant. And the linear form is a strong restriction, precisely the restriction that @hainmueller2019much and @simonsohn2024interacting show to be unreliable.
+
+The heterogeneous-treatment-effect machinery from the [machine learning for causal inference](#sec-ml-causal) chapter addresses both. Because the treatment is randomized, the conditional average treatment effect of the framing manipulation *on the mediator* is nonparametrically identified. This is the $a$-path, estimated without assuming a moderator, a functional form, or even that the heterogeneity is one-dimensional.
+
+```{r cpa-forest, message=FALSE, warning=FALSE}
+library(grf)
+
+Xm <- model.matrix(~ age + educ + gender + income - 1, data = fr)
+
+set.seed(5)
+cf_a <- causal_forest(Xm, Y = fr$emo,    W = fr$treat, num.trees = 2000)
+cf_t <- causal_forest(Xm, Y = fr$immigr, W = fr$treat, num.trees = 2000)
+
+cal <- rbind(
+    `a-path (treatment on anxiety)`  = test_calibration(cf_a)[2, ],
+    `total (treatment on attitudes)` = test_calibration(cf_t)[2, ]
+)
+round(cal, 3)
+```
+
+The `differential.forest.prediction` coefficient tests whether the forest's estimated heterogeneity has any out-of-sample predictive content. A coefficient near one with a small $p$-value indicates real, well-calibrated heterogeneity. Here both coefficients are negative with $p$-values at the wrong end of the scale, which is the signature of no detectable heterogeneity: the forest's ranking of units by estimated effect does not survive cross-fitting. The nonparametric answer agrees with the parametric one, and it does so without having been told to look at age.
+
+Two cautions are essential before this becomes a general recipe.
+
+The forest identifies heterogeneity in the $a$-path because the treatment was randomized. It cannot identify heterogeneity in the $b$-path, because the mediator was not. A forest fit with the mediator as the treatment variable would estimate a conditional association, not a conditional effect, no matter how flexible the estimator. Flexibility does not substitute for identification.
+
+The product of a nonparametric $a$-path CATE and a $b$-path coefficient is not a nonparametric indirect effect. Recovering conditional natural indirect effects with machine learning requires the orthogonal score functions of @farbmacher2022causal, which the [mediation](#sec-mediation) chapter develops. What the forest delivers here is a valid, assumption-light screen for *whether* mechanism heterogeneity is present at all, which is exactly the question that should be asked before a conditional process model is fit.
+
+## How Much Data This Requires {#sec-cpa-power}
+
+The null results above are not a failure of the analysis. They are what a sample of 265 respondents can be expected to deliver, and the point is worth quantifying, because the mismatch between the sample sizes that support moderated mediation claims and the sample sizes that appear in published papers is large.
+
+An interaction is estimated from variation in a product term, and its standard error is inflated relative to a main effect. @sommet2023how work through the arithmetic and its consequences for design; the rough rule is that detecting an interaction of half the size of a main effect requires roughly sixteen times the sample. Moderated mediation compounds this, because the index is a product of an interaction coefficient and a path coefficient, and the product inherits both sources of noise.
+
+```{r cpa-power, message=FALSE, warning=FALSE}
+power_cpa <- function(n, a1 = 0.4, a3 = 0.2, b = 0.4, R = 600) {
+    hits <- replicate(R, {
+        W <- rnorm(n)
+        X <- rbinom(n, 1, 0.5)
+        M <- a1 * X + a3 * X * W + 0.2 * W + rnorm(n)
+        Y <- b * M + 0.2 * X + 0.1 * W + rnorm(n)
+
+        sm <- summary(lm(M ~ X * W))$coef
+        so <- summary(lm(Y ~ M + X * W))$coef
+
+        ie    <- sm["X", 1] * so["M", 1]
+        se_ie <- sqrt(sm["X", 1]^2 * so["M", 2]^2 + so["M", 1]^2 * sm["X", 2]^2)
+        ix    <- sm["X:W", 1] * so["M", 1]
+        se_ix <- sqrt(sm["X:W", 1]^2 * so["M", 2]^2 + so["M", 1]^2 * sm["X:W", 2]^2)
+
+        c(abs(ie / se_ie) > 1.96, abs(ix / se_ix) > 1.96)
+    })
+    rowMeans(hits)
+}
+
+set.seed(7)
+grid <- c(100, 200, 400, 800, 1600, 3200)
+pw <- t(sapply(grid, power_cpa))
+
+knitr::kable(
+    data.frame(n = grid,
+               indirect = round(pw[, 1], 2),
+               index    = round(pw[, 2], 2)),
+    col.names = c("n", "Power: indirect effect", "Power: index"),
+    caption = paste("Simulated power to detect an indirect effect and to detect",
+                    "moderated mediation, when the first-stage interaction is",
+                    "half the size of the first-stage main effect. Reaching 80",
+                    "percent power for the index takes roughly four times the",
+                    "sample that suffices for the indirect effect.")
+)
+```
+
+A study with 200 observations has good power for the indirect effect and almost none for the index. This is why the literature is full of papers that establish a mechanism convincingly and then make an underpowered claim about whose mechanism it is. It is also why the differential-significance rule is so attractive and so damaging: it converts an underpowered comparison into an apparently decisive one at no cost in sample size.
+
+Three design responses follow. Power the study for the index rather than the effect, which usually means a materially larger sample than the mediation analysis alone would require. Choose the moderator on theory and pre-register it, since the effective multiplicity across candidate moderators is otherwise unbounded [@rohrer2022process]. And when the sample cannot support the interaction, report the conditional effects descriptively and say so, rather than converting a null difference into a positive claim.
+
+## Practice {#sec-cpa-practice}
+
+Applied conditional process analysis has accumulated a set of habits that survive mainly because software makes them easy. @rohrer2022process catalogue the main ones, and the following consolidates them into what a defensible report contains.
+
+State the causal target before fitting. Is the claim about effect modification, meaning who the mechanism works for, or about interaction, meaning what happens when two things are set jointly? Only the second requires both variables to be manipulable, and only a factorial design delivers it.
+
+Report the component paths. @yzerbyt2018new show that the product term alone hides which stage carries the result, and that a significant product with an insignificant $a$-path is a different empirical situation from a significant product with an insignificant $b$-path. Report $\hat a_1$, $\hat a_3$, $\hat b_1$, and $\hat b_2$ with their standard errors, not just $\hat\theta(w)$.
+
+Test the index, not the significance pattern. Bootstrap or Monte Carlo the index and report its interval [@hayes2015index; @preacher2012advantages]. If both stages are moderated, report the conditional-effect function with a simultaneous band and do not report an index.
+
+Say what identifies the $b$-path. The mediator was not randomized in almost every applied study. State the mediator-outcome confounding assumption in words, and run a sensitivity analysis for it; the mediation chapter develops both the @imai2010identsens correlation-based approach and the E-value.
+
+Check functional form before interpreting. Apply the diagnostics of @hainmueller2019much and the nonlinear alternatives discussed in the moderation chapter to both the $a$-path and the direct path. An interaction that disappears under a flexible main-effect specification was a functional-form artifact.
+
+Do not claim policy leverage over a non-manipulable moderator. "The mechanism is stronger among high-trust customers" is a targeting statement, not an intervention statement.
+
+### Where This Shows Up in Practice
+
+The industrial value of a conditional process model is almost always targeting rather than explanation, and framing it that way improves both the analysis and its reception.
+
+In marketing, the recurring question is which creative works through which channel for which segment. A brand campaign may raise purchase intent through awareness for category entrants and through reassurance for lapsed buyers. Getting this right determines media allocation, and the honest version of the analysis is a first-stage moderated mediation: the campaign is randomized, so the differential effect on the awareness measure across segments is identified, while the awareness-to-purchase slope is not. The [uplift modeling](#sec-uplift-modeling) chapter treats the targeting problem directly, and the conditional process model is best read as supplying the mechanistic story behind an uplift ranking rather than as a competing estimator.
+
+In platform and operations settings, the moderator is often a system state rather than a person: network congestion, inventory depth, marketplace thickness. Here the moderator sometimes *is* manipulable, because the platform sets it, and the interaction framing becomes legitimate. A two-factor experiment that randomizes both the intervention and the system state converts a fragile effect-modification claim into a genuine causal interaction, and makes the mediated-moderation decomposition of Section \@ref(sec-cpa-mediated-moderation) well posed. This is usually worth the extra design cost.
+
+In litigation and regulatory work, moderated mediation claims attract scrutiny precisely at their weakest point. An expert who testifies that a disclosure worked through comprehension for sophisticated investors but not for retail investors is making a claim about a difference between two indirect effects, and opposing counsel will ask whether that difference was tested. On the evidence in Section \@ref(sec-cpa-probing), the answer in most submitted analyses is no. The defensible version reports the index with its interval, states the mediator-outcome confounding assumption explicitly, and presents the sensitivity analysis alongside the point estimate.
+
+In policy evaluation, the analogue is heterogeneity of mechanism across sites. Multi-site trials routinely find that a program works everywhere but appears to work through different channels in different places. Before that becomes an implementation recommendation it needs the index test, because site sample sizes vary enormously and the differential-significance artifact of Section \@ref(sec-cpa-probing) is precisely a sample-size artifact.
+
+## Summary {#sec-cpa-summary}
+
+Moderated mediation asks whether a mechanism is contingent, and conditional process analysis is the family of models that answers it. The conditional indirect effect is the product of the conditional first-stage and second-stage paths, which makes it linear in the moderator only when exactly one stage is moderated; in that case its slope is the index of moderated mediation, and testing the index is the correct test. Mediated moderation, under the standard linear specification, computes the same number from the other direction, and the term has been retired because an interaction product is not a manipulable cause outside a factorial design.
+
+The dominant reporting practice, probing the indirect effect at conventional moderator values and comparing which intervals exclude zero, is not a test and behaves very badly: in a simulation where the true index is zero and the only difference between groups is sample size, it claims moderated mediation three quarters of the time. The index test holds its nominal level.
+
+Counterfactually, most applied moderation of a mechanism is effect modification rather than interaction, which is both weaker and easier: it needs no assumption about the moderator's own confounding, but it licenses no statement about changing the moderator. First-stage moderated mediation is the credible case, because a randomized treatment identifies the interaction that drives it, and @loeys2016assessing show that this makes moderated mediation identifiable under weaker assumptions than mediation itself. Second-stage moderation carries the full burden of mediator-outcome confounding and no differencing argument relieves it.
+
+The replication of @brader2008triggers shows the whole apparatus at work and delivers a result worth keeping: the framing treatment operates through anxiety at every age, the mechanism does not measurably vary with age, and what does vary with age is the direct path that bypasses anxiety entirely. A causal forest reaches the same conclusion without being told to look at age. The power simulation explains why: detecting moderated mediation takes roughly four times the sample that detecting mediation takes, and most published conditional process analyses are not built at that scale.
