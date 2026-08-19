@@ -1,0 +1,227 @@
+# Designing for Mechanisms {#sec-mechanism-designs}
+
+The [mediation](#sec-mediation) chapter ends on an uncomfortable note. Every decomposition it develops rests on an assumption about mediator-outcome confounding that no experiment on the treatment can deliver, because the mediator is measured rather than assigned. Sensitivity analysis converts that assumption into a quantity experts can argue about, but it does not remove it, and the strongest version of the critical literature holds that measured-mediator analysis is simply weak evidence about mechanisms [@bullock2010yes; @green2010enough].
+
+The constructive response is to stop treating the mechanism as something to be recovered by adjustment and start treating it as something to be designed for. This chapter surveys the designs that do that. They range from a single extra experimental arm to a full crossover with encouragement, and they trade off cost, assumptions, and how much of the population the answer applies to. The organizing insight, due to @imai2013experimental, is that these designs form a hierarchy: each one buys back a piece of identification that the single experiment cannot supply, and each one pays for it in a stated currency.
+
+The chapter also covers what to do when manipulating the mediator is impossible, which is most of the time in economics, finance, and industrial settings. There the evidence for a mechanism comes from auxiliary predictions, dose-response patterns, timing, and placebo mediators, none of which identifies an indirect effect but all of which can make a mechanistic story more or less credible.
+
+## Measuring the Mediator Versus Manipulating It {#sec-mech-two-strategies}
+
+Two research strategies are available for a mechanistic claim, and they are not variants of each other.
+
+**Measurement of mediation** runs one experiment, randomizes the treatment, measures the mediator, and estimates an indirect effect by the tools of the previous chapter. It is cheap, it uses data most studies already collect, and its validity turns entirely on an assumption about a variable that was never assigned.
+
+**Manipulation of mediation** runs two or more experiments. The first establishes that the treatment moves the mediator. The second manipulates the mediator directly and establishes that it moves the outcome. @spencer2005establishing call this the **experimental causal chain**, and their argument is that when the mediator is manipulable, the chain is both more credible and easier to interpret than any statistical decomposition, because each link is a randomized comparison.
+
+The trade-off is real and often mischaracterized. The causal chain does not estimate the indirect effect in the original experiment. It establishes that the two links exist, which is a weaker claim than "$x$ percent of the effect ran through $M$" but a much better supported one. @bullock2010yes make the point sharply: a study that shows the treatment raises anxiety, and separately that induced anxiety raises restrictionism, has demonstrated a plausible mechanism without ever having to defend sequential ignorability. It has not shown that this mechanism accounts for the observed treatment effect, and it should not claim to.
+
+A third strategy, **moderation of process**, tests a mechanism by blocking it. If the treatment works through anxiety, then a manipulation that prevents the anxiety response should attenuate the treatment effect. This is an interaction test, and it inherits everything the [conditional process analysis](#sec-conditional-process) chapter says about interaction power, which is that it requires far more data than the main effect it qualifies.
+
+### The Manipulation Has Its Own Exclusion Restriction
+
+Manipulating the mediator does not make the problem disappear; it relocates it. The manipulation must move the mediator *and nothing else that affects the outcome*. An intervention designed to induce anxiety may also convey information, change perceived demand characteristics, or alter mood in ways unrelated to anxiety, and any of those can affect the outcome directly. This is an exclusion restriction on the manipulation, exactly parallel to the exclusion restriction on an instrument, and it is equally untestable.
+
+@pirlott2016design catalogue what a defensible mediator manipulation requires. The manipulation should be validated to move the intended mediator and checked against a battery of plausible alternative mediators, so that discriminant validity is demonstrated rather than assumed. It should be as close as possible to the mediator's natural range, since an extreme manipulation identifies an effect at a dose that never occurs in the original experiment. And the manipulation and the treatment should be crossed rather than run in separate samples wherever possible, so that any interaction between them is visible.
+
+There is also a timing problem specific to measured mediators. Asking respondents about the mediator before the outcome can itself change the outcome, a phenomenon @blackwell2025priming call **priming bias**, and measuring the mediator after the outcome invites post-treatment contamination of the outcome measure. They formalize the trade-off, show that the standard advice to measure everything post-treatment is not obviously right, and provide nonparametric bounds on the treatment effect that hold under either measurement order. The practical implication is that the placement of the mediator battery in a survey instrument is an identification decision, not a formatting one.
+
+## The Design Hierarchy {#sec-mech-designs}
+
+@imai2013experimental organize the experimental options into a family, each member of which relaxes an assumption of the one before at a cost in design complexity. The following table summarizes; the sections after work through each.
+
+| Design | What is randomized | Estimand | Principal assumption |
+|:-------|:-------------------|:---------|:---------------------|
+| Single experiment | Treatment only | ACME, point identified | Sequential ignorability, untestable |
+| Single experiment, bounds | Treatment only | ACME, bounds | None beyond randomization |
+| Parallel | Treatment; separately, mediator | ACME, point identified | No treatment-mediator interaction |
+| Parallel, bounds | Treatment; separately, mediator | ACME, bounds | None beyond randomization |
+| Crossover | Treatment, then mediator set to the other arm's value | ACME for each unit | No carryover between periods |
+| Parallel encouragement | Treatment; separately, encouragement toward the mediator | ACME bounds, tighter for compliers | Encouragement exclusion, monotonicity |
+| Crossover encouragement | Treatment in period 1; encouragement in period 2 | ACME for pliable units | Exclusion, monotonicity, no carryover |
+
+Table: (\#tab:mech-design-hierarchy) The experimental design hierarchy for identifying causal mechanisms, following @imai2013experimental. Moving down the table buys weaker assumptions at the cost of a more elaborate design and, in the encouragement rows, a narrower population.
+
+The `mediation` package implements estimators for every row, which makes the comparison something that can be run rather than only described. The demonstrations below use the package's bundled simulated data, `boundsdata`, which contains a binary treatment `ttt`, a binary mediator `med`, a binary outcome `out`, a parallel-design manipulation indicator `manip`, and an encouragement instrument `enc`, together with the outcome and mediator observed under the encouragement arm.
+
+### The Single Experiment, With and Without the Assumption
+
+Start with what one experiment can say on its own. Randomizing the treatment identifies the total effect and the effect on the mediator. It does not identify the indirect effect, but it does restrict it: the observed data are consistent with only a range of possible ACME values, and that range can be computed without any assumption beyond randomization.
+
+```{r mech-sed-bounds, message=FALSE, warning=FALSE}
+library(mediation)
+data("boundsdata", package = "mediation")
+
+set.seed(1)
+sed_np <- mediate.sed("out", "med", "ttt", data = boundsdata, SI = FALSE)
+c(lower_d1 = sed_np$d1[1], upper_d1 = sed_np$d1[2],
+  lower_d0 = sed_np$d0[1], upper_d0 = sed_np$d0[2])
+```
+
+The bounds have width one and straddle zero. This is not a defect of the method; it is the correct answer. A single experiment that measures rather than assigns the mediator contains almost no information about the indirect effect, and the bounds say so. Every point estimate reported from such a design is a product of the assumption, not of the data.
+
+Adding sequential ignorability collapses the bounds to a point.
+
+```{r mech-sed-si, message=FALSE, warning=FALSE}
+set.seed(1)
+sed_si <- mediate.sed("out", "med", "ttt", data = boundsdata,
+                      SI = TRUE, boot = TRUE, sims = 500)
+round(c(ACME_treated = sed_si$d1, sed_si$d1.ci,
+        ACME_control = sed_si$d0), 4)
+```
+
+The estimate is small and, for the treated condition, marginally distinguishable from zero. Hold on to that number; the design comparison below is going to change it substantially.
+
+### The Parallel Design
+
+The parallel design runs two experiments on the same population. In the first, units are randomized to treatment and the mediator is merely observed. In the second, units are randomized to treatment *and* the mediator is directly manipulated. The second experiment identifies the outcome's response to the mediator without relying on any unconfoundedness assumption, because the mediator was assigned.
+
+```{r mech-pd, message=FALSE, warning=FALSE}
+set.seed(1)
+pd_nint <- mediate.pd("out", "med", "ttt", "manip",
+                      data = boundsdata, NINT = TRUE)
+round(c(ACME = pd_nint$d1, pd_nint$d1.ci), 4)
+```
+
+The parallel-design estimate is roughly eight times the single-experiment estimate and is comfortably distinguishable from zero. The two designs are looking at the same data-generating process and reaching very different conclusions, and the reason is that the single experiment's answer was manufactured by an assumption that does not hold in this population.
+
+The point identification above still uses one assumption: no interaction between the treatment and the manipulated mediator. Dropping even that leaves bounds.
+
+```{r mech-pd-bounds, message=FALSE, warning=FALSE}
+set.seed(1)
+pd_np <- mediate.pd("out", "med", "ttt", "manip",
+                    data = boundsdata, NINT = FALSE)
+c(lower_d1 = pd_np$d1[1], upper_d1 = pd_np$d1[2],
+  lower_d0 = pd_np$d0[1], upper_d0 = pd_np$d0[2])
+```
+
+This is the result worth internalizing. Without any assumption beyond randomization, the parallel design bounds the ACME under treatment away from zero, whereas the single experiment's assumption-free bounds spanned zero with width one. One extra experimental arm converts an uninformative interval into a sign-determinate one. That is what "designing for a mechanism" means concretely.
+
+### The Crossover Design
+
+The crossover design is the most powerful and the most restrictive. Each unit is observed twice. In the first period the unit receives the treatment and the mediator is observed. In the second period the unit receives the opposite treatment while the mediator is *fixed* at the value observed in the first period. Under no carryover, the difference between the two periods is the unit's own natural direct effect, and the mediation effect follows by subtraction. This is the only design that identifies mediation effects at the individual level rather than on average.
+
+The assumption it needs, no carryover, is severe. The first period must leave no residue: no learning, no fatigue, no memory of the earlier stimulus, no anticipation. It is plausible in psychophysical experiments, in some conjoint and vignette settings, and in short-horizon platform experiments where the unit is a session rather than a person. It is implausible in most field settings, and a crossover design run where carryover exists produces a confidently wrong answer rather than a wide interval.
+
+### Encouragement Designs
+
+Direct manipulation of a mediator is often impossible or unethical. One cannot assign anxiety, employment, or trust. What is often possible is to *encourage* a change in the mediator, which converts the problem into an instrumental-variables problem in which the encouragement instruments for the mediator.
+
+The **parallel encouragement design** adds an encouragement arm to the parallel design. Units are randomized to treatment as before; separately, a random subset is encouraged toward higher or lower mediator values. Under an exclusion restriction (the encouragement affects the outcome only through the mediator) and monotonicity (nobody moves the mediator in the direction opposite the encouragement), the design bounds the ACME for the whole population and gives tighter bounds for the subpopulation whose mediator actually responds.
+
+```{r mech-ped, message=FALSE, warning=FALSE}
+set.seed(1)
+ped <- mediate.ped("out.enc", "med.enc", "ttt", "enc", data = boundsdata)
+round(rbind(`whole population` = ped$d1,
+            `pliable units`    = ped$d1.p), 4)
+```
+
+The population bounds only just include zero; the bounds for pliable units, those whose mediator responds to encouragement, are strictly positive. This is the familiar local-effects trade-off from the [instrumental variables](#sec-instrumental-variables) chapter appearing in mediation: a sharper answer about a narrower group. Whether that group is the one the research question is about is a substantive judgment the design cannot make.
+
+The **crossover encouragement design** combines the crossover and encouragement ideas. In the first period the treatment is randomized and the mediator observed. In the second period every unit receives the treatment, and encouragement toward the mediator is randomized. Under exclusion, monotonicity, and no carryover, the ACME is point identified for pliable units without any sequential ignorability assumption at all.
+
+```{r mech-ced, message=FALSE, warning=FALSE}
+data("CEDdata", package = "mediation")
+
+set.seed(1)
+ced <- mediate.ced("Y2", "M1", "M2", "T1", "Z", data = CEDdata, sims = 500)
+round(c(ACME_treated = ced$d1, ced$d1.ci,
+        ACME_control = ced$d0, ced$d0.ci), 4)
+```
+
+The estimates are point identified and positive but imprecise, which is the design's characteristic cost: restricting attention to pliable units discards most of the sample's information, and two-period designs are expensive. With two thousand observations the interval still covers zero. A crossover encouragement design powered to detect an effect of this size would need several times the sample, which is the honest price of dispensing with sequential ignorability.
+
+### Reading the Comparison
+
+Putting the four designs side by side on the same data-generating process makes the hierarchy concrete.
+
+```{r mech-design-comparison, message=FALSE, warning=FALSE}
+comparison <- data.frame(
+    design = c("Single experiment, no assumptions",
+               "Single experiment, sequential ignorability",
+               "Parallel, no assumptions",
+               "Parallel, no treatment-mediator interaction",
+               "Parallel encouragement, pliable units"),
+    lower = round(c(sed_np$d1[1], sed_si$d1.ci[1], pd_np$d1[1],
+                    pd_nint$d1.ci[1], ped$d1.p[1]), 3),
+    upper = round(c(sed_np$d1[2], sed_si$d1.ci[2], pd_np$d1[2],
+                    pd_nint$d1.ci[2], ped$d1.p[2]), 3)
+)
+comparison$width <- round(comparison$upper - comparison$lower, 3)
+comparison$excludes_zero <- with(comparison, lower > 0 | upper < 0)
+
+knitr::kable(
+    comparison,
+    col.names = c("Design", "Lower", "Upper", "Width", "Excludes zero"),
+    caption = paste("Bounds or confidence intervals for the average causal",
+                    "mediation effect under treatment, computed on the same",
+                    "data under five design and assumption combinations.",
+                    "The single experiment is informative only because of an",
+                    "untestable assumption; the parallel design is informative",
+                    "without one.")
+)
+```
+
+Three lessons come out of the table. The single experiment with no assumptions learns essentially nothing about the mechanism. The single experiment with sequential ignorability produces a narrow interval whose location is determined by the assumption rather than by the design, and here it is badly wrong. The parallel design is informative without any assumption at all, and the extra arm is the cheapest identification available in this literature.
+
+## Mechanism Experiments Instead of Policy Evaluations {#sec-mech-experiments}
+
+The designs above take the policy as given and ask how it works. @ludwig2011mechanism turn the logic around: sometimes the mechanism experiment is not a supplement to the policy evaluation but a *substitute* for it, and a much cheaper one.
+
+Their argument runs as follows. A policy evaluation estimates the effect of a specific intervention at a specific scale in a specific place. It is expensive, slow, and its external validity is limited to interventions like the one tested. But policy questions are often really questions about a mechanism: does reducing class size help because of instructional intensity or because of peer composition? Would a housing voucher improve outcomes through neighborhood safety or through school quality? If the mechanism can be manipulated directly, at small scale and low cost, a mechanism experiment can inform the policy question without ever running the policy.
+
+The examples they develop are instructive because they are not obviously mediation problems. Testing whether teenage summer employment reduces crime through income or through supervision does not require running a full employment program; it requires an experiment that varies the two components. Testing whether a neighborhood effect operates through peer influence does not require moving families; it requires an experiment that varies peer exposure directly.
+
+Three conditions make a mechanism experiment worthwhile rather than a distraction. The policy's effect must plausibly run through a small number of identifiable channels. At least one channel must be separately manipulable at reasonable cost. And the mapping from the manipulated dose to the policy-induced dose must be defensible, since an experiment that shifts the mediator far outside the policy-relevant range answers a different question. @deaton2018understanding make the complementary point from the other direction: a randomized evaluation without a mechanism is difficult to transport to any other setting, so the mechanism is not a luxury add-on but the part that makes the result usable elsewhere.
+
+This framing is why factorial and component designs deserve more use than they get. A **dismantling design** removes one component of a multi-component intervention at a time and attributes the effect difference to that component. An **additive design** builds the intervention up component by component. The Multiphase Optimization Strategy of @collins2007multiphase formalizes this into a program: use factorial screening experiments to identify which components carry the effect, then assemble the optimized intervention and evaluate it. The [factorial difference-in-differences](#sec-factorial-did) section treats the observational analogue, and the general lesson is the same: a design that varies components identifies mechanisms that no amount of post-hoc decomposition of a bundled treatment can recover.
+
+## When the Mediator Cannot Be Manipulated {#sec-mech-observational}
+
+In economics, finance, industrial organization, and most of applied marketing, the mediator is not manipulable at all. Concentration, income, productivity, market share, and inventory are outcomes of a system, not treatments. The design hierarchy above is unavailable, and the honest position is that the indirect effect is not identified. What remains is a set of auxiliary tests, none of which identifies a mechanism but each of which a proposed mechanism must survive.
+
+**Implied moderators.** If the effect runs through channel $M$, then units for whom $M$ cannot operate should show a smaller effect. A minimum wage that reduces employment through labor costs should bite harder where labor is a larger share of costs. This is an effect-modification test, and it inherits the power problems of Section \@ref(sec-cpa-power), but it has the virtue of being a prediction the mechanism makes and a rival mechanism does not.
+
+**Placebo mediators.** Run the same decomposition with a variable that the mechanism says should *not* mediate. If anxiety mediates and enthusiasm does not, the analysis should show that. A mediation estimate that is equally large for every candidate mediator is measuring a common cause, not a mechanism. This is the mediation-specific version of the [placebo and falsification tests](#sec-placebo-falsification) discussed elsewhere.
+
+**Dose-response in the mediator.** If the mechanism is real, larger treatment-induced shifts in the mediator should produce larger outcome effects. Variation across subgroups, regions, or time in how much the treatment moved the mediator gives a testable prediction, and the relationship should be monotone with the right sign.
+
+**Timing.** The mediator must move before the outcome. In panel data this is checkable, and it is one of the few mechanism claims that data can falsify outright. An event-study specification on the mediator and on the outcome, plotted together, is a strong piece of descriptive evidence when the mediator's response leads the outcome's.
+
+**Decomposition of the coefficient change.** When the mechanism claim takes the form "the effect shrinks once we control for $M$", the correct tool is a formal decomposition of the coefficient movement rather than an eyeball comparison of two regressions. The [decomposition](#sec-decomposition) chapter develops this, and the key point there is that the change in a coefficient when covariates are added has a precise and estimable attribution to each covariate, with standard errors.
+
+**Long-run mechanisms through surrogates.** When the outcome of interest is far in the future, the surrogate index approach discussed in the [experimental design](#sec-experimental-design) chapter uses short-run intermediate outcomes to predict long-run effects. It is not a mediation method, since the surrogates are used for prediction rather than for decomposition, but it answers the adjacent question of whether the short-run channel is sufficient to account for the long-run effect, and the surrogacy condition it needs is a mechanism assumption in all but name.
+
+None of these is a substitute for identification. Used together they can make one mechanistic story clearly more consistent with the data than its rivals, which is the realistic standard in settings where the mediator is not assignable.
+
+## Practice {#sec-mech-practice}
+
+The design choice follows from three questions, asked in order.
+
+Is the mechanism the paper's contribution, or a supporting detail? If it is the contribution, a measured-mediator analysis is not enough, and the budget should be reallocated toward a second experimental arm before it is spent on a larger single-arm sample.
+
+Is the mediator manipulable, at least by encouragement? If yes, the parallel design is the cheapest large improvement available, and the parallel encouragement design is the fallback when direct manipulation is unethical or infeasible. If no, the auxiliary tests of Section \@ref(sec-mech-observational) are the ceiling, and the paper should say so.
+
+Is carryover plausible? If not, the crossover designs identify individual-level mechanism effects and are worth their complexity. If it is, they are worse than useless, because they produce narrow intervals around wrong answers.
+
+Two reporting habits follow. Report the assumption-free bounds alongside any point estimate, since the gap between them is the honest measure of how much of the answer came from the design and how much from the assumption. And when a mediator is manipulated, report the discriminant checks that show the manipulation moved the intended mediator and not its plausible rivals, since that is the exclusion restriction the whole design rests on.
+
+### Where This Shows Up in Practice
+
+In technology and platform settings the parallel design is unusually cheap, because the mediator is often a system variable the platform already controls. If the hypothesis is that a ranking change increases engagement through result relevance, relevance can be manipulated directly in a second arm rather than inferred from a relevance score. Firms that run thousands of experiments a year and still explain their results with measured-mediator regressions are leaving the cheapest available identification on the table.
+
+In pharmaceutical and clinical development the crossover design is standard practice for other reasons, and the mechanism version is a natural extension where washout periods are already validated. The separable-effects framing from the mediation chapter is the companion tool when the treatment has a modular structure, such as a combination therapy whose components act through different pathways.
+
+In public policy the @ludwig2011mechanism argument is the operative one. Full policy evaluations are slow and expensive, and the questions decision-makers ask are usually mechanism questions in disguise. A well-designed mechanism experiment can be fielded in a fraction of the time and can rule out channels that a policy trial would have confounded.
+
+In litigation and regulatory economics the mediator is almost never manipulable, and the auxiliary tests are the whole toolkit. An expert claiming that a merger raised prices through reduced competition rather than through cost shocks should be expected to show the implied heterogeneity, the timing, the dose-response, and the placebo mediators. An analysis that offers only a coefficient that shrinks when a concentration measure is added has not addressed the question, and the [decomposition](#sec-decomposition) chapter's tools are the minimum standard for that specific argument.
+
+## Summary {#sec-mech-summary}
+
+A mechanism claim is only as good as the design behind it, and a single experiment that measures the mediator supports almost no mechanism claim at all. Its assumption-free bounds on the indirect effect span zero with width one; everything narrower comes from sequential ignorability, an assumption about a variable nobody assigned.
+
+The design hierarchy of @imai2013experimental buys that identification back in stages. The parallel design adds one arm in which the mediator is manipulated, and on the same data that leaves the single experiment uninformative it produces bounds that exclude zero without any assumption beyond randomization. The crossover design identifies mechanism effects unit by unit at the price of a no-carryover condition that most field settings violate. The encouragement variants replace direct manipulation with an instrument, and pay in the familiar currency of a local estimand defined on the units whose mediator responds.
+
+Manipulating the mediator relocates the identification problem rather than dissolving it. The manipulation carries its own exclusion restriction, and a defensible design validates it against alternative mediators, keeps the dose in the natural range, and treats the placement of the mediator measurement as an identification decision rather than a questionnaire detail.
+
+Where the mediator cannot be manipulated, which is the normal case outside psychology and medicine, the indirect effect is not identified and should not be reported as though it were. What remains is a set of predictions a real mechanism makes and a spurious one does not: implied moderators, placebo mediators, dose-response, timing, and formal decomposition of coefficient movements. Together they can establish that one story fits the data better than its rivals, which is a weaker claim than a decomposition and a more defensible one.
