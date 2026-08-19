@@ -808,3 +808,535 @@ ggplot(compare_df_longer) +
 ```
 
 ------------------------------------------------------------------------
+
+### How Much Should We Trust Staggered DiD Estimates? {#sec-trusting-staggered-did}
+
+The three estimators above are the standard repair kit. A natural next question is how much damage the unrepaired [TWFE](#sec-two-way-fixed-effects) specification actually does in the kinds of panels that applied researchers work with, and how much of the published record changes once the repair is applied. @baker2022much answer both questions for the finance and accounting literatures, and their design is worth reproducing in full because it separates two claims that are often conflated:
+
+1.  Staggered TWFE is biased in general. This is false as stated. Under several plausible data generating processes the TWFE coefficient recovers the average treatment effect on the treated essentially exactly.
+2.  Staggered TWFE is biased when treatment effects vary across adoption cohorts or evolve over time. This is true, and the bias can be large enough to reverse the sign of the estimate.
+
+The distinction matters for practice. A researcher who knows which features of a design create the problem can look at their own data and form a prior about how badly TWFE is likely to misbehave before running a single alternative estimator.
+
+#### Simulation Evidence Across Six Data Generating Processes
+
+@baker2022much construct a firm by year panel, strip out any treatment effect, and then add back a known effect under six designs. Because the true effect is planted by the researcher, the bias of any estimator is observable rather than inferred.
+
+The six designs cross two dimensions. The first is timing: a single common adoption date versus three staggered cohorts. The second is the shape of the effect: constant after adoption versus a trend break that accumulates each year, and equal across cohorts versus differing across cohorts.
+
+| Design | Timing | Effect shape | Effect across cohorts |
+|--------|--------|--------------|-----------------------|
+| 1 | Single period | Constant | Not applicable |
+| 2 | Single period | Dynamic | Not applicable |
+| 3 | Staggered | Constant | Equal |
+| 4 | Staggered | Constant | Unequal |
+| 5 | Staggered | Dynamic | Equal |
+| 6 | Staggered | Dynamic | Unequal |
+
+The panel below is simulated rather than drawn from Compustat, since the original design requires a WRDS subscription, but the structure follows the paper: firm and year fixed effects drawn from a fixed distribution, an idiosyncratic shock, random assignment of firms to states of incorporation, and random assignment of states to adoption cohorts. Treatment effects are expressed as fractions of the standard deviation of the outcome so that magnitudes are comparable across designs.
+
+```{r stagger-blw-sim-setup}
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(fixest)
+
+set.seed(20220301)
+
+n_firm  <- 400L
+yrs     <- 1990:2019
+firm_fe <- rnorm(n_firm, 0, 0.30)
+year_fe <- rnorm(length(yrs), 0, 0.05)
+shell   <- expand_grid(id = seq_len(n_firm), year = yrs)
+sd_y    <- 0.35
+
+# Draw one untreated panel: firm FE + year FE + idiosyncratic shock.
+make_panel <- function() {
+    incorp <- sample(state.abb, n_firm, replace = TRUE)
+    shell %>%
+        mutate(
+            y0     = firm_fe[id] + year_fe[match(year, yrs)] +
+                rnorm(n(), 0, 0.25),
+            incorp = incorp[id]
+        )
+}
+
+# Plant a known treatment effect on top of the untreated panel.
+assign_dgp <- function(d, k) {
+    rs <- sample(state.abb)
+    d <- if (k <= 2) {
+        d %>% mutate(cohort = if_else(incorp %in% rs[1:25], 2005L, NA_integer_))
+    } else {
+        d %>% mutate(cohort = case_when(
+            incorp %in% rs[1:17]  ~ 1998L,
+            incorp %in% rs[18:35] ~ 2005L,
+            TRUE                  ~ 2012L
+        ))
+    }
+
+    d %>%
+        mutate(
+            post  = !is.na(cohort) & year >= cohort,
+            rel   = year - cohort,
+            delta = case_when(
+                !post  ~ 0,
+                k == 1 ~ 0.50 * sd_y,
+                k == 2 ~ 0.05 * sd_y * (rel + 1),
+                k == 3 ~ 0.50 * sd_y,
+                k == 4 ~ case_when(
+                    cohort == 1998 ~ 0.5 * sd_y,
+                    cohort == 2005 ~ 0.3 * sd_y,
+                    TRUE           ~ 0.1 * sd_y
+                ),
+                k == 5 ~ 0.03 * sd_y * (rel + 1),
+                k == 6 ~ case_when(
+                    cohort == 1998 ~ 0.05 * sd_y,
+                    cohort == 2005 ~ 0.03 * sd_y,
+                    TRUE           ~ 0.01 * sd_y
+                ) * (rel + 1)
+            ),
+            y     = y0 + delta,
+            treat = as.integer(post)
+        )
+}
+```
+
+Each iteration draws a fresh panel, plants the effect under all six designs, and records both the true average effect on treated observations and the static TWFE coefficient.
+
+```{r stagger-blw-sim-run}
+one_sim <- function(i) {
+    d0 <- make_panel()
+    map_dfr(1:6, function(k) {
+        d     <- assign_dgp(d0, k)
+        truth <- mean(d$delta[d$treat == 1])
+        est   <- coef(feols(y ~ treat | id + year,
+                            data = d, notes = FALSE))[["treat"]]
+        tibble(dgp = k, truth = truth, twfe = est)
+    })
+}
+
+blw_sim <- map_dfr(1:100, one_sim)
+
+blw_summary <- blw_sim %>%
+    group_by(dgp) %>%
+    summarise(
+        true_att = mean(truth),
+        twfe     = mean(twfe),
+        bias     = mean(twfe - truth),
+        pct_bias = 100 * mean((twfe - truth) / truth),
+        .groups  = "drop"
+    ) %>%
+    mutate(design = c(
+        "1. Single period, constant",
+        "2. Single period, dynamic",
+        "3. Staggered, constant, equal",
+        "4. Staggered, constant, unequal",
+        "5. Staggered, dynamic, equal",
+        "6. Staggered, dynamic, unequal"
+    )) %>%
+    select(design, true_att, twfe, bias, pct_bias)
+```
+
+```{r stagger-blw-sim-table}
+knitr::kable(
+    blw_summary,
+    digits = c(0, 3, 3, 3, 1),
+    col.names = c("Design", "True ATT", "TWFE", "Bias", "Bias (%)"),
+    caption = "Static TWFE against the planted average treatment effect on the treated, averaged over 100 simulated panels."
+)
+```
+
+The pattern reproduces the paper's central result. Designs 1 through 3 are recovered essentially without bias: a single adoption date poses no problem regardless of the shape of the effect, and staggered adoption is also harmless as long as every cohort receives the same constant effect. Design 4 introduces cohort heterogeneity in the level of the effect and the TWFE coefficient begins to drift. Design 5 keeps the effect equal across cohorts but lets it grow over time, and the estimate collapses toward zero. Design 6 combines the two and the estimate changes sign, reporting a negative effect when the planted effect is strictly positive.
+
+The mechanism is the one described in the [Goodman-Bacon Decomposition](#sec-goodman-bacon-decomposition). When a treatment effect grows after adoption, an early cohort that has already been treated for several years is a moving target as a control group. The two by two comparison that uses it as the counterfactual for a later cohort subtracts that growth, and the weight the decomposition places on such a comparison can be negative. With enough weight on those comparisons, the aggregate flips.
+
+Two practical corollaries follow. First, a design with a single adoption date needs none of the machinery in this section. Second, a design in which the treatment is expected to phase in, which describes most policy adoptions and most corporate governance changes, is exactly the case where TWFE is least trustworthy.
+
+#### Inference Is Affected Too, Not Just the Point Estimate
+
+The bias in the point estimate has a companion problem that is easier to overlook. Suppose the treatment effect really is zero on average, but individual cohorts happen to draw different trend slopes, some positive and some negative. This is an unremarkable situation: it just says the treatment does nothing systematically while cohorts differ idiosyncratically.
+
+@baker2022much show that TWFE in this setting does not merely produce noisy estimates, it produces a t-statistic whose sampling distribution is far wider than the standard normal that inference assumes. The simulation below draws three cohort specific slopes from a mean zero distribution in each iteration, so that the expected average effect is zero by construction, and records the TWFE t-statistic.
+
+```{r stagger-blw-rejection-run}
+set.seed(20210915)
+
+one_rejection <- function(i) {
+    incorp <- sample(state.abb, n_firm, replace = TRUE)
+    rs     <- sample(state.abb)
+    # three cohort-specific trend slopes, centred at zero
+    taus   <- rnorm(3, 0, 0.03 * sd_y)
+
+    d <- shell %>%
+        mutate(
+            y0     = firm_fe[id] + year_fe[match(year, yrs)] +
+                rnorm(n(), 0, 0.25),
+            incorp = incorp[id]
+        ) %>%
+        mutate(
+            cohort = case_when(
+                incorp %in% rs[1:17]  ~ 1998L,
+                incorp %in% rs[18:35] ~ 2005L,
+                TRUE                  ~ 2012L
+            ),
+            rel   = year - cohort,
+            post  = year >= cohort,
+            slope = case_when(
+                cohort == 1998 ~ taus[1],
+                cohort == 2005 ~ taus[2],
+                TRUE           ~ taus[3]
+            ),
+            delta = if_else(post, slope * (rel + 1), 0),
+            y     = y0 + delta,
+            treat = as.integer(post)
+        )
+
+    m <- feols(y ~ treat | id + year, data = d, notes = FALSE)
+    tibble(t = m$coeftable[1, 3], truth = mean(d$delta[d$treat == 1]))
+}
+
+rejection_sim <- map_dfr(1:300, one_rejection)
+
+c(
+    mean_true_att  = mean(rejection_sim$truth),
+    share_rejected = mean(abs(rejection_sim$t) > 1.96),
+    sd_of_t        = sd(rejection_sim$t)
+)
+```
+
+```{r stagger-blw-rejection-plot, fig.cap = 'Sampling distribution of the static TWFE t-statistic when the average treatment effect is zero by construction. The shaded region marks the range in which the null would not be rejected.', fig.alt = 'Density plot of TWFE t-statistics centred near zero but with very heavy spread, extending well beyond plus and minus ten. A narrow shaded band between minus 1.96 and 1.96 covers only a small share of the mass.', fig.width = 7, fig.height = 4.5}
+share_insig <- mean(abs(rejection_sim$t) <= 1.96)
+
+dens <- density(rejection_sim$t)
+dens_df <- tibble(x = dens$x, y = dens$y)
+
+ggplot(dens_df, aes(x = x, y = y)) +
+    geom_area(fill = "#4B5F6C", colour = "grey40", alpha = 0.35) +
+    geom_area(data = filter(dens_df, x >= -1.96, x <= 1.96),
+              fill = "#A7473A", alpha = 0.75) +
+    annotate("label", x = 9, y = max(dens_df$y) * 0.8, size = 3,
+             label = paste0(scales::percent(share_insig, accuracy = 0.1),
+                            " insignificant\nt-statistics")) +
+    scale_x_continuous(breaks = c(-15, -10, -1.96, 0, 1.96, 10, 15)) +
+    labs(x = "TWFE t-statistic", y = "Density") +
+    causalverse::ama_theme()
+```
+
+The average of the true treatment effects across iterations is essentially zero, exactly as designed. Yet the t-statistic has a standard deviation several times the nominal one, and the null of no effect is rejected in a large majority of iterations. A researcher running this design once would report a highly significant effect with no way of knowing that the significance is an artefact of cohort heterogeneity rather than evidence of a treatment effect.
+
+This has a direct consequence for how robustness is judged. A large t-statistic in a staggered TWFE specification is not reassurance. It can be produced by the same heterogeneity that biases the point estimate, and the two problems tend to appear together.
+
+#### Replication: Bank Deregulation and Income Inequality {#sec-blw-bll-replication}
+
+Simulation establishes that the bias can be large. Whether it is large in any particular published study is a separate question, and @baker2022much answer it by re-estimating well known papers. The first is @beck2010big, which studies the intrastate branching deregulations that US states enacted between the 1970s and the 1990s and reports that deregulation reduced income inequality. The replication data are bundled with this book.
+
+```{r stagger-bll-data}
+bll <- readRDS("data/bll_bank_dereg.rds") %>%
+    mutate(
+        log_gini = log(gini),
+        treat    = intra,
+        rel_year = wrkyr - branch_reform
+    )
+
+dplyr::glimpse(bll[, 1:8])
+```
+
+The panel covers 49 states from 1976 through 2006. The treatment indicator `intra` switches on in the year after a state deregulates, so the reform year itself is coded as untreated.
+
+The adoption pattern is the first thing to inspect, because it determines how much of the identifying variation can come from clean comparisons.
+
+```{r stagger-bll-timing, fig.cap = 'Intrastate branching deregulation timing by state. Ten states had already deregulated before the panel begins and are treated throughout.', fig.alt = 'Heatmap with states on the vertical axis and years from 1976 to 2006 on the horizontal axis, shaded by whether the state has deregulated. Some states are shaded as post-deregulation for the entire panel.', fig.width = 6, fig.height = 7}
+bll %>%
+    mutate(
+        state  = forcats::fct_reorder(state, dplyr::desc(state)),
+        status = factor(if_else(wrkyr < branch_reform, "Pre", "Post"),
+                        levels = c("Pre", "Post"))
+    ) %>%
+    ggplot(aes(x = wrkyr, y = state, fill = status)) +
+    geom_tile(alpha = 0.85) +
+    scale_fill_manual(values = c(Pre = "#4B5F6C", Post = "#A7473A")) +
+    labs(x = NULL, y = NULL, fill = NULL) +
+    causalverse::ama_theme() +
+    theme(legend.position = "bottom")
+```
+
+Ten of the 49 states deregulated in or before 1960 and are therefore treated in every year of the panel. Under TWFE they serve as control units for every later adopter, which is precisely the comparison that the decomposition literature flags as unsafe.
+
+The published specification regresses log Gini on the deregulation indicator with state and year fixed effects, with and without the paper's controls.
+
+```{r stagger-bll-twfe}
+mod_nocov <- feols(log_gini ~ treat | statefip + wrkyr,
+                   cluster = ~statefip, data = bll)
+
+mod_cov <- feols(
+    log_gini ~ treat + gsp_pc_growth + prop_blacks + prop_dropouts +
+        prop_female_headed + unemploymentrate | statefip + wrkyr,
+    cluster = ~statefip, data = bll
+)
+
+etable(mod_nocov, mod_cov, keep = "treat",
+       headers = c("No controls", "With controls"))
+```
+
+Both columns reproduce the published result: deregulation is associated with a decline in log Gini of roughly two percent, statistically significant at conventional levels.
+
+##### Where the Estimate Comes From
+
+The [Goodman-Bacon decomposition](#sec-goodman-bacon-decomposition) separates that single coefficient into the underlying two by two comparisons and reports how much weight each type carries.
+
+```{r stagger-bll-bacon}
+library(bacondecomp)
+
+bacon_bll <- bacon(log_gini ~ treat,
+                   data = bll, id_var = "state", time_var = "wrkyr")
+
+bacon_summary <- bacon_bll %>%
+    group_by(type) %>%
+    summarise(
+        estimate = weighted.mean(estimate, weight),
+        weight   = sum(weight),
+        .groups  = "drop"
+    ) %>%
+    arrange(desc(weight))
+
+knitr::kable(
+    bacon_summary,
+    digits = 3,
+    col.names = c("Comparison type", "Weighted average", "Total weight"),
+    caption = "Goodman-Bacon decomposition of the published TWFE estimate."
+)
+```
+
+The decomposition is decisive. Comparisons that use a not yet treated state as the control, the only ones that are unambiguously clean, carry roughly 14 percent of the weight and average close to zero. The remaining weight sits on comparisons whose control group has already deregulated, and it is those comparisons that supply the entire negative effect.
+
+```{r stagger-bll-bacon-plot, fig.cap = 'Two by two estimates against their decomposition weights, separated by comparison type. Horizontal lines mark the weighted average within each type.', fig.alt = 'Scatterplot of two by two difference-in-differences estimates against their decomposition weights, faceted by comparison type, with a horizontal line at each type-specific weighted average.', fig.width = 7, fig.height = 6}
+bacon_bll %>%
+    ggplot(aes(x = weight, y = estimate)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+    geom_point(alpha = 0.5, size = 2) +
+    geom_hline(
+        data = bacon_summary,
+        aes(yintercept = estimate),
+        colour = "#A7473A", linewidth = 1
+    ) +
+    facet_wrap(~type, ncol = 1) +
+    labs(x = "Weight", y = "2x2 DiD estimate") +
+    causalverse::ama_theme()
+```
+
+##### The Event Study Is Not a Safeguard
+
+A common defence is that the accompanying event study would reveal any such problem. It does not, and the reason is that event studies in staggered designs are usually estimated with a truncated set of relative time indicators. Endpoints are binned, far leads and lags are dropped, and units treated outside the estimation window are silently absorbed into the fixed effects. Each of those conveniences reintroduces the contaminated comparisons.
+
+Four specifications make the point. Panel A is the published event study with binned endpoints and coefficients recentred on the pre-period mean. Panel B removes the recentring. Panel C estimates the full set of relative time indicators without binning. Panel D additionally drops the states that deregulated before the panel begins and the years after every state has deregulated, so that only clean comparisons remain.
+
+```{r stagger-bll-es-fits}
+library(fastDummies)
+library(broom)
+
+es_fit <- function(d, keep) {
+    dd <- d %>%
+        dummy_cols(select_columns = "rel_year",
+                   remove_selected_columns = FALSE, ignore_na = TRUE) %>%
+        mutate(across(starts_with("rel_year_"), ~ replace_na(., 0)))
+    ind <- paste0("`rel_year_", keep, "`")
+    feols(
+        as.formula(paste("log_gini ~", paste(ind, collapse = " + "),
+                         "| wrkyr + statefip")),
+        data = dd, cluster = ~statefip
+    )
+}
+
+# Panels A and B: published specification with binned endpoints.
+bll_binned <- bll %>%
+    mutate(rel_year = case_when(
+        rel_year <= -10 ~ -10,
+        rel_year >= 15  ~ 15,
+        TRUE            ~ rel_year
+    ))
+keep_ab <- c(-10:-1, 1:15)
+fit_ab  <- es_fit(bll_binned, keep_ab)
+
+# Panel C: every relative-year indicator, no binning.
+keep_c <- sort(unique(bll$rel_year))
+keep_c <- keep_c[keep_c != min(keep_c) & keep_c != 0]
+fit_c  <- es_fit(bll, keep_c)
+
+# Panel D: clean sample, every relative-year indicator.
+bll_clean <- bll %>%
+    filter(branch_reform >= 1977, wrkyr <= 1998) %>%
+    mutate(rel_year = if_else(branch_reform == max(branch_reform),
+                              NA_real_, rel_year))
+keep_d <- sort(unique(bll_clean$rel_year))
+keep_d <- keep_d[keep_d != min(keep_d) & keep_d != 0]
+fit_d  <- es_fit(bll_clean, keep_d)
+```
+
+```{r stagger-bll-es-plot, fig.cap = 'Event study estimates of intrastate branching deregulation on log Gini under four increasingly conservative specifications.', fig.alt = 'Four-panel figure of event study coefficients with confidence intervals against years relative to deregulation. Panels A and B show negative post-treatment estimates; panels C and D show post-treatment estimates near or above zero with negative pre-treatment coefficients.', fig.width = 8, fig.height = 6}
+tidy_es <- function(fit, keep, label, recentre = FALSE) {
+    out <- tidy(fit, conf.int = TRUE) %>%
+        mutate(t = keep) %>%
+        select(t, estimate, conf.low, conf.high)
+    if (recentre) {
+        shift <- mean(out$estimate[out$t < 0])
+        out <- out %>%
+            mutate(across(c(estimate, conf.low, conf.high), ~ .x - shift))
+    }
+    bind_rows(out, tibble(t = 0, estimate = 0, conf.low = 0, conf.high = 0)) %>%
+        mutate(panel = label)
+}
+
+es_all <- bind_rows(
+    tidy_es(fit_ab, keep_ab, "(A) Published: binned, recentred", recentre = TRUE),
+    tidy_es(fit_ab, keep_ab, "(B) Binned, not recentred"),
+    tidy_es(fit_c,  keep_c,  "(C) All relative years"),
+    tidy_es(fit_d,  keep_d,  "(D) All relative years, clean sample")
+) %>%
+    filter(t >= -10, t <= 15)
+
+ggplot(es_all, aes(x = t, y = estimate)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+    geom_vline(xintercept = -0.5, linetype = "dashed", colour = "grey50") +
+    geom_errorbar(aes(ymin = conf.low, ymax = conf.high),
+                  width = 0, colour = "grey40") +
+    geom_line(colour = "#4B5F6C") +
+    geom_point(shape = 21, fill = "white") +
+    facet_wrap(~panel, ncol = 2) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    labs(x = "Years relative to deregulation", y = "Change in log Gini") +
+    causalverse::ama_theme()
+```
+
+Panel A is the picture that appears in the published paper: leads that look flat, followed by a steady decline. Panel B shows that the flatness of the leads is partly an artefact of recentring. Panel C, which simply stops discarding relative time indicators, already reverses the sign of the post-treatment path. Panel D, which removes the always treated states and the fully treated years, shows negative pre-treatment coefficients trending toward zero and post-treatment coefficients at or slightly above zero. The visual diagnostic that was supposed to protect the design was itself a product of the specification choices.
+
+##### Re-estimating with Heterogeneity Robust Estimators
+
+The [stacked](#sec-stacked-difference-in-differences) estimator builds one clean sub-experiment per adoption year, pairing each cohort with states that will not deregulate for at least ten more years, and then pools with sub-experiment specific fixed effects.
+
+```{r stagger-bll-stacked}
+treat_years <- bll %>%
+    filter(branch_reform >= 1977, branch_reform < max(branch_reform)) %>%
+    pull(branch_reform) %>%
+    unique() %>%
+    sort()
+
+make_subexp <- function(tyr) {
+    bll %>%
+        filter(wrkyr < 1999) %>%
+        # the focal cohort, plus states still untreated ten years later
+        filter(branch_reform == tyr | branch_reform > tyr + 10) %>%
+        filter(between(wrkyr, tyr - 5, tyr + 10)) %>%
+        mutate(
+            focal    = if_else(branch_reform == tyr, branch_reform, NA_real_),
+            rel_year = wrkyr - focal,
+            treat    = if_else(is.na(focal) | wrkyr <= tyr, 0, 1),
+            dt       = as.character(tyr)
+        )
+}
+
+stacked_bll <- map_dfr(treat_years, make_subexp) %>%
+    mutate(cluster = paste0(statefip, "_", dt))
+
+mod_stacked <- feols(log_gini ~ treat | wrkyr^dt + statefip^dt,
+                     cluster = ~cluster, data = stacked_bll)
+
+etable(mod_stacked, headers = "Stacked")
+```
+
+The [Callaway and Sant'Anna](#sec-group-time-average-treatment-effects-callaway2021difference) estimator does the same job through group time average treatment effects, using not yet treated states as the comparison group. The never treated group is too small to serve on its own here, since only one state remains untreated through 1998.
+
+```{r stagger-bll-cs}
+library(did)
+
+set.seed(20210215)
+
+bll_cs <- bll %>% filter(branch_reform >= 1977, wrkyr <= 1998)
+
+cs_bll <- att_gt(
+    yname         = "log_gini",
+    tname         = "wrkyr",
+    idname        = "statefip",
+    gname         = "branch_reform",
+    data          = bll_cs,
+    control_group = "notyettreated",
+    est_method    = "reg",
+    bstrap        = TRUE,
+    cband         = TRUE,
+    clustervars   = "statefip"
+)
+
+cs_simple  <- aggte(cs_bll, type = "simple")
+cs_dynamic <- aggte(cs_bll, type = "dynamic", min_e = -5, max_e = 10)
+
+summary(cs_simple)
+```
+
+```{r stagger-bll-cs-plot, fig.cap = 'Callaway and Sant Anna dynamic effects of branching deregulation on log Gini, using not yet treated states as controls.', fig.alt = 'Event study plot of Callaway and Sant Anna group-time effects from five years before to ten years after deregulation, with confidence intervals spanning zero at nearly every horizon.', fig.width = 7, fig.height = 4.5}
+tibble(
+    t   = cs_dynamic$egt,
+    est = cs_dynamic$att.egt,
+    se  = cs_dynamic$se.egt
+) %>%
+    mutate(lower = est - 1.96 * se, upper = est + 1.96 * se) %>%
+    ggplot(aes(x = t, y = est)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+    geom_vline(xintercept = -0.5, linetype = "dashed", colour = "grey50") +
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = 0, colour = "grey40") +
+    geom_line(colour = "#4B5F6C") +
+    geom_point(shape = 21, fill = "white") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    labs(x = "Years relative to deregulation", y = "Change in log Gini") +
+    causalverse::ama_theme()
+```
+
+Collecting the estimators in one place makes the comparison direct.
+
+```{r stagger-bll-compare-table}
+tibble(
+    Estimator = c(
+        "TWFE, no controls",
+        "TWFE, with controls",
+        "Stacked (clean sub-experiments)",
+        "Callaway and Sant Anna (not yet treated)"
+    ),
+    Estimate = c(
+        coef(mod_nocov)[["treat"]],
+        coef(mod_cov)[["treat"]],
+        coef(mod_stacked)[["treat"]],
+        cs_simple$overall.att
+    ),
+    `Std. error` = c(
+        se(mod_nocov)[["treat"]],
+        se(mod_cov)[["treat"]],
+        se(mod_stacked)[["treat"]],
+        cs_simple$overall.se
+    )
+) %>%
+    mutate(`t stat` = Estimate / `Std. error`) %>%
+    knitr::kable(
+        digits = 3,
+        caption = "The effect of intrastate branching deregulation on log Gini under four estimators."
+    )
+```
+
+The published TWFE estimate of roughly minus two percent does not survive. Once the already deregulated states are excluded from the control group, both the stacked and the Callaway and Sant'Anna estimators return a small positive coefficient that is not distinguishable from zero. The Goodman-Bacon decomposition anticipated this exactly: the clean comparisons were always near zero, and the headline result was carried by comparisons whose control units had already been treated.
+
+This is not a claim that bank deregulation had no effect on inequality. It is the narrower and more useful claim that this particular panel, analysed with estimators that avoid forbidden comparisons, does not identify one. Distinguishing those two statements is the whole point of the exercise.
+
+#### A Second Case and the Scope of the Problem
+
+@baker2022much run the same exercise on @fauver2017board, which uses staggered board reforms across roughly 40 countries and reports that reforms increased firm value. Proprietary data prevent a replication here, but the structure of that design is the worst case identified in the simulation: staggered adoption, effects that plausibly phase in as boards actually change composition, and effects that plausibly differ across countries with different starting governance quality. Under heterogeneity robust estimators the reported effect is substantially attenuated.
+
+The broader audit in @baker2022much surveys staggered DiD papers published in leading finance and accounting journals and finds that a large share have the design features that generate bias, and that among the subset that can be re-estimated, conclusions frequently change. That is the empirical claim behind the [limitations of TWFE](#sec-two-way-fixed-effects) discussed earlier, and it is why the diagnostics are worth running as a matter of routine rather than as a robustness appendix.
+
+#### Practical Guidance
+
+The replication suggests a short sequence that costs little and catches most of the damage.
+
+1.  Plot the adoption timing before estimating anything. Units treated before the panel begins are always treated, they cannot serve as clean controls, and their presence is visible at a glance.
+2.  Run the [Goodman-Bacon decomposition](#sec-goodman-bacon-decomposition) on the static specification. If the clean comparisons carry little weight, the TWFE coefficient is mostly telling you about the contaminated ones.
+3.  Do not treat a flat event study as evidence of a valid design. Re-estimate it without binned endpoints and without recentring, and check whether the picture is stable.
+4.  Report at least one heterogeneity robust estimator as a main result rather than a footnote. When the stacked and Callaway and Sant'Anna estimates agree with each other and disagree with TWFE, the disagreement is the finding.
+5.  Where the alternative estimators disagree with the published specification, say what the decomposition implies about which comparisons drove the difference. A sign change with an explanation is far more informative than a sign change alone.
+
+------------------------------------------------------------------------
