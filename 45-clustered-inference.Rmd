@@ -648,7 +648,7 @@ For difference-in-differences, @bertrand2004much is the canonical warning: outco
 
 For stacked difference-in-differences, the subtlety is that the estimator builds a separate clean comparison (a "sub-experiment") around each adoption cohort, and the same unit can serve as a control in several sub-experiments. When that happens, the unit appears multiple times in the stacked dataset, and the correlated group is the unit by sub-experiment combination [@cengiz2019effect]. When the design is constructed so that each unit belongs to only one sub-experiment, clustering on the unit alone is correct [@deshpande2019screened].
 
-For shift-share or Bartik instruments, the SE problem is different: the instrument $Z_{lt} = \sum_k s_{lk} g_{kt}$ shares its sector-level shocks $g_{kt}$ across all regions $l$, inducing a correlation structure that no region-level clustering can fix. @adao2019shift derive the correct inference under sectoral-shock randomness, and @borusyak2022quasi develop a recentered-shock variant whose standard errors have a much simpler closed form. The dedicated shift-share treatment is in Section [Bartik Instrument](#sec-bartik-instrument); this chapter is the right place only to flag that "cluster at the region level" is the wrong default for shift-share designs.
+For shift-share or Bartik instruments, the SE problem is different: the instrument $Z_{lt} = \sum_k s_{lk} g_{kt}$ shares its sector-level shocks $g_{kt}$ across all regions $l$, inducing a correlation structure that no region-level clustering can fix. @adao2019shift derive the correct inference under sectoral-shock randomness, and @borusyak2022quasi develop a recentered-shock variant whose standard errors have a much simpler closed form. The dedicated treatment is in the [shift-share instruments](#sec-shift-share-iv) section; this chapter is the right place only to flag that "cluster at the region level" is the wrong default for shift-share designs.
 
 For treatment assigned to groups (the row that opens the table), @abadie2020sampling and @abadie2023should make the important clarification that clustering is a property of the sampling and assignment design, not a mechanical reaction to the presence of groups in the data. If treatment was randomized at the group level, clustering at that level is required. If groups exist in the data but treatment varies within them and the sample is not itself clustered, clustering can be unnecessary and merely costs precision, as the design-based simulation above demonstrated.
 
@@ -684,14 +684,14 @@ suppressPackageStartupMessages({
 
 set.seed(1)
 G <- 40
-panel <- data.frame(
+clusdat <- data.frame(
     firm = factor(rep(seq_len(G), each = 25)),
     year = factor(rep(seq_len(25), times = G))
 )
-panel$x <- rnorm(G)[as.integer(panel$firm)] + rnorm(nrow(panel))
-panel$y <- 0.3 * panel$x +
-    rnorm(G)[as.integer(panel$firm)] + rnorm(nrow(panel))
-fit <- lm(y ~ x, data = panel)
+clusdat$x <- rnorm(G)[as.integer(clusdat$firm)] + rnorm(nrow(clusdat))
+clusdat$y <- 0.3 * clusdat$x +
+    rnorm(G)[as.integer(clusdat$firm)] + rnorm(nrow(clusdat))
+fit <- lm(y ~ x, data = clusdat)
 ```
 
 ### Heteroskedasticity-Robust and Cluster-Robust SE with `sandwich` {#sec-clu-pkg-sandwich}
@@ -716,7 +716,7 @@ The default standard error is too small because it ignores the within-firm corre
 `clubSandwich` implements the bias-reduced CR2 variance of @pustejovsky2018small along with Satterthwaite degrees of freedom that adapt to imbalanced cluster sizes. It is the standard R implementation of small-sample cluster-robust inference [@imbens2016robust].
 
 ```{r clu-pkg-clubsandwich}
-coef_test(fit, vcov = "CR2", cluster = panel$firm,
+coef_test(fit, vcov = "CR2", cluster = clusdat$firm,
           coefs = "x", test = "Satterthwaite")
 ```
 
@@ -740,7 +740,10 @@ The bootstrap $p$-value and confidence interval do not rely on the asymptotic di
 `summclust` is the implementation companion to @mackinnon2023jackknife and reports the CR3J jackknife variance, leverage diagnostics, and the effective number of clusters from @carter2017asymptotic. The diagnostics are useful even when the goal is not to switch to the jackknife: a small effective $G$, or a few clusters with very high leverage, are warning signs that asymptotic cluster-robust inference is unreliable.
 
 ```{r clu-pkg-summclust}
-sc <- summclust(fit, cluster = ~ firm, params = "x")
+# summclust dispatches on both lm and fixest fits; the fixest route is used here
+# because it is the fitting workflow this chapter recommends for panel designs.
+fit_fe <- feols(y ~ x, data = clusdat)
+sc <- summclust(fit_fe, cluster = ~ firm, params = "x")
 summary(sc)
 ```
 
@@ -751,12 +754,12 @@ The leverage and partial-leverage rows tell the analyst whether a single cluster
 `fixest::feols` is the workhorse panel-data estimator in modern applied econometrics. It absorbs high-dimensional fixed effects, computes one- or multi-way clustered standard errors in a single call, and produces publication-quality side-by-side tables via `etable`.
 
 ```{r clu-pkg-fixest}
-f_one <- feols(y ~ x, data = panel, cluster = ~ firm)
-f_two <- feols(y ~ x, data = panel, cluster = ~ firm + year)
+f_one <- feols(y ~ x, data = clusdat, cluster = ~ firm)
+f_two <- feols(y ~ x, data = clusdat, cluster = ~ firm + year)
 etable(f_one, f_two)
 ```
 
-For panel designs with fixed effects, write `feols(y ~ x | firm + year, data = panel, cluster = ~ firm)`; the `| firm + year` syntax absorbs both fixed effects efficiently. For stacked difference-in-differences with units reused across sub-experiments, cluster on `~ firm^sub_experiment`.
+For panel designs with fixed effects, write `feols(y ~ x | firm + year, data = clusdat, cluster = ~ firm)`; the `| firm + year` syntax absorbs both fixed effects efficiently. For stacked difference-in-differences with units reused across sub-experiments, cluster on `~ firm^sub_experiment`.
 
 ### Spatial and Network Standard Errors {#sec-clu-pkg-spatial}
 
@@ -772,13 +775,13 @@ Two patterns matter. The first is what the function calls a "cluster": some want
 
 | Function | Accepted formats for the cluster argument | Example |
 |---|---|---|
-| `sandwich::vcovCL` | formula, vector, factor, or `data.frame` (for multiway) | `cluster = ~ firm`, `cluster = panel$firm`, `cluster = data.frame(unit, time)` |
-| `clubSandwich::coef_test` / `vcovCR` | vector or factor, *not* a formula | `cluster = panel$firm` |
+| `sandwich::vcovCL` | formula, vector, factor, or `data.frame` (for multiway) | `cluster = ~ firm`, `cluster = clusdat$firm`, `cluster = data.frame(unit, time)` |
+| `clubSandwich::coef_test` / `vcovCR` | vector or factor, *not* a formula | `cluster = clusdat$firm` |
 | `fwildclusterboot::boottest` | string name of a column in the data passed to the fit | `clustid = "firm"` (or `c("firm","year")` for two-way) |
 | `summclust::summclust` | formula evaluated in the fit's data | `cluster = ~ firm` |
 | `fixest::feols(..., cluster=)` | formula; supports interactions with `^` for stacked DiD | `cluster = ~ firm`, `cluster = ~ firm + year`, `cluster = ~ firm^sub_experiment` |
 
-A common bug: passing `cluster = ~ firm` to `clubSandwich::coef_test`. It expects a vector. Use `cluster = panel$firm` or `cluster = model.frame(fit)$firm`. The other direction (passing a vector where a formula is expected) usually works because the function falls back to vector dispatch, but the formula form is more robust because it re-resolves against the fit's data.
+A common bug: passing `cluster = ~ firm` to `clubSandwich::coef_test`. It expects a vector. Use `cluster = clusdat$firm` or `cluster = model.frame(fit)$firm`. The other direction (passing a vector where a formula is expected) usually works because the function falls back to vector dispatch, but the formula form is more robust because it re-resolves against the fit's data.
 
 #### Model classes each function accepts
 
@@ -805,8 +808,8 @@ The practical decision rule from this matrix:
 To make the compatibility tangible, the cell below refits the chapter's example with `fixest::feols` and confirms that fixest's built-in cluster-robust standard error and `sandwich::vcovCL` on the equivalent `lm` fit give the same number (up to a small-sample degrees-of-freedom adjustment).
 
 ```{r clu-pkg-cross}
-fit_lm    <- lm(y ~ x, data = panel)
-fit_feols <- feols(y ~ x, data = panel, cluster = ~ firm)
+fit_lm    <- lm(y ~ x, data = clusdat)
+fit_feols <- feols(y ~ x, data = clusdat, cluster = ~ firm)
 
 # fixest's built-in cluster-robust SE
 se_fixest <- se(fit_feols)[["x"]]
@@ -814,7 +817,7 @@ se_fixest <- se(fit_feols)[["x"]]
 se_sand <- sqrt(vcovCL(fit_lm, cluster = ~ firm)["x", "x"])
 # clubSandwich's CR2 on the lm fit (more conservative in small samples)
 se_cr2  <- coef_test(fit_lm, vcov = "CR2",
-                     cluster = panel$firm, coefs = "x")$SE
+                     cluster = clusdat$firm, coefs = "x")$SE
 
 data.frame(method = c("fixest CR1", "sandwich CR1 (lm)",
                       "clubSandwich CR2 (lm)"),
