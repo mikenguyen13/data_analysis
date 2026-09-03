@@ -1,6 +1,6 @@
 # Basic Statistical Inference
 
-This chapter introduces the core logic of statistical inference, focusing on how we use sample data to make probabilistic statements about populations. We begin with the hypothesis testing framework, including null and alternative hypotheses, test statistics, and $p$-values. Key concepts such as confidence intervals and Type I/II errors are explained in depth. Specific methods for one-sample and two-sample inference are discussed, along with inference for categorical data. We also introduce divergence metrics, which provide alternative ways to compare distributions, a concept increasingly important in modern data science applications.
+This chapter introduces the core logic of statistical inference, focusing on how we use sample data to make probabilistic statements about populations. We begin with the hypothesis testing framework, including null and alternative hypotheses, test statistics, and $p$-values, and then examine what happens at the upper boundary of the $p$-value scale, where a value of exactly one turns out to be far more informative about the test than about the world. Key concepts such as confidence intervals and Type I/II errors are explained in depth. Specific methods for one-sample and two-sample inference are discussed, along with inference for categorical data. We also introduce divergence metrics, which provide alternative ways to compare distributions, a concept increasingly important in modern data science applications.
 
 Statistical inference involves drawing conclusions about population parameters based on sample data. The two primary goals of inference are:
 
@@ -312,6 +312,204 @@ legend(
     bty = "n"
 )
 ```
+
+------------------------------------------------------------------------
+
+## When the p-Value Equals One {#sec-p-value-equals-one}
+
+A test that returns $p = 1$ looks like the least interesting number a study can produce. It is usually the opposite. An exact one is a boundary case, and boundary cases are where the machinery of testing shows its seams. It tells you something about the resolution of the test, about whether the test could have rejected at all, and occasionally about whether the data fit the model too well to be believable. It also propagates into every procedure that consumes p-values as inputs, and several of those procedures handle it badly or not at all.
+
+Four questions organize what follows. What does an exact one mean? Where do exact ones come from? Why is a one not evidence that the null is true? And what breaks when ones enter a downstream calculation?
+
+### What a p-Value of One Actually Says
+
+Let $T$ be a test statistic with null distribution $F_0$ and let $t$ be its observed value. For a one-sided test in the upper tail,
+
+$$
+p = P_{H_0}(T \ge t).
+$$
+
+Then $p = 1$ holds if and only if $P_{H_0}(T \ge t) = 1$, which means $t$ sits at or below the smallest value the null distribution can produce with positive probability. Every dataset the null could have generated is at least as extreme as the one in hand. For the two-sided version $p = P_{H_0}(|T| \ge |t|)$, an exact one requires $|t|$ to be no larger than the smallest attainable $|T|$, which for a symmetric continuous null means $t = 0$ exactly.
+
+Whether that event has positive probability depends entirely on whether the null distribution is continuous.
+
+When $F_0$ is continuous and strictly increasing, the p-value is a continuous transformation of $T$ and is exactly uniform on $(0,1)$ under $H_0$. Then $P_{H_0}(p = 1) = 0$, so an exact one is a measure-zero event. If software prints $1$ in this setting, the value is being rounded for display, or the observed statistic landed exactly on the null value because the data are coarse (integer counts, ratings on a five-point scale, prices at round numbers), or something has failed numerically.
+
+When $F_0$ is discrete, the p-value takes finitely many values and the largest of them is exactly one, attained whenever the observed outcome is the least extreme in the support. The probability of that outcome is the mass of the atom at one, and it is frequently large. A discrete p-value is therefore not uniform under the null; it is stochastically larger than uniform. Validity survives, in the sense that
+
+$$
+P_{H_0}(p \le \alpha) \le \alpha \quad \text{for every } \alpha \in (0,1),
+$$
+
+but the inequality is typically strict, and the gap is exactly the conservativeness of exact discrete tests. A test running at a true size of two percent when its nominal level is five percent is discarding power, and the mass piled at one is the visible symptom.
+
+The demonstration below takes the two-sided binomial test of $H_0: \pi = 0.5$ with $n = 10$, enumerates every attainable p-value together with its null probability, and reads off both the atom at one and the true size of a nominal five percent test.
+
+```{r pval-one-discreteness}
+# Two familiar discrete tests, each returning an exact one.
+binom.test(5, 10, p = 0.5)$p.value                  # sign test, perfect balance
+fisher.test(matrix(c(3, 3, 3, 3), 2, 2))$p.value    # 2x2 table, no association
+
+# The full null distribution of the two-sided binomial p-value, n = 10.
+n  <- 10
+k  <- 0:n
+pk <- dbinom(k, n, 0.5)                             # P(K = k) under H0
+pv <- sapply(k, function(x) binom.test(x, n, 0.5)$p.value)
+
+data.frame(k, p_value = round(pv, 4), prob = round(pk, 4))
+
+c(mass_at_one = sum(pk[pv == 1]),                   # atom at p = 1
+  true_size   = sum(pk[pv <= 0.05]))                # nominal level is 0.05
+```
+
+Nearly a quarter of the null probability sits on the single outcome $k = 5$, which returns $p = 1$ exactly. The attainable p-values also jump from $0.0215$ to $0.1094$ with nothing in between, so no dataset of this size can produce a p-value between those numbers, and a nominal five percent test runs at a true size of $0.0215$. Figure \@ref(fig:pval-one-null-cdf) shows the same fact as a picture: the null distribution function of the p-value is a step function lying weakly below the uniform diagonal, with its final jump landing on one.
+
+```{r pval-one-null-cdf, fig.cap="Null distribution function of a discrete p-value", fig.alt="Step function showing the cumulative distribution of the two-sided binomial p-value under the null for n equals 10, plotted against a dashed 45 degree line representing the uniform distribution. The step function lies below the diagonal everywhere, with visible flat stretches between attainable p-values and a final jump reaching one at p equals one."}
+u   <- sort(unique(pv))
+cdf <- sapply(u, function(v) sum(pk[pv <= v]))
+
+plot(c(0, u), c(0, cdf),
+     type = "s", lwd = 2, col = "steelblue",
+     xlim = c(0, 1), ylim = c(0, 1),
+     xlab = "x", ylab = "Null probability that the p-value is at most x",
+     main = "Discrete p-values are stochastically larger than uniform")
+abline(0, 1, lty = 2, col = "grey40")
+points(u, cdf, pch = 19, col = "steelblue", cex = 0.7)
+legend("bottomright",
+       legend = c("binomial p-value, n = 10", "Uniform(0, 1)"),
+       col = c("steelblue", "grey40"), lty = c(1, 2), lwd = c(2, 1), bty = "n")
+```
+
+The curve lying below the diagonal is the formal statement that the test is conservative: at every threshold, the probability of rejecting under the null is smaller than the threshold itself.
+
+### Where Exact Ones Come From
+
+Six mechanisms account for essentially every exact one seen in practice, and they carry very different implications.
+
+1.  Discreteness of the null distribution. The sign test, the binomial test, Fisher's exact test (Section \@ref(sec-exact-chi-square-test)), McNemar's test with equal discordant counts, and the exact Wilcoxon procedures all have finite support, and one is always in it. This is the benign case, in the sense that the number is a correct summary of a coarse reference distribution.
+
+2.  The estimate lands exactly on the null value. A paired $t$ test whose differences sum to zero, or a two-sample comparison whose group means coincide, produces $t = 0$ and therefore a two-sided p-value of exactly one even with a continuous reference distribution. Coarsely measured or heavily rounded outcomes make this far more common than the measure-zero argument suggests.
+
+3.  Randomization and permutation inference. The standard estimator is the proportion of reference draws at least as extreme as the observed statistic, computed with the observed assignment included in both numerator and denominator, and it equals one when the observed statistic is the least extreme member of the reference set. With few units, few strata, or a small number of feasible assignments, one can be the modal outcome rather than a rarity. The resolution of such a test is $1/(B+1)$ at the bottom and exactly one at the top, so the number of draws $B$ belongs in the reported output alongside the p-value.
+
+4.  Caps imposed by multiplicity adjustments. Bonferroni returns the smaller of one and $m$ times the raw p-value, and Holm and Benjamini-Hochberg both enforce monotone capping at one (Section \@ref(sec-multiple-comparisons)). In a family of a thousand tests, a large share of the adjusted p-values equal to one were manufactured by the cap rather than measured from data. An adjusted p-value of one carries no information whatsoever and should never be reported as though it did.
+
+5.  Tests that cannot reject at the chosen level. With $n = 5$, the smallest attainable two-sided p-value of the sign test is $2 (1/2)^5 = 0.0625$, so the test cannot reject at $\alpha = 0.05$ no matter what the data look like. A procedure whose attainable support does not extend below $\alpha$ returns large p-values by construction, and a one from such a test is a statement about the design, not about the world.
+
+6.  Numerical and display artifacts. Upper-tail probabilities computed as $1 - F(t)$ underflow to zero and, by the same token, complementary quantities round to one; default printing at three significant digits turns $0.9996$ into $1$. Before any p-value is fed into a downstream formula it is worth checking whether the ones in the vector are attainable values of the test or artifacts of arithmetic.
+
+### Why a p-Value of One Is Not Evidence for the Null
+
+A p-value is a statement about the data under an assumed null, not a probability that the null is true, and the gap between the two is widest precisely at the boundary [@berger1987testing; @greenland2016statistical; @wasserstein2016asa]. A one says that the observed data are as consistent with $H_0$ as any dataset could have been. It says nothing about how many alternatives are equally consistent, which is the question a reader actually cares about. Failing to find evidence of a difference is not the same as finding evidence of no difference [@altman1995absence].
+
+The cleanest way to see this is through the duality between tests and intervals. Define the p-value function $p(\theta_0)$ by inverting the test at every candidate null $\theta_0$; the $1 - \alpha$ confidence interval is the set of values $\theta_0$ for which $p(\theta_0)$ exceeds $\alpha$. A p-value of one at $\theta_0 = 0$ locates the peak of that function and reveals nothing about its width. Two studies can both report $p = 1$ against a zero null while one of them has ruled out everything outside a negligible neighborhood of zero and the other has ruled out nothing at all.
+
+```{r pval-one-duality}
+# Two designs, identical p-values, opposite information content.
+tight <- c(rep(-0.05, 500), rep(0.05, 500))   # small dispersion, large n
+loose <- c(rep(-50,    5),  rep(50,    5))    # huge dispersion, tiny n
+
+t_tight <- t.test(tight)
+t_loose <- t.test(loose)
+
+c(p_tight = t_tight$p.value, p_loose = t_loose$p.value)
+rbind(tight = t_tight$conf.int, loose = t_loose$conf.int)
+```
+
+Both tests return exactly one. One of them has established that the mean lies within roughly three thousandths of zero; the other permits any value between about $-38$ and $38$. Reporting the p-value alone erases the entire distinction, which is why the estimate and its interval, not the p-value, are the reportable quantities at the boundary.
+
+The same pathology appears in a form that is easy to miss in applied work. When instruments are weak (Section \@ref(sec-weak-instruments-problem)), a test that is robust to weak identification can fail to reject any candidate value of the structural parameter, so its confidence set is the entire real line and the p-value at the null of no effect approaches one. That one means the design is uninformative, not that the effect is absent, and treating it as support for a null of zero inverts the message completely.
+
+When the substantive claim genuinely is that an effect is negligible, the correct machinery reverses the burden of proof: an equivalence test asks whether the effect can be bracketed inside a pre-specified margin of practical irrelevance, so that a rejection supports the claim of no meaningful effect [@lakens2017equivalence]. The same logic is what makes an underpowered placebo test uninformative rather than reassuring, which is the argument developed in Section \@ref(sec-placebo-falsification) and in @hartman2018equivalence.
+
+### Downstream Consequences
+
+#### Multiplicity Adjustment and the False Discovery Rate
+
+Procedures that control the false discovery rate are calibrated on the assumption that null p-values are uniform. Discreteness breaks that assumption in a specific direction: null p-values are too large, so the count of p-values above any threshold is inflated, so adaptive estimates of the proportion of true nulls are biased upward, and the resulting thresholds are too strict. Benjamini-Hochberg applied to a family of sparse count tests can therefore make far fewer discoveries than its nominal level allows, and the loss grows with the fraction of tests whose attainable support is coarse. The remedy is to calibrate against the attainable support of each test rather than against the uniform distribution, which is what the discrete false discovery rate procedures do [@gilbert2005modified; @dohler2018new]. Section \@ref(sec-multiple-comparisons) develops the underlying methods.
+
+#### Combining p-Values Across Studies
+
+Fisher's combination statistic is $X^2 = -2 \sum_{i=1}^{k} \log p_i$, referred to a chi-squared distribution with $2k$ degrees of freedom. A study with $p_i = 1$ contributes exactly zero to the statistic while adding two degrees of freedom to the reference distribution. Adding it therefore makes the combined result strictly less significant, and the effect is not small.
+
+```{r pval-one-combination}
+fisher_combine <- function(p) {
+  pchisq(-2 * sum(log(p)), df = 2 * length(p), lower.tail = FALSE)
+}
+
+c(one_study   = fisher_combine(c(0.01)),
+  plus_one_p1 = fisher_combine(c(0.01, 1)),
+  plus_two_p1 = fisher_combine(c(0.01, 1, 1)))
+
+# Stouffer's z transformation does not survive the boundary at all.
+stouffer <- function(p) sum(qnorm(1 - p)) / sqrt(length(p))
+stouffer(c(0.01, 1))
+```
+
+A single study at $p = 0.01$ combines to $0.010$. Appending one uninformative study at $p = 1$ moves the combined value to $0.056$, and a second moves it to $0.162$. The evidence in the first study has not changed; the arithmetic has simply charged it two degrees of freedom for a contribution of zero. Stouffer's weighted $z$ method, which is the better default for combination in general [@whitlock2005combining], fails outright because the normal quantile at zero is negative infinity, and a single exact one propagates a non-finite value through the entire calculation. In both cases the fix is upstream: recalibrate the discrete p-values (the mid-p transformation below is the usual choice) before combining, and never pass raw exact ones into a combination formula.
+
+#### Goodness of Fit That Is Too Good
+
+For a goodness-of-fit statistic, large values indicate misfit and the p-value is computed from the upper tail. A p-value close to one therefore means the observed frequencies are closer to their expectations than sampling variation alone should allow. This is the logic of Fisher's re-analysis of Mendel's pea data, where the fit across experiments was better than chance would produce [@fisher1936mendel], and it survives in modern form as a screening tool: the distribution of baseline-covariate p-values across published randomized trials has been used to flag trials whose reported summary statistics are inconsistent with random sampling [@carlisle2017data].
+
+Fabrication is only one explanation, and rarely the first one to reach for. An unusually good fit also arises when the model has been fitted to the same data used to test it (the extreme case being a saturated model with no residual degrees of freedom), when the variance assumed by the test is too large because clustering or stratification has been ignored, and when outcomes have been rounded, trimmed, or otherwise smoothed before analysis. The point is that the lower tail of a goodness-of-fit statistic is diagnostic information, and reporting only that the model was not rejected discards it.
+
+#### Specification Tests Without Power
+
+A specification test whose p-value is one should first be asked whether it could have failed. The clearest example is the Hansen overidentification test in generalized method of moments: as the instrument count grows relative to the sample, the test is biased toward not rejecting, and reported p-values drift toward one. A Hansen p-value of $1.000$ in a dynamic panel table is a symptom of instrument proliferation, not a certificate of instrument validity, which is why the count of instruments belongs in the table next to the test [@roodman2009note]. Section \@ref(sec-many-instruments-bias) develops the underlying bias.
+
+The same caution generalizes to every diagnostic run as a hypothesis test, including balance tests, parallel-trends pre-tests, and placebo estimates. Passing is informative only to the extent that failing was possible, so the precision of the diagnostic, not just its p-value, is what makes a passing result reassuring (Section \@ref(sec-placebo-falsification)).
+
+#### Wald Tests and the Hauck-Donner Effect
+
+The most counterintuitive source of a p-value near one is an effect so strong that the test cannot see it. In logistic regression the Wald statistic is not monotone in the coefficient: as the estimate grows toward the separation boundary, the estimated standard error grows faster than the coefficient, the statistic collapses toward zero, and the p-value climbs toward one [@hauck1977wald]. A Wald p-value of one can therefore signal an infinitely strong association rather than the absence of one.
+
+```{r pval-one-hauck-donner, warning=FALSE}
+# Quasi-complete separation: every unit with x = 0 has y = 0.
+x <- c(rep(0, 50), rep(1, 50))
+y <- c(rep(0, 50), rep(1, 49), 0)
+
+fit <- glm(y ~ x, family = binomial)
+
+summary(fit)$coefficients      # enormous estimate, larger standard error
+anova(fit, test = "LRT")       # the likelihood ratio test is not fooled
+```
+
+The Wald test reports a coefficient of roughly $25$ with a standard error in the thousands and a p-value of $0.995$, while the likelihood ratio test on the same fit returns a deviance difference of about $129$ on one degree of freedom. R also issues a warning that fitted probabilities of zero or one occurred, which is the direct diagnostic for separation. Whenever a Wald p-value approaches one alongside a large coefficient and a large standard error, the correct response is to switch to a likelihood ratio or score test, or to a penalized likelihood that keeps the estimate finite.
+
+### Remedies and Reporting
+
+Several of the standard fixes address the discreteness that generates exact ones in the first place.
+
+The mid-p value replaces the upper-tail probability $P(T \ge t)$ with $P(T > t) + \tfrac{1}{2} P(T = t)$, splitting the atom at the observed value [@lancaster1961significance]. It removes the mass at one, restores approximate uniformity under the null, and recovers most of the power lost to conservativeness, at the cost of giving up the guarantee that the size never exceeds the nominal level. For association in $2 \times 2$ tables it is among the recommended defaults, as are unconditional exact tests, which are less conservative than Fisher's conditional test [@lydersen2009recommended; @agresti2001exact].
+
+Randomized, or fuzzy, p-values achieve exact uniformity under the null by adding auxiliary randomization within each atom [@geyer2005fuzzy]. They are valuable as a theoretical device and for calibrating discrete multiple-testing procedures, but a reported result that changes when the analysis is rerun is rarely acceptable in applied work.
+
+Beyond the discreteness fixes, three reporting habits do most of the work. Report the estimate and its confidence interval always, since at the boundary the interval carries all the information and the p-value carries almost none. State the resolution of the test, which for a permutation test means reporting the number of draws and for a discrete test means noting the attainable support. And when the claim of interest is that an effect is negligible, run an equivalence test against an explicit margin rather than inviting the reader to interpret a large p-value as support for the null.
+
+Table \@ref(tab:pval-one-summary) collects the diagnoses.
+
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Source of an exact one               | What it signals                                               | What to do                                                           |
++======================================+===============================================================+======================================================================+
+| Discrete null distribution           | The observed outcome is the least extreme in a finite support | Report the attainable support; consider mid-p or unconditional tests |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Estimate exactly at the null         | Coarse or rounded measurement, or an exact tie                | Report the interval; check measurement granularity                   |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Permutation reference set            | The observed statistic is the least extreme draw              | Report the number of draws and the resolution it implies             |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Multiplicity cap at one              | Nothing; the value was manufactured by the cap                | Do not interpret; report the unadjusted value alongside              |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Test cannot reject at $\alpha$       | The design, not the data, determined the result               | Report the smallest attainable p-value; redesign or resize           |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Goodness of fit near one             | Fit is better than chance allows                              | Check overfitting, ignored clustering, rounding, data integrity      |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Overidentification test near one     | Too many instruments relative to sample size                  | Report instrument counts; collapse or limit the instrument set       |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+| Wald test with a huge standard error | Separation, an effect too strong for the Wald statistic       | Use a likelihood ratio or score test, or a penalized likelihood      |
++--------------------------------------+---------------------------------------------------------------+----------------------------------------------------------------------+
+
+: (\#tab:pval-one-summary) Diagnosing a p-value of exactly one
 
 ------------------------------------------------------------------------
 
