@@ -364,6 +364,139 @@ where $X_i^{\mathcal{N}}$ collects covariates of $i$'s neighborhood. @forastiere
 
 Two further strands push the observational frontier. @tchetgen2021auto treat the hardest version of the problem, a single connected network in which everyone potentially interferes with everyone nearby and only one realization of the network is observed. They encode the dependence with a chain-graph model and generalize Robins's g-computation to auto-g-computation, a Gibbs-sampling algorithm that evaluates counterfactual allocation policies on the network; the approach trades the design assumptions of the experimental literature for an explicit outcome-and-interference model. @ogburn2024causal develop semiparametric estimation for network data in the same single-sample setting, deriving targeted maximum likelihood estimators whose influence-function-based inference remains valid when outcomes are dependent through the observed network, and demonstrating the method on peer effects in social networks. The graphical groundwork for all of this is @ogburn2014causal, whose causal diagrams for interference distinguish the mechanisms that colloquial usage lumps together: direct interference through another's treatment, interference by contagion through another's outcome, and allocational interference through shared resources. The distinctions matter because different mechanisms demand different adjustment sets, and a diagram forces the analyst to say which mechanism the estimate is supposed to capture.
 
+## Peer Effects in Spatial Business Networks {#sec-spatial-peer-effects}
+
+The observational designs above attach interference to a binary intervention. A large class of problems in operations and marketing inverts that framing. There is no intervention at all; the units are outlets of a single firm, their outcomes are coupled by geography and by a shared brand, and the coupling itself is the estimand. How much of one outlet's sales are taken from its siblings, and how much are created for them? The answer decides where the next outlet opens, which underperforming location closes, and how large a franchisee's protected territory should be. Here the spillover is not a threat to a design, it is the deliverable.
+
+Two forces run in opposite directions. Cannibalization is negative: a new or improved outlet captures demand that would otherwise have gone to a nearby sibling. Agglomeration, knowledge transfer, and brand reputation are positive: clusters of outlets raise category salience and traffic, operating practices diffuse between managers, and a well run store improves the brand that a customer associates with every other store. Neither force is uniform in space. Cannibalization requires that two outlets compete for the same trip, so it should be sharply local, while reputation and knowledge travel with customers and managers and should reach further. The net dyadic effect can therefore be negative at short range, zero somewhere in the middle, and positive beyond that, a pattern no monotone decay function can represent.
+
+### The Model and the Parameter Counting Problem
+
+Write the outcome of unit $i$ in period $t$ as
+$$
+Y_{it} = \sum_{j \neq i} w_{ij} Y_{jt} + X_{it}'\beta + \alpha_i + \delta_t + \varepsilon_{it},
+$$
+or, stacking the $N$ units observed in period $t$, $\mathbf{Y}_t = W \mathbf{Y}_t + X_t \beta + \alpha + \delta_t \iota_N + \varepsilon_t$. This is the spatial autoregressive model [@anselin1988spatial], and the dyadic weight $w_{ij}$ is the change in unit $i$'s outcome per unit change in unit $j$'s.
+
+The difficulty is arithmetic before it is econometric. The matrix $W$ has $N(N-1)$ free off-diagonal entries while the panel supplies $NT$ observations, so $W$ is not estimable without restriction. Spatial econometrics normally restricts it to a single parameter, $w_{ij} = \rho s_{ij}$, with $s_{ij}$ a known contiguity or inverse-distance weight and the rows usually normalized to sum to one. That resolution is precisely the wrong one here, because it fixes the sign of every dyadic interaction in advance and imposes monotone decay. Applied to a network in which cannibalization dominates at two miles and agglomeration dominates at five, it returns a $\hat{\rho}$ near zero, and the analyst reports no peer effects in a setting that has two large ones cancelling.
+
+The semiparametric alternative keeps the dyad as the unit of interaction but indexes its weight by observable dyad characteristics,
+$$
+w_{ij} = g(d_{ij}) + z_{ij}' \gamma,
+$$
+where $d_{ij}$ is distance, $g$ is left unrestricted and estimated through a flexible basis, and $z_{ij}$ holds dyad covariates such as whether the pair shares an owner, how much younger the peer is than the focal outlet, and how dense the surrounding market is. The parameter count falls from order $N^2$ to the dimension of the basis plus that of $\gamma$, while the sign and the shape of the distance profile stay free. Piecewise-constant distance bands are the simplest such basis and much the easiest to read, and they connect this section to the ring specifications used defensively in difference-in-differences (Section \@ref(sec-spillover-did)): the same device that purges contamination from a control group there is used here to trace the object of interest.
+
+### Identification
+
+Two obstacles stand between the specification and a causal reading, and both are the reflection problem of Section \@ref(sec-reflection-problem) in spatial dress.
+
+The first is simultaneity. The term $Y_{jt}$ sits on the right-hand side of unit $i$'s equation while $Y_{it}$ sits on the right-hand side of unit $j$'s, so $E[Y_{jt} \varepsilon_{it}] \neq 0$ and least squares is inconsistent for every element of $W$. The second is correlated effects. A local demand shock, a snowstorm, a festival, a plant opening or closing, moves sales at every nearby outlet at once, and a regression of one outlet's sales on its neighbors' reads the common shock as influence. The contamination is worst at short range, because local shocks are by construction local, and short range is exactly where the cannibalization coefficient lives.
+
+The network-instrument strategy of @bramoulle2009identification, which uses the characteristics of a peer's peers who are not also one's own peers, depends on intransitivity in the network. It has little power in a metropolitan retail network, where neighborhoods overlap almost completely and the excluded second-order characteristics carry almost no independent variation. The workable alternative is to instrument the peer's outcome with shocks that hit the peer's operations directly. @mankad2026quantifying use three such shifters: weather local to the peer, large events near the peer, and staffing policy at the peer. Relevance is uncontroversial, since weather, crowds, and labor all move restaurant sales.
+
+Exclusion is the claim that carries the weight, and it has a specific weakness worth naming. Weather and events are themselves spatially correlated, so an instrument built from the peer's conditions is partly a noisy measurement of the focal outlet's own conditions, and the focal outlet's own weather has a direct effect on its own sales. The design is credible only when the focal outlet's own weather, own event exposure, and own staffing enter as controls, so that identification rests on the residual difference in conditions across locations rather than on the component the two locations share. This is not a refinement that buys a little precision. In the simulation below, dropping the own-condition controls flips the sign of the estimated short-range coefficient and converts measured cannibalization into apparent spillover.
+
+### From Weights to Multipliers
+
+Solving the system gives the reduced form $\mathbf{Y}_t = (I - W)^{-1} (X_t \beta + \alpha + \delta_t \iota_N + \varepsilon_t)$, and the Leontief inverse $M = (I - W)^{-1}$ is where estimated dyadic weights turn into a managerial quantity. A shock to unit $i$'s own demand propagates to every other unit, reflects back, and settles at the $i$th column of $M$, so the network contribution of unit $i$,
+$$
+\mathcal{C}_i = \frac{\sum_{j \neq i} M_{ji}}{M_{ii}},
+$$
+is the change in the rest of the network's outcome per unit change in unit $i$'s own outcome. It is a nonlinear function of the entire matrix rather than of any single coefficient, which is what the dyadic parameterization buys: the decision to close an outlet is a question about a column of $M$, and a scalar $\rho$ cannot answer it. The construction is the input-output multiplier applied to a network of stores instead of a network of industries, and it inherits the same requirement that the spectral radius of $W$ stay below one for the system to have a stable solution.
+
+### What the Chain Data Show
+
+@mankad2026quantifying estimate this system on 792 outlets of a national fast-food chain clustered around Chicago and recover the non-monotone profile that two competing forces predict. Within two miles cannibalization dominates: a one dollar increase in a focal outlet's sales lowers a nearby outlet's sales by about fifteen cents (\$0.154). Between two and three miles competition and positive spillovers offset each other, leaving no significant net effect. From three to seven miles the positive channels dominate and the same dollar raises a nearby outlet's sales by about five cents (\$0.050). Beyond seven miles the effect is indistinguishable from zero. The dyad covariates sharpen the picture: pairs under common ownership show stronger positive effects, which is what knowledge transfer that flows more freely inside an ownership boundary than across one would produce; urban outlets gain more from the positive channel, consistent with population density; and outlets sited near younger stores suffer less cannibalization. Aggregating to network contributions, the total change in network sales per dollar of additional sales at a focal outlet runs from about negative \$2.76 to positive \$9.54 with a mean near \$2.69, and only 3.8 percent of outlets contribute negatively, concentrated in the densest urban centers.
+
+Three features of that result generalize well past fast food. First, an analysis that had imposed monotone decay would have reported a headline near zero, and the correct summary is not that there are no peer effects but that there are two large ones with opposite signs and different ranges, a failure identical in structure to averaging heterogeneous treatment effects that cancel. Second, because the sign of the net spillover is a function of distance, the policy-relevant object is a profile rather than a coefficient, and the profile is what tells a chain where the boundary between harmful and helpful proximity falls. Third, the great majority of outlets are net contributors even in a business where cannibalization is real and locally severe, so an analysis that measures only the competitive channel, as a trade-area or competitive-overlap study typically does, will systematically recommend too few outlets.
+
+### A Simulation of the Estimator
+
+The chain's data are proprietary, but the estimator, its failure modes, and the multiplier calculation can all be reproduced on a synthetic network whose truth is known. Three hundred outlets are scattered over a forty by forty mile market. The true dyadic weights follow the shape the chain data display: negative inside two miles, zero from two to three, positive from three to seven, and zero beyond. Demand shocks are spatially correlated with a two mile range, which is what creates the correlated-effects problem, and weather is spatially correlated with a six mile range, which is what makes the exclusion restriction delicate.
+
+```{r spatial-peer-sar-iv, message=FALSE, warning=FALSE}
+set.seed(2026)
+library(fixest)
+
+n_store <- 300; n_per <- 60; side <- 40      # outlets in a 40 by 40 mile market
+xy <- cbind(runif(n_store, 0, side), runif(n_store, 0, side))
+d  <- as.matrix(dist(xy))
+
+# Piecewise-constant distance bands: the basis used to estimate g(d).
+band <- matrix(0L, n_store, n_store)
+band[d > 0 & d < 2]  <- 1L
+band[d >= 2 & d < 3] <- 2L
+band[d >= 3 & d < 7] <- 3L
+
+# Truth: cannibalization inside 2 miles, nothing from 2 to 3, spillover from 3 to 7.
+theta <- c(-0.150, 0.000, 0.020)
+W <- matrix(0, n_store, n_store)
+for (b in 1:3) W[band == b] <- theta[b]
+M <- solve(diag(n_store) - W)                # Leontief inverse; needs rho(W) < 1
+
+# A spatially correlated field with a stated correlation range, in miles.
+draw_field <- function(range_mi) {
+  L <- chol(exp(-d / range_mi) + diag(1e-8, n_store))
+  matrix(rnorm(n_per * n_store), n_per, n_store) %*% L
+}
+Z <- draw_field(6)                                   # weather, correlated over a wide area
+U <- draw_field(2)                                   # local demand shocks, short range
+S <- matrix(rnorm(n_per * n_store), n_per, n_store)  # staffing, idiosyncratic
+
+alpha <- rnorm(n_store); ftime <- rnorm(n_per)
+E <- sweep(sweep(0.8 * Z + 0.5 * S + U, 2, alpha, "+"), 1, ftime, "+")
+Y <- E %*% t(M)                                      # solve the simultaneous system
+
+# Band-aggregated regressors: peer outcomes summed within each ring, and the
+# same sums built from the excluded shifters.
+psum <- function(A, b) A %*% t(band == b)
+df <- data.frame(
+  store = rep(1:n_store, each = n_per), per = rep(1:n_per, times = n_store),
+  y = c(Y), z = c(Z), s = c(S),
+  p1  = c(psum(Y, 1)), p2  = c(psum(Y, 2)), p3  = c(psum(Y, 3)),
+  zp1 = c(psum(Z, 1)), zp2 = c(psum(Z, 2)), zp3 = c(psum(Z, 3)),
+  sp1 = c(psum(S, 1)), sp2 = c(psum(S, 2)), sp3 = c(psum(S, 3)))
+
+m_ols <- feols(y ~ p1 + p2 + p3 + z + s | store + per, df)
+m_bad <- feols(y ~ 1     | store + per | p1 + p2 + p3 ~ zp1 + zp2 + zp3 + sp1 + sp2 + sp3, df)
+m_iv  <- feols(y ~ z + s | store + per | p1 + p2 + p3 ~ zp1 + zp2 + zp3 + sp1 + sp2 + sp3, df)
+
+pull <- function(m) coef(m)[grep("^(fit_)?p[123]$", names(coef(m)))]
+round(rbind(truth                        = theta,
+            OLS                          = pull(m_ols),
+            `IV, own conditions omitted` = pull(m_bad),
+            `IV, own conditions kept`    = pull(m_iv)), 3)
+```
+
+The table states the section's two warnings numerically. Least squares recovers less than a third of the true cannibalization coefficient and turns the genuinely null middle band into a spurious positive spillover, because the short-range demand shocks that neighboring stores share are read as influence between them. Instrumenting with peers' weather and staffing while omitting the focal store's own conditions is worse than doing nothing: the short-range estimate crosses zero and reports a positive spillover where the truth is the strongest cannibalization in the network, because the peer weather instrument is partly a proxy for the focal store's own weather, whose direct effect has been left in the error term. Only the specification that controls for own conditions, so that identification uses the residual difference in weather and staffing across locations, recovers all three band coefficients.
+
+```{r spatial-peer-multiplier, message=FALSE, warning=FALSE}
+print(fitstat(m_iv, "ivf"))
+
+theta_hat <- coef(m_iv)[grep("^fit_p", names(coef(m_iv)))]
+W_hat <- matrix(0, n_store, n_store)
+for (b in 1:3) W_hat[band == b] <- theta_hat[b]
+M_hat <- solve(diag(n_store) - W_hat)
+
+# Peer-side network contribution: the change in the rest of the network's sales
+# per unit change at the focal outlet.
+netc <- function(Mat) (colSums(Mat) - diag(Mat)) / diag(Mat)
+c_true <- netc(M); c_hat <- netc(M_hat)
+
+close_nbr <- cut(rowSums(band == 1), c(-1, 0, 1, 2, 4, Inf),
+                 labels = c("0", "1", "2", "3 or 4", "5+"))
+round(rbind(`mean contribution` = tapply(c_hat, close_nbr, mean),
+            `share negative`    = tapply(c_hat < 0, close_nbr, mean),
+            `outlets`           = as.vector(table(close_nbr))), 3)
+
+round(c(correlation_with_truth = cor(c_hat, c_true),
+        mean_contribution      = mean(c_hat),
+        min_contribution       = min(c_hat),
+        max_contribution       = max(c_hat)), 3)
+```
+
+The first-stage F statistics confirm that the excluded shifters are strong, which is the usual situation with weather instruments and also the reason their exclusion, rather than their relevance, is what deserves the argument. The multiplier step then shows why the dyadic parameterization was worth its cost. Three band coefficients, none of which is individually a policy quantity, imply a network contribution for every outlet, and those contributions track the truth almost exactly even though each is a nonlinear function of all three estimates and of the network's geometry. They also vary enormously across outlets that share the same estimated coefficients, because what differs is position: an outlet with no sibling inside two miles contributes strongly positively to the rest of the chain, while every outlet with five or more close siblings is a net drag. That gradient is the synthetic counterpart of the chain result that negative network contributions concentrate in dense urban centers, and it is the actionable output. The coefficient says that proximity below two miles is costly; the multiplier says which specific locations are paying the cost.
+
 ## Bipartite and Clustered Interference {#sec-bipartite-interference}
 
 A structurally distinct and practically common variant is bipartite interference, where interventions occur on one class of units and outcomes on another. The motivating application is air quality regulation: emissions controls are installed at power plants, but health outcomes accrue to people in communities whose pollution exposure integrates over many plants through atmospheric transport, so no person is unambiguously assigned to one intervention unit. @zigler2021bipartite formalize this setting, defining exposure mappings that carry interventions on the treatment-unit set to exposures on the outcome-unit set and extending the potential-outcomes and weighting machinery of this chapter to the bipartite case. Relatedly, @papadogeorgou2019causal study clustered observational interference with estimands defined, as in the two-stage literature, by counterfactual stochastic allocation programs, and apply the framework to power plant emissions controls and ambient pollution. The bipartite template fits far more than environmental policy: hospital-level interventions with patient-level outcomes, platform-level algorithm changes with user-level outcomes, and upstream supply-chain shocks with downstream firm outcomes all share the structure.
@@ -408,4 +541,4 @@ Across all three designs the recurring theme is that no-interference is an ident
 
 ## Summary {#sec-interference-summary}
 
-Interference is the rule rather than the exception in social science, and treating it as a violation to be assumed away discards both validity and substance. The no-interference half of SUTVA, once relaxed, forces potential outcomes to depend on the full assignment vector; exposure mappings reduce that dependence to a low-dimensional summary, and with a known design the Horvitz-Thompson and Hajek estimators recover average outcomes under each exposure, including global policy contrasts that the naive difference in means silently misses. When the exposure mapping is unknown or wrong, the modern theory salvages a precise consolation: standard estimators remain consistent for design-dependent averages of direct effects, and approximately local interference supports inference through network-robust variance estimation, so the practical one-hop conventions of applied work have a defensible foundation. Randomization tests built on focal units and conditioning events deliver exact inference about spillover structure with no modeling at all. Partial interference and two-stage randomized designs identify the quartet of direct, indirect, total, and overall effects; inverse probability weighting turns those definitions into estimates, as the cholera-style vaccine analysis and the household voting-contagion replication showed, and the same design logic, under the name randomized saturation, is how economics measures displacement in labor markets and general-equilibrium effects of cash transfers, where the spillover is routinely the largest and most policy-relevant part of the answer. In observational work the reflection problem warns that group-average outcomes do not identify influence; joint unconfoundedness of own and neighborhood treatment, auto-g-computation, and network-aware semiparametric estimation now extend selection-on-observables reasoning to observed networks, while bipartite formulations handle interventions and outcomes living on different unit sets. Platforms face the same mathematics commercially: marketplace experiments are biased by design unless randomization respects the market's coupling, marginal equilibrium effects can substitute for unattainable global contrasts, and switchback designs trade contemporaneous contamination for carryover. Connectedness measures built from variance decompositions quantify spillover in financial systems where experiments are impossible, at the cost of a predictive rather than manipulation-based interpretation. Finally, interference is a first-order threat to the quasi-experimental designs that anchor the rest of the book: it contaminates difference-in-differences controls, breaks the IV exclusion restriction across units, and corrupts matched comparisons, and in each case the remedy is to confront the spillover by design, by explicit modeling, or by redefining the estimand, rather than to assume it does not exist.
+Interference is the rule rather than the exception in social science, and treating it as a violation to be assumed away discards both validity and substance. The no-interference half of SUTVA, once relaxed, forces potential outcomes to depend on the full assignment vector; exposure mappings reduce that dependence to a low-dimensional summary, and with a known design the Horvitz-Thompson and Hajek estimators recover average outcomes under each exposure, including global policy contrasts that the naive difference in means silently misses. When the exposure mapping is unknown or wrong, the modern theory salvages a precise consolation: standard estimators remain consistent for design-dependent averages of direct effects, and approximately local interference supports inference through network-robust variance estimation, so the practical one-hop conventions of applied work have a defensible foundation. Randomization tests built on focal units and conditioning events deliver exact inference about spillover structure with no modeling at all. Partial interference and two-stage randomized designs identify the quartet of direct, indirect, total, and overall effects; inverse probability weighting turns those definitions into estimates, as the cholera-style vaccine analysis and the household voting-contagion replication showed, and the same design logic, under the name randomized saturation, is how economics measures displacement in labor markets and general-equilibrium effects of cash transfers, where the spillover is routinely the largest and most policy-relevant part of the answer. In observational work the reflection problem warns that group-average outcomes do not identify influence; joint unconfoundedness of own and neighborhood treatment, auto-g-computation, and network-aware semiparametric estimation now extend selection-on-observables reasoning to observed networks, while bipartite formulations handle interventions and outcomes living on different unit sets. When the network is a firm's own outlets and the coupling is itself the deliverable, a semiparametric dyadic weight matrix estimated with peer-level instruments recovers a distance profile that changes sign, and its Leontief inverse turns those coefficients into the per-outlet network contributions a chain can act on. Platforms face the same mathematics commercially: marketplace experiments are biased by design unless randomization respects the market's coupling, marginal equilibrium effects can substitute for unattainable global contrasts, and switchback designs trade contemporaneous contamination for carryover. Connectedness measures built from variance decompositions quantify spillover in financial systems where experiments are impossible, at the cost of a predictive rather than manipulation-based interpretation. Finally, interference is a first-order threat to the quasi-experimental designs that anchor the rest of the book: it contaminates difference-in-differences controls, breaks the IV exclusion restriction across units, and corrupts matched comparisons, and in each case the remedy is to confront the spillover by design, by explicit modeling, or by redefining the estimand, rather than to assume it does not exist.
