@@ -1,10 +1,16 @@
 # Directed Acyclic Graphs {#sec-directed-acyclic-graphs}
 
+::: {.chapter-abstract}
+**Abstract.** A directed acyclic graph turns assumptions about a data generating process into an object that can be reasoned about formally. This chapter develops the graphical vocabulary needed to decide what to adjust for and what to leave alone. It introduces chains, forks, and colliders as the three elementary structures, defines d-separation, and derives the back-door and front-door criteria that license identification from observational data. A worked example compares competing adjustment sets for one graph and shows that valid sets are not interchangeable once finite-sample precision is considered. The chapter then works through the cases where graphical intuition most often fails: M-bias, where adjusting for a pre-treatment variable opens a path rather than closing one; Berkson's paradox and selection on a collider; and conditioning on a collider's descendant. A front-door application to smoking, tar, and cancer illustrates identification without exposure ignorability. Causal discovery, structure learning, and a workflow for moving from a drawn graph to an estimation strategy close the chapter.
+
+**Keywords:** directed acyclic graphs; d-separation; back-door criterion; front-door criterion; collider bias; M-bias; confounding; causal discovery; structure learning
+:::
+
 Directed acyclic graphs (DAGs) provide a formal and visual framework for representing assumptions about causal structures. In modern data analysis, they are essential tools for understanding, identifying, and validating causal effects [@Pearl_2018; @pearl2014graphical].
 
 A DAG is a graph composed of nodes (representing variables) and directed edges (arrows) showing the direction of causality. *Acyclic* means that the graph contains no feedback loops; one cannot return to the same node by following the direction of the arrows. The arrows encode *structural* assumptions: an arrow from $X$ to $Y$ states that, holding all other parents of $Y$ fixed, intervening on $X$ can change $Y$.
 
-DAGs sit at the centre of the design choices made elsewhere in the book. The selection-on-observables strategies discussed in Section \@ref(sec-selection-on-observables) presume that a finite set of measured covariates closes every back-door path, while the selection-on-unobservables tools of Section \@ref(sec-selection-on-unobservables) acknowledge that no such set exists and seek leverage from instruments, panels, or natural experiments. The conditional-ignorability assumption of Section \@ref(sec-conditional-ignorability-assumption) and the overlap requirement of Section \@ref(sec-overlap-positivity-assumption) both have transparent graphical readings on a DAG, as do violations of [SUTVA](#sec-sutva) when interference adds new edges between units. The chapter therefore complements the [quasi-experimental](#sec-quasi-experimental) toolkit by giving analysts a language for stating which design assumptions are credible before any estimator is chosen.
+DAGs sit at the center of the design choices made elsewhere in the book. The selection-on-observables strategies (Section \@ref(sec-selection-on-observables)) presume that a finite set of measured covariates closes every back-door path, while the selection-on-unobservables tools (Section \@ref(sec-selection-on-unobservables)) acknowledge that no such set exists and seek leverage from instruments, panels, or natural experiments. The conditional-ignorability assumption (Section \@ref(sec-conditional-ignorability-assumption)) and the overlap requirement (Section \@ref(sec-overlap-positivity-assumption)) both have transparent graphical readings on a DAG, as do violations of [SUTVA](#sec-sutva) when interference adds new edges between units. The chapter therefore complements the [quasi-experimental](#sec-quasi-experimental) toolkit by giving analysts a language for stating which design assumptions are credible before any estimator is chosen.
 
 Understanding DAGs helps analysts reason about:
 
@@ -33,7 +39,7 @@ library(ggplot2)
 
 ## Basic notation and graph structures
 
-Directed acyclic graphs are composed of three elementary building blocks: chains, forks, and inverted forks. Every path in any DAG decomposes into a sequence of these primitives, so the rules below generalise to graphs of arbitrary size.
+Directed acyclic graphs are composed of three elementary building blocks: chains, forks, and inverted forks. Every path in any DAG decomposes into a sequence of these primitives, so the rules below generalize to graphs of arbitrary size.
 
 ### Mediators (chains)
 
@@ -153,10 +159,10 @@ Several non-listed sets would be incorrect, and it is instructive to see why:
 Because both $\{V, W, U\}$ and $\{V, W, Z\}$ identify the same total effect under the assumed DAG, the choice between them is not a question of identification but of statistical and measurement practice. Three considerations typically settle it.
 
 -   **Measurement quality.** If $U$ is a noisy proxy for an underlying latent trait while $Z$ is recorded cleanly, conditioning on $Z$ will block path (1) more reliably; the reverse holds when $Z$ is the noisier variable. The [measurement-error](#sec-measurement-error) discussion explains why a noisy adjustment variable leaves a residual open path proportional to the noise variance.
--   **Sample-size and overlap considerations.** The set whose joint distribution overlaps better between treated and control units yields more stable [propensity scores](#sec-propensity-scores) and better finite-sample behaviour for [matching methods](#sec-matching-methods). When $U$ is high-dimensional or sparsely supported, the lower-dimensional set $\{V, W, Z\}$ may be preferable on overlap grounds even if both are theoretically valid.
+-   **Sample-size and overlap considerations.** The set whose joint distribution overlaps better between treated and control units yields more stable [propensity scores](#sec-propensity-scores) and better finite-sample behavior for [matching methods](#sec-matching-methods). When $U$ is high-dimensional or sparsely supported, the lower-dimensional set $\{V, W, Z\}$ may be preferable on overlap grounds even if both are theoretically valid.
 -   **Robustness to DAG misspecification.** If the analyst suspects an additional unobserved arrow into $Z$ that the drawn DAG omits, conditioning on $Z$ would itself open a new back-door path and bias the estimate, while conditioning on $U$ would not. Reporting estimates under both minimal sets is a cheap and informative sensitivity check, and large discrepancies are a warning that the DAG is wrong.
 
-The same logic generalises: when `adjustmentSets()` returns several minimal candidates, the function has done its identification job, and the analyst's remaining decision is an empirical trade-off about which observed surrogate is best measured, best supported, and least vulnerable to plausible departures from the assumed graph.
+The same logic generalizes: when `adjustmentSets()` returns several minimal candidates, the function has done its identification job, and the analyst's remaining decision is an empirical trade-off about which observed surrogate is best measured, best supported, and least vulnerable to plausible departures from the assumed graph.
 
 ## Confounders, mediators, and colliders side by side
 
@@ -181,7 +187,7 @@ p3 <- ggdag(collider) + theme_dag() + ggtitle("Inverted fork (collider)")
 gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
 ```
 
-The decision rule is summarised in Table \@ref(tab:dag-roles).
+The decision rule is summarized in Table \@ref(tab:dag-roles).
 
 ```{r dag-roles, echo=FALSE}
 roles <- data.frame(
@@ -290,7 +296,7 @@ The "control for everything" heuristic fails here. M-bias is the prototypical re
 
 ## Berkson's paradox and selection on a collider
 
-A close cousin of M-bias arises through *sample selection*. Whenever the data we analyse are restricted to units satisfying some condition $S$, and $S$ is a descendant of a collider, the analysis effectively conditions on that collider. The result is **Berkson's paradox**: variables that are independent in the population become correlated in the selected sample.
+A close cousin of M-bias arises through *sample selection*. Whenever the data we analyze are restricted to units satisfying some condition $S$, and $S$ is a descendant of a collider, the analysis effectively conditions on that collider. The result is **Berkson's paradox**: variables that are independent in the population become correlated in the selected sample.
 
 Suppose we want to study whether acting talent ($X$) affects beauty ($Y$) among Hollywood celebrities. In the general population the two are plausibly independent. Both, however, raise the probability of becoming famous ($S$), and our sample contains only the famous. Figure \@ref(fig:dag-berkson) encodes this story.
 
@@ -323,7 +329,7 @@ cor(talent, beauty)                             # near 0
 cor(talent[famous], beauty[famous])             # spuriously negative
 ```
 
-The lesson generalises: any analysis that filters cases on an outcome-related criterion (hospital records, survey respondents who replied, customers retained for at least 90 days) is implicitly conditioning on a collider, and "obvious" associations among the survivors may be entirely artefactual. The same logic underlies the discussion of [survivorship bias](#sec-survivorship-bias), which gives several finance and management examples in which the conditioning event is not even acknowledged as such by the analyst.
+The lesson generalizes: any analysis that filters cases on an outcome-related criterion (hospital records, survey respondents who replied, customers retained for at least 90 days) is implicitly conditioning on a collider, and "obvious" associations among the survivors may be entirely artefactual. The same logic underlies the discussion of [survivorship bias](#sec-survivorship-bias), which gives several finance and management examples in which the conditioning event is not even acknowledged as such by the analyst.
 
 ## The front-door criterion: smoking, tar, and cancer {#sec-frontdoor}
 
@@ -345,7 +351,7 @@ coordinates(frontdoor) <- list(
 ggdag(frontdoor) + theme_dag()
 ```
 
-`dagitty` knows the front-door logic: it returns no back-door adjustment set built from observed variables, but recognises the front-door identification when asked.
+`dagitty` knows the front-door logic: it returns no back-door adjustment set built from observed variables, but recognizes the front-door identification when asked.
 
 ```{r}
 adjustmentSets(frontdoor, exposure = "Smoking", outcome = "Cancer", type = "all")

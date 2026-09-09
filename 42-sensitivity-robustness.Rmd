@@ -1,5 +1,11 @@
 # Sensitivity Analysis and Robustness Checks
 
+::: {.chapter-abstract}
+**Abstract.** A finding that survives only one specification is not a finding. This chapter organizes the robustness toolkit around the assumption each check interrogates, then works through the leading methods with runnable code. Specification curve and multiverse analysis come first, estimating a result across the full grid of defensible analytic choices rather than a hand-picked few, with implementations in starbility, specr, and rdfanalysis. Coefficient stability follows, developing the Oster approach that reads movement in a coefficient and in R-squared as observable evidence about the bias an unobserved confounder could produce. Formal omitted variable sensitivity analysis comes next, covering the konfound framework and the Cinelli and Hazlett robustness value with its contour plots, followed by Rosenbaum bounds for matched observational designs. Sensitivity to outliers and to measurement error close the technical material, and a section on reporting explains how to present these results so a reader can judge fragility without rerunning the analysis. Two extended sections cover placebo, falsification, and negative-control tests, and publication bias and p-hacking.
+
+**Keywords:** sensitivity analysis; robustness checks; specification curve; multiverse analysis; coefficient stability; omitted variable bias; robustness value; Rosenbaum bounds; placebo tests
+:::
+
 > "Do robustness checks until you believe the result."
 >
 > --- the author, having repeatedly experienced the brief joy of promising results only to watch them collapse under closer inspection, and now treating every finding as too good to be true until proven otherwise.
@@ -18,14 +24,14 @@ Robustness checks are not interchangeable: each family targets a distinct threat
 
 | Family | Threat addressed | Representative methods | Where treated |
 |------------------|------------------|-------------------|------------------|
-| Unobserved-confounding sensitivity | Hidden bias remaining after adjustment for observables | Rosenbaum $\Gamma$ bounds, Oster's $\delta$, Cinelli-Hazlett robustness value, ITCV, E-value [@vanderweele2017sensitivity] | This chapter; [Rosenbaum bounds](#sec-rosenbaum-bounds) |
+| Unobserved-confounding sensitivity | Hidden bias remaining after adjustment for observables | Rosenbaum $\Gamma$ bounds, Oster's $\delta$, Cinelli-Hazlett robustness value, ITCV, E-value [@vanderweele2017sensitivity] | This chapter ([Rosenbaum bounds](#sec-rosenbaum-bounds-sensitivity)) |
 | Partial identification | Point identification rests on unverifiable assumptions | Manski natural bounds, monotone instrumental variable bounds [@manski1990nonparametric; @manskipepper2000monotone] | [Partial identification in DiD](#sec-partial-identification-did) |
 | Specification stability | Results hinge on discretionary modeling choices | Specification curve, multiverse analysis, coefficient stability | [Specification curves](#sec-specification-curve-analysis) and [coefficient stability](#sec-coefficient-stability), this chapter |
 | Sample restriction and influence | A few units, clusters, or outliers drive the estimate | Leave-one-out, cluster dropping, winsorizing, influence diagnostics | This chapter; clustered inference in Chapter \@ref(sec-clustered-inference) |
 | Measurement error sensitivity | Mismeasured treatment, outcome, or covariates | SIMEX, regression calibration, validation subsamples | This chapter |
 | Design falsification | The design manufactures effects where none can exist | Placebo outcomes, negative controls, in-time and in-space placebos | [Placebo and falsification tests](#sec-placebo-falsification) |
 | Literature-level distortion | The published evidence base is itself selected | Caliper tests, p-curve, p-value distribution tests | [Publication bias and p-hacking](#sec-publication-bias-phacking) |
-| External validity | The effect may not transport to the target population | Reweighting to target populations, generalization frameworks | Generalization framework in Chapter \@ref(sec-matching-methods) |
+| External validity | The effect may not transport to the target population | Reweighting to target populations, generalization frameworks | Generalization framework in the matching methods chapter (Chapter \@ref(sec-matching-methods)) |
 
 A practical workflow that draws on this map: begin with design diagnostics (balance, pre-trends, placebos), quantify hidden-bias tolerance with at least one confounding-sensitivity statistic, display a specification curve for the headline outcome, report inference that is robust to the clustering and influence structure of the data, and close by stating how wide any partial-identification bounds are and whether the substantive conclusion survives them. The remainder of this chapter develops the families that concern a single study; the placebo and publication-bias chapters that follow take up design falsification and literature-level distortion.
 
@@ -1142,7 +1148,7 @@ Interpretation guidelines:
 
 Figure \@ref(fig:robustness-ovb-stability) shows bias-adjusted coefficients against $\delta$
 
-```{r robustness-ovb-stability, fig.cap='Coefficient stability under omitted-variable bias.', fig.alt='Line plot showing the relationship between coefficient stability and the strength of potential confounding due to omitted variables. The x-axis represents delta, measuring the strength of confounding from 0.0 to 2.0, while the y-axis shows the bias-adjusted coefficient (beta*) ranging from approximately negative 6.5 to 0. A horizontal dashed red line is positioned at zero. The black solid line starts at approximately negative 4.5 when delta equals zero, gradually increases to approach negative 1 as delta approaches 1.0, then drops sharply to approximately negative 6.5 just after delta equals 1.0, before leveling off at approximately negative 6.3 for the remainder of the plot. This discontinuity illustrates a critical threshold in confounding strength where coefficient stability changes dramatically.'}
+```{r robustness-ovb-stability, fig.cap='Coefficient stability under omitted-variable bias.', fig.alt='Line plot showing the relationship between coefficient stability and the strength of potential confounding due to omitted variables. The x-axis represents delta, measuring the strength of confounding from 0.0 to 2.0, while the y-axis shows the bias-adjusted coefficient (beta*) ranging from approximately negative 6.5 to 0. A horizontal dashed line is positioned at zero. The solid line starts at approximately negative 4.5 when delta equals zero, gradually increases to approach negative 1 as delta approaches 1.0, then drops sharply to approximately negative 6.5 just after delta equals 1.0, before leveling off at approximately negative 6.3 for the remainder of the plot. This discontinuity illustrates a critical threshold in confounding strength where coefficient stability changes dramatically.'}
 # Plot
 library(ggplot2)
 ggplot(stability_df, aes(x = delta, y = beta_adjusted)) +
@@ -1269,7 +1275,7 @@ pkonfound(
 
 Interpretation of the plot:
 
--   The red line shows the threshold
+-   The reference line shows the threshold
 
 -   Points above/beyond this line represent confounding strong enough to overturn your inference
 
@@ -1393,7 +1399,7 @@ A few practical points are worth keeping in mind:
 
 ------------------------------------------------------------------------
 
-## Rosenbaum Bounds
+## Rosenbaum Bounds {#sec-rosenbaum-bounds-sensitivity}
 
 The methods discussed so far are designed for regression-based estimators. In matched observational studies, where the analyst has explicitly paired treated units with similar controls on observed covariates, a different and arguably even more natural sensitivity tool is available: the @rosenbaum2002overt sensitivity bound. It asks how much the matched pairs would have to differ on an *unobserved* covariate before the conclusions would be overturned.
 
@@ -1415,7 +1421,7 @@ The parameter $\Gamma \ge 1$ measures the maximum departure from random assignme
 
 The sensitivity analysis proceeds by computing, at each value of $\Gamma$, an upper bound on the $p$-value (or a lower bound on the test statistic) for the treatment effect under the worst-case allocation of $U$ across pairs. The *critical $\Gamma$* is the value at which the bound first crosses the chosen significance threshold.
 
-A widely cited rule of thumb is that critical $\Gamma$ values above about $2$ generally indicate a robust finding for a binary treatment in social-science contexts: an unobserved confounder would need to roughly double the odds of treatment to overturn the result. Examples of $\Gamma$ thresholds in published studies are tabulated in Table \@ref(tab:rosenbaum-gamma-marketing) of the [matching-methods chapter](#sec-matching-methods).
+A widely cited rule of thumb is that critical $\Gamma$ values above about $2$ generally indicate a robust finding for a binary treatment in social-science contexts: an unobserved confounder would need to roughly double the odds of treatment to overturn the result. Examples of $\Gamma$ thresholds in published studies are tabulated in the [matching-methods chapter](#sec-matching-methods) (Table \@ref(tab:rosenbaum-gamma-marketing)).
 
 ### Worked Example: Lalonde Job-Training Data
 

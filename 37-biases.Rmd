@@ -1,6 +1,12 @@
 # Biases {#sec-biases}
 
-In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. This chapter focuses on biases that arise from the *design* of the study or the *measurement* of variables; specification errors, multicollinearity, autocorrelation, and heteroskedasticity are properties of the *estimation* and are covered in the regression chapters in Part A. The list below organises the biases this book has discussed alongside those treated here.
+::: {.chapter-abstract}
+**Abstract.** Bias rarely announces itself. This chapter catalogues the recurring ways an estimate departs systematically from the quantity it is meant to measure, and pairs each with the design or estimator that addresses it. It opens with aggregation bias and Simpson's paradox, where a relationship computed on grouped data reverses the relationship holding within every group, then turns to contamination bias, which arises when several mutually exclusive treatments enter one specification alongside flexible controls. Survivorship, attrition, and recall bias are treated as variants of a single mechanism, conditioning on a selection variable that is itself a consequence of treatment or outcome, and regression to the mean is separated from genuine treatment response. The longest strand concerns the literature rather than the single study. Publication bias and p-hacking are developed through the distinct signatures each leaves in the distribution of reported test statistics, together with the detection methods built on those signatures, from caliper and excess significance tests through p-curve, p-uniform, z-curve, weight-function selection models, and robust Bayesian meta-analysis.
+
+**Keywords:** aggregation bias; Simpson's paradox; contamination bias; survivorship bias; attrition bias; recall bias; publication bias; p-hacking; selection models
+:::
+
+In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. This chapter focuses on biases that arise from the *design* of the study or the *measurement* of variables; specification errors, multicollinearity, autocorrelation, and heteroskedasticity are properties of the *estimation* and are covered in the regression chapters in Part A. The list below organizes the biases this book has discussed alongside those treated here.
 
 What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
@@ -76,7 +82,7 @@ summary(aggregate_lm)
 
 If aggregation bias is present, the coefficient for income in the aggregate regression might be different from the coefficient in the individual regression, even if the individual relationship is significant and strong.
 
-Figure \@ref(fig:bias-aggregation-individual-vs-neighborhood) compares the income-consumption relationship at the individual level (with neighbourhoods colour-coded) against the same relationship after aggregating to the neighbourhood mean.
+Figure \@ref(fig:bias-aggregation-individual-vs-neighborhood) compares the income-consumption relationship at the individual level (with neighborhoods color-coded) against the same relationship after aggregating to the neighborhood mean.
 
 ```{r bias-aggregation-individual-vs-neighborhood, fig.cap="Income-consumption relationship at the individual level (left, with neighbourhoods colour-coded) against the relationship after aggregating to neighbourhood means (right), illustrating how the slope can shift under aggregation."}
 library(ggplot2)
@@ -274,7 +280,7 @@ gridExtra::grid.arrange(grobs = list(p1, p2, p3), ncol = 1)
 
 ## Contamination Bias {#sec-contamination-bias}
 
-Contamination bias is a relatively recent label for an old problem in regression-based causal inference: when several mutually exclusive treatments enter the same specification alongside flexible controls, the coefficient on any one treatment is generally not a clean average of that treatment's own effect. Instead, it picks up weighted contrasts of the *other* treatments' effects, with weights that depend on the propensity-score geometry rather than on substantive theory. The problem is closely related to the negative-weighting concerns that motivate modern staggered estimators (Section \@ref(sec-modern-estimators-for-staggered-adoption)) discussed under [Difference-in-Differences](#sec-difference-in-differences), and it shares its root cause with omitted-variable and selection issues discussed in Sections \@ref(sec-omitted-variable-bias) and \@ref(sec-selection-on-observables): the implicit comparison group is not what the analyst thinks it is.
+Contamination bias is a relatively recent label for an old problem in regression-based causal inference: when several mutually exclusive treatments enter the same specification alongside flexible controls, the coefficient on any one treatment is generally not a clean average of that treatment's own effect. Instead, it picks up weighted contrasts of the *other* treatments' effects, with weights that depend on the propensity-score geometry rather than on substantive theory. The problem is closely related to the negative-weighting concerns that motivate modern staggered estimators (Section \@ref(sec-modern-estimators-for-staggered-adoption)) discussed under [Difference-in-Differences](#sec-difference-in-differences), and it shares its root cause with the omitted-variable problem (Section \@ref(sec-omitted-variable-bias)) and with selection on observables (Section \@ref(sec-selection-on-observables)): the implicit comparison group is not what the analyst thinks it is.
 
 The mechanism is easiest to see with a worked sketch. Suppose three mutually exclusive treatment arms $D_1, D_2, D_3$ are entered as dummies in a single regression with a rich set of controls $X$. The OLS coefficient on $D_1$ does not isolate the effect of arm 1 versus a clean baseline. It is a weighted average that includes negatively signed contributions from the heterogeneous effects of $D_2$ and $D_3$ in strata where those treatments are common. When effect heterogeneity lines up with the propensity score in the wrong direction, the resulting estimate can be attenuated, inflated, or even sign-flipped relative to the true average effect within arm 1. @goldsmith2022contamination formalize this: regressions with multiple treatments and flexible controls often fail to estimate convex averages of heterogeneous treatment effects, with the residualized treatment indicators inducing non-convex weights on the other arms' effects.
 
@@ -401,7 +407,7 @@ The conceptual link to other selection-style problems is direct. Random assignme
 
 **Recall bias** is a form of [measurement error](#sec-measurement-error) that arises when the accuracy or completeness of a respondent's memory is systematically related to their outcome or exposure status. Unlike classical, mean-zero measurement error --- which generally attenuates regression coefficients --- recall bias is *differential*, meaning it shifts coefficients in unpredictable directions and can manufacture spurious associations.
 
-The departure from classical measurement error (Section \@ref(sec-measurement-error)) is what makes recall bias particularly hazardous. Classical error attaches noise that is independent of the truth and of group status, so the standard intuition that errors-in-variables attenuate slopes applies. Differential recall, by contrast, is correlated with the outcome itself; this correlation can either inflate or deflate associations and can even reverse their sign. The same instrumental-variable and proxy-variable strategies discussed in Section \@ref(sec-instrumental-variables) for handling endogeneity can sometimes be repurposed when an exogenous source of variation in reporting accuracy is available. Detection usually proceeds by comparing self-reported quantities to objective benchmarks on a calibration subsample, by stratifying error rates by case/control or treatment/control status, and by examining whether the implied error structure is plausibly mean-zero conditional on group.
+The departure from classical measurement error (Section \@ref(sec-measurement-error)) is what makes recall bias particularly hazardous. Classical error attaches noise that is independent of the truth and of group status, so the standard intuition that errors-in-variables attenuate slopes applies. Differential recall, by contrast, is correlated with the outcome itself; this correlation can either inflate or deflate associations and can even reverse their sign. The same instrumental-variable and proxy-variable strategies used for handling endogeneity (Section \@ref(sec-instrumental-variables)) can sometimes be repurposed when an exogenous source of variation in reporting accuracy is available. Detection usually proceeds by comparing self-reported quantities to objective benchmarks on a calibration subsample, by stratifying error rates by case/control or treatment/control status, and by examining whether the implied error structure is plausibly mean-zero conditional on group.
 
 **Example**: In a case-control study of diet and cancer, cancer patients (cases) may scrutinize their pre-diagnosis diet more carefully than healthy controls, recalling specific high-risk items that controls forget. The retrospective association between diet and cancer is then exaggerated, not because of true causation but because *recall is correlated with case status*.
 
@@ -540,8 +546,8 @@ The plot might show that the "True Avg Effect" is around zero, while the "Publis
 
 ## p-Hacking
 
-> "If you torture the data long enough, it will confess to anything." - Ronald Coase\
-> (Our job here is to spot bruises.)
+> Any dataset, questioned persistently enough, will eventually agree with you.\
+> The work of this section is noticing when that is what happened.
 
 This chapter reviews the major statistical tools developed to diagnose, detect, and adjust for *p*-hacking and related selective-reporting practices. We focus on the mathematical foundations, assumptions, and inferential targets of each method; map the different "schools of thought"; summarize the simulation evidence and the spirited debates. This section also offers practical advice for applied researchers.
 
@@ -754,7 +760,7 @@ ggplot(df, aes(p, fill = type)) +
         x = "p-value",
         y = "Frequency",
         title = "P-value distributions under different research practices",
-        subtitle = "Effect size: d=1 (moderate); Alpha=0.05 (red line)",
+        subtitle = "Effect size: d=1 (moderate); Alpha=0.05 (dashed line)",
         fill = "Scenario"
     ) +
     # causalverse::ama_theme() + 
