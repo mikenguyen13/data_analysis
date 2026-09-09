@@ -1,9 +1,9 @@
 # High-Performance Computing
 
 ::: {.chapter-abstract}
-**Abstract.** Analyses that once fit comfortably on a laptop now routinely exceed it, whether through data volume, simulation scale, or the resampling that modern inference demands. This chapter covers high-performance computing for applied data analysis in R, treating it as an engineering discipline rather than a matter of requesting more cores. It reviews the parallel computing ecosystem, including the parallel package, foreach with doParallel, the future framework and its interchangeable backends, BiocParallel, snow, and sparklyr for distributed processing through Apache Spark. The emphasis falls on the practices that separate a real speedup from a wasted cluster allocation: profiling before parallelizing so that effort goes to the actual bottleneck, choosing a task granularity coarse enough that communication overhead does not dominate, estimating memory and runtime before submitting a job, testing on a small subset first, and monitoring resource use while the job runs. A worked R workflow and a demonstration make these recommendations concrete.
+**Abstract.** Analyses that once fit comfortably on a laptop now routinely exceed it, whether through data volume, simulation scale, or the resampling that modern inference demands. This chapter covers high-performance computing for applied data analysis in R, treating it as an engineering discipline rather than a matter of requesting more cores. It reviews the parallel computing ecosystem, including the parallel package, foreach with doParallel, the future framework and its interchangeable backends, BiocParallel, snow, and sparklyr for distributed processing through Apache Spark. Amdahl's law supplies the ceiling: with a serial fraction of any size, speedup approaches a fixed limit no matter how many workers are added, which is why profiling determines whether parallelizing is worth attempting at all. The emphasis then falls on the practices that separate a real speedup from a wasted cluster allocation: profiling before parallelizing so that effort goes to the actual bottleneck, choosing a task granularity coarse enough that communication overhead does not dominate, estimating memory and runtime before submitting a job, testing on a small subset first, and monitoring resource use while the job runs. Three failure modes receive separate treatment because they corrupt results rather than merely slowing them, and because none of them raises an error: random number streams that overlap across workers, or that vary with the number of workers, which breaks both independence and reproducibility; memory that is duplicated rather than shared under process-based backends, so that workers multiply the footprint instead of dividing it; and tasks that fail silently, leaving an analysis to proceed over an unknown subset of its intended sample. A worked R workflow and a demonstration make these recommendations concrete.
 
-**Keywords:** high-performance computing; parallel computing; future; foreach; Apache Spark; distributed computing; profiling; scalability; resource estimation
+**Keywords:** high-performance computing; parallel computing; future; foreach; Apache Spark; distributed computing; profiling; scalability; reproducibility
 :::
 
 High-Performance Computing (HPC) refers to the use of advanced computational systems and techniques to solve complex, resource-intensive problems that are impractical or inefficient on standard computing platforms. In the realm of data analysis, HPC enables the handling of **large-scale data processing**, **computationally intensive simulations**, and **advanced statistical modeling**, particularly in fields like finance, marketing, bioinformatics, and engineering.
@@ -20,6 +20,54 @@ In the **R** programming ecosystem, several packages and frameworks facilitate p
 -   `snow`: For simpler parallel computing on Windows and Linux clusters.
 
 However, effective HPC implementation requires more than just code parallelization. **Testing, monitoring, estimating resource requirements, and iterative scaling** are all essential components to maximize efficiency and prevent costly mistakes.
+
+A chapter on computation may look out of place in a volume about whether results deserve to be believed. It is not. Scale introduces failure modes that have nothing to do with speed and everything to do with correctness, and they share the property of being silent. A parallel simulation whose workers draw from overlapping random streams produces replicates that are not independent, and it reports a standard error computed as though they were. A job that loses three of its two hundred tasks to a memory limit returns a result assembled from a hundred and ninety-seven, and unless the code was written to notice, nothing in the output says so. A pipeline that cannot be run again because it depended on the number of cores available that afternoon is not reproducible, whatever the analysis script says.
+
+None of these announce themselves. They produce numbers, the numbers look reasonable, and the analysis proceeds. The practices in this chapter are worth the trouble because they convert silent failures into loud ones.
+
+------------------------------------------------------------------------
+
+## What Parallelism Can and Cannot Buy
+
+Before choosing a backend it is worth knowing the ceiling. Any computation divides into a portion that can be run in parallel and a portion that cannot: reading the input, setting up, combining results, writing the output. If $p$ is the fraction of total runtime that parallelizes and $k$ is the number of workers, the best achievable speedup is
+
+$$
+S(k) \;=\; \frac{1}{(1 - p) + \dfrac{p}{k}},
+$$
+
+which is Amdahl's law. The consequence is unintuitive and worth internalizing. As $k$ grows without bound, $S$ does not; it approaches $1/(1-p)$, a ceiling fixed entirely by the serial fraction. A job that is 90% parallelizable can never run more than ten times faster no matter how large the cluster, and it reaches a speedup of five at eight workers, at which point doubling the allocation again buys about 25%. A job that is 50% parallelizable never beats a factor of two.
+
+Two practical conclusions follow. The first is that profiling is not optional preparation but the step that determines whether any of this is worth doing: an hour spent parallelizing a routine that accounts for 15% of runtime is an hour spent buying a maximum improvement of 18%. The second is that requesting more cores has sharply diminishing returns, and past a point it has negative ones, because the formula above ignores the cost of coordination. Real parallel overhead grows with $k$: workers must be started, data must be copied to them, and results must be collected. Where that cost grows faster than the work shrinks, adding workers makes the job slower. This is the usual explanation for a benchmark that improves from two cores to eight and then degrades at thirty-two.
+
+The corollary for task granularity is direct. Overhead is paid per task, so a loop of a million tasks each lasting a millisecond spends most of its life in dispatch. Chunking that same work into a few hundred tasks of a few seconds each pays the overhead a few hundred times instead of a million, and typically runs an order of magnitude faster with no change to the computation itself.
+
+------------------------------------------------------------------------
+
+## Reproducibility Under Parallel Execution
+
+The single most common way for a parallel analysis to be quietly wrong involves random numbers, and it is worth stating plainly because the failure produces no error.
+
+R's generator is a deterministic stream advanced by a seed. Calling `set.seed(123)` and then spawning workers does not give each worker its own stream; depending on the backend it may give them all the *same* stream, in which case a simulation of ten thousand replicates across eight workers contains eight identical blocks of twelve hundred and fifty, and the variance across replicates is understated accordingly. Alternatively the workers may be seeded from the system clock or the process id, in which case the streams differ but the run is not reproducible, and no amount of re-running the script recovers the reported numbers.
+
+Neither failure raises a warning. Both produce output of the right shape and plausible magnitude.
+
+The fix is a generator designed for the purpose. L'Ecuyer's combined multiple-recursive generator can be partitioned into streams that are guaranteed not to overlap, and every parallel framework in R exposes it:
+
+- With the `parallel` package, set `RNGkind("L'Ecuyer-CMRG")`, then `set.seed()`, then `clusterSetRNGStream(cl, seed)`.
+- With `future` and `future.apply`, pass `future.seed = TRUE`, which handles stream assignment automatically. This is not the default, and code that omits it is exposed to the first failure above.
+- With `foreach`, use the `doRNG` backend rather than `doParallel` alone. A plain `%dopar%` loop drawing random numbers is not reproducible.
+
+There is a further subtlety that catches people who have done everything else correctly: results must not depend on the *number* of workers. If each task carries its own stream, splitting ten thousand tasks across four workers or across sixteen yields identical output, which is what reproducibility requires, since the person rerunning the analysis has a different machine. If instead each worker seeds once and its tasks share a stream, the assignment of draws to tasks changes with the worker count, and so does the answer. Verifying that a run with two workers matches a run with eight is a cheap and unusually informative test, and it belongs in the test suite of any simulation whose results will be published.
+
+------------------------------------------------------------------------
+
+## Memory, Failure, and Partial Results
+
+Two further properties of parallel execution deserve attention before the practices below.
+
+**Memory does not parallelize the way runtime does.** On Linux and macOS, forked workers share memory with the parent copy-on-write, so an object is duplicated only when a worker modifies it. On Windows, and in any `PSOCK` or multisession backend, each worker is a fresh R process that receives its own copy of everything it touches. Eight workers operating on a four-gigabyte object therefore need thirty-two gigabytes rather than four, and the job dies at the memory limit having consumed the allocation without producing anything. This is the most common reason a workflow that runs on a laptop fails on a cluster, and it is why memory needs estimating separately from runtime rather than being assumed to follow it.
+
+**A failed worker is not necessarily a failed job.** By default, `foreach` will abort the whole loop when one task raises an error, which is inconvenient but at least visible. Setting `.errorhandling = "pass"` or `"remove"` changes that: the loop completes, and the result silently contains error objects or is simply shorter than expected. Either behaviour can be the right choice for a long job over noisy inputs, where a handful of failures is expected and restarting from the beginning is unaffordable. Neither is safe unless the code afterwards checks how many results came back and what they are. The rule is to count: if two hundred tasks were dispatched, assert that two hundred results returned before using them, and record which ones did not. An analysis run over an unknown subset of its intended sample is not the analysis that gets described in the paper.
 
 ------------------------------------------------------------------------
 

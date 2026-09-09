@@ -1,10 +1,26 @@
 # Exploratory Data Analysis
 
 ::: {.chapter-abstract}
-**Abstract.** Exploratory data analysis is where an analyst learns what the data can and cannot support, before any model commits them to an answer. This chapter demonstrates a fast, business-oriented workflow on a housing panel, emphasizing the steps that repay attention and the automation that makes them cheap to repeat. It covers automated data reports, feature engineering aimed at interpretable marketing and finance constructs, missingness profiling that separates structural gaps from incidental ones, and error identification for implausible values and outliers. Summary statistics are presented in several forms, because the useful summary depends on whether the reader is a collaborator, a reviewer, or a stakeholder. The chapter also treats the low-code path, including visual wrangling tools and interactive pivot and dashboard interfaces that non-technical colleagues will actually open, and closes with a template for scheduled reports that refresh themselves, together with the practical failure modes of each tool discussed.
+**Abstract.** Exploratory data analysis is where an analyst learns what the data can and cannot support, before any model commits them to an answer. This chapter demonstrates a fast, business-oriented workflow on a housing panel, emphasizing the steps that repay attention and the automation that makes them cheap to repeat. It covers automated data reports, feature engineering aimed at interpretable marketing and finance constructs, missingness profiling that separates structural gaps from incidental ones, and error identification for implausible values and outliers. Two distinctions organize that material: the taxonomy separating data missing completely at random, at random, and not at random, which determines whether any repair is possible, and the difference between a value that cannot be right and one that is merely extreme, where deletion stops being cleaning and becomes an inferential act. Summary statistics are presented in several forms, because the useful summary depends on whether the reader is a collaborator, a reviewer, or a stakeholder. A closing section takes up the cost of exploration itself, since an analyst who has already seen a pattern cannot afterwards test it as though encountering it for the first time, and weighs the three available responses: sample splitting, pre-specification, and accurate description of what was done. The chapter also treats the low-code path, including visual wrangling tools and interactive pivot and dashboard interfaces that non-technical colleagues will actually open, and closes with a template for scheduled reports that refresh themselves, together with the practical failure modes of each tool discussed.
 
-**Keywords:** exploratory data analysis; data profiling; feature engineering; missing data; outlier detection; summary statistics; automated reporting; interactive visualization
+**Keywords:** exploratory data analysis; data profiling; feature engineering; missing data; outlier detection; summary statistics; automated reporting; interactive visualization; researcher degrees of freedom
 :::
+
+Exploratory analysis occupies an uncomfortable position in the standard account of empirical work. It is universally practiced and almost never reported. A paper describes the model it fitted and the tests it ran, not the forty plots that preceded them, and the reader is left to infer that the specification arrived fully formed. It never does. Between the raw file and the first regression there is a long stretch of looking, and what happens in that stretch determines more about the eventual result than the choice of estimator does.
+
+This chapter treats that stretch as a technical subject rather than as preparation for the real work. The argument is not that exploration should be avoided, which is impossible, nor merely that it should be disclosed, which is procedural. It is that exploration should be conducted so that its consequences remain legible: scripted rather than performed by hand, so that what was looked at is recoverable, and understood as consuming evidence, so that the analyst does not later test a hypothesis about a pattern they have already seen as though seeing it for the first time.
+
+## What Exploration Is For
+
+Three questions occupy this stage, and they are worth separating because they fail in different ways.
+
+The first is what the data are. Types, ranges, cardinality, and completeness sound like clerical matters, and they are, right up until a variable assumed to be continuous turns out to be a truncated count, or a panel assumed to be balanced turns out to lose half its units after a particular year. These facts constrain every model that follows. They are cheap to establish now and expensive to discover late.
+
+The second is what the data can support. A question requires variation of a particular kind, in a particular place, and the data either contain it or they do not. If treated and untreated units do not overlap on the covariates that matter, no estimator recovers the contrast; if a key subgroup holds forty observations, no amount of modeling produces a credible subgroup effect. Settling this early prevents an entire analysis from being built on a comparison the data cannot make.
+
+The third is what would have to be true for the analysis to be wrong, which is the question the rest of this volume develops at length. Exploration is where the candidate answers first become visible: the impossible value that suggests a coding error, the discontinuity that suggests a change in how a variable was collected, the association between missingness and the outcome that suggests the absent rows are not absent at random.
+
+Only the first of these is served by running a profiling package and reading its output. The second and third require the analyst to hold a question in mind and interrogate the data against it. The workflow below automates the first so that attention is left over for the others.
 
 This section demonstrates a fast, business-oriented EDA workflow on `ggplot2::txhousing`. We'll generate automated reports, engineer interpretable features for marketing/finance contexts, profile missingness, identify errors/outliers, and provide quick interactive tools your stakeholders will actually use. Where possible, we keep everything reproducible in code and easy to extend for your own datasets.
 
@@ -62,6 +78,8 @@ dplyr::glimpse(tx)
 
 Automate a first-pass profile to see dimensions, types, basic completeness, and distributions.
 
+Automation matters here for a reason beyond convenience. A profile produced by a script can be regenerated when the data are refreshed, diffed against the previous version, and inspected by someone who was not present the first time. A profile produced by clicking through a spreadsheet is none of those things, and its findings survive only in the analyst's memory. The tools below reveal nothing a careful analyst could not find by hand; what they change is that the finding becomes reproducible and the cost of repeating it falls to nearly zero.
+
 ```{r, message = FALSE, warning = FALSE, results = "hide"}
 # High-level overview
 introduce(tx)
@@ -104,6 +122,8 @@ DataExplorer::plot_prcomp(tx %>%
 ## Feature Engineering
 
 Business-minded transforms often beat fancy models. The goal is interpretability and better signal-to-noise.
+
+The warning attached to this step is that feature engineering is where exploration most easily becomes specification search. Constructing a ratio because it corresponds to a quantity the field already reasons about is defensible. Constructing forty ratios and keeping the three that correlate with the outcome is a specification search conducted before the specification exists, and it leaves no trace in the model that eventually gets reported. The distinction is not visible in the code, which is identical either way. It lies in whether the construct was motivated before its relationship to the outcome was inspected. Where a transform was chosen by looking, the honest description of the resulting estimate is exploratory, and Section \@ref(sec-publication-bias-phacking) sets out what that costs.
 
 ```{r}
 fe_tx <- tx %>%
@@ -153,6 +173,12 @@ names(spl)
 
 Missingness is information. First detect, then decide: delete, impute, or model it explicitly.
 
+Detection does not settle the decision, because the same missingness rate can arise from mechanisms with entirely different consequences. The standard taxonomy separates three. Values are missing completely at random when the probability of absence is unrelated to anything, observed or not; dropping incomplete rows then costs precision and nothing else. Values are missing at random when that probability depends on observed variables; complete-case analysis is now biased, but the bias is repairable, because the variables driving the absence are available to condition on. Values are missing not at random when the probability depends on the unobserved value itself, and this is the case no imputation procedure repairs, because the information required to repair it is exactly what is absent.
+
+Nothing in the data distinguishes the second case from the third. The pattern of missingness is observable; the mechanism generating it is an assumption, of the same kind as the identifying assumptions treated elsewhere in this volume. That is why the profiling below is worth doing carefully and is still not decisive on its own. It shows where the holes are and which observed variables predict them, which is enough to rule out the first case and to argue about the other two, but not enough to establish which obtains. Where the choice changes the conclusion, it belongs in the sensitivity analysis rather than in a preprocessing step nobody reports.
+
+One practical corollary: keep an indicator for what was missing. If the missingness is informative, the indicator carries signal that imputation would otherwise destroy; if it is not, the indicator is harmless.
+
 ```{r}
 # Counts by variable
 profile_missing(tx)
@@ -201,6 +227,10 @@ plot_na_pareto(tx)
 ## Error Identification
 
 Catch anomalies early: impossible values, data entry glitches, or KPI mismatches.
+
+The category deserves more care than it usually gets, because two very different things travel under the name outlier. One is a value that cannot be right: a negative price, a sale recorded before its listing, a month with more transactions than there were listings to transact. These are errors, they have a cause in the recording process, and removing them is a cleaning decision any reader would endorse. The other is a value that is extreme but entirely possible, and here removal is not cleaning but an inferential act. Dropping the observations that sit furthest from the fitted relationship will improve the fit, always, and the improvement carries no information about whether the relationship is real.
+
+The operational test is whether the exclusion rule can be stated without reference to the outcome. A rule that removes months where sales exceed listings is mechanical, checkable, and independent of any model. A rule that removes the twelve cities with the largest residuals is none of those; it is a specification choice, and it should be reported as one and varied among the robustness checks. The diagnostics below identify candidates. They do not license deletion.
 
 1.  Logical constraints
 
@@ -254,6 +284,8 @@ makeDataReport(tx)  # Generates an HTML report in your working directory
 ## Summary statistics
 
 Concise summaries for continuous and categorical variables, plus grouped business KPIs.
+
+The reason to produce several of these rather than one is that a summary table serves three audiences with incompatible needs. A collaborator wants completeness, including the variables that turned out not to matter, because they are checking the work rather than reading a result. A referee wants the quantities that bear on credibility: cell sizes, missingness rates, and the dispersion of the variables carrying identification, since those determine whether the design can support the claim at all. A stakeholder wants the three numbers that change a decision and will not read past them. Producing one table and asking all three to use it guarantees that at least two are served badly.
 
 ```{r}
 skim(tx)
@@ -318,6 +350,20 @@ tx %>%
 ```
 
 ------------------------------------------------------------------------
+
+## Exploration and Confirmation
+
+Everything above changes what the analyst knows, and that is the difficulty. A hypothesis test asks how surprising the observed data would be if the null were true, and the calculation assumes the hypothesis was fixed before the data were seen. An analyst who has already plotted the outcome against a dozen candidate predictors, noticed which relationship looked strongest, and then tested that one has not performed the test the $p$-value describes. The reported figure answers a question nobody asked: how surprising this result would be under the null, had this particular comparison been chosen in advance. It was not chosen in advance. It was chosen by looking.
+
+The problem does not require any intent to deceive, and it does not require running many tests and reporting the best. It is enough to have made a sequence of reasonable decisions, each defensible on its own, each informed by a glance at the data: to have excluded a period that looked anomalous, pooled two categories that behaved similarly, used the log because the raw variable was skewed. Every one of those may be the right call. Collectively they define a path through a garden of alternatives, and the analysis that emerges at the end has been fitted to the data in ways the standard errors do not know about. Section \@ref(sec-publication-bias-phacking) treats the literature-level consequences.
+
+Three responses are available, and they are not equivalent.
+
+The first is to separate the samples. Explore on one partition, confirm on another held back and untouched, and the confirmatory test recovers its meaning because the data it uses were not consulted while the specification was being formed. This is the cleanest solution and the most expensive, since it spends observations on discipline, and it is unavailable when the sample is small or the interesting variation sits in a subgroup too thin to split.
+
+The second is to fix the analysis in advance. A pre-specified plan converts exploratory freedom into a commitment made before the outcome is visible. It is not free either: real data surprise the analyst, and a plan rigid enough to bind is often a plan that turns out to have specified the wrong model. The usual compromise is to pre-specify the primary analysis and label everything else as what it is.
+
+The third, always available and too rarely taken, is to describe the analysis accurately. An exploratory result reported as exploratory is a contribution: it identifies a pattern worth testing on data that do not yet exist. The same result reported as a confirmatory test of a hypothesis is a claim the evidence does not support. What makes the difference is a sentence in the text, and the discipline to write it. Chapter \@ref(sec-replication) takes up the mechanism by which such patterns eventually become knowledge, which is that somebody collects new data and looks again.
 
 ## Not so code-y process
 
