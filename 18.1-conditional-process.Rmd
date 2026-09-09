@@ -384,6 +384,202 @@ A study with 200 observations has good power for the indirect effect and almost 
 
 Three design responses follow. Power the study for the index rather than the effect, which usually means a materially larger sample than the mediation analysis alone would require. Choose the moderator on theory and pre-register it, since the effective multiplicity across candidate moderators is otherwise unbounded [@rohrer2022process]. And when the sample cannot support the interaction, report the conditional effects descriptively and say so, rather than converting a null difference into a positive claim.
 
+## Design-First Moderated Mediation: An Industry Application {#sec-cpa-design-first}
+
+The replication above is a laboratory experiment, where the treatment is randomized and the mediator is measured. Most industry and strategy questions do not come that way. The treatment is a firm decision, adopted at different times by different firms, and the mechanism is an operational variable that nobody randomized. The temptation is to fit the conditional process model directly on observational data and report the index. That inherits every confounding problem the chapter has warned about, all at once.
+
+The disciplined alternative is to establish the total effect with a credible design first, and only then decompose it. @singh2026profitability is a good template for how that reads in a top journal.
+
+The substantive setting is open-source product development. Studying 977 United States high technology firms from 2001 to 2025, the paper reports that adopting open-source product development raised gross margins by 4 to 5 percent on average. The conditional process structure is:
+
+| Role | Variable |
+|:-------------|:-----------------------------------------------------|
+| Treatment | Adoption of open-source product development on GitHub |
+| Outcome | Gross margin |
+| Mediator | Labor productivity |
+| Moderator | Share of work supplied by external contributors |
+| Moderator location | First stage, treatment to mediator |
+
+The reported mechanism is knowledge integration: firms absorb the diverse knowledge of outside contributors into internal workflows, which broadens the organizational knowledge base without a matching rise in labor costs. The mediator is therefore labor productivity, measured in the tradition of @brynjolfsson2003computing.
+
+The finding that makes it a moderated mediation rather than a mediation is the threshold. The payoff appears only when outside volunteers supply a meaningful share of the work, around 35 percent in this sample. Below that share the indirect path is not operative. This is first-stage moderation, which Section \@ref(sec-cpa-counterfactual) identified as the credible case: the moderator conditions the path from treatment to mediator, and a design that identifies the treatment effect also identifies how that effect varies.
+
+### What Makes the Design Credible
+
+Three features are worth copying.
+
+The causal design is separate from, and prior to, the mediation model. Firms adopt open source at different times, which is a staggered adoption setting, and the paper draws on the staggered difference in differences literature covered in this book, including @callaway2021difference for group-time effects and the intertemporal estimators that handle heterogeneous timing, together with the generalized synthetic control approach of @xu2017generalized and dynamic panel estimation in the tradition of @blundell1998initial. The point is not that any one of these is decisive. It is that the total effect survives estimators with different failure modes before any decomposition is attempted.
+
+The mediator is constructed, not assumed. More than 323,000 project level contributions across more than 44,000 repositories are decomposed into internal employee and external volunteer sources. The moderator is not a survey scale, it is a measured share of observed work. When the moderator is built from the same granular data as the treatment, the threshold has a concrete meaning.
+
+The claim is bounded by the design. Identifying the total effect does not identify the indirect effect. No staggered adoption design randomizes labor productivity, so the mediator to outcome path still rests on a sequential ignorability assumption of the kind Section \@ref(sec-cpa-counterfactual) sets out, and the honest reading is that the decomposition is conditional on that assumption while the total effect is not. A paper that says so is more credible than one that reports an index with three stars and no such sentence.
+
+### The Template
+
+For a mechanism claim in an observational industry setting:
+
+1.  Identify and defend the total effect with a design, and show it under at least two estimators with different assumptions.
+2.  Build the mediator and the moderator from data granular enough that the threshold means something.
+3.  Fit the conditional process model, and test the index of moderated mediation rather than probing at conventional values.
+4.  State which parts of the decomposition are design based and which rest on selection on observables.
+5.  Report the magnitude, not only the sign and the significance, and see Section \@ref(sec-causal-r-squared) on what share of outcome variation the mechanism actually accounts for.
+
+## Configurational Analysis and Equifinality {#sec-cpa-configurational}
+
+@singh2026profitability adds a second analysis that does not fit the regression framework at all: the payoff depends on the firm's resource configuration, there are multiple pathways to high profitability, and sustained internal research and development is a core condition present in all of them.
+
+That sentence contains three claims a moderated mediation model cannot express. Multiple pathways is equifinality: different combinations of conditions reach the same outcome. A core condition present in all configurations is a near necessity claim, not an average marginal effect. And configurations are conjunctural: conditions work in combination, not additively.
+
+Configurational analysis, usually fuzzy set qualitative comparative analysis, is the set-theoretic method built for these claims. @ragin2008redesigning is the foundational treatment, @fiss2011building brought it into organizational research, and @misangyi2017embracing reviews the modern practice.
+
+### How It Differs From Interaction Terms
+
+The distinction is not cosmetic.
+
+| | Regression with interactions | Configurational analysis |
+|:-----------------|:-------------------------|:---------------------------|
+| Question | What is the average marginal effect of $X$, possibly varying with $M$? | Which combinations of conditions are sufficient for a high outcome? |
+| Causal form | Net effects, additive with product terms | Conjunctural, combinations as units |
+| Multiple paths | One functional form for all units | Equifinality is native |
+| Symmetry | Conditions for high $Y$ are the mirror of conditions for low $Y$ | Asymmetric, the two are analyzed separately |
+| Output | Coefficients and intervals | Solutions with consistency and coverage |
+
+The symmetry point is the one applied readers most often miss. In a linear model, whatever raises the outcome lowers it when reversed, by construction. In a set-theoretic analysis the conditions sufficient for high profitability and the conditions sufficient for low profitability are separate analyses that routinely produce non-mirrored answers.
+
+### The Machinery
+
+Three ideas carry the method.
+
+Calibration turns a raw variable into degree of membership in a set, on a zero to one scale, using three substantive anchors: full membership, the crossover point of maximum ambiguity, and full non-membership. Calibration is a theoretical act, not a statistical one, and it is where most of the researcher degrees of freedom live.
+
+Consistency measures how close a configuration comes to being a subset of the outcome, which is the set-theoretic expression of sufficiency. For configuration membership $c_i$ and outcome membership $y_i$,
+
+$$\text{Consistency} = \frac{\sum_i \min(c_i, y_i)}{\sum_i c_i}.$$
+
+Coverage measures how much of the outcome a configuration accounts for, which is the set-theoretic analogue of empirical importance:
+
+$$\text{Coverage} = \frac{\sum_i \min(c_i, y_i)}{\sum_i y_i}.$$
+
+Necessity reverses the containment: a condition is necessary if the outcome is a subset of it, so the same ratio is taken over $\sum_i y_i$ instead.
+
+### A Worked Configurational Analysis
+
+The following implements calibration, necessity, and a truth table from scratch, so that every quantity is visible. The data are simulated to match the structure reported in @singh2026profitability: research and development intensity is required, and it pays off either through external contributors or through scale.
+
+```{r cpa-qca-core}
+# Direct calibration into fuzzy set membership, anchored at
+# full non-membership, the crossover point, and full membership.
+calibrate_fuzzy <- function(x, full_out, crossover, full_in) {
+  dev      <- x - crossover
+  scale_up <- log(0.95 / 0.05) / (full_in - crossover)
+  scale_dn <- log(0.95 / 0.05) / (crossover - full_out)
+  z <- ifelse(dev >= 0, dev * scale_up, dev * scale_dn)
+  1 / (1 + exp(-z))
+}
+
+# Consistency and coverage of each condition as a necessary condition.
+necessity <- function(conditions, outcome) {
+  data.frame(
+    condition   = colnames(conditions),
+    consistency = apply(conditions, 2, function(x) sum(pmin(x, outcome)) / sum(outcome)),
+    coverage    = apply(conditions, 2, function(x) sum(pmin(x, outcome)) / sum(x)),
+    row.names   = NULL
+  )
+}
+
+# Truth table: every corner of the property space, with the consistency
+# and coverage of that configuration as a sufficient condition.
+truth_table <- function(conditions, outcome, freq_cutoff = 10, cons_cutoff = 0.80) {
+  k  <- ncol(conditions)
+  nm <- colnames(conditions)
+  corners <- expand.grid(rep(list(c(0, 1)), k))
+  colnames(corners) <- nm
+
+  rows <- lapply(seq_len(nrow(corners)), function(r) {
+    bits <- as.numeric(corners[r, ])
+    # Membership in a corner is the minimum over conditions, negating
+    # those the corner sets to zero.
+    memb <- do.call(pmin, lapply(seq_len(k), function(j) {
+      if (bits[j] == 1) conditions[, j] else 1 - conditions[, j]
+    }))
+    data.frame(
+      as.list(setNames(bits, nm)),
+      n           = sum(memb > 0.5),
+      consistency = sum(pmin(memb, outcome)) / sum(memb),
+      coverage    = sum(pmin(memb, outcome)) / sum(outcome)
+    )
+  })
+
+  tt <- do.call(rbind, rows)
+  tt$sufficient <- as.integer(tt$n >= freq_cutoff & tt$consistency >= cons_cutoff)
+  tt[order(-tt$consistency), ]
+}
+```
+
+```{r cpa-qca-data}
+set.seed(11)
+n <- 500
+
+rnd  <- rgamma(n, 2.2, 0.4)   # R&D intensity
+ext  <- runif(n, 0, 70)       # external contributor share, percent
+size <- rlnorm(n, 6, 1.1)     # firm scale
+oss  <- rbinom(n, 1, 0.5)     # open-source adoption
+
+# Two equifinal paths to a high gross margin, both requiring R&D.
+hi_rnd  <- rnd > 5
+hi_ext  <- ext > 35 & oss == 1
+hi_size <- size > 500
+
+margin <- 18 + 12 * (hi_rnd & hi_ext) + 12 * (hi_rnd & hi_size) + rnorm(n, 0, 2)
+
+cond <- data.frame(
+  RND  = calibrate_fuzzy(rnd,       full_out = 3.5, crossover = 5,   full_in = 7),
+  EXT  = calibrate_fuzzy(ext * oss, full_out = 25,  crossover = 35,  full_in = 45),
+  SIZE = calibrate_fuzzy(size,      full_out = 400, crossover = 500, full_in = 640)
+)
+y_high <- calibrate_fuzzy(margin, full_out = 22, crossover = 25, full_in = 29)
+```
+
+Necessity comes first, because a condition that is necessary will appear in every sufficient configuration and should be interpreted as such rather than as one path among many.
+
+```{r cpa-qca-necessity}
+nec <- necessity(cond, y_high)
+nec[, 2:3] <- round(nec[, 2:3], 3)
+nec
+```
+
+Research and development intensity has a necessity consistency of about 0.91, which is the conventional territory for a near necessary condition. External contribution and scale are nowhere close, so neither is necessary on its own.
+
+```{r cpa-qca-truthtable}
+tt_high <- truth_table(cond, y_high, freq_cutoff = 10, cons_cutoff = 0.80)
+print(round(tt_high, 3), row.names = FALSE)
+```
+
+Three configurations clear the consistency threshold, and research and development is present in all three. Two substantively distinct paths emerge. High research and development combined with a high external contributor share is sufficient whether or not the firm is large. High research and development combined with scale is sufficient without external contributors, and it has the largest coverage, at about 0.47, meaning it accounts for the largest share of high margin firms.
+
+That is equifinality stated precisely: there is no single path, but there is a common core.
+
+Now the asymmetry. If the method were merely a re-encoding of a regression, the conditions for a low margin would be the negation of the conditions for a high margin.
+
+```{r cpa-qca-asymmetry}
+tt_low <- truth_table(cond, 1 - y_high, freq_cutoff = 10, cons_cutoff = 0.80)
+print(round(tt_low, 3), row.names = FALSE)
+```
+
+They are not. Five configurations are sufficient for a low margin, and one of them has high research and development. Investing in research and development without either an external contributor community or scale is sufficient for a low margin, with a consistency of about 0.94. The core condition for success is not protective on its own. A linear model with interaction terms cannot represent that, because it forces the low outcome analysis to be the arithmetic negative of the high outcome analysis.
+
+### What Configurational Analysis Does Not Give You
+
+It is not a causal identification strategy. Consistency and coverage are descriptions of set relations in the observed data, and they inherit every confounding problem present in the sample. A configuration that is consistently associated with high profitability is not thereby shown to cause it. This is why the structure in @singh2026profitability is the right one: a design based estimate of the total effect carries the causal claim, and the configurational analysis characterizes heterogeneity in who benefits.
+
+It has substantial researcher degrees of freedom. The calibration anchors, the frequency cutoff, and the consistency cutoff are all choices, and the solution can change with them. Note that in the truth table above, the third configuration sits at 0.803 against a cutoff of 0.80. Report the sensitivity of the solution to these choices in the same spirit as the specification curve analysis in Section \@ref(sec-publication-bias-phacking).
+
+It does not produce a standard error. There is no sampling theory attached to the solution in standard practice, so a configurational result is evidence about pattern, not a hypothesis test.
+
+### Choosing Between Them
+
+Use moderated mediation when the theory is about a mechanism whose strength varies, when a single functional form is plausible, and when you can defend the moderator's placement in the causal chain. Use configurational analysis when the theory is about combinations, when you expect several routes to the same outcome, and when you suspect the conditions for success differ in kind from the conditions for failure. The two answer different questions, and @singh2026profitability reports both because the substantive claim requires both: a mechanism that operates above a threshold, and a set of resource configurations in which the mechanism can operate at all.
+
 ## Practice {#sec-cpa-practice}
 
 Applied conditional process analysis has accumulated a set of habits that survive mainly because software makes them easy. @rohrer2022process catalogue the main ones, and the following consolidates them into what a defensible report contains.
@@ -421,3 +617,7 @@ The dominant reporting practice, probing the indirect effect at conventional mod
 Counterfactually, most applied moderation of a mechanism is effect modification rather than interaction, which is both weaker and easier: it needs no assumption about the moderator's own confounding, but it licenses no statement about changing the moderator. First-stage moderated mediation is the credible case, because a randomized treatment identifies the interaction that drives it, and @loeys2016assessing show that this makes moderated mediation identifiable under weaker assumptions than mediation itself. Second-stage moderation carries the full burden of mediator-outcome confounding and no differencing argument relieves it.
 
 The replication of @brader2008triggers shows the whole apparatus at work and delivers a result worth keeping: the framing treatment operates through anxiety at every age, the mechanism does not measurably vary with age, and what does vary with age is the direct path that bypasses anxiety entirely. A causal forest reaches the same conclusion without being told to look at age. The power simulation explains why: detecting moderated mediation takes roughly four times the sample that detecting mediation takes, and most published conditional process analyses are not built at that scale.
+
+Outside the laboratory the order of operations matters more than the model. @singh2026profitability is the template: establish the total effect with a design that survives estimators with different failure modes, build the mediator and the moderator from data granular enough that a threshold means something, and then decompose, stating plainly which parts of the decomposition are design based and which rest on selection on observables.
+
+Some mechanism claims do not fit a regression at all. When the theory says that several distinct combinations of conditions reach the same outcome, that one condition is present in all of them, and that the conditions for failure are not the mirror image of the conditions for success, the set-theoretic tools are the right ones. Configurational analysis expresses equifinality, conjunctural causation, and asymmetry natively, at the cost of giving up standard errors and inheriting every confounder in the sample. It characterizes heterogeneity; it does not identify effects. Used alongside a credible design rather than in place of one, it answers the question a coefficient cannot: not how large the average effect is, but in which configurations the mechanism operates at all.
