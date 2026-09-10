@@ -21,7 +21,7 @@ online book, plus the Introduction that already exists in
 | 4 | `39-controls.Rmd` | Controls |
 | 5 | `40-report.Rmd` | Reporting Your Analysis |
 | 6 | `41-EDA.Rmd` | Exploratory Data Analysis |
-| 7 | `42-sensitivity-robustness.Rmd`, `42.5-placebo-falsification.Rmd`, `42.6-publication-bias-phacking.Rmd` | Sensitivity Analysis and Robustness Checks |
+| 7 | `42-sensitivity-robustness.Rmd`, `42.5-placebo-falsification.Rmd`, `42.6-publication-bias-phacking.Rmd`, `42.7-robustness-conclusion.Rmd` | Sensitivity Analysis and Robustness Checks |
 | 8 | `43-rep_synthetic_data.Rmd` | Replication and Synthetic Data |
 | 9 | `43.5-differential-privacy.Rmd` | Differential Privacy |
 | 10 | `44-hpc.Rmd` | High-Performance Computing |
@@ -82,7 +82,7 @@ real rewriting; the rest already had the right shape.
 
 ## When you make the copy
 
-Copy the thirteen `.Rmd` files listed above, plus `_common.R`, the four `.bib` files,
+Copy the fourteen `.Rmd` files listed above, plus `_common.R`, the four `.bib` files,
 `preamble.tex`, `logo.png`, and `style.css`, into the standalone folder. Keep the
 existing `index.Rmd`, `_bookdown.yml`, and `_output.yml` there, and add
 `_abstract_style.html` to the `in_header` list of that folder's `bs4_book` block so the
@@ -130,7 +130,7 @@ and exits non-zero if any cited key has no entry.
 ### The whole procedure has been dry-run
 
 The steps above were executed end to end against a throwaway copy, not just reasoned
-about. A scratch folder was built exactly as described: the thirteen chapters, this
+about. A scratch folder was built exactly as described: the chapter files, this
 folder's `index.Rmd`, `_bookdown.yml`, `_output.yml`, `_common.R` and assets, and the
 pruned bibliography. Then `strip-outward-links.pl --write` ran, `index.Rmd` was pointed
 at the single bibliography, and both checks were run on the result:
@@ -202,7 +202,7 @@ carrying substantive edits were rendered individually and passed.
    ```
 
 8. **The bibliography is pruned and verified.** See above. Verification was not a key
-   count: the thirteen chapter files were concatenated and run through pandoc with
+   count: every chapter file was concatenated and run through pandoc with
    `--citeproc` against the pruned bibliography alone, which reports zero missing
    citations. Because that runs over the raw `.Rmd`, it also catches any citation sitting
    inside a code chunk that a key-extracting regex would miss. The check was confirmed to

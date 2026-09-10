@@ -26,7 +26,8 @@ my $AT = chr(64);   # built from a char code so no shell can mangle it
 my @CHAPTERS = qw(
   36-endogeneity.Rmd 37-biases.Rmd 38-dag.Rmd 39-controls.Rmd 40-report.Rmd
   41-EDA.Rmd 42-sensitivity-robustness.Rmd 42.5-placebo-falsification.Rmd
-  42.6-publication-bias-phacking.Rmd 43-rep_synthetic_data.Rmd
+  42.6-publication-bias-phacking.Rmd 42.7-robustness-conclusion.Rmd
+  43-rep_synthetic_data.Rmd
   43.5-differential-privacy.Rmd 44-hpc.Rmd 45-clustered-inference.Rmd
 );
 my @BIBS = qw(book.bib packages.bib references.bib references1.bib);
