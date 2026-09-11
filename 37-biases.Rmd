@@ -6,7 +6,7 @@
 **Keywords:** Aggregation bias; Simpson's paradox; Contamination bias; Survivorship bias; Attrition bias; Recall bias; Publication bias; P-hacking; Selection models
 :::
 
-In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. This chapter focuses on biases that arise from the *design* of the study or the *measurement* of variables; specification errors, multicollinearity, autocorrelation, and heteroskedasticity are properties of the *estimation* and are covered in the regression chapters in Part II. The list below organizes the biases this book has discussed alongside those treated here.
+In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. This chapter focuses on biases that arise from the *design* of the study or the *measurement* of variables. Specification errors, multicollinearity, autocorrelation, and heteroskedasticity are properties of the *estimation* and are covered in the regression chapters in Part II. The list below organizes the biases this book has discussed alongside those treated here.
 
 What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
@@ -285,9 +285,9 @@ Contamination bias is a relatively recent label for an old problem in regression
 
 The mechanism is easiest to see with a worked sketch. Suppose three mutually exclusive treatment arms $D_1, D_2, D_3$ are entered as dummies in a single regression with a rich set of controls $X$. The OLS coefficient on $D_1$ does not isolate the effect of arm 1 versus a clean baseline. It is a weighted average that includes negatively signed contributions from the heterogeneous effects of $D_2$ and $D_3$ in strata where those treatments are common. When effect heterogeneity lines up with the propensity score in the wrong direction, the resulting estimate can be attenuated, inflated, or even sign-flipped relative to the true average effect within arm 1. @goldsmith2022contamination formalize this: regressions with multiple treatments and flexible controls often fail to estimate convex averages of heterogeneous treatment effects, with the residualized treatment indicators inducing non-convex weights on the other arms' effects.
 
-The structural parallel to staggered DiD is direct. In both cases, a single regression coefficient is implicitly aggregating across heterogeneous comparison contrasts using weights chosen by the regression machinery rather than by the analyst. In staggered DiD, the contaminating contrasts come from already-treated units serving as controls for later-treated units; in multi-arm regressions, they come from the other arms' treatment effects bleeding into the focal coefficient. The fix in both literatures has the same shape: target convex combinations of own-effect contrasts directly, rather than backing them out of a pooled OLS specification.
+The structural parallel to staggered DiD is direct. In both cases, a single regression coefficient is implicitly aggregating across heterogeneous comparison contrasts using weights chosen by the regression machinery rather than by the analyst. In staggered DiD, the contaminating contrasts come from already-treated units serving as controls for later-treated units. In multi-arm regressions, they come from the other arms' treatment effects bleeding into the focal coefficient. The fix in both literatures has the same shape: target convex combinations of own-effect contrasts directly, rather than backing them out of a pooled OLS specification.
 
-Detection is largely diagnostic. Practitioners can inspect the implied regression weights on each treatment-by-stratum cell and check whether they are everywhere positive; flag specifications where some weights are large and negative; and compare the linear specification to estimators that target convex averages directly, such as arm-by-arm matching, separate ATE estimators per arm, or explicitly weighted estimators. Observational designs with highly variable propensity scores tend to display larger contamination than experiments, because randomization stabilizes the weights and shrinks the residualized regressors toward orthogonality with the other arms.
+Detection is largely diagnostic. Practitioners can inspect the implied regression weights on each treatment-by-stratum cell and check whether they are everywhere positive, flag specifications where some weights are large and negative, and compare the linear specification to estimators that target convex averages directly, such as arm-by-arm matching, separate ATE estimators per arm, or explicitly weighted estimators. Observational designs with highly variable propensity scores tend to display larger contamination than experiments, because randomization stabilizes the weights and shrinks the residualized regressors toward orthogonality with the other arms.
 
 The remedy is to abandon the pooled multi-arm OLS specification when the goal is an own-effect estimate. @goldsmith2022contamination propose three alternative estimators that recover convex combinations of own-treatment effects: a one-treatment-at-a-time approach, a stratification-based estimator, and an interacted regression that explicitly models the heterogeneity. They report substantial contamination in observational studies and a much smaller footprint in experimental ones, again because randomization disciplines the propensity-score variation that drives the bias.
 
@@ -390,7 +390,7 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 
 **Attrition bias** arises in longitudinal or panel studies when units drop out of the sample non-randomly --- and in particular when dropout is correlated with the outcome or with treatment status. Even a randomized experiment with perfect baseline balance will yield biased treatment-effect estimates if, for example, sicker patients in the control arm are more likely to be lost to follow-up than sicker patients in the treatment arm.
 
-The conceptual link to other selection-style problems is direct. Random assignment guarantees baseline ignorability, but it offers no protection once units begin selecting themselves out of follow-up; from that point forward the analyst is in the world of selection on unobservables (Section \@ref(sec-selection-on-unobservables)) and endogenous sample selection (Section \@ref(sec-endogenous-sample-selection)). Detection typically combines a comparison of baseline characteristics for completers versus dropouts, a test of differential attrition rates across treatment arms, and bounding exercises that ask how extreme the missing outcomes would have to be to overturn the headline estimate. When attrition is heavy or differential, results from quasi-experimental designs (Section \@ref(sec-quasi-experimental)) should be reported alongside their corresponding robustness checks (Section \@ref(sec-robustness-checks-quasi-exp)).
+The conceptual link to other selection-style problems is direct. Random assignment guarantees baseline ignorability, but it offers no protection once units begin selecting themselves out of follow-up. From that point forward the analyst is in the world of selection on unobservables (Section \@ref(sec-selection-on-unobservables)) and endogenous sample selection (Section \@ref(sec-endogenous-sample-selection)). Detection typically combines a comparison of baseline characteristics for completers versus dropouts, a test of differential attrition rates across treatment arms, and bounding exercises that ask how extreme the missing outcomes would have to be to overturn the headline estimate. When attrition is heavy or differential, results from quasi-experimental designs (Section \@ref(sec-quasi-experimental)) should be reported alongside their corresponding robustness checks (Section \@ref(sec-robustness-checks-quasi-exp)).
 
 **Example**: In a multi-year clinical trial of a weight-loss drug, participants who fail to lose weight are more likely to disengage and drop out. If dropout is heavier in the placebo arm, the per-protocol estimate overstates the drug's effect because the remaining placebo subjects are atypically successful.
 
@@ -401,7 +401,7 @@ The conceptual link to other selection-style problems is direct. Random assignme
 1.  Inverse-probability-of-attrition weighting (IPAW): Model the probability of remaining in the sample at each wave conditional on baseline covariates, then up-weight retained observations by the inverse of their estimated retention probability. Valid under the *missing-at-random given observables* assumption.
 2.  **Lee bounds** [@lee2009training]: Construct sharp non-parametric bounds on the treatment effect for *always-responders* by trimming the upper or lower tail of the over-represented arm by the differential attrition rate. Robust to arbitrary selection on unobservables, at the cost of width.
 3.  Selection / Heckman models: When a credible exclusion restriction is available, jointly model the dropout process and the outcome.
-4.  Sensitivity analyses: Re-run primary estimates under best-case / worst-case imputation of dropouts (e.g., last-observation-carried-forward; tipping-point analyses).
+4.  Sensitivity analyses: Re-run primary estimates under best-case / worst-case imputation of dropouts (e.g., last-observation-carried-forward, or tipping-point analyses).
 
 > **Key Takeaway**: Attrition bias is selection bias *induced post-randomization*. Pre-registered IPAW or Lee bounds, plus tabulated baseline characteristics of dropouts vs. completers, are the de facto reporting standard.
 
@@ -411,7 +411,7 @@ The conceptual link to other selection-style problems is direct. Random assignme
 
 **Recall bias** is a form of [measurement error](#sec-measurement-error) that arises when the accuracy or completeness of a respondent's memory is systematically related to their outcome or exposure status. Unlike classical, mean-zero measurement error --- which generally attenuates regression coefficients --- recall bias is *differential*, meaning it shifts coefficients in unpredictable directions and can manufacture spurious associations.
 
-The departure from classical measurement error (Section \@ref(sec-measurement-error)) is what makes recall bias particularly hazardous. Classical error attaches noise that is independent of the truth and of group status, so the standard intuition that errors-in-variables attenuate slopes applies. Differential recall, by contrast, is correlated with the outcome itself; this correlation can either inflate or deflate associations and can even reverse their sign. The same instrumental-variable and proxy-variable strategies used for handling endogeneity (Section \@ref(sec-instrumental-variables)) can sometimes be repurposed when an exogenous source of variation in reporting accuracy is available. Detection usually proceeds by comparing self-reported quantities to objective benchmarks on a calibration subsample, by stratifying error rates by case/control or treatment/control status, and by examining whether the implied error structure is plausibly mean-zero conditional on group.
+The departure from classical measurement error (Section \@ref(sec-measurement-error)) is what makes recall bias particularly hazardous. Classical error attaches noise that is independent of the truth and of group status, so the standard intuition that errors-in-variables attenuate slopes applies. Differential recall, by contrast, is correlated with the outcome itself, and this correlation can either inflate or deflate associations and can even reverse their sign. The same instrumental-variable and proxy-variable strategies used for handling endogeneity (Section \@ref(sec-instrumental-variables)) can sometimes be repurposed when an exogenous source of variation in reporting accuracy is available. Detection usually proceeds by comparing self-reported quantities to objective benchmarks on a calibration subsample, by stratifying error rates by case/control or treatment/control status, and by examining whether the implied error structure is plausibly mean-zero conditional on group.
 
 **Example**: In a case-control study of diet and cancer, cancer patients (cases) may scrutinize their pre-diagnosis diet more carefully than healthy controls, recalling specific high-risk items that controls forget. The retrospective association between diet and cancer is then exaggerated, not because of true causation but because *recall is correlated with case status*.
 
@@ -439,11 +439,11 @@ The departure from classical measurement error (Section \@ref(sec-measurement-er
 ### Standard remediations
 
 1.  Comparison-group designs: Include an untreated comparison group selected on the *same* extreme criterion. RTM operates equally on both groups, so the difference in changes (a [difference-in-differences](#sec-difference-in-differences) contrast) nets it out.
-2.  Avoid selection on the pre-test: Where possible, randomize within the eligible pool rather than treating the extreme tail; or pre-specify entry on a *time-invariant* characteristic instead of a noisy realization.
+2.  Avoid selection on the pre-test: Where possible, randomize within the eligible pool rather than treating the extreme tail, or pre-specify entry on a *time-invariant* characteristic instead of a noisy realization.
 3.  Use multiple baseline measurements: Average several pre-period observations to reduce the noise variance that fuels RTM, then condition on the average rather than a single realization.
 4.  Model the measurement process explicitly: A simple errors-in-variables or random-effects model that separates true score from noise will recover an RTM-corrected expected post-period value.
 
-> **Key Takeaway**: Whenever units are selected because they were extreme, expect movement toward the mean in the next period --- whether or not anything was done to them. Always benchmark against a similarly-selected control group; never report a pre/post change as a treatment effect when units were chosen on the pre-period value.
+> **Key Takeaway**: Whenever units are selected because they were extreme, expect movement toward the mean in the next period --- whether or not anything was done to them. Always benchmark against a similarly-selected control group, and never report a pre/post change as a treatment effect when units were chosen on the pre-period value.
 
 ------------------------------------------------------------------------
 
@@ -451,7 +451,7 @@ The departure from classical measurement error (Section \@ref(sec-measurement-er
 
 Publication bias occurs when the results of studies influence the likelihood of their being published. Typically, studies with significant, positive, or sensational results are more likely to be published than those with non-significant or negative results. This can skew the perceived effectiveness or results when researchers conduct meta-analyses or literature reviews, leading them to draw inaccurate conclusions.
 
-Publication bias sits at a different layer of the inference pipeline than the data-generating biases catalogued elsewhere in this chapter. It does not corrupt any single study's identification strategy; rather, it corrupts the *evidence base* that downstream meta-analysts and policymakers rely on. The mechanism is a filter on top of an otherwise honest research process: studies whose realized z-statistic clears the conventional threshold are likelier to enter the published record, so the published distribution of effect sizes is right-shifted relative to the underlying truth. This is the same selection logic that creates survivorship bias (Section \@ref(sec-survivorship-bias)), with the published literature playing the role of "survivors" and the file drawer playing the role of the missing failures. Detection methods exploit predictable features of the unfiltered distribution, especially the relationship between effect size and standard error in a funnel plot, the shape of the p-value distribution near the significance threshold, and the rate of just-barely-significant z-statistics relative to what sampling theory implies. Several of these diagnostics are developed in detail in the section on p-Hacking that follows.
+Publication bias sits at a different layer of the inference pipeline than the data-generating biases catalogued elsewhere in this chapter. It does not corrupt any single study's identification strategy. It corrupts the *evidence base* that downstream meta-analysts and policymakers rely on. The mechanism is a filter on top of an otherwise honest research process: studies whose realized z-statistic clears the conventional threshold are likelier to enter the published record, so the published distribution of effect sizes is right-shifted relative to the underlying truth. This is the same selection logic that creates survivorship bias (Section \@ref(sec-survivorship-bias)), with the published literature playing the role of "survivors" and the file drawer playing the role of the missing failures. Detection methods exploit predictable features of the unfiltered distribution, especially the relationship between effect size and standard error in a funnel plot, the shape of the p-value distribution near the significance threshold, and the rate of just-barely-significant z-statistics relative to what sampling theory implies. Several of these diagnostics are developed in detail in the section on p-Hacking that follows.
 
 **Example**: Imagine pharmaceutical research. If 10 studies are done on a new drug, and only 2 show a positive effect while 8 show no effect, but only the 2 positive studies get published, a later review of the literature might erroneously conclude the drug is effective.
 
@@ -505,20 +505,27 @@ p <- ggplot(df, aes(x = results)) +
   ) +
   geom_vline(
     aes(xintercept = true_avg_effect,
-        color = "True Avg Effect"),
-    linetype = "dashed",
+        color = "True Avg Effect",
+        linetype = "True Avg Effect"),
     size = 1
   ) +
   geom_vline(
     aes(xintercept = published_avg_effect,
-        color = "Published Avg Effect"),
-    linetype = "dashed",
+        color = "Published Avg Effect",
+        linetype = "Published Avg Effect"),
     size = 1
   ) +
   scale_color_manual(
     values = c(
       "True Avg Effect" = "blue",
       "Published Avg Effect" = "red"
+    ),
+    name = "Effect Type"
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "True Avg Effect" = "dashed",
+      "Published Avg Effect" = "dotted"
     ),
     name = "Effect Type"
   ) +
@@ -553,7 +560,7 @@ The plot might show that the "True Avg Effect" is around zero, while the "Publis
 > Any dataset, questioned persistently enough, will eventually agree with you.\
 > The work of this section is noticing when that is what happened.
 
-This chapter reviews the major statistical tools developed to diagnose, detect, and adjust for *p*-hacking and related selective-reporting practices. We focus on the mathematical foundations, assumptions, and inferential targets of each method; map the different "schools of thought"; summarize the simulation evidence and the spirited debates. This section also offers practical advice for applied researchers.
+This chapter reviews the major statistical tools developed to diagnose, detect, and adjust for *p*-hacking and related selective-reporting practices. We focus on the mathematical foundations, assumptions, and inferential targets of each method, map the different "schools of thought", and summarize the simulation evidence and the spirited debates. This section also offers practical advice for applied researchers.
 
 We separate three concepts that are often conflated:
 
@@ -619,7 +626,7 @@ In the pure publication bias (the "hard threshold") case
     or sometimes a monotone increasing function that jumps at $p=\alpha$.\
     Every result above the conventional significance threshold is suppressed, which is the infamous *file drawer problem* [@rosenthal1979file; @iyengar1988selection].
 
--   **Consequence:** The literature includes only those tests that crossed the line; but the *p*-values themselves were generated correctly under valid statistical procedures.\
+-   **Consequence:** The literature includes only those tests that crossed the line, but the *p*-values themselves were generated correctly under valid statistical procedures.\
     Thus, all distortion happens *after* data analysis.
 
 In the p-hacking (the "smooth or spiked selection") case
@@ -848,7 +855,7 @@ In practice, literatures exhibit both: authors p-hack to cross $\alpha$, then jo
 
 | Mechanism        | When bias enters             | Typical $s(p)$             | Observable pattern      | Distinguishable feature                      |
 |------------------|------------------------------|----------------------------|-------------------------|----------------------------------------------|
-| Publication bias | After analysis (file drawer) | Step function at $\alpha$  | Truncation at $\alpha$  | Sharp cutoff; missing nonsignificant results |
+| Publication bias | After analysis (file drawer) | Step function at $\alpha$  | Truncation at $\alpha$  | Sharp cutoff, missing nonsignificant results |
 | p-hacking        | During analysis              | Smooth/spiky near $\alpha$ | Bunching below $\alpha$ | Local spike or inflation near threshold      |
 
 Table: (\#tab:p-hacking-mech-comparison) Mechanism comparison between publication bias and $p$-hacking.
@@ -877,7 +884,7 @@ Under continuity of the density at $c$ and no manipulation, $N_+$ and $N_-$ shou
 
 **Pros**: Simple, visual.
 
-**Cons**: Sensitive to binning and heterogeneity; can't separate publication bias from *p*-hacking.
+**Cons**: Sensitive to binning and heterogeneity, and can't separate publication bias from *p*-hacking.
 
 #### Excess significance tests
 
@@ -968,9 +975,9 @@ $$ Estimate $(\pi_k, \mu_k)$ by EM (or Bayesian mixtures). Then compute:
     \mathrm{ERR} = \mathbb{E}\big[\Pr(|Z^\star| \ge z_{\alpha/2} \mid \mu) \big| |Z|\ge z_{\alpha/2}\big].
     $$
 
-**Pros**: Flexible heterogeneity modeling; informative discovery/replication diagnostics.
+**Pros**: Flexible heterogeneity modeling, with informative discovery and replication diagnostics.
 
-**Cons**: Identification relies on truncation; mixture choice ($K$) and regularization matter.
+**Cons**: Identification relies on truncation, and mixture choice ($K$) and regularization matter.
 
 #### Nonparametric selection and deconvolution
 
@@ -982,15 +989,15 @@ $$
 
 With shape restrictions (e.g., monotone, stepwise $s$), both $s$ and $g$ are estimable via nonparametric MLE. Inference delivers an estimated selection function and a bias-corrected effect distribution [@andrews2019identification].
 
-**Pros**: Minimal parametric assumptions; estimates the selection mechanism itself.
+**Pros**: Minimal parametric assumptions, and estimates the selection mechanism itself.
 
-**Cons**: Requires large samples of $z$'s; sensitive to tuning and shape restrictions; computationally heavier.
+**Cons**: Requires large samples of $z$'s, is sensitive to tuning and shape restrictions, and is computationally heavier.
 
 #### Robust Bayesian meta-analysis (RoBMA and kin)
 
 Construct a model-averaged posterior by mixing [@bartovs2020robma]:
 
--   Effect models: null vs. alternative; fixed vs. random effects.
+-   Effect models: null vs. alternative, and fixed vs. random effects.
 
 -   Bias models: none vs. PET-PEESE vs. selection (weight) models.
 
@@ -1000,9 +1007,9 @@ $$ and a model-averaged effect: $$
 p(\theta \mid \text{data}) = \sum_j p(\theta \mid \text{data}, M_j)  p(M_j \mid \text{data}).
 $$ Bayes factors quantify evidence for bias models and for $\theta=0$.
 
-**Pros**: Integrates over model uncertainty; often best-in-class calibration in simulations.
+**Pros**: Integrates over model uncertainty, and often achieves best-in-class calibration in simulations.
 
-**Cons**: Requires priors and specialized software; transparency requires careful reporting.
+**Cons**: Requires priors and specialized software, and transparency requires careful reporting.
 
 #### Statistical forensics (reporting integrity)
 
@@ -1012,7 +1019,7 @@ $$ Bayes factors quantify evidence for bias models and for $\theta=0$.
 
 **Pros**: Catches reporting errors and some forms of fabrication.
 
-**Cons**: Does not measure *p*-hacking directly; depends on data granularity and reporting completeness.
+**Cons**: Does not measure *p*-hacking directly, and depends on data granularity and reporting completeness.
 
 ------------------------------------------------------------------------
 
@@ -1046,7 +1053,7 @@ $$
 
 Map $\mu$ to effect size, e.g., standardized mean difference $d = \mu \sqrt{2/n}$ if appropriate.
 
-**Heterogeneity**: Replace $\mu$ by a mixture; p-uniform\* introduces random effects. Identifiability is delicate with only significant $p$'s: priors or constraints regularize.
+**Heterogeneity**: Replace $\mu$ by a mixture, and p-uniform\* introduces random effects. Identifiability is delicate with only significant $p$'s: priors or constraints regularize.
 
 #### Weight-function likelihoods
 

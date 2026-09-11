@@ -46,7 +46,7 @@ The methodological content of this chapter would be an academic exercise if appl
 
 @young2019channeling re-ran the inference for almost every randomized experiment published in the American Economic Association journals using Fisher randomization tests. A substantial share of nominally significant clustered or robust standard-error results did not survive randomization-based inference. The paper made randomization tests a near-default robustness check for any experiment with fewer than a few hundred treated units.
 
-@ioannidis2017power performed a meta-analysis of 64,076 estimates from across the economics literature and reported median statistical power around 0.18. Underpowering, combined with selection-on-significance, produces inflated published effect sizes; standard-error choices that make the apparent power look higher than it is compound the problem.
+@ioannidis2017power performed a meta-analysis of 64,076 estimates from across the economics literature and reported median statistical power around 0.18. Underpowering, combined with selection-on-significance, produces inflated published effect sizes, and standard-error choices that make the apparent power look higher than it is compound the problem.
 
 @christensen2018transparency is the *Journal of Economic Literature* synthesis of the broader transparency-and-credibility movement in economics. The review covers preregistration, replication, and specification flexibility, and devotes substantial attention to the role of standard-error choices in driving published-finding fragility.
 
@@ -64,7 +64,7 @@ In *public health and clinical trials*, the analogue is the systematic review of
 
 ### How the Toolkit Evolved {#sec-clu-audit-toolkit}
 
-The methodological history of cluster-robust inference can be read as a sequence of responses to these audits. @white1980heteroskedasticity introduced heteroskedasticity-robust standard errors. @liang1986longitudinal and @arellano1987computing extended the idea to clustered linear and fixed-effects models in the 1980s. The 2000s saw multiway clustering (@petersen2009estimating; @cameron2011robust; @thompson2011simple), the wild cluster bootstrap (@cameron2008bootstrap), and the design-based reframing of when to cluster (@abadie2020sampling; @abadie2023should). The 2010s and 2020s added small-sample corrections (@imbens2016robust; @pustejovsky2018small), few-treated-cluster methods (@mackinnon2018wild; @hagemann2025single), and fast jackknife/bootstrap variants (@djogbenou2019asymptotic; @mackinnon2023jackknife). @mackinnon2019cluster is the survey article that traces this arc; it makes the case that the cumulative effect of these innovations has materially changed how applied econometrics reads a regression table.
+The methodological history of cluster-robust inference can be read as a sequence of responses to these audits. @white1980heteroskedasticity introduced heteroskedasticity-robust standard errors. @liang1986longitudinal and @arellano1987computing extended the idea to clustered linear and fixed-effects models in the 1980s. The 2000s saw multiway clustering (@petersen2009estimating; @cameron2011robust; @thompson2011simple), the wild cluster bootstrap (@cameron2008bootstrap), and the design-based reframing of when to cluster (@abadie2020sampling; @abadie2023should). The 2010s and 2020s added small-sample corrections (@imbens2016robust; @pustejovsky2018small), few-treated-cluster methods (@mackinnon2018wild; @hagemann2025single), and fast jackknife/bootstrap variants (@djogbenou2019asymptotic; @mackinnon2023jackknife). @mackinnon2019cluster is the survey article that traces this arc, and it makes the case that the cumulative effect of these innovations has materially changed how applied econometrics reads a regression table.
 
 ### What This Means for the Reader {#sec-clu-audit-implication}
 
@@ -204,9 +204,9 @@ where $g$ indexes the $G$ clusters, $X_g$ stacks the regressors for cluster $g$,
 
 This generality is not free. The CRVE is consistent as the number of clusters $G$ grows, not as the number of observations $N$ grows. Adding more observations to a fixed set of clusters does not fix a CRVE computed from too few clusters. This is the assumption that drives the few-cluster problem in Section \@ref(sec-clu-few).
 
-The CRVE has a lineage worth knowing. @white1980heteroskedasticity introduced the heteroskedasticity-robust special case. @liang1986longitudinal extended the idea to clustered linear and nonlinear models, and @arellano1987computing applied it to the fixed-effects estimator for panel data. Heteroskedasticity- and autocorrelation-consistent (HAC) standard errors [@newey1986simple] address a related problem for time-series correlation; clustering by the time unit is often a simpler and more transparent alternative when the panel is short.
+The CRVE has a lineage worth knowing. @white1980heteroskedasticity introduced the heteroskedasticity-robust special case. @liang1986longitudinal extended the idea to clustered linear and nonlinear models, and @arellano1987computing applied it to the fixed-effects estimator for panel data. Heteroskedasticity- and autocorrelation-consistent (HAC) standard errors [@newey1986simple] address a related problem for time-series correlation. Clustering by the time unit is often a simpler and more transparent alternative when the panel is short.
 
-Although the cluster-robust standard error is *usually* larger than the default, it is not always. It can come out smaller when the within-cluster error correlation is negative, when clustering has only a modest effect so the two estimators differ mostly by noise, or simply because the CRVE is itself a noisy estimate in finite samples. A common and conservative rule of thumb is to report the larger of the default and cluster-robust standard errors; a formal test for combining them is given in @yang2005combining.
+Although the cluster-robust standard error is *usually* larger than the default, it is not always. It can come out smaller when the within-cluster error correlation is negative, when clustering has only a modest effect so the two estimators differ mostly by noise, or simply because the CRVE is itself a noisy estimate in finite samples. A common and conservative rule of thumb is to report the larger of the default and cluster-robust standard errors. A formal test for combining them is given in @yang2005combining.
 
 ## Clustering at the Wrong Level {#sec-clu-wrong-level}
 
@@ -362,7 +362,7 @@ Table \@ref(tab:clu-sim3-run) and Figure \@ref(fig:clu-sim3-plot) report what ha
 
 ### Refinements for Few Clusters {#sec-clu-refinements}
 
-The few-cluster problem has spawned a small literature of complementary remedies; the choice between them depends on how few "few" is, how balanced the cluster sizes are, and how concentrated the treatment is across clusters. @mackinnon2023guide gives the most current overview, superseding @cameron2015practitioner on the bootstrap and jackknife fronts.
+The few-cluster problem has spawned a small literature of complementary remedies. The choice between them depends on how few "few" is, how balanced the cluster sizes are, and how concentrated the treatment is across clusters. @mackinnon2023guide gives the most current overview, superseding @cameron2015practitioner on the bootstrap and jackknife fronts.
 
 The cheapest upgrade is the *CR2* bias-reduced variance estimator of Bell-McCaffrey, popularized in economics by @imbens2016robust and generalized to fixed-effects models by @pustejovsky2018small. CR2 inflates the cluster-residual outer products by a leverage factor that exactly corrects the bias of the conventional CR1 estimator under a working homoskedasticity assumption, and pairs the resulting variance with *Satterthwaite* degrees of freedom that adapt to unbalanced cluster sizes. The simulation above shows CR2 closing most of the gap to the wild cluster bootstrap with no resampling. The `clubSandwich` package implements CR2 (and a jackknife variant CR3) for `lm`, `plm`, and `lme4` models.
 
@@ -378,7 +378,7 @@ Finally, jackknife variants of the cluster-robust variance have re-emerged as fa
 
 So far the clusters have been nested: every individual belongs to exactly one state, every state to exactly one region. Many panels have a *non-nested* correlation structure instead. Firm outcomes are correlated over time within a firm, and they are also correlated across firms within a year through common shocks. Neither grouping is nested in the other.
 
-One-way clustering can only absorb one of these dimensions. Cluster by firm and the within-year correlation is left uncorrected; cluster by year and the within-firm correlation is left uncorrected. Either way the standard error is too small. The fix is multi-way clustering, which estimates a variance for each dimension and combines them by inclusion-exclusion.
+One-way clustering can only absorb one of these dimensions. Cluster by firm and the within-year correlation is left uncorrected. Cluster by year and the within-firm correlation is left uncorrected. Either way the standard error is too small. The fix is multi-way clustering, which estimates a variance for each dimension and combines them by inclusion-exclusion.
 
 Two-way clustering has an especially rich history in empirical finance, where panels of firm-by-year observations exhibit both serial correlation within a firm and contemporaneous correlation across firms within a year. @petersen2009estimating compared the available approaches (Fama-MacBeth, Newey-West, double-clustering) on simulated finance data and demonstrated that double-clustering is the only approach that handles both dimensions simultaneously. @thompson2011simple derives the closed-form double-clustering variance independently, with a particularly clean exposition aimed at empirical researchers. The general theoretical treatment is @cameron2011robust, and @bester2011inference shows that double-clustering, Conley HAC, and Driscoll-Kraay can all be viewed as special cases of a single cluster-covariance framework.
 
@@ -425,7 +425,7 @@ Table \@ref(tab:clu-sim4) shows that both one-way clusterings are an improvement
 
 ## Beyond Clusters: Spatial, Temporal, and Network Dependence {#sec-clu-spatial}
 
-The cluster-robust variance estimator buys a great deal of generality by treating clusters as black boxes, but it pays a price: it requires the analyst to know where one cluster ends and the next begins. Many real correlation structures are smoother than that. Two units in the same state are dependent; so are two units in neighboring states, just a little less so. A firm-year shock decays with distance rather than vanishing at a state border. Two related but distinct families of estimators relax the "either inside or outside the cluster" dichotomy.
+The cluster-robust variance estimator buys a great deal of generality by treating clusters as black boxes, but it pays a price: it requires the analyst to know where one cluster ends and the next begins. Many real correlation structures are smoother than that. Two units in the same state are dependent, and so are two units in neighboring states, just a little less so. A firm-year shock decays with distance rather than vanishing at a state border. Two related but distinct families of estimators relax the "either inside or outside the cluster" dichotomy.
 
 The first family is *spatial HAC*, originating with @conley1999gmm and refined in @conley2007spatial for the case where locations are measured with error. The idea generalizes the time-series HAC of @newey1986simple to two-dimensional space: the variance is built from a weighted sum of all pairwise outer products $X_i' \hat u_i \hat u_j X_j$, where the weight $K(d_{ij})$ is one for nearby pairs and decays to zero past a distance cutoff. Spatial HAC does not require the analyst to commit to a discrete cluster partition, which is its main advantage over CRVE in spatial settings. The price is that the cutoff is a tuning choice, and the estimator inherits the small-sample behavior of HAC: under-coverage when the cutoff is too small, noise when it is too large.
 
@@ -501,7 +501,7 @@ knitr::kable(
 
 Table \@ref(tab:clu-sim-spatial) summarizes the rejection rates. With strong spatial autocorrelation in both variables, the default OLS standard error sees them as carrying $N$ independent pieces of information when they really carry far fewer, and rejects a null that is true by construction at a wildly inflated rate. Block clustering at a 4-by-4 spatial partition helps but still under-corrects because the smoothing kernel reaches across block boundaries. Conley HAC reduces the rejection rate sharply, but at a cutoff close to the underlying smoothing scale it still over-rejects, and only a much larger cutoff brings the rejection rate close to nominal. This is exactly the @conley2025standard concern. In real-world cross-country or persistence regressions the analyst has no externally credible estimate of the spatial scale, and a cutoff chosen too small can leave substantial spurious correlation in the residuals. Best-practice diagnostics are (i) report Conley HAC at several cutoffs and look for the smallest cutoff at which the standard errors stabilize, (ii) run a randomization placebo by permuting locations, and (iii) when feasible, impose explicit structure on the spatial process rather than relying on a non-parametric HAC alone.
 
-R implementations of Conley HAC are available in the `conleyreg` package; Stata users have `acreg` [@colella2023acreg], which extends the same logic to arbitrary correlation structures including networks.
+R implementations of Conley HAC are available in the `conleyreg` package. Stata users have `acreg` [@colella2023acreg], which extends the same logic to arbitrary correlation structures including networks.
 
 ## Network and Interference Clustering {#sec-clu-network}
 
@@ -509,7 +509,7 @@ When units are connected by a network rather than nested in tidy clusters, the c
 
 @leung2022causal develops the asymptotic theory for *approximate neighborhood interference*: the assumption that a unit's potential outcomes depend on its own treatment plus the treatments of units within a bounded network neighborhood. This delivers a CLT and consistency results under conditions on how fast the neighborhood "fades" with network distance, providing a principled answer to "how far should we cluster" in a network setting.
 
-The closest generalization of the CRVE itself to networks is @leung2023network. He shows that a *network cluster-robust* variance estimator, computed by treating the residual outer products of all pairs at network distance below a chosen radius as one cluster, achieves valid inference under conditions analogous to the spatial-HAC ones. The Stata package `acreg` [@colella2023acreg] implements distance-based and network-based variants of this estimator; in R, `conleyreg` extends Conley HAC to network-based metrics. Empirical work that runs regressions on network data without any such correction (for example, paper-citation networks or village-level social-network data) typically reports standard errors that are far too small; @leung2023network is the methodologically rigorous fix.
+The closest generalization of the CRVE itself to networks is @leung2023network. He shows that a *network cluster-robust* variance estimator, computed by treating the residual outer products of all pairs at network distance below a chosen radius as one cluster, achieves valid inference under conditions analogous to the spatial-HAC ones. The Stata package `acreg` [@colella2023acreg] implements distance-based and network-based variants of this estimator. In R, `conleyreg` extends Conley HAC to network-based metrics. Empirical work that runs regressions on network data without any such correction (for example, paper-citation networks or village-level social-network data) typically reports standard errors that are far too small. @leung2023network is the methodologically rigorous fix.
 
 A practical caveat: estimating the network itself is often the binding constraint. When the analyst observes the network with error, or treats a coarse proxy (such as physical distance) as the network, the network cluster-robust variance can still be invalid. Cross-checks include rerunning the estimator with progressively larger network radii to confirm the standard errors stabilize, and using randomization inference on permuted network labels as a placebo.
 
@@ -528,7 +528,7 @@ These two pull in opposite directions and mirror the bias-variance tradeoff. The
 
 The deeper conceptual point behind that principle is due to @abadie2020sampling, who formalize a distinction between *sampling-based* and *design-based* uncertainty in regression. Sampling-based uncertainty is the conventional view: we sampled $N$ observations from a larger population, and the standard error reflects sampling variability in that draw. Design-based uncertainty treats the sample as fixed and reflects the randomness in *which units got treated*, exactly as in a Fisher randomization test. The cluster-robust standard error is justified under one or both of these stories depending on the design of the study, and clustering can be either necessary or unnecessary depending on which story is operative.
 
-@abadie2023should make the practical implication explicit. If treatment is randomized at the group level (e.g., a state policy applied to all individuals in the state), both the sampling-based and design-based standard errors require clustering at that group level. If treatment is randomized at the individual level and the sample itself is not a cluster sample, the design-based standard error is just heteroskedasticity-robust; the conventional cluster-robust estimator can be conservative and adds noise. The presence of a group identifier in the data is not, on its own, a reason to cluster. The reason is the design.
+@abadie2023should make the practical implication explicit. If treatment is randomized at the group level (e.g., a state policy applied to all individuals in the state), both the sampling-based and design-based standard errors require clustering at that group level. If treatment is randomized at the individual level and the sample itself is not a cluster sample, the design-based standard error is just heteroskedasticity-robust. The conventional cluster-robust estimator can be conservative and adds noise. The presence of a group identifier in the data is not, on its own, a reason to cluster. The reason is the design.
 
 A small simulation makes the point concrete. We generate cluster-correlated errors in both arms but vary how treatment is assigned: in one arm treatment is constant within a cluster (group-randomized), in the other it is independent across individuals.
 
@@ -569,13 +569,13 @@ knitr::kable(res_db, digits = 3,
              caption = "Rejection rate of a true null when within-cluster error correlation is fixed but the design varies. In the cluster-randomized arm only cluster-robust controls size; in the individually randomized arm all three estimators are valid and cluster-robust is over-conservative. Clustering is a property of the design, not of the error structure alone.")
 ```
 
-Table \@ref(tab:clu-sim-design-based) makes the contrast visible. The cluster-randomized arm reproduces the familiar finding: ignoring the cluster structure of the error leaves the default and HC standard errors badly under-sized. The individually randomized arm shows the @abadie2023should point: with within-cluster error correlation but no design-induced clustering, HC1 already delivers nominal size, and the cluster-robust standard error is *valid but unnecessary*. In larger or more imbalanced designs the cluster-robust estimator in this arm typically becomes mildly conservative; the practical message is that the presence of a state or firm variable in the data does not, on its own, dictate that we cluster on it.
+Table \@ref(tab:clu-sim-design-based) makes the contrast visible. The cluster-randomized arm reproduces the familiar finding: ignoring the cluster structure of the error leaves the default and HC standard errors badly under-sized. The individually randomized arm shows the @abadie2023should point: with within-cluster error correlation but no design-induced clustering, HC1 already delivers nominal size, and the cluster-robust standard error is *valid but unnecessary*. In larger or more imbalanced designs the cluster-robust estimator in this arm typically becomes mildly conservative. The practical message is that the presence of a state or firm variable in the data does not, on its own, dictate that we cluster on it.
 
 ### Decision Tree {#sec-clu-tree}
 
 Figure \@ref(fig:clu-decision-tree) condenses the principle into a sequence of yes/no questions and points at the corresponding remedies. It is meant as a visual companion to the decision table that follows, not a replacement.
 
-```{r clu-decision-tree, message=FALSE, screenshot.opts = list(vwidth = 1200, vheight = 800), dev="png", fig.cap="A decision tree for choosing a standard-error strategy. Green nodes are point answers; orange nodes are conditional on cluster count G; purple nodes route to non-cluster generalizations covered earlier in the chapter."}
+```{r clu-decision-tree, message=FALSE, screenshot.opts = list(vwidth = 1200, vheight = 800), dev="png", fig.cap="A decision tree for choosing a standard-error strategy. Light nodes with a solid border are point answers, mid-tone nodes with a bold border are conditional on the cluster count G, and dark nodes with a dashed border route to the non-cluster generalizations covered earlier in the chapter."}
 library(DiagrammeR)
 grViz("
 digraph cluster_decision {
@@ -590,21 +590,21 @@ digraph cluster_decision {
   q4 [label = 'Is the dependence\\nnon-nested\\n(e.g., firm and year)?'];
   q5 [label = 'Is the dependence\\ncontinuous in space,\\ntime, or network?'];
 
-  a_grp [fillcolor = '#D4E8D4', label = 'Cluster at the\\ngroup of assignment'];
-  a_smp [fillcolor = '#D4E8D4', label = 'Cluster at the\\nsampling unit'];
-  a_hc  [fillcolor = '#D4E8D4', label = 'HC-robust likely\\nsufficient\\n(Abadie et al. 2023)'];
+  a_grp [fillcolor = '#F2F2F2', color = '#333333', penwidth = 1, label = 'Cluster at the\\ngroup of assignment'];
+  a_smp [fillcolor = '#F2F2F2', color = '#333333', penwidth = 1, label = 'Cluster at the\\nsampling unit'];
+  a_hc  [fillcolor = '#F2F2F2', color = '#333333', penwidth = 1, label = 'HC-robust likely\\nsufficient\\n(Abadie et al. 2023)'];
 
-  a_5   [fillcolor = '#FAE5D3', label = 'Single- or few-cluster\\nmethods (Hagemann 2025;\\nCanay-Romano-Shaikh 2017)'];
-  a_30  [fillcolor = '#FAE5D3', label = 'CR2 + Satterthwaite\\n(Imbens-Kolesar 2016)\\nor wild cluster bootstrap'];
-  a_50  [fillcolor = '#FAE5D3', label = 'CR1 with t(G-1) critical;\\nWCB as sanity check'];
-  a_big [fillcolor = '#D4E8D4', label = 'Standard CRVE;\\ncheck effective G\\n(Carter et al. 2017)'];
+  a_5   [fillcolor = '#BFBFBF', color = '#000000', penwidth = 2.5, label = 'Single- or few-cluster\\nmethods (Hagemann 2025;\\nCanay-Romano-Shaikh 2017)'];
+  a_30  [fillcolor = '#BFBFBF', color = '#000000', penwidth = 2.5, label = 'CR2 + Satterthwaite\\n(Imbens-Kolesar 2016)\\nor wild cluster bootstrap'];
+  a_50  [fillcolor = '#BFBFBF', color = '#000000', penwidth = 2.5, label = 'CR1 with t(G-1) critical;\\nWCB as sanity check'];
+  a_big [fillcolor = '#F2F2F2', color = '#333333', penwidth = 1, label = 'Standard CRVE;\\ncheck effective G\\n(Carter et al. 2017)'];
 
-  a_mw  [fillcolor = '#D4E8D4', label = 'Multiway clustering;\\nWCB if any dim is short\\n(MacKinnon et al. 2021)'];
-  a_one [fillcolor = '#D4E8D4', label = 'One-way clustering at\\ncoarsest correlated level'];
+  a_mw  [fillcolor = '#F2F2F2', color = '#333333', penwidth = 1, label = 'Multiway clustering;\\nWCB if any dim is short\\n(MacKinnon et al. 2021)'];
+  a_one [fillcolor = '#F2F2F2', color = '#333333', penwidth = 1, label = 'One-way clustering at\\ncoarsest correlated level'];
 
-  a_con [fillcolor = '#E8D4E8', label = 'Conley spatial HAC\\n(Conley 1999)'];
-  a_dk  [fillcolor = '#E8D4E8', label = 'Driscoll-Kraay or\\nHansen large-T CRVE'];
-  a_net [fillcolor = '#E8D4E8', label = 'Network cluster-robust\\n(Leung 2023)'];
+  a_con [fillcolor = '#7F7F7F', color = '#000000', style = 'rounded,filled,dashed', penwidth = 2, label = 'Conley spatial HAC\\n(Conley 1999)'];
+  a_dk  [fillcolor = '#7F7F7F', color = '#000000', style = 'rounded,filled,dashed', penwidth = 2, label = 'Driscoll-Kraay or\\nHansen large-T CRVE'];
+  a_net [fillcolor = '#7F7F7F', color = '#000000', style = 'rounded,filled,dashed', penwidth = 2, label = 'Network cluster-robust\\n(Leung 2023)'];
 
   q1 -> a_grp [label = 'Yes'];
   q1 -> q2   [label = 'No'];
@@ -629,24 +629,24 @@ digraph cluster_decision {
 
 ### Decision Table by Design {#sec-clu-table}
 
-The table below maps the designs covered earlier in this book to a recommended clustering level. Use it as the precise lookup; use the tree above for the conceptual route.
+The table below maps the designs covered earlier in this book to a recommended clustering level. Use it as the precise lookup, and the tree above for the conceptual route.
 
 | Design or data structure | Cluster on | Rationale |
 |---|---|---|
 | Cross-sectional data with group-assigned treatment | The group that received the treatment assignment | Treatment and errors both vary at the group level [@abadie2023should] |
-| Cross-sectional data, individually assigned treatment, no group structure | Clustering not needed; use heteroskedasticity-robust | No design-induced clustering [@abadie2020sampling; @abadie2023should] |
+| Cross-sectional data, individually assigned treatment, no group structure | Clustering not needed, use heteroskedasticity-robust | No design-induced clustering [@abadie2020sampling; @abadie2023should] |
 | Panel or difference-in-differences | The unit (individual, firm, state) | Errors are serially correlated within a unit over time [@bertrand2004much] |
 | Panel with common time shocks across units | Two-way, by unit and by time | Non-nested correlation in both dimensions [@cameron2011robust; @petersen2009estimating; @thompson2011simple] |
-| Staggered-adoption difference-in-differences | The unit | Same serial-correlation logic; treatment timing varies but the unit is still the correlated group |
+| Staggered-adoption difference-in-differences | The unit | Same serial-correlation logic, treatment timing varies but the unit is still the correlated group |
 | Stacked difference-in-differences, units unique to one sub-experiment | The unit | Units do not recur, so the unit is the correlated group [@deshpande2019screened] |
-| Stacked difference-in-differences, units reused across sub-experiments | Unit by sub-experiment interaction | A unit appears in several stacks; the interaction is the correct correlated group [@cengiz2019effect] |
+| Stacked difference-in-differences, units reused across sub-experiments | Unit by sub-experiment interaction | A unit appears in several stacks, and the interaction is the correct correlated group [@cengiz2019effect] |
 | Regression discontinuity | The unit, or mass points of the running variable if it is discrete | Repeated observations or discreteness induce within-group correlation |
 | Instrumental variables | The level at which the instrument varies | Correlation is induced at the level of the exogenous variation |
 | Shift-share instruments | At the level of the exogenous shocks, with recentering | The shock structure, not the exposure data, dictates the SE adjustment [@adao2019shift; @borusyak2022quasi] |
 | Spatially correlated treatment | Conley HAC, or a grouping broad enough to span the spatial scale | Pairwise correlation that decays smoothly with distance [@conley1999gmm; @conley2025standard] |
 | Long-T panel with cross-sectional dependence | Driscoll-Kraay or Hansen large-T CRVE | Both serial and cross-sectional correlation [@driscoll1998consistent; @hansen2007asymptotic] |
 | Network data with spillovers | Network cluster-robust via exposure mapping | Smooth dependence along network adjacency [@aronow2017estimating; @leung2023network] |
-| Few treated clusters (G_treated $\leq$ 2) | Randomization or single-cluster inference | WCB and CRVE both fail; use specialized tests [@hagemann2025single; @canay2017randomization; @ibragimov2010t] |
+| Few treated clusters (G_treated $\leq$ 2) | Randomization or single-cluster inference | WCB and CRVE both fail, use specialized tests [@hagemann2025single; @canay2017randomization; @ibragimov2010t] |
 
 ### Notes on Specific Designs {#sec-clu-design-notes}
 
@@ -656,7 +656,7 @@ For difference-in-differences, @bertrand2004much is the canonical warning: outco
 
 For stacked difference-in-differences, the subtlety is that the estimator builds a separate clean comparison (a "sub-experiment") around each adoption cohort, and the same unit can serve as a control in several sub-experiments. When that happens, the unit appears multiple times in the stacked dataset, and the correlated group is the unit by sub-experiment combination [@cengiz2019effect]. When the design is constructed so that each unit belongs to only one sub-experiment, clustering on the unit alone is correct [@deshpande2019screened].
 
-For shift-share or Bartik instruments, the SE problem is different: the instrument $Z_{lt} = \sum_k s_{lk} g_{kt}$ shares its sector-level shocks $g_{kt}$ across all regions $l$, inducing a correlation structure that no region-level clustering can fix. @adao2019shift derive the correct inference under sectoral-shock randomness, and @borusyak2022quasi develop a recentered-shock variant whose standard errors have a much simpler closed form. The dedicated treatment is in the [shift-share instruments](#sec-shift-share-iv) section; this chapter is the right place only to flag that "cluster at the region level" is the wrong default for shift-share designs.
+For shift-share or Bartik instruments, the SE problem is different: the instrument $Z_{lt} = \sum_k s_{lk} g_{kt}$ shares its sector-level shocks $g_{kt}$ across all regions $l$, inducing a correlation structure that no region-level clustering can fix. @adao2019shift derive the correct inference under sectoral-shock randomness, and @borusyak2022quasi develop a recentered-shock variant whose standard errors have a much simpler closed form. The dedicated treatment is in the [shift-share instruments](#sec-shift-share-iv) section. This chapter is the right place only to flag that "cluster at the region level" is the wrong default for shift-share designs.
 
 For treatment assigned to groups (the row that opens the table), @abadie2020sampling and @abadie2023should make the important clarification that clustering is a property of the sampling and assignment design, not a mechanical reaction to the presence of groups in the data. If treatment was randomized at the group level, clustering at that level is required. If groups exist in the data but treatment varies within them and the sample is not itself clustered, clustering can be unnecessary and merely costs precision, as the design-based simulation above demonstrated.
 
@@ -667,14 +667,14 @@ A short checklist for applied work:
 1. Identify the level at which treatment is assigned, and the levels at which errors are plausibly correlated. Cluster at the coarsest of these.
 2. When clusters are nested, cluster at the higher level.
 3. Count the clusters. With fewer than roughly 30, use CR2 with Satterthwaite degrees of freedom or the wild cluster bootstrap for inference rather than the asymptotic CR1 $t$-test. With fewer than 5, use single-cluster or randomization methods.
-4. With non-nested correlation in two dimensions, use two-way clustering and confirm that both dimensions have enough clusters; otherwise fall back to the wild cluster bootstrap for the short dimension.
+4. With non-nested correlation in two dimensions, use two-way clustering and confirm that both dimensions have enough clusters. Otherwise fall back to the wild cluster bootstrap for the short dimension.
 5. With spatial or network dependence, prefer Conley HAC or network cluster-robust over a discrete cluster partition that does not match the underlying dependence structure.
 6. Report the larger of the default and cluster-robust standard errors when they differ, and report which one you used. A large gap between them is itself evidence that clustering matters.
 7. Clustering is a design decision, not a robustness check to be tried last. Decide the level before looking at how it moves the $p$-value.
 
 ## Software: Worked Examples {#sec-clu-software}
 
-Every method described in this chapter has a stable R implementation. This section walks through one worked example per package, all running against the same shared dataset so the reader can see how the same point estimate gets different standard errors and $p$-values under different methods. Each example uses the maintained CRAN version of the package; versions cited in the table at the end of this section are the ones used to produce the output below.
+Every method described in this chapter has a stable R implementation. This section walks through one worked example per package, all running against the same shared dataset so the reader can see how the same point estimate gets different standard errors and $p$-values under different methods. Each example uses the maintained CRAN version of the package. Versions cited in the table at the end of this section are the ones used to produce the output below.
 
 ### Setup: a Shared Panel {#sec-clu-software-setup}
 
@@ -767,11 +767,11 @@ f_two <- feols(y ~ x, data = clusdat, cluster = ~ firm + year)
 etable(f_one, f_two)
 ```
 
-For panel designs with fixed effects, write `feols(y ~ x | firm + year, data = clusdat, cluster = ~ firm)`; the `| firm + year` syntax absorbs both fixed effects efficiently. For stacked difference-in-differences with units reused across sub-experiments, cluster on `~ firm^sub_experiment`.
+For panel designs with fixed effects, write `feols(y ~ x | firm + year, data = clusdat, cluster = ~ firm)`. The `| firm + year` syntax absorbs both fixed effects efficiently. For stacked difference-in-differences with units reused across sub-experiments, cluster on `~ firm^sub_experiment`.
 
 ### Spatial and Network Standard Errors {#sec-clu-pkg-spatial}
 
-For spatial designs, the R package `conleyreg` implements the Conley HAC estimator and its Bartlett-kernel variants; the Stata equivalent is `acreg` [@colella2023acreg], which also handles arbitrary network-based correlation structures. A minimal Conley HAC implementation was already provided in Section \@ref(sec-clu-sim-spatial); it is sufficient for a teaching example, but for production work the published packages handle distance computation, kernel choice, and panel extensions more robustly. Network cluster-robust standard errors of @leung2023network are also available in `acreg` and in dedicated R implementations distributed via GitHub.
+For spatial designs, the R package `conleyreg` implements the Conley HAC estimator and its Bartlett-kernel variants. The Stata equivalent is `acreg` [@colella2023acreg], which also handles arbitrary network-based correlation structures. A minimal Conley HAC implementation was already provided in Section \@ref(sec-clu-sim-spatial). It is sufficient for a teaching example, but for production work the published packages handle distance computation, kernel choice, and panel extensions more robustly. Network cluster-robust standard errors of @leung2023network are also available in `acreg` and in dedicated R implementations distributed via GitHub.
 
 ### Function Inputs and Cross-Package Compatibility {#sec-clu-pkg-inputs}
 
@@ -787,7 +787,7 @@ Two patterns matter. The first is what the function calls a "cluster": some want
 | `clubSandwich::coef_test` / `vcovCR` | vector or factor, *not* a formula | `cluster = clusdat$firm` |
 | `fwildclusterboot::boottest` | string name of a column in the data passed to the fit | `clustid = "firm"` (or `c("firm","year")` for two-way) |
 | `summclust::summclust` | formula evaluated in the fit's data | `cluster = ~ firm` |
-| `fixest::feols(..., cluster=)` | formula; supports interactions with `^` for stacked DiD | `cluster = ~ firm`, `cluster = ~ firm + year`, `cluster = ~ firm^sub_experiment` |
+| `fixest::feols(..., cluster=)` | formula, supports interactions with `^` for stacked DiD | `cluster = ~ firm`, `cluster = ~ firm + year`, `cluster = ~ firm^sub_experiment` |
 
 A common bug: passing `cluster = ~ firm` to `clubSandwich::coef_test`. It expects a vector. Use `cluster = clusdat$firm` or `cluster = model.frame(fit)$firm`. The other direction (passing a vector where a formula is expected) usually works because the function falls back to vector dispatch, but the formula form is more robust because it re-resolves against the fit's data.
 
@@ -808,8 +808,8 @@ The practical decision rule from this matrix:
 - If you fit with `lm` or `glm`, every package above is available. This is why the examples in this chapter use `lm`: the same `fit` works with all five inference packages.
 - If you fit with `fixest::feols` (the recommended choice for panel and DiD work because of high-dimensional fixed effects), use fixest's built-in `cluster=` for routine work, `fwildclusterboot::boottest` for the wild cluster bootstrap, and `summclust` for the jackknife and effective $G$.
 - If you fit with `plm::plm` (the classical panel-data package), use `sandwich::vcovCL` for CR1 and `clubSandwich::coef_test` for CR2.
-- If you fit with `lme4::lmer` (mixed-effects), `clubSandwich` is the right call for CR2 with Satterthwaite df; the others do not dispatch on `lmerMod`.
-- For `lfe::felm`, use `sandwich::vcovCL`; `clubSandwich` does not support it, and `lfe` itself has been superseded by `fixest` for new work.
+- If you fit with `lme4::lmer` (mixed-effects), `clubSandwich` is the right call for CR2 with Satterthwaite df, and the others do not dispatch on `lmerMod`.
+- For `lfe::felm`, use `sandwich::vcovCL`, since `clubSandwich` does not support it, and `lfe` itself has been superseded by `fixest` for new work.
 
 #### Cross-package consistency check
 
@@ -838,7 +838,7 @@ The `fixest` and `sandwich` numbers agree to all printed digits because both imp
 
 Across all of the packages above, the inputs reduce to three things:
 
-1. A fitted model object that exposes residuals, the model matrix, and (when applicable) sample weights through standard generics. Any of `lm`, `glm`, `feols`, `plm`, `lmer`, `ivreg` qualify; user-defined model classes do not unless they implement `residuals()`, `model.matrix()`, and `bread()` (`sandwich::bread`) appropriately.
+1. A fitted model object that exposes residuals, the model matrix, and (when applicable) sample weights through standard generics. Any of `lm`, `glm`, `feols`, `plm`, `lmer`, `ivreg` qualify. User-defined model classes do not unless they implement `residuals()`, `model.matrix()`, and `bread()` (`sandwich::bread`) appropriately.
 2. A grouping variable for the cluster, in the format the specific function wants. The grouping must be the same length as the data used to fit the model and aligned to its rows.
 3. The coefficient name to test (`coefs`, `param`, or `params`, depending on the package), and for bootstrap-based functions, a number of replications $B$.
 
@@ -846,18 +846,18 @@ The reason `sandwich` is such a foundation is that its `bread()` and `meat()` ge
 
 ### Stable, State-of-the-Art Packages at a Glance {#sec-clu-package-stability}
 
-The table below summarizes the packages used above, with the CRAN-version maturity status and the situation each is the right call for. Versions are those used in this chapter; all are on CRAN and actively maintained.
+The table below summarizes the packages used above, with the CRAN-version maturity status and the situation each is the right call for. Versions are those used in this chapter, and all are on CRAN and actively maintained.
 
 | Package | Version | Maintainer | Use this when... | Reference |
 |---|---|---|---|---|
-| `sandwich` | 3.1.1 | Achim Zeileis (since 2004) | You need HC, HAC, or cluster-robust variance for any `lm`, `glm`, `survreg` model. The foundation; nearly every other cluster-SE package builds on or interoperates with it. | @zeileis2020various |
-| `lmtest` | 0.9.40 | Hothorn et al. | Companion to `sandwich`; provides `coeftest()` for displaying test statistics with any custom variance matrix. | Hothorn et al., CRAN |
+| `sandwich` | 3.1.1 | Achim Zeileis (since 2004) | You need HC, HAC, or cluster-robust variance for any `lm`, `glm`, `survreg` model. The foundation, which nearly every other cluster-SE package builds on or interoperates with. | @zeileis2020various |
+| `lmtest` | 0.9.40 | Hothorn et al. | Companion to `sandwich`, providing `coeftest()` for displaying test statistics with any custom variance matrix. | Hothorn et al., CRAN |
 | `clubSandwich` | 0.6.1 | James Pustejovsky | The cluster count is moderate (5 to 30 or so) and you want CR2 with Satterthwaite degrees of freedom rather than the asymptotic CR1 $t$. Also handles `plm`, `lme4`, `lmer`, `robumeta`. | @pustejovsky2018small |
 | `fwildclusterboot` | 0.14.3 | Alexander Fischer | The cluster count is small (under 30), there are few treated clusters, or you want a non-asymptotic $p$-value as a sanity check. R port of Roodman's Stata `boottest`. | @roodman2019fast |
 | `summclust` | 0.7.2 | MacKinnon, Nielsen, Webb | You want the CR3J jackknife, the @carter2017asymptotic effective number of clusters, or leverage diagnostics. The implementation companion to @mackinnon2023jackknife. | @mackinnon2023jackknife |
-| `fixest` | 0.13.2 | Laurent Berg{\'e} | You are estimating a panel or DiD model with one or more fixed-effects dimensions. The fastest high-dimensional FE estimator in R; built-in one- and multi-way clustering with no extra package call. | @zeileis2020various (compatible) |
-| `conleyreg` (or `acreg` in Stata) | not on every machine | Christian D{\"u}ben; Colella et al. in Stata | Spatial dependence with a distance metric, or arbitrary correlation along a network. | @colella2023acreg |
-| `plm`, `lfe` | 2.6.6, 3.1.1 | Croissant, Millo; Gaure | Mature alternatives to `fixest` for panel-data fixed-effects estimation; both interoperate with `sandwich` for cluster-robust SE. | @croissant2008panel |
+| `fixest` | 0.13.2 | Laurent Berg{\'e} | You are estimating a panel or DiD model with one or more fixed-effects dimensions. The fastest high-dimensional FE estimator in R, with built-in one- and multi-way clustering with no extra package call. | @zeileis2020various (compatible) |
+| `conleyreg` (or `acreg` in Stata) | not on every machine | Christian D{\"u}ben, and Colella et al. for the Stata version | Spatial dependence with a distance metric, or arbitrary correlation along a network. | @colella2023acreg |
+| `plm`, `lfe` | 2.6.6, 3.1.1 | Croissant and Millo (`plm`), Gaure (`lfe`) | Mature alternatives to `fixest` for panel-data fixed-effects estimation, and both interoperate with `sandwich` for cluster-robust SE. | @croissant2008panel |
 
 A reasonable default workflow for a new applied paper is: estimate with `fixest::feols(... | <fixed effects>, cluster = ~ <design level>)`, report the cluster-robust SE, and pair it with a `fwildclusterboot::boottest` wild cluster bootstrap $p$-value as a sanity check. If the cluster count is below 30, also report the `clubSandwich::coef_test(..., vcov = "CR2", test = "Satterthwaite")` result. For spatial or network designs, swap in `conleyreg` (R) or `acreg` (Stata). The comprehensive practitioner overview is @mackinnon2023guide.
 

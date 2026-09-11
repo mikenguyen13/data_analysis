@@ -1,7 +1,7 @@
 # High-Performance Computing
 
 ::: {.chapter-abstract}
-**Abstract.** Analyses that once fit comfortably on a laptop now routinely exceed it, whether through data volume, simulation scale, or the resampling that modern inference demands. This chapter covers high-performance computing for applied data analysis in R, treating it as an engineering discipline rather than a matter of requesting more cores. It reviews the parallel ecosystem: the parallel package, foreach, the future framework and its interchangeable backends, BiocParallel, snow, and sparklyr for Apache Spark. Amdahl's law supplies the ceiling, since speedup approaches a fixed limit set by the serial fraction however many workers are added, so profiling decides whether parallelizing is worth attempting. Practical guidance covers task granularity, resource estimation before submission, and testing on a subset first. Three failure modes then receive separate treatment, because they corrupt results rather than merely slowing them and none of them raises an error: random number streams that overlap across workers or vary with the worker count, breaking both independence and reproducibility; memory duplicated rather than shared under process-based backends; and tasks that fail silently, leaving an analysis to proceed over an unknown subset of its sample. A worked R workflow makes the recommendations concrete.
+**Abstract.** Analyses that once fit comfortably on a laptop now routinely exceed it, whether through data volume, simulation scale, or the resampling that modern inference demands. This chapter covers high-performance computing for applied data analysis in R, treating it as an engineering discipline rather than a matter of requesting more cores. It reviews the parallel ecosystem: the parallel package, foreach, the future framework and its interchangeable backends, BiocParallel, snow, and sparklyr for Apache Spark. Amdahl's law supplies the ceiling, since speedup approaches a fixed limit set by the serial fraction however many workers are added, so profiling decides whether parallelizing is worth attempting. Practical guidance covers task granularity, resource estimation before submission, and testing on a subset first. Three failure modes then receive separate treatment, because they corrupt results rather than merely slowing them and none of them raises an error. Random number streams can overlap across workers, or vary with the worker count, breaking both independence and reproducibility. Memory is duplicated rather than shared under process-based backends. Tasks can fail silently, leaving an analysis to proceed over an unknown subset of its sample. A worked R workflow makes the recommendations concrete.
 
 **Keywords:** High-performance computing; Parallel computing; Future; Foreach; Apache Spark; Distributed computing; Profiling; Scalability; Reproducibility
 :::
@@ -35,7 +35,7 @@ $$
 S(k) \;=\; \frac{1}{(1 - p) + \dfrac{p}{k}},
 $$
 
-which is Amdahl's law. The consequence is unintuitive and worth internalizing. As $k$ grows without bound, $S$ does not; it approaches $1/(1-p)$, a ceiling fixed entirely by the serial fraction. A job that is 90% parallelizable can never run more than ten times faster no matter how large the cluster, and it reaches a speedup of five at eight workers, at which point doubling the allocation again buys about 25%. A job that is 50% parallelizable never beats a factor of two.
+which is Amdahl's law. The consequence is unintuitive and worth internalizing. As $k$ grows without bound, $S$ does not. It approaches $1/(1-p)$, a ceiling fixed entirely by the serial fraction. A job that is 90% parallelizable can never run more than ten times faster no matter how large the cluster, and it reaches a speedup of five at eight workers, at which point doubling the allocation again buys about 25%. A job that is 50% parallelizable never beats a factor of two.
 
 Two practical conclusions follow. The first is that profiling is not optional preparation but the step that determines whether any of this is worth doing: an hour spent parallelizing a routine that accounts for 15% of runtime is an hour spent buying a maximum improvement of 18%. The second is that requesting more cores has sharply diminishing returns, and past a point it has negative ones, because the formula above ignores the cost of coordination. Real parallel overhead grows with $k$: workers must be started, data must be copied to them, and results must be collected. Where that cost grows faster than the work shrinks, adding workers makes the job slower. This is the usual explanation for a benchmark that improves from two cores to eight and then degrades at thirty-two.
 
@@ -47,7 +47,7 @@ The corollary for task granularity is direct. Overhead is paid per task, so a lo
 
 The single most common way for a parallel analysis to be quietly wrong involves random numbers, and it is worth stating plainly because the failure produces no error.
 
-R's generator is a deterministic stream advanced by a seed. Calling `set.seed(123)` and then spawning workers does not give each worker its own stream; depending on the backend it may give them all the *same* stream, in which case a simulation of ten thousand replicates across eight workers contains eight identical blocks of twelve hundred and fifty, and the variance across replicates is understated accordingly. Alternatively the workers may be seeded from the system clock or the process id, in which case the streams differ but the run is not reproducible, and no amount of re-running the script recovers the reported numbers.
+R's generator is a deterministic stream advanced by a seed. Calling `set.seed(123)` and then spawning workers does not give each worker its own stream. Depending on the backend it may give them all the *same* stream, in which case a simulation of ten thousand replicates across eight workers contains eight identical blocks of twelve hundred and fifty, and the variance across replicates is understated accordingly. Alternatively the workers may be seeded from the system clock or the process id, in which case the streams differ but the run is not reproducible, and no amount of re-running the script recovers the reported numbers.
 
 Neither failure raises a warning. Both produce output of the right shape and plausible magnitude.
 
@@ -211,7 +211,7 @@ Below is a conceptual R workflow demonstrating how to:
 
 2.  Perform computations in parallel for the test subset using the `parallel` or `foreach` approach.
 
-3.  Measure resource usage (basic approach in R; for deeper HPC environment metrics, rely on the cluster's job scheduler logs).
+3.  Measure resource usage (basic approach in R, with the cluster's job scheduler logs for deeper HPC environment metrics).
 
 4.  Extrapolate resource usage.
 

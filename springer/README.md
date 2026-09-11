@@ -54,7 +54,42 @@ against the actual pandoc binary the book builds with. Styling comes from
 `_abstract_style.html`, a head include added to the `bs4_book` block of `_output.yml`,
 which avoids touching bookdown's own stylesheet handling.
 
-Every chapter has 8 or 9 keywords, inside Springer's 5 to 10 range.
+Every chapter has 8 or 9 keywords. See the open question about that count below.
+
+## Checked against the published guidelines, 10 September 2026
+
+The points above were taken from Banu Dhayalan's email. Reading the Manuscript
+Guidelines on the Springer Nature site turned up four rules the email did not mention.
+
+**Abstracts are capped at 200 words.** All eleven now run between 153 and 192. Two had
+to be trimmed after the EDA and HPC chapters were expanded.
+
+**Keyword phrases must each begin with a capital letter.** All eleven chapters were
+lowercase throughout and have been corrected.
+
+**The keyword count is unresolved.** The email asks for 5 to 10 per chapter. The
+published guidelines say "we allow three to six keywords per chapter". The chapters
+carry 8 or 9, which satisfies the email and exceeds the guidelines. Rather than guess,
+the question has gone back to production. If the answer is three to six, every chapter
+needs trimming.
+
+**References belong at the end of each chapter, not in the back matter.** The guidelines
+are explicit that this is what makes citation linking work on SpringerLink. The build
+produces a single consolidated bibliography and no chapter carries a reference list of
+its own. This is the one structural requirement the volume does not currently meet.
+Fixing it changes how the volume is generated, and the right fix depends on whether
+production takes the `.tex` as delivered or recasts it into their own template, so the
+question has gone back to them as well.
+
+Two further points from the guidelines, neither of them a problem. There is **no limit
+on heading depth**, only a rule against skipping levels, so the four-deep subsections in
+the endogeneity chapter are fine. And the accessibility rule, "do not just change the
+color, also change shapes and patterns", is what the figure redesign described in
+`figures-for-color-print.md` already does.
+
+Figure file formats are an open question: the guidelines ask for EPS, or TIFF at 300 to
+1200 dpi depending on the artwork, supplied as separate files. The build emits vector
+PDF for the LaTeX output and 300 dpi PNG for the electronic version.
 
 **Cross-references that will not survive the split.** Twenty-one `\@ref()` and table
 references in these chapters point at chapters that stay behind in the online book, such as
@@ -68,25 +103,50 @@ real rewriting; the rest already had the right shape.
 
 | File | Chapter | Count | Keywords |
 |------|---------|-------|----------|
-| 36-endogeneity.Rmd | Endogeneity | 9 | endogeneity; measurement error; simultaneity; omitted variable bias; Gaussian copula; control function; sample selection; Heckman correction; exclusion restriction |
-| 37-biases.Rmd | Biases | 9 | aggregation bias; Simpson's paradox; contamination bias; survivorship bias; attrition bias; recall bias; publication bias; p-hacking; selection models |
-| 38-dag.Rmd | Directed Acyclic Graphs | 9 | directed acyclic graphs; d-separation; back-door criterion; front-door criterion; collider bias; M-bias; confounding; causal discovery; structure learning |
-| 39-controls.Rmd | Controls | 9 | control variables; bad controls; overcontrol bias; bias amplification; collider bias; neutral controls; adjustment sets; confounding; variance inflation |
-| 40-report.Rmd | Reporting Your Analysis | 8 | reproducible reporting; regression tables; cluster-robust standard errors; model comparison; coefficient plots; APA style; descriptive statistics; publication-ready output |
-| 41-EDA.Rmd | Exploratory Data Analysis | 8 | exploratory data analysis; data profiling; feature engineering; missing data; outlier detection; summary statistics; automated reporting; interactive visualization |
-| 42-sensitivity-robustness.Rmd | Sensitivity Analysis and Robustness Checks | 9 | sensitivity analysis; robustness checks; specification curve; multiverse analysis; coefficient stability; omitted variable bias; robustness value; Rosenbaum bounds; placebo tests |
-| 43-rep_synthetic_data.Rmd | Replication and Synthetic Data | 8 | replication; reproducibility; replication standard; data sharing; synthetic data; synthpop; data confidentiality; research transparency |
-| 43.5-differential-privacy.Rmd | Differential Privacy | 9 | differential privacy; privacy loss; epsilon; Laplace mechanism; Gaussian mechanism; exponential mechanism; randomized response; composition; statistical disclosure control |
-| 44-hpc.Rmd | High-Performance Computing | 9 | high-performance computing; parallel computing; future; foreach; Apache Spark; distributed computing; profiling; scalability; resource estimation |
-| 45-clustered-inference.Rmd | Clustered and Robust Inference | 9 | cluster-robust standard errors; within-cluster correlation; few clusters; wild cluster bootstrap; multi-way clustering; spatial correlation; design-based inference; fixest; statistical inference |
+| 36-endogeneity.Rmd | Endogeneity | 9 | Endogeneity; Measurement error; Simultaneity; Omitted variable bias; Gaussian copula; Control function; Sample selection; Heckman correction; Exclusion restriction |
+| 37-biases.Rmd | Biases | 9 | Aggregation bias; Simpson's paradox; Contamination bias; Survivorship bias; Attrition bias; Recall bias; Publication bias; P-hacking; Selection models |
+| 38-dag.Rmd | Directed Acyclic Graphs | 9 | Directed acyclic graphs; D-separation; Back-door criterion; Front-door criterion; Collider bias; M-bias; Confounding; Causal discovery; Structure learning |
+| 39-controls.Rmd | Controls | 9 | Control variables; Bad controls; Overcontrol bias; Bias amplification; Collider bias; Neutral controls; Adjustment sets; Confounding; Variance inflation |
+| 40-report.Rmd | Reporting Your Analysis | 8 | Reproducible reporting; Regression tables; Cluster-robust standard errors; Model comparison; Coefficient plots; APA style; Descriptive statistics; Publication-ready output |
+| 41-EDA.Rmd | Exploratory Data Analysis | 9 | Exploratory data analysis; Data profiling; Feature engineering; Missing data; Outlier detection; Summary statistics; Automated reporting; Interactive visualization; Researcher degrees of freedom |
+| 42-sensitivity-robustness.Rmd | Sensitivity Analysis and Robustness Checks | 9 | Sensitivity analysis; Robustness checks; Specification curve; Multiverse analysis; Coefficient stability; Omitted variable bias; Robustness value; Rosenbaum bounds; Placebo tests |
+| 43-rep_synthetic_data.Rmd | Replication and Synthetic Data | 8 | Replication; Reproducibility; Replication standard; Data sharing; Synthetic data; Synthpop; Data confidentiality; Research transparency |
+| 43.5-differential-privacy.Rmd | Differential Privacy | 9 | Differential privacy; Privacy loss; Epsilon; Laplace mechanism; Gaussian mechanism; Exponential mechanism; Randomized response; Composition; Statistical disclosure control |
+| 44-hpc.Rmd | High-Performance Computing | 9 | High-performance computing; Parallel computing; Future; Foreach; Apache Spark; Distributed computing; Profiling; Scalability; Reproducibility |
+| 45-clustered-inference.Rmd | Clustered and Robust Inference | 9 | Cluster-robust standard errors; Within-cluster correlation; Few clusters; Wild cluster bootstrap; Multi-way clustering; Spatial correlation; Design-based inference; Fixest; Statistical inference |
 
-## When you make the copy
+## The copy has been made, and it is now scripted
 
-Copy the fourteen `.Rmd` files listed above, plus `_common.R`, the four `.bib` files,
-`preamble.tex`, `logo.png`, and `style.css`, into the standalone folder. Keep the
-existing `index.Rmd`, `_bookdown.yml`, and `_output.yml` there, and add
-`_abstract_style.html` to the `in_header` list of that folder's `bs4_book` block so the
-abstracts pick up their styling.
+As of 10 September 2026 the standalone folder exists, builds, and is a git repository of
+its own. The copy is no longer a one-time manual step: `scripts/sync-from-upstream.R`
+in that folder re-derives it from this repository and can be run any number of times.
+
+```powershell
+.\scripts\sync.ps1
+```
+
+It copies the fourteen chapters, runs `prune-bib.pl` and takes the pruned bibliography,
+and copies the build inputs both books share, which are `_common.R`, `preamble.tex`,
+`_abstract_style.html` and `css/epub_style.css`. It then localizes the result the same
+way `strip-outward-links.pl` does, and verifies that nothing dangles before reporting
+`SYNC: PASS`.
+
+It supersedes `strip-outward-links.pl` for that folder, for three reasons. It finds the
+outward references by comparing used against defined labels rather than from a fixed
+list, so a new cross-reference added upstream is handled without editing anything. It
+keeps the twelve sentences whose wording differs between the two books in an explicit
+table, and fails loudly if an upstream edit moves the text out from under one of them.
+And it is idempotent, so it can be re-run after every upstream change rather than only
+at the moment of the split. `strip-outward-links.pl` is kept here as the reference
+implementation and as documentation of what the localization does.
+
+`prune-bib.pl` has no counterpart in the new script and is called by it directly.
+
+**Shared prose is edited here, never in the fork.** The fork carries `index.Rmd`,
+`_bookdown.yml`, `_output.yml`, `google_analytics.html`, `style.css`, `DESCRIPTION`, its
+appendices, and the rewrite table. Everything else arrives by sync.
+
+### The original manual procedure, for reference
 
 Two steps then make the volume self-contained.
 

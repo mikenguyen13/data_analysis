@@ -16,7 +16,7 @@ Three questions occupy this stage, and they are worth separating because they fa
 
 The first is what the data are. Types, ranges, cardinality, and completeness sound like clerical matters, and they are, right up until a variable assumed to be continuous turns out to be a truncated count, or a panel assumed to be balanced turns out to lose half its units after a particular year. These facts constrain every model that follows. They are cheap to establish now and expensive to discover late.
 
-The second is what the data can support. A question requires variation of a particular kind, in a particular place, and the data either contain it or they do not. If treated and untreated units do not overlap on the covariates that matter, no estimator recovers the contrast; if a key subgroup holds forty observations, no amount of modeling produces a credible subgroup effect. Settling this early prevents an entire analysis from being built on a comparison the data cannot make.
+The second is what the data can support. A question requires variation of a particular kind, in a particular place, and the data either contain it or they do not. If treated and untreated units do not overlap on the covariates that matter, no estimator recovers the contrast. If a key subgroup holds forty observations, no amount of modeling produces a credible subgroup effect. Settling this early prevents an entire analysis from being built on a comparison the data cannot make.
 
 The third is what would have to be true for the analysis to be wrong, which is the question the rest of this volume develops at length. Exploration is where the candidate answers first become visible: the impossible value that suggests a coding error, the discontinuity that suggests a change in how a variable was collected, the association between missingness and the outcome that suggests the absent rows are not absent at random.
 
@@ -78,7 +78,7 @@ dplyr::glimpse(tx)
 
 Automate a first-pass profile to see dimensions, types, basic completeness, and distributions.
 
-Automation matters here for a reason beyond convenience. A profile produced by a script can be regenerated when the data are refreshed, diffed against the previous version, and inspected by someone who was not present the first time. A profile produced by clicking through a spreadsheet is none of those things, and its findings survive only in the analyst's memory. The tools below reveal nothing a careful analyst could not find by hand; what they change is that the finding becomes reproducible and the cost of repeating it falls to nearly zero.
+Automation matters here for a reason beyond convenience. A profile produced by a script can be regenerated when the data are refreshed, diffed against the previous version, and inspected by someone who was not present the first time. A profile produced by clicking through a spreadsheet is none of those things, and its findings survive only in the analyst's memory. The tools below reveal nothing a careful analyst could not find by hand. What they change is that the finding becomes reproducible and the cost of repeating it falls to nearly zero.
 
 ```{r, message = FALSE, warning = FALSE, results = "hide"}
 # High-level overview
@@ -173,11 +173,11 @@ names(spl)
 
 Missingness is information. First detect, then decide: delete, impute, or model it explicitly.
 
-Detection does not settle the decision, because the same missingness rate can arise from mechanisms with entirely different consequences. The standard taxonomy separates three. Values are missing completely at random when the probability of absence is unrelated to anything, observed or not; dropping incomplete rows then costs precision and nothing else. Values are missing at random when that probability depends on observed variables; complete-case analysis is now biased, but the bias is repairable, because the variables driving the absence are available to condition on. Values are missing not at random when the probability depends on the unobserved value itself, and this is the case no imputation procedure repairs, because the information required to repair it is exactly what is absent.
+Detection does not settle the decision, because the same missingness rate can arise from mechanisms with entirely different consequences. The standard taxonomy separates three. Values are missing completely at random when the probability of absence is unrelated to anything, observed or not, and dropping incomplete rows then costs precision and nothing else. Values are missing at random when that probability depends on observed variables. Complete-case analysis is now biased, but the bias is repairable, because the variables driving the absence are available to condition on. Values are missing not at random when the probability depends on the unobserved value itself, and this is the case no imputation procedure repairs, because the information required to repair it is exactly what is absent.
 
-Nothing in the data distinguishes the second case from the third. The pattern of missingness is observable; the mechanism generating it is an assumption, of the same kind as the identifying assumptions treated elsewhere in this volume. That is why the profiling below is worth doing carefully and is still not decisive on its own. It shows where the holes are and which observed variables predict them, which is enough to rule out the first case and to argue about the other two, but not enough to establish which obtains. Where the choice changes the conclusion, it belongs in the sensitivity analysis rather than in a preprocessing step nobody reports.
+Nothing in the data distinguishes the second case from the third. The pattern of missingness is observable. The mechanism generating it is an assumption, of the same kind as the identifying assumptions treated elsewhere in this volume. That is why the profiling below is worth doing carefully and is still not decisive on its own. It shows where the holes are and which observed variables predict them, which is enough to rule out the first case and to argue about the other two, but not enough to establish which obtains. Where the choice changes the conclusion, it belongs in the sensitivity analysis rather than in a preprocessing step nobody reports.
 
-One practical corollary: keep an indicator for what was missing. If the missingness is informative, the indicator carries signal that imputation would otherwise destroy; if it is not, the indicator is harmless.
+One practical corollary: keep an indicator for what was missing. If the missingness is informative, the indicator carries signal that imputation would otherwise destroy. If it is not, the indicator is harmless.
 
 ```{r}
 # Counts by variable
@@ -230,7 +230,7 @@ Catch anomalies early: impossible values, data entry glitches, or KPI mismatches
 
 The category deserves more care than it usually gets, because two very different things travel under the name outlier. One is a value that cannot be right: a negative price, a sale recorded before its listing, a month with more transactions than there were listings to transact. These are errors, they have a cause in the recording process, and removing them is a cleaning decision any reader would endorse. The other is a value that is extreme but entirely possible, and here removal is not cleaning but an inferential act. Dropping the observations that sit furthest from the fitted relationship will improve the fit, always, and the improvement carries no information about whether the relationship is real.
 
-The operational test is whether the exclusion rule can be stated without reference to the outcome. A rule that removes months where sales exceed listings is mechanical, checkable, and independent of any model. A rule that removes the twelve cities with the largest residuals is none of those; it is a specification choice, and it should be reported as one and varied among the robustness checks. The diagnostics below identify candidates. They do not license deletion.
+The operational test is whether the exclusion rule can be stated without reference to the outcome. A rule that removes months where sales exceed listings is mechanical, checkable, and independent of any model. A rule that removes the twelve cities with the largest residuals is none of those. It is a specification choice, and it should be reported as one and varied among the robustness checks. The diagnostics below identify candidates. They do not license deletion.
 
 1.  Logical constraints
 
@@ -446,7 +446,7 @@ library(descriptr)
 
 ### Appendix: Small "gotchas" to keep in mind
 
--   For correlation heatmaps, ensure you're not mixing units without scaling; use `scale. = TRUE` in PCA.
+-   For correlation heatmaps, ensure you're not mixing units without scaling, and use `scale. = TRUE` in PCA.
 -   For discrete correlations, high-cardinality features (like many cities) can make matrices unwieldy. Thus, lump or select top-$k$ first.
 -   Imputation should be inside resampling to avoid leakage.
 -   KPI checks (e.g., `median` vs `volume/sales`) are *diagnostics*, not proofs of error. Hence, investigate outliers before removal.
