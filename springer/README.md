@@ -54,7 +54,7 @@ against the actual pandoc binary the book builds with. Styling comes from
 `_abstract_style.html`, a head include added to the `bs4_book` block of `_output.yml`,
 which avoids touching bookdown's own stylesheet handling.
 
-Every chapter has 8 or 9 keywords. See the open question about that count below.
+Every chapter has six keywords. See the note on the count below.
 
 ## Checked against the published guidelines, 10 September 2026
 
@@ -67,19 +67,26 @@ to be trimmed after the EDA and HPC chapters were expanded.
 **Keyword phrases must each begin with a capital letter.** All eleven chapters were
 lowercase throughout and have been corrected.
 
-**The keyword count is unresolved.** The email asks for 5 to 10 per chapter. The
-published guidelines say "we allow three to six keywords per chapter". The chapters
-carry 8 or 9, which satisfies the email and exceeds the guidelines. Rather than guess,
-the question has gone back to production. If the answer is three to six, every chapter
-needs trimming.
+**The keyword count conflicted, and no longer needs resolving.** The email asks for 5 to
+10 per chapter, the published guidelines say "we allow three to six". The chapters
+carried 8 or 9, which satisfied the email and exceeded the guidelines. Every chapter now
+carries exactly **six**, which satisfies both at once, so the question does not have to
+be settled before delivery. Each list keeps the terms most distinctive to its chapter.
 
 **References belong at the end of each chapter, not in the back matter.** The guidelines
-are explicit that this is what makes citation linking work on SpringerLink. The build
-produces a single consolidated bibliography and no chapter carries a reference list of
-its own. This is the one structural requirement the volume does not currently meet.
-Fixing it changes how the volume is generated, and the right fix depends on whether
-production takes the `.tex` as delivered or recasts it into their own template, so the
-question has gone back to them as well.
+are explicit that this is what makes citation linking work on SpringerLink.
+
+Half fixed. `bs4_book` defaults `split_bib` to `FALSE`, which is why the volume was
+producing a single consolidated bibliography; `gitbook` defaults it to `TRUE`. The fork's
+`_output.yml` now sets `split_bib: true`, so the HTML edition carries references at the
+end of every chapter.
+
+The LaTeX deliverable still emits one `\bibliography` at the end. `pdf_book` has no
+`split_bib` argument, and per-chapter bibliographies in LaTeX need `chapterbib` or
+`bibunits` over a document structured as `\include`d chapters, which is not how bookdown
+assembles the `.tex`. Since Springer's own monograph template handles per-chapter
+references natively, the right fix depends on whether production recasts the manuscript
+into that template or takes the `.tex` as delivered. That question is with them.
 
 Two further points from the guidelines, neither of them a problem. There is **no limit
 on heading depth**, only a rule against skipping levels, so the four-deep subsections in
@@ -103,17 +110,17 @@ real rewriting; the rest already had the right shape.
 
 | File | Chapter | Count | Keywords |
 |------|---------|-------|----------|
-| 36-endogeneity.Rmd | Endogeneity | 9 | Endogeneity; Measurement error; Simultaneity; Omitted variable bias; Gaussian copula; Control function; Sample selection; Heckman correction; Exclusion restriction |
-| 37-biases.Rmd | Biases | 9 | Aggregation bias; Simpson's paradox; Contamination bias; Survivorship bias; Attrition bias; Recall bias; Publication bias; P-hacking; Selection models |
-| 38-dag.Rmd | Directed Acyclic Graphs | 9 | Directed acyclic graphs; D-separation; Back-door criterion; Front-door criterion; Collider bias; M-bias; Confounding; Causal discovery; Structure learning |
-| 39-controls.Rmd | Controls | 9 | Control variables; Bad controls; Overcontrol bias; Bias amplification; Collider bias; Neutral controls; Adjustment sets; Confounding; Variance inflation |
-| 40-report.Rmd | Reporting Your Analysis | 8 | Reproducible reporting; Regression tables; Cluster-robust standard errors; Model comparison; Coefficient plots; APA style; Descriptive statistics; Publication-ready output |
-| 41-EDA.Rmd | Exploratory Data Analysis | 9 | Exploratory data analysis; Data profiling; Feature engineering; Missing data; Outlier detection; Summary statistics; Automated reporting; Interactive visualization; Researcher degrees of freedom |
-| 42-sensitivity-robustness.Rmd | Sensitivity Analysis and Robustness Checks | 9 | Sensitivity analysis; Robustness checks; Specification curve; Multiverse analysis; Coefficient stability; Omitted variable bias; Robustness value; Rosenbaum bounds; Placebo tests |
-| 43-rep_synthetic_data.Rmd | Replication and Synthetic Data | 8 | Replication; Reproducibility; Replication standard; Data sharing; Synthetic data; Synthpop; Data confidentiality; Research transparency |
-| 43.5-differential-privacy.Rmd | Differential Privacy | 9 | Differential privacy; Privacy loss; Epsilon; Laplace mechanism; Gaussian mechanism; Exponential mechanism; Randomized response; Composition; Statistical disclosure control |
-| 44-hpc.Rmd | High-Performance Computing | 9 | High-performance computing; Parallel computing; Future; Foreach; Apache Spark; Distributed computing; Profiling; Scalability; Reproducibility |
-| 45-clustered-inference.Rmd | Clustered and Robust Inference | 9 | Cluster-robust standard errors; Within-cluster correlation; Few clusters; Wild cluster bootstrap; Multi-way clustering; Spatial correlation; Design-based inference; Fixest; Statistical inference |
+| 36-endogeneity.Rmd | Endogeneity | 6 | Endogeneity; Omitted variable bias; Measurement error; Simultaneity; Control function; Gaussian copula |
+| 37-biases.Rmd | Biases | 6 | Aggregation bias; Simpson's paradox; Survivorship bias; Attrition bias; Publication bias; P-hacking |
+| 38-dag.Rmd | Directed Acyclic Graphs | 6 | Directed acyclic graphs; D-separation; Back-door criterion; Front-door criterion; Collider bias; Causal discovery |
+| 39-controls.Rmd | Controls | 6 | Control variables; Bad controls; Overcontrol bias; Bias amplification; Adjustment sets; Confounding |
+| 40-report.Rmd | Reporting Your Analysis | 6 | Reproducible reporting; Regression tables; Model comparison; Coefficient plots; APA style; Publication-ready output |
+| 41-EDA.Rmd | Exploratory Data Analysis | 6 | Exploratory data analysis; Data profiling; Feature engineering; Missing data; Outlier detection; Researcher degrees of freedom |
+| 42-sensitivity-robustness.Rmd | Sensitivity Analysis and Robustness Checks | 6 | Sensitivity analysis; Robustness checks; Specification curve; Multiverse analysis; Robustness value; Rosenbaum bounds |
+| 43-rep_synthetic_data.Rmd | Replication and Synthetic Data | 6 | Replication; Reproducibility; Synthetic data; Data sharing; Data confidentiality; Research transparency |
+| 43.5-differential-privacy.Rmd | Differential Privacy | 6 | Differential privacy; Privacy loss; Laplace mechanism; Randomized response; Composition; Statistical disclosure control |
+| 44-hpc.Rmd | High-Performance Computing | 6 | High-performance computing; Parallel computing; Distributed computing; Apache Spark; Profiling; Reproducibility |
+| 45-clustered-inference.Rmd | Clustered and Robust Inference | 6 | Cluster-robust standard errors; Within-cluster correlation; Few clusters; Wild cluster bootstrap; Multi-way clustering; Design-based inference |
 
 ## The copy has been made, and it is now scripted
 
