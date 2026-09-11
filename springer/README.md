@@ -81,12 +81,25 @@ producing a single consolidated bibliography; `gitbook` defaults it to `TRUE`. T
 `_output.yml` now sets `split_bib: true`, so the HTML edition carries references at the
 end of every chapter.
 
-The LaTeX deliverable still emits one `\bibliography` at the end. `pdf_book` has no
-`split_bib` argument, and per-chapter bibliographies in LaTeX need `chapterbib` or
-`bibunits` over a document structured as `\include`d chapters, which is not how bookdown
-assembles the `.tex`. Since Springer's own monograph template handles per-chapter
-references natively, the right fix depends on whether production recasts the manuscript
-into that template or takes the `.tex` as delivered. That question is with them.
+The LaTeX deliverable still emits one `\bibliography` at the end, and that is a decision
+rather than an omission. `pdf_book` has no `split_bib`. Doing it properly in LaTeX means
+switching the manuscript from natbib to biblatex with `refsection=chapter`, which changes
+the rendering of every in-text citation in a 519-page book, to solve a problem production
+solves again anyway when it converts the manuscript to XML. Destabilizing a working build
+three weeks before delivery is the wrong trade.
+
+What production actually needs from that requirement is the mapping: which references
+belong to which chapter. `split-bib-by-chapter.pl` writes it out directly, one `.bib` per
+chapter in `bib-by-chapter/`, and ships alongside the `.tex`:
+
+```
+perl springer/split-bib-by-chapter.pl
+```
+
+It emits 211 entries across the eleven chapters, 202 of them unique, the difference being
+the nine sources cited by two chapters, which belong in both lists. The 202 is the same
+number `prune-bib.pl` arrives at independently, which is a useful cross-check on both.
+Chapters 6 and 10 come out empty because they cite nothing.
 
 Two further points from the guidelines, neither of them a problem. There is **no limit
 on heading depth**, only a rule against skipping levels, so the four-deep subsections in
