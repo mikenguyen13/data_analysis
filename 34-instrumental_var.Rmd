@@ -45,7 +45,7 @@ The conventional rules of thumb you will encounter later in this chapter are:
 -   A first-stage F-statistic below 10 (the Staiger-Stock threshold) indicates a weak instrument and unreliable 2SLS estimates.
 -   F-statistics between 10 and 20 were historically considered adequate, but @lee2022valid show the conventional critical values are too permissive in this range. Weak-instrument-robust inference (Anderson-Rubin, CLR) is preferable to reading the 2SLS t-statistic directly.
 -   F-statistics above 20 are a safer threshold under modern guidance.
--   With multiple instruments (overidentified models), use the Montiel Olea-Pflueger effective F-statistic rather than the standard first-stage F. See the weak-instruments section later in this chapter for implementation details.
+-   With multiple instruments (overidentified models), use the Montiel Olea-Pflueger effective F-statistic [@montiel2013robust] rather than the standard first-stage F. See the weak-instruments section later in this chapter for implementation details.
 
 One point is worth internalizing now: weak-instrument bias does not vanish with larger sample sizes. It is a property of first-stage strength, not of sampling noise. When the instrument is weak, the remedies are weak-instrument-robust methods (Anderson-Rubin, LIML, CLR) or partial identification bounds, not a larger $N$.
 :::
@@ -58,9 +58,9 @@ The method's modern centrality dates from the *credibility revolution* of the 19
 
 While IVs can provide a solution to endogeneity, the practical difficulties cluster into three families: assumption failures (an exclusion restriction that does not actually hold, or an instrument that is too weak to identify anything reliably), interpretation traps (the [LATE](#sec-instrumental-variables) applies only to compliers, not to the population the reader probably has in mind), and design hygiene (the same instrument used many times across literatures eventually becomes implausible). In any given application, the exclusion restriction and weak-instrument concerns are usually the ones that decide whether the analysis is publishable, but each of the points below has historically been the issue that broke a published result.
 
--   **[Exclusion-restriction violations](#sec-exogeneity-assumption).** If the instrument $Z$ affects $Y$ through any channel other than $X$, the IV estimate is biased. The bias is not signed in general: a backdoor channel that pushes $Y$ in the same direction as the treatment makes IV overstate the effect, while a channel that pushes the other way makes IV understate it. The exclusion restriction is fundamentally untestable, so the discipline here is to argue it explicitly from institutional knowledge and to probe it with falsification tests on placebo outcomes.
+-   **[Exclusion-restriction violations](#sec-exogeneity-assumption).** If the instrument $Z$ affects $Y$ through any channel other than $X$, the IV estimate is biased. The bias is not signed in general: a backdoor channel that pushes $Y$ in the same direction as the treatment makes IV overstate the effect, while a channel that pushes the other way makes IV understate it. The exclusion restriction is fundamentally untestable, so the discipline here is to argue it explicitly from institutional knowledge and to probe it with falsification tests on placebo outcomes. The aggregate evidence suggests the problem is not rare: replicating 67 IV papers from leading political-science journals, @lal2024much find that 2SLS estimates are systematically larger in magnitude than their OLS counterparts, and that the gap widens as the instrument weakens, a pattern more easily explained by exclusion or unconfoundedness failures than by a genuinely different complier effect.
 
--   **Repeated use of instruments.** Common instruments such as weather, distance to a regulator, or sweeping policy changes can be invalidated by their widespread application across studies [@gallen2020broken]: an instrument that has been shown to predict many outcomes is one that almost certainly violates the exclusion restriction for at least some of them. The canonical illustration is @mellon2021rain, who documents that *289 social-science studies* have used weather as an instrument for 195 distinct variables, an aggregate pattern that is hard to reconcile with the exclusion restriction holding for any single application. The defensive moves are to argue for the exclusion in your specific setting rather than relying on the literature's collective use of the instrument, to use formal tests for invalid instruments (Hausman-like tests, overidentification tests, the Conley-Hansen-Rossi plausibly exogenous bounds), and to run sensitivity analyses across the modest violations of exclusion that the most plausible alternative channels would imply.
+-   **Repeated use of instruments.** Common instruments such as weather, distance to a regulator, or sweeping policy changes can be invalidated by their widespread application across studies: an instrument that has been shown to predict many outcomes is one that almost certainly violates the exclusion restriction for at least some of them. The canonical illustration is @mellon2025rain, who reviews 289 social-science studies using weather as an instrument and catalogues *194 distinct variables* that prior work has linked to weather, each one a candidate backdoor channel for every other weather-IV study. Sensitivity analysis in that paper shows that the magnitude of many of these violations is enough to overturn the published result. The defensive moves are to argue for the exclusion in your specific setting rather than relying on the literature's collective use of the instrument, to use formal tests for invalid instruments (Hausman-like tests, overidentification tests, the Conley-Hansen-Rossi plausibly exogenous bounds [@conley2012plausibly]), and to run sensitivity analyses across the modest violations of exclusion that the most plausible alternative channels would imply.
 
 -   **Heterogeneous treatment effects and the LATE.** The Local Average Treatment Effect estimated by IV applies only to *compliers*: units whose treatment status is shifted by the instrument. The complier subpopulation is rarely the one a policymaker has in mind, and it is *unobservable* to the analyst, so the estimate corresponds to a weighted average of unit-level effects with weights the analyst cannot directly inspect. When the treatment effect is constant across units, the LATE coincides with the ATE and the distinction does not matter; when effects are heterogeneous, the LATE can be substantively different from the ATE, and reporting the LATE without flagging the distinction misleads readers.
 
@@ -1226,7 +1226,7 @@ Table: (\#tab:iv-inference-scenarios) Quality of standard IV inference under bes
         -   Require $E(F) > 142.6$ for near-validity [@lee2022valid].
         -   While the first-stage $F$ is observable, this threshold is high and often impractical.
     2.  Low Endogeneity:
-        -   Assume $|\rho| < 0.565$ [@angrist2024one, @lee2022valid]. In other words, we assume endogeneity to be less than moderate level.
+        -   Assume $|\rho| < 0.565$ [@angrist2024one; @lee2022valid]. In other words, we assume endogeneity to be less than moderate level.
         -   This undermines the motivation for IV in the first place, which exists precisely because of suspected endogeneity.
 2.  Confront the Problem Directly (Robust Methods)
     1.  [Anderson-Rubin (AR) Test](#sec-anderson-rubin-approach) [@anderson1949estimation]:
@@ -1235,10 +1235,18 @@ Table: (\#tab:iv-inference-scenarios) Quality of standard IV inference under bes
     2.  [tF Procedure](#sec-tf-procedure) [@lee2022valid]:
         -   Combines t-statistics and F-statistics in a unified testing framework.
         -   Offers valid inference in presence of weak instruments.
-    3.  [Andrews-Kolesár (AK) Procedure](#sec-ak-approach) [@angrist2023one]:
+    3.  [Andrews-Kolesár (AK) Procedure](#sec-ak-approach) [@angrist2024one]:
         -   Provides uniformly valid confidence intervals for $\beta$.
         -   Allows for weak instruments and arbitrary heteroskedasticity.
         -   Especially useful in overidentified settings.
+    4.  Effective First-Stage $F$ [@montiel2013robust]:
+        -   With more than one instrument and errors that are heteroskedastic, autocorrelated, or clustered, the conventional first-stage $F$ no longer maps onto the Stock-Yogo critical values, so comparing it to 10 is comparing it to nothing in particular.
+        -   The effective $F$ restores that mapping, and its critical values are computed for the worst-case bias or size distortion the analyst is willing to tolerate.
+    5.  Jackknife AR for Many Weak Instruments [@mikusheva2022inference]:
+        -   When the number of instruments grows with the sample size, 2SLS and the conventional AR statistic both break down, the latter because the $\chi^2$ approximation to its null distribution fails.
+        -   Removing own-observation terms from the projection yields a jackknifed AR statistic whose normal approximation remains valid under many weak instruments, including the case where identification is weak in every direction.
+
+Two closing points apply regardless of which robust procedure is chosen. Instrument strength is not a hurdle to be cleared once and then forgotten: the mapping from first-stage strength to the reliability of second-stage inference depends on the estimator, the error structure, and the degree of endogeneity, and @keane2023instrument work through that mapping and its reporting implications case by case. The failures are also not confined to simulations. Resampling a large sample of published IV papers, @young2022consistency finds that 2SLS results are far more sensitive to outliers and to the treatment of clustered errors than their published standard errors suggest, and that bootstrap-based inference removes conventional significance from a substantial share of them. Reporting an AR or tF interval next to the 2SLS point estimate costs one line of code and pre-empts most of this criticism.
 
 ------------------------------------------------------------------------
 
@@ -2923,6 +2931,80 @@ IV using $Z_1$ only should yield an estimate $\approx 1.0$, IV using $Z_2$ only 
 
 ------------------------------------------------------------------------
 
+### Sensitivity to Exclusion Violations {#sec-plausibly-exogenous}
+
+Since the exclusion restriction cannot be tested, the productive question is not whether it holds exactly but how large a violation the conclusion can absorb before it changes. @conley2012plausibly formalize this by letting the instrument enter the structural equation directly,
+
+$$
+Y = X \beta + Z \gamma + \varepsilon
+$$
+
+where $\gamma = 0$ returns standard IV. Once $\gamma$ is allowed to be non-zero but confined to a region the analyst is willing to defend, $\beta$ is partially identified, and two reporting strategies follow.
+
+The *union of confidence intervals* fixes a candidate $\gamma$, subtracts $Z\gamma$ from the outcome, runs IV on the adjusted outcome, and takes the union of the resulting intervals over the assumed support of $\gamma$. The *local-to-zero* approximation instead treats $\gamma$ as a draw from a prior with mean $\mu_\gamma$ and variance $\Omega_\gamma$, which shifts the IV estimator by $A\mu_\gamma$ and inflates its variance by $A \Omega_\gamma A'$, where $A = (X'P_Z X)^{-1} X' P_Z Z$. In the just-identified case with one instrument and one endogenous regressor, $A$ collapses to the scalar $Z'Z / Z'X$, so the whole exercise can be carried out by hand.
+
+```{r iv-plausibly-exogenous-sensitivity}
+set.seed(2024)
+n <- 5000
+
+Z <- rnorm(n)
+u <- rnorm(n)                            # the confounder
+X <- 0.6 * Z + 0.8 * u + rnorm(n)        # endogenous regressor
+
+beta_true  <- 1
+gamma_true <- 0.1                        # small direct effect of Z on Y
+Y <- beta_true * X + gamma_true * Z + 0.8 * u + rnorm(n)
+
+demean <- function(v) v - mean(v)
+Zc <- demean(Z)
+Xc <- demean(X)
+Yc <- demean(Y)
+
+b_iv  <- sum(Zc * Yc) / sum(Zc * Xc)
+resid <- Yc - b_iv * Xc
+se_iv <- sqrt(sum(Zc^2 * resid^2)) / abs(sum(Zc * Xc))   # heteroskedasticity robust
+A     <- sum(Zc^2) / sum(Zc * Xc)                        # how hard gamma moves the estimate
+
+crit <- qnorm(0.975)
+
+# union of 95% intervals over |gamma| <= delta
+uci <- function(delta) {
+  grid <- seq(-delta, delta, length.out = 201)
+  centres <- b_iv - A * grid
+  c(lower = min(centres) - crit * se_iv,
+    upper = max(centres) + crit * se_iv)
+}
+
+# local-to-zero interval with gamma ~ N(0, sd_gamma^2)
+ltz <- function(sd_gamma) {
+  se <- sqrt(se_iv^2 + (A * sd_gamma)^2)
+  c(lower = b_iv - crit * se, upper = b_iv + crit * se)
+}
+
+deltas <- c(0, 0.02, 0.05, 0.10, 0.20)
+sensitivity <- data.frame(
+  gamma_bound = deltas,
+  uci_lower   = sapply(deltas, function(d) uci(d)["lower"]),
+  uci_upper   = sapply(deltas, function(d) uci(d)["upper"]),
+  ltz_lower   = sapply(deltas, function(d) ltz(d)["lower"]),
+  ltz_upper   = sapply(deltas, function(d) ltz(d)["upper"])
+)
+
+round(sensitivity, 3)
+
+# smallest direct effect that pushes the interval onto zero
+breakdown <- (b_iv - crit * se_iv) / abs(A)
+round(c(iv_estimate = b_iv, robust_se = se_iv, A = A, breakdown_gamma = breakdown), 3)
+```
+
+Three things are worth reading off this output. The naive IV estimate is biased away from $\beta = 1$ by roughly $\gamma A$, which is the sense in which a direct effect of the instrument on the outcome is amplified by a weak first stage: $A$ is inversely proportional to $\mathrm{Cov}(Z, X)$, so the same direct effect does more damage the weaker the instrument. The union interval widens linearly in the assumed bound on $\gamma$ and still covers the truth at the bounds a careful analyst would defend here. And the breakdown value answers the question a referee actually asks, which is not "is the instrument perfect" but "how imperfect would it have to be before I stop believing you".
+
+The same logic scales to the literature review that @mellon2025rain runs over the weather-IV corpus: each catalogued direct effect of weather on an outcome implies a range for $\gamma$, and feeding that range through the sensitivity analysis is what turns an abstract worry about the exclusion restriction into a statement about whether a specific published estimate survives.
+
+A complementary route drops the prior on $\gamma$ entirely. @nevo2012identification assume instead that the instrument is *less* endogenous than the regressor it instruments and correlated with the structural error in the same direction, which is often a defensible reading of institutional knowledge, and derive analytic bounds on $\beta$ from those two inequalities alone. Where the analyst can argue about relative endogeneity more comfortably than about the magnitude of a direct effect, that is the easier assumption to defend in a seminar.
+
+------------------------------------------------------------------------
+
 ## Cautions in IV
 
 A handful of issues recur in IV practice often enough that referees flag them by reflex. The list below is not exhaustive (specific applications surface their own concerns), but each entry has been the source of mistaken conclusions in published work and is worth checking before any IV result leaves the desk.
@@ -3037,7 +3119,7 @@ Overfit first-stage predictions may reintroduce endogeneity due to incidental co
 
 1.  First-Stage F-Statistic
 
-A weak instrument test: rule of thumb is $F > 10$ for a single instrument; more stringent thresholds apply for many instruments.
+A weak instrument test: rule of thumb is $F > 10$ for a single instrument, with more stringent thresholds for many instruments. Once the model is overidentified and the errors are not i.i.d., the relevant statistic is the effective $F$ [@montiel2013robust], and when the instrument count grows with the sample the appropriate inference is designed for that regime directly [@mikusheva2022inference].
 
 2.  Overidentification Tests
 
@@ -3054,7 +3136,7 @@ A weak instrument test: rule of thumb is $F > 10$ for a single instrument; more 
 
 1.  Instrument Selection
 
--   Lasso IV / Post-Double Selection: Use regularization to select valid instruments.
+-   Lasso IV / Post-Double Selection: Use regularization to build the first stage from a large instrument set, which recovers the optimal instrument without paying the many-IV bias of using all of them [@belloni2012sparse].
 -   Factor-Based Methods: Project instruments onto principal components.
 
 2.  Shrinkage Estimators
@@ -3281,6 +3363,10 @@ The MTE framework also connects to:
 
 -   [**Control function methods**](#sec-control-function-approach): which account for selection via inclusion of latent variables (e.g., residuals) in outcome equations.
 -   Partial identification / bounding methods: which avoid strong parametric assumptions and seek informative bounds on treatment effects.
+
+Two results sharpen what this program buys. The first concerns overidentified designs. The familiar reading of 2SLS as a positively weighted average of instrument-specific LATEs needs more than monotonicity instrument by instrument: @mogstad2021causal show that it requires *partial monotonicity*, the condition that each instrument moves treatment in the same direction for every unit while the other instruments are held fixed. When partial monotonicity fails, the 2SLS estimand can fall outside the range spanned by the underlying LATEs, sign flips included, so the sensible report is the set of just-identified estimates one instrument at a time, with the overidentified combination presented as a summary rather than as a parameter anyone should interpret.
+
+The second concerns extrapolation. Once the MTE curve is the target, moving from the complier margin to a policy-relevant parameter need not be an all-or-nothing parametric exercise. @mogstad2018using recast it as partial identification: the analyst states which shape restrictions on the MTE curve they are prepared to defend, such as boundedness, monotonicity in the unobserved resistance to treatment, or smoothness of a low-order polynomial, and a linear program returns the sharp bounds those restrictions imply for the target parameter. The output is an interval that widens as the assumptions weaken, which is a more honest object than a point estimate resting on a functional form nobody is willing to argue for.
 
 These newer strategies reflect a shift in modern econometrics: away from treating unobserved heterogeneity as a nuisance, and toward modeling it directly for richer causal inference.
 
