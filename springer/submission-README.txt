@@ -18,7 +18,7 @@ data_analysis_practice.tex
     702652-2 and 702652-3 hold the figures. Unpack all three into the same
     folder and the relative paths in the .tex resolve.
 
-    A typeset PDF of the manuscript, 519 pages, is available on request. It is
+    A typeset PDF of the manuscript, 515 pages, is available on request. It is
     too large to attach here and is for reference rather than production.
 
 references-springer.bib

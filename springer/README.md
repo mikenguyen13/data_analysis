@@ -84,7 +84,7 @@ end of every chapter.
 The LaTeX deliverable still emits one `\bibliography` at the end, and that is a decision
 rather than an omission. `pdf_book` has no `split_bib`. Doing it properly in LaTeX means
 switching the manuscript from natbib to biblatex with `refsection=chapter`, which changes
-the rendering of every in-text citation in a 519-page book, to solve a problem production
+the rendering of every in-text citation in a 515-page book, to solve a problem production
 solves again anyway when it converts the manuscript to XML. Destabilizing a working build
 three weeks before delivery is the wrong trade.
 

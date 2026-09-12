@@ -15,7 +15,7 @@
 # LaTeX deliverable does not: pdf_book has no split_bib, and doing it in LaTeX
 # would mean switching the whole manuscript from natbib to biblatex with
 # refsection=chapter, which changes the rendering of every in-text citation in a
-# 519-page book to solve a problem production re-solves anyway when it converts
+# 515-page book to solve a problem production re-solves anyway when it converts
 # to XML.
 #
 # So instead of restructuring the manuscript, this hands production the mapping
