@@ -6,7 +6,7 @@ The distinction is worth stating up front. A mediation decomposition asks what a
 
 That said, decomposition is where a great deal of real mechanism evidence lives. When an applied paper reports that a coefficient falls by forty percent once industry controls are added, and concludes that industry composition explains forty percent of the effect, it is doing a decomposition badly. Doing it properly is the subject of Section \@ref(sec-decomp-gelbach), and it is probably the single most useful tool in this chapter for economists, finance researchers, and expert witnesses.
 
-The chapter covers the aggregate mean decomposition and its identification problems, the conditional decomposition of covariate contributions, distributional decompositions that go beyond the mean, Shapley methods that resolve the ordering ambiguity that afflicts all of them, and variance decompositions in two-way fixed-effects models.
+The chapter covers the aggregate mean decomposition and its identification problems, the conditional decomposition of covariate contributions, distributional decompositions that go beyond the mean, Shapley methods that resolve the ordering ambiguity that afflicts all of them, variance decompositions in two-way fixed-effects models, and the components-of-variance design that asks how much of an outcome belongs to each level of a nested hierarchy.
 
 ## The Kitagawa-Oaxaca-Blinder Decomposition {#sec-decomp-kob}
 
@@ -115,7 +115,7 @@ knitr::kable(
 )
 ```
 
-The explained share ranges from about fifteen percent to about fifty-four percent depending on a choice the analyst makes before seeing any results. Any decomposition reported without stating the reference vector, and ideally without showing this sensitivity table, is not reproducible in any meaningful sense.
+The explained share in Table \@ref(tab:decomp-reference-sensitivity) ranges from about fifteen percent to about fifty-four percent depending on a choice the analyst makes before seeing any results. Any decomposition reported without stating the reference vector, and ideally without showing this sensitivity table, is not reproducible in any meaningful sense.
 
 ### The Detailed Decomposition Is Not Invariant
 
@@ -202,7 +202,7 @@ round(c(native = mA, foreign_born = mB, counterfactual = mCF,
         total = mA - mB), 4)
 ```
 
-The reweighting attributes about forty-two percent of the mean gap to composition and the rest to structure, which is close to the pooled-reference Oaxaca answer but obtained without imposing linearity on the outcome equation. That is the method's main advantage: it requires a model for group membership rather than for the outcome, and the outcome enters only through weighted averages.
+The reweighting attributes about forty-two percent of the mean gap to composition and the rest to structure, which is close to the pooled-reference Oaxaca answer but obtained without imposing linearity on the outcome equation. That is the method's main advantage: it requires a model for group membership rather than for the outcome, and the outcome enters only through weighted averages. Figure \@ref(fig:decomp-dfl-density) sets the counterfactual density against the two observed ones.
 
 ```{r decomp-dfl-density, message=FALSE, warning=FALSE, fig.cap="Observed log wage densities for native-born and foreign-born workers, and the counterfactual density of foreign-born wages reweighted to the native-born distribution of age, sex, and education. Reweighting closes part of the gap in the upper half of the distribution and almost none of it at the bottom.", fig.alt="Three overlaid kernel density curves of log real wage.", fig.width=6.5, fig.height=4}
 library(ggplot2)
@@ -268,7 +268,7 @@ knitr::kable(
 )
 ```
 
-The gap is essentially zero at the tenth percentile, about nine log points at the twenty-fifth, and between twenty-two and twenty-nine log points from the median upward. Characteristics account for roughly a third of the median gap and closer to half of the ninetieth-percentile gap, so the unexplained portion is largest in absolute terms at the top and largest as a share around the median. The tenth-percentile row is a reminder to read shares carefully: the explained component there exceeds a gap that is itself indistinguishable from zero, so the ratio is meaningless even though the levels are informative. A mean decomposition reports one number for a phenomenon that is not one phenomenon.
+In Table \@ref(tab:decomp-rif) the gap is essentially zero at the tenth percentile, about nine log points at the twenty-fifth, and between twenty-two and twenty-nine log points from the median upward. Characteristics account for roughly a third of the median gap and closer to half of the ninetieth-percentile gap, so the unexplained portion is largest in absolute terms at the top and largest as a share around the median. The tenth-percentile row is a reminder to read shares carefully: the explained component there exceeds a gap that is itself indistinguishable from zero, so the ratio is meaningless even though the levels are informative. A mean decomposition reports one number for a phenomenon that is not one phenomenon.
 
 ### Counterfactual Distributions
 
@@ -364,11 +364,203 @@ knitr::kable(
 )
 ```
 
-With five percent of workers moving, the estimated correlation between worker and firm effects is strongly negative, and the firm-effect variance is more than double the value it settles at once mobility is high. Both distortions shrink as mobility rises, and the correlation approaches its true value of zero. A second problem lurks at the low-mobility end: when few workers move, the bipartite worker-firm network fragments into components that are not connected to each other, and effects in different components are identified only up to component-specific constants, which inflates the apparent variance further.
+In Table \@ref(tab:decomp-akm-sim), with five percent of workers moving, the estimated correlation between worker and firm effects is strongly negative, and the firm-effect variance is more than double the value it settles at once mobility is high. Both distortions shrink as mobility rises, and the correlation approaches its true value of zero. A second problem lurks at the low-mobility end: when few workers move, the bipartite worker-firm network fragments into components that are not connected to each other, and effects in different components are identified only up to component-specific constants, which inflates the apparent variance further.
 
 @kline2020leave provide the modern solution. Their leave-out estimator constructs each variance component using, for every observation, an estimate of the fixed effects that excludes that observation, which removes the own-observation bias exactly in finite samples rather than asymptotically. The estimator is computationally demanding but has become the standard, and applied papers reporting AKM variance components without a leave-out or split-sample correction should be read as reporting upper bounds on variance and lower bounds on covariance.
 
 The same lesson generalizes well beyond labor economics. Any variance decomposition whose components are themselves noisily estimated (teacher value-added, hospital quality, manager effects, store effects, physician effects) suffers the same bias, and the same corrections apply. The [clustered inference](#sec-clustered-inference) and [multilevel model](#sec-linear-mixed-models) chapters give the shrinkage-based alternatives that are appropriate when the goal is prediction of individual effects rather than estimation of their dispersion.
+
+## Components of Variance: How Much Does Level X Matter? {#sec-decomp-components}
+
+The AKM decomposition splits variance between two sources that are crossed by construction. A large and currently reviving literature asks a question with a different shape. Units sit inside a hierarchy of contexts, each context is a candidate explanation for why units differ, and the question is how much of the outcome variation belongs to each level of that hierarchy. Businesses sit in corporations that sit in industries. Foreign affiliates sit in host countries. Academic spin-offs sit in universities that sit in regions. Firms reporting social performance sit in industries and in countries at once.
+
+This is the components-of-variance design, and it is worth a section of its own for three reasons. It is the dominant way that strategy, international business, and entrepreneurship research answers "how much does X matter". It is easy to run and easy to get wrong in a specific way that the rest of this chapter's cautions do not cover. And it has an active methodological dispute at its center that a researcher entering the area needs to know about before the first referee report arrives.
+
+### The Question and Its Lineage
+
+The design begins with Richard Schmalensee's 1985 study in the *American Economic Review*, which used Federal Trade Commission line-of-business data to ask whether industry membership or firm identity accounted for more of the dispersion in business-unit profitability, and found almost all of it in industry. The result was startling to a field built on the premise that firms differ, and @rumelt1991how overturned it: with a longer panel that could separate stable from transient effects, the business-unit effect dwarfed the industry effect. @mcgahan1997how refined the estimates again on Compustat segment data, and @brush1997what and @bowman2001does showed by simulation and by reanalysis that several of the headline numbers were artifacts of how the variance was partitioned rather than facts about the economy.
+
+The second phase replaced sequential analysis of variance with multilevel models. @hough2006business, @misangyi2006new, and @short2006examination argued that the nested structure of the data is exactly what a random-effects model is built for, that the earlier designs had forced a nested structure through a method that assumed a crossed one, and that restricted maximum likelihood estimates of variance components answer the question the literature had been asking all along. @short2007firm added strategic group as an intermediate level, and the estimates moved again.
+
+The third phase carried the design into international business. @makino2004does decomposed foreign affiliate profitability into country, industry, and firm effects; @chan2010does showed that subnational region, not nation, was the level that carried the country effect in the United States and China; @bamiatzi2016revisiting showed that the shares move with the business cycle; and @karniouchina2013extending showed that they move with industry life-cycle stage.
+
+The current wave is what makes this section timely. @mokhtar2026university decompose the performance of 3,164 European academic spin-offs founded between 2010 and 2019 across 212 universities nested in 99 regions, and find that the region accounts for roughly 27 percent of the variance in return on assets and 16 percent in sales while the university effect is negligible. @sauerwald2026country decompose corporate social responsibility ratings for 2,324 firms in 59 countries over 2003 to 2022 and find country effects of roughly 10 percent, larger than industry or region, and stronger where institutional collectivism is low and in-group collectivism is high. @wan2025temporal estimate the home-country share of firm performance in moving windows over 43,304 firms in 102 countries from 1993 to 2022 and show it falling steadily as the firm share rises.
+
+Three observations about that wave. The method in all three is the same method Schmalensee used, modernized. What earns publication is the level being decomposed, the outcome being decomposed, or the time dimension over which the shares move, never the decomposition itself. And all three convert a variance share into a theoretical claim in the discussion section, which is where these papers are made and where they are most vulnerable.
+
+### The Model
+
+Write the outcome for unit $i$ in mid-level group $j$ nested in top-level group $k$ as a random-intercept model with no covariates:
+
+$$
+y_{ijk} = \mu + \eta_k + \nu_{jk} + \varepsilon_{ijk},
+\qquad
+\eta_k \sim (0, \sigma^2_\eta), \quad
+\nu_{jk} \sim (0, \sigma^2_\nu), \quad
+\varepsilon_{ijk} \sim (0, \sigma^2_\varepsilon),
+$$
+
+with the three random terms mutually independent. The total variance is $\sigma^2_\eta + \sigma^2_\nu + \sigma^2_\varepsilon$, and the share attributed to each level is that level's variance divided by the total. These shares are intraclass correlations: $\sigma^2_\eta / (\sigma^2_\eta + \sigma^2_\nu + \sigma^2_\varepsilon)$ is the correlation between two units drawn from the same top-level group but different mid-level groups.
+
+This is the entire statistical content of the design. Everything that makes it difficult is in the estimation of the components and in the interpretation of the shares, not in the model.
+
+Two modeling choices deserve attention before any estimation. The first is whether the levels are nested or crossed. Spin-offs within universities within regions is nested, because a university sits in exactly one region. Firms within industries and within countries is crossed, because an industry spans countries and a country spans industries, and forcing a crossed structure into a nested specification assigns the interaction to whichever factor is entered first. The second is what to do with time. A panel can treat year as a fourth variance component, as a set of fixed effects, or as the dimension along which the decomposition is repeated. These are three different questions, and @rumelt1991how's overturning of Schmalensee rested entirely on making the first of them explicit by separating effects that persist from effects that do not.
+
+### Replication: Instructor Versus Department
+
+The `InstEval` data shipped with `lme4` has the structure this design needs and is large enough for the estimates to be stable. It records 73,421 course ratings given by 2,972 students to 1,128 instructors working in 14 departments, and each instructor belongs to exactly one department, so instructors are cleanly nested in departments in the same way that universities are nested in regions. Students are crossed with instructors, which supplies a fourth component that most published decompositions in this genre would omit.
+
+The substantive question maps directly onto @mokhtar2026university: does the rating a course receives belong to the instructor, or to the department the instructor sits in?
+
+```{r decomp-vc-fit, message=FALSE, warning=FALSE, cache=TRUE}
+library(lme4)
+data("InstEval", package = "lme4")
+
+fit <- lmer(y ~ 1 + (1 | s) + (1 | d) + (1 | dept),
+            data = InstEval, REML = TRUE)
+
+lab       <- c(s = "student (rater)", d = "instructor",
+               dept = "department", Residual = "residual")
+vc        <- as.data.frame(VarCorr(fit))
+vc$level  <- lab[as.character(vc$grp)]
+vc$share  <- vc$vcov / sum(vc$vcov)
+
+knitr::kable(
+    data.frame(Level = vc$level,
+               Variance = round(vc$vcov, 4),
+               Share = sprintf("%.1f%%", 100 * vc$share)),
+    caption = paste("Restricted maximum likelihood variance components for",
+                    "course ratings. Instructors are nested in departments;",
+                    "students are crossed with both. The instructor level",
+                    "carries forty times the variance of the department",
+                    "level it sits inside.")
+)
+```
+
+The instructor accounts for about fifteen percent of the variance in ratings and the department for about four tenths of one percent. The lower level dominates and the higher level is negligible, which is the mirror image of what @mokhtar2026university find for spin-offs, where the higher level dominates and the lower one vanishes. The same arithmetic on the same kind of hierarchy produces opposite answers, which is the first thing to take from this design: nothing about the structure of a hierarchy tells you which of its levels matters, and a paper that argues from structure rather than from estimates is arguing from nothing.
+
+Note also that the residual carries nearly four fifths of the variance. That is typical, it is rarely emphasized, and it means the honest headline for most papers in this genre is that the great majority of the outcome is not explained by any level in the hierarchy.
+
+### Sequential Analysis of Variance Is Not a Decomposition
+
+The first-generation papers partitioned variance by entering factors into an analysis of variance in sequence and reading off the incremental sums of squares. That procedure is order dependent, and in a nested design the dependence is total.
+
+```{r decomp-vc-order, message=FALSE, warning=FALSE}
+library(fixest)
+
+incr <- function(...) {
+    r2s <- sapply(list(...), function(f)
+        fixest::r2(feols(f, data = InstEval, notes = FALSE), "r2"))
+    round(c(r2s[1], diff(r2s)), 4)
+}
+
+ord <- rbind(
+    `department, instructor, student` =
+        incr(y ~ 1 | dept, y ~ 1 | dept + d, y ~ 1 | dept + d + s),
+    `student, instructor, department` =
+        incr(y ~ 1 | s, y ~ 1 | s + d, y ~ 1 | s + d + dept)
+)
+colnames(ord) <- c("entered first", "entered second", "entered third")
+
+knitr::kable(
+    ord,
+    caption = paste("Incremental variance explained from sequential entry,",
+                    "for two entry orders. The department's apparent",
+                    "contribution is 0.8 percent when it is entered first and",
+                    "exactly zero when it is entered after the instructors",
+                    "nested inside it. The quantity is a property of the",
+                    "ordering, not of the data.")
+)
+```
+
+Entered first, the department looks like it explains just under one percent of rating variance. Entered after the instructors nested inside it, it explains exactly zero, because the instructor dummies span the department dummies and leave nothing for them to absorb. Neither number is the department's variance component; the restricted maximum likelihood estimate in the previous table, which does not depend on any ordering, is.
+
+This is the same index-number problem that Section \@ref(sec-decomp-kob) raises for the Kitagawa-Oaxaca-Blinder decomposition and that Section \@ref(sec-decomp-shapley) resolves with Shapley values, appearing in a different costume. Some of the first-generation strategy papers used a Shapley-like symmetric average over orderings for exactly this reason. The multilevel turn of @hough2006business and @misangyi2006new solved it more directly by estimating the components rather than allocating sums of squares.
+
+### The Chance Baseline
+
+The deeper problem is that a factor which has no effect whatsoever still explains variance. For a factor with $G$ levels fitted by least squares to $N$ observations of pure noise, the expected $R^2$ is exactly $(G-1)/(N-1)$. A factor with many levels and few observations per level therefore produces a large apparent effect out of nothing at all.
+
+@fitza2014use made this the central objection to the chief executive officer literature, where a CEO is observed for a handful of years and the number of CEOs is a large fraction of the number of firm-years. His conclusion, that most of the estimated CEO effect is attributable to chance, drew a rebuttal from @quigley2017reaffirming and a reply in @fitza2017how, and the exchange is the single most useful thing to read before running one of these models.
+
+The simulation below generates outcomes with no group structure at all and compares two estimators across designs that hold the sample size fixed while varying how many observations fall in each group. The variance-components estimator is computed in closed form for a balanced one-way layout, which makes visible the subtraction that does the work.
+
+```{r decomp-vc-null, message=FALSE, warning=FALSE}
+one_way <- function(y, g, n) {
+    N   <- length(y); G <- nlevels(g)
+    m   <- tapply(y, g, mean); gm <- mean(y)
+    ssb <- sum(n * (m - gm)^2)
+    sst <- sum((y - gm)^2)
+    msb <- ssb / (G - 1)                    # between-group mean square
+    msw <- (sst - ssb) / (N - G)            # within-group mean square
+    s2b <- max(0, (msb - msw) / n)          # variance component, noise removed
+    c(anova_r2 = ssb / sst, icc = s2b / (s2b + msw))
+}
+
+null_design <- function(n_per, N = 4000, reps = 200, seed = 1) {
+    set.seed(seed)
+    G <- N %/% n_per
+    g <- factor(rep(seq_len(G), each = n_per))
+    r <- replicate(reps, one_way(rnorm(N), g, n_per))   # no group effect at all
+    c(groups = G, obs_per_group = n_per,
+      anova_r2 = mean(r["anova_r2", ]),
+      expected_r2 = (G - 1) / (N - 1),
+      icc = mean(r["icc", ]),
+      icc_p90 = quantile(r["icc", ], 0.9, names = FALSE))
+}
+
+knitr::kable(
+    round(t(sapply(c(2, 4, 10, 40), null_design)), 4),
+    caption = paste("Apparent group effects when the group does nothing.",
+                    "Data are independent standard normal draws with no group",
+                    "structure. The analysis-of-variance share tracks",
+                    "(G-1)/(N-1); the variance-components share stays",
+                    "near zero. The final column is the chance ceiling: a",
+                    "reported share below it is indistinguishable from noise.")
+)
+```
+
+With two observations per group, a factor that does nothing explains half the variance by the sequential measure, and across every design the simulated mean sits within Monte Carlo error of the theoretical $(G-1)/(N-1)$. The variance-components estimator subtracts the within-group mean square before dividing, which removes the noise floor, and its estimates stay near zero across every design.
+
+Two cautions survive even for the correct estimator. Truncating the variance component at zero, which every standard implementation does because a variance cannot be negative, induces a small upward bias, which is why the simulated intraclass correlations are slightly positive rather than zero. And the sampling spread matters more than the bias: the final column shows that with two observations per group, a tenth of the null replications produce an estimated share above 2.7 percent. A paper reporting a level effect of that size in a design of that shape has reported noise.
+
+The practical rule follows immediately. Simulate the null under your own design, meaning your own group counts and your own group sizes, and report the resulting chance ceiling alongside the estimate. This is one simulation and a single extra column, and it converts the central objection to the genre from a referee's complaint into a result the paper already answers.
+
+One related technical point. A likelihood ratio test of whether a variance component is zero tests a parameter at the boundary of its parameter space, so the usual chi-squared reference distribution is wrong and conservative. The correct reference is a fifty-fifty mixture of a point mass at zero and a chi-squared with one degree of freedom, which amounts to halving the naive $p$-value. The [linear mixed models](#sec-linear-mixed-models) chapter develops this.
+
+### What a Variance Share Does and Does Not Say
+
+A variance share is a description of dispersion in one sample. It carries no causal content, and the interpretive moves that these papers make in their discussion sections need to be read with that in mind.
+
+It is conditional on sample composition. If every university in the sample is research intensive, the university component will be small because the sampled universities are similar, not because universities do not matter. Restricting a sample to large listed firms shrinks the firm component for the same reason. The decomposition measures the variance of the effects present in the sample, not the causal importance of the level.
+
+It is conditional on what else is in the model. Adding covariates at any level reduces that level's residual variance and mechanically changes every share. Papers in this genre therefore report the unconditional model as the headline and treat conditional models as supplementary, and a paper that reports only conditional shares is reporting something other than what its abstract claims.
+
+A small share does not mean the level is unimportant, and this is the interpretive crux. @mokhtar2026university read a negligible university effect not as evidence that universities are irrelevant but as evidence that university influence diffuses into the regional ecosystem and is picked up at the regional level. That reframing is what turns a null into a contribution. It is also the most contestable sentence in the paper, because the decomposition cannot distinguish "universities do nothing" from "what universities do is absorbed by the level above them", and no robustness check inside the design can. If you make this move, make it as an interpretation offered for future work to test, not as a finding.
+
+The residual is not a unit effect. In the ratings model above, the residual holds nearly eighty percent of the variance, and it contains occasion-specific variation, measurement error, and every level not in the model. Reporting it as "the individual effect" is the same error as calling the unexplained component of a Kitagawa-Oaxaca-Blinder decomposition "discrimination".
+
+### Writing a Variance Decomposition Paper
+
+The analytical core of these papers is four numbers, and the papers that succeed are built almost entirely around what surrounds those numbers. The pattern is consistent enough across @makino2004does, @chan2010does, @misangyi2006new, @mokhtar2026university, @sauerwald2026country, and @wan2025temporal to state as a template.
+
+Open with an attribution problem rather than a gap. The framing that works is that two levels are confounded by nesting, that the existing literature studies each in isolation, and that isolated study necessarily misattributes variation belonging to one level to the other. This is a statistical claim rather than a rhetorical one, and it is what licenses the design.
+
+Do not hypothesize a sign. The design cannot deliver one. Papers here take one of three routes. They set competing theoretical traditions against each other, each predicting that a different level dominates, and let the estimates adjudicate. They state hypotheses about relative magnitude, which reads awkwardly but satisfies journals that require hypotheses. Or they frame research questions rather than hypotheses, which is increasingly accepted when the contribution is a new level or a new outcome. The third is the most honest and the current wave uses it.
+
+Earn the contribution with the level, the outcome, or the time dimension. The method is forty years old and no referee will accept it as novel. @mokhtar2026university contribute a level that had not been separated, university against region, on hand-collected data. @sauerwald2026country contribute an outcome, corporate social responsibility rather than profitability, which matters because the institutional literature has strong priors about country that the profitability literature does not. @wan2025temporal contribute a time dimension, showing that a share long assumed stable has halved. Novel data is usually what makes the first of these feasible, and it is the most common ticket into the top journals for this design.
+
+Build the models in a reported sequence. Fit the unconditional model, add levels one at a time, report the deviance and the likelihood ratio test for each addition with the boundary correction applied, and present the variance components with their shares. Report the design counts at every level, since a reader cannot assess the estimates without knowing how many groups and how many units per group produced them.
+
+Put the chance baseline in the main text. Since @fitza2014use, a decomposition without one is incomplete, and referees in strategy now ask for it as a matter of course.
+
+Let the supplementary analyses carry the contribution. This is where the genre's value is concentrated, because the main result is a single small table. Decompose more than one outcome, since @mokhtar2026university get 27 percent for return on assets and 16 percent for sales and the difference between them is itself a finding about which margin the level operates on. Condition the shares on moderators, as @sauerwald2026country do with cultural dimensions, which converts a descriptive share into a statement about when the level matters. Split the sample on period, sector, or institutional context. Repeat the decomposition in moving windows if the panel is long enough, as @wan2025temporal do.
+
+Write the mechanism section as interpretation, explicitly labeled. The shares are the evidence and the mechanism is the reading, and these papers get into trouble when the two are blurred. State the candidate mechanisms, state which of them the shares are consistent with, and state plainly that the design does not discriminate among them. Then point to the designs that could: the [instrumental variable](#sec-instrumental-variables), [difference-in-differences](#sec-difference-in-differences), and [mediation](#sec-mediation) chapters all contain tools that answer the causal question the decomposition raises but cannot settle.
+
+Write the "does not mean" paragraph before a referee writes it for you. Sample composition, conditional versus unconditional shares, the residual, and the impossibility of separating absence from absorption at a higher level all belong in the limitations section, stated in the paper's own voice.
+
+The failure modes are the mirror image of this list. No chance baseline. Sequential sums of squares presented as a decomposition. Shares reported without design counts or without uncertainty. A sample whose composition determines the answer. The residual relabeled as a unit effect. And a mechanism asserted rather than offered, which is the one that draws the sharpest referee reports because it is the one that the design most clearly cannot support.
 
 ## Decompositions of Estimators {#sec-decomp-estimators}
 
@@ -392,6 +584,8 @@ Go beyond the mean when the gap plausibly varies across the distribution, which 
 
 Correct variance decompositions for estimation error in the components, and do not interpret a negative estimated covariance between noisily estimated effects as evidence about the world.
 
+Report a chance baseline for every components-of-variance estimate. Simulate the null under your own group counts and group sizes, report the resulting ceiling next to the estimate, and give the design counts at every level so a reader can judge whether the estimate could have cleared it.
+
 Never label the unexplained component "discrimination", "the treatment effect", or "the mechanism". It is the part of the gap that the included covariates and the assumed functional form do not account for, and it absorbs every specification error in the model.
 
 ### Where This Shows Up in Practice
@@ -403,6 +597,8 @@ In marketing and industrial organization the same arithmetic decomposes changes 
 In finance the conditional decomposition is the right tool for the ubiquitous question of which control set kills an anomaly. A paper reporting that a return premium survives industry adjustment but not size adjustment is making a claim about covariate contributions, and @gelbach2016covariates converts it from a narrative about a specification table into an estimate with a standard error.
 
 In public health and epidemiology the disparity-decomposition literature is the most developed application, and it is also where the causal framing has been worked out most carefully. The @vanderweele2014causal treatment of race in regressions is required reading for anyone decomposing a gap defined by a non-manipulable characteristic, in any field.
+
+In strategy, international business, and innovation policy the components-of-variance design is how the "how much does X matter" question gets answered, and the answers move real money. @mokhtar2026university's finding that region dominates university in spin-off performance is an argument for funding regional ecosystems rather than individual technology transfer offices, and a policy evaluation unit that cites it is relying on a variance share to allocate a budget. The same design appears in expert testimony whenever an outcome has to be apportioned across nested actors: how much of the dispersion in patient outcomes belongs to the physician against the hospital against the health system, how much of the variation in store performance belongs to the manager against the location against the chain, how much of an achievement gap belongs to the teacher against the school against the district. In each of those settings the opposing expert's first move is the chance baseline, and the second is sample composition, so both belong in the direct report rather than the rebuttal.
 
 ## Summary {#sec-decomp-summary}
 
@@ -417,3 +613,5 @@ Beyond the mean, reweighting constructs counterfactual distributions from a grou
 Shapley decomposition resolves the ordering ambiguity that afflicts all of these methods, at exponential computational cost, and delivers the unique attribution satisfying efficiency and symmetry.
 
 Variance decompositions in two-way fixed-effects models are biased when the effects are noisily estimated: with few movers, a simulation with zero true assortative matching produces a strongly negative estimated correlation and a doubled firm-effect variance. Leave-out estimation is the standard correction, and the lesson generalizes to every setting where a variance decomposition is built from estimated effects.
+
+The components-of-variance design asks how much of an outcome belongs to each level of a nested hierarchy, and it is the dominant answer to the "how much does X matter" question in strategy and international business. On course ratings the instructor carries fifteen percent of the variance and the department that instructor sits in carries four tenths of one percent, the mirror image of @mokhtar2026university's finding for academic spin-offs, which is the point: structure does not tell you which level matters. Sequential sums of squares are not a decomposition, since the department's apparent contribution is 0.8 percent entered first and exactly zero entered last. And a factor that does nothing still explains $(G-1)/(N-1)$ of the variance by that measure, which with two observations per group is half of it, so a chance baseline simulated under the paper's own design is not optional [@fitza2014use]. What the shares never supply is a mechanism, and the interpretive step from a small share to "the level's influence is absorbed by the level above it" is the move these papers live on and the one the design cannot verify.
