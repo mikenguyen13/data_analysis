@@ -99,9 +99,9 @@ mroz <- Mroz87 %>%
 
 ##### Configuration 1: log wage as a continuous outcome
 
-We restrict to working wives, since wage is observed only for participants, and compare naive OLS, linear 2SLS, and the two-step control function.
+We restrict to working wives, since wage is observed only for participants, and compare naive OLS, linear 2SLS, and the two-step control function in Table \@ref(tab:binendo-three-estimators).
 
-```{r, message = FALSE, warning = FALSE}
+```{r binendo-three-estimators, message = FALSE, warning = FALSE}
 working <- mroz %>% filter(lfp == 1, wage > 0)
 
 # Naive OLS: treats wc as exogenous
@@ -127,7 +127,14 @@ iv_fit <- feols(log(wage) ~ exper + I(exper^2) + city | wc ~ motheduc + fatheduc
 modelsummary(
     list("OLS" = ols_fit, "Control function" = cf_fit, "2SLS" = iv_fit),
     stars = TRUE,
-    gof_omit = "IC|Log|Adj"
+    gof_omit = "IC|Log|Adj",
+    output = "kableExtra",
+    title = paste(
+        "Return to college attendance among working wives under naive OLS, the",
+        "two-step control function, and linear 2SLS. The coefficient on the",
+        "generalized residual in the control-function column is the direct test",
+        "of whether the correction was needed at all."
+    )
 )
 ```
 
@@ -164,7 +171,9 @@ Three checks are standard practice before reporting either estimator.
 2.  **Convergence diagnostics for the bivariate probit.** Refit `biprobit_fit` from at least two different starting values (`vglm`'s default and a small perturbation of it) and confirm the log-likelihood and `rho` estimate are stable, following Freedman and Sekhon's caution about numerical fragility [@freedman2010endogeneity].
 3.  **Instrument exclusion.** Reestimate configuration 1 using only `motheduc` or only `fatheduc` as the excluded instrument, and reestimate configuration 3 on the subsample of wives with at least one parent's education reported at both extremes of the distribution, to see whether the recovered effect of college attendance is sensitive to which part of the instrument's support is doing the identifying work.
 
-```{r, message = FALSE, warning = FALSE}
+The three checks run below, with the instrument-exclusion comparison collected in Table \@ref(tab:binendo-instrument-checks).
+
+```{r binendo-instrument-checks, message = FALSE, warning = FALSE}
 # First-stage strength for configuration 1
 first_stage_lm <- lm(wc ~ motheduc + fatheduc + exper + I(exper^2) + city, data = working)
 car::linearHypothesis(first_stage_lm, c("motheduc = 0", "fatheduc = 0"))
@@ -176,7 +185,13 @@ iv_father_only <- feols(log(wage) ~ exper + I(exper^2) + city | wc ~ fatheduc, d
 modelsummary(
     list("Both instruments" = iv_fit, "Mother's educ. only" = iv_mother_only, "Father's educ. only" = iv_father_only),
     stars = TRUE,
-    gof_omit = "IC|Log|Adj"
+    gof_omit = "IC|Log|Adj",
+    output = "kableExtra",
+    title = paste(
+        "The same 2SLS specification under three instrument sets. Estimates that",
+        "move sharply when one instrument is dropped are the signature of a weak",
+        "or invalid exclusion restriction rather than of sampling noise."
+    )
 )
 ```
 

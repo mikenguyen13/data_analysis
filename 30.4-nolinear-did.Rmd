@@ -136,7 +136,7 @@ We'll now demonstrate how to apply `etwfe` to estimate [Average Treatment Effect
 1.  Install and load packages
 
 ```{r}
-# --- 1) Load packages ---
+# 1) Load packages
 # install.packages("fixest")
 # install.packages("marginaleffects")
 # install.packages("etwfe")
@@ -166,7 +166,7 @@ Imagine a multi-period business panel where each "unit" is a *regional store* or
 -   We include store-level intercepts, time intercepts, and idiosyncratic noise to make it more realistic.
 
 ```{r}
-# --- 2) Simulate Data ---
+# 2) Simulate Data
 N <- 200   # number of stores
 T <- 10    # number of time periods
 id   <- rep(1:N, each = T)
@@ -225,7 +225,7 @@ We want to test whether the new marketing analytics platform has changed the log
 -   `cgroup = "never"`: We specify that the never-treated units form our comparison group. This ensures we can see *pre-treatment* and *post-treatment* dynamic effects in an event-study plot.
 
 ```{r}
-# --- 3) Estimate with etwfe ---
+# 3) Estimate with etwfe
 mod <- etwfe(
     fml    = logY ~ xvar,
     tvar   = time,
@@ -244,7 +244,7 @@ The raw coefficient list is uninformative on its own because the model is fully 
 Here's a *single-number* estimate of the overall average effect on the treated, across all times and cohorts:
 
 ```{r}
-# --- 4) Single-number ATT ---
+# 4) Single-number ATT
 ATT_est <- emfx(mod, type = "simple")
 print(ATT_est)
 ```
@@ -253,13 +253,12 @@ You should see an estimate near the *true* $-0.05$.
 
 5.  Recover an event-study pattern of dynamic effects
 
-To check pre- and post-treatment dynamics, we ask for an event study via `type = "event"`. This shows how the outcome evolves *around* the adoption time. Negative "event" values correspond to pre-treatment, while nonnegative "event" values are post-treatment. The output below reports the dynamic ATT estimates by relative period.
+To check pre- and post-treatment dynamics, we ask for an event study via `type = "event"`. This shows how the outcome evolves *around* the adoption time. Negative "event" values correspond to pre-treatment, while nonnegative "event" values are post-treatment. Table \@ref(tab:nldid-event-study) reports the dynamic ATT estimates by relative period.
 
 ```{r nldid-event-study}
-# --- 5) Event-study estimates ---
+# 5) Event-study estimates
 mod_es <- emfx(mod, type = "event")
 mod_es
-
 
 # Renaming function to replace ".Dtreat" with something more meaningful
 rename_fn = function(old_names) {
@@ -273,7 +272,12 @@ modelsummary(
   coef_rename = rename_fn,
   gof_omit    = "Adj|Within|IC|RMSE",
   stars       = TRUE,
-  title       = "Event study",
+  output      = "kableExtra",
+  title       = paste(
+    "Event-study average treatment effects on the treated by period relative",
+    "to adoption, from the nonlinear difference-in-differences fit. Periods",
+    "before zero are the pre-treatment placebo check."
+  ),
   notes       = "Std. errors are clustered at the id level"
 )
 ```
@@ -303,7 +307,7 @@ Below we will:
 Figure \@ref(fig:nldid-event-vs-true) overlays the estimated ETWFE event-study with the known data-generating-process effect.
 
 ```{r nldid-event-vs-true, fig.cap="ETWFE event-study point estimates and 95% confidence band overlaid on the known true dynamic effect from the data-generating process."}
-# --- 6) Plot results vs. known effect ---
+# 6) Plot results vs. known effect
 est_df <- as.data.frame(mod_es)
 
 range_of_event <- range(est_df$event)
@@ -386,7 +390,7 @@ plot(
 If you like to see a clean numeric summary of the *dynamic* estimates by period, you can pipe your event-study object into `modelsummary`. The chunk below renders the resulting wide-format table.
 
 ```{r nldid-event-modelsummary, eval = FALSE}
-# --- 7) Optional table for dynamic estimates ---
+# 7) Optional table for dynamic estimates
 modelsummary(
     list("Event-Study" = mod_es),
     shape     = term + statistic ~ model + event,

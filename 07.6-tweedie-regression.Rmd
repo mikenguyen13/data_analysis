@@ -65,7 +65,7 @@ f(y; \mu, \phi, p) = \underbrace{e^{-\lambda}}_{\Pr(N=0)}\,\delta_{0}(y) \;+\; \
 $$
 shows the problem. For $y = 0$ the density is just the point mass $e^{-\lambda}$, which is trivial, but for $y > 0$ it is an infinite sum of Gamma densities weighted by Poisson probabilities, with no closed form. Two numerical strategies make it usable. @dunn2005series evaluate the infinite series directly, truncating it where the terms become negligible and choosing the truncation adaptively so that the result is accurate across the parameter space. @dunn2008evaluation instead compute the density by Fourier inversion of the characteristic function, which is more stable in the heavy tail where the series converges slowly. Both are implemented in the `tweedie` package, and the analyst rarely calls them directly; they sit underneath the likelihood evaluation that estimation requires. It is worth knowing they are there, however, because for very large responses both methods can fail numerically, a limitation that surfaces in the heavy tailed insurance data later in the chapter.
 
-The point mass and the continuous part are visible directly from the density function. The figure below evaluates the Tweedie density at a mean of two, dispersion one, and power $1.6$, separating the spike of probability at zero from the smooth continuous density over the positive values.
+The point mass and the continuous part are visible directly from the density function. Figure \@ref(fig:tweedie-density) evaluates the Tweedie density at a mean of two, dispersion one, and power $1.6$, separating the spike of probability at zero from the smooth continuous density over the positive values.
 
 ```{r tweedie-density, fig.height=4, fig.cap="The Tweedie density for a mean of two, dispersion one, and power 1.6. A point mass sits at zero (here about four percent of the probability) and a continuous, right skewed density covers the positive values. No standard GLM distribution has this shape."}
 library(tweedie)
@@ -88,7 +88,7 @@ ggplot(data.frame(y = ygrid, d = dens), aes(y, d)) +
   causalverse::ama_theme()
 ```
 
-The variance function itself is the cleanest way to see where the Tweedie sits among its neighbors. Because $\operatorname{Var}(Y) = \phi\,\mu^{p}$, the power $p$ controls how fast the variance grows with the mean, interpolating continuously between the constant variance of the Gaussian, the linear variance of the Poisson, and the quadratic variance of the Gamma.
+The variance function itself is the cleanest way to see where the Tweedie sits among its neighbors. Because $\operatorname{Var}(Y) = \phi\,\mu^{p}$, the power $p$ controls how fast the variance grows with the mean, interpolating continuously between the constant variance of the Gaussian, the linear variance of the Poisson, and the quadratic variance of the Gamma. Figure \@ref(fig:tweedie-varfun) draws those curves together.
 
 ```{r tweedie-varfun, fig.height=4, fig.cap="The Tweedie variance function for several powers of the mean. The power parameter interpolates continuously between the Gaussian (constant variance), the Poisson (linear), the Gamma (quadratic), and the inverse Gaussian (cubic)."}
 mu_seq <- seq(0.2, 5, length.out = 200)
@@ -186,7 +186,7 @@ knitr::kable(
 )
 ```
 
-The profile peaks at the true power and the coefficients and dispersion land on their data generating values, confirming that the three part estimation scheme works as intended.
+The profile in Figure \@ref(fig:tweedie-sim) peaks at the true power, and the coefficients and dispersion in Table \@ref(tab:tweedie-sim-coef) land on their data generating values, confirming that the three part estimation scheme works as intended.
 
 ## Real-Data Application: Insurance Pure Premium
 
@@ -207,7 +207,7 @@ ggplot(subset(dataCar, claimcst0 > 0), aes(claimcst0)) +
   causalverse::ama_theme()
 ```
 
-The modeling target is the pure premium, the expected cost per unit of exposure, so we form the response as cost divided by exposure and weight each observation by its exposure, the standard actuarial construction of @ohlsson2010nonlife. We first profile the power on a subsample, then fit the Tweedie GLM at the chosen power on the full portfolio.
+Figure \@ref(fig:tweedie-data) shows that shape on the portfolio itself. The modeling target is the pure premium, the expected cost per unit of exposure, so we form the response as cost divided by exposure and weight each observation by its exposure, the standard actuarial construction of @ohlsson2010nonlife. We first profile the power on a subsample, then fit the Tweedie GLM at the chosen power on the full portfolio.
 
 ```{r tweedie-real-profile}
 library(statmod)
@@ -255,9 +255,9 @@ knitr::kable(
 )
 ```
 
-The relativities tell a clear and, importantly, externally corroborated story. The age bands run from one, the youngest drivers, to six, the oldest, and the youngest band is the most expensive: every older band has a relativity below one, the cost of insuring a policy falling from the young baseline to roughly forty three percent for the second oldest band before ticking back up slightly for the very oldest, the mild U shape that actuaries expect when both inexperienced young drivers and the very old are riskier than those in between. Four of the five age coefficients are significant at conventional levels, so this pattern is real. The gender relativity is a different matter and is where reading the table honestly matters. The point estimate suggests male policies cost about fifteen percent more, but its p value is roughly $0.27$, so the effect is not statistically distinguishable from zero once the other rating factors are controlled for. This is exactly what @dejong2008glm find on the same data, that gender carries little signal for this portfolio, and it is a useful caution against reading a rate relativity off a point estimate without checking whether the data support it. Age belongs in the rating table; gender, on this evidence, does not.
+The relativities in Table \@ref(tab:tweedie-real-fit) tell a clear and, importantly, externally corroborated story. The age bands run from one, the youngest drivers, to six, the oldest, and the youngest band is the most expensive: every older band has a relativity below one, the cost of insuring a policy falling from the young baseline to roughly forty three percent for the second oldest band before ticking back up slightly for the very oldest, the mild U shape that actuaries expect when both inexperienced young drivers and the very old are riskier than those in between. Four of the five age coefficients are significant at conventional levels, so this pattern is real. The gender relativity is a different matter and is where reading the table honestly matters. The point estimate suggests male policies cost about fifteen percent more, but its p value is roughly $0.27$, so the effect is not statistically distinguishable from zero once the other rating factors are controlled for. This is exactly what @dejong2008glm find on the same data, that gender carries little signal for this portfolio, and it is a useful caution against reading a rate relativity off a point estimate without checking whether the data support it. Age belongs in the rating table; gender, on this evidence, does not.
 
-A first check on any pure premium model is whether it reproduces the total cost of the portfolio, since a model used to set prices must at least get the aggregate right. The Tweedie GLM with a log link has this calibration built in through its score equations.
+A first check on any pure premium model is whether it reproduces the total cost of the portfolio, since a model used to set prices must at least get the aggregate right. The Tweedie GLM with a log link has this calibration built in through its score equations, and Table \@ref(tab:tweedie-real-calib) confirms it on this portfolio.
 
 ```{r tweedie-real-calib}
 predicted_total <- sum(fitted(fit) * d$exposure)
@@ -302,7 +302,7 @@ knitr::kable(
 )
 ```
 
-The two approaches land in the same place on the aggregate, which is reassuring, but the Tweedie does it with one model rather than two, one set of coefficients to interpret rather than two, and without the awkwardness of the severity model being undefined for the ninety three percent of policies that never claim. The cost is that the Tweedie blends frequency and severity effects into a single coefficient, so when an analyst specifically wants to know whether a factor drives how often people claim or how much they claim, the two part model remains more informative. The choice between them is a choice about what question is being asked, not about which is correct.
+The two approaches in Table \@ref(tab:tweedie-twopart) land in the same place on the aggregate, which is reassuring, but the Tweedie does it with one model rather than two, one set of coefficients to interpret rather than two, and without the awkwardness of the severity model being undefined for the ninety three percent of policies that never claim. The cost is that the Tweedie blends frequency and severity effects into a single coefficient, so when an analyst specifically wants to know whether a factor drives how often people claim or how much they claim, the two part model remains more informative. The choice between them is a choice about what question is being asked, not about which is correct.
 
 ## Beyond the GLM: Smooth, Regularized, and Boosted Tweedie Models
 

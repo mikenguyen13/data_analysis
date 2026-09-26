@@ -426,7 +426,7 @@ set.seed(2024)
 library(dplyr)
 library(fixest)
 
-# --- 1. Simulate data ---------------------------------------------------
+# 1. Simulate data
 N_judges <- 100
 N_cases  <- 5000
 
@@ -448,7 +448,7 @@ cases <- cases |>
         Y      = -0.5 * D + 0.8 * U + rnorm(N_cases, sd = 0.5)
     )
 
-# --- 2. Leave-one-out judge leniency instrument -------------------------
+# 2. Leave-one-out judge leniency instrument
 judge_totals <- cases |>
     group_by(judge_id) |>
     summarise(sum_D = sum(D), n = n(), .groups = "drop")
@@ -457,7 +457,7 @@ cases <- cases |>
     left_join(judge_totals, by = "judge_id") |>
     mutate(Z = (sum_D - D) / (n - 1))            # leave-one-out leniency
 
-# --- 3. OLS is biased; 2SLS with judge FE is consistent -----------------
+# 3. OLS is biased; 2SLS with judge FE is consistent
 ols <- feols(Y ~ D, data = cases)
 iv  <- feols(Y ~ 1 | judge_id | D ~ Z, data = cases)
 

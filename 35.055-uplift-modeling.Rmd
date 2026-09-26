@@ -127,7 +127,7 @@ opt_tree <- policy_tree(Xp, dr, depth = 1)
 opt_tree
 ```
 
-The tree recovers a single split on $X_1$ near the true cutoff of $-0.5$, assigning treatment above it and control below, which is the optimal rule read directly off the data without ever inspecting $\tau(x)$. The value of a policy, $\mathbb{E}[\pi(X)\,\tau(X)]$, can be computed here because the simulation knows the truth, so the learned policy can be scored against treating everyone and against the oracle.
+The tree recovers a single split on $X_1$ near the true cutoff of $-0.5$, assigning treatment above it and control below, which is the optimal rule read directly off the data without ever inspecting $\tau(x)$. The value of a policy, $\mathbb{E}[\pi(X)\,\tau(X)]$, can be computed here because the simulation knows the truth, so the learned policy can be scored against treating everyone and against the oracle in Table \@ref(tab:uplift-policytree-value).
 
 ```{r uplift-policytree-value}
 pi_hat <- predict(opt_tree, Xp) == 2L          # action 2 = treat
@@ -427,9 +427,9 @@ list(treated_fraction = mean(pi_profit),
 
 ### The Uplift Curve
 
-Sweeping the treated fraction and recording the inverse-propensity policy value at each step traces an uplift curve, which shows how realized value changes as the policy treats progressively more of the population in order of predicted uplift.
+Sweeping the treated fraction and recording the inverse-propensity policy value at each step traces the uplift curve in Figure \@ref(fig:uplift-case-curve), which shows how realized value changes as the policy treats progressively more of the population in order of predicted uplift.
 
-```{r uplift-case-curve}
+```{r uplift-case-curve, fig.cap="Uplift curve: estimated conversion rate under a policy that treats the top q fraction of customers by predicted uplift, as q runs from five percent to everyone. A curve that peaks before q equals one says that treating the whole population is wasteful, because the marginal customers have low or negative uplift."}
 uplift_curve <- function(Y, W, tau_hat, p = 0.5, grid = seq(0.05, 1, by = 0.05)) {
   bind_rows(lapply(grid, function(q) {
     pi <- make_policy_topq(tau_hat, q)

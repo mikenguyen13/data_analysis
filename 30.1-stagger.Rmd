@@ -946,7 +946,7 @@ knitr::kable(
 )
 ```
 
-The pattern reproduces the paper's central result. Designs 1 through 3 are recovered essentially without bias: a single adoption date poses no problem regardless of the shape of the effect, and staggered adoption is also harmless as long as every cohort receives the same constant effect. Design 4 introduces cohort heterogeneity in the level of the effect and the TWFE coefficient begins to drift. Design 5 keeps the effect equal across cohorts but lets it grow over time, and the estimate collapses toward zero. Design 6 combines the two and the estimate changes sign, reporting a negative effect when the planted effect is strictly positive.
+The pattern in Table \@ref(tab:stagger-blw-sim-table) reproduces the paper's central result. Designs 1 through 3 are recovered essentially without bias: a single adoption date poses no problem regardless of the shape of the effect, and staggered adoption is also harmless as long as every cohort receives the same constant effect. Design 4 introduces cohort heterogeneity in the level of the effect and the TWFE coefficient begins to drift. Design 5 keeps the effect equal across cohorts but lets it grow over time, and the estimate collapses toward zero. Design 6 combines the two and the estimate changes sign, reporting a negative effect when the planted effect is strictly positive.
 
 The mechanism is the one described in the [Goodman-Bacon Decomposition](#sec-goodman-bacon-decomposition). When a treatment effect grows after adoption, an early cohort that has already been treated for several years is a moving target as a control group. The two by two comparison that uses it as the counterfactual for a later cohort subtracts that growth, and the weight the decomposition places on such a comparison can be negative. With enough weight on those comparisons, the aggregate flips.
 
@@ -1022,7 +1022,7 @@ ggplot(dens_df, aes(x = x, y = y)) +
     causalverse::ama_theme()
 ```
 
-The average of the true treatment effects across iterations is essentially zero, exactly as designed. Yet the t-statistic has a standard deviation several times the nominal one, and the null of no effect is rejected in a large majority of iterations. A researcher running this design once would report a highly significant effect with no way of knowing that the significance is an artefact of cohort heterogeneity rather than evidence of a treatment effect.
+Figure \@ref(fig:stagger-blw-rejection-plot) shows the resulting sampling distribution. The average of the true treatment effects across iterations is essentially zero, exactly as designed. Yet the t-statistic has a standard deviation several times the nominal one, and the null of no effect is rejected in a large majority of iterations. A researcher running this design once would report a highly significant effect with no way of knowing that the significance is an artefact of cohort heterogeneity rather than evidence of a treatment effect.
 
 This has a direct consequence for how robustness is judged. A large t-statistic in a staggered TWFE specification is not reassurance. It can be produced by the same heterogeneity that biases the point estimate, and the two problems tend to appear together.
 
@@ -1043,7 +1043,7 @@ dplyr::glimpse(bll[, 1:8])
 
 The panel covers 49 states from 1976 through 2006. The treatment indicator `intra` switches on in the year after a state deregulates, so the reform year itself is coded as untreated.
 
-The adoption pattern is the first thing to inspect, because it determines how much of the identifying variation can come from clean comparisons.
+The adoption pattern in Figure \@ref(fig:stagger-bll-timing) is the first thing to inspect, because it determines how much of the identifying variation can come from clean comparisons.
 
 ```{r stagger-bll-timing, fig.cap = 'Intrastate branching deregulation timing by state. Ten states had already deregulated before the panel begins and are treated throughout.', fig.alt = 'Heatmap with states on the vertical axis and years from 1976 to 2006 on the horizontal axis, shaded by whether the state has deregulated. Some states are shaded as post-deregulation for the entire panel.', fig.width = 6, fig.height = 7}
 bll %>%
@@ -1107,7 +1107,7 @@ knitr::kable(
 )
 ```
 
-The decomposition is decisive. Comparisons that use a not yet treated state as the control, the only ones that are unambiguously clean, carry roughly 14 percent of the weight and average close to zero. The remaining weight sits on comparisons whose control group has already deregulated, and it is those comparisons that supply the entire negative effect.
+The decomposition in Table \@ref(tab:stagger-bll-bacon) is decisive. Comparisons that use a not yet treated state as the control, the only ones that are unambiguously clean, carry roughly 14 percent of the weight and average close to zero. The remaining weight sits on comparisons whose control group has already deregulated, and it is those comparisons that supply the entire negative effect. Figure \@ref(fig:stagger-bll-bacon-plot) plots every two by two estimate against the weight it carries, which is where that concentration becomes visible.
 
 ```{r stagger-bll-bacon-plot, fig.cap = 'Two by two estimates against their decomposition weights, separated by comparison type. Horizontal lines mark the weighted average within each type.', fig.alt = 'Scatterplot of two by two difference-in-differences estimates against their decomposition weights, faceted by comparison type, with a horizontal line at each type-specific weighted average.', fig.width = 7, fig.height = 6}
 bacon_bll %>%
@@ -1207,7 +1207,7 @@ ggplot(es_all, aes(x = t, y = estimate)) +
     causalverse::ama_theme()
 ```
 
-Panel A is the picture that appears in the published paper: leads that look flat, followed by a steady decline. Panel B shows that the flatness of the leads is partly an artefact of recentring. Panel C, which simply stops discarding relative time indicators, already reverses the sign of the post-treatment path. Panel D, which removes the always treated states and the fully treated years, shows negative pre-treatment coefficients trending toward zero and post-treatment coefficients at or slightly above zero. The visual diagnostic that was supposed to protect the design was itself a product of the specification choices.
+Panel A of Figure \@ref(fig:stagger-bll-es-plot) is the picture that appears in the published paper: leads that look flat, followed by a steady decline. Panel B shows that the flatness of the leads is partly an artefact of recentring. Panel C, which simply stops discarding relative time indicators, already reverses the sign of the post-treatment path. Panel D, which removes the always treated states and the fully treated years, shows negative pre-treatment coefficients trending toward zero and post-treatment coefficients at or slightly above zero. The visual diagnostic that was supposed to protect the design was itself a product of the specification choices.
 
 ##### Re-estimating with Heterogeneity Robust Estimators
 
@@ -1289,7 +1289,7 @@ tibble(
     causalverse::ama_theme()
 ```
 
-Collecting the estimators in one place makes the comparison direct.
+Figure \@ref(fig:stagger-bll-cs-plot) gives the group-time estimates under that control group. Collecting the estimators in one place makes the comparison direct.
 
 ```{r stagger-bll-compare-table}
 tibble(
@@ -1319,7 +1319,7 @@ tibble(
     )
 ```
 
-The published TWFE estimate of roughly minus two percent does not survive. Once the already deregulated states are excluded from the control group, both the stacked and the Callaway and Sant'Anna estimators return a small positive coefficient that is not distinguishable from zero. The Goodman-Bacon decomposition anticipated this exactly: the clean comparisons were always near zero, and the headline result was carried by comparisons whose control units had already been treated.
+Table \@ref(tab:stagger-bll-compare-table) sets the four estimators side by side, and the published TWFE estimate of roughly minus two percent does not survive. Once the already deregulated states are excluded from the control group, both the stacked and the Callaway and Sant'Anna estimators return a small positive coefficient that is not distinguishable from zero. The Goodman-Bacon decomposition anticipated this exactly: the clean comparisons were always near zero, and the headline result was carried by comparisons whose control units had already been treated.
 
 This is not a claim that bank deregulation had no effect on inequality. It is the narrower and more useful claim that this particular panel, analysed with estimators that avoid forbidden comparisons, does not identify one. Distinguishing those two statements is the whole point of the exercise.
 

@@ -371,17 +371,13 @@ What unites these applications is less the substantive question than the empiric
 9)  Plotting the local data and fitted RDiT regression lines
 
 ```{r rdit-comprehensive, echo=TRUE, message=FALSE, warning=FALSE}
-# -------------------------------------------------------------------
 # 0. Libraries
-# -------------------------------------------------------------------
 if(!require("sandwich")) install.packages("sandwich", quiet=TRUE)
 if(!require("lmtest"))   install.packages("lmtest",   quiet=TRUE)
 library(sandwich)
 library(lmtest)
 
-# -------------------------------------------------------------------
 # 1. Generate Synthetic Data
-# -------------------------------------------------------------------
 set.seed(123)
 n      <- 200                # total number of time points
 T_star <- 100                # cutoff (policy/intervention) time
@@ -406,9 +402,7 @@ df_full <- data.frame(t = t_vals, Y = Y, X = X)
 Figure \@ref(fig:its-full-time-series) shows the full time series with structural break at $T^*$.
 
 ```{r its-full-time-series, fig.cap='Full time series with structural break at $T^*$.', fig.alt='Scatter plot of outcome Y against time t, with data points forming an upward trajectory. A vertical black line at t = 100 marks the location of a true jump in the outcome variable. Before and after the break, the trend remains positive, but there is a clear increase in level at the cutoff.'}
-# -------------------------------------------------------------------
 # 2. Plot the Entire Dataset & Highlight the Cutoff
-# -------------------------------------------------------------------
 # par(mfrow=c(1,2))  # We'll produce two plots side by side
 
 # Plot 1: Full data
@@ -419,9 +413,7 @@ abline(v=T_star, lwd=2)  # vertical line at the cutoff
 ```
 
 ```{r}
-# -------------------------------------------------------------------
 # 3. Restrict to a Local Bandwidth (h) Around T_star
-# -------------------------------------------------------------------
 h <- 10
 df_local <- subset(df_full, abs(t - T_star) < h)
 
@@ -429,33 +421,25 @@ df_local <- subset(df_full, abs(t - T_star) < h)
 df_local$D           <- ifelse(df_local$t >= T_star, 1, 0)
 df_local$t_centered  <- df_local$t - T_star
 
-# -------------------------------------------------------------------
 # 4. Baseline Local Linear RDiT Model
-# -------------------------------------------------------------------
 # Model:
 #   Y = alpha_0 + alpha_1*(t - T_star) + tau*D + alpha_2*(t - T_star)*D + error
 mod_rdit_linear <- lm(Y ~ t_centered + D + t_centered:D, data = df_local)
 # Robust (HC) standard errors for potential serial correlation
 res_rdit_linear <- coeftest(mod_rdit_linear, vcov = vcovHC(mod_rdit_linear, type="HC1"))
 
-# -------------------------------------------------------------------
 # 5. Local Polynomial (Quadratic) RDiT Model
-# -------------------------------------------------------------------
 df_local$t_centered2 <- df_local$t_centered^2
 mod_rdit_quad <- lm(Y ~ t_centered + t_centered2 + D + t_centered:D + t_centered2:D,
                     data = df_local)
 res_rdit_quad <- coeftest(mod_rdit_quad, vcov = vcovHC(mod_rdit_quad, type="HC1"))
 
-# -------------------------------------------------------------------
 # 6. Donut Approach: Excluding Observations Near the Cutoff
-# -------------------------------------------------------------------
 df_donut <- subset(df_local, abs(t - T_star) > 1)  # remove t_star +/- 1 unit
 mod_rdit_donut <- lm(Y ~ t_centered + D + t_centered:D, data = df_donut)
 res_rdit_donut <- coeftest(mod_rdit_donut, vcov = vcovHC(mod_rdit_donut, type="HC1"))
 
-# -------------------------------------------------------------------
 # 7. Placebo Test: Fake Cutoff
-# -------------------------------------------------------------------
 T_fake <- 120
 df_placebo <- subset(df_full, abs(t - T_fake) < h)
 df_placebo$D_placebo          <-
@@ -468,9 +452,7 @@ mod_rdit_placebo <-
 res_rdit_placebo <-
  coeftest(mod_rdit_placebo, vcov = vcovHC(mod_rdit_placebo, type = "HC1"))
 
-# -------------------------------------------------------------------
 # 8. Augmented RDiT Model (Controlling for X)
-# -------------------------------------------------------------------
 mod_rdit_aug <- lm(Y ~ X + t_centered + D + t_centered:D, data = df_local)
 res_rdit_aug <- coeftest(mod_rdit_aug, vcov = vcovHC(mod_rdit_aug, type="HC1"))
 ```
@@ -478,9 +460,7 @@ res_rdit_aug <- coeftest(mod_rdit_aug, vcov = vcovHC(mod_rdit_aug, type="HC1"))
 Figure \@ref(fig:its-local-linear-reg) shows the local data and fitted RDiT line.
 
 ```{r its-local-linear-reg, fig.cap='Local linear regression around the cutoff $T^*$.', fig.alt='Scatter plot of outcome Y versus time t, focused around t = 100. Data points are fitted with two separate linear trends, one before and one after the vertical line at the cutoff T*. The outcome increases over time on both sides, with a visible jump at the cutoff.'}
-# -------------------------------------------------------------------
 # 9. Plot the Local Data and Fitted RDiT Lines
-# -------------------------------------------------------------------
 plot(
     df_local$t,
     df_local$Y,
@@ -500,9 +480,7 @@ abline(v=T_star, lwd=2)
 ```
 
 ```{r}
-# -------------------------------------------------------------------
 # Print Summaries & Brief Interpretation
-# -------------------------------------------------------------------
 
 cat(" Local Linear RDiT (Baseline):\n")
 print(res_rdit_linear)
@@ -648,17 +626,13 @@ While ITS is a valuable tool, it has some key limitations:
 6)  Brief interpretation of coefficients
 
 ```{r its-comprehensive, echo=TRUE, message=FALSE, warning=FALSE}
-# -------------------------------------------------------------------
 # 0. Libraries
-# -------------------------------------------------------------------
 if(!require("sandwich")) install.packages("sandwich", quiet=TRUE)
 if(!require("lmtest"))   install.packages("lmtest",   quiet=TRUE)
 library(sandwich)
 library(lmtest)
 
-# -------------------------------------------------------------------
 # 1. Generate Synthetic Data
-# -------------------------------------------------------------------
 set.seed(456)
 n       <- 50               # total number of time points
 T_star  <- 25               # intervention time
@@ -689,9 +663,7 @@ Y <- 1.0 * t_vals +                      # baseline slope
 # Combine into a data frame
 df_its <- data.frame(time = t_vals, Y = Y)
 
-# -------------------------------------------------------------------
 # 2. Define Key ITS Variables
-# -------------------------------------------------------------------
 ```
 
 -   $T_t$: the time index (we'll just use 'time' for that)
@@ -707,9 +679,7 @@ df_its$D  <- ifelse(df_its$time >= T_star, 1, 0)
 df_its$T  <- df_its$time
 df_its$P  <- ifelse(df_its$time >= T_star, df_its$time - T_star, 0)
 
-# -------------------------------------------------------------------
 # 3. Plot the Entire Dataset & Highlight the Intervention
-# -------------------------------------------------------------------
 plot(
     df_its$T,
     df_its$Y,
@@ -736,17 +706,13 @@ Model: $$Y_t = \beta_0 + \beta_1*T + \beta_2*D + \beta_3*(T*D) + \beta_4*P + \ep
 -   $\epsilon_t$: error term
 
 ```{r}
-# -------------------------------------------------------------------
 # 4. Fit the Comprehensive ITS Model (Segmented Regression)
-# -------------------------------------------------------------------
 mod_its <- lm(Y ~ T + D + I(T*D) + P, data = df_its)
 
 # Use robust standard errors to account for potential autocorrelation
 res_its <- coeftest(mod_its, vcov = vcovHC(mod_its, type="HC1"))
 
-# -------------------------------------------------------------------
 # 5. Create Fitted Values for Plotting
-# -------------------------------------------------------------------
 df_its$pred_its <- predict(mod_its)
 
 # Counterfactual: what would have happened if no intervention occurred
@@ -760,9 +726,7 @@ df_its$pred_counterfactual <- predict(
 Figure \@ref(fig:its-observed-fitted) shows the plot with observed data and fitted ITS.
 
 ```{r its-observed-fitted, fig.cap='Interrupted time series: observed vs. fitted outcomes.', fig.alt='Time series plot with black dots representing observed outcomes and solid black lines indicating fitted linear trends. At approximately T = 25, the fitted line changes slope and level, marking the point of intervention. The pre- and post-intervention trends differ significantly.'}
-# -------------------------------------------------------------------
 # 6. Plot the Observed Data & Fitted ITS Lines
-# -------------------------------------------------------------------
 plot(df_its$T, df_its$Y, pch=16,
      xlab="Time (T)", ylab="Outcome (Y)",
      main="ITS: Observed vs. Fitted")
@@ -771,9 +735,7 @@ lines(df_its$T, df_its$pred_its, lwd=2)
 ```
 
 ```{r}
-# -------------------------------------------------------------------
 # 7. Summaries & Brief Interpretation
-# -------------------------------------------------------------------
 
 print(res_its)
 ```
@@ -1024,17 +986,13 @@ Using one of these strategies ensures you capture both the **global** pre/post-i
 4)  Visualizing the results.
 
 ```{r rdit-its-hybrid, echo=TRUE, message=FALSE, warning=FALSE}
-# -------------------------------------------------------------------
 # 0. Libraries
-# -------------------------------------------------------------------
 if(!require("sandwich")) install.packages("sandwich", quiet=TRUE)
 if(!require("lmtest"))   install.packages("lmtest",   quiet=TRUE)
 library(sandwich)
 library(lmtest)
 
-# -------------------------------------------------------------------
 # 1. Generate Synthetic Data
-# -------------------------------------------------------------------
 set.seed(111)
 n       <- 150             # total number of time points
 T_star  <- 80              # cutoff/intervention time
@@ -1084,9 +1042,7 @@ Y <- 0.3 * t_vals +                                        # baseline slope
 # Put it in a data frame
 df <- data.frame(t = t_vals, Y = Y)
 
-# -------------------------------------------------------------------
 # 2. Define Variables for a Single Unified Model
-# -------------------------------------------------------------------
 df$D   <- ifelse(df$t >= T_star, 1, 0)          # intervention dummy
 df$T_c <- df$t                                 # rename time to T_c for clarity
 df$P   <- ifelse(df$t >= T_star, df$t - T_star, 0)  # time since intervention
@@ -1097,9 +1053,7 @@ df$local_indicator <- ifelse(abs(df$t - T_star) < h, 1, 0)
 # Center time around T_star for local polynomial
 df$t_centered <- df$t - T_star
 
-# -------------------------------------------------------------------
 # 3. Fit the Unified "Augmented ITS + RDiT" Model
-# -------------------------------------------------------------------
 ```
 
 $$
@@ -1117,9 +1071,7 @@ mod_hybrid <- lm(
 # Robust standard errors
 res_hybrid <- coeftest(mod_hybrid, vcov = vcovHC(mod_hybrid, type = "HC1"))
 
-# -------------------------------------------------------------------
 # 4. A Two-Stage Approach for Illustrative Purposes
-# -------------------------------------------------------------------
 # STAGE 1: Local RDiT to estimate extra local jump around T_star ± h
 df_local <- subset(df, abs(t - T_star) < h)
 mod_local <- lm(Y ~ t_centered*D, data = df_local)
@@ -1139,9 +1091,7 @@ res_its_adjusted <-
 Figure \@ref(fig:its-compare-rdit-its) shows the comparison between the Hybrid and Two-Stage Approaches.
 
 ```{r its-compare-rdit-its, fig.cap='Comparing hybrid RDiT+ITS and two-stage approaches for estimating discontinuities.', fig.alt='Two-panel plot. The left panel shows a scatter plot of outcome Y over time t with a dashed vertical line at t = 75, overlaid by a piecewise linear blue fit indicating a hybrid RDiT+ITS model. The right panel displays the same data and cutoff, but with a red line representing a two-stage adjusted ITS fit. Both models capture a discontinuity in the outcome at the cutoff.'}
-# -------------------------------------------------------------------
 # 5. Plot the Data and Fitted Lines
-# -------------------------------------------------------------------
 par(mfrow=c(1,2))
 
 # Plot 1: Observed data vs. fitted "Hybrid Model"

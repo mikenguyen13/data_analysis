@@ -32,9 +32,9 @@ $$
 
 which is dimensionless and bounded between $-1$ and $1$. The partial autocorrelation function (PACF) at lag $h$ measures the correlation between $y_t$ and $y_{t-h}$ after removing the linear effect of the intervening observations $y_{t-1}, \dots, y_{t-h+1}$. Together the ACF and PACF are the primary descriptive tools for identifying the order of a model in the tradition of @box1976science. As a rough guide, a moving average process of order $q$ has an ACF that cuts off after lag $q$, while an autoregressive process of order $p$ has a PACF that cuts off after lag $p$.
 
-The example below simulates a stationary autoregressive process and plots its sample ACF and PACF.
+Figure \@ref(fig:ts-acf-pacf) simulates a stationary autoregressive process and plots its sample ACF and PACF.
 
-```{r ts-acf-pacf, fig.height=4}
+```{r ts-acf-pacf, fig.height=4, fig.cap="Sample autocorrelation and partial autocorrelation functions of 400 draws from an AR(1) process with coefficient 0.7. The ACF decays geometrically while the PACF cuts off after lag one, and that pair of signatures is what identifies an autoregression of order one."}
 y <- arima.sim(model = list(ar = 0.7), n = 400)
 
 par(mfrow = c(1, 2))
@@ -256,9 +256,9 @@ $$
 
 under the predeterminedness condition $E(u_t \mid y_{t-1}, x_{t-1}, \dots) = 0$. In lag operator form this is $\phi(L) y_t = \delta + \theta(L) x_t + u_t$, the ratio of two finite lag polynomials, which is why the ADL is sometimes called a rational distributed lag. The distinction from the ARMA model is that here the lag polynomial acts on the observed regressor $x$ rather than on the unobserved error. The ADL nests static regression, the finite distributed lag, and the Koyck model as special cases, and it is the standard vehicle for estimating both short run dynamics and long run multipliers from a single equation.
 
-The simulation below generates data from an ADL relationship in which lagged $x$ drives $y$, then plots both series.
+Figure \@ref(fig:ts-adl-sim) generates data from an ADL relationship in which lagged $x$ drives $y$, then plots both series.
 
-```{r ts-adl-sim, fig.height=4}
+```{r ts-adl-sim, fig.height=4, fig.cap="Simulated autoregressive distributed lag process. The two series move together with the response following the regressor by one period, which is the lag structure the ADL specification is built to recover."}
 n <- 200
 x <- as.numeric(arima.sim(model = list(ar = 0.4), n = n))
 y <- numeric(n)
@@ -292,7 +292,9 @@ Selecting how many lags to include balances bias against variance. Too few lags 
 
 The ADL model above assumes the regression error $\varepsilon_t$ is white noise once enough lags of $y$ and $x$ are included. An alternative, useful when the researcher wants to keep a simple contemporaneous regression $y_t = \beta_0 + \beta_1 x_t + \eta_t$ rather than an ADL, is to let $\eta_t$ itself follow an ARIMA process and estimate the two pieces jointly, a transfer function model in the Box-Jenkins tradition. The workflow is: fit the regression by OLS, examine the residual ACF/PACF for leftover structure, and if structure remains, refit the regression and the residual ARIMA model jointly by maximum likelihood rather than by OLS.
 
-```{r ts-arima-errors, message=FALSE, warning=FALSE}
+Figure \@ref(fig:ts-arima-errors) shows the structure the OLS residuals are left carrying.
+
+```{r ts-arima-errors, message=FALSE, warning=FALSE, fig.cap="Autocorrelation function of the residuals from a contemporaneous OLS regression whose true error follows an AR(1). The residual autocorrelation is plainly non-zero, which is the diagnostic that calls for modelling the error process jointly rather than reading the OLS standard errors as valid."}
 library(forecast)
 
 n <- 200

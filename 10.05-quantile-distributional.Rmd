@@ -22,7 +22,9 @@ $$
 
 Viewing the quantile as a function of $\tau$ gives the quantile function $Q_Y(\tau) \equiv \inf\{ y : F_Y(y) \ge \tau \}$ for $0 < \tau < 1$. Several structural facts follow. If $F_Y$ is invertible then $Q_Y = F_Y^{-1}$. If $F_Y$ has a flat spot, meaning a region of zero density, then $Q_Y$ has a jump. If $F_Y$ has a jump, as happens when $Y$ is discrete, then $Q_Y$ has a corresponding flat spot. Cumulative distribution functions are right-continuous with left limits, whereas quantile functions are left-continuous with right limits. The $\tau$-quantile and the $100\tau$-th percentile are the same object, so $Q_{0.5}(Y)$ is the median and $Q_{0.9}(Y) - Q_{0.1}(Y)$ is the interdecile range, a robust measure of spread.
 
-```{r qd-quantile-function-demo, fig.width=6, fig.height=4}
+Figure \@ref(fig:qd-quantile-function-demo) draws that function for a right-skewed sample.
+
+```{r qd-quantile-function-demo, fig.width=6, fig.height=4, fig.cap="Empirical quantile function of a lognormal sample of 500 draws. The curve rises slowly across the bulk of the distribution and then steeply as tau approaches one, which is what right skew looks like when the distribution is read through its quantiles rather than its density."}
 # Empirical CDF and quantile function of a right-skewed sample
 set.seed(1)
 y <- rlnorm(500, meanlog = 0, sdlog = 0.6)
@@ -63,7 +65,9 @@ $$
 
 When $\tau = 0.95$ the loss penalizes underprediction far more heavily than overprediction, which pushes the optimal predictor up into the right tail, exactly where $Q_{0.95}(Y)$ sits. The check function thus encodes the asymmetric cost structure that makes a high quantile the rational forecast.
 
-```{r qd-check-function, fig.width=6, fig.height=4}
+Figure \@ref(fig:qd-check-function) plots the loss at three quantile levels.
+
+```{r qd-check-function, fig.width=6, fig.height=4, fig.cap="Check, or pinball, loss as a function of the residual, at quantile levels 0.1, 0.5, and 0.9. The kink sits at zero and the two arms have slopes tau and tau minus one, so the level tau is exactly the asymmetry between the cost of underprediction and the cost of overprediction."}
 check_loss <- function(u, tau) u * (tau - (u < 0))
 
 grid <- expand.grid(
@@ -347,7 +351,9 @@ This abstract condition has two concrete and equivalent characterizations. In te
 
 First-order dominance is a strong ordering that often fails when distribution functions cross. Second-order stochastic dominance, defined by comparing integrated distribution functions, ranks distributions for risk-averse decision makers with concave utility and is more frequently satisfied. Empirically, dominance is checked by comparing estimated distribution or quantile functions, and formal tests account for the sampling variability of the curves. The connection to this chapter is direct. Distribution regression and quantile regression estimate exactly the curves that stochastic dominance compares, so the distributional toolkit equips us not only to summarize a distribution but to rank competing distributions in a way that respects entire classes of preferences.
 
-```{r qd-dominance, fig.width=6, fig.height=4}
+Figure \@ref(fig:qd-dominance) shows the clean case.
+
+```{r qd-dominance, fig.width=6, fig.height=4, fig.cap="Empirical distribution functions of two normal samples with the same spread and different locations. The curve for the higher-mean variable lies everywhere below the other, which is first-order stochastic dominance: no crossing anywhere, so the ranking holds for every increasing utility function."}
 # Visualizing first-order stochastic dominance via empirical CDFs
 set.seed(9)
 a <- rnorm(2000, mean = 1, sd = 1)
@@ -386,7 +392,7 @@ Beyond finance, distributional methods are the natural tool wherever a policy or
 
 ## Replication: Growth-at-Risk {#sec-qd-gar}
 
-We replicate the central result of @adrian2019vulnerable on current data. The exercise regresses annualized real GDP growth one quarter ahead on current growth and the Chicago Fed's National Financial Conditions Index, separately at five quantiles, using quarterly series from FRED spanning 1973 to 2025. The coefficient on financial conditions across quantiles is the whole story.
+We replicate the central result of @adrian2019vulnerable on current data. The exercise regresses annualized real GDP growth one quarter ahead on current growth and the Chicago Fed's National Financial Conditions Index, separately at five quantiles, using quarterly series from FRED spanning 1973 to 2025. The coefficient on financial conditions across quantiles, in Table \@ref(tab:qd-gar-fit), is the whole story.
 
 ```{r qd-gar-fit, message=FALSE, warning=FALSE}
 library(quantreg)
@@ -404,7 +410,7 @@ knitr::kable(
 )
 ```
 
-The asymmetry is the point. Tightening financial conditions by one index unit cuts the 5th percentile of next-quarter growth by roughly two annualized percentage points but moves the 95th percentile hardly at all, so financial stress acts almost entirely on the downside of the growth distribution. Reading the fitted 5th-percentile forecast over time gives the growth-at-risk series, the conditional worst case that supervisors watch.
+The asymmetry is the point. Tightening financial conditions by one index unit cuts the 5th percentile of next-quarter growth by roughly two annualized percentage points but moves the 95th percentile hardly at all, so financial stress acts almost entirely on the downside of the growth distribution. Reading the fitted 5th-percentile forecast over time gives the growth-at-risk series in Figure \@ref(fig:qd-gar-series), the conditional worst case that supervisors watch.
 
 ```{r qd-gar-series, fig.width=7, fig.height=4, message=FALSE, warning=FALSE, fig.cap="Realized one-quarter-ahead growth (grey) and the conditional 5th-percentile forecast, growth-at-risk (red). The downside forecast collapses precisely in the financial crises of 2008 and 2020, when the National Financial Conditions Index spiked."}
 library(ggplot2)
@@ -416,7 +422,7 @@ ggplot(gar, aes(date)) +
   labs(x = NULL, y = "Annualized real GDP growth, next quarter (%)")
 ```
 
-To turn the five fitted quantiles into a full predictive density, @adrian2019vulnerable fit a skewed-$t$ distribution that matches them, which smooths the quantile estimates into a density whose skewness varies with financial conditions. Comparing a calm quarter with a crisis quarter shows what the average forecast hides.
+To turn the five fitted quantiles into a full predictive density, @adrian2019vulnerable fit a skewed-$t$ distribution that matches them, which smooths the quantile estimates into a density whose skewness varies with financial conditions. Comparing a calm quarter with a crisis quarter in Figure \@ref(fig:qd-gar-density) shows what the average forecast hides.
 
 ```{r qd-gar-density, fig.width=7, fig.height=4, message=FALSE, warning=FALSE, fig.cap="Conditional predictive density of next-quarter growth, fit as a skewed-t to the quantile-regression forecasts, in a calm quarter (2005 Q4) and a crisis quarter (2008 Q4). Financial stress shifts the whole distribution left and stretches its lower tail, driving growth-at-risk (dashed) sharply negative."}
 library(sn)
