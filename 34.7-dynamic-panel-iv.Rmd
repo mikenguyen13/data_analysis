@@ -1,0 +1,203 @@
+### Internal Instruments in Dynamic Panels {#sec-dynamic-panel-iv}
+
+Every instrument family so far has imported variation from outside the model: a judge, a shock,
+a distance, an airline route. Dynamic panel GMM does something different. It builds instruments
+out of the dependent variable's own history, which is why it is so heavily used in finance,
+strategy, and management, where a credible external instrument for leverage, board structure, or
+diversification is rarely on offer and a long firm-year panel usually is.
+
+The construction is elegant and the estimator is easy to run, which is precisely the problem.
+This section shows what it identifies, and then shows how much the answer moves on choices that
+look like implementation details.
+
+#### Why Least Squares and Fixed Effects Both Fail
+
+Consider the workhorse specification
+
+$$
+y_{it} = \rho\, y_{i,t-1} + x_{it}'\beta + \alpha_i + \varepsilon_{it},
+$$
+
+with a firm effect $\alpha_i$ that is correlated with the regressors. Two familiar estimators
+both break, and they break in opposite directions.
+
+Pooled least squares omits $\alpha_i$, which is part of $y_{i,t-1}$ by construction, so the
+lagged dependent variable picks up the firm effect and $\hat\rho$ is biased upward. The within
+transformation removes $\alpha_i$, but demeaning makes the transformed lag correlated with the
+transformed error, because $\bar{y}_{i}$ contains $\varepsilon_{it}$. @nickell1981biases showed
+this bias is of order $1/T$ and is downward. In the short panels typical of firm data it is
+large.
+
+So the two default estimators bracket the truth, which is a useful diagnostic and a terrible
+estimator.
+
+```{r dynpanel-nickell, message=FALSE, warning=FALSE}
+library(plm)
+set.seed(7)
+
+sim <- function(N = 200, Tt = 6, rho = 0.6) {
+  a <- rnorm(N)                                   # firm effects
+  y <- matrix(0, N, Tt + 50)
+  y[, 1] <- a / (1 - rho) + rnorm(N)
+  for (t in 2:(Tt + 50)) y[, t] <- rho * y[, t - 1] + a + rnorm(N)
+  y <- y[, (50 + 1):(50 + Tt)]                    # discard the burn-in
+  p <- pdata.frame(data.frame(id = rep(1:N, each = Tt), t = rep(1:Tt, N),
+                              y = as.vector(t(y))), index = c("id", "t"))
+  c(pooled = unname(coef(plm(y ~ lag(y), data = p, model = "pooling"))[2]),
+    within = unname(coef(plm(y ~ lag(y), data = p, model = "within"))[1]),
+    ab     = unname(coef(pgmm(y ~ lag(y, 1) | lag(y, 2:99), data = p,
+                              effect = "individual", model = "onestep"))[1]))
+}
+
+round(rowMeans(replicate(200, sim())), 3)
+```
+
+With a true persistence of 0.6, pooled least squares returns roughly 0.92 and the within
+estimator roughly 0.23. The Arellano-Bond estimator lands near 0.55, still a little low because
+$T$ is short, but inside the bracket and close to the truth.
+
+#### The Moment Conditions
+
+@arellano1991some remove the firm effect by first differencing,
+
+$$
+\Delta y_{it} = \rho\, \Delta y_{i,t-1} + \Delta x_{it}'\beta + \Delta\varepsilon_{it},
+$$
+
+and then observe that if $\varepsilon_{it}$ is serially uncorrelated, levels of $y$ dated
+$t-2$ and earlier are uncorrelated with $\Delta\varepsilon_{it}$ while remaining correlated with
+$\Delta y_{i,t-1}$. That yields the moment conditions
+
+$$
+\mathbb{E}\big[y_{i,t-s}\,\Delta\varepsilon_{it}\big] = 0, \qquad s \geq 2,
+$$
+
+one for every available lag at every period, which is where the instrument count comes from.
+This is difference GMM.
+
+@blundell1998initial point out that when the series is persistent, lagged levels are weak
+instruments for differences: if $\rho$ approaches one, $\Delta y_{i,t-1}$ is nearly unpredictable
+from past levels. They add a second block of moment conditions, using lagged differences as
+instruments for the equation in levels, under the extra assumption that the initial condition is
+uncorrelated with the firm effect. That is system GMM.
+
+The two identifying assumptions are worth separating clearly. Difference GMM needs no serial
+correlation in $\varepsilon_{it}$, which is testable in the sense that second-order serial
+correlation in the differenced residuals would refute it. System GMM needs that plus a
+restriction on the initial conditions, which is a statement about how the panel came to start
+where it did and is not testable at all.
+
+#### Replication: The Arellano-Bond Employment Equation
+
+The original application is a panel of 140 UK firms observed from 1976 to 1984. It ships with
+`plm`, so the published estimates can be reproduced directly.
+
+```{r dynpanel-ab, message=FALSE, warning=FALSE}
+data("EmplUK", package = "plm")
+
+ab <- pgmm(log(emp) ~ lag(log(emp), 1:2) + lag(log(wage), 0:1) +
+             log(capital) + lag(log(output), 0:1) | lag(log(emp), 2:99),
+           data = EmplUK, effect = "twoways", model = "twosteps")
+
+round(summary(ab, robust = FALSE)$coefficients[, 1:2], 3)
+```
+
+The coefficients reproduce the employment equation of @arellano1991some to three decimals:
+0.474 on the first lag of employment, -0.053 on the second, -0.513 on the contemporaneous wage,
+0.293 on capital. The standard errors printed here are the uncorrected two-step ones, which are
+known to be severely downward biased in small samples; @windmeijer2005finite gives the finite
+sample correction, and applied work should report corrected errors or one-step robust errors
+instead.
+
+The specification tests come with the estimator.
+
+```{r dynpanel-ab-tests, message=FALSE, warning=FALSE}
+s <- summary(ab, robust = FALSE)
+c(n_instruments = length(ab$W[[1]][1, ]),
+  n_firms       = length(ab$residuals),
+  sargan_p      = round(s$sargan$p.value, 3),
+  AR1_p         = round(s$m1$p.value, 3),
+  AR2_p         = round(s$m2$p.value, 3))
+```
+
+Read them in the right order. First-order serial correlation in the differenced residuals is
+expected and its presence is reassuring, not alarming, because differencing induces it
+mechanically. Second-order correlation is the one that matters: rejecting it would say the
+original errors were serially correlated and the lag structure is invalid. Here AR(1) rejects
+and AR(2) does not, which is the pattern the design requires. The Sargan test does not reject.
+
+#### The Result That Should Worry You
+
+The estimator uses 38 instruments on 140 firms in the specification above. That ratio is already
+high, and nothing stops it going higher, because the number of moment conditions grows with the
+square of $T$. @roodman2009note showed what this does: with many instruments the weighting
+matrix is estimated badly, the two-step standard errors collapse, and the overidentification test
+loses all power, drifting toward a p-value of one.
+
+The cheapest way to see the problem is to vary how deep the lag structure goes and watch the
+estimate.
+
+```{r dynpanel-instrument-count, message=FALSE, warning=FALSE}
+depth <- function(L) {
+  # pgmm parses the lag spec by non-standard evaluation, so the depth has to be
+  # spliced into the formula as a literal rather than passed as a variable.
+  fm <- as.formula(sprintf(paste(
+    "log(emp) ~ lag(log(emp), 1:2) + lag(log(wage), 0:1) +",
+    "log(capital) + lag(log(output), 0:1) | lag(log(emp), 2:%d)"), L))
+  m <- pgmm(fm, data = EmplUK, effect = "twoways", model = "twosteps")
+  data.frame(lags = paste0("2:", L),
+             n_instruments = length(m$W[[1]][1, ]),
+             rho_hat = round(unname(coef(m)[1]), 3),
+             sargan_p = round(unname(summary(m, robust = FALSE)$sargan$p.value), 3))
+}
+do.call(rbind, lapply(c(2, 3, 4, 99), depth))
+```
+
+The coefficient on lagged employment moves from -0.055 to 0.474 across these four
+specifications. That is the whole range from "employment is not persistent at all" to
+"employment is substantially persistent", and the only thing that changed is how many lags were
+handed to the instrument matrix, a choice that is almost never reported and never pre-registered.
+The Sargan test does not reject in any of the four. It is not adjudicating between them.
+
+This is the same lesson as the overidentification discussion earlier in this chapter, in a
+setting where it bites harder, because here the instruments are all functions of the same series
+and are about as far from independent as instruments can be. A non-rejecting Sargan or Hansen
+test in a dynamic panel is close to uninformative, and with enough instruments it is guaranteed.
+
+Difference and system GMM also disagree on these data. Fitting the system estimator returns a
+coefficient on lagged employment near 0.94 against the 0.47 from difference GMM, which is
+exactly the pattern @blundell1998initial predict when the series is persistent enough that
+lagged levels are weak instruments for differences. Whether that is the system estimator
+correcting a weak-instrument bias or the extra initial-conditions assumption doing the work is
+not something the data will settle.
+
+#### Use in Applied Business Research
+
+The method entered finance and management largely through @wintoki2012endogeneity, who argue
+that the relation between board structure and firm performance is dynamic, that past performance
+determines current governance, and that a dynamic panel GMM specification addresses the resulting
+simultaneity without requiring an external instrument. The paper is worth reading as a model of
+how to argue for the design, and the specification tests it reports are the ones to imitate.
+
+What it also illustrates is how the method gets used downstream. Because the estimator needs no
+instrument the researcher has to defend by name, it is easy to present as a technical fix rather
+than as a set of substantive assumptions about dynamics and initial conditions. It is neither a
+cure for omitted variables that are time varying nor a substitute for a design.
+
+A minimum reporting standard, following @roodman2009howto:
+
+1.  Report the number of instruments alongside the number of groups, and keep the former well
+    below the latter. If the count exceeds the group count the results should be treated as
+    uninterpretable.
+2.  Collapse the instrument matrix or restrict the lag depth, and show that the estimate is
+    stable across those choices rather than reporting one specification.
+3.  Report AR(1) and AR(2) tests and say which one you need to reject and which you need not to.
+4.  Use Windmeijer-corrected standard errors for two-step estimates, or report one-step robust
+    errors.
+5.  Do not present a non-rejecting Hansen test as evidence of validity, and be suspicious of a
+    Hansen p-value near one, which is a symptom of instrument proliferation rather than a clean
+    bill of health.
+6.  State the initial-conditions assumption in words if you use system GMM, and say why it is
+    plausible in your setting.
+
+------------------------------------------------------------------------

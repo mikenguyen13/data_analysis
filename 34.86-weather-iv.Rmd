@@ -1,0 +1,112 @@
+### Weather and Environmental Instruments {#sec-weather-iv}
+
+Weather is the most obviously exogenous variable an applied researcher will ever meet. Nobody
+chooses the rainfall, the wind direction, or the temperature, so the independence assumption that
+costs so much argument elsewhere comes free. That is exactly why the family is dangerous: the
+assumption that weather is randomly assigned is true and irrelevant, because the assumption that
+does the work is the exclusion restriction, and weather fails it more often than any other
+instrument in common use.
+
+#### The Canonical Designs
+
+@miguel2004economic instrument economic growth with rainfall to estimate the effect of income on
+civil conflict in sub-Saharan Africa, on the logic that rainfall drives agricultural output in
+rain-fed economies and affects conflict only through income. @madestam2013political instrument
+protest turnout with rainfall on the day of a scheduled rally. @deryugina2019mortality instrument
+local air pollution with daily changes in wind direction, which is the most defensible member of
+the family because wind direction plausibly affects health only by moving pollutants.
+@dell2014what survey the broader climate-economy literature.
+
+The construction is always the same: weather shifts a mediating variable, and the analyst asserts
+that it touches the outcome through no other route.
+
+#### The Problem, Made Concrete
+
+```{r wxiv-demo, message=FALSE, warning=FALSE}
+library(ivreg)
+set.seed(606)
+
+wx <- function(n = 2000, direct = 0) {
+  rain <- rnorm(n)
+  conf <- rnorm(n)                                  # unobserved confounder
+  income   <- -0.8 * rain + conf + rnorm(n)         # rain moves income
+  # True effect of income on conflict is -0.5. `direct` is an excluded channel:
+  # rainfall reaching conflict without going through income.
+  conflict <- -0.5 * income + direct * rain + 0.7 * conf + rnorm(n)
+  d <- data.frame(conflict, income, rain)
+  c(IV_estimate  = unname(coef(ivreg(conflict ~ income | rain, data = d))[2]),
+    first_stage_F = unname(summary(lm(income ~ rain, data = d))$fstatistic[1]))
+}
+
+tab <- t(sapply(c(0, 0.1, 0.3), function(dd)
+  c(direct_channel = dd, round(rowMeans(replicate(300, wx(direct = dd))), 2))))
+knitr::kable(tab, row.names = FALSE,
+  caption = paste("Rainfall as an instrument for income. The true effect of",
+                  "income on conflict is -0.50. direct_channel is the size of a",
+                  "pathway from rainfall to conflict that bypasses income."))
+```
+
+With no excluded channel the estimator is exact. A direct pathway of 0.1, one eighth the size of
+the first-stage coefficient, moves the estimate from -0.50 to roughly -0.63, a twenty-five percent
+overstatement. At 0.3 the estimate is nearly double the truth.
+
+The column to stare at is the first-stage $F$. It is around 640 in every row, entirely unmoved by
+the violation. This is the same lesson as Section \@ref(sec-lewbel-heteroskedasticity) in a
+different setting, and it is the single most important thing to understand about weather
+instruments: they are almost always strong, strength is what gets reported, and strength is
+uninformative about the assumption that actually matters.
+
+#### Why Weather Is Especially Prone to This
+
+Rainfall does not only move agricultural income. It moves the passability of roads, which affects
+the logistics of an insurgency. It affects disease vectors, school attendance, water availability,
+and the ability of a government to project force. @sarsons2015rainfall makes the argument
+empirically rather than rhetorically: she studies Indian districts downstream of dams, where
+rainfall shocks do not pass through to local income because the dam smooths water supply. If the
+exclusion restriction held, rainfall should have no effect on conflict in those districts. It
+does. The first stage is shut off and the reduced form survives, which is direct evidence of an
+excluded channel.
+
+That test generalizes, and it is the strongest thing a weather-instrument paper can do. Find a
+subpopulation where the proposed mechanism is blocked, and show the reduced form disappears there.
+The book discusses this class of check under no-first-stage samples in
+Section \@ref(sec-exclusion-evidence).
+
+The second problem is a literature-level one rather than a paper-level one.
+@mellon2025rain catalogues the treatments that weather has been used to instrument across
+published work, and the list runs to hundreds: income, conflict, protest, turnout, media
+consumption, mood, crime, migration, schooling, trade. Any single paper's exclusion argument is
+an argument that weather affects its outcome through one channel. The union of the literature is
+a demonstration that weather affects almost everything through many channels. The two positions
+cannot both be right, and the aggregate evidence is against the individual claims.
+
+#### What Distinguishes the Good Applications
+
+@deryugina2019mortality is the family's strongest member, and the reasons are instructive. The
+instrument is daily wind direction rather than a weather variable with obvious economic content,
+and it is used within a location so that fixed effects absorb the average conditions of a place.
+Wind direction shifts which pollution reaches a county without changing anything else about that
+county on that day. The paper also documents what wind direction does and does not correlate with,
+rather than asserting the exclusion restriction.
+
+The contrast with rainfall-for-income is the degree of separation between the instrument and the
+outcome. Rainfall is a first-order determinant of life in an agricultural economy. Wind direction
+is close to a nuisance parameter except through the pollutants it carries.
+
+#### Practice
+
+1.  Do not report the first-stage $F$ as though it addressed the exclusion restriction. It does
+    not, and in this family it never will.
+2.  Enumerate the other channels explicitly and in writing. A referee will, and the list is
+    usually long.
+3.  Find a no-first-stage subsample and show the reduced form vanishes there. This is the closest
+    thing to a test the design admits.
+4.  Use a bounded sensitivity analysis in the style of Section \@ref(sec-plausibly-exogenous),
+    and report the direct effect that would overturn the result.
+5.  Prefer instruments with less economic content: wind direction over rainfall, daily variation
+    over annual, within-location over cross-location.
+6.  Check whether the same instrument has been used for your outcome, or a close relative of it,
+    as a treatment elsewhere. If it has, the exclusion argument has to explain why that literature
+    is wrong.
+
+------------------------------------------------------------------------

@@ -1,0 +1,107 @@
+### Simulated Instruments {#sec-simulated-iv}
+
+Public economics, accounting, and corporate finance share a recurring problem. A policy rule
+determines who is eligible for something, or what marginal rate a firm faces, and the researcher
+wants the effect of that eligibility or that rate. The obvious regressor, the actual eligibility
+rate in a state or the actual marginal tax rate a firm pays, is endogenous for a reason that has
+nothing to do with the policy: it depends on who happens to live in the state, or on how
+profitable the firm happens to be. The simulated instrument separates the rule from the people
+the rule is applied to.
+
+#### The Construction
+
+Let $E_{st}$ be the share of a state's population eligible for a program in year $t$. It is a
+function of two things: the statutory rule $R_{st}$, and the composition of the state's
+population $C_{st}$. Composition is the problem, because the same local economic conditions that
+push families into eligibility also move the outcome.
+
+The simulated instrument, introduced by @currie1996saving and @cutler1996does, holds composition
+fixed by construction. Take one national sample of individuals, fix it once, and apply each state
+and year's rule to that same sample:
+
+$$
+\tilde{E}_{st} = \frac{1}{N}\sum_{i \in \text{national sample}} \mathbb{1}\{\text{rule}_{st}\ \text{makes}\ i\ \text{eligible}\}.
+$$
+
+Because the sample never changes, $\tilde{E}_{st}$ varies only with the rule. It is a measure of
+statutory generosity purged of who actually lives where. It is then used as an instrument for
+actual eligibility, or sometimes directly as the regressor in a reduced form.
+
+The same logic drives the simulated marginal tax rate in corporate finance. @graham1996debt
+computes the tax rate a firm would face on an incremental dollar of income by running its income
+history through the actual tax code, including carrybacks and carryforwards, rather than using
+the realized average rate, which is mechanically a function of the leverage choice under study.
+@gruber2002elasticity use the same device for the elasticity of taxable income, and
+@blundell1998estimating apply it to labour supply through tax reforms.
+
+#### What It Fixes and What It Does Not
+
+```{r simiv-demo, message=FALSE, warning=FALSE}
+library(fixest)
+set.seed(101)
+
+sim_elig <- function(policy_endog = 0) {
+  S <- 50; Tt <- 10
+  g <- expand.grid(state = 1:S, year = 1:Tt)
+  n <- nrow(g)
+  # Composition varies WITHIN state over time, so state fixed effects cannot
+  # absorb it. This is the confound the simulated instrument is built to remove.
+  comp <- rnorm(S)[g$state] + rnorm(n)
+  rule <- rnorm(n) + policy_endog * comp        # statutory generosity
+  elig_actual <- 0.5 * rule + 0.8 * comp + rnorm(n, 0, 0.3)
+  elig_sim    <- 0.5 * rule                     # rule on a FIXED national sample
+  y <- 1.0 * elig_actual + 1.5 * comp + rnorm(n)
+
+  d <- data.frame(y, elig_actual, elig_sim,
+                  state = factor(g$state), year = factor(g$year))
+  c(ols = unname(coef(feols(y ~ elig_actual | state + year, data = d))[1]),
+    siv = unname(coef(feols(y ~ 1 | state + year | elig_actual ~ elig_sim,
+                            data = d))["fit_elig_actual"]))
+}
+
+res <- t(sapply(c(0, 0.5, 1.0), function(pe)
+  c(policy_endogeneity = pe, round(rowMeans(replicate(150, sim_elig(pe))), 3))))
+knitr::kable(res, row.names = FALSE,
+  caption = paste("Simulated eligibility instrument. The true effect is 1.0.",
+                  "Both estimators include state and year fixed effects.",
+                  "policy_endogeneity is how strongly the statutory rule itself",
+                  "responds to local conditions."))
+```
+
+In the top row the rule is set independently of local conditions, and the design works exactly as
+intended: least squares returns roughly 2.2 against a true effect of 1.0, while the simulated
+instrument recovers the truth. Note that state and year fixed effects do not rescue least
+squares, because composition moves within states over time. That is the whole reason the device
+exists.
+
+The lower rows are the failure mode, and it is the only one that matters. A simulated instrument
+removes variation from population composition. It does nothing at all about variation in the rule
+itself. If legislatures expand eligibility when local conditions deteriorate, the statutory
+generosity measure is endogenous, and the instrument inherits that endogeneity undiminished. The
+estimate drifts back toward the biased one as policy responsiveness rises.
+
+This is worth stating plainly because the construction feels like it has done more work than it
+has. Applying a rule to a fixed sample is a mechanical operation that guarantees one specific
+thing: that the instrument is orthogonal to who lives in the state. It guarantees nothing about
+why the rule was passed.
+
+#### Practice
+
+1.  Say which variation is left after the simulation. If the answer is "legislated changes in
+    generosity", the exclusion argument is a political economy argument about why those changes
+    happened when they did.
+2.  Fix the sample once, nationally, and use the same one for every cell. Re-drawing the sample
+    per state reintroduces the composition that the device is meant to remove.
+3.  Control for the state-level characteristics that plausibly drive legislation, and show the
+    estimate is stable when you do.
+4.  Look for rule changes driven by something other than local conditions, for instance federal
+    mandates imposed on all states at once, and show the result survives when identification is
+    restricted to those.
+5.  Report the first stage. Simulated instruments are usually strong, since the rule mechanically
+    moves eligibility, so a weak first stage here usually signals a coding error in the
+    simulation rather than a genuinely weak design.
+6.  Where the simulated measure can be used directly as a reduced-form regressor, report that too.
+    It answers a slightly different and often more policy-relevant question, the effect of
+    statutory generosity rather than of realized eligibility.
+
+------------------------------------------------------------------------

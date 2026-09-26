@@ -1,0 +1,120 @@
+### Higher-Moment Instruments for Measurement Error {#sec-higher-moment-iv}
+
+The investment literature has a measurement problem so severe that it generated its own estimator.
+Theory says investment responds to marginal $q$, the shadow value of an additional unit of
+capital. What the data contain is average $q$, a ratio of market value to book value that
+measures marginal $q$ with enormous error. Ordinary least squares of investment on average $q$ is
+attenuated, and the standard reading, that investment is insensitive to fundamentals and
+therefore driven by cash flow and financial constraints, may be an artifact of that attenuation.
+
+@erickson2000measurement showed how to identify the coefficient without an external instrument,
+using the higher moments of the mismeasured regressor. It belongs beside the copula correction of
+Section \@ref(sec-copula-correction) and Lewbel's construction of
+Section \@ref(sec-lewbel-heteroskedasticity): all three buy identification with a distributional
+assumption rather than with outside variation.
+
+#### Where the Identification Comes From
+
+Take the classical errors-in-variables model, centred for convenience:
+
+$$
+y_i = \beta x_i^* + u_i, \qquad x_i = x_i^* + e_i,
+$$
+
+with $x^*$, $u$, and $e$ mutually independent and mean zero. Least squares is attenuated by the
+familiar reliability ratio. Second moments alone cannot separate $\operatorname{Var}(x^*)$ from
+$\operatorname{Var}(e)$, which is why the model is not identified from the covariance matrix.
+
+Third moments can, provided the true regressor is skewed. Taking expectations,
+
+$$
+\mathbb{E}[y x^2] = \beta\, \mathbb{E}[x^{*3}], \qquad
+\mathbb{E}[x^3] = \mathbb{E}[x^{*3}] + \mathbb{E}[e^3],
+$$
+
+so if the measurement error is symmetric, $\mathbb{E}[e^3] = 0$, and
+
+$$
+\hat\beta = \frac{\widehat{\mathbb{E}}[y x^2]}{\widehat{\mathbb{E}}[x^3]}.
+$$
+
+The estimator needs $\mathbb{E}[x^{*3}] \neq 0$. If the true regressor is symmetric the
+denominator is zero in population and the estimator has no content, which is the same structural
+warning that attaches to the copula method: the identifying feature is a departure from
+symmetry, and when the data are close to symmetric the estimator is near-singular rather than
+merely imprecise.
+
+@erickson2002two develop the general case as a GMM problem using moments of order three and
+higher, with covariates partialled out, which is what applied work in finance actually uses.
+
+#### Demonstration
+
+```{r hmiv-demo, message=FALSE, warning=FALSE}
+set.seed(303)
+
+ew <- function(n = 5000, skew = TRUE) {
+  # True regressor: right-skewed when skew = TRUE, symmetric otherwise.
+  xstar <- if (skew) (rchisq(n, 3) - 3) / sqrt(6) else rnorm(n)
+  e <- rnorm(n)            # symmetric measurement error: E[e^3] = 0
+  u <- rnorm(n)
+  beta <- 1.0
+  y <- beta * xstar + u
+  x <- xstar + e           # what the analyst observes
+
+  yc <- y - mean(y); xc <- x - mean(x)
+  c(OLS = unname(coef(lm(y ~ x))[2]),
+    third_moment = mean(yc * xc^2) / mean(xc^3),
+    skewness_of_x = mean(xc^3) / sd(x)^3)
+}
+
+out <- t(sapply(c(TRUE, FALSE), function(s)
+  c(skewed_regressor = s, round(rowMeans(replicate(200, ew(skew = s))), 3))))
+knitr::kable(out, row.names = FALSE,
+  caption = paste("Third-moment estimator for the classical errors-in-variables",
+                  "model. True coefficient is 1.0. Identification requires the",
+                  "true regressor to be skewed."))
+```
+
+With a skewed true regressor, least squares is attenuated to about one half of the truth while
+the third-moment estimator recovers 1.0 almost exactly. With a symmetric regressor the
+denominator is estimating zero, and the estimator returns noise. Nothing in the output flags
+this: there is no first-stage statistic to inspect, so the sample skewness of the observed
+regressor is the diagnostic, and it has to be reported.
+
+#### What This Does and Does Not Buy
+
+The estimator addresses measurement error, and only measurement error. It assumes the regression
+error $u$ is independent of the true regressor, which rules out the simultaneity and omitted
+variables that motivate most instrumental variables work. Applied to an endogeneity problem that
+is not an errors-in-variables problem it will return a number, and the number will be wrong.
+
+That distinction matters for how the finance results should be read. Using these estimators,
+@erickson2000measurement find that investment is far more responsive to $q$ than least squares
+suggests, and that the apparent explanatory power of cash flow largely disappears. That is a
+claim about measurement, not about whether firms face financing frictions, and it stands or falls
+on whether average $q$ really does measure marginal $q$ with classical error.
+
+Three assumptions carry the result and none is testable from the estimation sample:
+
+1.  Measurement error is symmetric. Skewed measurement error contaminates the denominator
+    directly, since $\mathbb{E}[x^3]$ then mixes $\mathbb{E}[x^{*3}]$ with $\mathbb{E}[e^3]$.
+2.  Measurement error is independent of the true regressor, not merely uncorrelated. Independence
+    is what licenses the higher-moment restrictions, and it is much stronger than what classical
+    errors-in-variables needs at second order.
+3.  The structural error is independent of the true regressor, which is the assumption that
+    confines the method to measurement error.
+
+#### Practice
+
+1.  Report the skewness of the mismeasured regressor and treat weak skewness the way you would
+    treat a weak first stage.
+2.  Report estimates using third moments and higher moments separately. Instability across moment
+    orders is evidence that the distributional assumptions are doing more work than the data
+    support.
+3.  Show the least squares estimate alongside, and state the implied reliability ratio. If it
+    implies that the observed regressor is almost all noise, that is a substantive claim about the
+    measure that a reader should be able to evaluate.
+4.  Where an external instrument exists, report both. Agreement is real evidence; disagreement
+    tells you the measurement-error model is not the whole story.
+
+------------------------------------------------------------------------

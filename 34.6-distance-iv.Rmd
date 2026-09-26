@@ -1,0 +1,358 @@
+### Geographic Proximity and Distance Instruments {#sec-distance-iv}
+
+Distance is the most heavily used instrument in applied economics, and it is the family a
+referee is most likely to have seen before. The reason is practical. Administrative data
+almost always record where a person lives and where the relevant facility sits, so the
+instrument can be constructed after the fact at no cost, it varies continuously, and it has
+an economic interpretation that any reader accepts immediately: travelling further is more
+expensive, so people who live further away take up less of whatever the facility supplies.
+Section \@ref(sec-workhorse-instruments) lists proximity as one of the workhorse families;
+this section develops it, because the arguments that decide whether a distance instrument
+survives review are specific enough to be worth stating in full.
+
+#### The Design Logic
+
+Let $D_i$ be the treatment whose effect we want, $Y_i$ the outcome, and $Z_i$ some measure of
+how far unit $i$ lives from the facility that supplies $D$. The instrument is supposed to work
+through a cost channel. Write take-up as the solution to a decision problem in which the
+benefit of treatment is $B_i$ and the cost is $C_i = c(Z_i) + \kappa_i$, with $c(\cdot)$
+increasing in distance. Then
+
+$$
+D_i = \mathbb{1}\{B_i > c(Z_i) + \kappa_i\},
+$$
+
+and distance shifts take-up without, in the ideal case, entering the benefit $B_i$ or the
+outcome equation directly. That is the whole identifying claim: distance is a price, and a
+price that the analyst did not set.
+
+Three consequences follow, and they organize everything below.
+
+First, the estimand is a local one. Compliers are the units for whom $B_i$ sits inside the
+window that distance moves, so the [LATE](#sec-monotonicity-assumption) recovered by a distance
+instrument is the effect for people near the margin of take-up on the cost dimension. That
+group is rarely the population of policy interest, and it is systematically different from the
+always-takers, who would travel any distance.
+
+Second, monotonicity is an assumption about the sign of $c'(\cdot)$ holding for everyone.
+It is usually reasonable, since almost nobody is made more likely to attend college by living
+further from one, but it fails in settings where distance also proxies for something desirable,
+for example when the nearest hospital is the low quality one and distance to the nearest
+facility is negatively correlated with distance to a good facility.
+
+Third, and this is where most distance instruments die, location is chosen. The unit decided
+where to live, or its parents did, and the facility's operator decided where to build. Neither
+decision is random, and both are plausibly correlated with the outcome. The exclusion
+restriction for a distance instrument is therefore almost never an argument about geography.
+It is an argument about residential sorting and facility siting.
+
+#### Where the Family Appears
+
+| Setting | Distance measure | Instruments for | Representative study |
+|------------------|------------------|------------------|------------------|
+| Returns to schooling | Grew up near a four-year college | Years of education | @card2001estimating |
+| Intergenerational human capital | College openings in the county at age 17 | Mother's education | @currie2003mother |
+| Comparative effectiveness in medicine | Differential distance to a hospital with catheterization capability | Intensive cardiac treatment | @mcclellan1994does |
+| Neonatal care | Excess travel time to a high-level neonatal intensive care unit | Delivery at a high-level unit | @baiocchi2010building |
+| School competition | Number of streams and rivers bounding potential districts | Degree of Tiebout choice | @hoxby2000does, disputed by @rothstein2007does |
+| Internal capital allocation | Travel time from headquarters to plant, shifted by new airline routes | Managerial proximity | @giroud2013proximity |
+
+Table: (\#tab:distiv-applications) Distance and proximity instruments across literatures. The measure differs, but the identifying claim is always that distance prices take-up without entering the outcome equation.
+
+Two patterns are worth naming. The first is that the credible members of this family rarely use
+raw distance. They use a difference of distances, or a change in distance produced by an event,
+precisely because the level of distance is the part that is chosen. The second is that the
+family has a long history of contested applications: @rothstein2007does could not reproduce the
+key result of @hoxby2000does once the stream-counting instrument was reconstructed, which is a
+reminder that a distance instrument is only as good as the measurement behind it.
+
+#### Replication: College Proximity and the Return to Schooling
+
+The canonical application instruments years of schooling with an indicator for having grown up
+near a four-year college. The design and the data come from Card's work on the returns to
+schooling, developed at length in @card2001estimating, using the National Longitudinal Survey
+of Young Men. The data ship with the `ivreg` package, so the entire exercise is reproducible.
+
+```{r distiv-data, message=FALSE, warning=FALSE}
+library(ivreg)
+library(sandwich)
+library(lmtest)
+library(modelsummary)
+
+data("SchoolingReturns", package = "ivreg")
+
+card <- within(SchoolingReturns, {
+  lwage  <- log(wage)
+  # "near a four-year college" pools the public and private categories
+  near4  <- as.integer(nearcollege4 != "none")
+  near2  <- as.integer(nearcollege2 == "yes")
+  black  <- as.integer(ethnicity == "afam")
+  southD <- as.integer(south == "yes")
+  smsaD  <- as.integer(smsa  == "yes")
+  lib14  <- as.integer(library14 == "yes")
+})
+
+c(n = nrow(card), share_near_4yr = round(mean(card$near4), 3))
+```
+
+The controls are the standard human-capital set: a quadratic in potential experience, plus
+indicators for race, southern residence, and metropolitan residence. We fit ordinary least
+squares, the first stage, the reduced form, and two-stage least squares, and then a
+specification that adds parental education and household structure at age fourteen.
+
+```{r distiv-main, message=FALSE, warning=FALSE}
+base <- "experience + I(experience^2) + black + southD + smsaD"
+fam  <- paste(base, "+ feducation + meducation + fameducation + parents14")
+f    <- function(s) as.formula(s)
+
+ols   <- lm(f(paste("lwage ~ education +", base)), data = card)
+first <- lm(f(paste("education ~ near4 +", base)), data = card)
+rform <- lm(f(paste("lwage ~ near4 +", base)),     data = card)
+iv    <- ivreg(f(paste("lwage ~ education +", base, "| near4 +", base)), data = card)
+ivfam <- ivreg(f(paste("lwage ~ education +", fam,  "| near4 +", fam)),  data = card)
+
+HC <- function(m) vcovHC(m, type = "HC1")
+
+modelsummary(
+  list("OLS" = ols, "First stage" = first, "Reduced form" = rform,
+       "IV" = iv, "IV + background" = ivfam),
+  vcov = HC,
+  stars = TRUE,
+  gof_omit = "IC|Log|Adj|RMSE|F$",
+  coef_map = c(education = "Years of education",
+               near4     = "Grew up near 4-year college"),
+  output = "kableExtra",
+  title = paste(
+    "College proximity as an instrument for schooling in the National",
+    "Longitudinal Survey of Young Men. The first-stage and reduced-form",
+    "columns report the two regressions whose ratio is the just-identified",
+    "IV estimate in the fourth column. Standard errors are heteroskedasticity",
+    "robust."
+  )
+)
+```
+
+```{r distiv-strength, message=FALSE, warning=FALSE}
+fs_F <- waldtest(first, "near4", vcov = HC(first))$F[2]
+c(first_stage_coef = round(coef(first)["near4"], 4),
+  first_stage_F    = round(fs_F, 2),
+  reduced_form     = round(coef(rform)["near4"], 4),
+  ratio_RF_over_FS = round(coef(rform)["near4"] / coef(first)["near4"], 4),
+  iv_coef          = round(coef(iv)["education"], 4))
+```
+
+Three things in this output deserve comment.
+
+The first stage is real but modest. Growing up near a four-year college raises completed
+schooling by about a third of a year, with a robust first-stage $F$ around 17.5. That clears
+the conventional rule of thumb of 10 but sits well below the thresholds that
+Section \@ref(sec-tf-procedure) shows are needed before the usual $t$-based confidence interval
+can be read at face value.
+
+The ratio of the reduced form to the first stage reproduces the IV coefficient exactly, which
+is the arithmetic of the just-identified Wald estimator and a useful check that the controls
+enter both stages identically.
+
+The IV estimate is roughly `r round(coef(iv)["education"] / coef(ols)["education"], 1)` times
+the OLS estimate, about 13 log points per year of schooling against 7.4. This is the opposite of
+what the textbook ability-bias story predicts. If OLS were contaminated by unobserved ability
+that raises both schooling and wages, instrumenting should push the estimate down, not up.
+@card2001estimating treats this pattern, which recurs across the schooling IV literature, as
+evidence for heterogeneous returns: proximity moves the schooling of people from
+lower-education backgrounds, whose marginal return is above the population average, so the
+LATE legitimately exceeds the average treatment effect. @kling2001interpreting makes the same
+point formally, showing which subpopulation each schooling instrument recovers.
+@cameron2004estimation tests the borrowing-constraint interpretation that would rationalize
+those high marginal returns and finds little support for it, which leaves the gap between OLS
+and IV as a genuinely open question rather than a settled story. The alternative reading, that
+the gap reflects a violation of the exclusion restriction rather than heterogeneity, is exactly
+what the next subsection quantifies.
+
+#### Show and Tell: Weak-Instrument Inference, Sorting, and Sensitivity
+
+A distance instrument with an $F$ of 17.5 is strong enough to escape the worst weak-instrument
+pathologies but not strong enough for the Wald confidence interval to be trusted without a
+check. Section \@ref(sec-anderson-rubin-approach) gives the remedy. Because the model is just
+identified with a single instrument, the Anderson-Rubin confidence set can be built directly by
+grid inversion: for each candidate $\beta_0$, subtract $\beta_0 \cdot \text{education}$ from the
+outcome and test whether the instrument still predicts the residual.
+
+```{r distiv-ar, message=FALSE, warning=FALSE}
+ar_pvalue <- function(b0) {
+  card$yadj <- card$lwage - b0 * card$education
+  m <- lm(f(paste("yadj ~ near4 +", base)), data = card)
+  waldtest(m, "near4", vcov = HC(m))[["Pr(>F)"]][2]
+}
+
+grid    <- seq(-0.10, 0.60, by = 0.001)
+ar_keep <- grid[vapply(grid, ar_pvalue, numeric(1)) > 0.05]
+wald_ci <- coefci(iv, "education", vcov. = HC(iv))
+
+rbind(Wald = round(as.numeric(wald_ci), 3),
+      AR   = round(c(min(ar_keep), max(ar_keep)), 3))
+```
+
+The Anderson-Rubin interval is shifted right and noticeably asymmetric relative to the Wald
+interval. Both exclude zero here, so the qualitative conclusion survives, but the upper end of
+the weak-instrument-robust set reaches returns that the Wald interval rules out. Reporting only
+the Wald interval would understate how much the data still permit.
+
+Now the exclusion restriction. The objection to college proximity is that families who live
+near colleges differ from families who do not, so proximity may raise wages through channels
+other than schooling. That objection is testable in one direction: we can at least ask whether
+proximity is correlated with observable background.
+
+```{r distiv-sorting, message=FALSE, warning=FALSE}
+sorting <- lm(near4 ~ feducation + meducation + lib14 + black + southD + smsaD,
+              data = card)
+round(coeftest(sorting, vcov = HC(sorting))[, c(1, 2, 4)], 4)
+```
+
+It is. Growing up near a four-year college is strongly associated with living in a metropolitan
+area, with not living in the South, with having a library card at fourteen, and with father's
+education. None of that proves the exclusion restriction fails, since the specification controls
+for metropolitan and southern residence directly. But it does establish that proximity is a
+marker of advantaged origins, which is precisely the mechanism through which a direct effect on
+wages would operate.
+
+The productive response is not another balance table but a sensitivity analysis in the style of
+Section \@ref(sec-plausibly-exogenous). Suppose the instrument enters the outcome equation
+directly with coefficient $\gamma$:
+
+$$
+Y_i = \beta\, D_i + \gamma\, Z_i + X_i'\delta + \varepsilon_i .
+$$
+
+In a just-identified design the implied estimate is
+$\beta(\gamma) = (\pi_{\text{RF}} - \gamma)/\pi_{\text{FS}}$, so the entire result rests on how
+much of the reduced form we are willing to attribute to a non-schooling channel.
+
+```{r distiv-sensitivity, message=FALSE, warning=FALSE}
+pi_fs <- coef(first)["near4"]
+pi_rf <- coef(rform)["near4"]
+
+union_ci <- function(delta, n = 121) {
+  gs <- seq(-delta, delta, length.out = n)
+  bounds <- vapply(gs, function(g) {
+    card$yadj <- card$lwage - g * card$near4
+    m <- ivreg(f(paste("yadj ~ education +", base, "| near4 +", base)), data = card)
+    as.numeric(coefci(m, "education", vcov. = HC(m)))
+  }, numeric(2))
+  c(lower = min(bounds[1, ]), upper = max(bounds[2, ]))
+}
+
+cat(sprintf("breakdown gamma (drives beta to zero) = %.4f\n", pi_rf))
+for (d in c(0.000, 0.005, 0.010, 0.020)) {
+  u <- union_ci(d)
+  cat(sprintf("delta = %.3f   union CI = [%6.3f, %6.3f]\n", d, u[1], u[2]))
+}
+```
+
+This is the number to carry away from the section. The reduced-form effect of proximity on log
+wages is 4.5 log points in total. A direct effect of proximity on wages of that size, arising
+through any channel other than schooling, drives the estimated return to zero. And the union of
+confidence intervals already contains zero once we allow a direct effect of only two log points,
+under half the reduced form. Given what the sorting regression showed about who lives near
+colleges, a two log point direct effect is not an extravagant hypothesis. The design is
+informative, but it is fragile in a way that the first-stage $F$ statistic does not reveal.
+
+Finally, proximity to a two-year college provides a second instrument, which makes the model
+overidentified and licenses a Hansen $J$ test.
+
+```{r distiv-overid, message=FALSE, warning=FALSE}
+ivboth <- ivreg(f(paste("lwage ~ education +", base, "| near4 + near2 +", base)),
+                data = card)
+summary(ivboth, diagnostics = TRUE)$diagnostics
+```
+
+The $J$ statistic does not reject at conventional levels. As the discussion of overidentification
+tests earlier in this chapter stresses, and as Section \@ref(sec-instruments-disagree) develops,
+that is consistent with both instruments being valid and also consistent with both being invalid
+in the same direction, which is exactly the scenario a sorting story predicts, since two-year and
+four-year college proximity are driven by the same urban geography.
+
+#### Differential Distance: the Design Fix
+
+The strongest members of this family do not use distance to the facility. They use the
+difference between the distance to a facility of the relevant type and the distance to the
+nearest facility of any type. @mcclellan1994does introduced this construction for the effect of
+intensive cardiac treatment on mortality among elderly heart attack patients, instrumenting
+catheterization with the extra distance a patient would have to travel to reach a hospital that
+offers it, relative to the nearest hospital.
+
+The logic of the fix is worth stating precisely. Raw distance to a catheterization hospital is
+confounded because it is essentially distance to a city, and city residents differ from rural
+residents in health, income, and much else. Differential distance nets out that common component.
+Two patients who both live twenty miles from their nearest hospital, one of which happens to offer
+catheterization and one of which does not, are far more comparable than two patients at different
+distances from a catheterization hospital. The instrument now varies with the composition of
+nearby facilities rather than with the patient's position in the urban hierarchy. The finding was
+that the mortality benefit of intensive treatment was far smaller than the observational
+comparison suggested, which is the payoff of taking the design seriously.
+
+@baiocchi2010building push the construction further by combining differential distance with
+matching. Their near-far design pairs units that are similar on covariates but far apart on the
+instrument, which strengthens the first stage within the matched sample and sharpens the
+comparison. This is the practical answer to the weak-instrument problem in this family: rather
+than accept a diluted instrument over the full sample, build a subsample in which the instrument
+does real work. It also connects the family directly to
+[matching](#sec-matching-methods), which is otherwise treated as the alternative to IV rather
+than as a complement to it.
+
+The general lesson transfers. Whenever raw distance is confounded by a location gradient, look
+for a differenced or event-driven version:
+
+-   differential distance, as in @mcclellan1994does;
+-   a change in distance, as when @giroud2013proximity uses the introduction of new airline routes
+    to generate within-pair reductions in headquarters-to-plant travel time, holding the pair fixed;
+-   a change in the set of nearby facilities, as when @currie2003mother uses college openings in a
+    county, which shifts proximity for successive cohorts in the same place.
+
+Each of these converts a level, which is chosen, into a difference or a change, which is easier to
+argue was not.
+
+#### Application in Business and Finance
+
+The business-school version of this design is @giroud2013proximity, which asks whether the
+physical distance between a firm's headquarters and its plants affects how capital is allocated
+inside the firm. Raw distance is hopeless as an instrument here, since firms choose plant
+locations for reasons correlated with plant prospects. The design instead uses the opening of new
+airline routes that indirectly reduce travel time between an existing headquarters and an existing
+plant, comparing the same pair before and after, against pairs unaffected by the route change.
+Proximity increases plant-level investment and productivity.
+
+The same construction is available in a range of applied settings. Distance to the nearest branch
+instruments for banking relationships; distance to a distribution center instruments for delivery
+speed; drive time to a store instruments for channel choice. In each case the referee's question
+is the same, and the answer that works is the same: show that you are using a change in distance
+or a difference of distances rather than the level, and show what the sorting regression looks
+like.
+
+For expert-witness and policy work, the sensitivity calculation above is the deliverable, not the
+point estimate. An opposing expert will not attack the first stage, which is visible and strong.
+They will argue that proximity captures the local economy. The right preparation is to state, in
+advance, how large a direct effect would have to be to overturn the conclusion, and to place that
+magnitude against evidence on what proximity is worth through other channels.
+
+#### Checklist
+
+Before relying on a distance instrument:
+
+1.  State the cost channel explicitly. If distance does not plausibly enter the take-up cost, it
+    is not an instrument, it is a proxy for geography.
+2.  Prefer a difference or a change to a level. Differential distance, distance changes from
+    infrastructure events, and facility openings are all more defensible than raw distance.
+3.  Run the sorting regression and report it. Who lives near the facility is the substance of the
+    exclusion argument.
+4.  Report weak-instrument-robust inference. Distance instruments routinely land in the range
+    where the Wald interval is optimistic.
+5.  Report a breakdown value of $\gamma$, not just a point estimate. In a just-identified design
+    the whole reduced form is the budget, and a violation worth a fraction of it is usually enough
+    to overturn the result.
+6.  Characterize the compliers. The people whose behavior distance moves are a specific and
+    usually disadvantaged group, and the estimand is their effect, not the population's.
+7.  Remember @rosenzweig2000natural. A natural experiment does not interpret itself; the economic
+    model determines what the instrument identifies, and distance instruments are unusually prone
+    to being read as though they answered a more general question than they do.
+
+------------------------------------------------------------------------

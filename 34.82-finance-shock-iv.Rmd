@@ -1,0 +1,126 @@
+### Supply Shocks and Peer Shocks in Corporate Finance {#sec-finance-shock-iv}
+
+Corporate finance has its own instrument families, and they are rarely taught alongside the
+labour economics canon even though the identification logic is identical. The recurring problem
+is that a firm's financing, investment, and governance choices are jointly determined with its
+prospects, and there is no lottery to appeal to. Three constructions do most of the work.
+
+#### Within-Borrower Identification from Lending Supply
+
+The cleanest of the three is @khwaja2008tracing. The question is whether a contraction in bank
+lending supply causes firms to borrow less, and the obstacle is that banks and firms are matched:
+banks that suffer liquidity shocks may lend to firms whose demand was falling anyway. A
+cross-sectional regression of firm borrowing on the health of its bank confounds supply with
+demand.
+
+The design exploits firms that borrow from more than one bank. Differencing across two lenders of
+the same firm in the same period removes anything at the firm level, including credit demand,
+which is the confound. What remains is the difference in the two banks' liquidity shocks.
+
+```{r finshock-km, message=FALSE, warning=FALSE}
+set.seed(202)
+
+km <- function(nf = 800, nb = 60) {
+  bshock <- rnorm(nb)                    # bank liquidity shock
+  brank  <- order(bshock)
+  fdem   <- rnorm(nf)                    # firm credit demand, unobserved
+  # Assortative matching: firms with strong demand borrow from healthier banks.
+  # This is what contaminates the cross-sectional comparison.
+  pick <- function() {
+    i <- round(rank(fdem) / nf * nb + rnorm(nf, 0, 8))
+    brank[pmin(pmax(i, 1), nb)]
+  }
+  b1 <- pick(); b2 <- pick()
+  keep <- b1 != b2
+  b1 <- b1[keep]; b2 <- b2[keep]; fd <- fdem[keep]; n <- length(b1)
+
+  L1 <- 0.8 * bshock[b1] + fd + rnorm(n, 0, 0.5)   # true supply effect = 0.8
+  L2 <- 0.8 * bshock[b2] + fd + rnorm(n, 0, 0.5)
+
+  long <- data.frame(L = c(L1, L2), shock = c(bshock[b1], bshock[b2]))
+  c(cross_sectional = unname(coef(lm(L ~ shock, data = long))["shock"]),
+    within_borrower = unname(coef(lm(I(L1 - L2) ~
+                                       I(bshock[b1] - bshock[b2])))[2]))
+}
+
+round(rowMeans(replicate(200, km())), 3)
+```
+
+The cross-sectional estimate is roughly double the truth, because it credits the bank for lending
+that the firm's own demand would have generated anyway. The within-borrower estimator recovers
+0.8. The price is the estimand: it is identified only among multi-bank firms, which are larger
+and better established than the population, and it differences out any aggregate contraction that
+hits all of a firm's lenders equally. What survives is the relative effect of lender health, not
+the total effect of a credit crunch.
+
+#### Peer Firm Shocks
+
+@leary2014capital ask whether firms imitate their peers' financing choices. The obstacle is
+Manski's reflection problem in a corporate setting: firms in an industry share unobserved shocks,
+so their leverage co-moves for reasons that have nothing to do with imitation. The instrument is
+the idiosyncratic component of peer firms' equity returns, the part orthogonal to common factors,
+which shifts a peer's financing choices without plausibly entering the focal firm's own leverage
+equation. The design is the corporate analogue of the network instruments in
+Section \@ref(sec-network-peer-iv), and it inherits the same objection: the exclusion restriction
+fails if peer shocks propagate through product markets rather than only through imitation.
+
+#### Flow-Induced Trading, and a Cautionary Tale
+
+The third construction uses mutual fund flows. When investors redeem from a fund, the fund sells
+its holdings for reasons unrelated to the prospects of any particular stock it holds. Aggregating
+those forced sales across funds yields price pressure on a stock that is plausibly exogenous to
+that stock's fundamentals. @edmans2012real use this to instrument for a firm's stock price and
+estimate the effect of valuation on takeover activity.
+
+The construction is attractive and it has been reused very widely, which makes
+@wardlaw2020measuring essential reading before adopting it. The commonly used pressure measure
+scales hypothetical forced trading by dollar trading volume. Dollar volume contains price, and
+price is what the return is computed from. The measure is therefore mechanically related to the
+outcome, and most of its variation comes from the denominator rather than from the flows the
+design is supposed to be exploiting. The following makes the mechanism concrete.
+
+```{r finshock-mechanical, message=FALSE, warning=FALSE}
+set.seed(303)
+
+mech <- function(n = 3000) {
+  ret  <- rnorm(n)                        # the outcome: pure noise here
+  # Forced trading in a fire-sale sample is one-directional, so the numerator
+  # does not average to zero across stocks.
+  flow <- rnorm(n, mean = -1, sd = 0.3)   # exogenous, independent of ret
+  # Dollar volume contains the contemporaneous price, so it moves with ret.
+  volume <- exp(0.7 * ret + rnorm(n, 0, 0.5))
+
+  c(scaled_by_volume = cor(flow / volume, ret),   # the common measure
+    scaled_by_shares = cor(flow, ret))            # predetermined scaling
+}
+
+round(rowMeans(replicate(400, mech())), 3)
+```
+
+There is no causal relationship anywhere in this simulation. The return is independent noise, and
+the flow is drawn independently of it. Yet the volume-scaled measure correlates with returns at
+about 0.62, entirely because the denominator contains the outcome and the numerator does not
+average away. Scaling the same flows by a quantity fixed before the outcome is realised, such as
+shares outstanding, leaves the correlation at zero.
+
+This is not a subtle weak-instrument issue, it is a construction defect, and no first-stage
+statistic or overidentification test will reveal it. The lesson generalizes past this literature:
+whenever an instrument is built as a ratio, the denominator is part of the exclusion restriction.
+
+#### Practice
+
+1.  Write the instrument down as a formula and check every term in it for the outcome. A
+    denominator that contains price, return, or volume when the outcome is a price, return, or
+    volume is disqualifying.
+2.  Prefer scaling by a predetermined quantity: shares outstanding, lagged assets, lagged
+    employment.
+3.  For within-borrower designs, say explicitly that the estimand is relative and that it is
+    identified off multi-lender firms. Do not present it as the aggregate effect of a credit
+    contraction.
+4.  For peer-shock designs, address product-market spillovers directly. A peer's idiosyncratic
+    shock is excluded from the focal firm's financing equation only if it does not move the focal
+    firm's own investment opportunities.
+5.  Run the design on an outcome it should not affect. These instruments are usually strong enough
+    that a placebo failure is informative rather than merely underpowered.
+
+------------------------------------------------------------------------

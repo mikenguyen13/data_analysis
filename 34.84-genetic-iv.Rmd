@@ -1,0 +1,132 @@
+### Genetic Instruments and Mendelian Randomization {#sec-mendelian-randomization}
+
+Mendelian randomization instruments an exposure with genetic variants. The appeal is an
+appealingly literal randomization argument: alleles are assigned at conception by the independent
+assortment of chromosomes, before any of the confounders that trouble observational epidemiology
+have a chance to operate, so a variant that shifts an exposure is a lottery ticket for that
+exposure. @davey2003mendelian set out the framework, and it has since become the dominant design
+in epidemiology and has moved into economics through genoeconomics [@vonhinke2016genetic].
+
+It is worth studying even for a reader with no interest in genetics, because the field has
+developed the most sophisticated toolkit anywhere for the problem of many weak, possibly invalid
+instruments, and that toolkit generalizes.
+
+#### Setup: Two-Sample Summary-Data MR
+
+Modern practice rarely uses individual-level data. Instead it uses published genome-wide
+association study coefficients from two different samples: $\hat\gamma_j$, the estimated effect of
+variant $j$ on the exposure, and $\hat\Gamma_j$, its estimated effect on the outcome. If variant
+$j$ is a valid instrument, the ratio $\hat\Gamma_j / \hat\gamma_j$ estimates the causal effect
+$\beta$, and the variants can be combined.
+
+The inverse-variance weighted estimator of @burgess2013mendelian is the workhorse:
+
+$$
+\hat\beta_{\text{IVW}} = \frac{\sum_j w_j \hat\gamma_j \hat\Gamma_j}{\sum_j w_j \hat\gamma_j^2},
+\qquad w_j = 1/\text{se}(\hat\Gamma_j)^2 .
+$$
+
+This is exactly two-stage least squares written in summary statistics, and it is equivalent to a
+weighted regression of $\hat\Gamma$ on $\hat\gamma$ through the origin.
+
+The threat is pleiotropy: a variant that affects the outcome through a pathway other than the
+exposure violates the exclusion restriction. Two refinements address it. MR-Egger
+[@bowden2015mendelian] frees the intercept in that weighted regression; under the assumption that
+pleiotropic effects are independent of instrument strength, the slope is consistent and the
+intercept is a test for directional pleiotropy. The weighted median estimator
+[@bowden2016consistent] is consistent when at least half the weight sits on valid instruments.
+MR-PRESSO [@verbanck2018detection] detects and removes outlying variants.
+
+#### Demonstration
+
+The simulation below constructs summary statistics for forty variants at magnitudes typical of a
+well-powered study, under three pleiotropy regimes. The true causal effect is 0.3 throughout.
+
+```{r mriv-demo, message=FALSE, warning=FALSE}
+set.seed(404)
+
+mr_once <- function(J = 40, regime = "none", frac = 0.4, beta = 0.3) {
+  gam <- runif(J, 0.05, 0.20)                       # variant -> exposure
+  alpha <- switch(regime,
+    none        = rep(0, J),
+    balanced    = rnorm(J, 0, 0.03),                # mean-zero pleiotropy
+    directional = { a <- rep(0, J)
+                    a[seq_len(round(frac * J))] <-
+                      abs(rnorm(round(frac * J), 0.04, 0.01)); a })
+  Gam  <- alpha + beta * gam                        # variant -> outcome
+  se_g <- rep(0.01, J); se_G <- rep(0.015, J)
+  gh <- gam + rnorm(J, 0, se_g)                     # published estimates
+  Gh  <- Gam + rnorm(J, 0, se_G)
+
+  w <- 1 / se_G^2
+  ivw <- sum(w * gh * Gh) / sum(w * gh^2)           # inverse-variance weighted
+  eg  <- coef(lm(Gh ~ gh, weights = w))             # MR-Egger
+  ratio <- Gh / gh; se_r <- se_G / abs(gh)          # weighted median
+  o <- order(ratio)
+  cw <- cumsum((1 / se_r^2)[o]) / sum(1 / se_r^2)
+  c(IVW = ivw, Egger_slope = unname(eg[2]), Egger_intercept = unname(eg[1]),
+    Weighted_median = ratio[o][which.min(abs(cw - 0.5))])
+}
+
+tab <- t(sapply(c("none", "balanced", "directional"), function(r)
+  round(rowMeans(replicate(300, mr_once(regime = r))), 4)))
+knitr::kable(tab,
+  caption = paste("Summary-data Mendelian randomization estimators under three",
+                  "pleiotropy regimes. The true causal effect is 0.300."))
+```
+
+Three lessons are visible in the table.
+
+Balanced pleiotropy does not bias the inverse-variance weighted estimator. When the invalid
+pathways are mean zero across variants, the violations average out, and the estimator is as
+accurate as under no pleiotropy at all. This is the reason the design tolerates a great deal of
+biological messiness.
+
+Directional pleiotropy does bias it, and substantially: the estimate rises from 0.30 to roughly
+0.41 when forty percent of the variants carry a same-signed invalid pathway. The MR-Egger
+intercept moves away from zero, which is what makes it a diagnostic, and the Egger slope stays
+close to the truth. The weighted median sits between the two, partially robust because more than
+half the weight is still on valid variants.
+
+The fact that the diagnostic exists at all is what makes this literature worth borrowing from.
+In a conventional design with one instrument there is nothing to compare, and the exclusion
+restriction is simply asserted. With many instruments the heterogeneity of the individual ratio
+estimates becomes evidence, and the pattern of that heterogeneity distinguishes balanced from
+directional violations.
+
+#### Limits
+
+The design is not the clean lottery the assortment argument suggests.
+
+Population stratification breaks the randomization: if allele frequencies and the outcome both
+vary with ancestry, the variant is correlated with confounders through ancestry, which is why
+analyses are restricted to genetically homogeneous samples and adjusted for principal components
+of the genotype matrix.
+
+Weak instruments are endemic, since individual variants explain a tiny share of exposure
+variance. In one-sample MR the bias is toward the observational association, which is the
+direction that makes a spurious finding look like a confirmation. Two-sample designs with
+non-overlapping samples bias toward zero instead, which is safer but not harmless.
+
+Linkage disequilibrium means variants are correlated with their neighbours, so a variant may
+proxy for a nearby gene with an entirely different function. Canalization, the developmental
+compensation for a lifelong genetic perturbation, means the estimand is the effect of lifetime
+exposure, not the effect of the intervention a policymaker might actually make. That last point is
+the sharpest one for applied economics: a genetic variant that raises lifetime body mass index
+does not identify the effect of a diet program, and the LATE framework of
+Section \@ref(sec-monotonicity-assumption) applies with full force.
+
+#### Practice
+
+1.  Report instrument strength as the $F$ statistic or the share of exposure variance explained,
+    and say whether the samples overlap, since the direction of weak-instrument bias depends on it.
+2.  Report IVW, MR-Egger, and weighted median together. Agreement across estimators with different
+    robustness properties is the substitute for an untestable exclusion restriction.
+3.  Report the MR-Egger intercept explicitly as the directional pleiotropy test.
+4.  Show a leave-one-out analysis. A result driven by a single variant is a result about that gene.
+5.  State the estimand as the effect of lifelong exposure and resist translating it into the effect
+    of a policy without a separate argument.
+6.  Restrict to a genetically homogeneous sample and adjust for ancestry components, and say that
+    you did.
+
+------------------------------------------------------------------------
