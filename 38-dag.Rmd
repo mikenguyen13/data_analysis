@@ -111,7 +111,7 @@ The back-door criterion typically admits more than one valid adjustment set, and
 
 Consider the DAG in Figure \@ref(fig:dag-multiple-paths). The exposure $X$ has several common causes with the outcome $Y$: $V$ and $W$ each enter $X$ and $Y$ directly, while $U$ enters $X$ and reaches $Y$ only through an intermediate variable $Z$. In addition, $X$ acts on $Y$ both directly and through a mediator $M$, and the variable $K$ is a common effect (collider) of $X$ and $Y$, perhaps a downstream record-keeping flag generated after both treatment and outcome are realised.
 
-```{r dag-multiple-paths, fig.cap="A DAG with several back-door paths from X to Y, a mediator M, and a downstream collider K. The variables U, V, W, and Z together generate three distinct back-door paths and several competing minimal adjustment sets.", fig.alt="DAG with X on the left and Y on the right; V and W are common causes of X and Y; U points to X and to Z, and Z points to Y; X points to M which points to Y; X and Y both point to K below.", fig.width=7, fig.height=4.5}
+```{r dag-multiple-paths, fig.cap="A DAG with several back-door paths from X to Y, a mediator M, and a downstream collider K. The variables U, V, W, and Z together generate three distinct back-door paths and several competing minimal adjustment sets.", fig.alt="Directed acyclic graph with eight nodes. U points to X and to Z, and Z points to Y. V and W each point to both X and Y. X points to M, M points to Y, and X also points directly to Y. X and Y both point to K.", fig.width=7, fig.height=4.5}
 multipath <- dagitty("dag {
   U -> X
   U -> Z
@@ -168,7 +168,7 @@ The same logic generalizes: when `adjustmentSets()` returns several minimal cand
 
 The three primitive structures look superficially similar but call for opposite analytic decisions: condition on a confounder, leave a collider alone, and condition on a mediator only when total effects are not the target. Figure \@ref(fig:dag-three-roles) places them next to one another.
 
-```{r dag-three-roles, fig.cap="Three elementary DAG structures: a confounder (fork), a mediator (chain), and a collider (inverted fork).", fig.alt="Three small DAGs side by side showing X and Y connected through Z as a fork, chain, and inverted fork respectively.", fig.width=8, fig.height=3}
+```{r dag-three-roles, fig.cap="Three elementary DAG structures: a confounder (fork), a mediator (chain), and a collider (inverted fork).", fig.alt="Three directed acyclic graphs, each with nodes X, Z, and Y. In the fork, Z points to X and to Y. In the chain, X points to Z and Z points to Y. In the inverted fork, X and Y both point to Z.", fig.width=8, fig.height=3}
 fork <- dagitty("dag { X <- Z -> Y }")
 coordinates(fork) <- list(x = c(X = 1, Z = 2, Y = 3), y = c(X = 1, Z = 2, Y = 1))
 
@@ -214,7 +214,7 @@ Reading Table \@ref(tab:dag-roles) row by row clarifies why a single covariate c
 
 We now build a small DAG that contains *both* a mediator and a true confounder. The exposure $X$ affects $Y$ through a mediator $Z$, and an unobserved variable $U$ confounds the $X \to Y$ relationship by acting as a common cause of $X$ and $Y$. Figure \@ref(fig:dag-mediator-confounder) shows the structure.
 
-```{r dag-mediator-confounder, fig.cap="Confounded mediator: X affects Y both directly and through the mediator Z, while U is an unobserved common cause of X and Y.", fig.alt="DAG with X on the left, Z in the middle, Y on the right, and U above as a parent of both X and Y, with X also pointing directly to Y."}
+```{r dag-mediator-confounder, fig.cap="Confounded mediator: X affects Y both directly and through the mediator Z, while U is an unobserved common cause of X and Y.", fig.alt="Directed acyclic graph with four nodes. U points to X and to Y. X points directly to Y, and X also points to Z, which points to Y, so X reaches Y both directly and through Z."}
 dag <- dagitty("dag {
   X -> Z -> Y
   X -> Y
@@ -225,7 +225,7 @@ dag <- dagitty("dag {
 
 coordinates(dag) <- list(
   x = c(X = 1, Z = 2, Y = 3, U = 2),
-  y = c(X = 1, Z = 1, Y = 1, U = 2)
+  y = c(X = 1, Z = 0, Y = 1, U = 2)
 )
 
 ggdag(dag) + theme_dag()
@@ -249,7 +249,7 @@ If $U$ were observed, the singleton $\{U\}$ would close the back-door path and i
 
 A common misconception is that adjusting for any pre-treatment covariate can only reduce bias. The M-bias structure shows this is false. Consider Figure \@ref(fig:dag-mbias): two unobserved variables $U_1$ and $U_2$ each cause an observed pre-treatment variable $Z$, and they also separately cause $X$ and $Y$. The graph contains no confounding of $X$ on $Y$. The only path from $X$ to $Y$ that does not go through $X$'s causal descendants is $X \leftarrow U_1 \to Z \leftarrow U_2 \to Y$, which is blocked at the collider $Z$.
 
-```{r dag-mbias, fig.cap="M-bias structure: Z is a pre-treatment collider on the path X <- U1 -> Z <- U2 -> Y, so conditioning on Z opens a non-causal path between X and Y.", fig.alt="DAG arranged as the letter M with U1 and U2 at the top corners pointing down to Z in the centre and to X and Y at the bottom corners; X also points to Y."}
+```{r dag-mbias, fig.cap="M-bias structure: Z is a pre-treatment collider on the path X <- U1 -> Z <- U2 -> Y, so conditioning on Z opens a non-causal path between X and Y.", fig.alt="Directed acyclic graph with five nodes. U1 points to X and to Z, U2 points to Z and to Y, and X points to Y. Z therefore has two incoming arrows and none outgoing."}
 mbias <- dagitty("dag {
   U1 -> X
   U1 -> Z
@@ -300,7 +300,7 @@ A close cousin of M-bias arises through *sample selection*. Whenever the data we
 
 Suppose we want to study whether acting talent ($X$) affects beauty ($Y$) among Hollywood celebrities. In the general population the two are plausibly independent. Both, however, raise the probability of becoming famous ($S$), and our sample contains only the famous. Figure \@ref(fig:dag-berkson) encodes this story.
 
-```{r dag-berkson, fig.cap="Berkson selection: talent and beauty are independent in the population but both raise the probability of selection S, so restricting to S = 1 induces a spurious negative association.", fig.alt="DAG with Talent and Beauty as parents of Selection, no arrow between Talent and Beauty, and Selection drawn with a box indicating that the analysis conditions on it."}
+```{r dag-berkson, fig.cap="Berkson selection: talent and beauty are independent in the population but both raise the probability of selection S, so restricting to S = 1 induces a spurious negative association.", fig.alt="Directed acyclic graph with three nodes. Talent and Beauty each point to Selection, and there is no arrow between Talent and Beauty."}
 berkson <- dagitty("dag {
   Talent -> Selection
   Beauty -> Selection
@@ -312,7 +312,9 @@ coordinates(berkson) <- list(
   y = c(Talent = 2, Beauty = 2, Selection = 1)
 )
 
-ggdag(berkson) + theme_dag()
+ggdag(berkson, node_size = 24, text_size = 3.2) + theme_dag() +
+  expand_plot(expand_x = expansion(c(0.15, 0.15)),
+              expand_y = expansion(c(0.2, 0.2)))
 ```
 
 A simulation confirms the paradox:
@@ -335,7 +337,7 @@ The lesson generalizes: any analysis that filters cases on an outcome-related cr
 
 Suppose we wish to estimate the effect of smoking ($X$) on lung cancer ($Y$), but suspect an unobserved genetic factor ($U$) affects both. Direct back-door adjustment is impossible because $U$ is unmeasured. If, however, smoking causes cancer *only* through tar deposition in the lungs ($M$), and the genetic factor does not affect tar except through smoking, the front-door criterion identifies the causal effect from $(X, M, Y)$ alone. Figure \@ref(fig:dag-frontdoor) illustrates.
 
-```{r dag-frontdoor, fig.cap="Front-door identification: smoking affects lung cancer only via tar, and the unobserved genotype U confounds smoking and cancer but does not affect tar directly.", fig.alt="DAG with U as an unobserved parent of both Smoking and Cancer, and a chain Smoking -> Tar -> Cancer running below."}
+```{r dag-frontdoor, fig.cap="Front-door identification: smoking affects lung cancer only via tar, and the unobserved genotype U confounds smoking and cancer but does not affect tar directly.", fig.alt="Directed acyclic graph with four nodes. U points to Smoking and to Cancer. Smoking points to Tar, and Tar points to Cancer. There is no arrow from U to Tar and no direct arrow from Smoking to Cancer."}
 frontdoor <- dagitty("dag {
   Smoking -> Tar -> Cancer
   U -> Smoking
@@ -348,7 +350,9 @@ coordinates(frontdoor) <- list(
   y = c(Smoking = 1, Tar = 1, Cancer = 1, U = 2)
 )
 
-ggdag(frontdoor) + theme_dag()
+ggdag(frontdoor, node_size = 24, text_size = 3.2) + theme_dag() +
+  expand_plot(expand_x = expansion(c(0.15, 0.15)),
+              expand_y = expansion(c(0.2, 0.2)))
 ```
 
 `dagitty` knows the front-door logic: it returns no back-door adjustment set built from observed variables, but recognizes the front-door identification when asked.
@@ -365,7 +369,7 @@ The mediator $M$ (tar) plays a dual role: it is part of the causal pathway, *and
 
 A subtle but practically common error is to condition not on a collider itself but on one of its *descendants*. This still partially opens the non-causal path, because the descendant carries probabilistic information about the collider. Figure \@ref(fig:dag-collider-descendant) shows the canonical case: $X \to Z \leftarrow Y$, with $Z$ generating an observable downstream variable $W$ (for instance, a survey response or an automated flag).
 
-```{r dag-collider-descendant, fig.cap="Conditioning on W, a descendant of the collider Z, reopens the non-causal path X -> Z <- Y and biases the estimated X--Y association.", fig.alt="DAG with X and Y both pointing into Z, and Z pointing down to W; W is highlighted as the conditioning variable."}
+```{r dag-collider-descendant, fig.cap="Conditioning on W, a descendant of the collider Z, reopens the non-causal path X -> Z <- Y and biases the estimated X--Y association.", fig.alt="Directed acyclic graph with four nodes. X and Y each point to Z, and Z points to W. There is no arrow between X and Y."}
 descendant <- dagitty("dag {
   X -> Z
   Y -> Z

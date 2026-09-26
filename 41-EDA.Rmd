@@ -85,29 +85,30 @@ Automation matters here for a reason beyond convenience. A profile produced by a
 introduce(tx)
 ```
 
-```{r, fig.width=8, fig.height=5}
+```{r eda-intro, fig.width=8, fig.height=5, fig.cap="Structure of the Texas housing data: the split between discrete and continuous columns, the share of missing values, and the proportion of rows that are complete.", fig.alt="Horizontal bar chart of five structure metrics on a percent scale. Discrete columns are 30.8 percent and continuous columns 69.2 percent of all columns, no column is entirely missing, 82.8 percent of rows are complete, and 5.9 percent of all observations are missing."}
 # Structural intro plots
 plot_intro(tx)
 ```
 
-```{r, fig.width=10, fig.height=6}
+```{r eda-histograms, fig.width=10, fig.height=6, fig.cap="Distribution of every numeric column in the Texas housing data. Sales, volume, and listings are strongly right skewed.", fig.alt="Grid of nine histograms, one per numeric column, with frequency on the vertical axis. Sales, volume, listings, inventory, and absorption pile up near zero with long right tails, avg price and median are moderately right skewed, and month and year are close to uniform, with fewer rows in 2015."}
 # Quick distribution sweep for numerics (great to spot skew and heavy tails)
 plot_histogram(tx, ncol = 3L)
 ```
 
-```{r, fig.width=9, fig.height=6}
+```{r eda-correlation, fig.width=9, fig.height=6, fig.cap="Pairwise correlations among the continuous columns, which is a first check for multicollinearity.", fig.alt="Correlation heatmap of the nine continuous columns, using every pair of observed values. Sales, volume, and listings correlate from 0.86 to 0.98 with one another, and median and average price correlate 0.96. Inventory is the only column with a sizeable negative correlation, minus 0.58 with absorption, and month is close to zero with everything."}
 # Pairwise correlations (continuous); useful for multicollinearity hints
 # Note: if your dataset has many numerics, set cor_args = list(use = "pairwise.complete.obs")
-plot_correlation(tx, type = "continuous")
+plot_correlation(tx, type = "continuous",
+                 cor_args = list(use = "pairwise.complete.obs"))
 ```
 
-```{r, fig.width=9, fig.height=6}
+```{r eda-correlation-discrete, fig.width=9, fig.height=6, fig.cap="Associations among the discrete columns, city and quarter. High-cardinality factors such as city produce a large matrix, so lump them first in practice.", fig.alt="Correlation heatmap of the four quarter indicators, Q1 to Q4. Each indicator correlates 1 with itself and between minus 0.32 and minus 0.35 with each of the other three, the pattern expected of mutually exclusive dummies. City does not appear."}
 # If you want correlations/associations among discrete variables:
 # (city and quarter here; may be high-cardinality)
 plot_correlation(tx %>% select(city, quarter), type = "discrete")
 ```
 
-```{r, fig.width=9, fig.height=6}
+```{r eda-pca, fig.width=9, fig.height=6, fig.cap="Principal components of the standardized numeric columns: the variance each component explains, and the loading of each variable on it. Two panels are drawn, so bookdown numbers them separately.", fig.alt=c("Horizontal bar chart of the share of variance explained by the first three principal components. PC1 explains about 40 percent, PC2 about 20 percent, and PC3 about 16 percent, and the bar labels give cumulative shares of 40, 61, and 77 percent.", "Three-panel bar chart of variable loadings on PC1, PC2, and PC3. PC1 loads positively on volume, sales, listings, avg price, and median and negatively on inventory. PC2 sets year, median, avg price, and absorption against listings, sales, and volume. PC3 is dominated by absorption, positive, and inventory, negative.")}
 # Quick PCA map for continuous variables (after standardizing)
 DataExplorer::plot_prcomp(tx %>%
   select(where(is.numeric)) %>%
@@ -184,7 +185,7 @@ One practical corollary: keep an indicator for what was missing. If the missingn
 profile_missing(tx)
 ```
 
-```{r, fig.width=9, fig.height=5}
+```{r eda-missing, fig.width=9, fig.height=5, fig.cap="Share of missing values in each column of the Texas housing data. Inventory and listings are absent for roughly a sixth of the rows.", fig.alt="Horizontal bar chart of missing rows for each of 13 columns. City, year, month, date, quarter, and ym have none. Avg price, volume, and sales each miss 6.6 percent, median 7.16 percent, and listings, absorption, and inventory between 16.55 and 17.05 percent, roughly 1,450 rows each."}
 plot_missing(tx)
 ```
 
@@ -214,7 +215,7 @@ tx_imputed <- tx %>%
 skimr::skim(tx_imputed %>% select(sales, listings, inventory, median))
 ```
 
-```{r, message=FALSE}
+```{r eda-na-pareto, message=FALSE, fig.cap="Pareto chart of missing values by column, ordered by the count absent.", fig.alt="Pareto chart with bars for the count of missing values per column, sorted from most to least, and a line for the cumulative percent. Inventory, absorption, and listings each miss about 1,450 values, median, avg price, sales, and volume about 570 to 620, and the other six columns none."}
 # dlookr helpers (diagnose and visualize NA concentration)
 diagnose(tx)
 plot_na_pareto(tx)
@@ -309,7 +310,7 @@ head(city_year, 10)
 
 Figure \@ref(fig:eda-price-over-time) traces median listing price by month for the six largest Texas cities in the dataset.
 
-```{r eda-price-over-time, fig.width=9, fig.height=5, fig.cap="Median listing price over time for the six Texas cities with the most observations.", message=FALSE}
+```{r eda-price-over-time, fig.width=9, fig.height=5, fig.cap="Median listing price over time for the six Texas cities with the most observations.", message=FALSE, fig.alt="Six-panel line chart of monthly median price from 2000 to 2015 for Abilene, Amarillo, Arlington, Austin, Bay Area, and Beaumont. Prices rise in every city. Austin climbs most, from about 135,000 to about 265,000 dollars, while the others end between roughly 140,000 and 200,000 dollars."}
 # Example visual: price over time for a few major cities
 top_cities <- tx %>%
     count(city, sort = TRUE) %>%
@@ -332,7 +333,7 @@ tx %>%
 
 Figure \@ref(fig:eda-volume-vs-sales) plots transaction volume against sales count on log-log axes, with an OLS smoother to highlight the bivariate relationship.
 
-```{r eda-volume-vs-sales, fig.width=8, fig.height=5, fig.cap="Volume against sales (log-log) across all Texas city-month observations, with an OLS smoother.", message=FALSE}
+```{r eda-volume-vs-sales, fig.width=8, fig.height=5, fig.cap="Volume against sales (log-log) across all Texas city-month observations, with an OLS smoother.", message=FALSE, fig.alt="Scatter plot of dollar volume against number of sales, both on log scales, with a fitted straight line. The points form a tight, nearly linear band from about 10 sales and 1 million dollars to about 9,000 sales and 2 billion dollars, so volume scales almost in proportion to sales."}
 # Volume vs. Sales (log-scale to reduce skew)
 tx %>%
     filter(sales > 0, volume > 0) %>%

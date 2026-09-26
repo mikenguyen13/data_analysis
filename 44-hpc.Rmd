@@ -289,12 +289,9 @@ Below is a conceptual R workflow demonstrating how to:
 The demo below compares runtime and memory across the parallel back-ends (`parLapply`, `foreach`/`doParallel`, and `future_lapply`) for small and large workloads at one, two, and four cores.
 
 ```{r hpc-parallel-benchmark, message=FALSE, warning=FALSE}
-###############################################################
 # HPC Workflow Demo in R: Scaling Resources and Parallelism
-###############################################################
 
-
-# -- 1. Libraries --
+# 1. Libraries
 library(parallel)       # base parallel
 library(doParallel)     # foreach backend
 library(foreach)        # parallel loops
@@ -305,9 +302,7 @@ library(ggplot2)        # plotting results
 # Optional: install.packages("pryr") for memory usage (optional)
 # library(pryr)
 
-###############################################################
-# -- 2. Generate or Load Data (Small and Large for Scaling) --
-###############################################################
+# 2. Generate or Load Data (Small and Large for Scaling)
 
 set.seed(42)
 
@@ -325,9 +320,7 @@ generate_data <- function(n) {
 data_small <- generate_data(n_small)
 data_large <- generate_data(n_large)
 
-###############################################################
-# -- 3. Preprocessing Function --
-###############################################################
+# 3. Preprocessing Function
 
 clean_and_transform <- function(df) {
     df$dist <- sqrt(df$x ^ 2 + df$y ^ 2)
@@ -337,17 +330,13 @@ clean_and_transform <- function(df) {
 data_small_clean <- clean_and_transform(data_small)
 data_large_clean <- clean_and_transform(data_large)
 
-###############################################################
-# -- 4. Heavy Computation (Simulated Workload) --
-###############################################################
+# 4. Heavy Computation (Simulated Workload)
 
 heavy_computation <- function(df, reps = 500) {
     replicate(reps, sum(df$dist))
 }
 
-###############################################################
-# -- 5. Resource Measurement Helper Function --
-###############################################################
+# 5. Resource Measurement Helper Function
 
 measure_resources <-
     function(expr, approach_name, data_size, cores) {
@@ -375,9 +364,7 @@ measure_resources <-
         )
     }
 
-###############################################################
-# -- 6. Define and Run Parallel Approaches --
-###############################################################
+# 6. Define and Run Parallel Approaches
 
 # Collect results in a dataframe
 results <- data.frame()
@@ -400,7 +387,6 @@ res_single_large <- measure_resources(
 results <- rbind(results, res_single_small, res_single_large)
 
 # clusterExport(cl, varlist = c("heavy_computation"))
-
 
 ### 6.2 Base Parallel (Cross-Platform): parLapply (Cluster Based)
 cores_to_test <- c(2, 4)
@@ -448,8 +434,6 @@ for (cores in cores_to_test) {
     
     results <- rbind(results, res_par_small, res_par_large)
 }
-
-
 
 ### 6.3 foreach + doParallel
 for (cores in cores_to_test) {
@@ -525,16 +509,20 @@ for (cores in cores_to_test) {
 # Reset plan to sequential
 plan(sequential)
 
-###############################################################
-# -- 7. Summarize and Plot Results --
-###############################################################
+# 7. Summarize and Plot Results
 
 # Print table
 print(results)
 
 # Save to CSV
 # write.csv(results, "HPC_parallel_results.csv", row.names = FALSE)
+```
 
+Figure \@ref(fig:hpc-runtime-by-cores) and Figure \@ref(fig:hpc-memory-by-cores) are
+worth reading against the expectation most people bring to a first parallel
+benchmark, which is that time should fall roughly in proportion to cores.
+
+```{r hpc-runtime-by-cores, message=FALSE, warning=FALSE, fig.cap="Runtime by core count, back-end, and data size. Speedup is far from proportional to cores, and on the small dataset the extra cores can cost more in worker startup and data transfer than they return in computation.", fig.alt="Grouped bar chart of runtime in seconds against number of cores, 1, 2 and 4, in two panels for data sizes 10000 and 1000000, with bars for the single core, foreach doParallel, future lapply and parLapply approaches. On the small data every parallel approach is no faster than single core, and future lapply is about five times slower. On the large data foreach and parLapply roughly match the 1.5 second single core time, while future lapply takes about 3 seconds on 2 cores and 6 on 4."}
 # Plot Time vs. Data Size / Cores
 ggplot(results, aes(x = as.factor(Cores), y = Time_Sec, fill = Approach)) +
     geom_bar(stat = "identity", position = "dodge") +
@@ -544,7 +532,9 @@ ggplot(results, aes(x = as.factor(Cores), y = Time_Sec, fill = Approach)) +
          x = "Number of Cores",
          y = "Time (Seconds)") +
     theme_minimal()
+```
 
+```{r hpc-memory-by-cores, message=FALSE, warning=FALSE, fig.cap="Memory by core count, back-end, and data size, as measured by the size of the returned object. The bars are flat because this measures what each worker sends back rather than what the job held in memory, which is a caution about the measurement rather than a finding about the back-ends.", fig.alt="Grouped bar chart of memory in megabytes against number of cores, in two panels for data sizes 10000 and 1000000. The single core bar is zero. The three parallel approaches give identical bars of 0.01 megabytes at 2 cores and 0.02 at 4 cores in both panels, so memory scales only with core count."}
 # Plot Memory Usage
 ggplot(results, aes(x = as.factor(Cores), y = Memory_MB, fill = Approach)) +
     geom_bar(stat = "identity", position = "dodge") +
@@ -554,7 +544,6 @@ ggplot(results, aes(x = as.factor(Cores), y = Memory_MB, fill = Approach)) +
          x = "Number of Cores",
          y = "Memory (MB)") +
     theme_minimal()
-
 ```
 
 -   **Runtime Plot**

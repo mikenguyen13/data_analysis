@@ -298,9 +298,9 @@ movies_small <- movies %>%
 summary(movies_small)
 ```
 
-Figure \@ref(fig:report-eda-distributions) shows the marginal distributions of the four key variables in the movies sample.
+Figure \@ref(fig:report-eda-distributions) shows the marginal distributions of the four key variables in the movies sample. Figure \@ref(fig:report-pairs-matrix) then shows how these variables relate in pairs, with budget and US gross on a log scale.
 
-```{r report-eda-distributions, fig.cap="Marginal distributions of metascore, budget, US gross, and runtime in the movies sample.", message=FALSE}
+```{r report-eda-distributions, fig.cap="Marginal distributions of metascore, budget, US gross, and runtime in the movies sample.", message=FALSE, fig.alt="Histograms in four panels with count on the vertical axis. Budget and us gross are strongly right skewed, with most films below 100M and 250M and long tails past 400M and 1.5B. Metascore is roughly symmetric around 65, and runtime is right skewed with a peak near 1.7 hours."}
 # Distribution plots (log scale for highly skewed financials)
 library(tidyr)
 
@@ -317,7 +317,7 @@ ggplot(movies_long, aes(value)) +
   theme_bw(base_size = 12)
 ```
 
-```{r}
+```{r report-pairs-matrix, fig.cap="Pairwise scatter plots, histograms, and correlations for metascore, log budget, log US gross, runtime, and year in the movies sample.", fig.alt="Scatter plot matrix of metascore, budget, us gross, runtime, and year, with budget and us gross on a log scale. Histograms sit on the diagonal, scatter plots below it, and correlations above it. The strongest correlation is 0.596 between log budget and log us gross, and the rest lie between about minus 0.31 and 0.38."}
 # Pairwise relationships: simple scatter matrix
 if (requireNamespace("GGally", quietly = TRUE)) {
   GGally::ggpairs(
@@ -403,7 +403,7 @@ summ(
 )
 ```
 
-```{r}
+```{r report-budget-year-interaction, fig.cap="Predicted metascore against release year at three levels of log budget, from the model with a budget by year interaction, with confidence bands.", fig.alt="Scatter plot of metascore against year with fitted lines and confidence bands for log budget at one standard deviation above the mean (solid), the mean (dashed), and one below (dotted). All three lines are nearly flat from 1970 to 2013, and higher budgets sit lower, near 57 to 60 against about 72."}
 # Interactions: visualize and test
 fit_int <- lm(metascore ~ log1p(budget)*year + log1p(us_gross) + runtime, data = movies_small)
 
@@ -439,9 +439,9 @@ broom::glance(fit) %>%
   select(r.squared, adj.r.squared, sigma, AIC, BIC, df, nobs)
 ```
 
-Figure \@ref(fig:report-residual-diagnostics) shows the standard four-panel residual diagnostic plots for the fitted OLS model.
+Figure \@ref(fig:report-residual-diagnostics) shows the standard four-panel residual diagnostic plots for the fitted OLS model. Figure \@ref(fig:report-partial-residuals) adds a component plus residual plot for each predictor, which shows whether each one enters the model linearly.
 
-```{r report-residual-diagnostics, fig.cap="Four-panel residual diagnostics for the OLS model: residuals vs. fitted, normal Q-Q, scale-location, and residuals vs. leverage.", message=FALSE}
+```{r report-residual-diagnostics, fig.cap="Four-panel residual diagnostics for the OLS model: residuals vs. fitted, normal Q-Q, scale-location, and residuals vs. leverage.", message=FALSE, fig.alt="Four panels of base R diagnostic plots. Residuals scatter evenly around zero against fitted values, with the smoothed line dipping only at high fitted values. The Q-Q plot follows the reference line closely, scale-location is roughly flat, and no point in residuals versus leverage approaches the Cook's distance contours."}
 # Base residual diagnostics (four-panel plots)
 par(mfrow = c(2, 2))
 plot(fit)
@@ -457,7 +457,7 @@ if (requireNamespace("car", quietly = TRUE)) {
 lmtest::bptest(fit)                      # Breusch-Pagan heteroskedasticity test
 ```
 
-```{r}
+```{r report-partial-residuals, fig.cap="Component plus residual plots for each predictor in the OLS model, a check on whether each term enters linearly.", fig.alt="Four component plus residual plots of metascore, one each for log1p budget, log1p us gross, runtime, and year, each with a dashed linear fit and a solid smoothed curve. The curve bends away from the line for budget and us gross around 16 to 18 on the log scale, while runtime and year stay close to their lines."}
 # Partial residual plots
 if (requireNamespace("car", quietly = TRUE)) {
   car::crPlots(fit)
@@ -578,12 +578,12 @@ anova(fit_a, fit_b, fit_c)
 
 Visualize how coefficient estimates shift when adding controls. This is especially useful to show robustness to omitted variable bias concerns.
 
-```{r}
+```{r report-coef-shift, fig.cap="Coefficient estimates across three nested specifications with HC3 standard errors. A coefficient that holds its position as controls are added is the visual form of the robustness argument.", fig.alt="Dot and interval plot of estimates for Budget, US Gross, and Runtime (Hours) in Models 1 to 3, marked by circle, square, and diamond, with a dashed line at zero. Budget stays negative and moves further from zero as controls are added, US Gross stays near 4, and Runtime, only in Model 3, sits near 14 with the widest interval."}
 coef_names_plot <- coef_names[1:3] # Dropping intercept for plots
 plot_summs(fit_a, fit_b, fit_c, robust = "HC3", coefs = coef_names_plot)
 ```
 
-```{r}
+```{r report-coef-distributions, fig.cap="The same coefficients drawn as sampling distributions rather than intervals, which shows the whole shape of the uncertainty instead of two endpoints.", fig.alt="Three density curves on a common estimate axis with a dashed line at zero, one each for Budget, US Gross, and Runtime (Hours). Budget is centred near minus 6 and US Gross near 4, both narrow and clear of zero, while Runtime is centred near 14 and much wider."}
 plot_summs(
   fit_c,
   robust = "HC3",
@@ -596,7 +596,7 @@ plot_summs(
 
 Visualize uncertainty with either frequentist or Bayesian approaches. With frequentist OLS, we can simulate coefficient draws from the asymptotic sampling distribution using the estimated variance-covariance matrix and then plot with `ggplot2`. Figure \@ref(fig:report-coef-sampling-densities) shows the simulated sampling densities for selected coefficients.
 
-```{r report-coef-sampling-densities, fig.cap="Simulated HC3-robust sampling densities for selected coefficients, drawn from a multivariate normal approximation to the asymptotic distribution.", message=FALSE}
+```{r report-coef-sampling-densities, fig.cap="Simulated HC3-robust sampling densities for selected coefficients, drawn from a multivariate normal approximation to the asymptotic distribution.", message=FALSE, fig.alt="Three density plots of simulated coefficient values for log1p budget, log1p us gross, and runtime, each with a dashed vertical line at zero. Budget is centred near minus 6.7, us gross near 3.9, and runtime near 14, and all three lie well away from zero."}
 # Simulate coefficient draws (multivariate normal approx)
 if (requireNamespace("MASS", quietly = TRUE)) {
   V <- vcovHC(fit_c, type = "HC3")
@@ -621,16 +621,18 @@ if (requireNamespace("MASS", quietly = TRUE)) {
 
 Produce journal-quality descriptives and regression tables. Below are multiple options to match target outlet styles (APA, AER, WSJ, etc.)
 
-```{r}
+Table \@ref(tab:report-gtsummary-descriptives) is the one-table overview `gtsummary` produces, carrying an overall column and a test of difference between the two score groups alongside the group summaries.
+
+```{r report-gtsummary-descriptives}
 # Example with gtsummary: one-table overview
 if (requireNamespace("gtsummary", quietly = TRUE)) {
   library(gtsummary)
-  movies_small %>%
+  tbl <- movies_small %>%
     mutate(
       across(c(budget, us_gross), log1p),
-      score_group = cut(metascore, 
+      score_group = cut(metascore,
                        breaks = quantile(metascore, probs = c(0, .5, 1)),
-                       include.lowest = TRUE, 
+                       include.lowest = TRUE,
                        labels = c("Low score", "High score"))
     ) %>%
     select(metascore, budget, us_gross, runtime, year, score_group) %>%
@@ -642,26 +644,70 @@ if (requireNamespace("gtsummary", quietly = TRUE)) {
     add_overall() %>%
     add_p() %>%
     bold_labels()
+
+  # Both builds go through kableExtra, because that is what attaches the
+  # bookdown table label and lets the text cross-reference this table by
+  # number. gtsummary's own printer and as_gt() carry no label. Five columns
+  # of "mean (sd)" are also wider than the LaTeX text block, so the print
+  # build scales the table down to fit.
+  out <- tbl %>%
+    gtsummary::as_kable_extra(
+      booktabs = TRUE,
+      caption = paste(
+        "Descriptive statistics for the movie sample, split at the median",
+        "metascore, with an overall column and a test of difference between",
+        "the two groups."
+      )
+    )
+  if (knitr::is_latex_output()) {
+    out %>% kableExtra::kable_styling(latex_options = "scale_down")
+  } else {
+    out
+  }
 }
 ```
 
-```{r}
-# modelsummary example
-if (requireNamespace("modelsummary", quietly = TRUE)) {
-  library(modelsummary)
-  lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
-  msummary(lm_mod, vcov = c("iid","robust","HC4"))
-  modelplot(lm_mod, vcov = c("iid","robust","HC4"))
-}
+Table \@ref(tab:report-modelsummary-table) is the `modelsummary` equivalent, which reports one fit under three variance estimators side by side. The matching coefficient plot is Figure \@ref(fig:report-modelsummary-demo), further below.
+
+```{r report-modelsummary-table, message=FALSE}
+# modelsummary example. Routing the output through kableExtra is what numbers
+# the table; the coefficient plot for this same fit is drawn later, under
+# Model Comparison, so it is not repeated here.
+library(modelsummary)
+lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
+msummary(
+  lm_mod,
+  vcov = c("iid", "robust", "HC4"),
+  output = "kableExtra",
+  title = paste(
+    "OLS fit of miles per gallon on weight, horsepower, and cylinders,",
+    "reported under classical, robust, and HC4 standard errors."
+  )
+)
 ```
 
-The chunk below reports stargazer-formatted regression and correlation output for the `attitude` dataset.
+The chunk below reports stargazer-formatted regression and correlation output for the `attitude` dataset: descriptive statistics in Table \@ref(tab:sg-attitude), the three fitted models in Table \@ref(tab:sg-results), and the correlation matrix in Table \@ref(tab:sg-corr). stargazer writes its own markup rather than going through `knitr::kable()`, so it carries no bookdown label of its own. Each `title` therefore opens with a bookdown table anchor, which is the documented way to number a table produced by another package.
 
-```{r report-stargazer-attitude, message=FALSE}
-# stargazer examples, including correlation and ASCII output
+```{r report-stargazer-attitude, message=FALSE, results='asis'}
+# stargazer writes finished markup rather than returning an object, so the
+# chunk needs results='asis'. Without it knitr prints the markup as console
+# output and the reader gets pages of raw LaTeX instead of tables.
+#
+# header = FALSE drops stargazer's "Table created by ... Date and time"
+# banner, which would otherwise stamp the build time into the manuscript and
+# make two builds of the same source differ.
 if (requireNamespace("stargazer", quietly = TRUE)) {
   library(stargazer)
-  stargazer(attitude)
+  sg_type <- if (knitr::is_latex_output()) "latex" else "html"
+  # stargazer's default significance note separates the cutoffs with
+  # semicolons. Replace it so the printed page follows the volume's
+  # punctuation.
+  sg_note <- "* p < 0.1, ** p < 0.05, *** p < 0.01"
+
+  # No `label =` argument: bookdown turns the anchor at the front of the title
+  # into the LaTeX label itself, and passing both would define it twice.
+  stargazer(attitude, type = sg_type, header = FALSE,
+            title = "(\\#tab:sg-attitude) Descriptive statistics for the attitude data")
 
   linear.1 <- lm(rating ~ complaints + privileges + learning + raises + critical, data = attitude)
   linear.2 <- lm(rating ~ complaints + privileges + learning, data = attitude)
@@ -671,15 +717,27 @@ if (requireNamespace("stargazer", quietly = TRUE)) {
                       data = attitude,
                       family = binomial(link = "probit"))
 
-  stargazer(linear.1, linear.2, probit.model,
-            title = "Results",
-            align = TRUE)
+  stargazer(linear.1, linear.2, probit.model, type = sg_type, header = FALSE,
+            title = "(\\#tab:sg-results) Two OLS fits and a probit for the attitude data",
+            align = TRUE, notes = sg_note, notes.append = FALSE)
 
-  # ASCII text output with CI
+  correlation.matrix <- cor(attitude[, c("rating", "complaints", "privileges")])
+  stargazer(correlation.matrix, type = sg_type, header = FALSE,
+            title = "(\\#tab:sg-corr) Correlation matrix for rating, complaints, and privileges")
+}
+```
+
+The same two models can be printed as a plain-text table instead, which is what
+is wanted when a result has to be pasted into an email, a log, or a message to
+a collaborator who is not compiling the document.
+
+```{r report-stargazer-attitude-ascii, message=FALSE}
+if (requireNamespace("stargazer", quietly = TRUE)) {
   stargazer(
     linear.1,
     linear.2,
     type = "text",
+    header = FALSE,
     title = "Regression Results",
     dep.var.labels = c("Overall Rating", "High Rating"),
     covariate.labels = c(
@@ -693,12 +751,10 @@ if (requireNamespace("stargazer", quietly = TRUE)) {
     omit.stat = c("LL", "ser", "f"),
     ci = TRUE,
     ci.level = 0.90,
-    single.row = TRUE
+    single.row = TRUE,
+    notes = "* p < 0.1, ** p < 0.05, *** p < 0.01",
+    notes.append = FALSE
   )
-
-  # Correlation table
-  correlation.matrix <- cor(attitude[, c("rating", "complaints", "privileges")])
-  stargazer(correlation.matrix, title = "Correlation Matrix")
 }
 ```
 
@@ -813,7 +869,7 @@ ama_tbl(
 
 ## Visualizations & Plots
 
-Customize plots to match target journal aesthetics. Below we provide an **American Marketing Association--ready** theme and examples. (Change fonts on your system as needed.)
+Customize plots to match target journal aesthetics. Below we provide an **American Marketing Association--ready** theme and examples. (Change fonts on your system as needed.) Figures \@ref(fig:report-theme-gallery-1) to \@ref(fig:report-theme-gallery-5) show the same example plot in five ready-made themes from ggthemes and jtools.
 
 ```{r}
 # Base ggplot setup
@@ -848,9 +904,9 @@ amatheme <- theme_bw(base_size = 14, base_family = "serif") +
   )
 ```
 
-Figure \@ref(fig:report-amatheme-npg) shows the example mtcars scatterplot rendered with the custom AMA-style theme and NPG palette.
+Figure \@ref(fig:report-amatheme-npg) shows the example mtcars scatterplot rendered with the custom AMA-style theme and NPG palette. Figure \@ref(fig:report-amatheme-viridis) swaps in the viridis palette, which survives greyscale printing.
 
-```{r report-amatheme-npg, fig.cap="MPG against cylinders by gear, styled with the custom AMA theme and the NPG color palette.", message=FALSE}
+```{r report-amatheme-npg, fig.cap="MPG against cylinders by gear, styled with the custom AMA theme and the NPG color palette.", message=FALSE, fig.alt="Scatter plot of cylinders (4, 6, 8) against MPG for mtcars, with points colored by number of gears (3, 4, 5). Points form three rows, and MPG falls as cylinders rise, from about 21 to 34 at four cylinders to 10 to 19 at eight. The theme uses serif type, no gridlines, and a boxed legend."}
 # Example plot
 library(tidyverse)
 library(ggsci)
@@ -865,11 +921,11 @@ yourplot <- mtcars %>%
 yourplot + amatheme + scale_color_npg()
 ```
 
-```{r}
+```{r report-amatheme-viridis, fig.cap="MPG against cylinders by gear, styled with the custom AMA theme and the viridis color palette, which stays readable in greyscale.", fig.alt="The same scatter plot of cylinders against MPG colored by gears, in the serif AMA theme with the viridis palette, which runs from dark purple for 3 gears through teal for 4 to yellow for 5 and so stays distinct in greyscale."}
 yourplot + amatheme + scale_color_viridis_d()
 ```
 
-```{r}
+```{r report-theme-gallery, fig.cap=c("MPG against cylinders by gear, styled with the Stata theme from ggthemes.", "MPG against cylinders by gear, styled with the Economist theme from ggthemes.", "MPG against cylinders by gear, styled with the Economist white theme from ggthemes.", "MPG against cylinders by gear, styled with the Wall Street Journal theme from ggthemes.", "MPG against cylinders by gear, styled with the APA theme from jtools."), fig.alt=c("Scatter plot of cylinders against MPG colored by gears in the Stata theme, with a pale blue grey outer background, horizontal gridlines only, rotated y axis labels, and a boxed gears legend below the plot.", "Scatter plot of cylinders against MPG colored by gears in the Economist theme, with a pale blue background, white horizontal gridlines, a bold left aligned title, and the gears legend across the top.", "Scatter plot of cylinders against MPG colored by gears in the Economist white theme, with a light grey border around a white panel, grey horizontal gridlines, a bold left aligned title, and the legend across the top.", "Scatter plot of cylinders against MPG colored by gears in the Wall Street Journal theme, with a cream background, a grey panel, dotted horizontal gridlines, a heavy typewriter style title, the legend across the top, and no axis titles.", "Scatter plot of cylinders against MPG colored by gears in the APA theme, with a plain white panel inside a full border, no gridlines, a bold left aligned title, and an untitled legend at the right.")}
 # Other pre-specified themes
 library(ggthemes)
 
@@ -879,19 +935,20 @@ yourplot + theme_economist_white()
 yourplot + theme_wsj()
 
 # APA-like theme from jtools
-jtools::theme_apa(
+yourplot + jtools::theme_apa(
   legend.font.size = 12,
   x.font.size = 12,
   y.font.size = 12
 )
-yourplot + jtools::theme_apa()
 ```
 
 ## One-Table Summary
 
 A pragmatic approach for business audiences: show **descriptives** and **key regression** side-by-side (or sequentially) in a single, coherent section. This can be achieved with `gtsummary::tbl_merge()` combining `tbl_summary()` and `tbl_regression()`.
 
-```{r}
+Table \@ref(tab:report-onetable-summary) is the result: descriptives and regression output under one set of column spanners, which is the form a business audience reads most easily.
+
+```{r report-onetable-summary}
 if (requireNamespace("gtsummary", quietly = TRUE) &&
     requireNamespace("gt", quietly = TRUE)) {
   library(gtsummary)
@@ -911,12 +968,20 @@ if (requireNamespace("gtsummary", quietly = TRUE) &&
     add_glance_table(include = c(r.squared, adj.r.squared, AIC, BIC), label = list(r.squared ~ "R^2",
                                                                                    adj.r.squared ~ "Adj. R^2"))
 
+  # as_gt() renders well but carries no bookdown label, so the merged table
+  # goes out through kableExtra and the source note moves into the caption.
   tbl_merge(
     tbls = list(tbl1, tbl2),
     tab_spanner = c("**Descriptive Statistics**", "**Regression Results**")
   ) %>%
-    as_gt() %>%
-    tab_source_note(source_note = md("SEs are HC3-robust unless otherwise noted."))
+    gtsummary::as_kable_extra(
+      booktabs = TRUE,
+      caption = paste(
+        "Descriptive statistics and regression results for the movie sample",
+        "in a single table. Standard errors are HC3-robust unless otherwise",
+        "noted."
+      )
+    )
 }
 ```
 
@@ -1019,14 +1084,13 @@ coef_names <- c("Budget" = "log(budget)", "US Gross" = "log(us_gross)",
 export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
-Figure \@ref(fig:report-modelsummary-demo) shows a quick `modelsummary` regression table and coefficient plot for an `mtcars` OLS fit under three SE specifications.
+Figure \@ref(fig:report-modelsummary-demo) is the coefficient plot for the same `mtcars` fit tabulated in Table \@ref(tab:report-modelsummary-table), drawn under the same three standard-error specifications.
 
-```{r report-modelsummary-demo, fig.cap="Coefficient plot from `modelplot()` for the `mtcars` OLS fit (`mpg ~ wt + hp + cyl`), comparing classical, robust, and HC4 standard errors; the accompanying `msummary()` regression table is printed inline above the plot.", message=FALSE}
-# modelsummary quick demo
+```{r report-modelsummary-demo, fig.cap="Coefficient plot from `modelplot()` for the `mtcars` OLS fit (`mpg ~ wt + hp + cyl`), comparing classical, robust, and HC4 standard errors. The point estimates do not depend on the variance estimator, so the three specifications differ only in interval width.", message=FALSE, fig.alt="Dot and interval plot of estimates with 95 percent confidence intervals for the intercept, wt, hp, and cyl under three variance estimators. The point estimates are identical across the three, the intercept sits near 39 and the slopes near zero, and the intervals differ only slightly in width."}
+# modelsummary quick demo. The regression table for this fit appears under
+# Descriptive Tables.
 library(modelsummary)
-lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
-msummary(lm_mod, vcov = c("iid","robust","HC4"))
-modelplot(lm_mod, vcov = c("iid","robust","HC4"))
+modelplot(lm_mod, vcov = c("iid", "robust", "HC4"))
 ```
 
 ```{r, eval = FALSE}

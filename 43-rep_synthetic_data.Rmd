@@ -296,7 +296,7 @@ head(df_original)
 Let's do some **descriptive statistics** and look at the **correlations** among X1--X4.\
 Because we have repeated measures (time series) nested in units and groups, these correlations are "pooled" across all rows. This is a simplification, but it will let us demonstrate how to do a copula-based synthetic approach.
 
-```{r}
+```{r synth-corr-original, fig.cap="Pairwise scatter plots, histograms, and correlations for X1 to X4 in the original data.", fig.alt="Scatter plot matrix of X1 to X4 with histograms on the diagonal, smoothed trend lines in the lower panels, and correlations in the upper panels. X2 and X4 are right skewed. Correlations are minus 0.69 for X1 and X2, 0.39 for X1 and X3, minus 0.70 for X1 and X4, 0.13 for X2 and X3, 0.75 for X2 and X4, and minus 0.37 for X3 and X4. The X1 and X2 relationship is visibly curved."}
 # Descriptive stats (overall)
 summary(df_original[, c("X1", "X2", "X3", "X4")])
 
@@ -486,7 +486,7 @@ round(cor(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")]), 3)
 
 Figure \@ref(fig:repsynth-orig-vs-synth-hist) overlays per-variable histograms for the four original and synthetic columns to provide a visual sanity check that the marginal shapes match.
 
-```{r repsynth-orig-vs-synth-hist, fig.cap="Per-variable overlaid histograms of the four original (solid fill) and synthetic (hatched) variables, used as a visual sanity check on marginal fidelity.", message=FALSE}
+```{r repsynth-orig-vs-synth-hist, fig.cap="Per-variable overlaid histograms of the four original (solid fill) and synthetic (hatched) variables, used as a visual sanity check on marginal fidelity.", message=FALSE, fig.alt="Four density histograms, one each for X1 to X4, with the original data as solid grey bars and the synthetic data as hatched bars drawn on top. In every panel the two histograms nearly coincide, including the left skew of X1 and X3 and the long right tail of X2 and X4."}
 par(mfrow = c(2, 2))
 vars <- c("X1", "X2", "X3", "X4")
 for (i in seq_along(vars)) {
@@ -522,7 +522,7 @@ for (i in seq_along(vars)) {
 
 -   Correlation Plot for Synthetic Data
 
-```{r}
+```{r synth-corr-synthetic, fig.cap="Pairwise scatter plots, histograms, and correlations for the synthetic X1 to X4. The marginal shapes and the correlation structure carry over, which is what the copula was fitted to preserve.", fig.alt="Scatter plot matrix of the synthetic X1 to X4 with histograms on the diagonal, trend lines below, and correlations above. The histograms keep the original shapes. Correlations are minus 0.56, 0.29, minus 0.56, 0.20, 0.64 and minus 0.35, each somewhat weaker than in the original, and the curved X1 and X2 relationship becomes a roughly straight decline."}
 chart.Correlation(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")],
                   histogram = TRUE, pch = 19)
 
@@ -881,21 +881,22 @@ print(round(synth_cor, 3))
 
 ```
 
-You should see that the synthetic dataset's means, SDs, and correlation matrix are **very close** to the manually collected values from `df_original`. The plots below show per-variable histograms and the full pairwise scatter-and-correlation chart for the synthetic data.
+You should see that the synthetic dataset's means, SDs, and correlation matrix are **very close** to the manually collected values from `df_original`. Figure \@ref(fig:repsynth-marginal-hists) checks the marginals one variable at a time, and Figure \@ref(fig:repsynth-pairwise-chart) checks the joint structure the marginals cannot show.
 
-```{r repsynth-marginal-and-pairwise, message=FALSE}
+```{r repsynth-marginal-hists, message=FALSE, fig.cap="Marginal distributions of the four synthetic variables. Each panel should reproduce the shape of the collected variable it stands in for, since the generator was calibrated to the original means and standard deviations.", fig.alt="Four frequency histograms of the synthetic X1, X2, X3 and X4. All four are roughly symmetric and bell shaped, centred near minus 0.5, 8, 2.5 and 1.5, and X2 extends below zero."}
 # Histograms or density plots
 par(mfrow = c(2,2))
 hist(df_synth$X1, main="X1 Synthetic", col="lightblue", breaks=30)
 hist(df_synth$X2, main="X2 Synthetic", col="lightblue", breaks=30)
 hist(df_synth$X3, main="X3 Synthetic", col="lightblue", breaks=30)
 hist(df_synth$X4, main="X4 Synthetic", col="lightblue", breaks=30)
+```
 
+```{r repsynth-pairwise-chart, message=FALSE, fig.cap="Pairwise scatterplots, marginal histograms, and correlations for the synthetic data. Matching marginals are not enough on their own, so this is the panel that shows whether the dependence structure survived as well.", fig.alt="Scatter plot matrix of the synthetic X1 to X4 with bell shaped histograms on the diagonal, straight trend lines below, and correlations above. The correlations are minus 0.69, 0.40, minus 0.70, 0.11, 0.76 and minus 0.38, close to those of the original data, while every scatter is an elliptical cloud with no curvature."}
 # Pairwise correlation scatterplots
 library(PerformanceAnalytics)
-chart.Correlation(df_synth[, c("X1","X2","X3","X4")], 
+chart.Correlation(df_synth[, c("X1","X2","X3","X4")],
                   histogram=TRUE, pch=19)
-
 ```
 
 ### Synthpop
@@ -932,11 +933,17 @@ syn_df_sdc <- sdc(syn_df, iris,
                   rm.replicated.uniques = T)
 ```
 
-```{r, message=FALSE, warning=FALSE}
-iris |> 
-    GGally::ggpairs()
+Figures \@ref(fig:synth-pairs-original) and \@ref(fig:synth-pairs-synthetic)
+put the two files side by side across every pair of variables, which is a
+stricter test than comparing marginals one at a time.
 
-syn_df$syn |> 
+```{r synth-pairs-original, message=FALSE, warning=FALSE, fig.width=9, fig.height=9, fig.cap="Pairwise relationships in the original iris data. A five-by-five panel needs a large device, or the species labels on the categorical panel overprint each other.", fig.alt="Scatter plot matrix of the iris variables Sepal.Length, Sepal.Width, Petal.Length, Petal.Width and Species, with density curves on the diagonal, correlations above, box plots by species on the right, and histograms by species along the bottom. Petal.Length and Petal.Width are bimodal and correlate 0.963. Setosa separates clearly on the petal measures. The three species counts are equal."}
+iris |>
+    GGally::ggpairs()
+```
+
+```{r synth-pairs-synthetic, message=FALSE, warning=FALSE, fig.width=9, fig.height=9, fig.cap="The same pairwise view of the synthetic file produced by synthpop, for comparison with the original.", fig.alt="Scatter plot matrix of the synthetic iris file laid out like the original, with density curves, correlations, box plots and histograms by species. The bimodal petal distributions, the setosa separation and the correlations, such as 0.967 for Petal.Length and Petal.Width, are close to the original. The species counts are no longer equal, with more setosa and fewer versicolor."}
+syn_df$syn |>
     GGally::ggpairs()
 ```
 
@@ -962,9 +969,9 @@ For General utility
 compare(syn_df, iris)
 ```
 
-Specific utility
+Specific utility compares the analysis a user would actually run, here a regression. Figure \@ref(fig:synth-zvalues-compare) sets the coefficients from the synthetic fit beside those from the original data.
 
-```{r}
+```{r synth-zvalues-compare, fig.cap="Z values with interval bars for the Sepal.Width and Petal.Length coefficients in a regression of Sepal.Length, fitted to the synthpop file and to the observed iris data. The two fits agree in sign and rough size, which is the test of specific utility.", fig.alt="Dot plot of z values with interval bars for the coefficients Sepal.Width and Petal.Length in a regression of Sepal.Length, comparing the synthetic fit (triangles) with the observed fit (circles), against a dashed reference line at zero. Both fits give large positive z values. For Petal.Length they are near 27 and overlap, and for Sepal.Width the synthetic value is lower, about 6 against 9."}
 # just like regular lm, but for synthetic data
 lm_syn <- lm.synds(Sepal.Length ~ Sepal.Width + Petal.Length , data = syn_df)
 compare(lm_syn, iris)

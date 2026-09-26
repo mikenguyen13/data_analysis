@@ -842,7 +842,6 @@ update_correlation <- function(n_new, r_new, alpha) {
   )
 }
 
-
 # Run update
 updated <-
     update_correlation(n_new = n_new,
@@ -1052,7 +1051,7 @@ knitr::kable(
 )
 ```
 
-```{r eiv-forest-fig, echo=FALSE, fig.cap="Point estimates of the machine-learning-generated covariate's coefficient across three estimators, with intervals spanning plus or minus 1.96 times the across-replication standard deviation. The dashed line marks the true value of 0.5. EnsembleIV corrects most of the bias in the naive Biased estimator while achieving tighter intervals than the Unbiased estimator that relies only on the small labeled sample.", message=FALSE, warning=FALSE}
+```{r eiv-forest-fig, echo=FALSE, fig.cap="Point estimates of the machine-learning-generated covariate's coefficient across three estimators, with intervals spanning plus or minus 1.96 times the across-replication standard deviation. The dashed line marks the true value of 0.5. EnsembleIV corrects most of the bias in the naive Biased estimator while achieving tighter intervals than the Unbiased estimator that relies only on the small labeled sample.", message=FALSE, warning=FALSE, fig.alt="Dot plot with vertical interval bars of the estimated coefficient on the generated regressor for Biased, Unbiased, and EnsembleIV, against a dashed reference line at 0.5. Biased sits highest, near 0.56, with an interval that stays above the line. Unbiased, near 0.51, and EnsembleIV, near 0.48, both have intervals that cover 0.5."}
 library(ggplot2)
 
 eiv_summary$Estimator <- factor(eiv_summary$Estimator,
@@ -1064,7 +1063,7 @@ ggplot(eiv_summary, aes(Estimator, Mean)) +
   causalverse::ama_theme()
 ```
 
-The Biased estimator misses the true coefficient by a visible margin because the forest's prediction error contaminates the regressor. The Unbiased estimator, restricted to the small labeled sample, is roughly centered on the truth but imprecise. EnsembleIV removes most of the bias and, by exploiting the far larger unlabeled sample, delivers the tightest interval of the three, the same qualitative pattern @burtch2026ensembleiv report on their benchmark data.
+Table \@ref(tab:eiv-forest-table) reports the three estimators over the replications, and Figure \@ref(fig:eiv-forest-fig) plots the same estimates against the true value. The Biased estimator misses the true coefficient by a visible margin because the forest's prediction error contaminates the regressor. The Unbiased estimator, restricted to the small labeled sample, is roughly centered on the truth but imprecise. EnsembleIV removes most of the bias and, by exploiting the far larger unlabeled sample, delivers the tightest interval of the three, the same qualitative pattern @burtch2026ensembleiv report on their benchmark data.
 
 #### Field Application: Sentiment and Engagement on Facebook
 
@@ -1651,7 +1650,7 @@ summary(m_rendo)$coefficients
 
 To see that the correction is not noise, the small Monte Carlo below contrasts the sampling distribution of the OLS and copula estimators across repeated samples. The copula estimator centers on the true value while OLS is systematically off (Figure \@ref(fig:copula-monte-carlo)).
 
-```{r copula-monte-carlo, fig.cap="Sampling distributions of the OLS and Gaussian copula estimators of the endogenous coefficient across 500 simulated samples. OLS is centered well above the true value (dashed line); the copula correction recenters the estimator on the truth."}
+```{r copula-monte-carlo, fig.cap="Sampling distributions of the OLS and Gaussian copula estimators of the endogenous coefficient across 500 simulated samples. OLS is centered well above the true value (dashed line); the copula correction recenters the estimator on the truth.", fig.alt="Density plot of the estimated coefficient on P across simulated samples for two estimators, Copula (solid outline) and OLS (dotted outline), with a dashed vertical line at the true value 1.5. The Copula density is wide and peaks near 1.5. The OLS density is tall and narrow, peaking near 2.3, far to the right of the true value."}
 sim_once <- function(n = 1000, rho = 0.6, sigma_eps = 1.5) {
     a <- rnorm(n)
     e <- rho * a + sqrt(1 - rho^2) * rnorm(n)
@@ -1755,6 +1754,170 @@ Table \@ref(tab:copula-vs-iv) summarizes how the copula correction sits relative
 +-------------------------+-------------------------------------------------+-------------------------------------------------+
 
 Table: (\#tab:copula-vs-iv) Instrument-based remedies versus the Gaussian copula correction for an endogenous regressor.
+
+------------------------------------------------------------------------
+
+## Identification Through Heteroskedasticity: Lewbel's Internal Instruments {#sec-lewbel-heteroskedasticity}
+
+The Gaussian copula correction of the previous section extracts identifying information from the shape of the regressor's marginal distribution. @lewbel2012using extracts it from a different feature of the data, the heteroskedasticity of the first-stage error. The method is heavily used in marketing, information systems, and strategy, often as the response to a referee who has asked for an instrument where none exists, and it is worth understanding precisely because it is so easy to run and so easy to misread.
+
+### The Construction
+
+Consider the triangular system
+
+$$
+\begin{aligned}
+Y_{1i} &= X_i'\beta_1 + \gamma_1 Y_{2i} + \varepsilon_{1i}, \\
+Y_{2i} &= X_i'\beta_2 + \varepsilon_{2i},
+\end{aligned}
+$$
+
+where $Y_2$ is endogenous because $\varepsilon_1$ and $\varepsilon_2$ are correlated, and no variable outside $X$ is available to serve as an instrument. Let $Z$ be a subset of $X$, possibly all of it. Lewbel shows that
+
+$$
+\big(Z_i - \bar{Z}\big)\,\hat{\varepsilon}_{2i}
+$$
+
+is a valid instrument for $Y_2$ under two conditions:
+
+-   Relevance: $\operatorname{Cov}(Z, \varepsilon_2^2) \neq 0$. The first-stage error must be heteroskedastic in $Z$. This is testable, and it is what gives the generated instrument its first-stage power.
+-   Validity: $\operatorname{Cov}(Z, \varepsilon_1 \varepsilon_2) = 0$. This is not testable, and it is the assumption that does all the work.
+
+The estimator is then ordinary two-stage least squares using these generated instruments, which makes it a three-line addition to any existing regression. The `REndo` package implements it as `hetErrorsIV()`, and the construction is simple enough to do by hand.
+
+The two conditions are easy to state and easy to conflate, so it is worth seeing what separates them. Write the errors in terms of a shared confounder $U$ and idiosyncratic parts:
+
+$$
+\varepsilon_{2i} = U_i + V_{2i}, \qquad \varepsilon_{1i} = U_i + V_{1i}.
+$$
+
+Then $\varepsilon_1 \varepsilon_2 = U^2 + U V_2 + U V_1 + V_1 V_2$, so validity requires $\operatorname{Cov}(Z, U^2) = 0$: the shared confounder must be homoskedastic in $Z$. Relevance requires $\operatorname{Cov}(Z, \varepsilon_2^2) \neq 0$, and since $\operatorname{Var}(\varepsilon_2 \mid Z) = \operatorname{Var}(U \mid Z) + \operatorname{Var}(V_2 \mid Z)$, that heteroskedasticity has to come from the idiosyncratic part $V_2$.
+
+So the method needs the first stage to be heteroskedastic for one specific reason and not another. The variance of the confounder must not depend on $Z$, while the variance of everything else in the first stage must. Nothing in the data tells you which of the two is generating the heteroskedasticity you can see.
+
+### A Simulation of Both Conditions
+
+The simulation below varies $\delta$, which controls how strongly the idiosyncratic first-stage error $V_2$ is heteroskedastic in $X$, and $\kappa$, which makes the shared confounder $U$ heteroskedastic and so breaks validity. The true coefficient is $\gamma_1 = 0.5$.
+
+```{r lewbel-sim, message=FALSE, warning=FALSE}
+library(ivreg)
+set.seed(20260914)
+gamma_true <- 0.5
+
+one_rep <- function(n, delta, kappa) {
+  X  <- rnorm(n)
+  U  <- exp(kappa * X) * rnorm(n)   # shared confounder
+  V2 <- exp(delta * X) * rnorm(n)   # idiosyncratic first-stage error
+  V1 <- rnorm(n)
+  Y2 <- 1 + X + U + V2
+  Y1 <- 1 + X + gamma_true * Y2 + U + V1
+
+  d <- data.frame(Y1, Y2, X)
+  d$lew <- (d$X - mean(d$X)) * residuals(lm(Y2 ~ X, data = d))
+
+  m  <- ivreg(Y1 ~ X + Y2 | X + lew, data = d)
+  fs <- lm(Y2 ~ X + lew, data = d)
+  c(ols    = unname(coef(lm(Y1 ~ X + Y2, data = d))["Y2"]),
+    lewbel = unname(coef(m)["Y2"]),
+    F      = unname(summary(fs)$coefficients["lew", "t value"]^2))
+}
+
+grid <- expand.grid(delta = c(0, 0.2, 0.5, 0.8), kappa = c(0, 0.3))
+res  <- do.call(rbind, lapply(seq_len(nrow(grid)), function(i) {
+  out <- replicate(200, one_rep(4000, grid$delta[i], grid$kappa[i]))
+  data.frame(delta = grid$delta[i], kappa = grid$kappa[i],
+             OLS = round(mean(out["ols", ]), 3),
+             Lewbel = round(mean(out["lewbel", ]), 3),
+             Bias = round(mean(out["lewbel", ]) - gamma_true, 3),
+             medF = round(median(out["F", ]), 0))
+}))
+
+knitr::kable(res, row.names = FALSE,
+  col.names = c("delta (het. in V2)", "kappa (het. in U)", "OLS", "Lewbel",
+                "Lewbel bias", "median first-stage F"),
+  caption = paste("Lewbel's heteroskedasticity-based estimator. True coefficient",
+                  "is 0.5. Validity holds when kappa = 0 and fails when kappa > 0.",
+                  "The first-stage F measures only relevance."))
+```
+
+The top block, where $\kappa = 0$ and the assumption holds, behaves exactly as advertised. With no heteroskedasticity at all the generated instrument has an $F$ near one and the estimate is meaningless. As $\delta$ rises the instrument gains power and the estimator converges on the truth, while OLS stays biased.
+
+The bottom block is the one to study. When the shared confounder is itself heteroskedastic, the estimator is biased at every setting, and the bias is severe: at $\delta = 0$ and $\kappa = 0.3$ the estimate is roughly triple the truth. The first-stage $F$ in that row is in the hundreds.
+
+That is the central warning. In this design the first-stage $F$ is large precisely when the instrument is invalid, because the same heteroskedasticity that breaks validity also supplies relevance. The usual instrument diagnostic is not merely uninformative about validity here, it is actively misleading, and no amount of first-stage strength is evidence for the identifying assumption.
+
+### What It Gives on Real Data
+
+The clearest way to calibrate the method is to run it where a design-based estimate already exists. Section \@ref(sec-distance-iv) estimates the return to schooling using college proximity as an external instrument. We can discard that instrument and ask what Lewbel's internal construction returns from the same data.
+
+```{r lewbel-card, message=FALSE, warning=FALSE}
+library(sandwich); library(lmtest)
+data("SchoolingReturns", package = "ivreg")
+
+card <- within(SchoolingReturns, {
+  lwage  <- log(wage)
+  near4  <- as.integer(nearcollege4 != "none")
+  black  <- as.integer(ethnicity == "afam")
+  southD <- as.integer(south == "yes")
+  smsaD  <- as.integer(smsa == "yes")
+})
+X  <- "experience + I(experience^2) + black + southD + smsaD"
+f  <- function(s) as.formula(s)
+HC <- function(m) vcovHC(m, type = "HC1")
+
+first <- lm(f(paste("education ~", X)), data = card)
+bptest(first)                       # is the first stage heteroskedastic?
+
+Zv   <- c("experience", "black", "southD", "smsaD")
+Zmat <- sapply(Zv, function(v) (card[[v]] - mean(card[[v]])) * residuals(first))
+colnames(Zmat) <- paste0("lew_", Zv)
+cd   <- cbind(card, Zmat)
+lewIV <- paste(colnames(Zmat), collapse = " + ")
+
+ols <- lm(f(paste("lwage ~ education +", X)), data = card)
+iv  <- ivreg(f(paste("lwage ~ education +", X, "| near4 +", X)), data = card)
+lew <- ivreg(f(paste("lwage ~ education +", X, "|", X, "+", lewIV)), data = cd)
+both <- ivreg(f(paste("lwage ~ education +", X, "| near4 +", X, "+", lewIV)),
+              data = cd)
+
+est <- function(m) sprintf("%.4f (%.4f)", coef(m)["education"],
+                           sqrt(diag(HC(m)))["education"])
+data.frame(
+  Estimator = c("OLS", "IV: college proximity", "Lewbel internal instruments",
+                "Lewbel + proximity"),
+  Estimate  = c(est(ols), est(iv), est(lew), est(both)))
+```
+
+The three answers do not agree. Ordinary least squares gives 0.074, the proximity instrument gives 0.132, and Lewbel's internal instruments give 0.039, which is not merely different from the design-based estimate but on the opposite side of OLS. A researcher who reported only the Lewbel estimate would conclude that ordinary least squares overstates the return to schooling by nearly half; a researcher who reported only the proximity estimate would conclude that it understates it by nearly half.
+
+The diagnostics do not adjudicate.
+
+```{r lewbel-card-diagnostics, message=FALSE, warning=FALSE}
+fs_lew <- lm(f(paste("education ~", X, "+", lewIV)), data = cd)
+c(lewbel_first_stage_F = round(waldtest(fs_lew, colnames(Zmat),
+                                        vcov = HC(fs_lew))$F[2], 2),
+  lewbel_J_pvalue      = round(summary(lew,  diagnostics = TRUE)$diagnostics["Sargan", "p-value"], 3),
+  combined_J_pvalue    = round(summary(both, diagnostics = TRUE)$diagnostics["Sargan", "p-value"], 3))
+```
+
+The first stage for the generated instruments is weak by the conventional standard, sitting right at 10. The overidentification test on the Lewbel instruments alone does not reject. Neither does the test on the combined set, even though the two identification strategies disagree by a factor of three. This is the situation described in the discussion of overidentification tests in Section \@ref(sec-instrumental-variables): a $J$ test compares instruments against one another and is quiet when they are wrong together, and internal instruments built from the same covariates are about as far from independent as instruments can be.
+
+A further diagnostic is that the identifying heteroskedasticity has to be present covariate by covariate. `REndo::hetErrorsIV()` reports this automatically and, on these data, warns that the instrument built from the race indicator is weak because the Breusch-Pagan test on that variable does not reject. Instruments built from covariates with no heteroskedasticity add noise without adding identification.
+
+### Practical Guidance
+
+The method is legitimate and it is sometimes the only thing available. It is not a substitute for a design, and the following is the minimum for using it credibly:
+
+1.  Report the Breusch-Pagan or White test on the first stage, and report it separately for each covariate used to build an instrument. No heteroskedasticity means no identification.
+2.  State the validity assumption in the language of the application. What would have to be true for the shared unobservable to have constant variance across the covariate you are using? If you cannot tell that story, the assumption is being made by the software rather than by you.
+3.  Do not offer the first-stage $F$ as evidence of validity. The simulation above shows the two moving together in the wrong direction.
+4.  Treat a non-rejecting $J$ test as uninformative. Internal instruments are highly correlated with one another by construction.
+5.  Use it as a robustness check alongside a design-based estimate wherever one exists, and report the disagreement honestly when there is one rather than choosing the estimate that suits the argument.
+6.  Consider it strongest in its original role, as a correction for classical measurement error, where the structure of the problem makes the validity condition easier to defend than in a general endogeneity setting.
+
+@baum2019advice give the practical implementation advice, including the case for using a restricted set of $Z$ variables rather than all of $X$, and are candid that the method's credibility rests entirely on an assumption that the data cannot check.
+
+Relative to the copula correction of the previous section, the trade is between two untestable functional-form assumptions. The copula method needs the endogenous regressor to be far from normal and the error to be normal; Lewbel's method needs the first stage to be heteroskedastic for the right reason. Neither imports outside variation, so neither can rescue a study whose identification problem is substantive rather than technical. Both are best reported as sensitivity analyses that accompany a design, not as the design itself.
 
 ------------------------------------------------------------------------
 
@@ -1914,7 +2077,7 @@ In empirical practice, $\rho$ signals the direction of bias one might expect if 
 
 Often, it is helpful to visualize how part of the distribution of $u_i$ (the error in the selection equation) is truncated based on the threshold $w_i^*>0$. Figure \@ref(fig:endog-heckman-selection-truncation) draws the standard normal density of $u_i$ and shades the region $u_i > -z_i'\gamma$ that is included in the observed sample.
 
-```{r endog-heckman-selection-truncation, fig.cap="Standard normal density of the selection-equation error $u_i$ in Heckman's model, with the region $u_i > -z_i'\\gamma$ shaded to mark the observations that survive the selection threshold."}
+```{r endog-heckman-selection-truncation, fig.cap="Standard normal density of the selection-equation error $u_i$ in Heckman's model, with the region $u_i > -z_i'\\gamma$ shaded to mark the observations that survive the selection threshold.", fig.alt="Standard normal density curve over x from minus 3 to 3. The area to the right of a cutoff slightly above zero is shaded grey and labelled one minus Phi of minus z i gamma, and an arrow points to the cutoff labelled minus z i gamma. A legend states that grey marks the probability of being observed."}
 x = seq(-3, 3, length = 200)
 y = dnorm(x, mean = 0, sd = 1)
 plot(x,
@@ -2099,9 +2262,7 @@ Without such a variable, the model relies solely on functional form.
 The Heckman two-step estimation procedure is less efficient than FIML. One key limitation is that the two-step estimator does not fully exploit the joint distribution of the error terms across equations, leading to a loss of efficiency. Moreover, the two-step approach may introduce **measurement error** in the second stage. This arises because the inverse Mills ratio used in the second stage is itself an estimated regressor, which can lead to biased standard errors and inference.
 
 ```{r}
-###########################
-#   SIM 1: Heckman 2-step #
-###########################
+# SIM 1: Heckman 2-step
 suppressPackageStartupMessages(library(MASS))
 
 set.seed(123)
@@ -2161,9 +2322,7 @@ $$
 We can use the **`sampleSelection`** package in R to perform full maximum likelihood estimation for the same data:
 
 ```{r}
-#############################
-# SIM 2: 2-step vs. FIML    #
-#############################
+# SIM 2: 2-step vs. FIML
 
 suppressPackageStartupMessages(library(sampleSelection))
 
@@ -2453,7 +2612,6 @@ We compare two cases:
 set.seed(0)
 library(sampleSelection)
 library(mvtnorm)
-
 
 # Simulate bivariate normal error terms with correlation -0.7
 eps <-
@@ -2980,7 +3138,7 @@ estimates <- df_imp_all %>%
 
 Figure \@ref(fig:endog-pattern-mixture-trajectories) shows how the estimated mean trajectory $\mu_{Y_t}$ changes across different sensitivity parameters $\delta$ used to adjust the imputed values in the missing arm.
 
-```{r endog-pattern-mixture-trajectories, fig.cap="Pattern-mixture-model sensitivity analysis: estimated mean trajectory of Y across three time points for each value of the sensitivity parameter $\\delta$ used to adjust imputed missing observations."}
+```{r endog-pattern-mixture-trajectories, fig.cap="Pattern-mixture-model sensitivity analysis: estimated mean trajectory of Y across three time points for each value of the sensitivity parameter $\\delta$ used to adjust imputed missing observations.", fig.alt="Line chart of the mean of Y t at Time 1, Time 2, and Time 3, with one line for each delta value of minus 10, minus 7.5, minus 5, minus 2.5, and 0. All five lines lie exactly on top of each other, rising from about 100.5 to 104.5 to 110.6."}
 ggplot(estimates, aes(
     x = Time,
     y = Mean,
