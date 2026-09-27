@@ -718,6 +718,24 @@ msummary(
 
 The chunk below reports stargazer-formatted regression and correlation output for the `attitude` dataset: descriptive statistics in Table \@ref(tab:sg-attitude), the three fitted models in Table \@ref(tab:sg-results), and the correlation matrix in Table \@ref(tab:sg-corr). stargazer writes its own markup rather than going through `knitr::kable()`, so it carries no bookdown label of its own. Each `title` therefore opens with a bookdown table anchor, which is the documented way to number a table produced by another package.
 
+```{r report-stargazer-html-anchors, include=FALSE}
+# HTML only. stargazer's HTML mode deletes a "(\#tab:label)" anchor from the
+# title, and writes <caption> on the same line as <table>, where bookdown's HTML
+# pass does not look for a label. So for a title that opens with an anchor,
+# this strips the anchor before stargazer sees it and puts it back at the start
+# of the caption, on a line of its own. Every other call passes straight
+# through. LaTeX keeps the anchor intact, so nothing is defined for the PDF.
+if (!knitr::is_latex_output() && requireNamespace("stargazer", quietly = TRUE)) {
+  stargazer <- function(..., title = "") {
+    anchor <- regmatches(title, regexpr("^[(][\\\\]#tab:[A-Za-z0-9_.-]+[)] ", title))
+    if (!length(anchor)) return(stargazer::stargazer(..., title = title))
+    out <- capture.output(stargazer::stargazer(..., title = sub(anchor, "", title, fixed = TRUE)))
+    cat(sub("<caption>", paste0("\n<caption>", anchor), out, fixed = TRUE), sep = "\n")
+    invisible(out)
+  }
+}
+```
+
 ```{r report-stargazer-attitude, message=FALSE, results='asis'}
 # stargazer writes finished markup rather than returning an object, so the
 # chunk needs results='asis'. Without it knitr prints the markup as console
