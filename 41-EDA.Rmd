@@ -1,10 +1,18 @@
-# Exploratory Data Analysis
+# Exploratory Data Analysis {#sec-exploratory-data-analysis}
 
 ::: {.chapter-abstract}
 **Abstract.** Exploratory data analysis is where an analyst learns what the data can and cannot support, before any model commits them to an answer. This chapter demonstrates a fast, business-oriented workflow on a housing panel: automated data reports, feature engineering aimed at interpretable marketing and finance constructs, missingness profiling, and error identification. Two distinctions organize that material. The first is the taxonomy separating data missing completely at random, at random, and not at random, which determines whether any repair is possible and which the data themselves cannot settle. The second is the difference between a value that cannot be right and one that is merely extreme, where deletion stops being cleaning and becomes an inferential act. Summary statistics appear in several forms, since the useful summary differs for a collaborator, a referee, and a stakeholder. A closing section takes up the cost of exploration itself, since an analyst who has already seen a pattern cannot afterwards test it as though encountering it for the first time, and weighs the three responses: sample splitting, pre-specification, and accurate description. The chapter also covers the low-code path and a template for scheduled reports that refresh themselves.
 
-**Keywords:** Exploratory data analysis; Data profiling; Feature engineering; Missing data; Outlier detection; Researcher degrees of freedom
+**Keywords:** Exploratory data analysis, Data profiling, Feature engineering, Missing data, Outlier detection, Researcher degrees of freedom
 :::
+
+Identification, the subject of the chapters on endogeneity, bias, causal graphs
+and controls, is a question that can be settled on paper. This chapter asks a
+prior question that cannot be: whether the data in hand can support the analysis
+at all. The answer comes from looking, and looking is not free. An analyst who
+has already seen a pattern cannot afterwards test it as though meeting it for
+the first time, which makes exploration a technical subject rather than a
+preliminary to one.
 
 Exploratory analysis occupies an uncomfortable position in the standard account of empirical work. It is universally practiced and almost never reported. A paper describes the model it fitted and the tests it ran, not the forty plots that preceded them, and the reader is left to infer that the specification arrived fully formed. It never does. Between the raw file and the first regression there is a long stretch of looking, and what happens in that stretch determines more about the eventual result than the choice of estimator does.
 
@@ -22,16 +30,18 @@ The third is what would have to be true for the analysis to be wrong, which is t
 
 Only the first of these is served by running a profiling package and reading its output. The second and third require the analyst to hold a question in mind and interrogate the data against it. The workflow below automates the first so that attention is left over for the others.
 
-This section demonstrates a fast, business-oriented EDA workflow on `ggplot2::txhousing`. We'll generate automated reports, engineer interpretable features for marketing/finance contexts, profile missingness, identify errors/outliers, and provide quick interactive tools your stakeholders will actually use. Where possible, we keep everything reproducible in code and easy to extend for your own datasets.
+The rest of the chapter works through that on `ggplot2::txhousing`, a panel of monthly housing sales for cities in Texas. The sequence is the one an analyst follows in practice: an automated profile of the raw file, features engineered into constructs a marketing or finance audience can interpret, a missingness profile, and a pass for values that cannot be right. Every step is scripted, so the same pass runs again on a new extract without anyone having to remember what was done the first time.
 
 ```{r setup, message = FALSE, warning = FALSE}
 # Core packages
-# install.packages(c("tidyverse","lubridate","DataExplorer","dataReporter","skimr","rpivotTable","esquisse","dlookr"))
+# install.packages(c(
+#   "tidyverse", "lubridate", "DataExplorer", "dataReporter",
+#   "skimr", "rpivotTable", "esquisse", "dlookr"
+# ))
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(lubridate)
-library(ggplot2)
 library(DataExplorer)
 library(skimr)
 library(dlookr)
@@ -72,8 +82,6 @@ stopifnot(all(
 dplyr::glimpse(tx)
 ```
 
-------------------------------------------------------------------------
-
 ## Data Report
 
 Automate a first-pass profile to see dimensions, types, basic completeness, and distributions.
@@ -85,40 +93,118 @@ Automation matters here for a reason beyond convenience. A profile produced by a
 introduce(tx)
 ```
 
+Figure \@ref(fig:eda-intro) gives the shape of the file at a glance, which is
+the first of the three questions above.
+
 ```{r eda-intro, fig.width=8, fig.height=5, fig.cap="Structure of the Texas housing data: the split between discrete and continuous columns, the share of missing values, and the proportion of rows that are complete.", fig.alt="Horizontal bar chart of five structure metrics on a percent scale. Discrete columns are 30.8 percent and continuous columns 69.2 percent of all columns, no column is entirely missing, 82.8 percent of rows are complete, and 5.9 percent of all observations are missing."}
-# Structural intro plots
-plot_intro(tx)
+# Structural intro plots. The default title reports memory use, and each
+# bar is already named on the axis, so both title and legend are dropped.
+plot_intro(tx, theme_config = list(plot.title = element_blank(),
+                                   legend.position = "none"))
 ```
+
+Figure \@ref(fig:eda-histograms) then shows the shape of each numeric column,
+which is where skew and heavy tails become visible.
 
 ```{r eda-histograms, fig.width=10, fig.height=6, fig.cap="Distribution of every numeric column in the Texas housing data. Sales, volume, and listings are strongly right skewed.", fig.alt="Grid of nine histograms, one per numeric column, with frequency on the vertical axis. Sales, volume, listings, inventory, and absorption pile up near zero with long right tails, avg price and median are moderately right skewed, and month and year are close to uniform, with fewer rows in 2015."}
-# Quick distribution sweep for numerics (great to spot skew and heavy tails)
-plot_histogram(tx, ncol = 3L)
+# Quick distribution sweep for numerics (great to spot skew and heavy tails).
+# plot_histogram(tx) draws the same grid but prints large values in
+# scientific notation, so the grid is built directly with short labels
+# (100K, 2B) above 10,000 and plain numbers below, which keeps years intact.
+short_num <- function(x) {
+  big <- scales::label_number(scale_cut = scales::cut_short_scale())(x)
+  ifelse(abs(x) < 1e4, format(x, trim = TRUE, scientific = FALSE), big)
+}
+
+tx %>%
+  select(where(is.numeric)) %>%
+  pivot_longer(everything(), names_to = "variable") %>%
+  ggplot(aes(value)) +
+  geom_histogram(bins = 30, na.rm = TRUE) +
+  facet_wrap(~ variable, ncol = 3, scales = "free") +
+  scale_x_continuous(labels = short_num) +
+  labs(x = NULL, y = "Frequency")
 ```
 
+Figures \@ref(fig:eda-correlation) and \@ref(fig:eda-correlation-discrete) cover
+the continuous and the discrete columns respectively. The discrete view needs
+some preparation. `DataExplorer` silently drops any factor with more than
+`maxcat = 20` levels, and `city` has 46, so passing it as it stands leaves only
+the quarter dummies, which correlate with one another by construction and say
+nothing. The chunk therefore keeps the five markets with the largest dollar
+volume and lumps the rest into Other, and it adds two discrete columns that
+carry a question: the period, before or from 2008, and whether `listings` was
+recorded.
+
 ```{r eda-correlation, fig.width=9, fig.height=6, fig.cap="Pairwise correlations among the continuous columns, which is a first check for multicollinearity.", fig.alt="Correlation heatmap of the nine continuous columns, using every pair of observed values. Sales, volume, and listings correlate from 0.86 to 0.98 with one another, and median and average price correlate 0.96. Inventory is the only column with a sizeable negative correlation, minus 0.58 with absorption, and month is close to zero with everything."}
-# Pairwise correlations (continuous); useful for multicollinearity hints
-# Note: if your dataset has many numerics, set cor_args = list(use = "pairwise.complete.obs")
+# Pairwise correlations among continuous columns, a multicollinearity hint.
+# For a dataset with many numerics, set cor_args = list(use = "pairwise.complete.obs")
 plot_correlation(tx, type = "continuous",
                  cor_args = list(use = "pairwise.complete.obs"))
 ```
 
-```{r eda-correlation-discrete, fig.width=9, fig.height=6, fig.cap="Associations among the discrete columns, city and quarter. High-cardinality factors such as city produce a large matrix, so lump them first in practice.", fig.alt="Correlation heatmap of the four quarter indicators, Q1 to Q4. Each indicator correlates 1 with itself and between minus 0.32 and minus 0.35 with each of the other three, the pattern expected of mutually exclusive dummies. City does not appear."}
-# If you want correlations/associations among discrete variables:
-# (city and quarter here; may be high-cardinality)
-plot_correlation(tx %>% select(city, quarter), type = "discrete")
+```{r eda-correlation-discrete, fig.width=9, fig.height=6, fig.cap="Associations among the discrete columns: city, lumped to the five largest markets by dollar volume plus Other, quarter, period, and whether listings was recorded. Missing listings go with the smaller markets and with the years before 2008, not with the season.", fig.alt="Correlation heatmap of 14 indicator columns for city, quarter, period, and listings status. City and quarter are uncorrelated with each other and with period. Missing listings correlates 0.33 with the years before 2008 and 0.15 with the Other city group, and close to zero with every quarter."}
+# DataExplorer drops factors with more than maxcat = 20 levels, so city
+# (46 levels) must be lumped to appear at all. Keep the five largest
+# markets by dollar volume, and add period and a missing-listings flag.
+tx_discrete <- tx %>%
+  transmute(
+    city = forcats::fct_lump_n(city, n = 5, w = coalesce(volume, 0),
+                               other_level = "Other"),
+    # Dummy names would otherwise turn spaces into dots (San.Antonio)
+    city = forcats::fct_relabel(city, ~ gsub(" ", "_", .x)),
+    quarter,
+    period = factor(year < 2008, c(TRUE, FALSE), c("pre2008", "from2008")),
+    listings = factor(is.na(listings), c(FALSE, TRUE),
+                      c("recorded", "missing"))
+  )
+plot_correlation(tx_discrete, type = "discrete")
 ```
 
-```{r eda-pca, fig.width=9, fig.height=6, fig.cap="Principal components of the standardized numeric columns: the variance each component explains, and the loading of each variable on it. Two panels are drawn, so bookdown numbers them separately.", fig.alt=c("Horizontal bar chart of the share of variance explained by the first three principal components. PC1 explains about 40 percent, PC2 about 20 percent, and PC3 about 16 percent, and the bar labels give cumulative shares of 40, 61, and 77 percent.", "Three-panel bar chart of variable loadings on PC1, PC2, and PC3. PC1 loads positively on volume, sales, listings, avg price, and median and negatively on inventory. PC2 sets year, median, avg price, and absorption against listings, sales, and volume. PC3 is dominated by absorption, positive, and inventory, negative.")}
-# Quick PCA map for continuous variables (after standardizing)
-DataExplorer::plot_prcomp(tx %>%
-  select(where(is.numeric)) %>%
-  na.omit()
-)
+The panel is balanced, so every city has the same share of every quarter and
+period, and those blocks of the matrix are zero. The informative cells are in
+the last two columns. Whether `listings` was recorded is unrelated to the
+season, but it is related to when and where the row comes from: gaps
+concentrate before 2008 and in the smaller markets lumped into Other. That is
+already evidence against treating the missing values as missing completely at
+random, a point the section on missing data below takes up.
+
+Figures \@ref(fig:eda-pca-1) and \@ref(fig:eda-pca-2) reduce the same numeric columns to their principal
+components, which is useful when the correlation matrix is too large to read.
+The first shows how much of the variance each component explains, and the
+second shows which variables load on each component.
+
+```{r eda-pca, fig.width=9, fig.height=6, fig.cap=c("Share of the variance in the standardized numeric columns explained by each of the first three principal components, with cumulative shares as bar labels.", "Loadings of each standardized numeric column on the first three principal components."), fig.alt=c("Horizontal bar chart of the share of variance explained by the first three principal components. PC1 explains about 40 percent, PC2 about 20 percent, and PC3 about 16 percent, and the bar labels give cumulative shares of 40, 61, and 77 percent.", "Three-panel bar chart of variable loadings on PC1, PC2, and PC3. PC1 loads positively on volume, sales, listings, avg price, and median and negatively on inventory. PC2 sets year, median, avg price, and absorption against listings, sales, and volume. PC3 is dominated by absorption, positive, and inventory, negative.")}
+# PCA of the standardized numeric columns. DataExplorer::plot_prcomp()
+# draws the same two views but titles the loadings axis Relative Importance,
+# so both are built from prcomp(), keeping components up to 80 percent of
+# the variance as plot_prcomp() does.
+tx_num <- tx %>% select(where(is.numeric)) %>% na.omit()
+pca <- prcomp(tx_num, scale. = TRUE)
+pc_var <- tibble(
+  pc = paste0("PC", seq_along(pca$sdev)),
+  share = pca$sdev^2 / sum(pca$sdev^2),
+  cum_share = cumsum(share)
+) %>%
+  filter(cum_share <= 0.8)
+
+ggplot(pc_var, aes(reorder(pc, share), share)) +
+  geom_col() +
+  geom_label(aes(label = scales::percent(cum_share, accuracy = 1))) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() +
+  labs(x = "Principal component", y = "Share of variance explained")
+
+as_tibble(pca$rotation[, pc_var$pc], rownames = "variable") %>%
+  pivot_longer(-variable, names_to = "pc", values_to = "loading") %>%
+  ggplot(aes(variable, loading)) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(~ pc, scales = "free_x") +
+  labs(x = NULL, y = "Loading")
 ```
 
 *Tip:* For very wide tables, use `maxcat` in `DataExplorer` functions to cap cardinality for cleaner plots.
-
-------------------------------------------------------------------------
 
 ## Feature Engineering
 
@@ -168,8 +254,6 @@ names(spl)
 -   Group rare categories and avoid too many dummies relative to $n$.
 -   Create business KPIs: `avg_price`, `absorption`, `vol_per_listing`, and simple momentum features.
 
-------------------------------------------------------------------------
-
 ## Missing Data
 
 Missingness is information. First detect, then decide: delete, impute, or model it explicitly.
@@ -184,6 +268,9 @@ One practical corollary: keep an indicator for what was missing. If the missingn
 # Counts by variable
 profile_missing(tx)
 ```
+
+Figure \@ref(fig:eda-missing) puts the same counts on a common scale, which
+makes it easy to see which columns are the weak ones.
 
 ```{r eda-missing, fig.width=9, fig.height=5, fig.cap="Share of missing values in each column of the Texas housing data. Inventory and listings are absent for roughly a sixth of the rows.", fig.alt="Horizontal bar chart of missing rows for each of 13 columns. City, year, month, date, quarter, and ym have none. Avg price, volume, and sales each miss 6.6 percent, median 7.16 percent, and listings, absorption, and inventory between 16.55 and 17.05 percent, roughly 1,450 rows each."}
 plot_missing(tx)
@@ -202,7 +289,9 @@ tx %>%
     head(12)
 ```
 
-```{r}
+Table \@ref(tab:eda-skim-imputed) summarizes the four numeric columns after median imputation, which is the quickest way to confirm that filling the gaps has not moved a distribution somewhere it should not go.
+
+```{r eda-skim-imputed, cache = FALSE}
 # Example: median imputation for a few numerics (for demonstration only)
 # (In modeling, prefer imputations *within* resampling using recipes/caret/tidymodels.)
 tx_imputed <- tx %>%
@@ -212,18 +301,50 @@ tx_imputed <- tx %>%
     inventory = ifelse(is.na(inventory), median(inventory, na.rm = TRUE), inventory),
     median    = ifelse(is.na(median),    median(median,    na.rm = TRUE), median)
   )
-skimr::skim(tx_imputed %>% select(sales, listings, inventory, median))
+
+# skim() prints its own header block and unicode spark histograms, neither of
+# which survives conversion to LaTeX, so pull out the numeric partition and
+# render it as an ordinary table instead.
+skim_numeric <- function(d, caption) {
+    skimr::skim_without_charts(d) |>
+        skimr::yank("numeric") |>
+        as.data.frame() |>
+        dplyr::select(Variable = skim_variable, Missing = n_missing,
+                      Mean = mean, SD = sd, Min = p0, Q1 = p25,
+                      Median = p50, Q3 = p75, Max = p100) |>
+        knitr::kable(booktabs = TRUE, digits = 1, caption = caption,
+                     format.args = list(scientific = FALSE)) |>
+        # Nine columns of six-figure numbers are wider than the text block.
+        # scale_down shrinks only when the table would otherwise overrun, and
+        # is a no-op in the HTML build.
+        kableExtra::kable_styling(latex_options = "scale_down")
+}
+
+skim_numeric(tx_imputed |> select(sales, listings, inventory, median),
+             "Numeric summary of the four columns after median imputation.")
 ```
 
-```{r eda-na-pareto, message=FALSE, fig.cap="Pareto chart of missing values by column, ordered by the count absent.", fig.alt="Pareto chart with bars for the count of missing values per column, sorted from most to least, and a line for the cumulative percent. Inventory, absorption, and listings each miss about 1,450 values, median, avg price, sales, and volume about 570 to 620, and the other six columns none."}
+Figure \@ref(fig:eda-na-pareto) orders the same columns by how much is missing,
+which is the view to use when deciding what to drop and what to impute.
+
+```{r eda-na-pareto, message=FALSE, fig.width=8, fig.cap="Pareto chart of missing values by column, ordered by the count absent.", fig.alt="Pareto chart with bars for the count of missing values per column, sorted from most to least, and a line for the cumulative percent. Inventory, absorption, and listings each miss about 1,450 values, median, avg price, sales, and volume about 570 to 620, and the other six columns none."}
 # dlookr helpers (diagnose and visualize NA concentration)
 diagnose(tx)
-plot_na_pareto(tx)
+# clip = "off" keeps the label on the tallest bar from being cut off.
+# The fill scale is restated with drop = TRUE so that grades no column
+# reaches (Bad, Remove) do not appear in the legend without a swatch.
+grade_fill <- c(Good = "#FFFFB2", OK = "#FECC5C", NotBad = "#FD8D3C",
+                Bad = "#F03B20", Remove = "#BD0026")
+grade_labels <- c(Good = "Good\n(<=5%)", OK = "OK\n(<=10%)",
+                  NotBad = "NotBad\n(<=20%)", Bad = "Bad\n(<=50%)",
+                  Remove = "Remove\n(<=100%)")
+plot_na_pareto(tx) +
+  coord_cartesian(clip = "off") +
+  scale_fill_manual(values = grade_fill, labels = grade_labels,
+                    name = "Missing Grade", drop = TRUE)
 ```
 
-*Best practice:* Impute inside a modeling pipeline (e.g., `recipes::step_impute_median()`), and consider adding "was missing" flags to retain signal from missingness patterns.
-
-------------------------------------------------------------------------
+*Best practice:* Impute inside a modeling pipeline, for example with `recipes::step_impute_median()`, and consider adding a "was missing" flag for each repaired column, so that the pattern of missingness stays available to the model.
 
 ## Error Identification
 
@@ -280,17 +401,29 @@ library(dataReporter)
 makeDataReport(tx)  # Generates an HTML report in your working directory
 ```
 
-------------------------------------------------------------------------
-
 ## Summary statistics
 
 Concise summaries for continuous and categorical variables, plus grouped business KPIs.
 
 The reason to produce several of these rather than one is that a summary table serves three audiences with incompatible needs. A collaborator wants completeness, including the variables that turned out not to matter, because they are checking the work rather than reading a result. A referee wants the quantities that bear on credibility: cell sizes, missingness rates, and the dispersion of the variables carrying identification, since those determine whether the design can support the claim at all. A stakeholder wants the three numbers that change a decision and will not read past them. Producing one table and asking all three to use it guarantees that at least two are served badly.
 
-```{r}
-skim(tx)
+```{r, cache = FALSE}
+# Dollar volume runs to ten figures, which would push the table past the text
+# block, so report it in millions.
+skim_numeric(tx |> mutate(volume = volume / 1e6),
+             paste("Numeric summary of the Texas housing data.",
+                   "Dollar volume is in millions."))
 ```
+
+The table answers the collaborator's question and part of the referee's. Every
+numeric column is present, and the missingness column shows immediately that
+`inventory` and `listings` are the weak spots, absent for roughly a sixth of
+the rows, while `year`, `month`, and `date` are complete by construction. The
+quartiles matter more than the means here, because `sales`, `volume`, and
+`listings` are all strongly right skewed: in each case the mean sits above the
+third quartile, which is the signature of a long upper tail driven by the large
+metropolitan areas. Reporting a mean and a standard deviation alone for these
+columns would describe a distribution that does not exist.
 
 ```{r}
 # City-level yearly KPIs
@@ -308,25 +441,29 @@ city_year <- tx %>%
 head(city_year, 10)
 ```
 
-Figure \@ref(fig:eda-price-over-time) traces median listing price by month for the six largest Texas cities in the dataset.
+Figure \@ref(fig:eda-price-over-time) traces the monthly median sale price for the six Texas markets with the largest total dollar volume of sales over the whole period. Every market has the same number of rows in this balanced panel, so a count of observations cannot pick out the largest ones, and dollar volume is used instead.
 
-```{r eda-price-over-time, fig.width=9, fig.height=5, fig.cap="Median listing price over time for the six Texas cities with the most observations.", message=FALSE, fig.alt="Six-panel line chart of monthly median price from 2000 to 2015 for Abilene, Amarillo, Arlington, Austin, Bay Area, and Beaumont. Prices rise in every city. Austin climbs most, from about 135,000 to about 265,000 dollars, while the others end between roughly 140,000 and 200,000 dollars."}
-# Example visual: price over time for a few major cities
+```{r eda-price-over-time, fig.width=9, fig.height=5, fig.cap="Monthly median sale price, 2000 to 2015, for the six Texas markets with the largest total dollar volume of sales, ordered from largest to smallest.", message=FALSE, fig.alt="Six-panel line chart of monthly median sale price from 2000 to 2015 for Houston, Dallas, Austin, San Antonio, Collin County, and Fort Bend. Prices rise everywhere, slowly until about 2012 and steeply after. Collin County ends highest, near 290,000 dollars, and San Antonio lowest, near 200,000 dollars."}
+# Price over time for the six markets with the largest dollar volume.
+# Every city has 187 rows, so count(city) cannot rank them.
 top_cities <- tx %>%
-    count(city, sort = TRUE) %>%
-    slice_head(n = 6) %>%
-    pull(city)
+    group_by(city) %>%
+    summarise(total_volume = sum(volume, na.rm = TRUE)) %>%
+    slice_max(total_volume, n = 6) %>%
+    pull(city) %>%
+    as.character()
 
 tx %>%
     filter(city %in% top_cities) %>%
+    mutate(city = factor(city, levels = top_cities)) %>%
     ggplot(aes(date, median)) +
     geom_line(linewidth = 0.5) +
     facet_wrap(~ city) +
     scale_y_continuous(labels = scales::dollar_format()) +
     labs(
-        title = "Median price over time",
+        title = "Median sale price over time",
         x = NULL,
-        y = "Median price"
+        y = "Median sale price"
     ) +
     theme_minimal(base_size = 12)
 ```
@@ -344,13 +481,11 @@ tx %>%
     geom_smooth(method = "lm",
                 se = FALSE,
                 color = "steelblue") +
-    labs(title = "Sales vs. Volume (log-log)",
+    labs(title = "Volume vs. sales (log-log)",
          x = "Sales (transactions)",
          y = "Volume (USD)") +
     theme_minimal(base_size = 12)
 ```
-
-------------------------------------------------------------------------
 
 ## Exploration and Confirmation
 
@@ -374,7 +509,7 @@ The third, always available and too rarely taken, is to describe the analysis ac
 # install.packages("rpivotTable")
 library(rpivotTable)
 
-# Works best in HTML output; drag-and-drop just like Excel PivotTables
+# Works best in HTML output. Drag-and-drop just like Excel PivotTables
 rpivotTable(
   data = tx,
   rows = "city",
@@ -393,8 +528,6 @@ library(esquisse)
 # Launch the GUI to build ggplots and dplyr pipelines interactively
 esquisse::esquisser(tx)
 ```
-
-------------------------------------------------------------------------
 
 ## Shiny-app based Tableau style
 
@@ -422,8 +555,6 @@ The skeleton below sketches a minimal Shiny dashboard that lets the user pick a 
 # )
 ```
 
-------------------------------------------------------------------------
-
 ## Customize your daily/automatic report
 
 ```{r, eval = FALSE}
@@ -439,11 +570,9 @@ DataExplorer::create_report(tx, y = "median")  # sets target variable for focus
 # install.packages(c("chronicle","descriptr"))
 library(chronicle)
 library(descriptr)
-# Tip: Use these packages selectively; their APIs evolve.
-# Prefer stable verbs above; consult vignettes for current functions.
+# Tip: use these packages selectively, since their APIs evolve.
+# Prefer the stable verbs above and consult vignettes for current functions.
 ```
-
-------------------------------------------------------------------------
 
 ### Appendix: Small "gotchas" to keep in mind
 
@@ -451,3 +580,24 @@ library(descriptr)
 -   For discrete correlations, high-cardinality features (like many cities) can make matrices unwieldy. Thus, lump or select top-$k$ first.
 -   Imputation should be inside resampling to avoid leakage.
 -   KPI checks (e.g., `median` vs `volume/sales`) are *diagnostics*, not proofs of error. Hence, investigate outliers before removal.
+
+What links these four is that each one is a place where an exploratory
+convenience quietly becomes an inferential claim. Scaling and lumping are
+presentational choices until they change which correlations are visible, at
+which point they have decided what the analyst will go on to model. Imputing
+before resampling is a workflow shortcut until it lets information from the
+held-out fold reach the fitted model, at which point the validation estimate is
+optimistic and no longer means what it says. Deleting an outlier flagged by a
+KPI check is tidying until the deleted rows turn out to share something, at
+which point it is a sample restriction that belongs in the paper. The rule that
+covers all four is to record the choice at the moment it is made, because each
+of them is invisible in the final output and none of them can be recovered from
+the fitted model afterwards.
+
+## Looking Ahead
+
+Exploration ends with an analyst who knows what the data can support and what it
+cost to find out. Neither is visible to a reader unless the write-up makes them
+so, which is the subject of Chapter \@ref(sec-reporting): which artifacts a
+manuscript has to carry, in what form, and how to keep every number traceable to
+the code that produced it.

@@ -3,8 +3,14 @@
 ::: {.chapter-abstract}
 **Abstract.** Replication is the mechanism by which an empirical claim becomes knowledge rather than assertion, yet the data it requires are often proprietary, confidential, or otherwise unavailable. This chapter sets out the replication standard, the requirement that data, code, and methodological detail be complete enough for an independent party to reproduce a study's findings, and examines both where that standard is hard to meet and where a legitimate exception applies. It reviews the repositories that host replication materials and the current state of replication practice across fields. The second half turns to synthetic data as a route to sharing without disclosure, covering its benefits, the limitation that a synthesizer reproduces only the structure it was told to model, and the practical difference between generating synthetic data with full access to the original and generating it under restricted access. A worked application constructs an original dataset, a restricted version of it, and a synthetic replacement built with synthpop, then compares what each preserves and what each destroys.
 
-**Keywords:** Replication; Reproducibility; Synthetic data; Data sharing; Data confidentiality; Research transparency
+**Keywords:** Replication, Reproducibility, Synthetic data, Data sharing, Data confidentiality, Research transparency
 :::
+
+The previous chapter exhausted what a single study can say about its own
+credibility. Past that point the question belongs to other people, and they need
+the materials. This chapter is about supplying them: what a replication package
+has to contain, where it should live, and what to do in the common case where
+the data underlying a finding cannot lawfully be released.
 
 Access to comprehensive data is pivotal for replication, especially in the realm of social sciences. Yet, data are often inaccessible due to proprietary restrictions, privacy concerns, or logistical constraints, making replication a challenge [@king1995replication]. This chapter explores the nuances of replication, exceptions to its norms, and the significance of synthetic data as a solution.
 
@@ -36,6 +42,18 @@ Several approaches help address replication challenges in empirical research:
     -   Many graduate programs now incorporate replication studies into coursework, emphasizing their importance in methodological rigor.
 
 ### Free Data Repositories
+
+The choice among the repositories below matters less than the properties they
+share, and it is worth being explicit about which properties make a deposit
+count as replication material rather than merely a file on the internet. Three
+are essential: a persistent identifier, so the citation still resolves after the
+author changes institution, a stated licence, so a later reader knows what they
+may do with the data, and immutable versioning, so the file cited in the paper
+is the file the reader receives. A personal or departmental web page provides
+none of the three. Beyond that, the practical split is between the general
+repositories, which accept anything and are the right default, and the
+subject-specific ones, which impose a metadata standard that makes a dataset
+discoverable by people who were not looking for that particular paper.
 
 1.  Zenodo: Hosted by CERN, it provides a place for researchers to deposit datasets. It's not subject-specific, so it caters to various disciplines.
 
@@ -97,43 +115,50 @@ While the replication standard is fundamental to scientific integrity, certain c
 
 @huntington2025sources uses a three-stage many-analysts design to examine how researcher decisions influence variation in treatment effect estimates.
 
--    146 research teams completed the same causal inference task three times under increasingly standardized conditions:
+-   146 research teams completed the same causal inference task three times under increasingly standardized conditions:
 
-    -    **Stage 1:** Few constraints (free-form analysis).
+    -   **Stage 1:** Few constraints (free-form analysis).
+    -   **Stage 2:** Prescribed research design.
+    -   **Stage 3:** Prescribed design plus pre-cleaned data.
 
-    -    **Stage 2:** Prescribed research design.
+-   **Key findings:**
 
-    -    **Stage 3:** Prescribed design plus pre-cleaned data.
+    -   **Stage 1:** High variation in reported effects (IQR = 3.1 percentage points), with outliers.
+    -   **Stage 2:** Even greater variation (IQR = 4.0), due to imperfect protocol adherence.
+    -   **Stage 3:** Lowest variation (IQR = 2.4), suggesting data cleaning substantially reduces result heterogeneity.
 
-```{=html}
-<!-- -->
-```
--    **Key findings:**
-
-    -    **Stage 1:** High variation in reported effects (IQR = 3.1 percentage points), with outliers.
-
-    -    **Stage 2:** Even greater variation (IQR = 4.0), due to imperfect protocol adherence.
-
-    -    **Stage 3:** Lowest variation (IQR = 2.4), suggesting data cleaning substantially reduces result heterogeneity.
-
-```{=html}
-<!-- -->
-```
--    **Sample size convergence:**
+-   **Sample size convergence:**
 
     -   IQR dropped from 295,187 (Stage 1) to 29,144 (Stage 2), and was effectively zero in Stage 3.
 
-    The results highlight the **critical role of data cleaning** in applied microeconomics and suggest **new directions for replication research**.
-
-------------------------------------------------------------------------
+The result that matters is the ordering, and it is not the one the standardization
+logic predicts. Prescribing the research design in Stage 2 made the spread of
+reported effects *wider* rather than narrower, because teams applied the
+prescribed design imperfectly and their deviations pulled in different
+directions. Only Stage 3, which handed teams data that had already been
+cleaned, reduced dispersion below the free-form baseline. The sample size
+figures explain why: at Stage 1 the teams were not even analyzing the same
+number of observations, with an interquartile range of nearly 300,000 rows,
+and that gap closed to zero only once the cleaning was done centrally. The
+results highlight the **critical role of data cleaning** in applied
+microeconomics and suggest **new directions for replication research**. The
+practical implication for the replication packages discussed above is that
+sharing the analysis script is not enough. Two analysts running the same script
+on the same raw file can still disagree, because the decisions that moved the
+estimate most were made before the script began.
 
 ## Synthetic Data
 
 Synthetic data, which models real data while ensuring anonymity, is becoming an essential tool in research. By generating artificial datasets that retain key statistical properties of the original data, researchers can **preserve privacy, enhance data accessibility, and facilitate replication**. However, synthetic data also introduces complexities and should be used with caution.
 
-------------------------------------------------------------------------
-
 ### Benefits of Synthetic Data
+
+The case for synthetic data rests on a single observation: most of what a
+researcher needs from a dataset is its statistical structure, not the
+particular people in it. If a generator reproduces that structure faithfully,
+the analytical value of the data survives the substitution while the
+disclosure risk does not. Three consequences follow, and they matter to
+different constituencies.
 
 1.  **Privacy Preservation**
     -   Protects sensitive or proprietary information while enabling research collaboration.
@@ -144,9 +169,19 @@ Synthetic data, which models real data while ensuring anonymity, is becoming an 
     -   Allows for data sharing in environments where access to real data is restricted.
     -   Enables large-scale simulations without legal or ethical constraints.
 
-------------------------------------------------------------------------
+The first benefit is defensive and the other two are productive, which is why
+institutions and researchers tend to arrive at synthetic data from opposite
+directions. A data steward adopts it to make a release legally possible at all.
+An analyst adopts it because it removes a scheduling constraint: a synthetic
+extract can be shared with a collaborator, a referee, or a student today,
+rather than after a data use agreement clears. The augmentation case is the
+weakest of the three and the most often oversold, because generating more rows
+from a fitted model adds no information that was not already in the fit.
 
 ### Concerns and Limitations
+
+Against those benefits sit three failure modes, and each one is a case where
+the substitution above quietly stops holding.
 
 1.  **Misconceptions About Privacy**
     -   Synthetic data does not guarantee absolute privacy: re-identification risks remain if it is too similar to the real dataset.
@@ -156,15 +191,26 @@ Synthetic data, which models real data while ensuring anonymity, is becoming an 
     -   Models trained exclusively on synthetic data may lack generalizability.
     -   Differences between real and synthetic distributions can introduce biases.
 
-------------------------------------------------------------------------
+Read together, these describe one tension rather than three separate problems.
+A generator that reproduces the source distribution closely enough to support
+the analysis is, by construction, closer to reproducing individual records, and
+a generator tuned away from the source to protect those records is further from
+supporting the analysis. Utility and privacy trade against each other along a
+single dial, and the honest reporting practice is to say where the dial was set
+and to measure both quantities rather than assert one and hope for the other.
+The outlier problem is the sharpest instance: the observations most likely to
+be smoothed away by a generative model are the extreme ones, and in fraud
+detection, credit risk, and clinical safety those are precisely the
+observations the analysis exists to find. That is the practical reason
+synthetic data works better as a supplement to a confidential analysis than as
+a replacement for one, and it motivates the formal privacy guarantees taken up
+in Chapter \@ref(sec-differential-privacy).
 
 ### Further Insights on Synthetic Data
 
 Synthetic data acts as a bridge between model-centric and data-centric perspectives, making it a vital tool in modern research. An analogy can be drawn to viewing a replica of the Mona Lisa: the essence remains, but the original is securely stored.
 
 For a deeper dive into synthetic data and its applications, refer to [@jordon2022synthetic].
-
-------------------------------------------------------------------------
 
 ### Generating Synthetic Data
 
@@ -206,7 +252,7 @@ In cases where **data cannot be exported** due to security, privacy, or propriet
 ```{r}
 library(copula)
 library(moments)
-library(PerformanceAnalytics)  # For correlation plots
+library(PerformanceAnalytics)  # its skewness() and kurtosis() mask moments
 library(ggplot2)
 library(dplyr)
 ```
@@ -229,7 +275,7 @@ We'll create four continuous variables, `X1` through `X4`, each influenced by:
 
 -   Time (with some nonlinear relationships, e.g., sine, polynomial)
 
--   Nonlinear cross-relationships among X1--X4
+-   Nonlinear cross-relationships among X1 to X4
 
 This gives us a total of $3 \times 50 \times 20=3000$ rows in the "original" dataset.
 
@@ -293,10 +339,13 @@ head(df_original)
 
 3.  Explore the Original Dataset
 
-Let's do some **descriptive statistics** and look at the **correlations** among X1--X4.\
+Let's do some **descriptive statistics** and look at the **correlations** among X1 to X4.\
 Because we have repeated measures (time series) nested in units and groups, these correlations are "pooled" across all rows. This is a simplification, but it will let us demonstrate how to do a copula-based synthetic approach.
 
-```{r synth-corr-original, fig.cap="Pairwise scatter plots, histograms, and correlations for X1 to X4 in the original data.", fig.alt="Scatter plot matrix of X1 to X4 with histograms on the diagonal, smoothed trend lines in the lower panels, and correlations in the upper panels. X2 and X4 are right skewed. Correlations are minus 0.69 for X1 and X2, 0.39 for X1 and X3, minus 0.70 for X1 and X4, 0.13 for X2 and X3, 0.75 for X2 and X4, and minus 0.37 for X3 and X4. The X1 and X2 relationship is visibly curved."}
+Figure \@ref(fig:synth-corr-original) is the reference against which the
+synthetic replacement will be judged.
+
+```{r synth-corr-original, fig.cap="Pairwise scatter plots, histograms, and correlations for X1 to X4 in the original data.", fig.alt="Scatter plot matrix of X1 to X4 with histograms on the diagonal, grey points and black trend lines below, and correlations above. X2 and X4 are right skewed. Correlations are minus 0.69 for X1 and X2, 0.39 for X1 and X3, minus 0.70 for X1 and X4, 0.13 for X2 and X3, 0.75 for X2 and X4, and minus 0.37 for X3 and X4. The X1 and X2 relationship is visibly curved."}
 # Descriptive stats (overall)
 summary(df_original[, c("X1", "X2", "X3", "X4")])
 
@@ -307,9 +356,37 @@ apply(df_original[, c("X1", "X2", "X3", "X4")], 2, kurtosis)
 # Correlation matrix
 (cor_mat <- cor(df_original[, c("X1", "X2", "X3", "X4")]))
 
-chart.Correlation(df_original[, c("X1", "X2", "X3", "X4")], 
-                  histogram = TRUE, pch = 19)
+# Scatter plot matrix: histogram and density on the diagonal with the name
+# above it, grey points with a black lowess trend below, correlations above
+panel_hist <- function(x, ...) {
+    usr <- par("usr")
+    on.exit(par(usr = usr))
+    h <- hist(x, breaks = "FD", plot = FALSE)
+    d <- density(x)
+    par(usr = c(usr[1:2], 0, 1.7 * max(h$density, d$y)))
+    rect(head(h$breaks, -1), 0, h$breaks[-1], h$density,
+         col = "grey85", border = "grey50")
+    lines(d, lwd = 1.5)
+}
+panel_trend <- function(x, y, ...) {
+    points(x, y, pch = 19, cex = 0.3, col = "grey70")
+    lines(lowess(x, y), lwd = 2.5)
+}
+panel_cor <- function(x, y, ...) {
+    usr <- par("usr")
+    on.exit(par(usr = usr))
+    par(usr = c(0, 1, 0, 1))
+    r <- cor(x, y)
+    text(0.5, 0.5, formatC(r, format = "f", digits = 2),
+         cex = 1 + 1.5 * abs(r))
+}
+pairs_chart <- function(df) {
+    pairs(df, gap = 0, diag.panel = panel_hist,
+          lower.panel = panel_trend, upper.panel = panel_cor,
+          label.pos = 0.87, cex.labels = 1.4, font.labels = 2)
+}
 
+pairs_chart(df_original[, c("X1", "X2", "X3", "X4")])
 ```
 
 4.  Convert to Pseudo-Observations for Copula Fitting
@@ -357,11 +434,11 @@ summary(fit_gauss)
 
 ```
 
-Check the estimated correlation matrix within the copula. This should reflect the dependency among X1--X4 (though not time, group, or unit).
+Check the estimated correlation matrix within the copula. This should reflect the dependency among X1 to X4 (though not time, group, or unit).
 
 6.  Generate Synthetic Data
 
--   Synthetic X1--X4
+-   Synthetic X1 to X4
     1.  **Sample** from the fitted copula to get synthetic $[0,1]$ values.
     2.  **Invert** them via the original empirical distributions (quantiles).
 
@@ -487,14 +564,15 @@ round(cor(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")]), 3)
 Figure \@ref(fig:repsynth-orig-vs-synth-hist) overlays per-variable histograms for the four original and synthetic columns to provide a visual sanity check that the marginal shapes match.
 
 ```{r repsynth-orig-vs-synth-hist, fig.cap="Per-variable overlaid histograms of the four original (solid fill) and synthetic (hatched) variables, used as a visual sanity check on marginal fidelity.", message=FALSE, fig.alt="Four density histograms, one each for X1 to X4, with the original data as solid grey bars and the synthetic data as hatched bars drawn on top. In every panel the two histograms nearly coincide, including the left skew of X1 and X3 and the long right tail of X2 and X4."}
-par(mfrow = c(2, 2))
+op <- par(mfrow = c(2, 2), oma = c(2, 0, 0, 0))
 vars <- c("X1", "X2", "X3", "X4")
 for (i in seq_along(vars)) {
     hist(
         df_original[[vars[i]]],
         probability = TRUE,
         breaks = 30,
-        main = paste("Original", vars[i]),
+        main = vars[i],
+        xlab = paste("Value of", vars[i]),
         col = "grey75",
         border = "grey30"
     )
@@ -502,30 +580,44 @@ for (i in seq_along(vars)) {
         df_synth[[paste0(vars[i], "_synth")]],
         probability = TRUE,
         breaks = 30,
-        main = paste("Synthetic", vars[i]),
         col = "black",
         border = "black",
         density = 18,
         angle = 45,
         add = TRUE
     )
-    legend(
-        "topright",
-        legend = c("Original", "Synthetic"),
-        fill = c("grey75", "black"),
-        density = c(NA, 18),
-        angle = c(0, 45)
-    )
 }
+# One shared legend in the outer bottom margin, clear of the bars
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0),
+    new = TRUE)
+plot.new()
+legend("bottom", legend = c("Original", "Synthetic"),
+       fill = c("grey75", "black"), density = c(NA, 18),
+       angle = c(0, 45), horiz = TRUE, bty = "n")
+par(op)
 
 ```
 
 -   Correlation Plot for Synthetic Data
 
-```{r synth-corr-synthetic, fig.cap="Pairwise scatter plots, histograms, and correlations for the synthetic X1 to X4. The marginal shapes and the correlation structure carry over, which is what the copula was fitted to preserve.", fig.alt="Scatter plot matrix of the synthetic X1 to X4 with histograms on the diagonal, trend lines below, and correlations above. The histograms keep the original shapes. Correlations are minus 0.56, 0.29, minus 0.56, 0.20, 0.64 and minus 0.35, each somewhat weaker than in the original, and the curved X1 and X2 relationship becomes a roughly straight decline."}
-chart.Correlation(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")],
-                  histogram = TRUE, pch = 19)
+Figure \@ref(fig:synth-corr-synthetic) is the counterpart of Figure
+\@ref(fig:synth-corr-original) for the synthetic file, and the comparison is
+less flattering than the marginal check. The histograms on the diagonal match,
+because each synthetic column is read off the empirical quantiles of the
+original. The dependence does not match as well. Most correlations are weaker,
+with X2 and X4 falling from 0.75 to 0.64 and X1 and X2 from minus 0.69 to minus
+0.56, and the curved relationship between X1 and X2 becomes a straight decline.
+A Gaussian copula stores all dependence in one correlation matrix on the normal
+score scale, so it keeps the direction and rough strength of each monotone
+association and discards the rest, including curvature and the clustering that
+the group and unit effects create. Matching marginals is therefore no evidence
+that the joint structure survived, and this is the comparison that shows it.
 
+```{r synth-corr-synthetic, fig.cap="Pairwise scatter plots, histograms, and correlations for the synthetic X1 to X4. The marginal shapes carry over, but most correlations are weaker than in the original and the curved X1 and X2 relationship becomes straight, because a Gaussian copula represents only monotone dependence.", fig.alt="Scatter plot matrix of the synthetic X1 to X4 with histograms on the diagonal, grey points and black trend lines below, and correlations above. The histograms keep the original shapes. Correlations are minus 0.56, 0.29, minus 0.56, 0.20, 0.64 and minus 0.35, mostly weaker than in the original, and the curved X1 and X2 relationship becomes a roughly straight decline."}
+# Same names as the original, so the two figures read side by side
+synth_plot <- df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")]
+names(synth_plot) <- c("X1", "X2", "X3", "X4")
+pairs_chart(synth_plot)
 ```
 
 -   Indistinguishability: If the synthetic summary statistics (means, variances, skewness, kurtosis) and correlation structure match closely, the synthetic data is often "indistinguishable" from the original for many analytical purposes.
@@ -545,6 +637,29 @@ chart.Correlation(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")],
     -   Convert categories to numeric in a naive way (not recommended for actual IDs) or use specialized **discrete copulas**.
 
 -   Privacy Considerations: Even if data is synthetic, do check that it doesn't inadvertently leak private information (e.g., via memorizing outliers). Techniques like **differential privacy** or **post-hoc checks** might be required.
+
+The four points describe a widening gap between what a Gaussian copula
+guarantees and what a replication actually needs. The copula reproduces the
+marginal distributions exactly and the monotone part of the dependence
+approximately, and the first point holds only to that extent. Figure
+\@ref(fig:synth-corr-synthetic) already shows the limit, since the linear
+correlations shrink and the curvature is gone, so an analysis that turns on
+either will not give the same answer on the synthetic file. The next two points
+mark where the guarantee stops altogether. A copula fitted across all rows has
+no representation of within-unit autocorrelation or of group structure, so a
+panel model estimated on the synthetic data will recover roughly the
+contemporaneous correlations and the wrong dynamics.
+Categorical identifiers are outside the model altogether, because a rank
+transform of an arbitrary label encodes an ordering that does not exist.
+
+The last point is the one that survives all three of the others. Fidelity and
+disclosure risk move together, so the closer a generator comes to satisfying
+points one through three, the more of the original it has memorised, and the
+more seriously the privacy check has to be taken. A useful discipline is to
+decide in advance which statistics the synthetic file is meant to preserve,
+state that in the replication package, and verify only those. It is more honest
+than claiming indistinguishability in general, and it tells a reader precisely
+which of their analyses the file can support.
 
 ### Restricted Dataset
 
@@ -731,7 +846,7 @@ Sigma
 
 We'll replicate the same **hierarchical shape**: 3 groups, 50 units, 20 time points. But we'll fill in `(X1, X2, X3, X4)` by sampling from **multivariate normal** with `(means, Sigma)`.
 
-> In practice, you might want to add back random intercepts for groups or time trends if your manual stats include that. However, if all you have are overall means, SDs, and a correlation matrix, the simplest approach is to assume a single global distribution for X1--X4.
+> In practice, you might want to add back random intercepts for groups or time trends if your manual stats include that. However, if all you have are overall means, SDs, and a correlation matrix, the simplest approach is to assume a single global distribution for X1 to X4.
 
 ```{r}
 library(MASS)
@@ -849,8 +964,6 @@ long_df <- reshape(wide_df,
 # Ensure no unexpected columns
 long_df <- long_df[, c("Time", "Group", "Value")]
 
-
-
 # Display first few rows
 head(long_df)
 ```
@@ -881,22 +994,20 @@ print(round(synth_cor, 3))
 
 ```
 
-You should see that the synthetic dataset's means, SDs, and correlation matrix are **very close** to the manually collected values from `df_original`. Figure \@ref(fig:repsynth-marginal-hists) checks the marginals one variable at a time, and Figure \@ref(fig:repsynth-pairwise-chart) checks the joint structure the marginals cannot show.
+You should see that the synthetic dataset's means, SDs, and correlation matrix are **very close** to the manually collected values from `df_original`. Those three sets of numbers are all the generator was given, and Figure \@ref(fig:repsynth-marginal-hists) shows what it could not know. A multivariate normal is symmetric, so every synthetic marginal is bell shaped. The right skew of the collected X2 and X4 disappears, and about 5 percent of the synthetic X2 values are negative, down to about minus 8, although the collected X2 is essentially never below zero. Matching the first two moments is not matching the distribution, and a variable that is skewed or bounded needs a transformation or a skewed generator such as the skew normal sketch above. Figure \@ref(fig:repsynth-pairwise-chart) checks the joint structure the marginals cannot show.
 
-```{r repsynth-marginal-hists, message=FALSE, fig.cap="Marginal distributions of the four synthetic variables. Each panel should reproduce the shape of the collected variable it stands in for, since the generator was calibrated to the original means and standard deviations.", fig.alt="Four frequency histograms of the synthetic X1, X2, X3 and X4. All four are roughly symmetric and bell shaped, centred near minus 0.5, 8, 2.5 and 1.5, and X2 extends below zero."}
-# Histograms or density plots
-par(mfrow = c(2,2))
-hist(df_synth$X1, main="X1 Synthetic", col="lightblue", breaks=30)
-hist(df_synth$X2, main="X2 Synthetic", col="lightblue", breaks=30)
-hist(df_synth$X3, main="X3 Synthetic", col="lightblue", breaks=30)
-hist(df_synth$X4, main="X4 Synthetic", col="lightblue", breaks=30)
+```{r repsynth-marginal-hists, message=FALSE, fig.cap="Marginal distributions of the four synthetic variables drawn from a multivariate normal with the collected means, standard deviations and correlations. Every panel is symmetric, so the right skew of the collected X2 and X4 is lost, and synthetic X2 takes negative values that the collected X2 essentially never does.", fig.alt="Four frequency histograms of the synthetic X1, X2, X3 and X4. All four are roughly symmetric and bell shaped, centred near minus 0.5, 8, 2.5 and 1.5, and X2 reaches down to about minus 8."}
+# Histograms of each synthetic variable
+par(mfrow = c(2, 2))
+for (v in c("X1", "X2", "X3", "X4")) {
+    hist(df_synth[[v]], breaks = 30, col = "lightblue",
+         main = v, xlab = paste("Synthetic", v))
+}
 ```
 
-```{r repsynth-pairwise-chart, message=FALSE, fig.cap="Pairwise scatterplots, marginal histograms, and correlations for the synthetic data. Matching marginals are not enough on their own, so this is the panel that shows whether the dependence structure survived as well.", fig.alt="Scatter plot matrix of the synthetic X1 to X4 with bell shaped histograms on the diagonal, straight trend lines below, and correlations above. The correlations are minus 0.69, 0.40, minus 0.70, 0.11, 0.76 and minus 0.38, close to those of the original data, while every scatter is an elliptical cloud with no curvature."}
-# Pairwise correlation scatterplots
-library(PerformanceAnalytics)
-chart.Correlation(df_synth[, c("X1","X2","X3","X4")],
-                  histogram=TRUE, pch=19)
+```{r repsynth-pairwise-chart, message=FALSE, fig.cap="Pairwise scatterplots, marginal histograms, and correlations for the synthetic data. Matching marginals are not enough on their own, so this is the panel that shows whether the dependence structure survived as well.", fig.alt="Scatter plot matrix of the synthetic X1 to X4 with bell shaped histograms on the diagonal, grey points and straight black trend lines below, and correlations above. The correlations are minus 0.69, 0.40, minus 0.70, 0.11, 0.76 and minus 0.38, close to those of the original data, while every scatter is an elliptical cloud with no curvature."}
+# Pairwise scatter plots, with the helper defined for the copula example
+pairs_chart(df_synth[, c("X1", "X2", "X3", "X4")])
 ```
 
 ### Synthpop
@@ -923,7 +1034,6 @@ syn_df <- syn(iris, seed = 3)
 # check for replicated uniques
 replicated.uniques(syn_df, iris)
 
-
 # remove replicated uniques and adds a FAKE_DATA label 
 # (in case a person can see his or own data in 
 # the replicated data by chance)
@@ -937,14 +1047,18 @@ Figures \@ref(fig:synth-pairs-original) and \@ref(fig:synth-pairs-synthetic)
 put the two files side by side across every pair of variables, which is a
 stricter test than comparing marginals one at a time.
 
-```{r synth-pairs-original, message=FALSE, warning=FALSE, fig.width=9, fig.height=9, fig.cap="Pairwise relationships in the original iris data. A five-by-five panel needs a large device, or the species labels on the categorical panel overprint each other.", fig.alt="Scatter plot matrix of the iris variables Sepal.Length, Sepal.Width, Petal.Length, Petal.Width and Species, with density curves on the diagonal, correlations above, box plots by species on the right, and histograms by species along the bottom. Petal.Length and Petal.Width are bimodal and correlate 0.963. Setosa separates clearly on the petal measures. The three species counts are equal."}
+```{r synth-pairs-original, message=FALSE, warning=FALSE, fig.width=9, fig.height=9, fig.cap="Pairwise relationships in the original iris data. Setosa separates cleanly from the other two species on the petal measures, and petal length and width are very strongly correlated.", fig.alt="Scatter plot matrix of the iris variables Sepal.Length, Sepal.Width, Petal.Length, Petal.Width and Species, with density curves on the diagonal, correlations above, box plots by species on the right, and histograms by species along the bottom. Petal.Length and Petal.Width are bimodal and correlate 0.963. Setosa separates clearly on the petal measures. The three species counts are equal."}
+# Plain correlations without significance stars, and slanted tick labels
+# so the species names do not run together
+pairs_upper <- list(continuous = GGally::wrap("cor", stars = FALSE))
+pairs_theme <- theme(axis.text.x = element_text(angle = 35, hjust = 1))
 iris |>
-    GGally::ggpairs()
+    GGally::ggpairs(upper = pairs_upper) + pairs_theme
 ```
 
 ```{r synth-pairs-synthetic, message=FALSE, warning=FALSE, fig.width=9, fig.height=9, fig.cap="The same pairwise view of the synthetic file produced by synthpop, for comparison with the original.", fig.alt="Scatter plot matrix of the synthetic iris file laid out like the original, with density curves, correlations, box plots and histograms by species. The bimodal petal distributions, the setosa separation and the correlations, such as 0.967 for Petal.Length and Petal.Width, are close to the original. The species counts are no longer equal, with more setosa and fewer versicolor."}
 syn_df$syn |>
-    GGally::ggpairs()
+    GGally::ggpairs(upper = pairs_upper) + pairs_theme
 ```
 
 ```{r}
@@ -969,9 +1083,9 @@ For General utility
 compare(syn_df, iris)
 ```
 
-Specific utility compares the analysis a user would actually run, here a regression. Figure \@ref(fig:synth-zvalues-compare) sets the coefficients from the synthetic fit beside those from the original data.
+Specific utility compares the analysis a user would actually run, here a regression of Sepal.Length on Sepal.Width and Petal.Length. Figure \@ref(fig:synth-zvalues-compare) sets the z value of each coefficient from the synthetic fit beside the z value from the original data, so a reader can see whether the synthetic file leads to the same conclusion.
 
-```{r synth-zvalues-compare, fig.cap="Z values with interval bars for the Sepal.Width and Petal.Length coefficients in a regression of Sepal.Length, fitted to the synthpop file and to the observed iris data. The two fits agree in sign and rough size, which is the test of specific utility.", fig.alt="Dot plot of z values with interval bars for the coefficients Sepal.Width and Petal.Length in a regression of Sepal.Length, comparing the synthetic fit (triangles) with the observed fit (circles), against a dashed reference line at zero. Both fits give large positive z values. For Petal.Length they are near 27 and overlap, and for Sepal.Width the synthetic value is lower, about 6 against 9."}
+```{r synth-zvalues-compare, fig.cap="Z values with interval bars for the Sepal.Width and Petal.Length coefficients in a regression of Sepal.Length, fitted to the synthpop file and to the observed iris data. Both coefficients keep their sign and remain clearly significant, but the synthetic Sepal.Width effect is weaker and its interval overlaps the observed one only partly.", fig.alt="Dot plot of z values with interval bars for the coefficients Sepal.Width and Petal.Length in a regression of Sepal.Length, comparing the synthetic fit (triangles) with the observed fit (circles), against a dashed reference line at zero. Both fits give large positive z values. For Petal.Length they are near 27 and overlap, and for Sepal.Width the synthetic value is lower, about 6 against 9."}
 # just like regular lm, but for synthetic data
 lm_syn <- lm.synds(Sepal.Length ~ Sepal.Width + Petal.Length , data = syn_df)
 compare(lm_syn, iris)
@@ -980,3 +1094,12 @@ compare(lm_syn, iris)
 ```
 
 You basically want your lack-of-fit test to be non-significant.
+
+## Looking Ahead
+
+Synthetic data answers the sharing problem by substituting a file that behaves
+like the original. That is a practical answer rather than a guaranteed one, and
+the guarantee is exactly what is missing: nothing in the construction bounds how
+much a determined reader could learn about a real record. The next chapter takes
+up the formal treatment of that question, which gives up on sanitizing the
+dataset and makes a promise about the algorithm instead.

@@ -1,14 +1,20 @@
-# Sensitivity Analysis and Robustness Checks
-
+# Sensitivity Analysis and Robustness Checks {#sec-sensitivity-robustness}
 ::: {.chapter-abstract}
 **Abstract.** A finding that survives only one specification is not a finding. This chapter organizes the robustness toolkit around the assumption each check interrogates, then works through the leading methods with runnable code. Specification curve and multiverse analysis come first, estimating a result across the full grid of defensible analytic choices rather than a hand-picked few, with implementations in starbility, specr, and rdfanalysis. Coefficient stability follows, developing the Oster approach that reads movement in a coefficient and in R-squared as observable evidence about the bias an unobserved confounder could produce. Formal omitted variable sensitivity analysis comes next, covering the konfound framework and the Cinelli and Hazlett robustness value with its contour plots, followed by Rosenbaum bounds for matched observational designs. Sensitivity to outliers and to measurement error close the technical material, and a section on reporting explains how to present these results so a reader can judge fragility without rerunning the analysis. Two extended sections cover placebo, falsification, and negative-control tests, and publication bias and p-hacking.
 
-**Keywords:** Sensitivity analysis; Robustness checks; Specification curve; Multiverse analysis; Robustness value; Rosenbaum bounds
+**Keywords:** Sensitivity analysis, Robustness checks, Specification curve, Multiverse analysis, Robustness value, Rosenbaum bounds
 :::
+
+Chapter \@ref(sec-reporting) sets out how to report an analysis so that a reader
+can follow it. A reader who can follow it will immediately ask the obvious next
+question, which is what would have happened under a different reasonable choice.
+This chapter is about answering that question in advance, and about the
+difference between a robustness check that could have failed and one that was
+never at risk.
 
 > "Do robustness checks until you believe the result."
 >
-> --- the author, having repeatedly experienced the brief joy of promising results only to watch them collapse under closer inspection, and now treating every finding as too good to be true until proven otherwise.
+> The author, having repeatedly experienced the brief joy of promising results only to watch them collapse under closer inspection, and now treating every finding as too good to be true until proven otherwise.
 
 Sensitivity analysis and robustness checks are critical components of rigorous empirical research. They help researchers assess the stability of their findings across different model specifications, evaluate the potential impact of omitted variable bias, and provide evidence for or against causal interpretations. This chapter provides guidance on implementing various sensitivity analysis techniques, ranging from specification curve analysis to sophisticated methods for quantifying omitted variable bias.
 
@@ -22,16 +28,20 @@ A robust finding is one that persists across multiple plausible specifications. 
 
 Robustness checks are not interchangeable: each family targets a distinct threat to a causal claim, and a persuasive paper draws at least one tool from each family that is relevant to its design. The table below organizes the landscape and points to where each family is treated in this book.
 
-| Family | Threat addressed | Representative methods | Where treated |
-|------------------|------------------|-------------------|------------------|
-| Unobserved-confounding sensitivity | Hidden bias remaining after adjustment for observables | Rosenbaum $\Gamma$ bounds, Oster's $\delta$, Cinelli-Hazlett robustness value, ITCV, E-value [@vanderweele2017sensitivity] | This chapter ([Rosenbaum bounds](#sec-rosenbaum-bounds-sensitivity)) |
+Table \@ref(tab:robustness-families) organizes the landscape.
+
+| Family              | Threat addressed           | Representative methods                | Where treated |
+|:---------------|:-------------|:---------------------------|:-------------|
+| Unobserved confounding | Hidden bias remaining after adjustment for observables | Rosenbaum $\Gamma$ bounds, Oster's $\delta$, Cinelli-Hazlett robustness value, ITCV, E-value [@vanderweele2017sensitivity] | Section \@ref(sec-rosenbaum-bounds-sensitivity) |
 | Partial identification | Point identification rests on unverifiable assumptions | Manski natural bounds, monotone instrumental variable bounds [@manski1990nonparametric; @manskipepper2000monotone] | [Partial identification in DiD](#sec-partial-identification-did) |
-| Specification stability | Results hinge on discretionary modeling choices | Specification curve, multiverse analysis, coefficient stability | [Specification curves](#sec-specification-curve-analysis) and [coefficient stability](#sec-coefficient-stability), this chapter |
-| Sample restriction and influence | A few units, clusters, or outliers drive the estimate | Leave-one-out, cluster dropping, winsorizing, influence diagnostics | This chapter, and clustered inference in Chapter \@ref(sec-clustered-inference) |
+| Specification stability | Results hinge on discretionary modeling choices | Specification curve, multiverse analysis, coefficient stability | Sections \@ref(sec-specification-curve-analysis) and \@ref(sec-coefficient-stability) |
+| Sample restriction and influence | A few units, clusters, or outliers drive the estimate | Leave-one-out, cluster dropping, winsorizing, influence diagnostics | This chapter, and Chapter \@ref(sec-clustered-inference) |
 | Measurement error sensitivity | Mismeasured treatment, outcome, or covariates | SIMEX, regression calibration, validation subsamples | This chapter |
-| Design falsification | The design manufactures effects where none can exist | Placebo outcomes, negative controls, in-time and in-space placebos | [Placebo and falsification tests](#sec-placebo-falsification) |
-| Literature-level distortion | The published evidence base is itself selected | Caliper tests, p-curve, p-value distribution tests | [Publication bias and p-hacking](#sec-publication-bias-phacking) |
+| Design falsification | The design manufactures effects where none can exist | Placebo outcomes, negative controls, in-time and in-space placebos | Section \@ref(sec-placebo-falsification) |
+| Literature-level distortion | The published evidence base is itself selected | Caliper tests, p-curve, p-value distribution tests | Section \@ref(sec-publication-bias-phacking) |
 | External validity | The effect may not transport to the target population | Reweighting to target populations, generalization frameworks | Generalization framework in the matching methods chapter (Chapter \@ref(sec-matching-methods)) |
+
+Table: (\#tab:robustness-families) The families of robustness check, the threat each addresses, representative methods, and where the volume treats it.
 
 A practical workflow that draws on this map: begin with design diagnostics (balance, pre-trends, placebos), quantify hidden-bias tolerance with at least one confounding-sensitivity statistic, display a specification curve for the headline outcome, report inference that is robust to the clustering and influence structure of the data, and close by stating how wide any partial-identification bounds are and whether the substantive conclusion survives them. The remainder of this chapter develops the families that concern a single study. The placebo and publication-bias chapters that follow take up design falsification and literature-level distortion.
 
@@ -189,7 +199,7 @@ starb_lm_robust = function(spec, data, rhs, ...) {
 
 #### Creating the Specification Curve
 
-Now we can generate our specification curve with all the bells and whistles (Figure \@ref(fig:robustness-specification-curve))
+Now we can generate our specification curve with all the bells and whistles (Figure \@ref(fig:robustness-specification-curve)).
 
 ```{r}
 # Generate specification curve
@@ -235,25 +245,59 @@ plots = stability_plot(
     
     # Adjust spacing between panels
     # trip_top = 3,
-    
-    # Relative height of coefficient panel vs control panel
-    rel_height = 0.6
+
+    # Stop after drawing the two panels, so they can be restyled
+    run_to = 6
 )
 ```
 
-```{r robustness-specification-curve, fig.cap="Specification curve for the effect of carat on price.", fig.alt="Specification curve of 16 estimates of the carat coefficient on price, sorted from about 10,400 to 11,600, inside a grey confidence ribbon spanning roughly 8,500 to 13,500. The grid below marks which of diamond dimensions, depth, table width, cut FE, and color FE each model includes. Every estimate sits far above zero."}
-# Display the plots
-plots
+By default `starbility` marks the $p$-value band of each estimate by colour alone, which is lost in greyscale print. The two helpers below restyle the coefficient panel so that each band also gets its own point shape, add a legend, and then stack the two panels the way `stability_plot()` does. They are reused for every `starbility` figure in this chapter.
+
+```{r}
+# One colour and one shape per p-value band. The viridis colours
+# run from dark to light, so the bands also differ in grey level.
+p_bands  = c("p<0.01", "p<0.05", "p<0.10", "p>0.10")
+p_shapes = setNames(c(15, 17, 18, 19), p_bands)
+p_cols   = setNames(viridis::viridis(4, end = 0.85), p_bands)
+
+# Replace starbility's colour-only points with colour plus shape
+band_panel = function(coef_panel) {
+  is_point = vapply(coef_panel$layers,
+                    function(x) inherits(x$geom, "GeomPoint"),
+                    logical(1))
+  pt_size = coef_panel$layers[is_point][[1]]$aes_params$size
+  coef_panel$layers = coef_panel$layers[!is_point]
+  coef_panel +
+    geom_point(aes(col = p, shape = p), size = pt_size) +
+    scale_colour_manual(values = p_cols, name = "P-value") +
+    scale_shape_manual(values = p_shapes, name = "P-value") +
+    guides(colour = "legend", shape = "legend") +
+    theme(legend.position = "top", legend.justification = "left")
+}
+
+# Stack the restyled coefficient panel above the control panel
+band_plot = function(panels, rel_height = 0.5) {
+  cowplot::plot_grid(
+    band_panel(panels[[1]]), panels[[2]],
+    nrow = 2, align = "v", axis = "b",
+    rel_heights = c(1, rel_height)
+  )
+}
 ```
 
-The specification curve uses color coding to indicate statistical significance:
+```{r robustness-specification-curve, fig.cap="Specification curve for the effect of carat on price.", fig.alt="Specification curve of 16 estimates of the carat coefficient on price, all drawn as squares for p below 0.01, sorted from about 10,400 to 11,600 inside a grey confidence ribbon from roughly 8,500 to 13,500. The grid below marks which of diamond dimensions, depth, table width, cut FE, and color FE each model includes."}
+# Display the plots
+band_plot(plots, rel_height = 0.6)
+```
 
--   Red: $p < 0.01$ (highly significant)
--   Green: $p < 0.05$ (significant)
--   Blue: $p < 0.1$ (marginally significant)
--   Black: $p > 0.1$ (not significant)
+The specification curve marks statistical significance by both point shape and colour, and the legend above the curve lists the bands that occur. Across the chapter's `starbility` figures, the four bands are encoded as follows:
 
-This color scheme makes it easy to see at a glance whether your finding is robust across specifications, or whether significance depends on particular specification choices.
+-   Dark purple square: $p < 0.01$ (highly significant)
+-   Blue triangle: $p < 0.05$ (significant)
+-   Teal diamond: $p < 0.1$ (marginally significant)
+-   Light green circle: $p > 0.1$ (not significant)
+
+Because the shapes differ as well as the colours, it is easy to see at a glance, even in greyscale print, whether your finding is robust across specifications or whether significance depends on particular specification choices.
 
 ### Advanced Specification Curve Techniques
 
@@ -472,12 +516,13 @@ logit_curve = stability_plot(
   perm = perm_controls,
   base = base_controls,
   fe_always = FALSE,
-  run_from = 3  # Start from estimation step
+  run_from = 3,  # Start from estimation step
+  run_to = 6     # Return the panels for restyling
 )
 ```
 
-```{r robustness-logit-curve, fig.cap="Specification curve (logit specifications).", fig.alt="Specification curve of the logit coefficient on carat for eight models, each with a 95 percent confidence interval. Estimates range from about 6 to 28 and are all positive, but three intervals reach below zero. The grid below shows every model includes diamond dimensions, with depth, table width, and clarity added in combination."}
-logit_curve
+```{r robustness-logit-curve, fig.cap="Specification curve (logit specifications).", fig.alt="Specification curve of the logit coefficient on carat for eight models with 95 percent confidence intervals, marker shape showing the p-value band. Estimates range from about 6 to 28 and are all positive, but three intervals reach below zero. The grid below shows which of depth, table width, and clarity join diamond dimensions."}
+band_plot(logit_curve)
 ```
 
 #### Marginal Effects for Non-Linear Models
@@ -547,19 +592,20 @@ ame_curve = stability_plot(
   perm = perm_controls,
   base = base_controls,
   fe_always = FALSE,
-  run_from = 3
+  run_from = 3,
+  run_to = 6  # Return the panels for restyling
 )
 ```
 
-```{r robustness-ame-curve, fig.cap='Robustness of diamond-dimension effects measured as average marginal effects.', fig.alt='Specification curve displaying average marginal effects of diamond characteristics including depth, table width, and clarity on diamond price across different model specifications. Points represent marginal effect estimates with error bars indicating confidence intervals. Different colors distinguish between different levels or interactions of the variables. The y-axis shows marginal effect values ranging from approximately negative 0.5 to 1.5, while the x-axis displays different combinations of diamond dimension variables tested across specifications.', fig.alt="Specification curve of the average marginal effect of carat on the chance of an above-median price, for the same eight models, with 99 percent confidence intervals. Estimates range from about 0.2 to 0.8. Six intervals cross zero, and only two stay above it: diamond dimensions plus clarity, and the full model."}
-ame_curve
+```{r robustness-ame-curve, fig.cap='Specification curve of the average marginal effect of carat on the probability of an above-median price.', fig.alt="Specification curve for the same eight logit models, with 99 percent intervals, marker shape showing the p-value band, and grey bars below marking the controls. Estimates range from about 0.2 to 0.8. Only two intervals stay above zero: diamond dimensions plus clarity, and the full model."}
+band_plot(ame_curve)
 ```
 
 #### Fully Customized Specification Curve Visualizations
 
 When you need complete control over the appearance of your specification curve, you can extract the underlying data and create custom ggplot visualizations (Figure \@ref(fig:fully-customized-spec-curve)).
 
-```{r fully-customized-spec-curve, fig.cap='Specification curve for the effect of carat on above-median diamond price.', fig.alt='Specification curve displaying the effect of diamond carat weight on the probability of being priced above the median across eight different model specifications. The top panel shows average marginal effect estimates represented by different colored shapes including triangles, diamonds, circles, and squares, with error bars indicating confidence intervals. The y-axis ranges from 0 to 1.5, with a dotted horizontal line at zero. The bottom panel uses a matrix of filled and unfilled diamonds to indicate which control variables including diamond dimensions, depth, table width, and clarity are included in each of the eight specifications numbered along the x-axis.', fig.alt="Specification curve of the average marginal effect of carat for eight numbered models, with vertical error bars and a dotted reference line at zero. Estimates run from about 0.2 to 0.8, and marker shape varies with the p-value band. Below, filled diamonds mark which of diamond dimensions, depth, table width, and clarity each model includes."}
+```{r fully-customized-spec-curve, fig.cap='Specification curve for the effect of carat on above-median diamond price.', fig.alt="Specification curve of the average marginal effect of carat for eight numbered models, with vertical error bars, several of which cross the dotted zero line, the lowest ending near minus 0.4. Estimates run from about 0.2 to 0.8, and a legend maps marker shape to p-value band, with squares for the two strongest models. Below, filled diamonds mark which controls each model includes."}
 # Extract data for custom plotting
 dfs = stability_plot(
   grid = grid1,
@@ -595,7 +641,7 @@ coef_plot = ggplot2::ggplot(
   geom_linerange(
     aes(ymin = error_low, ymax = error_high),
     alpha = 0.75,
-    size = 0.8
+    linewidth = 0.8
   ) +
   
   # Add coefficient points with color and shape by significance
@@ -609,45 +655,54 @@ coef_plot = ggplot2::ggplot(
   viridis::scale_color_viridis(
     discrete = TRUE,
     option = "D",
+    end = 0.85,  # Keep the lightest band visible on white
     name = "P-value"
   ) +
-  
-  # Different shapes for different significance levels
+
+  # Different shapes for different significance levels. Colour and shape
+  # share one name, so ggplot merges them into a single legend.
   scale_shape_manual(
     values = c(15, 17, 18, 19),
     name = "P-value"
   ) +
-  
+
   # Reference line at zero
   geom_hline(
     yintercept = 0,
     linetype = 'dotted',
     color = 'red',
-    size = 0.5
+    linewidth = 0.5
   ) +
-  
-  # Styling
+
+  # Styling. The legend goes on top so that both panels keep the same
+  # width and the specifications stay aligned with the control grid.
   theme_classic() +
   theme(
     axis.text.x = element_blank(),
     axis.title = element_blank(),
     axis.ticks.x = element_blank(),
-    plot.title = element_text(size = 14, face = "bold"),
-    plot.subtitle = element_text(size = 11)
+    plot.title = element_text(size = 13, face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    legend.position = "top",
+    legend.justification = "left"
   ) +
-  
-  # Set axis limits
+
+  # Set the x limits only, so that every interval is drawn in full
   coord_cartesian(
-    xlim = c(1 - min_space, max(coef_grid_logit$model) + min_space),
-    ylim = c(-0.1, 1.6)
+    xlim = c(1 - min_space, max(coef_grid_logit$model) + min_space)
   ) +
-  
-  # Remove redundant legends
-  guides(fill = FALSE, shape = FALSE, col = FALSE) +
-  
+
+  # Fill is not used by these point shapes, so drop its legend
+  guides(fill = "none") +
+
   # Add titles
-  ggtitle('Specification Curve: Effect of Carat on Above-Median Price') +
-  labs(subtitle = "Error bars represent 99% confidence intervals for average marginal effects")
+  labs(
+    title = 'Effect of carat on above-median price',
+    subtitle = paste(
+      "Error bars are 99% confidence intervals",
+      "for average marginal effects"
+    )
+  )
 
 # Create customized control specification plot
 control_plot = ggplot(control_grid_logit) +
@@ -660,7 +715,7 @@ control_plot = ggplot(control_grid_logit) +
   
   # Black for included, white for excluded
   scale_fill_manual(values = c('#FFFFFF', '#000000')) +
-  guides(fill = FALSE) +
+  guides(fill = "none") +
   
   # Custom y-axis labels showing control names
   scale_y_continuous(
@@ -797,33 +852,35 @@ panels = stability_plot(
 )
 
 # Add annotations to distinguish model types
-coef_plot_combined = panels[[1]] +
+# band_panel() adds the p-value shapes and legend, as in earlier figures
+coef_plot_combined = band_panel(panels[[1]]) +
   # Vertical line separating logit and probit
   geom_vline(
     xintercept = max(coef_grid_logit$model) + 0.5,
     linetype = 'dashed',
     alpha = 0.8,
-    size = 1
+    linewidth = 1
   ) +
-  
-  # Label for logit models
+
+  # Label for logit models, centred over models 1 to 8
   annotate(
     geom = 'label',
-    x = max(coef_grid_logit$model) / 2,
+    x = mean(range(coef_grid_logit$model)),
     y = 1.8,
     label = 'Logit models',
-    size = 6,
+    size = 5,
     fill = '#D3D3D3',
     alpha = 0.7
   ) +
-  
-  # Label for probit models
+
+  # Label for probit models, centred over models 9 to 16. The probit
+  # model numbers were already shifted, so their range is used directly.
   annotate(
     geom = 'label',
-    x = max(coef_grid_logit$model) + max(coef_grid_probit$model) / 2,
+    x = mean(range(coef_grid_probit$model)),
     y = 1.8,
     label = 'Probit models',
-    size = 6,
+    size = 5,
     fill = '#D3D3D3',
     alpha = 0.7
   ) +
@@ -835,11 +892,11 @@ control_plot_combined = panels[[2]] +
     xintercept = max(control_grid_logit$model) + 0.5,
     linetype = 'dashed',
     alpha = 0.8,
-    size = 1
+    linewidth = 1
   )
 ```
 
-```{r robustness-cowplot-plotgrid, fig.cap='Comparison of average marginal effects across logit and probit model specifications.', fig.alt='Side-by-side specification curves comparing average marginal effects from logit models on the left and probit models on the right, separated by a vertical dashed line. Both panels show the effects of diamond characteristics including depth, table width, and clarity on diamond price across multiple model specifications. Points represent marginal effect estimates with error bars indicating confidence intervals, with different colors distinguishing between variable levels or interactions. The y-axis shows marginal effect values ranging from approximately negative 0.5 to 2.0, while the x-axis displays different combinations of diamond dimension variables. The bottom portion uses gray boxes to indicate which control variables are included in each specification for both model types.', fig.alt="Two specification curves side by side, eight logit models on the left and eight probit models on the right, split by a dashed vertical line, each showing the average marginal effect of carat with its confidence interval. The two sets nearly coincide, from about 0.2 to 0.8, and the control grid below repeats the same eight combinations for each."}
+```{r robustness-cowplot-plotgrid, fig.cap='Comparison of average marginal effects across logit and probit model specifications.', fig.alt="Two specification curves side by side, eight logit models left and eight probit models right, labelled and split by a dashed line, each showing the average marginal effect of carat with its interval and a p-value shape. The two sets nearly coincide, from about 0.2 to 0.8, with matching shapes, over the same eight control combinations."}
 # Display combined plot
 cowplot::plot_grid(
     coef_plot_combined,
@@ -928,9 +985,9 @@ The example below sets up a relatively rich specification universe:
 
 -   outcomes: either `price` or `log_price`,
 -   focal predictor: either `carat` or `log_carat`,
--   controls: any subset of seven potential covariates.
+-   controls: any subset of five potential covariates, the three dimensions `x`, `y`, and `z` plus `cut` and `color`, which gives 32 control sets.
 
-This already yields a sizable number of specifications and illustrates how quickly the design space expands.
+With two outcomes, two focal predictors, and 32 control sets, the design holds $2 \times 2 \times 32 = 128$ specifications. That is already a sizable number, and it illustrates how quickly the design space expands.
 
 ```{r}
 specs_diamonds <- specr::setup(
@@ -950,11 +1007,50 @@ The `specs_diamonds` object stores one row per estimated specification, includin
 
 #### Visualizing the Specification Curve
 
-`specr` provides a plot method that produces a specification curve directly from the results object. The exact appearance depends on the package version and plotting options, but the default is typically a curve where each point corresponds to one specification, the vertical axis shows the estimated coefficient, and uncertainty intervals are plotted around each point (Figure \@ref(fig:diamonds-specr-specification-curve)).
+`specr` provides a plot method that produces a specification curve directly from the results object. The exact appearance depends on the package version and plotting options, but the default is typically a curve where each point corresponds to one specification, the vertical axis shows the estimated coefficient, and uncertainty intervals are plotted around each point. The method can also return the two panels separately (`type = "curve"` and `type = "choices"`), which makes them easy to restyle. Figure \@ref(fig:diamonds-specr-specification-curve) uses that route to mark the sign of each estimate by shape as well as colour, so the plot still reads when printed in greyscale.
 
-```{r diamonds-specr-specification-curve, fig.cap = "Specification-curve analysis of diamond price effects across model choices.", fig.alt = "Two-panel specification curve for about 128 linear models. Panel A plots the sorted estimates: about minus 15,000 to minus 12,000, then a long run near zero, then about 6,000 to 11,000. Panel B marks each model's predictor, outcome, and controls. The negative estimates are price on log carat with x or y as a control, the near-zero ones are log price models, and the large positive ones are mostly price on carat."}
-# Basic specification curve plot
-plot(specs_diamonds)
+```{r diamonds-specr-specification-curve, fig.cap = "Specification-curve analysis of diamond price effects across model choices.", fig.alt = "Two-panel specification curve for 128 linear models. Panel A plots sorted estimates, with down triangles for negative and up triangles for positive intervals: about minus 15,000 to minus 12,000, a long run near zero with a few grey circles where the interval covers zero, then 6,000 to 11,000. Panel B marks each model's choices.", fig.width = 8, fig.height = 9}
+library(patchwork)
+
+# specr colours each specification by whether its confidence interval
+# lies above zero, below zero, or covers zero. Map those classes to
+# colours of clearly different lightness, plus a shape, so the sign
+# survives greyscale printing.
+sign_lab = c(
+  "#e41a1c"  = "Negative (CI below 0)",
+  "#377eb8"  = "Positive (CI above 0)",
+  "darkgrey" = "CI covers 0"
+)
+sign_col   = c("#e41a1c" = "#99000D", "#377eb8" = "#6BAED6",
+               "darkgrey" = "grey80")
+sign_shape = c("#e41a1c" = 25, "#377eb8" = 24, "darkgrey" = 21)
+
+# Panel A: rebuild the curve from the data specr sorts for its plot
+curve_df = plot(specs_diamonds, type = "curve")$data
+panel_a = ggplot(curve_df, aes(x = specifications, y = estimate)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_linerange(aes(ymin = conf.low, ymax = conf.high),
+                 colour = "grey60") +
+  geom_point(aes(shape = color, fill = color), size = 1.6,
+             stroke = 0.3) +
+  scale_shape_manual(values = sign_shape, labels = sign_lab,
+                     breaks = names(sign_lab), name = NULL) +
+  scale_fill_manual(values = sign_col, labels = sign_lab,
+                    breaks = names(sign_lab), name = NULL) +
+  labs(x = NULL, y = "Estimate") +
+  theme_minimal() +
+  theme(legend.position = "top", axis.line = element_line("black"))
+
+# Panel B: specr's choice panel, recoloured, with horizontal strip labels
+panel_b = plot(specs_diamonds, type = "choices") +
+  scale_colour_manual(values = sign_col, guide = "none") +
+  theme(strip.text.y = element_text(angle = 0, hjust = 0),
+        axis.text.y = element_text(size = 8, colour = "black"))
+
+# patchwork aligns the two panels even though only B has strips
+panel_a / panel_b +
+  plot_layout(heights = c(1.3, 3)) +
+  plot_annotation(tag_levels = "A")
 ```
 
 In this visualization (Figure \@ref(fig:diamonds-specr-specification-curve)), the user can typically read off:
@@ -1012,20 +1108,49 @@ library(rdfanalysis)
 load(url("https://joachim-gassen.github.io/data/rdf_ests.RData"))
 ```
 
-```{r robustness-rdf-spec-curve, fig.cap='Specification curve from a multiverse analysis across analytical protocols.', fig.alt='Two-panel specification curve displaying results from a multiverse analysis across thousands of analytical protocols. The top panel shows effect estimates on the y-axis ranging from approximately negative 0.25 to 0.75, plotted against protocol number on the x-axis from 0 to over 12000. Individual estimates are shown as gray points with a smoothed trend line transitioning from red (negative) through black (zero) to blue (positive). The bottom panel shows the analytical choices made for each protocol using horizontal colored lines and dots. Y-axis labels indicate various methodological choices including missing data handling (na.omit with yes or no), variable transformations (idv and dv options), outlier treatment methods, model types (including lmer and various cutoff options), random effects specifications, and clustering approaches (cluster county and cluster city-year). The dense patterns of colored lines and dots show which combinations of analytical choices were used across the many protocols tested.', fig.alt="Specification curve for about 11,000 analysis protocols. The top panel shows sorted estimates rising from about minus 0.2 to 0.75 inside a grey confidence band, with roughly the lowest fifth negative or near zero. The panel below marks each protocol's choices: missing-data handling, regressor set, outlier treatment style and cutoff, model type, fixed effects, and clustering."}
+```{r robustness-rdf-spec-curve, fig.cap='Specification curve from a multiverse analysis across analytical protocols.', fig.alt="Specification curve for about 11,000 protocols. Sorted estimates rise from about minus 0.2 to 0.75 in a grey band, and only the lowest fifth sit below or near the dashed zero line. The panel below marks each protocol's choices: missing data, regressors, outlier style and cutoff, model type, fixed effects, and clustering.", fig.width = 7, fig.height = 9}
+# The choice rows are labelled "column: value", so give the columns and
+# the coded values plain names first. Renaming keeps the attribute that
+# marks the choice columns.
+ests_lab = ests
+ests_lab$idvs = dplyr::recode(
+  ests$idvs,
+  gdp_only = "GDP only", gdp_school = "GDP and schooling",
+  gdp_ue = "GDP and unemployment", full = "full set"
+)
+ests_lab$outlier_tment_style = dplyr::recode(
+  ests$outlier_tment_style, win = "winsorize", trunc = "truncate"
+)
+ests_lab$feffect = sub("ctryyear", "country and year", ests$feffect)
+ests_lab$cluster = sub("ctryyear", "country and year", ests$cluster)
+names(ests_lab)[1:7] = c(
+  "Omit missing values", "Regressors", "Outlier treatment",
+  "Outlier cutoff", "Model", "Fixed effects", "Clustering"
+)
+
 # Generate specification curve
 # The package expects a dataframe with estimates and confidence bounds
 plot_rdf_spec_curve(
-  ests,      # Dataframe with estimates
+  ests_lab,  # Dataframe with estimates
   "est",     # Column name for point estimates
   "lb",      # Column name for lower confidence bound
-  "ub"       # Column name for upper confidence bound
+  "ub",      # Column name for upper confidence bound
+  est_label = "Estimate",
+  # Significant negative, insignificant, and significant positive
+  # estimates get clearly different grey levels, and a zero line
+  # shows the sign, so the curve reads in greyscale print
+  est_color_signeg = "#67000D",
+  est_color = "grey70",
+  est_color_sigpos = "#2171B5",
+  pt_size = 0.4,
+  addon_sc = geom_hline(yintercept = 0, linetype = "dashed"),
+  # Smaller choice labels, so the 32 rows do not overprint
+  addon_dc = theme(axis.text.y = element_text(size = 8)),
+  lower_to_upper = 3.5
 )
 ```
 
-This level of transparency is particularly valuable for addressing concerns about p-hacking and researcher degrees of freedom.
-
-------------------------------------------------------------------------
+In the top panel of Figure \@ref(fig:robustness-rdf-spec-curve), the darkest stretch at the left marks protocols whose confidence interval lies wholly below the dashed zero line, the short light grey stretch marks protocols whose interval covers zero, and the long mid-blue stretch marks protocols with a significantly positive estimate. Each row of the lower panel is one option of one choice, and a dot in a column means that the protocol in that column used the option. This level of transparency is particularly valuable for addressing concerns about p-hacking and researcher degrees of freedom.
 
 ## Coefficient Stability {#sec-coefficient-stability}
 
@@ -1093,9 +1218,11 @@ The function returns:
 
 -   Coefficient from full model (with controls)
 
--   Bias-adjusted coefficient under delta and $R^2$ max assumptions
+-   Bias-adjusted coefficient under delta and $R^2$ max assumptions, labelled `beta*`, together with any alternative root of the same equation
 
--   The value of delta needed to drive the coefficient to zero
+-   The $R^2$ of both models and the delta and $R^2$ max that were assumed
+
+The value of delta that would drive the coefficient to zero is a separate calculation, made by `o_delta()`, which takes the same arguments with `beta = 0` in place of `delta`.
 
 ```{r}
 print(o_beta_results)
@@ -1110,8 +1237,9 @@ Interpretation:
 For a more comprehensive analysis, you can explore coefficient stability across a range of delta values:
 
 ```{r}
-# Create a sequence of delta values to explore
-delta_values = seq(0, 2, by = 0.1)
+# Create a sequence of delta values to explore. A fine grid shows
+# where beta* crosses zero and where the solution switches roots.
+delta_values = seq(0, 2, by = 0.01)
 
 beta_results = sapply(delta_values, function(d) {
   result = suppressWarnings(
@@ -1146,21 +1274,37 @@ Interpretation guidelines:
 
 -   $|\delta| >> 1$: Very robust to omitted variable bias
 
-Figure \@ref(fig:robustness-ovb-stability) shows bias-adjusted coefficients against $\delta$
+Figure \@ref(fig:robustness-ovb-stability) shows bias-adjusted coefficients against $\delta$.
 
-```{r robustness-ovb-stability, fig.cap='Coefficient stability under omitted-variable bias.', fig.alt='Line plot showing the relationship between coefficient stability and the strength of potential confounding due to omitted variables. The x-axis represents delta, measuring the strength of confounding from 0.0 to 2.0, while the y-axis shows the bias-adjusted coefficient (beta*) ranging from approximately negative 6.5 to 0. A horizontal dashed line is positioned at zero. The solid line starts at approximately negative 4.5 when delta equals zero, gradually increases to approach negative 1 as delta approaches 1.0, then drops sharply to approximately negative 6.5 just after delta equals 1.0, before leveling off at approximately negative 6.3 for the remainder of the plot. This discontinuity illustrates a critical threshold in confounding strength where coefficient stability changes dramatically.', fig.alt="Line chart of the bias-adjusted coefficient beta star against delta from 0 to 2, with a dashed reference line at zero. Beta star rises from about minus 4.4 at delta 0 to about minus 1.2 at delta 1.1, then drops abruptly to about minus 6.8 at delta 1.2 and drifts back toward minus 6.4. It never reaches zero."}
-# Plot
+```{r robustness-ovb-stability, fig.cap='Coefficient stability under omitted-variable bias.', fig.alt="Line chart of the bias-adjusted coefficient against delta from 0 to 2. A solid curve rises from about minus 4.4 at delta 0, steepens, crosses the dotted zero line near delta 1.15, and stops just above zero. A separate dashed segment, the only real root beyond that point, runs from about minus 6.8 to minus 6.4."}
 library(ggplot2)
-ggplot(stability_df, aes(x = delta, y = beta_adjusted)) +
+
+# o_beta() returns the root of a cubic nearest the controlled estimate.
+# Where that root disappears, beta* falls by several units in one step,
+# so start a new line segment there instead of joining the two roots.
+stability_df$branch = factor(
+  cumsum(c(0, diff(stability_df$beta_adjusted) < -1)),
+  levels = 0:1,
+  labels = c("Root nearest the controlled estimate",
+             "Only real root left")
+)
+
+ggplot(stability_df,
+       aes(x = delta, y = beta_adjusted, linetype = branch)) +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "red") +
   geom_line(linewidth = 1) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  scale_linetype_manual(values = c("solid", "dashed")) +
   labs(
-    x = "Delta (strength of confounding)",
-    y = "Bias-adjusted coefficient (beta*)",
+    x = expression(delta ~ "(strength of confounding)"),
+    y = expression("Bias-adjusted coefficient" ~ beta^"*"),
+    linetype = NULL,
     title = "Coefficient stability under omitted variable bias"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
+
+The break in the curve is a property of Oster's estimator, not a plotting fault. For $\delta \neq 1$, $\beta^*$ solves a cubic equation, and `o_beta()` returns the root closest to the controlled estimate among those that continue the shift seen when the controls were added. As $\delta$ grows past 1 that root climbs steeply, crosses zero at about $\delta = 1.15$ (the value `o_delta()` reports for $\beta^* = 0$), and near $\delta = 1.16$ merges with a second root, after which both are complex. From there on the only real root is about $-6.8$, and the function returns it without comment. The dashed segment is therefore a different solution, and the line is broken at the switch rather than drawn across it. The cubic also has a pole at $\delta = 1$, where one of its roots runs off to infinity, but that root is never the one returned, so the solid curve passes through $\delta = 1$ smoothly. For this regression the zero crossing near $\delta = 1.15$, not the value at $\delta = 2$, is the number to report.
 
 For more sophisticated applications with multiple treatments or different model types:
 
@@ -1216,8 +1360,6 @@ Particularly useful for:
 
 -   Evaluating model selection stability
 
-------------------------------------------------------------------------
-
 ## Quantifying Omitted Variable Bias
 
 While Oster's approach focuses on bias-adjusted coefficients, the Konfound framework [@narvaiz2024konfound] takes a complementary approach by asking: "How much bias would be needed to invalidate our inference?"
@@ -1259,11 +1401,11 @@ Interpretation:
 
 ### Visualizing Sensitivity: The Threshold Plot
 
-In Figure \@ref(fig:robustness-threshold-plot), the threshold plot shows the combination of correlations between a confound and the treatment (horizontal axis) and outcome (vertical axis) that would be needed to overturn your conclusion:
+The threshold plot in Figure \@ref(fig:robustness-threshold-plot) turns the percent bias calculation into a single bar. The bar's full height is the absolute value of the estimated effect, here 5. The horizontal line inside it is the threshold, the smallest effect that would still be statistically significant given the standard error and degrees of freedom, here 3.925 (the critical $t$ value times the standard error of 2):
 
-```{r robustness-threshold-plot, fig.cap='Estimated effect size relative to the robustness threshold.', fig.alt='Stacked area chart showing the estimated effect size in relation to a robustness threshold. The y-axis displays the absolute value of the effect ranging from 0 to 5, while the x-axis represents the estimated effect.', fig.alt="Single stacked bar of the absolute effect on a scale from 0 to 5. The dark lower segment rises to a threshold line at about 3.9, and the light upper segment runs from there to the estimated effect of 5, the part of the estimate that bias would have to remove to overturn the inference."}
+```{r robustness-threshold-plot, fig.cap='Estimated effect size relative to the robustness threshold.', fig.alt="Single stacked bar of the absolute effect on a scale from 0 to 5. The dark lower segment rises to a threshold line at about 3.9, and the light upper segment runs from there to the estimated effect of 5, the part of the estimate that bias would have to remove to overturn the inference."}
 # Create threshold plot
-# This visualizes the "confounding space" that would invalidate inference
+# Shows how much of the estimate lies above the significance threshold
 pkonfound(
     est_eff = 5,
     std_err = 2,
@@ -1273,40 +1415,49 @@ pkonfound(
 )
 ```
 
-Interpretation of the plot:
+The plot is read from the threshold line upward. Its two segments carry the following meaning:
 
--   The reference line shows the threshold
+-   The dark segment, from zero up to the threshold, is the region in which an estimate would no longer be statistically significant. Once bias has pulled the estimate down into it, the inference is overturned.
 
--   Points above/beyond this line represent confounding strong enough to overturn your inference
+-   The light segment above the threshold, from 3.925 to 5, is the part that bias would have to remove to overturn the inference. Any bias smaller than this leaves the estimate significant. As a share of the whole bar it is the percent bias to invalidate, $1 - 3.925/5$, or about 21.5 percent.
 
--   You can compare this to the strength of known confounds
+-   The same share translates into the RIR: replacing about 21.5 percent of the 1,000 observations, 215 cases, with cases that have no effect would push the estimate down to the threshold.
 
--   Benchmark correlations (e.g., 0.1, 0.3, 0.5) help assess plausibility
-
-Example interpretation: "An omitted variable would need to be correlated at 0.35 with both the treatment and outcome to invalidate our inference. Given that our strongest observed control is correlated at 0.25 with the outcome, this seems unlikely."
+A tall light segment therefore signals a robust inference, while a sliver just above the threshold means that modest bias would be enough to erase statistical significance. Whether 21.5 percent is a lot is a substantive judgement, and it is best made by asking whether any plausible omitted variable or unrepresentative subsample could account for that much of the estimate.
 
 ### The Correlation Plot
 
-In Figure \@ref(fig:robustness-correlation-plot), the correlation plot provides another view, showing the required partial correlation of an omitted variable with the outcome, conditional on the treatment and covariates:
+The correlation plot in Figure \@ref(fig:robustness-correlation-plot) gives the omitted-variable view of the same result, the impact threshold for a confounding variable (ITCV). Instead of a share of the estimate, it asks how strongly an unmeasured confounder would have to be correlated with the predictor and with the outcome, after conditioning on the observed covariates $Z$, to nullify the inference:
 
-```{r robustness-correlation-plot, fig.cap='Sensitivity analysis showing conditions required to invalidate a causal inference.', fig.alt='Path diagram illustrating the requirements to invalidate a causal inference through omitted variable bias. The diagram shows relationships between four variables arranged in a roughly triangular pattern.', fig.alt="Path diagram with three nodes: predictor of interest, outcome, and confounding variable. Arrows run from predictor to outcome, from confounder to predictor, labelled Rx.cv given Z equals 0.134, and from confounder to outcome, labelled Ry.cv given Z equals 0.134. A curved arrow joins the two confounder paths onto the predictor to outcome arrow, labelled with their product, 0.018."}
+```{r robustness-correlation-plot, fig.cap='Sensitivity analysis showing conditions required to invalidate a causal inference.', fig.alt="Path diagram with three nodes: predictor of interest, outcome, and confounding variable. Arrows run from predictor to outcome, from confounder to predictor, labelled Rx.cv given Z equals 0.134, and from confounder to outcome, labelled Ry.cv given Z equals 0.134. Two curved arrows join the two confounder paths onto a short arrow toward the predictor to outcome arrow, labelled with their product, 0.018."}
 # Create correlation plot
-pkonfound(
+corr_plot = pkonfound(
     est_eff = 5,
     std_err = 2,
     n_obs = 1000,
     n_covariates = 5,
     to_return = "corr_plot"  # Request correlation plot
 )
+
+# The centre label runs into the right-hand curved arrow, so break it
+# after the product sign. Layers are references, so this edits the plot.
+is_prod = vapply(corr_plot$layers, function(l)
+  grepl("*", l$aes_params$label %||% "", fixed = TRUE), logical(1))
+prod_layer = corr_plot$layers[[which(is_prod)]]
+prod_layer$aes_params$label = sub(" * ", " *\n",
+  prod_layer$aes_params$label, fixed = TRUE)
+corr_plot
 ```
 
-This plot shows:
+The diagram is a path diagram with the confounding variable in the lower left, the predictor of interest above it, and the outcome to the right. Its labelled paths read as follows:
 
--   The relationship between bias and the required correlation
+-   The vertical arrow from the confounder to the predictor carries $r_{x \cdot cv \mid Z} = 0.134$, the partial correlation the confounder would need with the predictor.
 
--   How much the effect estimate would change for different confound strengths
+-   The diagonal arrow from the confounder to the outcome carries $r_{y \cdot cv \mid Z} = 0.134$, the partial correlation it would need with the outcome.
 
--   The threshold where the inference would be overturned
+-   The two curved arrows that meet on the predictor to outcome path carry the product of those correlations, $0.134 \times 0.134 = 0.018$. This product is the ITCV, the impact the confounder must have on the estimated relationship to pull it below the significance threshold.
+
+Because only the product matters, the two correlations can trade off against each other. A confounder correlated 0.134 with both variables, or for example 0.09 with the predictor and 0.2 with the outcome, would be just strong enough, and konfound reports the balanced case where the two are equal. The practical use is benchmarking: if the strongest observed covariate has partial correlations with the predictor and the outcome whose product is well below 0.018, an omitted variable would have to be more important than anything measured to overturn the result, whereas if observed covariates routinely exceed 0.018 the inference is fragile.
 
 ### Konfound for Model Objects
 
@@ -1320,8 +1471,6 @@ model = lm(mpg ~ wt + hp + qsec, data = mtcars)
 # This automatically extracts the necessary statistics
 konfound(model, wt)  # Assess robustness for the 'wt' coefficient
 ```
-
-------------------------------------------------------------------------
 
 ## Cinelli-Hazlett Robustness Value (`sensemakr`)
 
@@ -1381,7 +1530,7 @@ For the Darfur data, the RV is on the order of $0.14$, meaning that a confounder
 
 ### The Sensitivity Contour Plot
 
-The most informative output of `sensemakr` is a contour plot in the partial-$R^2$ plane (Fig. \@ref(fig:robustness-sensemakr-contour)). The horizontal axis represents the partial $R^2$ of the confounder with the treatment, and the vertical axis represents the partial $R^2$ of the confounder with the outcome. Contour lines show the bias-adjusted estimate (or $t$-statistic) for every combination of the two. Points labeled $1\times$, $2\times$, $3\times$ indicate where confounders of the corresponding multiples of the benchmark covariate would land in this plane. If those points sit far inside the region of "estimates that remain significant", the result is robust.
+The most informative output of `sensemakr` is a contour plot in the partial-$R^2$ plane (Figure \@ref(fig:robustness-sensemakr-contour)). The horizontal axis represents the partial $R^2$ of the confounder with the treatment, and the vertical axis represents the partial $R^2$ of the confounder with the outcome. Contour lines show the bias-adjusted estimate for every combination of the two. Points labeled $1\times$, $2\times$, $3\times$ indicate where confounders of the corresponding multiples of the benchmark covariate would land in this plane. If those points sit far from the red dashed contour, where the adjusted estimate reaches zero, the estimate is robust to confounders of that strength. This plot speaks to the size of the estimate, not its significance, and the $t$-value version described below answers that second question.
 
 ```{r robustness-sensemakr-contour, fig.cap="Cinelli and Hazlett sensitivity contour plot for the darfur regression.", fig.alt="Contour plot of the bias-adjusted estimate over the partial R squared of a confounder with the treatment, horizontal, and with the outcome, vertical, both 0 to 0.4. The unadjusted estimate is 0.097 and a dashed contour marks zero. Confounders one, two, and three times as strong as female give 0.075, 0.053, and 0.03, all short of the zero contour."}
 plot(darfur_sens)
@@ -1396,8 +1545,6 @@ A few practical points are worth keeping in mind:
 1.  Pick benchmarks that are substantively informative. Choose covariates that are strong predictors of both treatment and outcome and whose role in the system is well understood, so that the $kd$-multiplier statements are meaningful.
 2.  Report RV alongside the point estimate. A coefficient of `0.10` with `RV = 0.20` and `RV (alpha = 0.05) = 0.13` tells the reader much more than a coefficient and a $p$-value alone.
 3.  Combine with other tools. RV/`sensemakr` is complementary to Oster's $\delta$ (which gives a single scalar), `konfound` (which expresses the threshold as a share of biased cases), and the matching-based Rosenbaum bounds described next.
-
-------------------------------------------------------------------------
 
 ## Rosenbaum Bounds {#sec-rosenbaum-bounds-sensitivity}
 
@@ -1484,8 +1631,6 @@ The basic Rosenbaum bound has been extended in several directions that are incre
 
 In practice, the Rosenbaum framework and the Cinelli-Hazlett RV framework are usually run side by side. They probe overlapping but distinct aspects of unmeasured confounding: $\Gamma$ speaks the language of treatment-assignment odds within matched sets, while RV speaks the language of partial $R^2$ in the regression that produced the point estimate. Reporting both gives the reader a much more complete picture of how fragile or robust a causal claim really is.
 
-------------------------------------------------------------------------
-
 ## Advanced Topics in Sensitivity Analysis
 
 ### Sensitivity to Outliers and Influential Observations
@@ -1560,6 +1705,7 @@ naive_model <- lm(mpg ~ wt + hp, data = mtcars, x = TRUE)
 
 # Apply SIMEX
 # lambda is the factor by which measurement error variance increases
+set.seed(123)  # SIMEX adds simulated error, so fix the draws
 simex_model <- simex(
   naive_model,
   SIMEXvariable = "wt",  # Variable with measurement error
@@ -1567,7 +1713,6 @@ simex_model <- simex(
   lambda = seq(0.1, 2, 0.1),  # Extrapolation sequence
   B = 100  # Number of simulations
 )
-
 
 # View results
 summary(simex_model)
@@ -1584,14 +1729,13 @@ data.frame(
 
 Figure \@ref(fig:robustness-simex) plots SIMEX extrapolation.
 
-```{r robustness-simex, fig.cap='SIMEX extrapolation plots for measurement-error correction.', fig.alt='Three-panel diagnostic plot showing SIMEX (Simulation Extrapolation) results for correcting measurement error in regression coefficients.', fig.alt="Three panels of SIMEX extrapolation for the intercept, wt, and hp coefficients, each against 1 plus lambda from 0 to 3. Filled points are estimates at added error levels, a solid curve is fitted through them, and a dashed extension ends at an open circle at 0, the corrected value: about 37.39, minus 3.97, and minus 0.0308."}
-# Plot SIMEX extrapolation
+```{r robustness-simex, fig.cap='SIMEX extrapolation plots for measurement-error correction.', fig.alt="Three panels of SIMEX extrapolation for the intercept, weight, and horsepower coefficients, each against 1 plus lambda from 0 to 3. Filled points are estimates at added error levels, a solid curve is fitted through them, and a dashed extension ends at an open circle at 0, the corrected value: about 37.30, minus 3.94, and minus 0.0310."}
+# Plot SIMEX extrapolation, with readable names for the coefficients
 par(mfrow = c(1, 3))
-plot(simex_model)
+plot(simex_model,
+     ylab = c("Intercept", "Weight (wt)", "Horsepower (hp)"))
 par(mfrow = c(1, 1))
 ```
-
-------------------------------------------------------------------------
 
 ## Reporting Sensitivity Analysis Results
 

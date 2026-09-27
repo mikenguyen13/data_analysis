@@ -3,8 +3,15 @@
 ::: {.chapter-abstract}
 **Abstract.** A directed acyclic graph turns assumptions about a data generating process into an object that can be reasoned about formally. This chapter develops the graphical vocabulary needed to decide what to adjust for and what to leave alone. It introduces chains, forks, and colliders as the three elementary structures, defines d-separation, and derives the back-door and front-door criteria that license identification from observational data. A worked example compares competing adjustment sets for one graph and shows that valid sets are not interchangeable once finite-sample precision is considered. The chapter then works through the cases where graphical intuition most often fails: M-bias, where adjusting for a pre-treatment variable opens a path rather than closing one, then Berkson's paradox and selection on a collider, and finally conditioning on a collider's descendant. A front-door application to smoking, tar, and cancer illustrates identification without exposure ignorability. Causal discovery, structure learning, and a workflow for moving from a drawn graph to an estimation strategy close the chapter.
 
-**Keywords:** Directed acyclic graphs; D-separation; Back-door criterion; Front-door criterion; Collider bias; Causal discovery
+**Keywords:** Directed acyclic graphs, D-separation, Back-door criterion, Front-door criterion, Collider bias, Causal discovery
 :::
+
+The two preceding chapters named a series of failures and paired each with a
+remedy. The difficulty with proceeding that way is that the same variable can be
+a confounder in one study and a collider in another, so no rule stated in terms
+of variables can be right in general. What is needed is a way of writing down
+the structure a study assumes, from which the correct adjustment follows.
+Directed acyclic graphs are that notation.
 
 Directed acyclic graphs (DAGs) provide a formal and visual framework for representing assumptions about causal structures. In modern data analysis, they are essential tools for understanding, identifying, and validating causal effects [@Pearl_2018; @pearl2014graphical].
 
@@ -51,6 +58,15 @@ $$
 -   Conditioning on $Z$ blocks the *indirect* effect of $X$ on $Y$ that flows through $Z$.
 -   Marketing example: an email promotion ($X$) raises customer interest ($Z$), which raises purchase probability ($Y$). Controlling for interest removes the indirect path and isolates any remaining direct impact of the email.
 
+The practical lesson is that conditioning on a mediator is neither right nor
+wrong in itself, it simply changes the estimand. Leaving $Z$ alone estimates
+the total effect of the promotion, which is what a manager deciding whether to
+send it needs. Conditioning on $Z$ estimates the direct effect, which is what a
+researcher asking whether the promotion works through any channel other than
+interest needs. The error to avoid is not conditioning on a mediator but doing
+so without noticing, and then describing the resulting number as the effect of
+the promotion.
+
 ### Common causes (forks)
 
 $$
@@ -72,6 +88,20 @@ $$
 -   $Z$ is a *collider* on the path $X \to Z \leftarrow Y$. The path is blocked by default.
 -   Conditioning on $Z$, or on any descendant of $Z$, *opens* the path and induces a spurious association between $X$ and $Y$.
 -   HR analytics example: education ($X$) and experience ($Y$) are independent in the applicant pool but both raise the probability of being hired ($Z$). Among hires only, education and experience become negatively associated even though no causal link exists.
+
+Colliders reverse the intuition built up from the previous two structures, and
+that reversal is the single most common source of error in applied adjustment
+decisions. For chains and forks, conditioning removes association. For
+colliders, conditioning creates it. The mechanism in the hiring example is easy
+to state: once it is known that a candidate was hired, learning that they have
+little experience implies they must have compensated somewhere, so their
+education is probably high. The negative association is manufactured entirely
+by the act of looking only at hires, and it will appear in any analysis run on
+an already-selected sample. Because selection into a dataset is itself a
+collider in this sense, the danger is not limited to variables the analyst
+deliberately controls for. It extends to every restriction that determined who
+is in the data at all, which is the theme taken up in Section
+\@ref(sec-berkson-selection).
 
 ### Other key concepts
 
@@ -95,23 +125,23 @@ When such an $\mathbf{S}$ exists,
 $$
 P(Y \mid \operatorname{do}(X = x)) = \sum_{s} P(Y \mid X = x, \mathbf{S} = s)\, P(\mathbf{S} = s),
 $$
-the familiar covariate-adjustment formula. The back-door criterion is the workhorse behind regression adjustment, propensity-score methods, and the [matching methods](#sec-matching-methods) developed for observational data. It is also the graphical counterpart of the [omitted-variable bias](#sec-omitted-variable-bias) intuition: an unblocked back-door path is exactly what a missing regressor produces in linear models [@Pearl_2018].
+the familiar covariate-adjustment formula. The back-door criterion is the workhorse behind regression adjustment, propensity-score methods, and the [matching methods](#sec-matching-methods) developed for observational data. It is also the graphical counterpart of the [omitted-variable bias](#sec-omitted-variable-bias) (Section \@ref(sec-omitted-variable-bias)) intuition: an unblocked back-door path is exactly what a missing regressor produces in linear models [@Pearl_2018].
 
 ### The front-door criterion
 
-When every back-door adjustment set contains an *unmeasured* variable, back-door adjustment fails. This is the graphical face of [endogeneity](#sec-endogeneity): the regression of $Y$ on $X$ with the available controls is no longer interpretable as a structural effect. The **front-door criterion** offers a second route to identification through a fully mediated pathway. Suppose all of the effect of $X$ on $Y$ flows through an observed mediator $M$, and there is no unblocked back-door path from $X$ to $M$ or from $M$ to $Y$ (other than through $X$). Then
+When every back-door adjustment set contains an *unmeasured* variable, back-door adjustment fails. This is the graphical face of [endogeneity](#sec-endogeneity) (Section \@ref(sec-endogeneity)): the regression of $Y$ on $X$ with the available controls is no longer interpretable as a structural effect. The **front-door criterion** offers a second route to identification through a fully mediated pathway. Suppose all of the effect of $X$ on $Y$ flows through an observed mediator $M$, and there is no unblocked back-door path from $X$ to $M$ or from $M$ to $Y$ (other than through $X$). Then
 $$
 P(Y \mid \operatorname{do}(X)) = \sum_m P(M = m \mid X) \sum_{x'} P(Y \mid M = m, X = x')\, P(X = x'),
 $$
 which is identifiable from observed data even when $X$ and $Y$ share an unmeasured confounder. The canonical illustration is given in Section \@ref(sec-frontdoor) below. When neither criterion applies, analysts often turn to the [instrumental-variables](#sec-instrumental-variables) machinery, which exploits an exogenous source of variation in $X$ rather than attempting to block the back-door path.
 
-## Choosing among competing adjustment sets: a worked example {#sec-adjustment-sets-worked-example}
+## Choosing among competing adjustment sets {#sec-adjustment-sets-worked-example}
 
 The back-door criterion typically admits more than one valid adjustment set, and `dagitty::adjustmentSets()` returns the *minimal* ones, that is, the sets from which no variable can be removed without reopening a back-door path. The following worked example shows how the function picks among competing minimal sets in a DAG with several back-door paths, a mediator, and a collider, and how the analyst chooses between the candidates that the function reports.
 
 Consider the DAG in Figure \@ref(fig:dag-multiple-paths). The exposure $X$ has several common causes with the outcome $Y$: $V$ and $W$ each enter $X$ and $Y$ directly, while $U$ enters $X$ and reaches $Y$ only through an intermediate variable $Z$. In addition, $X$ acts on $Y$ both directly and through a mediator $M$, and the variable $K$ is a common effect (collider) of $X$ and $Y$, perhaps a downstream record-keeping flag generated after both treatment and outcome are realised.
 
-```{r dag-multiple-paths, fig.cap="A DAG with several back-door paths from X to Y, a mediator M, and a downstream collider K. The variables U, V, W, and Z together generate three distinct back-door paths and several competing minimal adjustment sets.", fig.alt="Directed acyclic graph with eight nodes. U points to X and to Z, and Z points to Y. V and W each point to both X and Y. X points to M, M points to Y, and X also points directly to Y. X and Y both point to K.", fig.width=7, fig.height=4.5}
+```{r dag-multiple-paths, fig.cap="A DAG with several back-door paths from X to Y, a mediator M, and a downstream collider K. The variables U, V, W, and Z together generate three distinct back-door paths and two competing minimal adjustment sets.", fig.alt="Directed acyclic graph with eight nodes. U points to X and to Z, and Z points to Y. V and W each point to both X and Y. A straight arrow runs from X to Y, while M sits below it on a separate route from X to Y. X and Y both point to K at the bottom.", fig.width=7, fig.height=4.5}
 multipath <- dagitty("dag {
   U -> X
   U -> Z
@@ -127,9 +157,10 @@ multipath <- dagitty("dag {
   Y -> K
 }")
 
+# M sits below the X to Y line so the direct arrow stays visible.
 coordinates(multipath) <- list(
-  x = c(U = 0, Z = 1, V = 1, W = 2, X = 1, M = 2, Y = 3, K = 2),
-  y = c(U = 3, Z = 3, V = 2.4, W = 2.4, X = 1.2, M = 1.2, Y = 1.2, K = 0)
+  x = c(U = 0, Z = 4, V = 1.5, W = 2.5, X = 1, M = 2, Y = 3, K = 2),
+  y = c(U = 3, Z = 3, V = 2.2, W = 2.2, X = 1, M = 0.2, Y = 1, K = -0.8)
 )
 
 ggdag(multipath) + theme_dag()
@@ -158,7 +189,7 @@ Several non-listed sets would be incorrect, and it is instructive to see why:
 
 Because both $\{V, W, U\}$ and $\{V, W, Z\}$ identify the same total effect under the assumed DAG, the choice between them is not a question of identification but of statistical and measurement practice. Three considerations typically settle it.
 
--   **Measurement quality.** If $U$ is a noisy proxy for an underlying latent trait while $Z$ is recorded cleanly, conditioning on $Z$ will block path (1) more reliably, and the reverse holds when $Z$ is the noisier variable. The [measurement-error](#sec-measurement-error) discussion explains why a noisy adjustment variable leaves a residual open path proportional to the noise variance.
+-   **Measurement quality.** If $U$ is a noisy proxy for an underlying latent trait while $Z$ is recorded cleanly, conditioning on $Z$ will block path (1) more reliably, and the reverse holds when $Z$ is the noisier variable. The [measurement-error](#sec-measurement-error) (Section \@ref(sec-measurement-error)) discussion explains why a noisy adjustment variable leaves a residual open path proportional to the noise variance.
 -   **Sample-size and overlap considerations.** The set whose joint distribution overlaps better between treated and control units yields more stable [propensity scores](#sec-propensity-scores) and better finite-sample behavior for [matching methods](#sec-matching-methods). When $U$ is high-dimensional or sparsely supported, the lower-dimensional set $\{V, W, Z\}$ may be preferable on overlap grounds even if both are theoretically valid.
 -   **Robustness to DAG misspecification.** If the analyst suspects an additional unobserved arrow into $Z$ that the drawn DAG omits, conditioning on $Z$ would itself open a new back-door path and bias the estimate, while conditioning on $U$ would not. Reporting estimates under both minimal sets is a cheap and informative sensitivity check, and large discrepancies are a warning that the DAG is wrong.
 
@@ -178,9 +209,13 @@ coordinates(chain) <- list(x = c(X = 1, Z = 2, Y = 3), y = c(X = 1, Z = 1, Y = 1
 collider <- dagitty("dag { X -> Z; Y -> Z }")
 coordinates(collider) <- list(x = c(X = 1, Z = 2, Y = 3), y = c(X = 1, Z = 0, Y = 1))
 
-p1 <- ggdag(fork) + theme_dag() + ggtitle("Fork (confounder)")
-p2 <- ggdag(chain) + theme_dag() + ggtitle("Chain (mediator)")
-p3 <- ggdag(collider) + theme_dag() + ggtitle("Inverted fork (collider)")
+# Pad each panel so the outer nodes are not cut off at its edge.
+pad <- expand_plot(expand_x = expansion(c(0.2, 0.2)),
+                   expand_y = expansion(c(0.15, 0.15)))
+p1 <- ggdag(fork) + theme_dag() + pad + ggtitle("Fork (confounder)")
+p2 <- ggdag(chain) + theme_dag() + pad + ggtitle("Chain (mediator)")
+p3 <- ggdag(collider) + theme_dag() + pad +
+  ggtitle("Inverted fork (collider)")
 
 # Combine into a single figure so the chunk label resolves to one image
 # rather than three separate sub-figures.
@@ -195,9 +230,9 @@ roles <- data.frame(
   Structure = c("X <- Z -> Y", "X -> Z -> Y", "X -> Z <- Y"),
   `Default state` = c("Path open", "Path open", "Path blocked"),
   `Effect of conditioning on Z` = c(
-    "Closes the back-door path; removes confounding bias.",
-    "Blocks indirect effect; isolates direct effect only.",
-    "Opens the path; induces spurious X--Y association."
+    "Closes the back-door path and removes confounding bias.",
+    "Blocks the indirect effect, isolating the direct effect.",
+    "Opens the path and induces a spurious X to Y association."
   ),
   check.names = FALSE
 )
@@ -205,7 +240,10 @@ knitr::kable(
   roles,
   booktabs = TRUE,
   caption = "Three roles of a third variable Z and the consequence of conditioning on it."
-)
+) |>
+  # The fourth column is a sentence, which pushes the table past the text
+  # block. scale_down shrinks only as far as it has to.
+  kableExtra::kable_styling(latex_options = "scale_down")
 ```
 
 Reading Table \@ref(tab:dag-roles) row by row clarifies why a single covariate cannot be classified in isolation: the same variable can be a confounder in one DAG, a mediator in another, and a collider in a third, depending on the surrounding edges. The graphical perspective also underwrites the [mediation analysis](#sec-mediation-analysis-explaining-the-causal-pathway) framework, which decomposes total effects along chain paths, and the [moderation analysis](#sec-moderation-analysis-for-whom-or-under-what-conditions) framework, which examines how effects vary across subgroups defined by additional covariates.
@@ -243,13 +281,13 @@ Because $U$ is unobserved, regressing $Y$ on $X$ and $Z$ alone will not identify
 adjustmentSets(dag, exposure = "X", outcome = "Y", type = "all")
 ```
 
-If $U$ were observed, the singleton $\{U\}$ would close the back-door path and identify the total effect of $X$ on $Y$. Conditioning *also* on the mediator $Z$ would instead identify the controlled direct effect of $X$ on $Y$ holding $Z$ fixed, a different estimand whose interpretation is much more delicate [@vanderweele2015explanation]. Inadvertently conditioning on a mediator is one of the canonical examples of [overcontrol bias](#sec-overcontrol-bias), and the good and bad controls checklist in Chapter \@ref(sec-controls) treats this case at length. When $U$ is genuinely unobserved but a clean proxy is available, the [proxy-variable methods](#sec-proxy-variables) become the natural fallback. When $U$ is measured with error, the [measurement-error](#sec-measurement-error) discussion governs how much of the back-door path the noisy proxy actually closes.
+If $U$ were observed, the singleton $\{U\}$ would close the back-door path and identify the total effect of $X$ on $Y$. Conditioning *also* on the mediator $Z$ would instead identify the controlled direct effect of $X$ on $Y$ holding $Z$ fixed, a different estimand whose interpretation is much more delicate [@vanderweele2015explanation]. Inadvertently conditioning on a mediator is one of the canonical examples of [overcontrol bias](#sec-overcontrol-bias) (Section \@ref(sec-overcontrol-bias)), and the good and bad controls checklist in Chapter \@ref(sec-controls) treats this case at length. When $U$ is genuinely unobserved but a clean proxy is available, the [proxy-variable methods](#sec-proxy-variables) become the natural fallback. When $U$ is measured with error, the [measurement-error](#sec-measurement-error) (Section \@ref(sec-measurement-error)) discussion governs how much of the back-door path the noisy proxy actually closes.
 
-## M-bias: when adjusting for a pre-treatment variable hurts
+## M-bias and pre-treatment variables
 
 A common misconception is that adjusting for any pre-treatment covariate can only reduce bias. The M-bias structure shows this is false. Consider Figure \@ref(fig:dag-mbias): two unobserved variables $U_1$ and $U_2$ each cause an observed pre-treatment variable $Z$, and they also separately cause $X$ and $Y$. The graph contains no confounding of $X$ on $Y$. The only path from $X$ to $Y$ that does not go through $X$'s causal descendants is $X \leftarrow U_1 \to Z \leftarrow U_2 \to Y$, which is blocked at the collider $Z$.
 
-```{r dag-mbias, fig.cap="M-bias structure: Z is a pre-treatment collider on the path X <- U1 -> Z <- U2 -> Y, so conditioning on Z opens a non-causal path between X and Y.", fig.alt="Directed acyclic graph with five nodes. U1 points to X and to Z, U2 points to Z and to Y, and X points to Y. Z therefore has two incoming arrows and none outgoing."}
+```{r dag-mbias, fig.cap="M-bias structure: Z is a pre-treatment collider on the path $X \\leftarrow U_1 \\to Z \\leftarrow U_2 \\to Y$, so conditioning on Z opens a non-causal path between X and Y.", fig.alt="Directed acyclic graph with five nodes. U1 points to X and to Z, U2 points to Z and to Y, and X points to Y. Z therefore has two incoming arrows and none outgoing."}
 mbias <- dagitty("dag {
   U1 -> X
   U1 -> Z
@@ -292,15 +330,15 @@ coef(lm(Y ~ X))["X"]      # close to the true effect (1.0)
 coef(lm(Y ~ X + Z))["X"]  # biased away from 1.0 because Z is a collider
 ```
 
-The "control for everything" heuristic fails here. M-bias is the prototypical reason that pre-treatment covariates cannot be adjusted for indiscriminately [@cinelli2022crash]. The same warning is delivered, in a different vocabulary, by the good and bad controls discussion in Chapter \@ref(sec-controls), where M-bias appears as a textbook case of well-intentioned [overcontrol bias](#sec-overcontrol-bias).
+The "control for everything" heuristic fails here. M-bias is the prototypical reason that pre-treatment covariates cannot be adjusted for indiscriminately [@cinelli2022crash]. The same warning is delivered, in a different vocabulary, by the good and bad controls discussion in Chapter \@ref(sec-controls), where M-bias appears as a textbook case of well-intentioned [overcontrol bias](#sec-overcontrol-bias) (Section \@ref(sec-overcontrol-bias)).
 
-## Berkson's paradox and selection on a collider
+## Berkson's paradox and selection on a collider {#sec-berkson-selection}
 
 A close cousin of M-bias arises through *sample selection*. Whenever the data we analyze are restricted to units satisfying some condition $S$, and $S$ is a descendant of a collider, the analysis effectively conditions on that collider. The result is **Berkson's paradox**: variables that are independent in the population become correlated in the selected sample.
 
 Suppose we want to study whether acting talent ($X$) affects beauty ($Y$) among Hollywood celebrities. In the general population the two are plausibly independent. Both, however, raise the probability of becoming famous ($S$), and our sample contains only the famous. Figure \@ref(fig:dag-berkson) encodes this story.
 
-```{r dag-berkson, fig.cap="Berkson selection: talent and beauty are independent in the population but both raise the probability of selection S, so restricting to S = 1 induces a spurious negative association.", fig.alt="Directed acyclic graph with three nodes. Talent and Beauty each point to Selection, and there is no arrow between Talent and Beauty."}
+```{r dag-berkson, fig.cap="Berkson selection: talent (X) and beauty (Y) are independent in the population but both raise the probability of selection (S), so restricting to S = 1 induces a spurious negative association.", fig.alt="Directed acyclic graph with three nodes, Talent (X) and Beauty (Y) at the top and Selection (S) below them. Arrows run from Talent and from Beauty into Selection, and there is no arrow between Talent and Beauty."}
 berkson <- dagitty("dag {
   Talent -> Selection
   Beauty -> Selection
@@ -312,7 +350,18 @@ coordinates(berkson) <- list(
   y = c(Talent = 2, Beauty = 2, Selection = 1)
 )
 
-ggdag(berkson, node_size = 24, text_size = 3.2) + theme_dag() +
+# Large nodes fit the names. The edges stop at the node rim (11 mm from
+# the centre) so that the arrowheads stay visible.
+rim <- ggraph::circle(11, "mm")
+berkson_labels <- c(Talent = "Talent\n(X)", Beauty = "Beauty\n(Y)",
+                    Selection = "Selection\n(S)")
+tidy_dagitty(berkson) |>
+  dplyr::mutate(label = berkson_labels[name]) |>
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_edges(start_cap = rim, end_cap = rim) +
+  geom_dag_point(size = 24) +
+  geom_dag_text(aes(label = label), size = 3.2) +
+  theme_dag() +
   expand_plot(expand_x = expansion(c(0.15, 0.15)),
               expand_y = expansion(c(0.2, 0.2)))
 ```
@@ -331,13 +380,13 @@ cor(talent, beauty)                             # near 0
 cor(talent[famous], beauty[famous])             # spuriously negative
 ```
 
-The lesson generalizes: any analysis that filters cases on an outcome-related criterion (hospital records, survey respondents who replied, customers retained for at least 90 days) is implicitly conditioning on a collider, and "obvious" associations among the survivors may be entirely artefactual. The same logic underlies the discussion of [survivorship bias](#sec-survivorship-bias), which gives several finance and management examples in which the conditioning event is not even acknowledged as such by the analyst.
+The lesson generalizes: any analysis that filters cases on an outcome-related criterion (hospital records, survey respondents who replied, customers retained for at least 90 days) is implicitly conditioning on a collider, and "obvious" associations among the survivors may be entirely artefactual. The same logic underlies the discussion of [survivorship bias](#sec-survivorship-bias) (Section \@ref(sec-survivorship-bias)), which gives several finance and management examples in which the conditioning event is not even acknowledged as such by the analyst.
 
 ## The front-door criterion: smoking, tar, and cancer {#sec-frontdoor}
 
 Suppose we wish to estimate the effect of smoking ($X$) on lung cancer ($Y$), but suspect an unobserved genetic factor ($U$) affects both. Direct back-door adjustment is impossible because $U$ is unmeasured. If, however, smoking causes cancer *only* through tar deposition in the lungs ($M$), and the genetic factor does not affect tar except through smoking, the front-door criterion identifies the causal effect from $(X, M, Y)$ alone. Figure \@ref(fig:dag-frontdoor) illustrates.
 
-```{r dag-frontdoor, fig.cap="Front-door identification: smoking affects lung cancer only via tar, and the unobserved genotype U confounds smoking and cancer but does not affect tar directly.", fig.alt="Directed acyclic graph with four nodes. U points to Smoking and to Cancer. Smoking points to Tar, and Tar points to Cancer. There is no arrow from U to Tar and no direct arrow from Smoking to Cancer."}
+```{r dag-frontdoor, fig.cap="Front-door identification: smoking affects lung cancer only via tar, and the unobserved genotype U confounds smoking and cancer but does not affect tar directly.", fig.alt="Directed acyclic graph with four nodes, Smoking (X), Tar (M), and Cancer (Y) in a row and U above. U points to Smoking and to Cancer, Smoking points to Tar, and Tar points to Cancer. No arrow runs from U to Tar or straight from Smoking to Cancer."}
 frontdoor <- dagitty("dag {
   Smoking -> Tar -> Cancer
   U -> Smoking
@@ -350,7 +399,16 @@ coordinates(frontdoor) <- list(
   y = c(Smoking = 1, Tar = 1, Cancer = 1, U = 2)
 )
 
-ggdag(frontdoor, node_size = 24, text_size = 3.2) + theme_dag() +
+# As in the Berkson DAG, the edges stop at the rim of the enlarged nodes.
+frontdoor_labels <- c(Smoking = "Smoking\n(X)", Tar = "Tar\n(M)",
+                      Cancer = "Cancer\n(Y)", U = "U")
+tidy_dagitty(frontdoor) |>
+  dplyr::mutate(label = frontdoor_labels[name]) |>
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_edges(start_cap = rim, end_cap = rim) +
+  geom_dag_point(size = 24) +
+  geom_dag_text(aes(label = label), size = 3.2) +
+  theme_dag() +
   expand_plot(expand_x = expansion(c(0.15, 0.15)),
               expand_y = expansion(c(0.2, 0.2)))
 ```
@@ -369,7 +427,7 @@ The mediator $M$ (tar) plays a dual role: it is part of the causal pathway, *and
 
 A subtle but practically common error is to condition not on a collider itself but on one of its *descendants*. This still partially opens the non-causal path, because the descendant carries probabilistic information about the collider. Figure \@ref(fig:dag-collider-descendant) shows the canonical case: $X \to Z \leftarrow Y$, with $Z$ generating an observable downstream variable $W$ (for instance, a survey response or an automated flag).
 
-```{r dag-collider-descendant, fig.cap="Conditioning on W, a descendant of the collider Z, reopens the non-causal path X -> Z <- Y and biases the estimated X--Y association.", fig.alt="Directed acyclic graph with four nodes. X and Y each point to Z, and Z points to W. There is no arrow between X and Y."}
+```{r dag-collider-descendant, fig.cap="Conditioning on W, a descendant of the collider Z, reopens the non-causal path $X \\to Z \\leftarrow Y$ and biases the estimated X to Y association.", fig.alt="Directed acyclic graph with four nodes. X and Y each point to Z, and Z points to W. There is no arrow between X and Y."}
 descendant <- dagitty("dag {
   X -> Z
   Y -> Z
@@ -489,7 +547,17 @@ A defensible DAG-based analysis proceeds in four steps.
 
 1.  **Draw the DAG** from substantive knowledge, including any unobserved variables that domain experts insist on. This step is unavoidable: no statistical procedure can recover what the analyst is unwilling to commit to on paper.
 2.  **Check identification.** Use `dagitty::adjustmentSets()` (or the equivalent in `ggdag`) to ask whether the target effect is identifiable from observed data, and if so, with which adjustment sets.
-3.  **Check the DAG against data** through testable implications, the conditional independencies the DAG predicts. `dagitty::impliedConditionalIndependencies()` lists them, and rejecting them in data is evidence the DAG is misspecified.
+3.  **Check the DAG against data** through testable implications, the conditional independencies the DAG predicts. These are listed by
+    `impliedConditionalIndependencies()` in `dagitty`, and rejecting them in data is evidence the DAG is misspecified.
 4.  **Estimate**, using a method (regression, matching, propensity scores, doubly robust estimators) that is faithful to the chosen adjustment set. The DAG only tells us *what* to adjust for, and estimation choices still matter for finite-sample performance.
 
 Following these steps does not guarantee a correct answer, since assumptions can be wrong, but it makes those assumptions explicit, falsifiable, and reviewable, which is the minimum a publication-grade causal analysis should offer. Once the adjustment set is fixed, the choice of estimator typically reduces to the trade-offs already discussed in the [matching methods](#sec-matching-methods), [instrumental-variables](#sec-instrumental-variables), [difference-in-differences](#sec-difference-in-differences), and [synthetic-control](#sec-synthetic-control) chapters, depending on whether the credible identification strategy is selection-on-observables or one of its design-based alternatives.
+
+## Looking Ahead
+
+A graph settles which variables to adjust for, but says nothing about what
+adjustment costs. Two adjustment sets that identify the same effect can differ
+sharply in precision, and a variable that is harmless for bias can still be
+expensive for the standard error. The next chapter takes the criteria developed
+here and works out the consequences of each choice in simulation, one control at
+a time.

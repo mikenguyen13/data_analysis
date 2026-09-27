@@ -3,22 +3,31 @@
 ::: {.chapter-abstract}
 **Abstract.** Bias rarely announces itself. This chapter catalogues the recurring ways an estimate departs systematically from the quantity it is meant to measure, and pairs each with the design or estimator that addresses it. It opens with aggregation bias and Simpson's paradox, where a relationship computed on grouped data reverses the relationship holding within every group, then turns to contamination bias, which arises when several mutually exclusive treatments enter one specification alongside flexible controls. Survivorship, attrition, and recall bias are treated as variants of a single mechanism, conditioning on a selection variable that is itself a consequence of treatment or outcome, and regression to the mean is separated from genuine treatment response. The longest strand concerns the literature rather than the single study. Publication bias and p-hacking are developed through the distinct signatures each leaves in the distribution of reported test statistics, together with the detection methods built on those signatures, from caliper and excess significance tests through p-curve, p-uniform, z-curve, weight-function selection models, and robust Bayesian meta-analysis.
 
-**Keywords:** Aggregation bias; Simpson's paradox; Survivorship bias; Attrition bias; Publication bias; P-hacking
+**Keywords:** Aggregation bias, Simpson's paradox, Survivorship bias, Attrition bias, Publication bias, P-hacking
 :::
+
+The previous chapter isolated a single mechanism, a regressor correlated with
+the structural error, and worked through the channels that produce it. This one
+takes the wider survey. Some of what follows reduces to endogeneity on
+inspection, and where it does the text says so, because recognizing a named bias
+as the familiar problem in unfamiliar dress is usually the fastest route to its
+remedy. Other entries are genuinely distinct, arising from how the data were
+aggregated, who survived into the sample, or which results a literature chose to
+publish.
 
 In econometrics, the main objective is often to uncover causal relationships. The biases that frustrate that objective come from at least three structurally distinct sources: how the data are generated (endogeneity, selection, measurement error), how they are collected (aggregation, survivorship, sample selection), and how the literature is curated (publication bias). Mixing these up makes a fix that helps in one setting useless in another, so it is worth keeping the categories straight even when the names overlap. This chapter focuses on biases that arise from the *design* of the study or the *measurement* of variables. Specification errors, multicollinearity, autocorrelation, and heteroskedasticity are properties of the *estimation* and are covered in the regression chapters in Part II. The list below organizes the biases this book has discussed alongside those treated here.
 
 What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
-1.  [**Endogeneity Bias**](#sec-endogeneity): Occurs when an error term is correlated with an independent variable. This can be due to:
+1.  [**Endogeneity Bias**](#sec-endogeneity) (Section \@ref(sec-endogeneity)): Occurs when an error term is correlated with an independent variable. This can be due to:
 
-    -   [Simultaneity](#sec-simultaneity) (or Reverse Causality): When the dependent variable simultaneously affects an independent variable. Happens when the dependent variable causes changes in the independent variable, leading to a two-way causation.
+    -   [Simultaneity](#sec-simultaneity) (Section \@ref(sec-simultaneity)) (or Reverse Causality): When the dependent variable simultaneously affects an independent variable. Happens when the dependent variable causes changes in the independent variable, leading to a two-way causation.
 
-    -   [Omitted variables](#sec-omitted-variable-bias). Arises when a variable that affects the dependent variable and is correlated with an independent variable is left out of the regression.
+    -   [Omitted variables](#sec-omitted-variable-bias) (Section \@ref(sec-omitted-variable-bias)). Arises when a variable that affects the dependent variable and is correlated with an independent variable is left out of the regression.
 
-    -   [Measurement error](#sec-measurement-error) in the independent variable. Bias introduced when variables in a model are measured with error. If the error is in an independent variable and is classical (mean zero and uncorrelated with the true value), it typically biases the coefficient towards zero.
+    -   [Measurement error](#sec-measurement-error) (Section \@ref(sec-measurement-error)) in the independent variable. Bias introduced when variables in a model are measured with error. If the error is in an independent variable and is classical (mean zero and uncorrelated with the true value), it typically biases the coefficient towards zero.
 
-2.  [**Sample Selection Bias**](#sec-endogenous-sample-selection): Arises when the sample is not randomly selected and the selection is related to the dependent variable. A classic example is the Heckman correction for labor market studies where participants self-select into the workforce.
+2.  [**Sample Selection Bias**](#sec-endogenous-sample-selection) (Section \@ref(sec-endogenous-sample-selection)): Arises when the sample is not randomly selected and the selection is related to the dependent variable. A classic example is the Heckman correction for labor market studies where participants self-select into the workforce.
 
 3.  Multicollinearity: Not a bias in the strictest sense, but in the presence of high multicollinearity (when independent variables are highly correlated), coefficient estimates can become unstable and standard errors large. This makes it hard to determine the individual effect of predictors on the dependent variable.
 
@@ -28,13 +37,11 @@ What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
 6.  Heteroskedasticity: Occurs when the variance of the error term is not constant across observations. Like autocorrelation, heteroskedasticity doesn't bias the OLS estimates but can bias standard errors.
 
-7.  [**Aggregation Bias**](#sec-aggregation-bias): Introduced when data are aggregated, and analysis is conducted at this aggregate level rather than the individual level.
+7.  [**Aggregation Bias**](#sec-aggregation-bias) (Section \@ref(sec-aggregation-bias)): Introduced when data are aggregated, and analysis is conducted at this aggregate level rather than the individual level.
 
-8.  [**Survivorship Bias**](#sec-survivorship-bias) **(very much related to Sample Selection)**: Arises when the sample only includes "survivors" or those who "passed" a certain threshold. Common in finance where only funds or firms that "survive" are analyzed.
+8.  [**Survivorship Bias**](#sec-survivorship-bias) (Section \@ref(sec-survivorship-bias)) **(very much related to Sample Selection)**: Arises when the sample only includes "survivors" or those who "passed" a certain threshold. Common in finance where only funds or firms that "survive" are analyzed.
 
-9.  [**Publication Bias**](#sec-publication-bias): Not a bias in econometric estimation per se, but relevant in the context of empirical studies. It refers to the tendency for journals to publish only significant or positive results, leading to an overrepresentation of such results in the literature.
-
-------------------------------------------------------------------------
+9.  [**Publication Bias**](#sec-publication-bias) (Section \@ref(sec-publication-bias)): Not a bias in econometric estimation per se, but relevant in the context of empirical studies. It refers to the tendency for journals to publish only significant or positive results, leading to an overrepresentation of such results in the literature.
 
 ## Aggregation Bias {#sec-aggregation-bias}
 
@@ -82,37 +89,39 @@ summary(aggregate_lm)
 
 If aggregation bias is present, the coefficient for income in the aggregate regression might be different from the coefficient in the individual regression, even if the individual relationship is significant and strong.
 
-Figure \@ref(fig:bias-aggregation-individual-vs-neighborhood) compares the income-consumption relationship at the individual level (with neighborhoods color-coded) against the same relationship after aggregating to the neighborhood mean.
+Figure \@ref(fig:bias-aggregation-individual-vs-neighborhood) compares the income-consumption relationship at the individual level against the same relationship after aggregating to the neighborhood mean.
 
-```{r bias-aggregation-individual-vs-neighborhood, fig.cap="Income-consumption relationship at the individual level (left, with neighborhoods on a luminance-ordered color scale) against the relationship after aggregating to neighborhood means (right), illustrating how the slope can shift under aggregation.", fig.alt="Two side-by-side scatter plots of consumption against income, each with a fitted regression line. The left panel shows about 1000 individuals shaded by neighborhood number, and the right panel shows about 100 neighborhood means. Both have a positive slope of similar steepness, and the neighborhood means cover a much narrower range of income and consumption."}
+```{r bias-aggregation-individual-vs-neighborhood, fig.cap="Income-consumption relationship for 1000 individuals (left) and for the means of their 100 neighborhoods (right). Because individuals are assigned to neighborhoods at random, aggregation preserves the slope here. It can shift when neighborhoods differ in ways that are related to income and also affect consumption.", fig.alt="Two side-by-side scatter plots of consumption against income, each with a fitted line. The left panel shows 1000 individuals as grey points, and the right panel shows 100 neighborhood means. Both have a positive slope of similar steepness, and the neighborhood means cover a much narrower range of income and consumption."}
 library(ggplot2)
 
 # Individual scatterplot
 p1 <- ggplot(df, aes(x = income, y = consumption)) +
-    geom_point(aes(color = neighborhood), alpha = 0.6) +
-    scale_color_viridis_c() +
+    geom_point(color = "grey50", alpha = 0.6) +
+    scale_x_continuous(breaks = seq(20, 80, by = 20)) +
     geom_smooth(method = "lm",
                 se = FALSE,
                 color = "black") +
-    labs(title = "Individual Level Data") +
-    causalverse::ama_theme()
+    labs(title = "Individuals", x = "Income", y = "Consumption") +
+    causalverse::ama_theme() +
+    theme(plot.margin = margin(5, 10, 5, 5),
+          plot.title = element_text(size = 14))
 
 # Aggregate scatterplot
 p2 <- ggplot(aggregate_data, aes(x = income, y = consumption)) +
-    geom_point(color = "red") +
+    geom_point(color = "grey30") +
+    scale_x_continuous(breaks = seq(40, 60, by = 5)) +
     geom_smooth(method = "lm",
                 se = FALSE,
                 color = "black") +
-    labs(title = "Aggregate Level Data") +
-    causalverse::ama_theme()
+    labs(title = "Neighborhood means", x = "Income", y = "Consumption") +
+    causalverse::ama_theme() +
+    theme(plot.margin = margin(5, 5, 5, 10),
+          plot.title = element_text(size = 14))
 
-# print(p1)
-# print(p2)
-
-gridExtra::grid.arrange(grobs = list(p1, p2), ncol = 2)
+patchwork::wrap_plots(p1, p2, ncol = 2)
 ```
 
-From these plots, you can see the relationship at the individual level, with each neighborhood being colored differently in the first plot. The second plot shows the aggregate data, where each point now represents a whole neighborhood.
+The first plot shows the relationship at the individual level. The second plot shows the aggregate data, where each point now represents a whole neighborhood. The two fitted slopes are close (about 0.54 and 0.60, with overlapping confidence intervals) because this simulation assigns individuals to neighborhoods at random, so the neighborhood means are just noisier samples of the same relationship. Aggregation bias appears when neighborhoods differ in ways that are related to income and also affect consumption, for example when richer households cluster in neighborhoods where living costs are higher.
 
 **Direction of Bias**: The direction of the aggregation bias isn't predetermined. It depends on the underlying relationship and the data distribution. In some cases, aggregation might attenuate (reduce) a relationship, while in other cases, it might exaggerate it.
 
@@ -120,7 +129,7 @@ From these plots, you can see the relationship at the individual level, with eac
 
 1.  Specification bias: If you don't properly account for the hierarchical structure of your data (like individuals nested within neighborhoods), your model might be mis-specified, leading to biased estimates.
 
-2.  [Measurement Error]: Aggregation can introduce or amplify measurement errors. For instance, if you aggregate noisy measures, the aggregate might not accurately represent any underlying signal.
+2.  Measurement error (Section \@ref(sec-measurement-error)): Aggregation can introduce or amplify measurement errors. For instance, if you aggregate noisy measures, the aggregate might not accurately represent any underlying signal.
 
 3.  Omitted Variable Bias (see [Endogeneity]): When you aggregate data, you lose information. If the loss of this information results in omitting important predictors that are correlated with both the independent and dependent variables, it can introduce omitted variable bias.
 
@@ -193,12 +202,12 @@ ability <- c(rep("high", 500), rep("low", 500))
 treatment <-
   ifelse(ability == "high", rbinom(500, 1, 0.2), rbinom(500, 1, 0.8))
 
-# Grades are influenced by ability and treatment (new technique),
-# but the treatment has opposite effects based on ability.
+# Grades are influenced by ability and treatment (new technique).
+# The technique raises grades in both ability groups.
 grades <-
   ifelse(
     ability == "high",
-    rnorm(500, mean = 85, sd = 5) + treatment * -3,
+    rnorm(500, mean = 85, sd = 5) + treatment * 3,
     rnorm(500, mean = 60, sd = 5) + treatment * 5
   )
 
@@ -221,7 +230,7 @@ From this simulation:
 
 -   The **`overall_lm`** might show that the new study technique is associated with lower grades (negative coefficient), because many of the high-ability students (who naturally have high grades) did not use it.
 
--   The **`high_ability_lm`** will likely show that high-ability students who used the technique had slightly lower grades than high-ability students who didn't.
+-   The **`high_ability_lm`** will likely show that high-ability students who used the technique had somewhat higher grades than high-ability students who didn't.
 
 -   The **`low_ability_lm`** will likely show that low-ability students who used the technique had much higher grades than low-ability students who didn't.
 
@@ -229,55 +238,36 @@ This is a classic example of Simpson's Paradox: within each ability group, the t
 
 Figure \@ref(fig:bias-simpson-paradox-grades) shows the treatment-grade relationship pooled across the full sample alongside the same relationship within the high-ability and low-ability subgroups, illustrating Simpson's paradox.
 
-```{r bias-simpson-paradox-grades, fig.cap="Simpson's paradox illustration: treatment-grade relationship in the pooled sample (top) reverses sign when stratified by student ability into high-ability (middle) and low-ability (bottom) subgroups.", fig.alt="Three stacked panels of jittered points with box plots of grades by treatment, 0 for no technique and 1 for the new technique. The top panel shows both ability groups together: high-ability students mostly untreated with grades near 85, low-ability students mostly treated with grades near 60 to 65. The middle panel shows high-ability grades a little lower under treatment. The bottom panel shows low-ability grades higher under treatment."}
+```{r bias-simpson-paradox-grades, fig.height=8, fig.cap="Simpson's paradox illustration: in the pooled sample (top) students who use the new technique have lower grades, yet the technique raises grades within both the high-ability (middle) and low-ability (bottom) subgroups. Box plots in the top panel pool both ability groups.", fig.alt="Three stacked panels of jittered points with box plots of grades by use of the new technique. In the pooled top panel, users score lower because most users are low-ability students near 65 and most non-users are high-ability students near 85. The middle and bottom panels show grades a few points higher for users within each ability group."}
 library(ggplot2)
 
-# Scatterplot for overall data
+x_lab <- "Uses new technique (0 = no, 1 = yes)"
+
+# Pooled sample: one box per treatment arm, points marked by ability
 p1 <-
-  ggplot(df, aes(
-    x = factor(treatment),
-    y = grades,
-    color = ability
-  )) +
-  geom_jitter(width = 0.2, height = 0) +
-  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
-  labs(title = "Overall Effect of Study Technique on Grades",
-       x = "Treatment (0 = No Technique, 1 = New Technique)",
-       y = "Grades")
+  ggplot(df, aes(x = factor(treatment), y = grades)) +
+  geom_jitter(aes(color = ability, shape = ability),
+              width = 0.2, height = 0, alpha = 0.6) +
+  geom_boxplot(fill = NA, outlier.shape = NA, linewidth = 0.8) +
+  scale_color_manual(name = "Ability",
+                     values = c(high = "grey20", low = "grey60")) +
+  scale_shape_manual(name = "Ability", values = c(high = 16, low = 2)) +
+  labs(title = "Pooled sample", x = x_lab, y = "Grades")
 
-# Scatterplot for high-ability students
-p2 <-
-  ggplot(df[df$ability == "high", ], aes(
-    x = factor(treatment),
-    y = grades,
-    color = ability
-  )) +
-  geom_jitter(width = 0.2, height = 0) +
-  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
-  labs(title = "Effect of Study Technique on Grades (High Ability)",
-       x = "Treatment (0 = No Technique, 1 = New Technique)",
-       y = "Grades")
+# Within-group panels
+plot_group <- function(grp, ttl, shp, col) {
+  ggplot(df[df$ability == grp, ],
+         aes(x = factor(treatment), y = grades)) +
+    geom_jitter(width = 0.2, height = 0, alpha = 0.6,
+                shape = shp, color = col) +
+    geom_boxplot(fill = NA, outlier.shape = NA, linewidth = 0.8) +
+    labs(title = ttl, x = x_lab, y = "Grades")
+}
+p2 <- plot_group("high", "High-ability students", 16, "grey20")
+p3 <- plot_group("low", "Low-ability students", 2, "grey60")
 
-# Scatterplot for low-ability students
-p3 <-
-  ggplot(df[df$ability == "low", ], aes(
-    x = factor(treatment),
-    y = grades,
-    color = ability
-  )) +
-  geom_jitter(width = 0.2, height = 0) +
-  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
-  labs(title = "Effect of Study Technique on Grades (Low Ability)",
-       x = "Treatment (0 = No Technique, 1 = New Technique)",
-       y = "Grades")
-
-# print(p1)
-# print(p2)
-# print(p3)
-gridExtra::grid.arrange(grobs = list(p1, p2, p3), ncol = 1)
+patchwork::wrap_plots(p1, p2, p3, ncol = 1)
 ```
-
-------------------------------------------------------------------------
 
 ## Contamination Bias {#sec-contamination-bias}
 
@@ -292,8 +282,6 @@ Detection is largely diagnostic. Practitioners can inspect the implied regressio
 The remedy is to abandon the pooled multi-arm OLS specification when the goal is an own-effect estimate. @goldsmith2022contamination propose three alternative estimators that recover convex combinations of own-treatment effects: a one-treatment-at-a-time approach, a stratification-based estimator, and an interacted regression that explicitly models the heterogeneity. They report substantial contamination in observational studies and a much smaller footprint in experimental ones, again because randomization disciplines the propensity-score variation that drives the bias.
 
 The practical takeaway is conservative: when the design has multiple mutually exclusive treatment arms, do not read coefficients on the arm dummies in a pooled flexible-controls regression as own-effect averages. Estimate one arm at a time against a common baseline, or use a method that explicitly targets the convex average of interest.
-
-------------------------------------------------------------------------
 
 ## Survivorship Bias {#sec-survivorship-bias}
 
@@ -315,7 +303,7 @@ set.seed(42)
 # Generating data for 100 companies
 n <- 100
 
-# Randomly generate earnings; assume true average earnings is 50
+# Randomly generate earnings. True average earnings is 50
 earnings <- rnorm(n, mean = 50, sd = 10)
 
 # Threshold for bankruptcy
@@ -337,7 +325,7 @@ Using a histogram to visualize the distribution of earnings, highlighting the "s
 
 Figure \@ref(fig:bias-survivorship-earnings-histogram) shows the simulated earnings distribution across all firms with vertical lines at the population mean and the survivor-only mean, illustrating the upward shift induced by survivorship.
 
-```{r bias-survivorship-earnings-histogram, fig.cap="Histogram of simulated company earnings with vertical lines at the population mean (true average) and the survivor-only mean, illustrating the upward bias when only firms above the bankruptcy threshold are observed.", fig.alt="Histogram of number of companies by earnings, spanning roughly 20 to 72. A dashed vertical line marks the true average near 50 and a dotted line marks the survivor average near 53, just to its right."}
+```{r bias-survivorship-earnings-histogram, fig.cap="Histogram of simulated company earnings with vertical lines at the population mean (true average) and the survivor-only mean, illustrating the upward bias when only firms above the bankruptcy threshold are observed.", fig.alt="Histogram of number of companies by earnings, spanning roughly 20 to 72. A dashed vertical line labelled True average sits near 50, and a dotted line labelled Survivor average sits near 53, just to its right."}
 library(ggplot2)
 
 df <- data.frame(earnings)
@@ -349,30 +337,30 @@ p <- ggplot(df, aes(x = earnings)) +
     color = "black",
     alpha = 0.7
   ) +
-  geom_vline(aes(xintercept = true_avg, color = "True Avg",
-                 linetype = "True Avg"),
-             size = 1) +
-  geom_vline(
-    aes(xintercept = survivor_avg, color = "Survivor Avg",
-        linetype = "Survivor Avg"),
-    size = 1
-  ) +
-  scale_color_manual(values = c("True Avg" = "blue", "Survivor Avg" = "red"),
-                     name = "Average Type") +
-  scale_linetype_manual(values = c("True Avg" = "dashed",
-                                  "Survivor Avg" = "dotted"),
-                        name = "Average Type") +
-  labs(title = "Distribution of Company Earnings",
-       x = "Earnings",
-       y = "Number of Companies") +
+  geom_vline(xintercept = true_avg, linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = survivor_avg, linetype = "dotted", linewidth = 1) +
+  # Label the two lines directly instead of through a legend
+  annotate("text", x = true_avg, y = Inf, label = "True average",
+           hjust = 1.05, vjust = 1.5, size = 3.5) +
+  annotate("text", x = survivor_avg, y = Inf, label = "Survivor average",
+           hjust = -0.05, vjust = 1.5, size = 3.5) +
+  scale_y_continuous(breaks = function(l) seq(0, ceiling(l[2]), by = 2),
+                     expand = expansion(mult = c(0, 0.18))) +
+  labs(x = "Earnings", y = "Number of Companies") +
   causalverse::ama_theme()
 
 print(p)
 ```
 
-In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating that by only looking at the survivors, we overestimate the average earnings.
+In the plot, the true average (about 50) is lower than the survivor average (about 53), so looking only at the survivors overstates average earnings.
 
 ### Remedies
+
+Survivorship bias is a missing data problem in which the probability of being
+observed depends on the outcome, so the remedies fall into two groups: those
+that recover the missing units, and those that reason about them without
+recovering them. The first group is always preferable when it is feasible, and
+the list below is ordered accordingly.
 
 1.  Awareness: Recognizing the potential for survivorship bias is the first step.
 
@@ -384,11 +372,22 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 
 5.  Sensitivity Analysis: Test how sensitive your results are to assumptions about the non-survivors.
 
-------------------------------------------------------------------------
+The distinction matters because the two groups make very different demands. The
+data-based remedies, items 2 and 4, need no assumptions about the selection
+process but require access that may simply not exist, since delisted firms,
+failed products, and lapsed respondents are often not recorded anywhere. The
+model-based remedies, items 3 and 5, need no additional data but replace it
+with an assumption about why units disappeared, and the estimate is only as
+good as that assumption. Item 3 attempts a point correction and therefore
+commits to a specific selection model, while item 5 declines to commit and
+reports instead how far the conclusion can be pushed before it breaks. When the
+selection mechanism is genuinely unknown, the honest sequence is to attempt
+recovery first, then bound the answer, and to treat a point-corrected estimate
+as a claim about the selection model rather than a claim about the world.
 
 ## Attrition Bias {#sec-attrition-bias}
 
-**Attrition bias** arises in longitudinal or panel studies when units drop out of the sample non-randomly --- and in particular when dropout is correlated with the outcome or with treatment status. Even a randomized experiment with perfect baseline balance will yield biased treatment-effect estimates if, for example, sicker patients in the control arm are more likely to be lost to follow-up than sicker patients in the treatment arm.
+**Attrition bias** arises in longitudinal or panel studies when units drop out of the sample non-randomly, and in particular when dropout is correlated with the outcome or with treatment status. Even a randomized experiment with perfect baseline balance will yield biased treatment-effect estimates if, for example, sicker patients in the control arm are more likely to be lost to follow-up than sicker patients in the treatment arm.
 
 The conceptual link to other selection-style problems is direct. Random assignment guarantees baseline ignorability, but it offers no protection once units begin selecting themselves out of follow-up. From that point forward the analyst is in the world of selection on unobservables (Section \@ref(sec-selection-on-unobservables)) and endogenous sample selection (Section \@ref(sec-endogenous-sample-selection)). Detection typically combines a comparison of baseline characteristics for completers versus dropouts, a test of differential attrition rates across treatment arms, and bounding exercises that ask how extreme the missing outcomes would have to be to overturn the headline estimate. When attrition is heavy or differential, results from quasi-experimental designs (Section \@ref(sec-quasi-experimental)) should be reported alongside their corresponding robustness checks (Section \@ref(sec-robustness-checks-quasi-exp)).
 
@@ -405,11 +404,9 @@ The conceptual link to other selection-style problems is direct. Random assignme
 
 > **Key Takeaway**: Attrition bias is selection bias *induced post-randomization*. Pre-registered IPAW or Lee bounds, plus tabulated baseline characteristics of dropouts vs. completers, are the de facto reporting standard.
 
-------------------------------------------------------------------------
-
 ## Recall Bias {#sec-recall-bias}
 
-**Recall bias** is a form of [measurement error](#sec-measurement-error) that arises when the accuracy or completeness of a respondent's memory is systematically related to their outcome or exposure status. Unlike classical, mean-zero measurement error --- which generally attenuates regression coefficients --- recall bias is *differential*, meaning it shifts coefficients in unpredictable directions and can manufacture spurious associations.
+**Recall bias** is a form of [measurement error](#sec-measurement-error) (Section \@ref(sec-measurement-error)) that arises when the accuracy or completeness of a respondent's memory is systematically related to their outcome or exposure status. Unlike classical, mean-zero measurement error, which generally attenuates regression coefficients, recall bias is *differential*, meaning it shifts coefficients in unpredictable directions and can manufacture spurious associations.
 
 The departure from classical measurement error (Section \@ref(sec-measurement-error)) is what makes recall bias particularly hazardous. Classical error attaches noise that is independent of the truth and of group status, so the standard intuition that errors-in-variables attenuate slopes applies. Differential recall, by contrast, is correlated with the outcome itself, and this correlation can either inflate or deflate associations and can even reverse their sign. The same instrumental-variable and proxy-variable strategies used for handling endogeneity (Section \@ref(sec-instrumental-variables)) can sometimes be repurposed when an exogenous source of variation in reporting accuracy is available. Detection usually proceeds by comparing self-reported quantities to objective benchmarks on a calibration subsample, by stratifying error rates by case/control or treatment/control status, and by examining whether the implied error structure is plausibly mean-zero conditional on group.
 
@@ -419,20 +416,18 @@ The departure from classical measurement error (Section \@ref(sec-measurement-er
 
 ### Standard remediations
 
-1.  Contemporaneous logging: Replace retrospective self-report with prospectively collected administrative records, transaction logs, or wearable-sensor data --- removing the memory channel entirely.
+1.  Contemporaneous logging: Replace retrospective self-report with prospectively collected administrative records, transaction logs, or wearable-sensor data, removing the memory channel entirely.
 2.  Biomarker or behavioral triangulation: Pair self-reports with an objective measure (e.g., serum nicotine for smoking, scanner data for purchases, server-side click logs for ad exposure) and treat the discrepancy as a measurement-error model.
 3.  Blinded data collection: Where retrospective questions are unavoidable, blind interviewers (and ideally respondents) to the case/control status to remove differential probing.
 4.  Validation substudies: Calibrate self-report instruments against a gold-standard subsample and apply regression calibration or simulation-extrapolation (SIMEX).
 
 > **Key Takeaway**: Recall bias is most dangerous when it is *differential*, because it breaks the standard "attenuation" intuition for measurement error. Whenever feasible, prefer contemporaneous administrative or sensor-based records to retrospective self-report.
 
-------------------------------------------------------------------------
-
 ## Regression to the Mean {#sec-regression-to-the-mean}
 
-**Regression to the mean** (RTM) describes the statistical phenomenon by which extreme observations on a noisy measurement tend, on re-measurement, to lie closer to the population mean. It is *not* a causal effect of any intervention --- it is an artifact of selecting on a noisy realization. Mistaking RTM for a treatment effect is one of the most common applied-statistics errors in pre/post designs.
+**Regression to the mean** (RTM) describes the statistical phenomenon by which extreme observations on a noisy measurement tend, on re-measurement, to lie closer to the population mean. It is *not* a causal effect of any intervention. It is an artifact of selecting on a noisy realization. Mistaking RTM for a treatment effect is one of the most common applied-statistics errors in pre/post designs.
 
-**Example**: A school district enrolls the *worst-performing 10%* of students from last year's standardized test in a tutoring program. Even with a *completely ineffective* tutor, those students will, on average, score higher this year --- their selection was driven partly by transient bad-day noise, which does not repeat. Naively comparing pre- to post-test scores credits the tutor for an effect that is mechanical.
+**Example**: A school district enrolls the *worst-performing 10%* of students from last year's standardized test in a tutoring program. Even with a *completely ineffective* tutor, those students will, on average, score higher this year, because their selection was driven partly by transient bad-day noise, which does not repeat. Naively comparing pre- to post-test scores credits the tutor for an effect that is mechanical.
 
 **Common settings**: selection of units for an intervention based on extreme baseline values (e.g., highest-cost patients, lowest-revenue stores, highest-error regions), pre/post analyses without a comparison group, sports performance ("rookie of the year" sophomore slumps), and managerial evaluation systems that promote on the basis of one extreme review.
 
@@ -443,9 +438,7 @@ The departure from classical measurement error (Section \@ref(sec-measurement-er
 3.  Use multiple baseline measurements: Average several pre-period observations to reduce the noise variance that fuels RTM, then condition on the average rather than a single realization.
 4.  Model the measurement process explicitly: A simple errors-in-variables or random-effects model that separates true score from noise will recover an RTM-corrected expected post-period value.
 
-> **Key Takeaway**: Whenever units are selected because they were extreme, expect movement toward the mean in the next period --- whether or not anything was done to them. Always benchmark against a similarly-selected control group, and never report a pre/post change as a treatment effect when units were chosen on the pre-period value.
-
-------------------------------------------------------------------------
+> **Key Takeaway**: Whenever units are selected because they were extreme, expect movement toward the mean in the next period, whether or not anything was done to them. Always benchmark against a similarly-selected control group, and never report a pre/post change as a treatment effect when units were chosen on the pre-period value.
 
 ## Publication Bias {#sec-publication-bias}
 
@@ -461,7 +454,7 @@ Publication bias sits at a different layer of the inference pipeline than the da
 
 2.  Confirmation Bias: Like survivorship bias, publication bias can reinforce confirmation bias. Researchers might only find and cite studies that confirm their beliefs, overlooking the unpublished studies that might contradict them.
 
-Let's simulate an experiment on a new treatment. We'll assume that the treatment has no effect, but due to random variation, some studies will show significant positive or negative effects.
+Let's simulate an experiment on a new treatment. We'll assume that the treatment has no effect, but due to random variation, some studies will show significant positive effects. Journals favor these positive findings, so only studies whose estimated effect clears a positive threshold get published.
 
 ```{r}
 set.seed(42)
@@ -475,9 +468,9 @@ true_effect <- 0
 # Random variation in results
 results <- rnorm(n, mean = true_effect, sd = 1)
 
-# Only "significant" results get published 
-# (arbitrarily defining significant as abs(effect) > 1.5)
-published_results <- results[abs(results) > 1.5]
+# Only significant positive results get published
+# (arbitrarily defining significant as effect > 1.5)
+published_results <- results[results > 1.5]
 
 # Average effect for all studies vs. published studies
 true_avg_effect <- mean(results)
@@ -491,55 +484,54 @@ Using a histogram to visualize the distribution of study results, highlighting t
 
 Figure \@ref(fig:bias-publication-study-results) plots the simulated distribution of study results under no true effect, with vertical lines at the unrestricted mean and at the mean among only-the-significant published subset.
 
-```{r bias-publication-study-results, fig.cap="Histogram of simulated study effect sizes under no true effect, with vertical lines at the full-sample mean (true average) and at the mean among the published-only subset whose absolute effect exceeds 1.5.", fig.alt="Histogram of number of studies by effect size, spanning roughly minus 3 to 2. A dashed vertical line marks the true average effect near 0 and a dotted line marks the published average effect near minus 0.35, just to its left."}
+```{r bias-publication-study-results, fig.cap="Histogram of simulated study effect sizes under no true effect, with the published studies (effect above 1.5) shaded dark. Vertical lines mark the mean of all studies (true average) and the mean of the published subset.", fig.alt="Histogram of number of studies by effect size, spanning roughly minus 3 to 2.3, with the few studies above 1.5 shaded dark as published. A dashed line labelled Average of all studies sits near 0, and a dotted line labelled Published average sits near 1.8, far to the right."}
 library(ggplot2)
 
 df <- data.frame(results)
+df$status <- ifelse(df$results > 1.5, "Published", "Unpublished")
 
 p <- ggplot(df, aes(x = results)) +
   geom_histogram(
+    aes(fill = status),
     binwidth = 0.2,
-    fill = "grey",
-    color = "black",
-    alpha = 0.7
+    boundary = 1.5,
+    color = "black"
   ) +
-  geom_vline(
-    aes(xintercept = true_avg_effect,
-        color = "True Avg Effect",
-        linetype = "True Avg Effect"),
-    size = 1
+  scale_fill_manual(
+    values = c(Published = "grey25", Unpublished = "grey85"),
+    name = "Study"
   ) +
-  geom_vline(
-    aes(xintercept = published_avg_effect,
-        color = "Published Avg Effect",
-        linetype = "Published Avg Effect"),
-    size = 1
-  ) +
-  scale_color_manual(
-    values = c(
-      "True Avg Effect" = "blue",
-      "Published Avg Effect" = "red"
-    ),
-    name = "Effect Type"
-  ) +
-  scale_linetype_manual(
-    values = c(
-      "True Avg Effect" = "dashed",
-      "Published Avg Effect" = "dotted"
-    ),
-    name = "Effect Type"
-  ) +
-  labs(title = "Distribution of Study Results",
-       x = "Effect Size",
-       y = "Number of Studies") +
+  geom_vline(xintercept = true_avg_effect, linetype = "dashed",
+             linewidth = 1) +
+  geom_vline(xintercept = published_avg_effect, linetype = "dotted",
+             linewidth = 1) +
+  # Label the two lines directly instead of through a legend
+  annotate("text", x = true_avg_effect, y = Inf,
+           label = "Average of all studies",
+           hjust = 1.05, vjust = 1.5, size = 3.5) +
+  annotate("text", x = published_avg_effect, y = Inf,
+           label = "Published\naverage",
+           hjust = 1.08, vjust = 1.3, size = 3.5, lineheight = 0.9) +
+  scale_y_continuous(breaks = function(l) seq(0, ceiling(l[2]), by = 2),
+                     expand = expansion(mult = c(0, 0.15))) +
+  labs(x = "Effect Size", y = "Number of Studies") +
   causalverse::ama_theme()
 
 print(p)
 ```
 
-The plot might show that the "True Avg Effect" is around zero, while the "Published Avg Effect" is likely higher or lower, depending on which studies happen to have significant results in the simulation.
+The plot shows the average of all studies close to zero, while the published average sits far to the right, because the filter keeps only studies that happened to draw a large positive estimate. A reader of the published record alone would conclude that the treatment works, even though every study was drawn from a distribution centered on no effect.
 
 ### Remedies
+
+Publication bias is not a defect in any single study, so no single study can
+repair it. The remedies below therefore operate at three different levels, and
+confusing them is the main reason discussions of the problem go in circles.
+Items 2, 3, and 5 are institutional: they change what enters the literature in
+the first place, and they are the only remedies that address the cause rather
+than its consequences. Items 4 and 6 are statistical: they take a distorted
+body of evidence as given and try to recover what the undistorted body would
+have shown. Item 1 governs how the other five get used.
 
 1.  Awareness: Understand and accept that publication bias exists, especially when conducting literature reviews or meta-analyses.
 
@@ -551,9 +543,22 @@ The plot might show that the "True Avg Effect" is around zero, while the "Publis
 
 5.  Use of Preprints: Promote the use of preprint servers where researchers can upload studies before they're peer-reviewed, ensuring that results are available regardless of eventual publication status.
 
-6.  p-curve analysis: addresses publication bias and p-hacking by analyzing the distribution of p-values below 0.05 in research studies. It posits that a right-skewed distribution of these p-values indicates a true effect, whereas a left-skewed distribution suggests p-hacking and no true underlying effect. The method includes a "half-curve" test to counteract extensive p-hacking [@simonsohn2014p, @simonsohn2014pa, @simonsohn2015better].
+6.  p-curve analysis: addresses publication bias and p-hacking by analyzing the distribution of p-values below 0.05 in research studies. It posits that a right-skewed distribution of these p-values indicates a true effect, whereas a left-skewed distribution suggests p-hacking and no true underlying effect. The method includes a "half-curve" test to counteract extensive p-hacking [@simonsohn2014p; @simonsohn2014pa; @simonsohn2015better].
 
-------------------------------------------------------------------------
+The asymmetry between the two groups is worth stating plainly. The
+institutional remedies work but are slow, because they only affect studies
+begun after the reform, so a registry adopted today leaves twenty years of
+existing literature exactly as distorted as it was. The statistical remedies
+act on the existing literature immediately but are inferential rather than
+corrective: each one recovers the unbiased effect only under an assumption
+about how selection operated, and those assumptions are not testable from the
+published studies alone, since the whole difficulty is that the unpublished
+ones are missing. This is why the methods in Section
+\@ref(sec-publication-bias-phacking) are best run several at a time. Agreement
+among methods resting on different selection assumptions is genuine evidence
+that the correction is not an artifact of any one of them, and disagreement is
+itself a finding, indicating that the answer depends on which story about the
+file drawer is believed.
 
 ## p-Hacking
 
@@ -569,8 +574,6 @@ We separate three concepts that are often conflated:
 -   **QRPs** (questionable research practices): a broader umbrella that includes *p*-hacking and HARKing (hypothesizing after results are known).
 
 This section is about **detection** (diagnosis) and **adjustment** (bias correction) for these phenomena in literatures and meta-analyses. We aim for methods that either (i) test for their presence, (ii) quantify their magnitude, or (iii) produce bias-adjusted effect estimates and uncertainty statements.
-
-------------------------------------------------------------------------
 
 ### Theoretical Signatures of p-Hacking and Selection
 
@@ -604,8 +607,8 @@ where $f(p\mid \mu)$ is the theoretical distribution of $p$-values given a true 
 
 [^37-biases-2]: A literature with heterogeneous true effects replaces $f(p\mid \mu)$ by $\int f(p\mid \mu) dG(\mu)$ for some mixing distribution $G$. This formulation treats each study's noncentrality $\mu_i$ as a random draw from $G$, capturing true-effect heterogeneity rather than assuming a common $\mu$.
 
-    1.  It is the foundation of **random-effects meta-analysis** [@dersimonian1986meta, @hedges2014statistical, @borenstein2021introduction] and underlies **selection models** where the observed density becomes $f_{\text{obs}}(p)\propto s(p)\int f(p\mid \mu) dG(\mu)$ [@iyengar1988selection, @vevea1995general].
-    2.  The same hierarchical idea appears in **empirical Bayes frameworks** for large-scale inference [@efron2010correlated, @storey2002direct, @stephens2017false], where the observed distribution of $z$-scores or $p$-values reflects a mixture of null and non-null effects.
+    1.  It is the foundation of **random-effects meta-analysis** [@dersimonian1986meta; @hedges2014statistical; @borenstein2021introduction] and underlies **selection models** where the observed density becomes $f_{\text{obs}}(p)\propto s(p)\int f(p\mid \mu) dG(\mu)$ [@iyengar1988selection; @vevea1995general].
+    2.  The same hierarchical idea appears in **empirical Bayes frameworks** for large-scale inference [@efron2010correlated; @storey2002direct; @stephens2017false], where the observed distribution of $z$-scores or $p$-values reflects a mixture of null and non-null effects.
     3.  Modern extensions such as **z-curve** [@bartovs2022z] and **nonparametric selection models** [@andrews2019identification] estimate both $G$ and, when relevant, the selection function $s(p)$ directly from data, providing flexible tools to model publication bias and heterogeneity simultaneously.
 
 This function results in two *related* phenomena (both distort what we see in the published literature), but they're **conceptually distinct** and represent **two polar mechanisms** of how the distortion arises. Mathematically, they correspond to *different shapes of the selection function* $s(p)$.
@@ -672,7 +675,7 @@ At the surface level, both processes produce similar observable patterns of *pub
 From a purely *descriptive* point of view (e.g., looking only at a histogram of published *p*-values), **you cannot tell them apart**.\
 That's why analysts call them **observationally confounded mechanisms**: different generative processes, same marginal distributions.
 
-The distinction lies in *where* the distortion occurs in the data-generation pipeline (Figures \@ref(fig:p-value-distribution-comparison) and \@ref(fig:p-hacking-pile-up-effect))
+The distinction lies in *where* the distortion occurs in the data-generation pipeline (Figures \@ref(fig:p-value-distribution-comparison) and \@ref(fig:p-hacking-pile-up-effect)).
 
 1.  **Pure publication bias**
 
@@ -707,8 +710,6 @@ The distinction lies in *where* the distortion occurs in the data-generation pip
     which spikes near 0 when $m$ is large, or piles up near $\alpha$ if researchers stop only when reaching significance.
 
 -   Key signature: not just truncation, but a smooth inflation near $\alpha$, sometimes with a local mode or "bump" just below it.
-
-------------------------------------------------------------------------
 
 ```{r}
 set.seed(123)
@@ -750,119 +751,116 @@ df <- rbind(
     filter(!is.na(p))
 ```
 
-```{r p-value-distribution-comparison, fig.cap="Comparison of $p$-value distributions under truncation and $p$-hacking.", fig.alt="Three stacked histograms of p-value frequency from 0 to 0.2, with a dashed vertical line at 0.05. Original (no bias) declines gently and continues past 0.05. Publication bias has the same shape but stops at 0.05. P-hacking (min of 10) is concentrated near zero with far higher counts and almost nothing beyond 0.06.", dpi=300, warning=FALSE, message=FALSE}
+```{r p-value-distribution-comparison, fig.height=6, fig.cap="Distributions of $p$-values from 10,000 simulated two-sided tests whose $z$ statistic has mean 1, so that power at alpha 0.05 is only about 17 percent. Top, honest reporting. Middle, publication that keeps only $p$ below 0.05. Bottom, $p$-hacking that reports the minimum of 10 independent tests.", fig.alt="Three stacked grey histograms of p-value counts from 0 to 0.2, each with a dashed line at alpha 0.05. Original (no bias) declines gently and continues past 0.05. Publication bias has the same shape but stops at 0.05. P-hacking (min of 10) is concentrated near zero with counts about ten times higher and very little beyond 0.08.", dpi=300, warning=FALSE, message=FALSE}
 # Focus on the critical region (0 to 0.2)
-ggplot(df, aes(p, fill = type)) +
+ggplot(df, aes(p)) +
     geom_histogram(
         binwidth = 0.002,
-        position = "identity",
-        alpha = 0.5,
-        color = "white"
+        boundary = 0,
+        fill = "grey45",
+        color = "white",
+        linewidth = 0.1
     ) +
-    geom_vline(
-        xintercept = 0.05,
-        linetype = "dashed",
-        linewidth = 1,
-        color = "red"
-    ) +
-    scale_x_continuous(limits = c(0, 0.2), breaks = seq(0, 0.2, 0.02)) +
-    scale_fill_manual(values = c("gray50", "blue", "orange")) +
-    labs(
-        x = "p-value",
-        y = "Frequency",
-        title = "P-value distributions under different research practices",
-        subtitle = "Effect size: d=1 (moderate); Alpha=0.05 (dashed line)",
-        fill = "Scenario"
-    ) +
-    # causalverse::ama_theme() + 
-    theme_minimal() +
-    theme(legend.position = "bottom",
-      legend.direction = "vertical") +
-    facet_wrap( ~ type, ncol = 1, scales = "free_y")
-```
-
-```{r p-hacking-pile-up-effect, fig.cap="P-hacking distributions illustrating the pile-up effect just below $p = 0.05$.", fig.alt="Overlaid density histograms of p-values from 0 to 0.15 for No selection (light) and P-hacking (min of 10) (dark), with a dashed line at alpha 0.05, a dotted line at 0.01, and a shaded band from 0 to 0.05. No selection is roughly flat. P-hacking is much taller near zero, falls steadily toward 0.05, and is lower than No selection above it.", warning=FALSE, message=FALSE}
-# Alternative: Show the pile-up more clearly
-df2 <- rbind(
-    data.frame(p = p_orig, type = "No selection"),
-    data.frame(p = p_hack, type = "P-hacking (min of 10)")
-)
-
-ggplot(df2, aes(p, fill = type)) +
-    geom_histogram(
-        aes(y = after_stat(density)),
-        binwidth = 0.005,
-        position = "identity",
-        alpha = 0.6,
-        color = "white"
-    ) +
-    geom_vline(
-        xintercept = 0.05,
-        linetype = "dashed",
-        linewidth = 1,
-        color = "red"
-    ) +
-    geom_vline(
-        xintercept = 0.01,
-        linetype = "dotted",
-        linewidth = 0.5,
-        color = "red"
-    ) +
-    scale_x_continuous(limits = c(0, 0.15), breaks = seq(0, 0.15, 0.01)) +
-    scale_fill_manual(values = c("gray60", "darkred")) +
+    geom_vline(xintercept = 0.05, linetype = "dashed", linewidth = 0.8) +
     annotate(
         "text",
         x = 0.05,
         y = Inf,
-        label = "α = 0.05",
+        label = "alpha == 0.05",
+        parse = TRUE,
         hjust = -0.1,
-        vjust = 2,
-        color = "red",
-        size = 3
+        vjust = 1.5,
+        size = 3.5
     ) +
-    annotate(
-        "rect",
-        xmin = 0,
-        xmax = 0.05,
-        ymin = 0,
-        ymax = Inf,
-        alpha = 0.1,
-        fill = "red"
-    ) +
-    labs(
-        x = "p-value",
-        y = "Density",
-        title = "P-hacking creates an excess of 'barely significant' results",
-        fill = "Method"
-    ) +
-    # theme_minimal() +
-    causalverse::ama_theme() + 
-    theme(legend.position = "top")
+    scale_x_continuous(limits = c(0, 0.2), breaks = seq(0, 0.2, 0.05)) +
+    scale_y_continuous(breaks = scales::breaks_pretty(n = 3)) +
+    facet_wrap(~ type, ncol = 1, scales = "free_y") +
+    labs(x = "p-value", y = "Frequency") +
+    causalverse::ama_theme() +
+    theme(strip.text = element_text(size = 11, face = "bold"),
+          strip.background = element_blank())
 ```
 
-**Interpretation:**
+```{r p-hacking-pile-up-effect, fig.height=6, fig.cap="Two forms of p-hacking compared with honest reporting. Taking the minimum of 10 independent tests (middle) moves mass toward zero. Re-running correlated specifications of the same data and stopping at the first p below 0.05 (bottom) produces a pile-up just below 0.05 and a gap just above it.", fig.alt="Three stacked density histograms of p-values from 0 to 0.15 with a dashed line at alpha 0.05. No selection declines gently past 0.05. Minimum of 10 tests is tallest near zero and falls steadily. Specification search dips after zero, rises to its peak just below 0.05, and is nearly empty from 0.05 to about 0.08.", warning=FALSE, message=FALSE}
+# Specification search: up to 10 correlated re-analyses of the same
+# data, stopping at the first with p <= alpha. If none succeeds, the
+# original p-value is reported.
+simulate_stop <- function(mu = 1, m = 10, rho = 0.9,
+                          alpha = 0.05, n = 10000) {
+    z0 <- rnorm(n, mu, 1)
+    p_rep <- 2 * (1 - pnorm(abs(z0)))
+    for (j in 2:m) {
+        zj <- mu + sqrt(rho) * (z0 - mu) + sqrt(1 - rho) * rnorm(n)
+        pj <- 2 * (1 - pnorm(abs(zj)))
+        hit <- p_rep > alpha & pj <= alpha
+        p_rep[hit] <- pj[hit]
+    }
+    p_rep
+}
 
--   Both curves show an **absence of** $p>0.05$, so both produce "only significant" results.
--   The *publication-bias* case ends abruptly at 0.05 (a cliff).
--   The *p-hacking* case has a **bulge just below 0.05**, the telltale "bunching" pattern seen in real literature [@brodeur2016star].
+set.seed(123)
+p_stop <- simulate_stop()
+
+lvls <- c("No selection", "Minimum of 10 independent tests",
+          "Specification search, stop at first p below 0.05")
+df2 <- rbind(
+    data.frame(p = p_orig, type = lvls[1]),
+    data.frame(p = p_hack, type = lvls[2]),
+    data.frame(p = p_stop, type = lvls[3])
+)
+df2$type <- factor(df2$type, levels = lvls)
+
+ggplot(df2, aes(p)) +
+    geom_histogram(
+        aes(y = after_stat(density)),
+        binwidth = 0.005,
+        boundary = 0,
+        fill = "grey45",
+        color = "white"
+    ) +
+    geom_vline(xintercept = 0.05, linetype = "dashed", linewidth = 0.8) +
+    annotate(
+        "text",
+        x = 0.05,
+        y = Inf,
+        label = "alpha == 0.05",
+        parse = TRUE,
+        hjust = -0.1,
+        vjust = 1.5,
+        size = 3.5
+    ) +
+    # A tick every 0.01 across this range prints as one run of digits.
+    scale_x_continuous(limits = c(0, 0.15), breaks = seq(0, 0.15, 0.05)) +
+    facet_wrap(~ type, ncol = 1, scales = "free_y") +
+    labs(x = "p-value", y = "Density") +
+    causalverse::ama_theme() +
+    theme(strip.text = element_text(size = 11, face = "bold"),
+          strip.background = element_blank())
+```
+
+Read together, Figures \@ref(fig:p-value-distribution-comparison) and \@ref(fig:p-hacking-pile-up-effect) separate three signatures:
+
+-   The *publication-bias* case keeps the honest shape below 0.05 and ends abruptly at 0.05 (a cliff).
+-   *P-hacking by taking the minimum* of many independent tests does not bunch at the threshold. It shifts mass toward zero, so the histogram looks like a study with much higher power.
+-   *P-hacking by specification search*, re-analyzing the same data until one version crosses 0.05, has a **bulge just below 0.05** and a hole just above it, the telltale "bunching" pattern seen in real literature [@brodeur2016star]. Because the re-analyses are highly correlated, only studies that started close to the threshold can be pushed over it, and they land just below it.
+
+Only the last pattern is distinctive of manipulation near the threshold, which is why tests for bunching look at the narrow window around $\alpha$ rather than at the whole distribution.
 
 Why this distinction matters
 
 -   If the mechanism is pure truncation, the bias can be corrected with selection models that model $s(p)$ as a step function [@vevea1995general].
--   If the mechanism is smooth hacking, then the effective $s(p)$ is continuous or even non-monotone, which these models may miss. Hence, newer approaches such as z-curve, p-curve, and nonparametric selection models [@andrews2019identification, @bartovs2022z] are more appropriate.
+-   If the mechanism is smooth hacking, then the effective $s(p)$ is continuous or even non-monotone, which these models may miss. Hence, newer approaches such as z-curve, p-curve, and nonparametric selection models [@andrews2019identification; @bartovs2022z] are more appropriate.
 
 In practice, literatures exhibit both: authors p-hack to cross $\alpha$, then journals favor those results, compounding bias. So although the observable patterns overlap, the mechanistic implications and statistical corrections differ (Table \@ref(tab:p-hacking-mech-comparison)).
 
 | Mechanism        | When bias enters             | Typical $s(p)$             | Observable pattern      | Distinguishable feature                      |
-|------------------|------------------------------|----------------------------|-------------------------|----------------------------------------------|
+|--------------|----------|---------------|-------------|-------------------|
 | Publication bias | After analysis (file drawer) | Step function at $\alpha$  | Truncation at $\alpha$  | Sharp cutoff, missing nonsignificant results |
 | p-hacking        | During analysis              | Smooth/spiky near $\alpha$ | Bunching below $\alpha$ | Local spike or inflation near threshold      |
 
 Table: (\#tab:p-hacking-mech-comparison) Mechanism comparison between publication bias and $p$-hacking.
 
 Both yield "too many small *p*-values," but p-hacking reshapes the distribution, while publication bias truncates it. That's why, theoretically, they are modeled as polar cases, distinct endpoints of the same general selection framework.
-
-------------------------------------------------------------------------
 
 ### Method Families
 
@@ -892,7 +890,7 @@ Under continuity of the density at $c$ and no manipulation, $N_+$ and $N_-$ shou
 O \sim \text{Poisson-Binomial}(\pi_1,\ldots,\pi_k), \quad \text{test } \Pr(O \ge O_{\text{obs}} \mid \boldsymbol{\pi}).
 $$ **Pros**: Uses study-level power.
 
-**Cons**: Depends on the (possibly biased) common-effect estimate; heterogeneity complicates power computation.
+**Cons**: Depends on the (possibly biased) common-effect estimate. Heterogeneity complicates power computation.
 
 #### Funnel asymmetry tests and meta-regression
 
@@ -909,7 +907,7 @@ Let $y_i$ be estimated effects and $s_i$ their standard errors.
 
 **Pros**: Easy, interpretable, works with non-$p$ results.
 
-**Cons**: Conflates genuine small-study heterogeneity with bias; sensitive to model misspecification and between-study variance.
+**Cons**: Conflates genuine small-study heterogeneity with bias. Sensitive to model misspecification and between-study variance.
 
 #### Weight-function selection models (classical likelihood)
 
@@ -926,11 +924,11 @@ L(\theta, \mathbf{w}) \propto \prod_{i=1}^k \frac{\phi\left(\frac{y_i-\theta}{s_
 {\int \phi\left(\frac{y-\theta}{s_i}\right)\frac{1}{s_i} w(p(y)) dy}.
 $$
 
-where typical $w(p)$: piecewise constants over $(0,.001],(.001,.01],(.01,.05],(.05,1]$ [@vevea1995general, @vevea2005publication]. Random-effects models integrate over $\theta_i \sim \mathcal{N}(\theta, \tau^2)$.
+where typical $w(p)$: piecewise constants over $(0,.001],(.001,.01],(.01,.05],(.05,1]$ [@vevea1995general; @vevea2005publication]. Random-effects models integrate over $\theta_i \sim \mathcal{N}(\theta, \tau^2)$.
 
-**Pros**: Directly models selection; yields adjusted effects.
+**Pros**: Directly models selection. Yields adjusted effects.
 
-**Cons**: Partial identifiability; sensitive to binning and $w(\cdot)$ parameterization; requires careful computation.
+**Cons**: Partial identifiability. Sensitive to binning and $w(\cdot)$ parameterization. Requires careful computation.
 
 #### p-curve (diagnosis and effect estimation)
 
@@ -942,25 +940,25 @@ $$
 
 **Diagnostics**:
 
--   Right-skew test: Under $H_0$ (no evidential value), conditional $p/\alpha \sim \text{Uniform}(0,1)$; test whether mass is concentrated near $0$ (e.g., binomial test for $p < \alpha/2$, Stouffer's $z$ for $-\ln p$).
+-   Right-skew test: Under $H_0$ (no evidential value), conditional $p/\alpha \sim \text{Uniform}(0,1)$. Test whether mass is concentrated near $0$ (e.g., binomial test for $p < \alpha/2$, Stouffer's $z$ for $-\ln p$).
 
 -   **Flat/left-skew** suggests no evidential value (or severe p-hacking).
 
 **Effect estimation**: Maximize the conditional likelihood $\prod_i f_\alpha(p_i\mid \mu)$ over $\mu$ (or map $\mu$ to effect size $\theta$).
 
-**Pros**: Works with published significant results; robust to missing nonsignificant studies if selection is mostly on significance.
+**Pros**: Works with published significant results. Robust to missing nonsignificant studies if selection is mostly on significance.
 
-**Cons**: Sensitive to heterogeneity, $p$-dependence, and inclusion of $p$-values from *p*-hacked specifications; uses only significant $p$'s.
+**Cons**: Sensitive to heterogeneity, $p$-dependence, and inclusion of $p$-values from *p*-hacked specifications. Uses only significant $p$'s.
 
 #### p-uniform and p-uniform\*
 
-Closely related to p-curve but formulated as an MLE for the effect based on the conditional distribution of $p$ given $p\le \alpha$. Original p-uniform assumes homogeneous effects [@van2015meta]; p-uniform\* relaxes this (improved bias properties under heterogeneity) [@van2018correcting].
+Closely related to p-curve but formulated as an MLE for the effect based on the conditional distribution of $p$ given $p\le \alpha$. Original p-uniform assumes homogeneous effects [@van2015meta]. P-uniform\* relaxes this (improved bias properties under heterogeneity) [@van2018correcting].
 
 -   Estimator: $\hat\theta$ maximizes $\prod_i f_\alpha(p_i \mid \theta)$, with $f_\alpha$ derived from the test family (e.g., $t$-tests). Variants provide CIs via profile likelihood.
 
-**Pros**: Likelihood-based; can be extended to random-effects.
+**Pros**: Likelihood-based. Can be extended to random-effects.
 
-**Cons**: Original p-uniform biased under heterogeneity and low power; p-uniform\* mitigates but requires care in practice (choice of $\alpha$, modeling of $t/z$ tests).
+**Cons**: Original p-uniform biased under heterogeneity and low power. P-uniform\* mitigates but requires care in practice (choice of $\alpha$, modeling of $t/z$ tests).
 
 #### z-curve (mixtures on truncated z)
 
@@ -1021,8 +1019,6 @@ $$ Bayes factors quantify evidence for bias models and for $\theta=0$.
 
 **Cons**: Does not measure *p*-hacking directly, and depends on data granularity and reporting completeness.
 
-------------------------------------------------------------------------
-
 ### Mathematical Details and Assumptions
 
 #### Conditional p-density and likelihoods for p-curve/p-uniform
@@ -1073,7 +1069,7 @@ Assume $y_i = \theta + b_i + \varepsilon_i$, where $b_i$ captures small-study bi
 \text{PEESE: } y_i = \beta_0 + \beta_1 s_i^2 + \varepsilon_i',
 $$ with weights $1/s_i^2$. Under a linear bias-in-$s_i$ model, $\beta_0 \approx \theta$.
 
-#### Andrews--Kasy identification
+#### Andrews-Kasy identification
 
 Let $f_{\mathrm{obs}}(z)$ be the observed density of $z$-scores. Write
 
@@ -1102,66 +1098,77 @@ $$
 
 Truncation is handled by normalizing component likelihoods over $\{|z|\ge z_{\alpha/2}\}$. Posterior across $\mu$ gives EDR/ERR.
 
-------------------------------------------------------------------------
-
 ### Schools of Thought and Notable Debates
 
 1.  **Curve methods (p-curve, p-uniform) vs. selection models**
 
-    -   *Curve camp*: Conditioning on $p\le\alpha$ is a feature, not a bug (i.e., model only what is observed); robust when the publication threshold dominates selection.
-    -   *Critiques*: Ignoring nonsignificant studies throws away information; heterogeneity inflates bias (original p-uniform), and p-hacked $p$'s violate independence.
-    -   *Responses*: p-curve's evidential-value tests are diagnostic, not estimators of the grand mean; p-uniform\* improves bias handling; careful inclusion/exclusion rules mitigate hacking artifacts.
+    -   *Curve camp*: Conditioning on $p\le\alpha$ is a feature, not a bug (i.e., model only what is observed). Robust when the publication threshold dominates selection.
+    -   *Critiques*: Ignoring nonsignificant studies throws away information. Heterogeneity inflates bias (original p-uniform), and p-hacked $p$'s violate independence.
+    -   *Responses*: p-curve's evidential-value tests are diagnostic, not estimators of the grand mean. P-uniform\* improves bias handling. Careful inclusion/exclusion rules mitigate hacking artifacts.
 
 2.  **Selection models vs. PET-PEESE**
 
-    -   *Selection camp*: Directly model the selection mechanism ($w(p)$); theoretically principled for publication bias.
-    -   *PET-PEESE camp*: Simple, transparent; adjusts for small-study effects without committing to a (possibly wrong) $w(p)$.
-    -   *Meta-simulations*: Often find PET-PEESE good at Type I control when the true effect is near zero but biased when heterogeneity is large; selection models better recover effects when the selection form is approximately correct but can be unstable otherwise.
+    -   *Selection camp*: Directly model the selection mechanism ($w(p)$). Theoretically principled for publication bias.
+    -   *PET-PEESE camp*: Simple, transparent. Adjusts for small-study effects without committing to a (possibly wrong) $w(p)$.
+    -   *Meta-simulations*: Often find PET-PEESE good at Type I control when the true effect is near zero but biased when heterogeneity is large. Selection models better recover effects when the selection form is approximately correct but can be unstable otherwise.
 
 3.  **z-curve vs. others**
 
-    -   *z-curve*: Flexible mixtures capture heterogeneity; yields EDR/ERR and visually compelling diagnostics of "too few" discoveries relative to what the mixture implies.
-    -   *Critiques*: Mixture choice and truncation estimation can be sensitive; interpretability hinges on the mapping from $\mu$-mixture to power under selection.
+    -   *z-curve*: Flexible mixtures capture heterogeneity. Yields EDR/ERR and visually compelling diagnostics of "too few" discoveries relative to what the mixture implies.
+    -   *Critiques*: Mixture choice and truncation estimation can be sensitive. Interpretability hinges on the mapping from $\mu$-mixture to power under selection.
 
-4.  **Nonparametric selection (Andrews--Kasy) vs. parametric approaches**
+4.  **Nonparametric selection (Andrews-Kasy) vs. parametric approaches**
 
     -   *Nonparametric*: Fewer parametric assumptions, can recover selection function shapes (e.g., spikes at $z=1.96$).
-    -   *Critiques*: Data-hungry; shape restrictions still assumptions; computational complexity.
+    -   *Critiques*: Data-hungry. Shape restrictions still assumptions. Computational complexity.
 
-Several simulation comparisons (e.g., @carter2019correcting) report that **no single method dominates**. Model-averaged Bayesian approaches (RoBMA) often perform well by hedging across bias models; selection models excel when selection is correctly specified; PET-PEESE is attractive for simple screening; p-curve/p-uniform are better as **diagnostics** (with cautious effect estimation).
+Several simulation comparisons (e.g., @carter2019correcting) report that **no single method dominates**. Model-averaged Bayesian approaches (RoBMA) often perform well by hedging across bias models. Selection models excel when selection is correctly specified. PET-PEESE is attractive for simple screening. P-curve/p-uniform are better as **diagnostics** (with cautious effect estimation).
 
-For a table of summary, refer to Table \@ref(tab:p-hacking-discourse).
+The debate above is easier to hold in mind as a grid. Table
+\@ref(tab:p-hacking-discourse) sets each method against the claim its
+proponents make for it, the objection its critics raise, and what the
+disagreement implies for an analyst who has to choose one.
 
-| Topic                                | Proponents                         | Critics                          | Core claim                                                                                         | Counter-claim                                                                          | Applied implication                                                                |
-|--------------------------------------|------------------------------------|----------------------------------|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| **p-curve (diagnostic & estimator)** | @simonsohn2014p                    | @morey2025poor                   | Right-skew among significant p's indicates evidential value; can estimate effect from sig-only p's | Estimator can be biased/undercover with heterogeneity, non-iid p's, misspecified tests | Use for diagnostics; for estimation prefer p-uniform\*, selection models, or RoBMA |
-| **p-uniform vs p-uniform\***         | @van2015meta, @van2018correcting   | Curve-method skeptics            | p-uniform works under homogeneity; p-uniform\* better under RE                                     | Still sensitive to wrong test family, dependence among p's                             | Prefer p-uniform\* with care; match test families; sensitivity analyses            |
-| **z-curve & Replicability-Index**    | @bartovs2022z                      | Misc. critics                    | Mixture on truncated z gives EDR/ERR and replicability diagnostics                                 | Component choice and truncation make results sensitive; dependence issues              | Great for heterogeneity diagnostics; report EDR/ERR + sensitivity                  |
-| **PET-PEESE vs selection models**    | @stanley2012meta, @stanley2014meta | Selection-model proponents       | PET-PEESE is simple & transparent for small-study effects                                          | Over/under-correction if small-study effects reflect real heterogeneity                | Run PET-PEESE as a screen; headline estimate via selection/RoBMA                   |
-| **Trim-and-fill**                    | @duval2000trim                     | Misc. critics                    | Impute missing to symmetrize funnel; fast heuristic                                                | Can misbehave under complex selection; shouldn't be sole method                        | Use as quick sensitivity, not a final estimator                                    |
-| **Excess-significance tests**        | @ioannidis2007exploratory          | Misc. critics                    | Simple test: too many significant vs expected                                                      | Uses biased effect to compute power; ignores heterogeneity properly                    | Use as a red flag; not definitive proof                                            |
-| **Finance factor zoo / t≥3 rule**    | @harvey2016and                     | Skeptics of universal thresholds | Multiple testing inflates false factors; raise t-threshold                                         | Arbitrary thresholds don't fix specification search                                    | Control FDR/Holm; pre-specify; publish nulls; use out-of-sample                    |
+| Method | Claim made for it | Objection raised | What to do |
+|:---------------|:------------------|:-----------------|:-----------------|
+| **p-curve** | Right-skew among significant p-values indicates evidential value, and an effect can be estimated from significant p-values alone [@simonsohn2014p] | Biased, and under-covering, with heterogeneity, non-iid p-values, or misspecified tests [@morey2025poor] | Use it to diagnose. For estimation prefer p-uniform\*, selection models, or RoBMA |
+| **p-uniform** | p-uniform works under homogeneity, p-uniform\* under random effects [@van2015meta; @van2018correcting] | Still sensitive to the wrong test family and to dependence among p-values | Prefer p-uniform\*. Match test families. Report sensitivity analyses |
+| **z-curve** | A mixture on truncated z gives EDR and ERR, and replicability diagnostics with them [@bartovs2022z] | Component choice and truncation make the results sensitive, and dependence remains a problem | Strong for heterogeneity diagnostics. Report EDR and ERR with a sensitivity analysis |
+| **PET-PEESE** | Simple and transparent for small-study effects [@stanley2012meta; @stanley2014meta] | Over-corrects or under-corrects when small-study effects reflect real heterogeneity | Run PET-PEESE as a screen. Take the headline estimate from a selection model or RoBMA |
+| **Trim-and-fill** | Imputes the missing studies that would symmetrize the funnel, and is fast [@duval2000trim] | Misbehaves under complex selection, and should not be the only method | Use it as a quick sensitivity check, never as the final estimator |
+| **Excess significance** | A simple test of whether more results are significant than power implies [@ioannidis2007exploratory] | Computes power from the biased effect, and handles heterogeneity poorly | Treat a positive result as a red flag, not as proof |
+| **Factor zoo** | Multiple testing inflates the count of published factors, so raise the threshold [@harvey2016and] | An arbitrary threshold does not fix a specification search | Control the false discovery rate, pre-specify, publish nulls, test out of sample |
 
 Table: (\#tab:p-hacking-discourse) Discourse on $p$-hacking and publication bias in the literature.
 
 #### Key takeaways
 
--   p-curve: Great at diagnosing evidential value; controversial as a meta-analytic estimator (especially under heterogeneity/dependence).
--   z-curve: Powerful heterogeneity-aware diagnostics (EDR/ERR); interpret with sensitivity to mixture choices.
--   PET-PEESE: Simple screening; avoid as the only correction.
--   Selection models and RoBMA: Strong for effect estimation; assumptions must be transparent; benefit from model averaging.
+Each entry below pairs a method with the job it is actually good at, and the
+pairing is the point. The recurring mistake in applied work is to take a method
+that diagnoses whether a literature contains evidential value and read its
+output as an estimate of how large the effect is.
 
-------------------------------------------------------------------------
+-   p-curve: Great at diagnosing evidential value. Controversial as a meta-analytic estimator (especially under heterogeneity/dependence).
+-   z-curve: Powerful heterogeneity-aware diagnostics (EDR/ERR). Interpret with sensitivity to mixture choices.
+-   PET-PEESE: Simple screening. Avoid as the only correction.
+-   Selection models and RoBMA: Strong for effect estimation. Assumptions must be transparent. Benefit from model averaging.
+
+Read as a whole, the four split cleanly into diagnostics and estimators.
+P-curve and z-curve answer the question of whether there is anything here at
+all, and they answer it well. PET-PEESE and the selection models answer the
+question of how big it is, and only the second of those pair does so with an
+explicit model of the selection that caused the problem. A defensible workflow
+runs a diagnostic first, because there is no point correcting the magnitude of
+an effect whose existence the p-curve cannot support, and then estimates with a
+selection model whose assumptions are stated in the text.
 
 ### Practical Guidance for Applied Analysts
 
--   Use multiple lenses: funnel asymmetry (Egger), PET-PEESE, at least one selection model, and at least one curve method. Convergence across methods is informative; divergence is itself a result.
--   Prefer random-effects throughout; heterogeneity is the rule in business and social science literature.
--   When only significant studies are available, p-curve/p-uniform\* provide diagnostic power; but seek gray literature to reduce selection.
+-   Use multiple lenses: funnel asymmetry (Egger), PET-PEESE, at least one selection model, and at least one curve method. Convergence across methods is informative. Divergence is itself a result.
+-   Prefer random-effects throughout. Heterogeneity is the rule in business and social science literature.
+-   When only significant studies are available, p-curve/p-uniform\* provide diagnostic power, but seek gray literature to reduce selection.
 -   For quantification and decision-making (e.g., whether to act on an effect), consider RoBMA or selection models with sensitivity analyses over $w(p)$ grids.
 -   Always report assumptions, inclusion criteria, pre-specified analysis plans, and specification curves for your own analyses to preempt *p*-hacking concerns.
-
-------------------------------------------------------------------------
 
 > The following code is illustrative (toy implementations). For production work, use vetted packages (e.g., `metafor`, `weightr`, `robumeta`, `RoBMA`, `puniform`, `zcurve`).
 
@@ -1239,7 +1246,7 @@ list(N_plus = N_plus, N_minus = N_minus, caliper_p = p_caliper)
 ```{r}
 # Minimal weight-function selection model via profile likelihood (toy)
 # Two-bin weights: w1 for p <= .05, w2 = 1 for p > .05
-# Fixed-effect theta; optimize over (theta, w1).
+# Fixed-effect theta. Optimize over (theta, w1).
 y <- y_i; s <- s_i
 pval_two_sided <- 2*(1 - pnorm(abs(y/s)))
 
@@ -1279,6 +1286,7 @@ library(dplyr)
 library(ggplot2)
 
 # Fake data and specifications
+set.seed(2024)
 n <- 500
 X <- matrix(rnorm(n * 3), n, 3)
 colnames(X) <- c("x1", "x2", "x3")
@@ -1307,26 +1315,47 @@ est <- lapply(specs, function(ctrls) {
 }) |> bind_rows()
 ```
 
-Refer to Figures \@ref(fig:spec-curve-toy) for an example of the specification curve.
+Figure \@ref(fig:spec-curve-toy) plots the resulting specification curve. All seven estimates lie between about 0.26 and 0.29. Their 95 percent intervals overlap almost completely and all cover the true effect of 0.3, so the conclusion does not depend on which controls are included. A full specification curve analysis adds a panel below the curve that marks which choices each specification makes, which matters once the number of specifications grows too large to read the labels.
 
-```{r spec-curve-toy, fig.cap = "Specification curve (toy example).", fig.width = 7, fig.height = 4, fig.align = "center", echo = TRUE, message = FALSE, warning = FALSE, fig.alt="Dot plot with horizontal 95 percent intervals of the effect of D under seven control specifications, ordered from x1 at the bottom to x2+x3 at the top. All point estimates fall between about 0.26 and 0.29 with intervals from about 0.1 to 0.45, so the estimate barely changes across specifications."}
+```{r spec-curve-toy, fig.cap = "Specification curve for a toy example. Estimated effect of D with 95 percent confidence intervals under seven sets of control variables, ordered by the size of the estimate. The dashed line marks the true effect of 0.3.", fig.width = 7, fig.height = 4, fig.align = "center", echo = TRUE, message = FALSE, warning = FALSE, fig.alt="Dot plot with horizontal 95 percent intervals of the effect of D under seven control specifications, ordered from x2+x3 at the bottom to x1 at the top, with a dashed vertical line at 0.3. All point estimates fall between about 0.26 and 0.29 with intervals from about 0.09 to 0.46, so the estimate barely changes."}
 ggplot(est, aes(x = reorder(spec, beta), y = beta)) +
+    geom_hline(yintercept = 0.3, linetype = "dashed") +
     geom_point() +
-    geom_errorbar(aes(ymin = beta - 1.96 * se, ymax = beta + 1.96 * se), width = 0) +
+    geom_errorbar(aes(ymin = beta - 1.96 * se, ymax = beta + 1.96 * se),
+                  width = 0) +
     coord_flip() +
-    labs(x = "Specification", y = "Effect of D", title = "Specification Curve (Toy)") +
+    labs(x = "Specification", y = "Effect of D") +
     causalverse::ama_theme()
 ```
-
-------------------------------------------------------------------------
 
 ### Limitations and Open Problems
 
 -   Attribution: Distinguishing *p*-hacking from publication/editorial selection is intrinsically difficult without design-level information (pre-registration, registered reports).
 -   Heterogeneity: All methods struggle when effects vary widely (typical in business and social science). Random-effects and mixture modeling help but do not magically identify selection.
--   **Dependent** $p$-values: Multiple specifications from the same dataset violate independent sampling; many methods implicitly assume independence.
--   Model misspecification: PET-PEESE assumes linear bias-in-precision; selection models assume binwise $w(p)$; z-curve assumes parametric mixtures. Sensitivity analysis is essential.
+-   **Dependent** $p$-values: Multiple specifications from the same dataset violate independent sampling. Many methods implicitly assume independence.
+-   Model misspecification: PET-PEESE assumes linear bias-in-precision. Selection models assume binwise $w(p)$. Z-curve assumes parametric mixtures. Sensitivity analysis is essential.
 -   Sequential practices: Optional stopping and data peeking induce complex $p$-distributions not captured by simple $s(p)$ models.
--   Power diagnostics: EDR/ERR and excess-significance tests rely on power computed under fitted models; uncertainty in power should be propagated (often ignored).
+-   Power diagnostics: EDR/ERR and excess-significance tests rely on power computed under fitted models. Uncertainty in power should be propagated (often ignored).
 
-------------------------------------------------------------------------
+The six limitations are not independent, and the first two generate most of the
+rest. Attribution and heterogeneity together mean that a distorted distribution
+of published results is compatible with several different stories about how it
+came to be distorted, and every method listed in this section resolves that
+ambiguity by assuming one of them. That is why the corrected estimates disagree:
+they are not competing measurements of the same quantity but answers to
+slightly different questions. The practical consequence is that a
+publication-bias correction should be reported as a sensitivity analysis rather
+than as the effect size, with the assumption it rests on named in the text, and
+that the only durable fix is the design-level information mentioned in the first
+item. Pre-registration and registered reports do not correct the existing
+literature, but they make the next one estimable.
+
+## Looking Ahead
+
+The catalogue above is long, and read as a list it invites the wrong response,
+which is to check each entry off in turn. These biases are not independent
+hazards. Most are the same few structures seen from different vantage points:
+conditioning on a common effect, conditioning on a consequence of treatment, or
+omitting a common cause. That is an argument for a notation in which the
+structures themselves are visible rather than their symptoms, which is what the
+next chapter supplies.
