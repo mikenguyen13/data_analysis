@@ -11,6 +11,19 @@ than color printing.
 **This list was cut from sixteen figures to three on 10 September 2026** by redesigning
 the figures rather than paying for color. The redesigns are described at the end.
 
+**Update, 26 September 2026: one figure now needs color, not three.** The two
+specification curves in chapter 7 were rebuilt so their sign encoding survives
+grayscale. `diamonds-specr-specification-curve` now combines specr's two panels
+with patchwork and marks a negative, null, or positive interval by shape as well as
+by three colors of clearly different lightness, and `robustness-rdf-spec-curve`
+separates its three classes by lightness against a dashed zero line. The four
+starbility curves in the same chapter, which the audit below counted as decorative,
+also marked p-value bands by color alone and now mark them by shape too. Only
+`report-amatheme-npg` remains, now in chapter 6 because exploratory analysis moved
+ahead of reporting. The volume also has 93 figures rather than 65, after the alt
+text pass captioned every figure and split several. The tables below record the
+10 September state.
+
 ## Summary
 
 | Category | Count | Print treatment |

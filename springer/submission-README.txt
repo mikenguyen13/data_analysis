@@ -18,7 +18,7 @@ data_analysis_practice.tex
     702652-2 and 702652-3 hold the figures. Unpack all three into the same
     folder and the relative paths in the .tex resolve.
 
-    A typeset PDF of the manuscript, 513 pages, is available on request. It is
+    A typeset PDF of the manuscript, 523 pages, is available on request. It is
     too large to attach here and is for reference rather than production.
 
 references-springer.bib
@@ -55,17 +55,15 @@ words and six keywords, inside a block immediately after the chapter title.
 
 Grayscale. The figures distinguish their series by line type, point shape,
 hatching or luminance rather than by hue, so they read correctly when printed in
-grayscale. Three cannot be treated that way and need to print in colour:
+grayscale. One cannot be treated that way and needs to print in colour:
 
     Chapter 6   report-amatheme-npg
                 Demonstrates a journal colour palette, so grayscale defeats its
-                purpose.
+                purpose. Its groups are also marked by point shape, so it stays
+                readable if printed in grayscale after all.
 
-    Chapter 7   diamonds-specr-specification-curve
-                robustness-rdf-spec-curve
-                Specification curves drawn by package plotting functions that
-                colour estimates by sign internally, where colour is the
-                encoding rather than decoration.
+Fonts. Every figure PDF embeds its fonts, so the figures print the same on any
+machine.
 
 References. The .tex carries a single bibliography. The per-chapter mapping is
 supplied separately in bib-by-chapter/ rather than restructured into the LaTeX,
