@@ -841,11 +841,11 @@ The control function method differs from [2SLS](#sec-two-stage-least-squares-est
 1.  Linear Endogenous Variables:
     -   When both $X$ and $Y$ are continuous, the CF approach is equivalent to 2SLS.
 2.  Nonlinear Endogenous Variables:
-    -   If $X$ is nonlinear (e.g., a binary treatment), CF differs from 2SLS and often performs better.
-3.  Nonlinear in Parameters:
-    -   In models where $g(X)$ is nonlinear (e.g., logit/probit models), CF is typically superior to 2SLS because it explicitly models endogeneity via the control function $h(V)$.
+    -   If the first stage is nonlinear (e.g., a probit for a binary treatment), CF differs from 2SLS and often performs better. With a linear first stage and an outcome that is linear in $X$, the two stay identical, even when $X$ depends nonlinearly on the unobservables.
+3.  Nonlinear Structural Function:
+    -   In models where $g(X)$ is nonlinear, whether in the endogenous regressor (a quadratic) or in the parameters (logit/probit models), CF is typically superior to 2SLS because it explicitly models endogeneity via the control function $h(V)$. The price is the conditional mean assumption above, where 2SLS needs only that $Z$ is uncorrelated with $U$ [@wooldridge2015control].
 
-```{r}
+```{r iv-cf-sim-data}
 library(fixest)
 library(tidyverse)
 library(modelsummary)
@@ -863,7 +863,7 @@ omitted <- rnorm(n, mean = 2, sd = 1)
 endogenous <- 5 * omitted + 2 * exogenous + rnorm(n, mean = 0, sd = 1)
 
 # nonlinear endogenous variable
-endogenous_nonlinear <- 5 * omitted^2 + 2 * exogenous + rnorm(100, mean = 0, sd = 1)
+endogenous_nonlinear <- 5 * omitted^2 + 2 * exogenous + rnorm(n, mean = 0, sd = 1)
 
 unrelated <- rexp(n, rate = 1)
 
@@ -881,9 +881,9 @@ my_data <-
         exogenous,
         omitted,
         endogenous,
+        endogenous_nonlinear,
         response,
         unrelated,
-        response,
         response_nonlinear,
         response_nonlinear_para
     )
@@ -907,9 +907,9 @@ etable(
 )
 ```
 
-Linear in parameter and linear in endogenous variable. Table \@ref(tab:iv-2sls-linear-manual) reports the manual two-stage and control-function estimates side by side for the linear case.
+Linear in parameter and linear in endogenous variable. Table \@ref(tab:iv-2sls-linear-manual) reports the manual two-stage and control-function estimates side by side for the linear case. The coefficients on the endogenous regressor are identical. The standard errors are not, and neither is right: the manual second stage computes its residuals from the fitted value rather than from the actual regressor, and the control-function regression treats the estimated residual as data. Use `ivreg` or `feols` for 2SLS standard errors, and for the control function bootstrap both stages, as in Table \@ref(tab:iv-2sls-nonlinear-params).
 
-```{r iv-2sls-linear-manual}
+```{r iv-2sls-linear-manual, dependson = "iv-cf-sim-data"}
 # manual
 # 2SLS
 first_stage = lm(endogenous ~ exogenous, data = my_data)
@@ -926,15 +926,15 @@ modelsummary(
   output = "kableExtra",
   title = paste(
     "Manual two-stage least squares and the control-function estimator on the",
-    "linear structural equation. The two agree, as they must when the outcome",
-    "is linear in the endogenous regressor."
+    "linear structural equation. The coefficients agree, as they must when the",
+    "outcome is linear in the endogenous regressor."
   )
 )
 ```
 
-Nonlinear in endogenous variable. Table \@ref(tab:iv-2sls-nonlinear-endo) reports the manual two-stage and control-function estimates when the endogenous regressor enters the outcome equation nonlinearly.
+Nonlinear endogenous variable. Here the endogenous regressor is a nonlinear function of the omitted variable (it loads on $U^2$), but the outcome is still linear in it. Table \@ref(tab:iv-2sls-nonlinear-endo) shows that the manual two-stage and control-function coefficients still coincide. The equivalence is a property of two linear stages, not of the data-generating process, so CF parts ways with 2SLS only when the first stage is nonlinear, as with a probit for a binary treatment (see [Binary Endogenous Regressors](#sec-binary-endogenous-regressors)), or when the structural function is nonlinear in the endogenous regressor, the next case. Because most of the variation in the endogenous regressor now comes from $U^2$ rather than from $Z$, the instrument is much weaker than in the linear case, and the shared estimate is correspondingly noisy.
 
-```{r iv-2sls-nonlinear-endo}
+```{r iv-2sls-nonlinear-endo, dependson = "iv-cf-sim-data"}
 # 2SLS
 first_stage = lm(endogenous_nonlinear ~ exogenous, data = my_data)
 
@@ -951,35 +951,78 @@ modelsummary(
   output = "kableExtra",
   title = paste(
     "Manual two-stage least squares and the control-function estimator when the",
-    "endogenous regressor enters the outcome equation nonlinearly. Plugging in",
-    "the fitted value is no longer equivalent to conditioning on the residual."
+    "endogenous regressor is a nonlinear function of the omitted variable but",
+    "enters the outcome linearly. The coefficients still coincide, because both",
+    "stages remain linear."
   )
 )
 ```
 
-Nonlinear in parameters. Table \@ref(tab:iv-2sls-nonlinear-params) reports the manual two-stage and control-function estimates when the structural equation is nonlinear in parameters.
+Nonlinear structural function. Now the outcome depends on the square of the endogenous regressor, $Y = 4 + 3X^2 + 6U + \varepsilon$, with $X$ generated as in the linear case. The equation is still linear in the parameters, so every estimator below is a least squares fit, but $g(X)$ is nonlinear and the estimators no longer coincide. Table \@ref(tab:iv-2sls-nonlinear-params) compares four of them, all aimed at the coefficient on $X^2$, whose true value is 3:
 
-```{r iv-2sls-nonlinear-params}
-# 2SLS
-first_stage = lm(endogenous ~ exogenous, data = my_data)
+-   OLS of $Y$ on $X^2$, which ignores the endogeneity.
+-   The plug-in regression: square the first-stage fitted value and regress $Y$ on $\hat{X}^2$. Pushing a fitted value through a nonlinear function in the second stage is the forbidden regression [@angrist2009mostly].
+-   2SLS that treats $X^2$, the regressor that actually enters the structural equation, as the endogenous variable and instruments it with $Z$.
+-   The control function: regress $Y$ on $X^2$ and the residual $\hat{v}$ from the first-stage regression of $X$ on $Z$.
 
-new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
-second_stage = lm(response_nonlinear_para ~ new_endogenous, data = new_data)
-summary(second_stage)
+Because the plug-in and control-function regressions contain estimated regressors, their least squares standard errors are invalid, so the table reports bootstrap standard errors for every column, re-estimating the first stage in each resample.
 
-new_data_cf = cbind(my_data, residual = resid(first_stage))
-second_stage_cf = lm(response_nonlinear_para ~ endogenous_nonlinear + residual, data = new_data_cf)
-summary(second_stage_cf)
+```{r iv-2sls-nonlinear-params, dependson = "iv-cf-sim-data"}
+fit_nonlinear_g = function(d) {
+  # The first stage is for endogenous itself; its square enters the outcome
+  first_stage = lm(endogenous ~ exogenous, data = d)
+  d$new_endogenous = predict(first_stage, d)
+  d$residual = resid(first_stage)
+  list(
+    "OLS" = lm(response_nonlinear_para ~ I(endogenous^2), data = d),
+    # plug-in: square the first-stage fitted value
+    "Plug-in" = lm(response_nonlinear_para ~ I(new_endogenous^2), data = d),
+    # 2SLS: instrument endogenous^2 itself with exogenous
+    "2SLS" = ivreg::ivreg(response_nonlinear_para ~ I(endogenous^2) | exogenous,
+                          data = d),
+    # control function: keep endogenous^2 and add the first-stage residual
+    "Control function" = lm(response_nonlinear_para ~ I(endogenous^2) + residual,
+                            data = d)
+  )
+}
+models = fit_nonlinear_g(my_data)
+
+# Bootstrap both stages together, since two of the regressors are estimated
+set.seed(2026)
+boot_coefs = replicate(
+  500,
+  lapply(fit_nonlinear_g(my_data[sample.int(nrow(my_data), replace = TRUE), ]), coef),
+  simplify = FALSE
+)
+boot_vcov = lapply(names(models), function(m)
+  cov(do.call(rbind, lapply(boot_coefs, `[[`, m))))
 
 modelsummary(
-  list(second_stage, second_stage_cf),
+  models,
+  vcov = boot_vcov,
+  coef_map = c(
+    "I(endogenous^2)" = "endogenous^2",
+    "I(new_endogenous^2)" = "endogenous^2",
+    "residual" = "first-stage residual"
+  ),
+  gof_map = "nobs",
+  fmt = 4,
   output = "kableExtra",
   title = paste(
-    "Manual two-stage least squares and the control-function estimator when the",
-    "structural equation is nonlinear in parameters."
+    "Four estimators of the coefficient on the squared endogenous regressor",
+    "(true value 3) when the structural function is nonlinear in the endogenous",
+    "regressor. OLS is biased and the plug-in estimate is noisy; 2SLS on the",
+    "squared regressor and the control function are both consistent, the",
+    "control function more precise."
+  ),
+  notes = paste(
+    "Bootstrap standard errors in parentheses (500 resamples, first stage",
+    "re-estimated in each)."
   )
 )
 ```
+
+OLS is biased upward. The plug-in estimate lands near 3, but only because of a feature of this design. Write the first stage as $X = \pi(Z) + V$, so that $X^2 = \pi(Z)^2 + 2\pi(Z)V + V^2$. The cross term is uncorrelated with $\pi(Z)^2$ because $E(V|Z) = 0$, and $V^2$ is uncorrelated with it only because the first-stage error is homoskedastic and independent of $Z$, which lets its mean fall into the intercept. A heteroskedastic or misspecified first stage breaks this, and even here the leftover terms make the plug-in estimate the noisiest in the table by a wide margin. 2SLS and the control function are both consistent. The control function is the more precise of the two because it also uses the variation in $X^2$ that comes from $\hat{v}^2$ and $Z\hat{v}$, which is legitimate only because $E(U|Z,V)$ is linear in $V$ (as it is here, by joint normality). 2SLS uses only the variation that $Z$ predicts and needs nothing beyond $Z$ being uncorrelated with $U$ [@wooldridge2015control]. The coefficient on the residual is far from zero, and its $t$-test is the control-function test of exogeneity.
 
 #### Control Functions in Hazard Models: An IV Hazard of Loan Default {#sec-cf-iv-hazard}
 
