@@ -1,0 +1,362 @@
+## Parallel Trends as a Debiasing Device {#sec-did-debiasing}
+
+The usual way to state parallel trends is as a claim about trajectories: had the treated group not been treated, its average outcome would have moved in step with the comparison group's. There is a second way to read the same assumption, and it is often the more useful one when you have to defend a design. Read this way, difference-in-differences is not a new kind of comparison at all. It is the ordinary cross-sectional comparison of treated and untreated units, which is contaminated by selection bias, minus an estimate of that selection bias taken from a period in which the treatment cannot have had any effect. Parallel trends is then simply the assumption that the bias you can measure before treatment is the bias that contaminates the comparison after treatment.
+
+@cunningham2021causal makes this point through the decomposition of the 2x2 estimator into the average treatment effect on the treated plus a "non-parallel trends bias", and @cunningham2026causal states it directly: the parallel trends assumption faces the same selection problem as any comparison outside a randomized trial, except that the worry is selection on the *changes* in the untreated potential outcome rather than on its levels. The same idea has older and more formal roots. @heckman1985alternative analyze before-after and fixed-effect estimators of training effects as devices for removing a permanent component of selection bias; @heckman1998characterizing measure that bias directly with experimental data; and @sofer2016negative show that the pre-treatment outcome is a negative control outcome, so that difference-in-differences is a special case of bias correction with negative controls.
+
+The reframing earns its place because it changes the question an analyst asks. "Do the trends look parallel?" invites an inspection of a plot. "Is the bias I can measure in the pre-period the bias I need to remove in the post-period?" invites an inquiry into how units came to be treated, which is where the credibility of a difference-in-differences design is actually decided. This section develops the algebra, connects it to negative controls and to lagged-outcome adjustment, works out which selection mechanisms keep the bias stable, and then measures the bias directly in the one setting where that is possible: a randomized experiment whose control group can be swapped for an observational comparison group.
+
+### The Bias Difference-in-Differences Subtracts {#sec-debias-algebra}
+
+Take the canonical design of Section \@ref(sec-simple-difference-in-differences): a treated group ($D = 1$) and a comparison group ($D = 0$), observed in a pre-period $t = 0$ and a post-period $t = 1$, with treatment switched on for the treated group between the two. Define the simple difference in outcomes at each date,
+
+$$
+\text{SDO}_t = E[Y_t \mid D = 1] - E[Y_t \mid D = 0],
+$$
+
+and the selection bias at each date,
+
+$$
+B_t = E[Y_t(0) \mid D = 1] - E[Y_t(0) \mid D = 0].
+$$
+
+$B_t$ is the gap that would separate the two groups at date $t$ if nobody were treated. It is the selection bias of a cross-sectional comparison made at that date. In the post-period the observed treated outcome is $Y_1(1)$, so adding and subtracting $E[Y_1(0) \mid D = 1]$ gives
+
+$$
+\text{SDO}_1 = \underbrace{E[Y_1(1) - Y_1(0) \mid D = 1]}_{\text{ATT}} + B_1 .
+$$
+
+In the pre-period nobody is treated yet. Under no anticipation the treated group's observed outcome is its untreated outcome, so the pre-period comparison contains no treatment effect at all:
+
+$$
+\text{SDO}_0 = B_0 .
+$$
+
+The pre-period gap is therefore a pure measurement of selection bias. Subtracting it from the post-period gap is the difference-in-differences estimand:
+
+$$
+\tau_{\text{DiD}} = \text{SDO}_1 - \text{SDO}_0 = \text{ATT} + \left(B_1 - B_0\right).
+$$
+
+The estimator is unbiased for the ATT exactly when $B_1 = B_0$, that is, when the selection bias is stable over time. Writing out $B_1 - B_0$ shows that this is the parallel trends condition of Section \@ref(sec-simple-difference-in-differences) rearranged:
+
+$$
+B_1 - B_0 = E[Y_1(0) - Y_0(0) \mid D = 1] - E[Y_1(0) - Y_0(0) \mid D = 0].
+$$
+
+The right-hand side is also the selection bias of a cross-sectional comparison of *changes*. If you first difference each unit's outcome and compare the treated and comparison means of $\Delta Y$, you get the ATT plus selection bias in $\Delta Y(0)$, and parallel trends says that bias is zero. This is the sense in which @cunningham2026causal describes parallel trends as no selection on trends in the untreated outcome. Both readings are the same algebra; the bias-stability reading is the one that makes clear what is being estimated and what is being assumed.
+
+Three features of the decomposition are worth stating plainly. First, the levels may differ by any amount. A design in which the treated group earns twelve thousand dollars less than the comparison group is not, on that account, a bad design; $B_0$ is allowed to be large. Second, the size of $B_0$ is the size of the bet. The estimator removes $B_0$ in full and inherits any change in the bias one for one, so a small percentage drift in a large bias can be as large as the effect being estimated. Third, the assumption is untestable in the post-period for the same reason any selection-bias assumption is untestable: $B_1$ involves $E[Y_1(0) \mid D = 1]$, which is never observed.
+
+The decomposition also places difference-in-differences inside a family of estimators that subtract some multiple $\theta$ of the pre-period gap,
+
+$$
+\hat\tau(\theta) = \text{SDO}_1 - \theta \, \text{SDO}_0, \qquad E[\hat\tau(\theta)] = \text{ATT} + \left(B_1 - \theta B_0\right),
+$$
+
+and the estimator is unbiased when $\theta$ equals $\theta^{*} = B_1 / B_0$, the ratio of post-period to pre-period bias. Table \@ref(tab:debias-theta-family) lists the familiar members. The cross-sectional comparison sets $\theta = 0$ and assumes there is no bias to remove. Difference-in-differences sets $\theta = 1$ and assumes the bias is stable. Regression on the lagged outcome sets $\theta = \hat\beta$, the within-group slope of $Y_1$ on $Y_0$, because if treatment is ignorable conditional on the pre-period outcome and the conditional mean is linear, $E[Y_1(0) \mid D, Y_0] = a + \beta Y_0$, then $B_1 = \beta B_0$. Since $\beta$ is typically below one for persistent but mean-reverting outcomes, lagged-outcome adjustment removes less of the pre-period gap than difference-in-differences does.
+
+| Estimator | Weight $\theta$ on the pre-period gap | Assumption about the post-period bias |
+|:---|:---|:---|
+| Cross-sectional comparison | $0$ | $B_1 = 0$: no selection bias |
+| Lagged-outcome (ANCOVA) adjustment | $\hat\beta$, the within-group slope of $Y_1$ on $Y_0$ | $B_1 = \beta B_0$: ignorability given $Y_0$ |
+| Difference-in-differences | $1$ | $B_1 = B_0$: stable bias (parallel trends) |
+
+Table: (\#tab:debias-theta-family) Three estimators as different amounts of debiasing. Each subtracts a multiple of the pre-period gap from the post-period gap, and each is unbiased under a different assumption about how the selection bias evolves.
+
+This is the bracketing result in the form that is easiest to remember. If the truth is ignorability given $Y_0$ with $0 < \beta < 1$, difference-in-differences over-corrects; if the truth is parallel trends, lagged-outcome adjustment under-corrects. For a positive effect the two estimates therefore bracket the true effect when one of the two assumptions holds, a result @angrist2009mostly derive for linear models and @ding2019bracketing extend to nonparametric and inverse probability weighted estimators. Section \@ref(sec-debias-nsw) checks the bracket against an experimental benchmark.
+
+The same family appears in randomized experiments under another name. CUPED adjusts the post-period difference in means by $\theta$ times the pre-period difference [@deng2013improving], and Section \@ref(sec-variance-reduction) shows that difference-in-differences is CUPED with $\theta$ fixed at one. The difference is in what justifies the choice. In an experiment $B_0 = B_1 = 0$ in expectation, every $\theta$ is unbiased, and $\theta$ is chosen to minimize variance. Outside an experiment $B_0$ is not zero, and $\theta$ is an assumption about the selection process.
+
+### The Pre-Period Outcome as a Negative Control {#sec-debias-negative-control}
+
+The negative control literature arrives at the same estimator from the other direction. A negative control outcome is a variable that the treatment cannot affect but that shares the confounding of the outcome of interest [@lipsitch2010negative; @shi2020selective]. The pre-treatment outcome is the textbook example: the future cannot cause the past, and whatever unmeasured characteristics push units into treatment also shaped their outcomes before treatment. An apparent "effect" of treatment on the pre-period outcome is therefore pure confounding, and if the confounder moves the pre-period and post-period outcomes by the same additive amount, subtracting the one from the other removes the confounding. @sofer2016negative call this condition additive equi-confounding and show that difference-in-differences is exactly negative outcome control under it. Section \@ref(sec-nc-detect-reduce-correct) places the same subtraction on the ladder from detecting bias, to reducing it, to removing it.
+
+The negative control view adds two things to the debiasing view. The first is a diagnosis of scale. Additive equi-confounding requires the confounder to shift both outcomes by the same amount *on the scale on which the subtraction is done*, which is why parallel trends in levels and in logs are different assumptions [@roth2023parallel]. @sofer2016negative replace it with quantile-quantile equi-confounding, which asks only that treated and untreated units differ in the same way on the quantile scale of the confounder for both outcomes, and so is invariant to monotone transformations of either outcome. They present the resulting identification result as the negative control analog of the [changes-in-changes](#sec-changes-in-changes) model of @athey2006identification, and they note that both can be read as ways of estimating the degree of selection bias due to unobserved confounding. The second is a path beyond a fixed $\theta$. When a second proxy for the confounder is available, the amount of debiasing need not be assumed; it can be estimated, which is the logic of the proximal estimator in Section \@ref(sec-proximal-correction).
+
+### When Is the Bias Stable? Selection Mechanisms {#sec-debias-selection}
+
+Because parallel trends is an assumption about selection bias, whether it holds depends on how units were selected into treatment and on how the untreated outcome evolves. A simple components-of-variance model makes the dependence explicit. Let
+
+$$
+Y_{it}(0) = \alpha_i + \lambda_t + \varepsilon_{it},
+$$
+
+with a permanent component $\alpha_i$, a common time effect $\lambda_t$, and a time-varying component $\varepsilon_{it}$. The time effect cancels from every $B_t$, and
+
+$$
+B_t = \underbrace{E[\alpha_i \mid D = 1] - E[\alpha_i \mid D = 0]}_{\text{permanent, constant over } t} + \underbrace{E[\varepsilon_{it} \mid D = 1] - E[\varepsilon_{it} \mid D = 0]}_{\text{transitory, may vary over } t}.
+$$
+
+Difference-in-differences removes the first term completely and leaves $B_1 - B_0$ equal to the change in the second. Whether that change is zero turns on what selection is based on [@heckman1985alternative; @chabe2015analysis].
+
+Selection on the permanent component is the case difference-in-differences was built for. If units enter treatment because of who they are, the transitory gap is zero in every period and the bias is perfectly stable, however large it is.
+
+Selection on a transitory shock is the case it handles worst. Training programs enroll people when their earnings are unusually low, and @ashenfelter1978estimating documented the resulting dip in participants' earnings just before enrollment [see also @ashenfelter1985]. If $\varepsilon_{it}$ is a stationary first-order autoregression with persistence $\rho < 1$ and selection depends on the shock in the base period, then $B^{\varepsilon}_1 = \rho B^{\varepsilon}_0$, the post-period bias is smaller in magnitude than the pre-period bias, and difference-in-differences over-corrects by $(\rho - 1) B^{\varepsilon}_0$. The same stationarity gives $B^{\varepsilon}_{-1} = \rho B^{\varepsilon}_0$ one period *before* the base period, so a symmetric difference-in-differences that compares periods equally far before and after the selection date removes the transitory bias exactly. @chabe2015analysis analyzes richer earnings and selection processes calibrated to job training programs and finds that symmetric difference-in-differences generally outperforms matching on pre-treatment outcomes, which tends to underestimate the effect.
+
+Selection on the baseline level of a random walk is a case in which the bias is stable going forward even though it was not stable going in. If $\varepsilon_{it}$ follows a random walk, the change after the base period is unpredictable from anything known at the base period, so $B_1 = B_0$; but the units selected for low base-period outcomes got there through recent negative shocks, so the pre-period gap moves just before treatment. @cunningham2026causal illustrates this case by simulation and draws the practical lesson that a failed pre-trend test can coexist with valid parallel trends.
+
+Selection on one's own trajectory is the case that breaks the design. If units choose treatment because they anticipate their untreated outcome will grow more slowly (or because they anticipate a large gain from treatment), the bias drifts by construction. @marx2024parallel relate parallel trends to economic models of dynamic choice and characterize when forward-looking selection violates it; @cunningham2026causal calls the extreme version, in which units select on their own treatment gains, the "perfect doctor" assignment mechanism.
+
+The simulation below puts the five cases side by side. There is no treatment effect anywhere, so every number in Table \@ref(tab:debias-mechanisms) is bias. Each unit is observed one period before the base period ($t = -1$), in the base period ($t = 0$), and one period after ($t = 1$), and the 30 percent of units with the lowest value of the selection index are treated.
+
+```{r debias-mechanisms}
+set.seed(2026)
+pt_n   <- 200000
+pt_rho <- 0.6
+
+# Untreated outcomes in periods -1, 0 (base) and +1: a permanent component,
+# an optional unit-specific trend, and either AR(1) or random-walk shocks.
+pt_draw <- function(dynamics = c("stationary", "random_walk"), trend_sd = 0) {
+    dynamics <- match.arg(dynamics)
+    alpha <- rnorm(pt_n)
+    g     <- rnorm(pt_n, 0, trend_sd)
+    u     <- matrix(rnorm(3 * pt_n), pt_n, 3)
+    e     <- u
+    for (k in 2:3) {
+        e[, k] <- if (dynamics == "stationary") {
+            pt_rho * e[, k - 1] + sqrt(1 - pt_rho^2) * u[, k]
+        } else {
+            e[, k - 1] + u[, k]
+        }
+    }
+    list(alpha = alpha, g = g, e = e, y = alpha + e + outer(g, c(-1, 0, 1)))
+}
+
+pt_low30 <- function(x) as.integer(x <= quantile(x, 0.3))
+
+# With no treatment effect, every estimate is pure bias.
+pt_bias <- function(s, D) {
+    B <- colMeans(s$y[D == 1, ]) - colMeans(s$y[D == 0, ])
+    c(`Pre-trend` = B[2] - B[1],
+      `Cross-section` = B[3],
+      `DiD` = B[3] - B[2],
+      `Symmetric DiD` = B[3] - B[1],
+      `Lagged outcome` = coef(lm(s$y[, 3] ~ D + s$y[, 2]))[["D"]])
+}
+
+pt_s <- list(pt_draw("stationary"), pt_draw("stationary"), pt_draw("stationary"),
+             pt_draw("random_walk"), pt_draw("stationary", trend_sd = 0.3))
+pt_mech <- rbind(
+    "Permanent component"                  = pt_bias(pt_s[[1]], pt_low30(pt_s[[1]]$alpha)),
+    "Base-period outcome, AR(1) shocks"     = pt_bias(pt_s[[2]], pt_low30(pt_s[[2]]$y[, 2])),
+    "Base-period shock only, AR(1) shocks"  = pt_bias(pt_s[[3]], pt_low30(pt_s[[3]]$e[, 2])),
+    "Base-period outcome, random walk"      = pt_bias(pt_s[[4]], pt_low30(pt_s[[4]]$y[, 2])),
+    "Own trend (dynamic selection)"         = pt_bias(pt_s[[5]], pt_low30(pt_s[[5]]$g))
+)
+knitr::kable(pt_mech, digits = 2,
+             caption = "Bias of four estimators and the pre-trend under five selection mechanisms. The true effect is zero, so every entry is bias. Outcomes have unit variance in the permanent and transitory components, AR(1) persistence is 0.6, and the lowest 30 percent on the selection index are treated.")
+```
+
+Table \@ref(tab:debias-mechanisms) is a compact map of when each amount of debiasing is the right one. Under selection on the permanent component, difference-in-differences is exact and the pre-trend is flat, while lagged-outcome adjustment is biased because it removes only part of a bias that should be removed in full. Under selection on the base-period outcome with mean-reverting shocks, the ordering flips: the pre-trend shows the dip, difference-in-differences over-corrects by about 0.47, and lagged-outcome adjustment is exact because selection really is on $Y_0$. When selection is on the transitory shock alone, neither is right, but the symmetric difference-in-differences is. Under a random walk the pre-trend is the largest in the table and yet difference-in-differences is unbiased, which is the case in which reading the pre-trend as a test of parallel trends gives the wrong answer. Only under selection on the unit's own trend is the pre-trend an honest guide to the post-period drift: the two are equal, which is precisely the situation that a linear-trend extrapolation or the smoothness restriction of Section \@ref(sec-partial-identification-did) is designed for.
+
+The general lesson is that a pre-period diagnostic is informative about the post-period bias only to the extent that the process generating the bias is the same on both sides of the base period. That is a claim about the assignment mechanism, and it has to be argued from institutional knowledge of how units came to be treated [@cunningham2026causal].
+
+### Replication: Measuring the Bias in the NSW Experiment {#sec-debias-nsw}
+
+In observational data $B_t$ cannot be measured after treatment, because $E[Y_1(0) \mid D = 1]$ is missing. The National Supported Work Demonstration (NSW) is the classic exception. NSW randomized applicants into a subsidized work program, so its experimental control group reveals what participants would have earned without the program. @lalonde1986evaluating replaced that control group with comparison samples drawn from national surveys and showed that the nonexperimental estimators of the day, difference-in-differences among them, could not reliably recover the experimental answer. What makes an experiment so useful here is that the experimental controls share the participants' untreated outcome distribution, so comparing the experimental controls with a nonexperimental comparison group measures the selection bias directly, in every year, before and after the program. A nonexperimental estimator applied to experimental controls and comparison units has a true effect of zero, so whatever it returns is its bias. @heckman1998characterizing used this device with the experimental controls of the National JTPA Study to decompose selection bias into its components, @smith2005does apply it to the NSW to evaluate cross-sectional and difference-in-differences matching estimators, and @imbens2025comparing revisit the NSW data with modern methods and stress the same kind of validation exercise.
+
+The extracts used here are the ones distributed with @cunningham2021causal through the `causaldata` package: the @dehejia1999causal subsample of LaLonde's NSW men, with 185 participants, 260 experimental controls, and two pre-program earnings measures labelled 1974 and 1975, and the CPS comparison sample of 15,992 men that LaLonde constructed and @dehejia1999causal reuse. The outcome is real annual earnings, and 1978 is the post-program year.
+
+```{r debias-nsw-data}
+library(dplyr)
+
+pt_lal <- dplyr::bind_rows(causaldata::nsw_mixtape, causaldata::cps_mixtape) |>
+    dplyr::mutate(grp = dplyr::case_when(
+        data_id == "CPS1" ~ "CPS",
+        treat == 1        ~ "NSW participants",
+        TRUE              ~ "NSW experimental controls"
+    ))
+
+pt_mean <- function(g, v) mean(pt_lal[[v]][pt_lal$grp == g])
+pt_se   <- function(g1, g2, v) {
+    sqrt(var(pt_lal[[v]][pt_lal$grp == g1]) / sum(pt_lal$grp == g1) +
+         var(pt_lal[[v]][pt_lal$grp == g2]) / sum(pt_lal$grp == g2))
+}
+pt_years <- c("re74", "re75", "re78")
+
+pt_tab <- data.frame(
+    Year = c(1974, 1975, 1978),
+    `NSW participants` = sapply(pt_years, pt_mean, g = "NSW participants"),
+    `NSW controls`     = sapply(pt_years, pt_mean, g = "NSW experimental controls"),
+    CPS                = sapply(pt_years, pt_mean, g = "CPS"),
+    check.names = FALSE, row.names = NULL
+)
+pt_tab$`SDO (participants minus CPS)` <- pt_tab$`NSW participants` - pt_tab$CPS
+pt_tab$`Bias B (controls minus CPS)`  <- pt_tab$`NSW controls` - pt_tab$CPS
+pt_tab$`SE of B` <- sapply(pt_years, pt_se, g1 = "NSW experimental controls", g2 = "CPS")
+
+pt_tab_print <- pt_tab
+pt_tab_print$Year <- as.character(pt_tab_print$Year)
+knitr::kable(pt_tab_print, digits = 0, format.args = list(big.mark = ","),
+             caption = "Mean real earnings by group and year in the NSW and CPS samples. The SDO column is the observational comparison; the bias column replaces participants with experimental controls and so measures the selection bias in each year.")
+```
+
+Table \@ref(tab:debias-nsw-data) contains everything the decomposition needs. In 1978 participants earned 8,498 dollars less than CPS men, and the experimental ATT, the difference between participants and experimental controls, is 1,794 dollars. The cross-sectional comparison is therefore wrong by about 10,300 dollars, and that error is exactly the selection bias $B_{1978}$ in the last row. Figure \@ref(fig:debias-nsw-bias-path) plots the bias in all three years.
+
+```{r debias-nsw-bias-path, fig.width = 6.5, fig.height = 4.5, fig.cap = "Selection bias in each year, measured as mean earnings of NSW experimental controls minus mean earnings of the CPS sample, with 95 percent confidence intervals. The dashed line carries the 1975 bias forward, which is what difference-in-differences with a 1975 base subtracts; the gap at 1978 is the bias of the difference-in-differences estimator.", fig.alt = "Point-and-interval plot of selection bias in dollars for 1974, 1975, and 1978. The bias is about minus 11,900 in 1974, falls to about minus 12,400 in 1975, and rises to about minus 10,300 in 1978. A dashed horizontal line at the 1975 level extends to 1978, and a vertical bracket at 1978 marks the roughly 2,100 dollar gap between the carried-forward 1975 bias and the actual 1978 bias."}
+library(ggplot2)
+pt_B <- pt_tab$`Bias B (controls minus CPS)`
+ggplot(pt_tab, aes(Year, `Bias B (controls minus CPS)`)) +
+    annotate("segment", x = 1975, xend = 1978, y = pt_B[2], yend = pt_B[2],
+             linetype = "dashed", colour = "grey40") +
+    annotate("segment", x = 1978.15, xend = 1978.15, y = pt_B[2], yend = pt_B[3],
+             colour = "firebrick", linewidth = 0.8) +
+    annotate("text", x = 1977.9, y = (pt_B[2] + pt_B[3]) / 2, hjust = 1, size = 3.5,
+             label = "bias of DiD\n(1975 base)", colour = "firebrick") +
+    geom_pointrange(aes(ymin = `Bias B (controls minus CPS)` - 1.96 * `SE of B`,
+                        ymax = `Bias B (controls minus CPS)` + 1.96 * `SE of B`)) +
+    geom_line(colour = "grey60") +
+    scale_x_continuous(breaks = c(1974, 1975, 1978)) +
+    scale_y_continuous(labels = scales::comma) +
+    labs(x = NULL, y = "Selection bias (dollars)") +
+    causalverse::ama_theme()
+```
+
+The bias is very large and it is not stable. It deepens by about 470 dollars between the two pre-program years, which is Ashenfelter's dip seen through the comparison-group lens: the experimental sample was drawn from people whose earnings had collapsed (more than two thirds of the experimental controls report zero earnings in the 1975 measure, against 11 percent of the CPS), and then it recovers by about 2,100 dollars by 1978 as many of them return to work. The decomposition predicts what difference-in-differences will do with that pattern, and Table \@ref(tab:debias-nsw-estimators) confirms it. Each row applies one estimator twice: once to participants versus the CPS, where the answer should be the experimental 1,794, and once to experimental controls versus the CPS, where the answer should be zero and the estimate is the estimator's bias.
+
+```{r debias-nsw-estimators}
+library(fixest)
+pt_obs <- pt_lal |> dplyr::filter(grp != "NSW experimental controls") |>
+    dplyr::mutate(D = as.integer(grp == "NSW participants"))
+pt_plc <- pt_lal |> dplyr::filter(grp != "NSW participants") |>
+    dplyr::mutate(D = as.integer(grp == "NSW experimental controls"))
+
+pt_fits <- function(dat) {
+    list(
+        `Cross-section (1978)`            = feols(re78 ~ D, dat, vcov = "hetero"),
+        `DiD, 1975 base`                  = feols(I(re78 - re75) ~ D, dat, vcov = "hetero"),
+        `DiD, 1974 base`                  = feols(I(re78 - re74) ~ D, dat, vcov = "hetero"),
+        `Lagged outcome (1975 earnings)`  = feols(re78 ~ D + re75, dat, vcov = "hetero")
+    )
+}
+pt_row <- function(m) c(coef(m)[["D"]], se(m)[["D"]])
+pt_est <- t(sapply(pt_fits(pt_obs), pt_row))
+pt_plb <- t(sapply(pt_fits(pt_plc), pt_row))
+
+pt_att    <- pt_mean("NSW participants", "re78") - pt_mean("NSW experimental controls", "re78")
+pt_att_se <- pt_se("NSW participants", "NSW experimental controls", "re78")
+
+pt_estimators <- rbind(
+    data.frame(Estimator = rownames(pt_est),
+               Estimate = pt_est[, 1], SE = pt_est[, 2],
+               `Placebo estimate (bias)` = pt_plb[, 1], `Placebo SE` = pt_plb[, 2],
+               check.names = FALSE),
+    data.frame(Estimator = "Experimental benchmark", Estimate = pt_att, SE = pt_att_se,
+               `Placebo estimate (bias)` = NA, `Placebo SE` = NA, check.names = FALSE)
+)
+rownames(pt_estimators) <- NULL
+options(knitr.kable.NA = "")
+knitr::kable(pt_estimators, digits = 0, format.args = list(big.mark = ","),
+             caption = "Nonexperimental estimates of the NSW effect on 1978 earnings with the CPS comparison group, and the same estimators applied to experimental controls versus the CPS (placebo), where the true effect is zero. Heteroskedasticity-robust standard errors.")
+```
+
+Read Table \@ref(tab:debias-nsw-estimators) through the decomposition. The cross-section is off by the full bias of about 10,300 dollars. Difference-in-differences with a 1975 base subtracts the 1975 gap of 12,119 dollars and lands at 3,621, removing roughly four fifths of the bias but over-correcting, because the bias it subtracts is larger than the bias that remains in 1978. Its placebo bias of 2,092 is precisely the drift $B_{1978} - B_{1975}$ in Figure \@ref(fig:debias-nsw-bias-path), and the observational estimate decomposes exactly as experimental ATT plus bias drift minus a small randomization imbalance between participants and controls in 1975: $1{,}794 + 2{,}092 - 265 = 3{,}621$. Moving the base to 1974, further from the enrollment dip and closer to the symmetric comparison that the stationary-shock model favors, reduces the bias, but only modestly. Lagged-outcome adjustment errs in the opposite direction, and the experimental answer lies between it and difference-in-differences, as the bracketing result predicts.
+
+The $\theta$ family makes the same point in one picture. Figure \@ref(fig:debias-nsw-dial) traces $\hat\tau(\theta) = \text{SDO}_{1978} - \theta \, \text{SDO}_{1975}$ across the possible amounts of debiasing.
+
+```{r debias-nsw-dial, fig.width = 6.5, fig.height = 4.5, fig.cap = "The debiasing dial for the NSW data. Each point on the line subtracts theta times the 1975 earnings gap from the 1978 earnings gap. The shaded band is the 95 percent confidence interval of the experimental benchmark. Lagged-outcome adjustment and difference-in-differences sit on either side of the value of theta that would reproduce the experiment.", fig.alt = "Upward-sloping line plotting the estimated effect against theta from 0 to 1.2. At theta equal to 0 the estimate is about minus 8,500 dollars; it rises linearly to about 3,600 at theta equal to 1. A horizontal shaded band around 1,794 marks the experimental benchmark. Labelled points mark the cross-section at theta 0, the lagged-outcome estimate at theta about 0.69 near zero dollars, the value of about 0.85 where the line crosses the benchmark, and difference-in-differences at theta 1."}
+pt_sdo78 <- pt_mean("NSW participants", "re78") - pt_mean("CPS", "re78")
+pt_sdo75 <- pt_mean("NSW participants", "re75") - pt_mean("CPS", "re75")
+pt_beta  <- coef(feols(re78 ~ D + re75, pt_obs))[["re75"]]
+pt_theta_star <- (pt_sdo78 - pt_att) / pt_sdo75
+
+pt_dial <- data.frame(theta = seq(0, 1.2, by = 0.01))
+pt_dial$estimate <- pt_sdo78 - pt_dial$theta * pt_sdo75
+pt_marks <- data.frame(
+    theta = c(0, pt_beta, pt_theta_star, 1),
+    label = c("cross-section", "lagged outcome", "matches experiment", "DiD"),
+    hjust = c(-0.12, -0.12, 1.08, 1.08),
+    vjust = c(0.5, 1.6, -0.6, -0.6)
+)
+pt_marks$estimate <- pt_sdo78 - pt_marks$theta * pt_sdo75
+
+ggplot(pt_dial, aes(theta, estimate)) +
+    annotate("rect", xmin = -Inf, xmax = Inf, ymin = pt_att - 1.96 * pt_att_se,
+             ymax = pt_att + 1.96 * pt_att_se, alpha = 0.15, fill = "steelblue") +
+    geom_hline(yintercept = pt_att, colour = "steelblue") +
+    geom_line() +
+    geom_point(data = pt_marks, size = 2.5) +
+    geom_text(data = pt_marks, aes(label = label, hjust = hjust, vjust = vjust), size = 3.3) +
+    scale_y_continuous(labels = scales::comma) +
+    labs(x = expression(theta ~ "(share of the 1975 gap subtracted)"),
+         y = "Estimated effect (dollars)") +
+    causalverse::ama_theme()
+```
+
+The value that reproduces the experiment is $\theta^{*} \approx 0.85$, so the right amount of debiasing in these data was to subtract about 85 percent of the pre-period gap. Lagged-outcome adjustment subtracts about 70 percent and difference-in-differences subtracts all of it. The placebo comparison gives an almost identical ratio, $B_{1978} / B_{1975} \approx 0.83$, which is the population quantity that $\theta^{*}$ estimates. Nothing in the observational data alone pins down this number, which is the whole difficulty; what the dial does is turn the identifying assumption into a single interpretable parameter whose plausible range can be argued from the selection process.
+
+Two further lessons come straight from Figure \@ref(fig:debias-nsw-bias-path). First, the pre-trend was informative but in the wrong direction. Between 1974 and 1975 the bias moved by $-474$ dollars; between 1975 and 1978 it moved by $+2{,}092$, opposite in sign and about four times larger (about one and a half times larger per elapsed year). A smoothness-style extrapolation of the pre-period slope would have predicted a 1978 bias of about $-13{,}800$ and corrected the estimate further away from the truth, and a relative-magnitudes bound in the sense of @rambachan2023more would need a multiplier well above one to cover the experimental answer. This is the transitory-selection row of Table \@ref(tab:debias-mechanisms) in real data. Second, the problem is visible only because the experiment supplies $B_{1978}$. In an ordinary application the analyst sees the participants and the CPS, the two pre-period gaps, and the post-period gap, and the case for bias stability has to be made from what is known about why the participants were participants. In NSW that knowledge points squarely at selection on a transitory state, which is exactly the case in which a full subtraction of the pre-period gap should be expected to overshoot.
+
+### Extension: Conditional Bias Stability and Covariates {#sec-debias-covariates}
+
+Covariates enter the debiasing view naturally. Let $m^{d}_t(x) = E[Y_t(0) \mid D = d, X = x]$ and write $\Delta m^{d}(x) = m^{d}_1(x) - m^{d}_0(x)$ for the untreated trend of group $d$ at covariate value $x$. With $F_d$ the distribution of $X$ in group $d$, the drift in the unconditional bias splits into two pieces:
+
+$$
+B_1 - B_0 = \underbrace{\int \left[\Delta m^{1}(x) - \Delta m^{0}(x)\right] dF_1(x)}_{\text{bias drift within covariate cells}} + \underbrace{\int \Delta m^{0}(x)\, dF_1(x) - \int \Delta m^{0}(x)\, dF_0(x)}_{\text{drift from covariate imbalance}}.
+$$
+
+Conditional parallel trends says the first piece is zero: within cells of $X$ the bias is stable [@heckman1997matching; @abadie2005semiparametric]. The second piece is the reason to condition at all. It is non-zero only when two things are true at once, which is the two-pathway test that @cunningham2026causal recommends for choosing covariates: the covariate must be imbalanced between treated and comparison units ($F_1 \neq F_0$), and it must predict the trend in the untreated outcome ($\Delta m^{0}$ varies with $x$). A covariate that is imbalanced but irrelevant to trends, or relevant to trends but balanced, contributes nothing to the drift and nothing to the correction. Outcome regression, inverse probability weighting, and the doubly robust estimators of @sant2020doubly are three ways of removing the second piece; none of them can touch the first. In staggered designs @callaway2021difference apply the same logic group by group, conditioning on covariates measured before each cohort's treatment and fitting a separate propensity score for each comparison that enters a group-time effect. Section \@ref(sec-did-covariates) takes up the harder failure of the first piece, in which the effect of the covariate on the outcome itself differs across groups or periods.
+
+In the NSW data, the covariates are severely imbalanced: participants are younger, less educated, far more likely to be Black, unmarried, and without a degree, and far more likely to have had no earnings before the program. Several of these plausibly predict earnings growth. Table \@ref(tab:debias-nsw-covariates) climbs a short ladder of conditioning sets with the improved doubly robust estimator of @sant2020doubly and reports each estimate alongside its placebo bias.
+
+```{r debias-nsw-covariates}
+library(DRDID)
+pt_dr <- function(dat, rhs, trim = FALSE) {
+    if (trim) {
+        ps <- fitted(glm(D ~ age + I(age^2) + educ + I(educ^2) + black + hisp + marr +
+                             nodegree + re74 + re75 + I(re74 == 0) + I(re75 == 0),
+                         family = binomial, data = dat))
+        dat <- dat[ps >= 0.01 | dat$D == 1, ]
+    }
+    if (is.null(rhs)) {
+        fit <- feols(I(re78 - re75) ~ D, dat, vcov = "hetero")
+        return(c(coef(fit)[["D"]], se(fit)[["D"]]))
+    }
+    X  <- model.matrix(rhs, data = dat)
+    dr <- DRDID::drdid_imp_panel(y1 = dat$re78, y0 = dat$re75, D = dat$D, covariates = X)
+    c(dr$ATT, dr$se)
+}
+pt_demog <- ~ age + I(age^2) + educ + black + hisp + marr + nodegree
+pt_hist  <- ~ age + I(age^2) + educ + black + hisp + marr + nodegree + re74 + I(re74 == 0)
+pt_ladder_specs <- list(
+    list("No covariates", NULL, FALSE),
+    list("Demographics", pt_demog, FALSE),
+    list("Demographics and 1974 earnings", pt_hist, FALSE),
+    list("Demographics and 1974 earnings, overlap trimmed", pt_hist, TRUE)
+)
+pt_ladder <- do.call(rbind, lapply(pt_ladder_specs, function(s) {
+    e <- pt_dr(pt_obs, s[[2]], s[[3]])
+    p <- pt_dr(pt_plc, s[[2]], s[[3]])
+    data.frame(`Conditioning set` = s[[1]], Estimate = e[1], SE = e[2],
+               `Placebo estimate (bias)` = p[1], `Placebo SE` = p[2], check.names = FALSE)
+}))
+knitr::kable(pt_ladder, digits = 0, format.args = list(big.mark = ","),
+             caption = "Doubly robust difference-in-differences (1975 base) under increasingly rich conditioning sets. The placebo columns apply the same estimator to experimental controls versus the CPS, where the true effect is zero. Trimming drops CPS men with an estimated participation probability below 0.01. The experimental benchmark is 1,794.")
+```
+
+The placebo column is the one to read in Table \@ref(tab:debias-nsw-covariates). Unconditionally the bias drift is about 2,100 dollars. Conditioning on demographics roughly halves it, which is the second piece of the decomposition at work. Participants are young and mostly unmarried, and in the CPS those characteristics predict fast earnings growth: men aged 30 or younger gained 2,818 dollars on average between 1975 and 1978 while older men lost 281, and unmarried men gained 3,134 against 411 for married men. Reweighting the CPS toward the participants' profile therefore steepens the comparison group's trend and absorbs part of the drift that the unconditional estimator attributed to the program. Adding the 1974 earnings measure removes most of what is left, and trimming the CPS to men who resemble participants brings the remaining placebo bias to a few hundred dollars, well within its standard error. The trimmed point estimate lands almost on the experimental benchmark, but with a standard error near 700 dollars that coincidence should not be over-read; the evidence is the shrinking placebo bias, not the closeness of one number.
+
+Two cautions keep this from becoming a recipe. Conditioning on an earlier outcome such as the 1974 earnings measure moves the design part of the way from bias stability toward ignorability given past outcomes, the lagged-outcome assumption of Table \@ref(tab:debias-theta-family). Here that is the right direction, because selection was on a transitory earnings state, but when parallel trends would have held unconditionally, matching or conditioning on pre-treatment outcomes can manufacture regression-to-the-mean bias [@daw2018matching; @chabe2015analysis]. And the estimates in the table were chosen with the experimental answer in view, which is exactly what an applied analyst cannot do. @smith2005does show that results of this kind are sensitive to the sample and the specification, and @imbens2025comparing argue that the credible use of such adjustments rests on overlap and on validation exercises, such as the placebo comparison here, rather than on the proximity of any single estimate to a benchmark. Section \@ref(sec-placebo-falsification) develops those exercises in general.
+
+### Practice: Report the Bias You Subtract {#sec-debias-practice}
+
+The debiasing view suggests a handful of habits that make a difference-in-differences analysis easier to evaluate.
+
+Report the four averages and the pre-period gap, not only the difference-in-differences coefficient. The pre-period gap is the bias estimate the design relies on, and its size relative to the estimated effect tells a reader how much leverage the assumption has. In the NSW data the design subtracts a gap of 12,119 dollars to report an effect of 3,621; a drift of 17 percent in the bias is enough to move the answer by 2,000 dollars, which is about what happened. @kahn2020promise make the related demand that any difference-in-differences paper explain why the levels differ and why the reason would not also move the trends.
+
+Choose the base period with the selection process in mind. The base period is where the bias is measured, so a base period contaminated by a dip, an anticipation response, or a one-time shock contaminates the bias estimate. The `HonestDiD` demonstration in Section \@ref(prior-parallel-trends-test), in which a one-time dip in the reference period contaminates every event-study coefficient, is the same problem in event-study form. Under selection on transitory shocks, a base period as far before the selection date as the outcome period is after it is the natural choice [@chabe2015analysis].
+
+Treat the amount of debiasing as a sensitivity parameter. Reporting the difference-in-differences and lagged-outcome estimates together brackets the effect when either assumption holds [@ding2019bracketing], and the full $\hat\tau(\theta)$ line shows how the conclusion depends on how much of the pre-period gap one is willing to subtract. This complements the bounds of @rambachan2023more, which discipline the post-period bias drift by the pre-period drift; the NSW example shows why that discipline needs an argument about the selection mechanism behind it.
+
+Look for a known zero. A placebo comparison in which the true effect is zero, whether a group that cannot have been affected, an outcome the treatment cannot reach, or, as here, an experimental control group, measures the bias of the estimator rather than asserting it. It is the most persuasive evidence a difference-in-differences analysis can offer, and it is the logic of Section \@ref(sec-placebo-falsification).
+
+The same habits carry over to applied work outside academia. A product team that evaluates a feature rolled out to selected markets is computing $\hat\tau(1)$ and assuming that the markets chosen for the rollout would have kept their pre-launch gap with the others; if markets were chosen because they had just had a bad quarter, the bias is transitory and the estimate will overstate the effect, exactly as in NSW. In litigation, damages are often estimated by comparing an affected market or firm with a benchmark before and during the alleged conduct. The opposing expert's most effective critique is usually not about the estimator but about whether the pre-period gap between the affected unit and the benchmark is the gap that would have persisted. Stating the subtracted bias explicitly, explaining from the facts of the case why it should be stable, and showing a placebo period or benchmark in which the method returns zero is the most direct way to meet that critique.
+
+### Exercises {#sec-debias-exercises}
+
+1.  Show that with a stationary first-order autoregressive transitory component and selection on the base-period shock, $B_1 - B_0 = (\rho - 1) B^{\varepsilon}_0$ and $B_1 - B_{-1} = 0$. Rerun the mechanism simulation with $\rho \in \{0.2, 0.6, 0.9\}$ and confirm both results. What happens to the symmetric estimator when the shocks follow a second-order autoregression?
+2.  Using the NSW and CPS data, compute $\theta^{*}$ separately for men with and without zero earnings in the 1975 measure. Interpret the difference in terms of the selection mechanisms of Section \@ref(sec-debias-selection).
+3.  The `MatchIt::lalonde` data pair the same NSW participants with a PSID comparison group. Repeat Table \@ref(tab:debias-nsw-estimators) and Figure \@ref(fig:debias-nsw-dial) with that comparison group, using the experimental benchmark of 1,794 dollars. Does the bracket still hold? (No placebo comparison is possible here; explain why.)
+4.  Rebuild Table \@ref(tab:debias-nsw-covariates) with the inverse probability weighting and outcome regression estimators in `DRDID` (`ipw_did_panel` and `reg_did_panel`). Which piece of the covariate decomposition does each estimator rely on modeling correctly?
+5.  For a staggered design such as the minimum wage panel `did::mpdta`, estimate group-time effects with and without the baseline covariate using `did::att_gt`, and report the pre-period gaps that each 2x2 comparison subtracts. Which cohorts lean most heavily on bias stability?
