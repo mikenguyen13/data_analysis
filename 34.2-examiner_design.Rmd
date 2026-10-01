@@ -418,7 +418,7 @@ Even when assumptions are reasonable, inference remains challenging in judge-IV 
 
 #### A Worked Simulation: Judge-Leniency IV
 
-The snippet below simulates a canonical judge/examiner design with quasi-random judge assignment, heterogeneous judge leniency, a binary treatment (e.g., pre-trial detention), and a continuous outcome (e.g., employment). It constructs the leave-one-out leniency instrument $Z_i$ and then recovers the causal effect via 2SLS. The simulation is small but illustrates the full workflow: (1) quasi-random assignment, (2) LOO leniency construction, (3) 2SLS with judge fixed effects netted out.
+The snippet below simulates a canonical judge/examiner design with quasi-random judge assignment, heterogeneous judge leniency, a binary treatment (e.g., pre-trial detention), and a continuous outcome (e.g., employment). An unobserved case characteristic $U$ raises both the chance of treatment and the outcome, so a naive comparison is confounded. The simulation constructs the leave-one-out leniency instrument $Z_i$ and recovers the causal effect by 2SLS, illustrating the full workflow: (1) quasi-random assignment, (2) LOO leniency construction, (3) 2SLS on the between-judge variation.
 
 ```{r judge-iv-sim, message=FALSE, warning=FALSE}
 set.seed(2024)
@@ -428,7 +428,7 @@ library(fixest)
 
 # 1. Simulate data
 N_judges <- 100
-N_cases  <- 5000
+N_cases  <- 20000
 
 # Judge-level leniency (propensity to assign treatment D = 1)
 judge_leniency <- runif(N_judges, 0.2, 0.8)
@@ -442,10 +442,12 @@ cases <- tibble(
 
 cases <- cases |>
     mutate(
-        prop   = judge_leniency[judge_id],       # judge leniency
-        D      = rbinom(N_cases, 1, prop),       # treatment from judge
+        prop = judge_leniency[judge_id],         # judge leniency
+        # Treatment depends on the judge AND on U. The latent index has unit
+        # variance, so each judge still treats a share `prop` of cases.
+        D    = as.integer(qnorm(prop) + 0.8 * U + rnorm(N_cases, sd = 0.6) > 0),
         # True causal effect of treatment = -0.5; U confounds OLS
-        Y      = -0.5 * D + 0.8 * U + rnorm(N_cases, sd = 0.5)
+        Y    = -0.5 * D + 0.8 * U + rnorm(N_cases, sd = 0.5)
     )
 
 # 2. Leave-one-out judge leniency instrument
@@ -457,9 +459,9 @@ cases <- cases |>
     left_join(judge_totals, by = "judge_id") |>
     mutate(Z = (sum_D - D) / (n - 1))            # leave-one-out leniency
 
-# 3. OLS is biased; 2SLS with judge FE is consistent
+# 3. OLS is biased; 2SLS on the leniency instrument is consistent
 ols <- feols(Y ~ D, data = cases)
-iv  <- feols(Y ~ 1 | judge_id | D ~ Z, data = cases)
+iv  <- feols(Y ~ 1 | D ~ Z, data = cases)
 
 # Compare OLS and 2SLS
 etable(ols, iv,
@@ -468,12 +470,212 @@ etable(ols, iv,
        fitstat  = ~ n + r2 + ivf)
 ```
 
-Interpretation: OLS is biased because $U$ drives both $D$ and $Y$. The LOO leniency instrument isolates variation in $D$ that comes purely from which judge a case was assigned to, variation that is orthogonal to $U$ by the quasi-random-assignment assumption. The 2SLS estimate should recover the true causal effect ($-0.5$) up to sampling noise, while OLS will be biased toward the sign of $\text{Cov}(U, D)$.
+Interpretation: OLS is badly biased, and here even has the wrong sign, because $U$ raises both $D$ and $Y$. The LOO leniency instrument isolates variation in $D$ that comes purely from which judge a case was assigned to, variation that is orthogonal to $U$ by the quasi-random-assignment assumption, and the 2SLS estimate recovers the true effect of $-0.5$ up to sampling noise. Note that the second stage does *not* include judge fixed effects. The instrument is a judge-level quantity, so judge fixed effects would absorb it and leave only the mechanical within-judge variation created by leaving out each case's own $D_i$, which identifies nothing.
 
 Caveats that would apply in real data:
 
 - Check first-stage strength, the LOO leniency instrument can be weak if within-judge variation in the sample is small.
-- Monotonicity should be probed with a covariate-balance regression: $X_i$ on predicted treatment.
-- If judge assignment is conditional on observables (e.g., by courthouse × calendar quarter), include those fixed effects in both stages.
+- Random assignment should be probed with a covariate-balance regression of $X_i$ on predicted treatment, and monotonicity with the tests of the previous subsection.
+- If judge assignment is random only within cells defined by observables (e.g., courthouse by calendar quarter), include those cell fixed effects in both stages. Those are assignment-cell controls, not judge fixed effects.
 
 ------------------------------------------------------------------------
+
+#### When Assignment Is Not as Good as Random: Judge-Shopping {#sec-examiner-judge-shopping}
+
+Every result in this section leans on one institutional fact: the decision-maker is assigned as good as randomly. Courts usually promise exactly that, through a wheel, a draw, or a rotation, and empirical work takes the promise at face value once a balance table looks clean. @huther2026justice show that the promise can fail in a way that the standard diagnostics are not built to detect. They study Chapter 11 bankruptcy, a setting in which judge designs are widely used; @iverson2023financial, for example, exploit the random assignment of judges to corporate bankruptcy filings to estimate the cost of judicial inexperience. @huther2026justice find that sophisticated parties judge-shop. Relative to cases with secured hedge fund creditors, cases with unsecured hedge fund creditors and equity holders are assigned judges with lower past conversion rates (that is, judges who less often convert a reorganization into a Chapter 7 liquidation) and higher unsecured recovery rates, and experienced legal counsel influences assignment in the same way. The channel is mundane. Because judges are not assigned consecutive large cases, a party that follows the docket knows which judges are still due a large case and can choose the filing date accordingly. The authors develop a method to measure the resulting bias and conclude that judge and examiner designs need controls and bounded instrumental variable specifications.
+
+Three features of the mechanism explain why it slips past the usual checks. First, the rotation rule guarantees that every judge receives the same share of large cases over a cycle, so the marginal distribution of cases across judges looks perfectly balanced. Second, only a minority of filers have both the incentive and the knowledge to time their petitions, so a balance regression of leniency on generic case characteristics averages their selection away unless the characteristics that mark them are among the regressors. Third, the selection operates on who files when, not on the strength of the instrument, so the first stage stays strong. The instrument is random from the point of view of an uninformed filer and predictable from the point of view of an informed one, and only the second matters for the exclusion restriction.
+
+The mechanism suggests its own diagnostics. Regress the assigned judge's leniency on indicators for parties who could shop, within the cells in which assignment is supposed to be random, and compare them with a sophisticated party that has different preferences over the outcome, which is the role secured hedge fund creditors play in @huther2026justice. Test the assignment rule itself, for instance by asking whether a judge who received a large case last week is less likely to receive one this week. And compare the leniency a filer could have expected on the day it filed, given the judges remaining in the rotation, across filer types. The remedies follow the same logic. Indicators for the parties able to shop, and finer assignment cells, absorb the selection when the shoppers are observable. When the assignment protocol is known and the docket can be reconstructed, the instrument can be recentered by its expected value under the protocol at the moment of filing, $\tilde{Z}_i = Z_i - E[Z_i \mid \text{rotation state at filing}]$, which is the recentering logic of @borusyak2023nonrandom: the filing date may be chosen, but the draw from the remaining judges is not. And when neither is fully convincing, a bounded specification replaces the exclusion restriction with weaker sign and magnitude restrictions. The imperfect instrument approach of @nevo2012identification is the leading example. It assumes the instrument is correlated with the structural error in the same direction as the treatment but no more strongly, $\rho_{ZU}\rho_{DU} \geq 0$ and $|\rho_{ZU}| \leq |\rho_{DU}|$, and then the 2SLS estimates using $Z$ and using $V = \sigma_D Z - \sigma_Z D$ bound the effect. When leniency raises treatment ($\rho_{DZ} > 0$), as it does by construction in a leniency design, both estimates are biased in the same direction and the bound is one-sided: with $\rho_{DU} < 0$ the effect is at least $\max\{\hat\beta_{IV}(Z), \hat\beta_{IV}(V)\}$.
+
+Because the bankruptcy data are not public, the simulation below reproduces the mechanism rather than the paper's estimates; every number it prints is simulation output. Thirty districts each have three to six judges whose propensity to convert cases is summarized by a past conversion rate $Z$, the instrument. Small cases are assigned uniformly at random. Large cases are dealt from a per-district deck that holds each judge once and is reshuffled when empty, so no judge receives two large cases in the same cycle. Large cases with an unsecured hedge fund creditor or experienced counsel can delay filing by up to ten days and file as soon as the judges left in the deck are more lenient than the district average. These cases are also stronger in a way the analyst cannot see: an unobserved quality $U$ lowers the chance of conversion and raises unsecured recovery. The treatment $D$ is conversion to Chapter 7, the outcome $Y$ is unsecured recovery in percentage points, and the true effect of conversion is $-10$.
+
+```{r judge-shopping-sim}
+library(dplyr)
+library(fixest)
+setFixest_notes(FALSE)
+
+js_beta <- -10                                  # true effect of conversion on recovery
+
+js_simulate <- function(n_dist = 30, n_days = 1500, W = 10, margin = 0.01) {
+    # Judges: true conversion propensity theta, observed as a past conversion rate Z
+    judges <- bind_rows(lapply(seq_len(n_dist), function(d) {
+        K <- sample(3:6, 1)
+        tibble(district = d, judge = paste0(d, "_", seq_len(K)),
+               theta = runif(K, 0.03, 0.30))
+    })) |>
+        mutate(Z = rbinom(n(), 200, theta) / 200)
+
+    # Cases: size, hedge fund creditor (hf), unsecured hedge fund creditor (uhf),
+    # experienced counsel (ec), and unobserved quality U
+    cases <- tibble(district = rep(seq_len(n_dist), each = n_days),
+                    day0 = rep(seq_len(n_days), n_dist)) |>
+        mutate(n = rpois(n(), 3)) |>
+        filter(n > 0) |>
+        tidyr::uncount(n) |>
+        mutate(
+            large      = rbinom(n(), 1, 0.15),
+            log_assets = ifelse(large == 1, rnorm(n(), 16, 1), rnorm(n(), 12, 1)),
+            industry   = sample(1:8, n(), replace = TRUE),
+            hf   = rbinom(n(), 1, ifelse(large == 1, 0.16, 0.02)),
+            uhf  = hf * rbinom(n(), 1, 0.6),
+            ec   = rbinom(n(), 1, ifelse(large == 1, 0.15, 0.02)),
+            soph = as.integer(large == 1 & (uhf == 1 | ec == 1)),   # able to shop
+            U    = 0.3 * hf + 0.7 * pmax(uhf, ec) + rnorm(n())
+        )
+
+    # Assignment within one district. Large cases come from a deck holding each
+    # judge once; sophisticated filers wait (up to W days) for a lenient deck.
+    assign_district <- function(cd, Zj) {
+        J <- seq_along(Zj); zbar <- mean(Zj); n <- nrow(cd)
+        jd <- integer(n); fday <- integer(n); mu <- numeric(n)
+        deck <- sample(J)
+        pending <- which(cd$soph == 1)
+        naive_by_day <- split(which(cd$soph == 0), cd$day0[cd$soph == 0])
+        for (t in seq_len(n_days + W)) {
+            exp_now <- if (length(deck)) mean(Zj[deck]) else zbar
+            go <- cd$day0[pending] <= t &
+                (exp_now <= zbar - margin | cd$day0[pending] + W <= t)
+            today <- c(naive_by_day[[as.character(t)]], pending[go])
+            pending <- pending[!go]
+            for (i in today[sample.int(length(today))]) {
+                fday[i] <- t
+                if (cd$large[i] == 1) {
+                    if (!length(deck)) deck <- sample(J)
+                    mu[i] <- mean(Zj[deck])        # expected Z given the deck
+                    k <- if (length(deck) > 1) sample.int(length(deck), 1) else 1L
+                    jd[i] <- deck[k]
+                    deck <- deck[-k]
+                } else {
+                    mu[i] <- zbar
+                    jd[i] <- sample.int(length(J), 1)
+                }
+            }
+        }
+        cd$judge <- paste0(cd$district[1], "_", jd)
+        cd$fday <- fday
+        cd$mu <- mu
+        cd
+    }
+
+    cases <- bind_rows(lapply(split(cases, cases$district), function(cd)
+        assign_district(cd, judges$Z[judges$district == cd$district[1]]))) |>
+        left_join(judges |> select(judge, theta, Z), by = "judge") |>
+        mutate(
+            year = pmin(ceiling(fday / 250), 6),
+            dy   = paste(district, year),                       # assignment cell
+            D    = rbinom(n(), 1, pmin(pmax(theta - 0.04 * U, 0.005), 0.95)),
+            Y    = 20 + js_beta * D + 8 * U + 5 * large + rnorm(n(), 0, 10),
+            Ztil = Z - mu                                       # recentered instrument
+        )
+    list(cases = cases, judges = judges, n_days = n_days, W = W)
+}
+
+set.seed(20261001)
+js <- js_simulate()
+js_big <- filter(js$cases, large == 1)
+c(cases = nrow(js$cases), large = nrow(js_big),
+  able_to_shop = sum(js_big$soph), judges = nrow(js$judges))
+```
+
+Table \@ref(tab:judge-shopping-tests) runs the conventional balance check and the three diagnostics implied by the mechanism on this simulated court system.
+
+```{r judge-shopping-tests}
+js_ctrl <- "log_assets + i(industry)"
+
+# (1) Conventional balance test: leniency on case characteristics, all cases
+js_bal <- feols(as.formula(paste("Z ~ large +", js_ctrl, "| dy")), js$cases,
+                cluster = ~judge)
+
+# (2) Leniency on the parties able to shop, large cases; secured HF as benchmark
+js_hk <- feols(as.formula(paste("Z ~ uhf + hf +", js_ctrl, "| dy")), js_big,
+               cluster = ~judge)
+
+# (3) The assignment rule: does a large case last week predict one this week?
+js_week <- js_big |>
+    mutate(week = (fday - 1) %/% 5) |>
+    count(judge, week, name = "n_large")
+js_panel <- tidyr::expand_grid(judge = js$judges$judge,
+                               week = 0:((js$n_days + js$W - 1) %/% 5)) |>
+    left_join(js_week, by = c("judge", "week")) |>
+    mutate(any_large = as.integer(coalesce(n_large, 0L) > 0)) |>
+    left_join(js$judges |> select(judge, district), by = "judge") |>
+    arrange(judge, week) |>
+    group_by(judge) |>
+    mutate(lag_any = lag(any_large)) |>
+    ungroup() |>
+    mutate(dy = paste(district, pmin(week %/% 50 + 1, 6)))
+js_cons <- feols(any_large ~ lag_any | judge + dy, js_panel, cluster = ~judge)
+
+js_row <- function(m, term, label) {
+    data.frame(Diagnostic = label, Coefficient = coef(m)[[term]],
+               SE = se(m)[[term]], `p-value` = pvalue(m)[[term]], check.names = FALSE)
+}
+knitr::kable(rbind(
+    js_row(js_bal, "large", "(1) Balance: large case"),
+    js_row(js_bal, "log_assets", "(1) Balance: log assets"),
+    js_row(js_hk, "uhf", "(2) Unsecured hedge fund creditor"),
+    js_row(js_hk, "hf", "(2) Any hedge fund creditor (secured benchmark)"),
+    js_row(js_cons, "lag_any", "(3) Large case last week (judge-week panel)")
+), digits = 4, row.names = FALSE,
+caption = "Assignment diagnostics on one simulated court system. Rows (1) and (2) regress the assigned judge's past conversion rate on case and party characteristics within district-by-year cells; row (3) regresses an indicator for receiving a large case on its lag with judge and district-by-year fixed effects. Standard errors are clustered by judge.")
+```
+
+The conventional balance test in Table \@ref(tab:judge-shopping-tests) passes: neither case size nor assets predicts the assigned judge's conversion rate. The diagnostic aimed at the mechanism does not. Cases with an unsecured hedge fund creditor land with judges whose past conversion rate is more than a percentage point lower, against a large-case mean of about 0.16, while the secured benchmark shows nothing; and a judge who drew a large case last week is far less likely to draw one this week, which is the predictability that makes shopping possible. Table \@ref(tab:judge-shopping-timing) shows the shopping directly.
+
+```{r judge-shopping-timing}
+js_big |>
+    mutate(type = case_when(soph == 1 ~ "Able to shop (unsecured HF or experienced counsel)",
+                            hf == 1 ~ "Secured hedge fund only",
+                            TRUE ~ "Other large cases")) |>
+    group_by(`Filer type` = type) |>
+    summarise(Cases = n(), `Expected Z at filing` = mean(mu),
+              `Assigned Z` = mean(Z), `Mean U` = mean(U), .groups = "drop") |>
+    knitr::kable(digits = 3, caption = "Leniency expected on the filing day, given the judges left in the rotation, and leniency actually assigned, by filer type. Mean U is the unobserved case quality.")
+```
+
+Filers able to shop file when the judges left in the rotation are lenient, and they get what they expect: their assigned conversion rate is about two points below that of other large cases. They are also the strongest cases, with the highest unobserved quality. That combination is what breaks the instrument. Among large cases, a low conversion rate now signals a strong case, so $Z$ is negatively correlated with $U$, and 2SLS attributes part of the recovery advantage of strong cases to the lower conversion rate of their judges. Table \@ref(tab:judge-shopping-estimates) compares estimators across ten simulated court systems.
+
+```{r judge-shopping-estimates}
+# Nevo and Rosen (2012) one-sided bound after partialling out controls and cells.
+# Valid when rho(Z,U) has the sign of rho(D,U) and |rho(Z,U)| <= |rho(D,U)|.
+js_nr_bound <- function(dat, ctrl) {
+    r <- resid(feols(as.formula(paste0("c(Y, D, Z) ~ ", ctrl, " | dy")), dat))
+    y <- r[, 1]; d <- r[, 2]; z <- r[, 3]
+    v <- sd(d) * z - sd(z) * d
+    iv <- function(w) cov(w, y) / cov(w, d)
+    max(iv(z), iv(v))                      # rho(D,Z) > 0 and rho(D,U) < 0
+}
+
+js_estimates <- function(cases) {
+    big <- filter(cases, large == 1)
+    iv <- function(fml) coef(feols(as.formula(fml), big))[["fit_D"]]
+    c(`OLS` = coef(feols(as.formula(paste("Y ~ D +", js_ctrl, "| dy")), big))[["D"]],
+      `2SLS, conventional` = iv(paste("Y ~", js_ctrl, "| dy | D ~ Z")),
+      `2SLS + hedge fund indicators` = iv(paste("Y ~ uhf + hf +", js_ctrl, "| dy | D ~ Z")),
+      `2SLS + all shopping indicators` = iv(paste("Y ~ uhf + hf + ec +", js_ctrl, "| dy | D ~ Z")),
+      `2SLS, recentered instrument` = iv(paste("Y ~", js_ctrl, "| dy | D ~ Ztil")),
+      `Nevo-Rosen lower bound` = js_nr_bound(big, js_ctrl),
+      `Nevo-Rosen lower bound + hedge fund indicators` = js_nr_bound(big, paste("uhf + hf +", js_ctrl)))
+}
+
+# The draw above plus nine more simulated court systems
+set.seed(7)
+js_draws <- cbind(js_estimates(js$cases),
+                  replicate(9, js_estimates(js_simulate()$cases)))
+js_fs <- fitstat(feols(as.formula(paste("Y ~", js_ctrl, "| dy | D ~ Z")), js_big), "ivf1")[[1]]$stat
+
+knitr::kable(data.frame(
+    Estimator = rownames(js_draws),
+    `First draw` = js_draws[, 1],
+    `Mean over 10 draws` = rowMeans(js_draws),
+    `SD over 10 draws` = apply(js_draws, 1, sd),
+    check.names = FALSE, row.names = NULL
+), digits = 2,
+caption = "Estimates of the effect of conversion on unsecured recovery (true value -10) in large cases, with district-by-year fixed effects and case controls. Bounds are lower bounds on the effect.")
+```
+
+Table \@ref(tab:judge-shopping-estimates) carries the main lesson. Conventional 2SLS overstates the harm of conversion by close to half on average, and it does so with a first-stage $F$ of about `r round(js_fs)` in the first draw: the instrument is very strong and not valid. It is also further from the truth than OLS, a reminder that a manipulated instrument can be worse than no instrument. Indicators for hedge fund creditors close only part of the gap, because experienced counsel shop too and are left uncontrolled; indicators for every party able to shop remove the bias, which is the controls remedy working exactly when the analyst observes everyone who can shop. The recentered instrument removes the bias without observing the shoppers at all, because it keeps only the random draw from the judges remaining in the rotation, at a modest cost in precision. The Nevo and Rosen bound lies below the true effect in `r sum(js_draws["Nevo-Rosen lower bound", ] <= js_beta)` of 10 draws, so the identified set, effects no more harmful than about $-12.3$, contains the truth and excludes the conventional 2SLS estimate. The bound is one-sided: it limits how harmful conversion can be, not how harmless. That is the informative side here, because judge-shopping by strong cases exaggerates the harm. Its sign and magnitude assumptions hold by construction in the simulation, where weaker cases are converted more often and shopping ties the instrument to case quality in the same direction but more weakly; in real data they have to be argued from who can shop and why.
+
+The lesson is not confined to bankruptcy. Any examiner design in which assignment follows a rule rather than a random number generator, such as a rotation, a wheel, a shift schedule, or caseload balancing, can be predictable to the parties who know the rule, and the round-robin assignment of sales leads and service tickets in the marketing applications above is a rule of exactly this kind. Three habits guard against it. Document the assignment protocol from court rules, agency manuals, or routing logic, rather than inferring randomness from a balance table. Identify the parties with both the incentive and the knowledge to game the protocol, and test whether leniency varies with them within assignment cells and whether the protocol itself makes the next assignment predictable. When it does, report estimates that control for those parties, a recentered instrument if the protocol and docket allow it, and a bounded specification alongside the conventional 2SLS. @chyn2025examiner give a practitioner's treatment of the identification conditions and their tests in examiner designs, and the exclusion and monotonicity tests of @frandsen2023judging complement the random assignment checks developed here.
+
