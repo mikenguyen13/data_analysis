@@ -748,11 +748,19 @@ $$
 \end{aligned}
 $$
 
-```{r}
-library(AER)
-jive_model = ivreg(y ~ x_endo_1 | x_inst_1, data = base, method = "jive")
-summary(jive_model)
+Neither `AER::ivreg` nor `ivreg::ivreg` implements JIVE, but the leave-one-out fitted values have a closed form through the first-stage leverages $h_i$: $\hat{X}_i^{(-i)} = (\hat{X}_i - h_i X_i)/(1 - h_i)$. Using them as the instrument gives the JIVE1 estimator of @angrist1999jackknife.
 
+```{r}
+# Leave-one-out first-stage fitted values via the leverages
+Z_mat  <- model.matrix(~ x_inst_1, data = base)
+fs_fit <- lm.fit(Z_mat, base$x_endo_1)
+lev    <- rowSums((Z_mat %*% solve(crossprod(Z_mat))) * Z_mat)
+base_jive <- base
+base_jive$x_endo_1_loo <- (fs_fit$fitted.values - lev * base$x_endo_1) / (1 - lev)
+
+# JIVE1: the leave-one-out fitted value is the instrument
+jive_model <- ivreg::ivreg(y ~ x_endo_1 | x_endo_1_loo, data = base_jive)
+summary(jive_model)
 ```
 
 ------------------------------------------------------------------------
@@ -973,14 +981,217 @@ modelsummary(
 )
 ```
 
+#### Control Functions in Hazard Models: An IV Hazard of Loan Default {#sec-cf-iv-hazard}
+
+Duration outcomes are where the control function earns its keep. A hazard model is nonlinear in the index, so plugging first-stage fitted values into the hazard (the "forbidden regression") does not deliver a consistent estimate, and 2SLS has no direct analogue. @palmer2026ivhazard develops a control function methodology for hazard models that is robust to endogenous or mismeasured regressors and uses it to ask why the foreclosure rate tripled across the 2003 to 2007 cohorts of subprime mortgages: was it loose credit, meaning worse borrowers and riskier loan terms in later cohorts, or the collapse in house prices that later cohorts happened to face early in their lives? Instrumenting local house price changes with, among other instruments, historical variation in the cyclicality of local house prices, he concludes that loose credit played a significant role but that much of the cross-cohort increase in defaults was caused by price declines unrelated to lending standards, with a 10 percent price decline raising subprime default rates by 50 percent.
+
+The model is a proportional hazard estimated on loan-month data in grouped time [@prentice1978regression]. If loan $i$ has survived to age $t$, the probability that it defaults in month $t$ is
+
+$$
+h_{it} = 1 - \exp\left\{-\exp\left(\psi_t + \gamma_{c(i)} + W_i'\theta + \alpha_{g(i)} + \mu \, \Delta p_{g(i)t}\right)\right\},
+$$
+
+which is a binary regression with a complementary log-log link. The loan-age effects $\psi_t$ make the baseline hazard nonparametric, $\gamma_c$ are cohort effects, $W_i$ are origination characteristics such as credit score and leverage, $\alpha_g$ are local market fixed effects, and $\Delta p_{gt}$ is the 12-month change in log local house prices. Prepayment is a competing risk, handled as censoring of the default hazard. The house price change is endogenous because local shocks, such as a local credit expansion or a deterioration in local labor markets, move both prices and default risk, and it is mismeasured because a regional index is a noisy measure of the price of any one house.
+
+The instrument rests on the observation that markets whose prices historically swung more also swung more in the national boom and bust. Let $\sigma_g$ be the volatility of market $g$'s house price changes in an earlier period. Interacting $\sigma_g$ with calendar time predicts which markets boomed and busted hardest, and the market fixed effects absorb any time-invariant link between cyclicality and default. The control function step is the one introduced above, carried into the hazard index: estimate the first stage
+
+$$
+\Delta p_{gt} = \pi \left(\sigma_g \times \text{national cycle}_t\right) + \text{controls} + v_{gt}
+$$
+
+by OLS and add the residual to the hazard index,
+
+$$
+h_{it} = 1 - \exp\left\{-\exp\left(\psi_t + \gamma_{c(i)} + W_i'\theta + \alpha_{g(i)} + \mu \, \Delta p_{g(i)t} + c(\hat v_{g(i)t})\right)\right\},
+$$
+
+with $c(v) = \rho v$ or a low-order polynomial. Conditional on $v$, the price change no longer carries information about the omitted local risk, so $\mu$ is the structural price elasticity of the default hazard, and a $t$-test of $\rho = 0$ is the hazard-model version of the @rivers1988limited exogeneity test. Because $\hat v$ is estimated, second-stage standard errors that treat it as data are too small; @palmer2026ivhazard stacks the first-stage OLS moments and the hazard score moments and computes the two-step GMM sandwich, clustered by market, which is the standard correction for two-step estimators surveyed by @wooldridge2015control. Two cautions from the survival literature carry over. The coefficient $\mu$ is a conditional hazard parameter, and hazard ratios are non-collapsible, so two-stage instrumental variable estimates do not in general recover a marginal causal hazard ratio [@wan2015bias; @tchetgen2015instrumental]. The policy-relevant summaries are therefore counterfactual default rates computed from the fitted model, which is how @palmer2026ivhazard reports his decomposition.
+
+The paper's loan-level data are proprietary, so the simulation below reproduces the structure of the design rather than its estimates, and every number it prints is simulation output. Fifty housing markets with different historical cyclicality go through a national boom to mid-2006 and a bust through mid-2009. Each market also has a persistent local price shock $v$, and the same shock raises default risk directly (by $3v$ on the log hazard), which is the omitted local factor. Twenty thousand loans in five annual cohorts are followed monthly for up to five years; later cohorts are slightly riskier at origination, so loose credit is real but modest; and prepayment rises with prices. The true price coefficient is $\mu = -4.5$.
+
+```{r iv-hazard-sim, message=FALSE, warning=FALSE}
+library(data.table)
+library(fixest)
+library(Matrix)
+setFixest_notes(FALSE)
+set.seed(20261001)
+
+ph_mu    <- -4.5   # true effect of the 12-month log price change on the log hazard
+ph_rho   <-  3.0   # omitted local default risk = ph_rho x local price shock
+ph_gamma <- c(`2003` = 0, `2004` = 0.05, `2005` = 0.15, `2006` = 0.10, `2007` = 0.05)
+
+# Housing markets: 50 CBSAs; calendar month 1 = Jan 2003, 120 = Dec 2012
+ph_G   <- 50
+ph_nat <- function(s)   # national log price factor: boom to mid-2006, bust to mid-2009
+    ifelse(s <= 42, 0.10 * s / 12, 0.10 * 42 / 12 - 0.13 * (pmin(s, 78) - 42) / 12)
+ph_cbsa <- data.table(g = 1:ph_G, sigma = exp(rnorm(ph_G, 0, 0.35)))  # past cyclicality
+# Time-invariant market risk correlated with cyclicality: absorbed by market FE
+ph_cbsa[, alpha_g := 0.3 * as.numeric(scale(sigma)) + rnorm(ph_G, 0, 0.2)]
+ph_ar1 <- function(n, phi = 0.9, sd = 0.10) {
+    x <- numeric(n); x[1] <- rnorm(1, 0, sd)
+    e <- rnorm(n, 0, sd * sqrt(1 - phi^2))
+    for (k in 2:n) x[k] <- phi * x[k - 1] + e[k]
+    x
+}
+ph_mk <- CJ(g = 1:ph_G, s = -11:120)[ph_cbsa, on = "g"]
+setorder(ph_mk, g, s)
+ph_mk[, v := ph_ar1(.N), by = g]                       # local price shock
+ph_mk[, z := sigma * (ph_nat(s) - ph_nat(s - 12))]      # instrument
+ph_mk[, dp := z + v]                                    # 12-month change in log prices
+ph_mk[, omega := ph_rho * v]                            # omitted local default risk
+
+# Loans: five annual cohorts, followed monthly for up to 60 months
+ph_N  <- 20000
+ph_ln <- data.table(id = 1:ph_N, cohort = rep(2003:2007, each = ph_N / 5))
+ph_ln[, orig := (cohort - 2003) * 12 + sample(0:11, .N, TRUE)]
+ph_ln[, g    := sample.int(ph_G, .N, TRUE)]
+ph_ln[, fico := rnorm(.N)]                                   # standardized credit score
+ph_ln[, cltv := rnorm(.N, mean = 0.15 * (cohort - 2003) / 4)] # leverage drifts up
+ph_ln[, gam  := ph_gamma[as.character(cohort)]]
+
+ph_pp <- ph_ln[, .(age = 1:60), by = id][ph_ln, on = "id"]
+ph_pp[, s := orig + age]
+ph_pp <- ph_mk[, .(g, s, alpha_g, z, dp, v, omega)][ph_pp, on = .(g, s)]
+setorder(ph_pp, id, age)
+
+ph_psi <- function(a) log(0.002 + 0.010 * (a / 24) * exp(1 - a / 24))  # hump-shaped baseline
+ph_h   <- function(eta) -expm1(-exp(eta))                               # grouped-time hazard
+ph_pp[, eta_d := ph_psi(age) + gam - 0.4 * fico + 0.3 * cltv + alpha_g + ph_mu * dp + omega]
+ph_pp[, eta_p := log(0.02) + 3 * dp + 0.2 * fico - 0.15 * cltv]          # prepayment
+ph_pp[, ev := fifelse(runif(.N) < ph_h(eta_d), 1L,
+                      fifelse(runif(.N) < ph_h(eta_p), 2L, 0L))]
+ph_pp[, last := { w <- which(ev > 0L); if (length(w)) w[1] else .N }, by = id]
+ph_est <- ph_pp[age <= last]                                 # observed loan-months
+ph_est[, default := as.integer(ev == 1L & age == last)]
+ph_est[, prepay  := as.integer(ev == 2L & age == last)]
+
+c(loans = ph_N, loan_months = nrow(ph_est),
+  defaults = sum(ph_est$default), prepayments = sum(ph_est$prepay))
+```
+
+The estimation follows the paper's recipe: an OLS first stage with every hazard control, a naive complementary log-log hazard, the control function hazard with a linear and a cubic $c(\hat v)$, and the two-step GMM standard errors clustered by market.
+
+```{r iv-hazard-estimate, message=FALSE, warning=FALSE}
+ph_rhs <- "fico + cltv + i(cohort, ref = 2003)"
+ph_fe  <- "| age + g"                        # nonparametric baseline + market FE
+ph_fam <- binomial("cloglog")
+
+# First stage with the same controls as the hazard
+ph_fs <- feols(as.formula(paste("dp ~ z +", ph_rhs, ph_fe)), ph_est, cluster = ~g)
+ph_est[, vhat := resid(ph_fs)]
+
+ph_naive <- feglm(as.formula(paste("default ~ dp +", ph_rhs, ph_fe)), ph_est,
+                  family = ph_fam, cluster = ~g)
+ph_cf    <- feglm(as.formula(paste("default ~ dp + vhat +", ph_rhs, ph_fe)), ph_est,
+                  family = ph_fam, cluster = ~g)
+ph_cf3   <- feglm(as.formula(paste("default ~ dp + vhat + I(vhat^2) + I(vhat^3) +",
+                                   ph_rhs, ph_fe)),
+                  ph_est, family = ph_fam, cluster = ~g)
+
+# Two-step GMM variance: stack the first-stage OLS moments and the cloglog
+# score moments, sum within markets, and use the expected Hessian.
+ph_W1  <- sparse.model.matrix(~ z + fico + cltv + factor(cohort) + factor(age) +
+                                  factor(g), ph_est)
+ph_W2  <- sparse.model.matrix(~ dp + vhat + fico + cltv + factor(cohort) + factor(age) +
+                                  factor(g), ph_est)
+ph_eta <- predict(ph_cf, type = "link")
+ph_m   <- ph_fam$linkinv(ph_eta)
+ph_me  <- ph_fam$mu.eta(ph_eta)
+ph_w   <- ph_me^2 / ph_fam$variance(ph_m)                       # information weights
+ph_sc  <- (ph_est$default - ph_m) * ph_me / ph_fam$variance(ph_m) # score in the index
+ph_Hi  <- solve(crossprod(ph_W2, ph_W2 * ph_w))
+ph_M   <- crossprod(ph_W2, ph_W1 * ph_w) %*% solve(crossprod(ph_W1))
+ph_C   <- sparseMatrix(i = ph_est$g, j = seq_len(nrow(ph_est)), x = 1)  # market sums
+ph_S2  <- ph_C %*% (ph_W2 * ph_sc)
+ph_S1  <- ph_C %*% (ph_W1 * ph_est$vhat)
+ph_adj <- (ph_G / (ph_G - 1)) * ((nrow(ph_est) - 1) / (nrow(ph_est) - ncol(ph_W2)))
+ph_A   <- ph_S2 + coef(ph_cf)[["vhat"]] * ph_S1 %*% t(ph_M)
+ph_se_gmm <- sqrt(diag(as.matrix(ph_adj * ph_Hi %*% crossprod(ph_A) %*% ph_Hi)))[2:3]
+
+options(knitr.kable.NA = "")
+knitr::kable(data.frame(
+    Model = c("Naive cloglog hazard", "Control function, linear c(v)",
+              "Control function, cubic c(v)", "Truth"),
+    `Price coefficient` = c(coef(ph_naive)[["dp"]], coef(ph_cf)[["dp"]],
+                            coef(ph_cf3)[["dp"]], ph_mu),
+    `SE, second stage only` = c(se(ph_naive)[["dp"]], se(ph_cf)[["dp"]],
+                                se(ph_cf3)[["dp"]], NA),
+    `SE, two-step GMM` = c(NA, ph_se_gmm[1], NA, NA),
+    `Residual coefficient` = c(NA, coef(ph_cf)[["vhat"]], coef(ph_cf3)[["vhat"]], ph_rho),
+    `Residual SE, two-step GMM` = c(NA, ph_se_gmm[2], NA, NA),
+    check.names = FALSE
+), digits = 3,
+caption = "Default hazard estimates on simulated loan-month data. The price coefficient is the effect of the 12-month change in log local house prices on the log hazard. Standard errors are clustered by market.")
+```
+
+The first stage is strong (the instrument's coefficient is `r round(coef(ph_fs)[["z"]], 2)` with a $t$-statistic of `r round(fixest::coeftable(ph_fs)["z", "t value"], 1)`), and Table \@ref(tab:iv-hazard-estimate) shows what the correction buys. The naive hazard understates the price coefficient by close to a third, because local shocks that lower prices also raise default risk directly and the naive model loads part of that into everything else. The control function hazard recovers the true coefficient, and the residual coefficient recovers the strength of the omitted local risk, so the exogeneity test rejects decisively. The cubic control function changes nothing, which is what a correctly specified linear $c(v)$ should look like, and the likelihood ratio test of the two extra terms is `r round(as.numeric(2 * (logLik(ph_cf3) - logLik(ph_cf))), 2)` on two degrees of freedom. The two-step standard error is noticeably larger than the second-stage standard error that treats $\hat v$ as data, which is why the correction matters for inference even when the point estimate is right.
+
+Coefficients on the log hazard are not the object a policymaker cares about, so the last step converts them into the paper's two kinds of counterfactual: the effect of a 10 percent price decline on the average monthly default hazard, and five-year cumulative default rates by cohort when every cohort is made to face the same price path. The cumulative incidence of default accounts for prepayment as a competing risk.
+
+```{r iv-hazard-counterfactual, message=FALSE, warning=FALSE}
+# Effect of a 10 percent price decline on the average monthly default hazard,
+# holding the control function (or, for the truth, the omitted factor) fixed
+ph_asf <- function(eta, slope) mean(ph_h(eta - 0.10 * slope)) / mean(ph_h(eta)) - 1
+ph_decline <- c(Truth = ph_asf(ph_est$eta_d, ph_mu),
+                `Naive hazard` = ph_asf(predict(ph_naive, type = "link"), coef(ph_naive)[["dp"]]),
+                `Control function` = ph_asf(predict(ph_cf, type = "link"), coef(ph_cf)[["dp"]]))
+
+# Five-year cumulative default by cohort under actual and common price paths
+ph_prep <- feglm(as.formula(paste("prepay ~ dp +", ph_rhs, ph_fe)),
+                 ph_est[default == 0L], family = ph_fam)
+ph_pp[, vhat := dp - predict(ph_fs, newdata = ph_pp)]
+ph_cif60 <- function(eta_d, eta_p, id) {
+    dt <- data.table(id, hd = ph_h(eta_d), hp = ph_h(eta_p))
+    dt[, S_prev := shift(cumprod((1 - hd) * (1 - hp)), fill = 1), by = id]
+    dt[, .(cif = sum(hd * S_prev)), by = id]$cif
+}
+ph_scen <- list(`Actual prices` = NULL, `All cohorts face 2003 cohort's prices` = 2003,
+                `All cohorts face 2006 cohort's prices` = 2006)
+ph_out <- rbindlist(lapply(names(ph_scen), function(nm) {
+    d <- copy(ph_pp)
+    if (is.null(ph_scen[[nm]])) {
+        d[, dp_shift := 0]
+    } else {
+        path <- ph_est[cohort == ph_scen[[nm]], .(dp_cf = mean(dp)), by = age]
+        d <- path[d, on = "age"]
+        setorder(d, id, age)
+        d[, dp_shift := dp_cf - dp][, dp := dp_cf]
+    }
+    e_p <- predict(ph_prep, newdata = d, type = "link")
+    res <- data.table(
+        cohort = d[age == 1, cohort],
+        truth  = ph_cif60(d$eta_d + ph_mu * d$dp_shift, d$eta_p + 3 * d$dp_shift, d$id),
+        naive  = ph_cif60(predict(ph_naive, newdata = d, type = "link"), e_p, d$id),
+        cf     = ph_cif60(predict(ph_cf, newdata = d, type = "link"), e_p, d$id))
+    res[, .(Truth = 100 * mean(truth), `Naive hazard` = 100 * mean(naive),
+            `Control function` = 100 * mean(cf)), by = cohort][, Scenario := nm]
+}))
+ph_gap <- ph_out[cohort %in% c(2003, 2006),
+                 lapply(.SD, diff), by = Scenario,
+                 .SDcols = c("Truth", "Naive hazard", "Control function")]
+
+knitr::kable(rbind(
+    data.frame(Quantity = "Rise in average monthly default hazard from a 10% price decline (%)",
+               t(100 * ph_decline), check.names = FALSE),
+    data.frame(Quantity = paste0("2006 minus 2003 five-year default rate, ", tolower(ph_gap$Scenario),
+                                 " (pp)"),
+               ph_gap[, -1], check.names = FALSE)
+), digits = 1, row.names = FALSE,
+caption = "Counterfactual quantities from the true model, the naive hazard, and the control function hazard. The last two rows hold the price path fixed across cohorts, so the remaining gap is what cohort characteristics explain.")
+```
+
+Table \@ref(tab:iv-hazard-counterfactual) reproduces the logic of the paper's decomposition. A 10 percent price decline raises the average default hazard by roughly half in the true model, and the control function hazard gets that right while the naive hazard understates it by about a third. The cohort rows ask how much of the gap between the 2003 and 2006 cohorts survives when both face the same prices. In the true model only a few percentage points of a gap of more than 20 points do, so prices explain most of it. The naive hazard, by understating the price elasticity, leaves two to three times as much of the gap to cohort characteristics and would lead an analyst to overstate the role of loose credit. That is the direction of the bias that @palmer2026ivhazard corrects in the real data.
+
+A few points of practice follow. Report the first stage and the exogeneity test on the residual, and check a polynomial $c(v)$ against the linear one. Use standard errors that account for the generated regressor, either the stacked GMM sandwich above or a cluster bootstrap that re-estimates both stages in every replication. Treat prepayment, or any competing exit, explicitly; here it is assumed to be independent censoring once the controls are included, and a competing exit that responds to the omitted local shock would violate that assumption. And defend the exclusion restriction at the level the fixed effects leave open: with market fixed effects, historical cyclicality is allowed to be correlated with permanent differences in default risk, and the threat is a time-varying channel through which cyclical markets became riskier in the bust for reasons other than prices. Section \@ref(sec-binary-endogenous-regressors) covers the case in which the endogenous regressor is itself binary, where the residual inclusion logic needs modification.
+
 ### Fuller and Bias-Reduced IV
 
-Fuller adjusts LIML for bias reduction.
+Fuller adjusts LIML for bias reduction. LIML is a $k$-class estimator with $k = \kappa_{LIML}$, the smallest eigenvalue in the problem above; Fuller's version uses $k = \kappa_{LIML} - b/(n - L)$, where $L$ is the number of instruments including exogenous regressors, and $b = 1$ is the usual choice because it makes the estimator approximately unbiased and gives it finite moments. Neither `AER::ivreg` nor `ivreg::ivreg` has a Fuller option, but the `ivmodel` package does.
 
 ```{r}
-fuller_model = ivreg(y ~ x_endo_1 | x_inst_1, data = base, method = "fuller", k = 1)
-summary(fuller_model)
-
+iv_fit <- ivmodel::ivmodel(Y = base$y, D = base$x_endo_1, Z = base$x_inst_1)
+fuller_model <- ivmodel::Fuller(iv_fit, b = 1)
+fuller_model[c("k", "point.est", "std.err", "ci")]
 ```
 
 ------------------------------------------------------------------------
