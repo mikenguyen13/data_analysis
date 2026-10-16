@@ -8,3 +8,9 @@ xml <- c('<?xml version="1.0" encoding="UTF-8"?>',
          "</urlset>")
 writeLines(xml, "sitemap.xml")
 cat("wrote sitemap.xml with", length(pages), "urls\n")
+
+# bs4_book ignores resource_files, so copy the root-level site files into _book
+# before deploying; otherwise llms.txt is not served.
+site_files <- c("sitemap.xml", "robots.txt", "llms.txt")
+file.copy(site_files, "_book", overwrite = TRUE)
+cat("copied", paste(site_files, collapse = ", "), "into _book\n")
