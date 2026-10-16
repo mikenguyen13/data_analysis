@@ -1,6 +1,6 @@
 # A Guide on Data Analysis
 
-[![Read online](https://img.shields.io/badge/read-online-blue?logo=bookstack&logoColor=white)](https://bookdown.org/mike/data_analysis/)
+[![Read online](https://img.shields.io/badge/read-online-blue?logo=bookstack&logoColor=white)](https://mike-data-analysis.share.connect.posit.cloud/)
 [![Springer DOI](https://img.shields.io/badge/Springer-10.1007%2F978--3--032--01858--8-red)](https://doi.org/10.1007/978-3-032-01858-8)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Made with bookdown](https://img.shields.io/badge/Made%20with-bookdown-1f425f.svg)](https://bookdown.org/)
@@ -17,7 +17,7 @@
 
 A book on data analysis, causal inference, and econometrics, written for readers with little to no prior background who want to develop both statistical intuition and practical R skills. The print edition is published by Springer Cham as a four-volume series, and this repository hosts the open online edition that the print volumes are drawn from.
 
-**Read it online**: <https://bookdown.org/mike/data_analysis/>
+**Read it online**: <https://mike-data-analysis.share.connect.posit.cloud/>
 
 ## What the book covers
 
@@ -166,7 +166,7 @@ The book is published in four volumes by Springer Cham:
 }
 ```
 
-Citation entries for Volumes 2 to 4 are listed in the [preface of the online edition](https://bookdown.org/mike/data_analysis/#how-to-cite-these-books).
+Citation entries for Volumes 2 to 4 are listed in the [preface of the online edition](https://mike-data-analysis.share.connect.posit.cloud/#how-to-cite-these-books).
 
 ## Building locally
 
