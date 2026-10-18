@@ -1276,7 +1276,7 @@ test_calibration(cf)
 
 ### Honesty as Regularization: When It Helps and When It Hurts {#sec-honesty-tradeoff}
 
-The previous two sections presented honesty as an unambiguous good: split the sample, let one half choose the partition and the other half estimate the leaf effects, and the leaf estimates are unbiased conditional on the tree. That argument is correct as far as it goes, and it is why honesty is the default in `grf` and in `EconML`. But it answers a narrower question than the one most applied users are asking. Honesty guarantees that the effect estimated *within a chosen leaf* is unbiased for the average effect *of that leaf*. It says nothing about whether the leaf was a good one, and a targeting or personalization pipeline cares about the second question at least as much as the first. @hou2026honesty, in Information Systems Research, take this observation seriously and show that honesty is best understood as a regularizer: it trades approximation error for estimation error, and whether that trade is worth making depends on how much heterogeneity there is to find and how much data there is to find it with. Across more than seven thousand benchmark datasets they find that defaulting to honesty can cost the equivalent of 27 percent of the sample. This section works through their argument, reproduces its mechanics in simulation, replicates the benchmark study on the same data generating processes, and then asks what it means for the Hillstrom targeting workflow later in the chapter.
+The previous two sections presented honesty as an unambiguous good: split the sample, let one half choose the partition and the other half estimate the leaf effects, and the leaf estimates are unbiased conditional on the tree. That argument is correct as far as it goes, and it is why honesty is the default in `grf` and in `EconML`. But it answers a narrower question than the one most applied users are asking. Honesty guarantees that the effect estimated *within a chosen leaf* is unbiased for the average effect *of that leaf*. It says nothing about whether the leaf was a good one, and a targeting or personalization pipeline cares about the second question at least as much as the first. @hou2026honesty, in Information Systems Research, take this observation seriously and show that honesty is best understood as a regularizer: it trades approximation error for estimation error, and whether that trade is worth making depends on how much heterogeneity there is to find and how much data there is to find it with. Across more than seven thousand benchmark datasets they find that defaulting to honesty can cost the equivalent of 27 percent of the sample. This section works through their argument, reproduces its mechanics in simulation, replicates the benchmark study on the same data generating processes, asks what it means for the Hillstrom targeting workflow later in the chapter, packages the paper's recommendation as a function that can replace a bare `causal_forest()` call, and closes with what the paper teaches about how to change a field's conventions (Section \@ref(sec-honesty-persuasion)).
 
 #### Two Sources of Error in a Tree
 
@@ -1521,151 +1521,220 @@ The asymmetry is deliberate. Honesty is expected to win precisely where the sign
 
 Three results carry the paper. First, the adaptive forest is the better choice on about three quarters of the datasets: its mean regret is 0.0136 against 0.0344 for the honest forest, with an error rate of 25 percent against 75 percent, though its errors are individually more expensive (0.054 against 0.046) and its regret has a heavier tail above the 98th percentile. The empirical selector has the lowest mean regret of all, 0.0124, and the smallest cost per error, 0.041, so it captures most of the adaptive forest's gains while trimming its tail risk. Second, sorting datasets into deciles of the signal-to-noise ratio, defined as $\text{Var}(\beta(\mathbf{X}))/\text{Var}(\xi)$ with $\xi = Y - \mathbb{E}[Y \mid \mathbf{X}, T]$, the adaptive forest wins in every decile but the lowest, where honesty wins; the selector tracks the better method across the whole range and nearly coincides with the oracle at high signal. Third, translating the accuracy gap into data, the honest forest gets by with about 7 percent less data than the adaptive forest in the lowest decile but needs up to 27 percent more in the upper deciles. A repeated-randomization bias-variance decomposition (Appendix F) confirms the mechanism: the adaptive forest has lower squared bias and the honest forest lower variance in every decile and under every leaf-size matching convention, approximation bias dominates the bias side, noise overlap dominates the variance side, and the variance gap closes faster than the bias gap as the signal strengthens.
 
-We replicate the design on the same benchmark using the `aciccomp2016` package, which ships the covariates and the 77 data generating processes, and `grf` for both forests. Our replication is deliberately smaller than the paper's and departs from it in five documented ways. We use one parameter draw for each of the 75 heterogeneous designs rather than one hundred, so 75 datasets; four folds instead of five and a six-point leaf-size grid instead of eight; the calibration test of @chernozhukov2025fisher as implemented by `test_calibration`, on out-of-bag predictions, as the heterogeneity screen instead of the cross-fitted @imai2025statistical test; a coarse grid instead of a binary search, with the tuned leaf size held fixed, for the additional-data calculation; and `grf`'s default outcome centering, which the paper's plain difference-in-means tree does not do. The propensity is passed as the known one half. With eight workers the loop takes roughly a quarter of an hour, so the chunk caches its results to disk and reloads them if the file exists.
+We replicate the design on the same benchmark using the `aciccomp2016` package, which ships the covariates and the 77 data generating processes, and `grf` for both forests. The replication follows the paper's protocol step for step, with three departures that are forced or deliberate. The first is scale. Rather than all 7,500 datasets we draw twenty parameter replicates for each of the 75 heterogeneous designs, 1,500 candidate datasets, compute the signal-to-noise ratio of each, and then sample twenty datasets from each decile of that census, 200 in all. Stratifying on the ratio matters more than the raw count, because the paper's sharpest claim is about the lowest decile, and a design-by-design draw would leave that tail thin. The second is the forest implementation. The paper uses `EconML`, we use `grf`, and the two differ in their split criterion and in how they construct the honest half of each tree. We match what can be matched: 100 trees, each grown on half the training sample; the paper's leaf-size grid, $\{10, 20, 40, 80, 120, 160, 240, 320\}$ for the adaptive forest and half those values for the honest forest; no outcome centering, so that each leaf estimate is a plain difference in means, which in `grf` means passing the sample mean as `Y.hat`; and the known propensity of one half. The third is the heterogeneity screen. We implement the cross-fitted test of @imai2025statistical directly: each fold's out-of-fold CATE predictions sort its units into quintiles, group average effects are estimated by differences in means, and a Wald statistic tests their equality, using the Neyman variance of each group estimate and ignoring the additional variance that cross-fitting introduces, so our version is somewhat more liberal than theirs. Everything else is the paper's: five-fold transformed-outcome tuning, a fresh five-fold partition for the selector and the screen, the one-standard-error rule, test-set $S^2$ against the true CATE, and the binary search of the paper's Appendix E for the additional-data measure, re-tuning the leaf size at every candidate sample size and stopping when the bracket is narrower than 250 observations.
 
-```{r honesty-acic-run, cache=TRUE}
+The first chunk takes the census and draws the stratified sample. The second runs the protocol on each sampled dataset. Together they take about an hour and a half on fifteen workers, so both write their results to disk and the chunks reload them when the files exist; delete the files to regenerate.
+
+```{r honesty-acic-census, cache=TRUE}
 library(aciccomp2016)
+library(grf)
 library(parallel)
 
-acic_file <- "data/honesty_acic_results.rds"
+census_file <- "data/honesty_acic_snr_census.rds"
+full_file <- "data/honesty_acic_results_full.rds"
 X_acic <- model.matrix(~ . - 1, data = input_2016)
 hetero_settings <- which(parameters_2016$te.hetero != "none")
 
-acic_one <- function(setting, rep = 1, seed = 1, num.trees = 100, K = 4) {
-  set.seed(seed + setting)
+# One dataset: a parameter draw of a design, with treatment re-randomized
+acic_draw <- function(setting, rep) {
   d <- dgp_2016(input_2016, setting, rep)
-  n <- nrow(X_acic)
-  W <- rbinom(n, 1, 0.5)                          # re-randomized treatment
+  set.seed(100000 * rep + setting)
+  W <- rbinom(nrow(X_acic), 1, 0.5)
   Y <- ifelse(W == 1, d$y.1, d$y.0)
-  beta <- d$mu.1 - d$mu.0                          # true CATE
-  xi <- Y - ifelse(W == 1, d$mu.1, d$mu.0)         # idiosyncratic noise
-  snr <- var(beta) / var(xi)
-  idx <- sample(n); tr <- idx[1:4000]; te <- idx[4001:n]
-  Z <- W * Y / 0.5 - (1 - W) * Y / 0.5             # transformed outcome
-  fit <- function(rows, honest, mns) causal_forest(
-    X_acic[rows, ], Y[rows], W[rows], W.hat = 0.5, num.trees = num.trees,
-    honesty = honest, min.node.size = mns, sample.fraction = 0.5,
-    seed = seed, num.threads = 2)
-  # Tuning: K-fold CV on the transformed outcome, honest grid at half the values
-  grid_A <- c(10, 20, 40, 80, 160, 320); grid_H <- grid_A / 2
-  folds <- sample(rep(1:K, length.out = 4000))
-  cv_mse <- function(honest, grid) sapply(grid, function(m) {
-    err <- numeric(4000)
-    for (k in 1:K) {
-      f <- fit(tr[folds != k], honest, m)
-      rows <- tr[folds == k]
-      err[folds == k] <- (predict(f, X_acic[rows, ])$predictions - Z[rows])^2
-    }
-    mean(err)
-  })
-  mA <- grid_A[which.min(cv_mse(FALSE, grid_A))]
-  mH <- grid_H[which.min(cv_mse(TRUE, grid_H))]
-  # Selection: fresh folds, paired out-of-fold errors, one-SE rule favoring HE
-  folds2 <- sample(rep(1:K, length.out = 4000))
-  eA <- eH <- numeric(4000)
-  for (k in 1:K) {
-    fa <- fit(tr[folds2 != k], FALSE, mA); fh <- fit(tr[folds2 != k], TRUE, mH)
-    rows <- tr[folds2 == k]; xt <- X_acic[rows, ]; zt <- Z[rows]
-    eA[folds2 == k] <- (predict(fa, xt)$predictions - zt)^2
-    eH[folds2 == k] <- (predict(fh, xt)$predictions - zt)^2
+  beta <- d$mu.1 - d$mu.0                              # true CATE
+  xi <- Y - ifelse(W == 1, d$mu.1, d$mu.0)             # idiosyncratic noise
+  list(W = W, Y = Y, beta = beta, snr = var(beta) / var(xi))
+}
+environment(acic_draw) <- globalenv()
+
+if (file.exists(census_file)) {
+  census <- readRDS(census_file)
+} else {
+  pairs <- expand.grid(setting = hetero_settings, rep = 1:20)
+  cl <- makeCluster(15)
+  clusterEvalQ(cl, library(aciccomp2016))
+  clusterExport(cl, envir = environment(), varlist = c("X_acic", "acic_draw"))
+  pairs$snr <- unlist(parLapply(cl, split(pairs, seq_len(nrow(pairs))), function(g)
+    acic_draw(g$setting, g$rep)$snr))
+  stopCluster(cl)
+  census <- pairs
+  saveRDS(census, census_file)
+}
+
+# Twenty datasets from each decile of the signal-to-noise census
+census$decile <- cut(census$snr, quantile(census$snr, 0:10 / 10),
+                     include.lowest = TRUE, labels = 1:10)
+set.seed(2506)
+sampled <- do.call(rbind, lapply(split(census, census$decile), function(g)
+  g[sample(nrow(g), 20), ]))
+```
+
+```{r honesty-acic-run, cache=TRUE, dependson="honesty-acic-census"}
+# Cross-fitted heterogeneity test in the spirit of Imai and Li (2025): sort each
+# fold's units into G groups by their out-of-fold score and test equal GATEs
+het_test <- function(score, folds, y, w, G = 5) {
+  grp <- integer(length(score))
+  for (k in unique(folds)) {
+    i <- folds == k
+    grp[i] <- cut(rank(score[i], ties.method = "first"), G, labels = FALSE)
   }
-  dlt <- eH - eA
-  sel_AE <- mean(dlt) > sd(dlt) / sqrt(length(dlt))
-  # Final fits, heterogeneity screen, and test-set S^2 against the true CATE
-  fA <- fit(tr, FALSE, mA); fH <- fit(tr, TRUE, mH)
-  pA <- test_calibration(fA)["differential.forest.prediction", "Pr(>t)"]
-  pH <- test_calibration(fH)["differential.forest.prediction", "Pr(>t)"]
+  est <- sapply(1:G, function(g) {
+    i1 <- grp == g & w == 1; i0 <- grp == g & w == 0
+    c(mean(y[i1]) - mean(y[i0]), var(y[i1]) / sum(i1) + var(y[i0]) / sum(i0))
+  })
+  wt <- 1 / est[2, ]; gbar <- sum(wt * est[1, ]) / sum(wt)
+  pchisq(sum(wt * (est[1, ] - gbar)^2), df = G - 1, lower.tail = FALSE)
+}
+
+acic_full <- function(setting, rep, K = 5, num.trees = 100) {
+  dr <- acic_draw(setting, rep)
+  W <- dr$W; Y <- dr$Y; beta <- dr$beta
+  set.seed(7 * setting + rep)
+  idx <- sample(nrow(X_acic)); tr <- idx[1:4000]; te <- idx[4001:nrow(X_acic)]
+  Z <- W * Y / 0.5 - (1 - W) * Y / 0.5                 # transformed outcome
+  grid_A <- c(10, 20, 40, 80, 120, 160, 240, 320); grid_H <- grid_A / 2
+  # Difference-in-means leaves as in EconML: no outcome centering
+  fit <- function(rows, honest, mns) causal_forest(
+    X_acic[rows, ], Y[rows], W[rows], Y.hat = mean(Y[rows]), W.hat = 0.5,
+    num.trees = num.trees, honesty = honest, min.node.size = mns,
+    sample.fraction = 0.5, seed = rep, num.threads = 1)
+  oof <- function(rows, honest, mns, folds) {
+    pred <- numeric(length(rows))
+    for (k in 1:K) {
+      f <- fit(rows[folds != k], honest, mns)
+      pred[folds == k] <- predict(f, X_acic[rows[folds == k], ])$predictions
+    }
+    pred
+  }
+  tune <- function(rows, honest) {
+    grid <- if (honest) grid_H else grid_A
+    folds <- sample(rep(1:K, length.out = length(rows)))
+    cv <- sapply(grid, function(m) mean((oof(rows, honest, m, folds) - Z[rows])^2))
+    grid[which.min(cv)]
+  }
   sqerr <- function(f) (predict(f, X_acic[te, ])$predictions - beta[te])^2
+
+  mA <- tune(tr, FALSE); mH <- tune(tr, TRUE)
+  # Fresh partition: out-of-fold predictions feed both the selector and the screen
+  folds2 <- sample(rep(1:K, length.out = 4000))
+  oA <- oof(tr, FALSE, mA, folds2); oH <- oof(tr, TRUE, mH, folds2)
+  dlt <- (oH - Z[tr])^2 - (oA - Z[tr])^2
+  sel_stat <- mean(dlt) / (sd(dlt) / sqrt(4000))
+  p_A <- het_test(oA, folds2, Y[tr], W[tr]); p_H <- het_test(oH, folds2, Y[tr], W[tr])
+
+  fA <- fit(tr, FALSE, mA); fH <- fit(tr, TRUE, mH)
   seA <- sqerr(fA); seH <- sqerr(fH); vb <- var(beta[te])
-  # Additional data honesty needs: hold the inferior forest at n = 4000 and
-  # find the smallest training size at which the superior forest still beats it
+
+  # Additional data (paper's Appendix E): hold the inferior forest at n = 4000 and
+  # binary-search the smallest re-tuned training size at which the superior
+  # forest still beats it significantly
   extra_H <- 0
   if (t.test(seH, seA, paired = TRUE)$p.value < 0.05) {
-    sup_honest <- mean(seH) < mean(seA)
-    inf_err <- if (sup_honest) seA else seH
-    N_sup <- 4000
-    for (m in c(1000, 1500, 2000, 2500, 3000, 3500)) {
-      es <- sqerr(fit(tr[1:m], sup_honest, if (sup_honest) mH else mA))
-      if (t.test(inf_err, es, paired = TRUE, alternative = "greater")$p.value < 0.05) {
-        N_sup <- m; break
-      }
+    sup_H <- mean(seH) < mean(seA)
+    se_inf <- if (sup_H) seA else seH
+    lo <- 0; hi <- 4000
+    while (hi - lo > 250) {
+      mid <- round((lo + hi) / 2); rows <- tr[1:mid]
+      se_sup <- sqerr(fit(rows, sup_H, tune(rows, sup_H)))
+      better <- mean(se_sup) < mean(se_inf) &&
+        t.test(se_inf, se_sup, paired = TRUE, alternative = "greater")$p.value < 0.05
+      if (better) hi <- mid else lo <- mid
     }
-    extra_H <- if (sup_honest) (N_sup - 4000) / 4000 else (4000 - N_sup) / 4000
+    extra_H <- if (sup_H) (hi - 4000) / 4000 else (4000 - hi) / 4000
   }
-  c(setting = setting, snr = snr, leaf_A = mA, leaf_H = mH,
+  c(setting = setting, rep = rep, snr = dr$snr, leaf_A = mA, leaf_H = mH,
     S2_A = 1 - mean(seA) / vb, S2_H = 1 - mean(seH) / vb,
-    sel_AE = sel_AE, p_A = pA, p_H = pH, extra_H = extra_H)
+    sel_stat = sel_stat, p_A = p_A, p_H = p_H, extra_H = extra_H)
 }
-environment(acic_one) <- globalenv()
+environment(het_test) <- environment(acic_full) <- globalenv()
 
-if (file.exists(acic_file)) {
-  acic <- readRDS(acic_file)
+if (file.exists(full_file)) {
+  acic <- readRDS(full_file)
 } else {
-  cl <- makeCluster(8)
+  cl <- makeCluster(15)
   clusterEvalQ(cl, {library(aciccomp2016); library(grf)})
-  clusterExport(cl, envir = environment(), varlist = c("X_acic", "acic_one"))
-  acic <- as.data.frame(do.call(rbind, parLapply(cl, hetero_settings, acic_one)))
+  clusterExport(cl, envir = environment(),
+                varlist = c("X_acic", "acic_draw", "het_test", "acic_full"))
+  acic <- as.data.frame(do.call(rbind, parLapply(
+    cl, split(sampled, seq_len(nrow(sampled))), function(g) acic_full(g$setting, g$rep))))
   stopCluster(cl)
-  saveRDS(acic, acic_file)
+  saveRDS(acic, full_file)
 }
 ```
 
 ```{r honesty-acic-summary}
-# Screen: keep datasets where at least one tuned forest detects heterogeneity
+# Screen: drop datasets where neither forest detects heterogeneity; if only one
+# does, select it; otherwise apply the one-standard-error rule
+acic$decile <- sampled$decile
 acic$passes <- acic$p_A < 0.05 | acic$p_H < 0.05
 kept <- acic[acic$passes, ]
-kept$S2_sel <- ifelse(kept$sel_AE == 1, kept$S2_A, kept$S2_H)
-oracle <- pmax(kept$S2_A, kept$S2_H)
+select_AE <- function(d, c = 1) ifelse(d$p_A < 0.05 & d$p_H >= 0.05, TRUE,
+                              ifelse(d$p_H < 0.05 & d$p_A >= 0.05, FALSE, d$sel_stat > c))
+kept$sel_AE <- select_AE(kept)
+kept$S2_sel <- ifelse(kept$sel_AE, kept$S2_A, kept$S2_H)
+kept$oracle <- pmax(kept$S2_A, kept$S2_H)
+regret_row <- function(s2) c(mean(kept$oracle - s2), mean(s2 < kept$oracle))
 regret <- data.frame(
   Method = c("Empirical selector", "Adaptive (AE)", "Honest (HE)"),
-  `E[Regret]` = c(mean(oracle - kept$S2_sel), mean(oracle - kept$S2_A),
-                  mean(oracle - kept$S2_H)),
-  `Error rate` = c(mean(kept$S2_sel < oracle), mean(kept$S2_A < oracle),
-                   mean(kept$S2_H < oracle)),
-  check.names = FALSE)
+  rbind(regret_row(kept$S2_sel), regret_row(kept$S2_A), regret_row(kept$S2_H)))
+names(regret)[2:3] <- c("E[Regret]", "Error rate")
 regret$`E[Regret | error]` <- regret$`E[Regret]` / regret$`Error rate`
-regret$`Mean S^2` <- c(mean(kept$S2_sel), mean(kept$S2_A), mean(kept$S2_H))
+regret$`Paper E[Regret]` <- c(0.0124, 0.0136, 0.0344)
+regret$`Paper error rate` <- c(NA, 0.25, 0.75)
 ```
 
 ```{r honesty-acic-table, echo=FALSE}
 knitr::kable(
   regret, digits = 4, row.names = FALSE,
-  caption = sprintf("Replication of the paper's Table 1 on %d ACIC 2016 designs that pass the heterogeneity screen (one parameter draw per design). Regret is the shortfall in $S^2$ relative to the better of the two forests in hindsight; the error rate is the share of datasets on which a strategy is not the better one.", nrow(kept)),
-  align = c("l", rep("r", 4))
+  caption = sprintf("Replication of the paper's Table 1 on %d of 200 SNR-stratified ACIC 2016 datasets that pass the heterogeneity screen, with the paper's figures alongside. Regret is the shortfall in test $S^2$ relative to the better of the two forests in hindsight; the error rate is the share of datasets on which a strategy is not the better one.", nrow(kept)),
+  align = c("l", rep("r", 5))
 )
 ```
 
-```{r honesty-acic-snr-fig, echo=FALSE, fig.cap="Average $S^2$ of the adaptive forest, the honest forest, the empirical selector, and the hindsight oracle by quintile of the signal-to-noise ratio across the ACIC 2016 designs (paper's Figure 4, with quintiles rather than deciles because of the smaller number of datasets). The honest forest is competitive only where the signal is weakest.", fig.width=6.5, fig.height=4}
-kept$snr_q <- cut(rank(kept$snr), breaks = 5, labels = 1:5)
-snr_plot <- do.call(rbind, lapply(split(kept, kept$snr_q), function(g)
-  data.frame(quintile = g$snr_q[1],
-             method = c("Adaptive", "Honest", "Empirical", "Oracle"),
-             S2 = c(mean(g$S2_A), mean(g$S2_H), mean(g$S2_sel), mean(pmax(g$S2_A, g$S2_H))))))
-ggplot(snr_plot, aes(x = quintile, y = S2, colour = method, group = method,
+```{r honesty-acic-snr-fig, echo=FALSE, fig.cap="Average test $S^2$ of the adaptive forest, the honest forest, the empirical selector, and the hindsight oracle by decile of the signal-to-noise ratio across 200 stratified ACIC 2016 datasets (the paper's Figure 4). The adaptive forest leads in every decile, including the lowest, where the paper finds the honest forest ahead.", fig.width=6.5, fig.height=4}
+snr_plot <- do.call(rbind, lapply(split(kept, kept$decile), function(g)
+  data.frame(decile = g$decile[1],
+             method = c("Adaptive", "Honest", "Empirical selector", "Oracle"),
+             S2 = c(mean(g$S2_A), mean(g$S2_H), mean(g$S2_sel), mean(g$oracle)))))
+ggplot(snr_plot, aes(x = decile, y = S2, colour = method, group = method,
                      linetype = method)) +
   geom_line() + geom_point(size = 2.5) +
-  labs(x = "SNR quintile (1 = weakest signal)", y = expression("Mean " * S^2),
+  labs(x = "SNR decile (1 = weakest signal)", y = expression("Mean " * S^2),
        colour = NULL, linetype = NULL) +
   theme_minimal() + theme(legend.position = "bottom")
 ```
 
 ```{r honesty-acic-extra, echo=FALSE}
-extra <- aggregate(extra_H ~ snr_q, data = kept, FUN = mean)
-extra$share_AE_better <- aggregate(I(S2_A > S2_H) ~ snr_q, data = kept, FUN = mean)[, 2]
-extra$median_snr <- aggregate(snr ~ snr_q, data = kept, FUN = median)[, 2]
+by_dec <- do.call(rbind, lapply(split(kept, kept$decile), function(g) data.frame(
+  decile = g$decile[1], median_snr = median(g$snr),
+  share_AE = mean(g$S2_A > g$S2_H), gap = mean(g$S2_A - g$S2_H),
+  extra_H = mean(g$extra_H))))
 knitr::kable(
-  extra[, c("snr_q", "median_snr", "share_AE_better", "extra_H")],
-  digits = 3, row.names = FALSE,
-  col.names = c("SNR quintile", "Median SNR", "Share AE better",
-                "Extra data HE needs"),
-  caption = "By signal-to-noise quintile: the share of designs on which the adaptive forest attains the higher test $S^2$, and the mean additional training data the honest forest requires to match the adaptive forest (paper's Figure 5; negative values mean the honest forest needed less). Designs on which the two forests are not significantly different contribute zero.",
+  by_dec, digits = 3, row.names = FALSE,
+  col.names = c("SNR decile", "Median SNR", "Share AE better",
+                "Mean S2 gap (AE minus HE)", "Additional data HE needs"),
+  caption = "By signal-to-noise decile: the share of datasets on which the adaptive forest attains the higher test $S^2$, the mean gap, and the paper's additional-data measure $(N_{\\text{H}} - N_{\\text{A}})/4000$ (the paper's Figure 5, which reports about $-0.07$ in the lowest decile and up to $0.27$ above it). Datasets on which the two forests do not differ significantly contribute zero.",
   align = "r"
 )
 ```
 
-Table \@ref(tab:honesty-acic-table), Figure \@ref(fig:honesty-acic-snr-fig), and Table \@ref(tab:honesty-acic-extra) carry the replication, which lands squarely in the upper half of the paper's signal-to-noise range. That is the first thing to understand about it. With one parameter draw per design, the signal-to-noise ratios of our `r nrow(acic)` datasets run from about `r round(min(acic$snr), 1)` to `r round(max(acic$snr), 0)` with a median near `r round(median(acic$snr), 0)`; the paper's lowest decile, where honesty wins, is populated by draws with far weaker signal than any of ours, and every one of our datasets passes the heterogeneity screen. What we can test is therefore the paper's claim about the regime in which forests are actually worth using, and there the replication is close. The honest forest's mean regret, `r sprintf("%.4f", regret[3, "E[Regret]"])`, matches the paper's 0.0344 almost exactly, and it is the better forest on only `r round(100 * (1 - regret[3, "Error rate"]))` percent of designs. The adaptive forest's regret is lower than the paper's 0.0136 because our datasets skip the low-signal tail where its mistakes are costly. The empirical selector chooses adaptive estimation on `r round(100 * mean(kept$sel_AE))` percent of designs and sits between the two, which is also what the paper's threshold sensitivity analysis predicts: at high signal the one-standard-error rule is conservative, and a lower threshold would track the adaptive forest more closely. The tail behavior is the paper's too. The honest forest's regret is spread across almost every dataset, while the adaptive forest's is concentrated in a handful of designs where it loses by a wide margin.
+```{r honesty-acic-low-snr}
+# The paper's sharpest claim, tested directly: does honesty win at the weakest signal?
+low <- kept[kept$snr < 3, ]
+low_test <- t.test(low$S2_A, low$S2_H, paired = TRUE)
+# Threshold sensitivity (paper's Appendix D.4): selector regret as c varies
+c_grid <- seq(0, 1.6, by = 0.2)
+c_regret <- sapply(c_grid, function(c)
+  mean(kept$oracle - ifelse(select_AE(kept, c), kept$S2_A, kept$S2_H)))
+```
 
-The quintile figure shows the mechanism at the design level. The adaptive forest's $S^2$ sits above the honest forest's in every quintile, the gap is largest in the middle of the range, and the selector tracks the oracle closely everywhere except where the selection rule's conservatism holds it back. Translated into data, the honest forest needs on average `r round(100 * mean(kept$extra_H))` percent more training observations to match the adaptive forest on the designs where the two differ significantly, with quintile averages between `r round(100 * min(extra$extra_H))` and `r round(100 * max(extra$extra_H))` percent, bracketing the paper's headline 27 percent for its upper deciles. One diagnostic is worth reporting because it affects how the results should be read. The transformed-outcome cross-validation chose the smallest leaf size on the grid for both forests in the large majority of designs, so both are operating at the flexible end of their complexity range; that is where the paper's leaf-matched decomposition says the variance gap is smallest and the bias gap decisive, and it is consistent with the adaptive forest's advantage here. A fuller replication would extend the grid downward, use all one hundred draws per design to populate the low-signal deciles, and swap in the cross-fitted @imai2025statistical test, and we leave those as the exercise they are.
+Start with the census, because it settles where the paper's interesting region is. Across the 1,500 candidate datasets the signal-to-noise ratio runs from `r sprintf("%.1f", min(census$snr))` to `r round(max(census$snr))`, with a median of `r round(median(census$snr), 1)`. No ACIC design has a vanishing signal. The paper's lowest decile, where it finds that honesty wins, is the slice with a ratio between about one and three, and a single draw per design already spans the whole range; stratifying on the census simply guarantees twenty datasets in each tenth of it. The heterogeneity screen removes `r nrow(acic) - nrow(kept)` of the 200, against 6.6 percent in the paper, which is what a test that ignores the cross-fitting variance should do.
+
+What replicates is the paper's main claim, and it replicates more strongly than the paper reports it. In Table \@ref(tab:honesty-acic-table) the adaptive forest is the better forest on `r round(100 * (1 - regret[2, "Error rate"]))` percent of datasets, against 75 percent in the paper, and its mean regret is `r sprintf("%.4f", regret[2, "E[Regret]"])` against the paper's 0.0136. The honest forest's regret, `r sprintf("%.4f", regret[3, "E[Regret]"])`, is nearly twice the paper's 0.0344. Figure \@ref(fig:honesty-acic-snr-fig) shows the adaptive forest above the honest one in every decile, and Table \@ref(tab:honesty-acic-extra) turns the gap into data: from the second decile up, the honest forest needs between `r round(100 * min(by_dec$extra_H[-1]))` and `r round(100 * max(by_dec$extra_H[-1]))` percent more training observations to match the adaptive one, against the paper's "up to 27 percent". Transformed-outcome cross-validation chose the smallest leaf on the grid for `r round(100 * mean(acic$leaf_A == 10))` percent of adaptive and `r round(100 * mean(acic$leaf_H == 5))` percent of honest forests, so both operate at the flexible end of their range, the regime in which the paper's decomposition says the bias gap is decisive.
+
+Two finer claims do not replicate. The first is the reversal at the weakest signal. In the lowest decile the adaptive forest is still the better one on `r round(100 * by_dec$share_AE[1])` percent of datasets, and the additional-data measure is `r sprintf("%+.2f", by_dec$extra_H[1])` rather than the paper's $-0.07$. On the `r nrow(low)` datasets with a ratio below three, the adaptive forest's mean advantage in $S^2$ is `r sprintf("%.3f", low_test$estimate)`, with a 95 percent interval from `r sprintf("%.3f", low_test$conf.int[1])` to `r sprintf("%.3f", low_test$conf.int[2])` and a $p$-value of `r sprintf("%.2f", low_test$p.value)`. That interval includes a small honest advantage, so this is a failure to confirm rather than a refutation, but there is no sign of the reversal. The second is the selector. In the paper the one-standard-error selector beats always-adaptive; here its regret, `r sprintf("%.4f", regret[1, "E[Regret]"])`, is about double that of always-adaptive, because the adaptive forest is wrong so rarely that a rule built to fall back on honesty mostly falls back in the wrong direction. The paper's threshold analysis predicts the shape of this but not its extent. Sweeping the threshold from 0 to 1.6, the selector's regret rises steadily from `r sprintf("%.4f", c_regret[1])`, essentially always-adaptive, to `r sprintf("%.4f", c_regret[length(c_regret)])`; the paper finds the selector ahead of always-adaptive up to a threshold of about 1.2, and in our run it is never ahead.
+
+The likely reason for both differences is the one documented departure we could not remove, the forest library. `grf` and `EconML` agree on the logic of honesty but not on its details: `grf` splits on gradient-based pseudo-outcomes rather than on the raw difference-in-means criterion, and by default it prunes honest leaves that receive no estimation-half observations, so each honest tree is shallower than its `EconML` counterpart at the same nominal leaf size. Both details make `grf`'s honest forest pay more for halving the splitting sample, which would widen the adaptive forest's lead everywhere and erase a small honest advantage at the bottom. We have not isolated which detail matters. The practical reading is clear, though. The claim that honesty is not a safe default, and that it costs data whenever heterogeneity is detectable, holds in both libraries. The claims about exactly where honesty wins, and about how much the selector's insurance is worth, depend on the implementation, and a user of `grf` should expect the adaptive forest to win more often than the paper's numbers suggest.
 
 #### Application: Does Honesty Matter for the Hillstrom Targeting Rule?
 
@@ -1735,7 +1804,7 @@ The answer for this experiment, in Table \@ref(tab:honesty-hillstrom-table), is 
 
 The paper's recommendations follow from the mechanism, and they are worth stating as a workflow rather than a slogan.
 
-Treat honesty as a hyperparameter. It sits alongside the minimum leaf size and the subsampling rate as a choice about complexity, and like them it should be tuned or at least compared, not inherited from a package default. The comparison costs one extra cross-validated fit. The one-standard-error rule above is a sensible way to run it, because it defaults to the regularized option where the data cannot adjudicate and abandons it only on clear evidence.
+Treat honesty as a hyperparameter. It sits alongside the minimum leaf size and the subsampling rate as a choice about complexity, and like them it should be tuned or at least compared, not inherited from a package default. The comparison costs one extra cross-validated fit. The one-standard-error rule above is a sensible way to run it, because it defaults to the regularized option where the data cannot adjudicate and abandons it only on clear evidence. Our replication suggests that with `grf` the insurance is expensive relative to what it protects against, so a lower threshold, or simply defaulting to the adaptive forest for scoring when the heterogeneity test passes, is a defensible alternative.
 
 Separate the model used for inference from the model used for scoring. Nothing requires the confidence intervals and the targeting scores to come from the same forest. The honest forest keeps the asymptotic guarantees of @wager2018estimation for pointwise intervals, the calibration test, and the heterogeneity tests of this chapter. An adaptive forest, if it wins the comparison, can supply the individual-level predictions that feed a policy tree or a ranking. The Hillstrom pipeline later in the chapter is a case in point: keep the honest forest for the average effect, the calibration test, and the standard errors, and let the tuned comparison decide which forest ranks the customers.
 
@@ -1743,7 +1812,107 @@ Budget for it at the design stage. If honesty is going to be used, the sample ma
 
 Ask whether a forest is the right tool before asking whether it should be honest. The designs on which honesty wins are the low-signal designs, and those are also the designs on which the heterogeneity test most often fails for both forests. When the signal is that weak, a flexible nonparametric learner has little to add over a linear interaction model or the average effect, and the honesty question is moot. When the signal is strong enough to justify a forest, the same strength usually favors adaptive estimation.
 
+The whole workflow fits in one function, which can be dropped into any `grf` pipeline in place of a bare `causal_forest()` call. It tunes the minimum leaf size of each forest by transformed-outcome cross-validation, with the honest grid at half the adaptive one; draws a fresh partition and computes the paired out-of-fold comparison; applies the one-standard-error rule with honesty as the default; and returns both forests, so that inference can always come from the honest one while scoring comes from whichever the data favor. The transformed outcome needs the propensity score. In an experiment that is the known assignment probability; in observational data, pass a vector of cross-fitted propensity estimates, keeping in mind that inverse weighting makes the transformed outcome noisy when propensities approach zero or one.
+
+```{r honesty-choose-fn}
+choose_honesty <- function(X, Y, W, W.hat = mean(W), K = 5, c = 1,
+                           grid = c(10, 20, 40, 80, 160, 320),
+                           num.trees = 500, seed = 1, ...) {
+  set.seed(seed)
+  n <- length(Y)
+  Z <- W * Y / W.hat - (1 - W) * Y / (1 - W.hat)       # transformed outcome
+  fit <- function(rows, honest, mns) causal_forest(
+    X[rows, , drop = FALSE], Y[rows], W[rows],
+    W.hat = if (length(W.hat) == 1) W.hat else W.hat[rows],
+    num.trees = num.trees, honesty = honest, min.node.size = mns, seed = seed, ...)
+  oof_err <- function(honest, mns, folds) {
+    err <- numeric(n)
+    for (k in 1:K) {
+      f <- fit(which(folds != k), honest, mns)
+      held <- folds == k
+      err[held] <- (predict(f, X[held, , drop = FALSE])$predictions - Z[held])^2
+    }
+    err
+  }
+  # Step 1: tune each forest's leaf size, honest grid at half the adaptive one
+  folds <- sample(rep(1:K, length.out = n))
+  cv <- function(honest, g) sapply(g, function(m) mean(oof_err(honest, m, folds)))
+  leaf_A <- grid[which.min(cv(FALSE, grid))]
+  leaf_H <- (grid / 2)[which.min(cv(TRUE, grid / 2))]
+  # Step 2: paired comparison on a fresh partition, one-SE rule favoring honesty
+  folds2 <- sample(rep(1:K, length.out = n))
+  d <- oof_err(TRUE, leaf_H, folds2) - oof_err(FALSE, leaf_A, folds2)
+  stat <- mean(d) / (sd(d) / sqrt(n))
+  # Step 3: refit both on all the data; honest for inference, winner for scoring
+  honest <- fit(seq_len(n), TRUE, leaf_H)
+  adaptive <- fit(seq_len(n), FALSE, leaf_A)
+  list(choice = if (stat > c) "adaptive" else "honest", stat = stat,
+       leaf = c(adaptive = leaf_A, honest = leaf_H),
+       honest = honest, adaptive = adaptive,
+       inference = honest, scoring = if (stat > c) adaptive else honest)
+}
+```
+
+To see what it does, apply it to the simulation design of Table \@ref(tab:honesty-bv-table) at a weak and a strong signal, two thousand observations each, and score both forests against the true CATE at the four hundred test points, which no practitioner could do but which tells us whether the selector chose well.
+
+```{r honesty-choose-demo, cache=TRUE, dependson="honesty-bv-sim"}
+demo <- lapply(c(weak = 0.2, strong = 3), function(theta) {
+  set.seed(11)
+  X <- matrix(runif(2000 * p), 2000, p); W <- rbinom(2000, 1, 0.5)
+  Y <- X[, 4] + W * theta * cate_fn(X) + rnorm(2000)
+  sel <- choose_honesty(X, Y, W, W.hat = 0.5, K = 3, num.trees = 200)
+  truth <- theta * beta_te
+  S2 <- function(f) 1 - mean((predict(f, X_te)$predictions - truth)^2) / var(truth)
+  data.frame(signal = NA_character_, stat = sel$stat,
+             leaf_A = sel$leaf[["adaptive"]], leaf_H = sel$leaf[["honest"]],
+             choice = sel$choice,
+             S2_A = S2(sel$adaptive), S2_H = S2(sel$honest),
+             ate = average_treatment_effect(sel$inference)[["estimate"]],
+             ate_se = average_treatment_effect(sel$inference)[["std.err"]],
+             ate_true = theta * (0.5 + 1 / 3 - 0.6))
+})
+demo_tab <- do.call(rbind, demo)
+demo_tab$signal <- c("Weak (theta = 0.2)", "Strong (theta = 3)")
+```
+
+```{r honesty-choose-table, echo=FALSE}
+knitr::kable(
+  demo_tab, digits = 3, row.names = FALSE,
+  col.names = c("Signal", "Selection statistic", "Leaf (AE)", "Leaf (HE)",
+                "Choice", "$S^2$ (AE)", "$S^2$ (HE)", "ATE (honest)", "SE",
+                "True ATE"),
+  caption = "The `choose_honesty()` selector on two simulated experiments of two thousand observations. The selection statistic is the paired out-of-fold advantage of the adaptive forest in standard errors; the rule switches to adaptive estimation above 1. The two $S^2$ columns score each tuned forest against the true CATE on held-out test points, information the selector does not see. The last three columns are the doubly robust average effect from the honest forest, which the function returns for inference whatever it chooses for scoring.",
+  align = c("l", rep("r", 9))
+)
+```
+
+Table \@ref(tab:honesty-choose-table) holds two lessons, and neither is the one a reader primed by Table \@ref(tab:honesty-bv-table) would expect. With the weak signal, cross-validation pushes both forests to the largest leaf sizes on their grids, `r demo_tab$leaf_A[1]` and `r demo_tab$leaf_H[1]`. A forest with leaves that large is already heavily regularized, so the further regularization that honesty supplies buys nothing, and the selector, at `r sprintf("%.2f", demo_tab$stat[1])` standard errors, correctly picks the adaptive forest. In Table \@ref(tab:honesty-bv-table) the leaf sizes were fixed at 20 and 40, and there honesty won at weak signal because it was the only regularizer in play. Once the leaf size is tuned the two regularizers substitute for each other, and the case for honesty at low signal largely disappears. Both $S^2$ values are negative, too: at this signal and sample size neither forest predicts individual effects better than the average effect would, which is the paper's advice to ask whether a forest is the right tool, made concrete. With the strong signal the forests go to the smallest leaves, the adaptive forest is the better one by `r sprintf("%.3f", demo_tab$S2_A[2] - demo_tab$S2_H[2])` in $S^2$, and the selector, at `r sprintf("%.2f", demo_tab$stat[2])` standard errors, does not quite clear the bar and keeps the honest default. That is the price of the asymmetric rule, a small one here, and it is the same conservatism at high signal that the paper reports in its threshold analysis. Either way the intervals come from the honest forest, and its doubly robust average effect covers the truth in both experiments.
+
+Report the choice whichever way it falls. The paper's survey of the applied literature found that most studies do not say whether their forest was honest, and almost none say why, so a methods paragraph that states the honesty setting, the tuned leaf sizes, the selection statistic, and which forest produced the intervals and which produced the scores already puts a study ahead of most of the published record. It also lets a reader who disagrees with the choice see what the alternative would have been.
+
 The same tension appears wherever model structure is chosen on the data later used to estimate its parameters. The paper's Appendix G repeats the exercise with a lasso on the interacted linear model, selecting variables on one half and refitting by least squares on the other, and finds the same regularization pattern in muted form; it also finds that a single-split honest lasso is poor and that cross-fitting the two halves and averaging, which is honesty plus bagging, recovers most of the loss. @kallus2023stochastic make the parallel point for policy-learning forests, where sample splitting between tree construction and decision estimation is imposed to make the asymptotics tractable and can cost finite-sample performance. The general lesson is the one this chapter keeps returning to: separating selection from estimation buys stability and valid inference at the cost of fit, and the right amount of separation is an empirical question about the signal in hand.
+
+#### How the Paper Changes a Convention {#sec-honesty-persuasion}
+
+The paper is worth studying for its argument as well as its result, because it does something that methodological papers rarely manage: it asks a field to stop doing something it does by default. Defaults are hard to dislodge. Nobody chose them in any single study, so no single study feels responsible for them, and they come bundled with software, with the textbook account, and with the reviewers who learned that account. A paper that says "the default is wrong" invites the reply that the default has a theorem behind it, which honesty does. The way @hou2026honesty get past that reply is a template that transfers to any paper that wants to change practice rather than add to it, and it can be read as a sequence of moves, each aimed at a specific objection.
+
+The first move is to show that the convention is a convention. Before arguing that honesty is the wrong default, the paper documents that it is a default: of the 45 causal tree and forest studies in INFORMS journals between 2019 and 2025, 22 report using honesty, 14 justify it, mostly by appeal to overfitting or consistency rather than accuracy, and two compare it with the alternative. Those two found that honesty often hurt. The audit turns a technical disagreement into an observation about behavior, and it is aimed squarely at the readers of the journal where the paper appears. It also changes what the paper has to prove. The paper does not need to show that honesty is always worse, only that a choice nobody is examining matters enough to examine.
+
+The second move is to concede the old argument completely and then show that it answers a different question. The section above opens the same way the paper does: honesty makes leaf estimates unbiased given the partition, and that is correct. The paper never disputes the theorem. It points out that the theorem is about the leaf and the user cares about the individual, and the bias decomposition separates the two. This is a reframe, not a refutation, and reframes persuade better because they let the reader keep everything they already believe. Calling honesty a regularizer completes the move by putting it in a vocabulary every reader already accepts. Nobody thinks a regularizer is good or bad in itself; everybody thinks its strength should be tuned. Once honesty is a regularizer, treating it as a fixed default looks like what it is, an untuned hyperparameter. The title carries the same idea. "When it helps and when it hurts" is a conditional claim, which is harder to dismiss than a universal one and closer to the truth.
+
+The third move is to supply a mechanism small enough to check by hand. The one-split example has one informative feature, one split, and proofs a reader can follow in an afternoon, and every inequality in it shows up in a two-minute simulation (Table \@ref(tab:honesty-stylized-table)). A reader who does not believe the benchmark results can still verify the mechanism, and a reader who believes the mechanism will expect the benchmark results before seeing them. The variance decomposition does the same job for the other half of the trade.
+
+The fourth move is to choose evidence the authors could not have tuned. A simulation designed by the authors invites the suspicion that it was designed to win. The ACIC 2016 suite was built by other people, for another purpose, before the paper existed, and it is the field's shared test bed. The paper then runs it at a scale, 7,500 datasets, that makes cherry-picking implausible, and adds a 600,000-customer telecom uplift dataset and a lasso analogue to show that the pattern is not an artifact of one data source or one learner. Each additional piece of evidence answers a named objection: a semi-synthetic benchmark answers "your simulation is unrealistic", the learning curve answers "with enough data it does not matter", the lasso answers "this is a quirk of trees".
+
+The fifth move is to state the result in the reader's currency. Regret in $S^2$ is the right statistic for a methodologist, but "honesty can cost the equivalent of 27 percent of your sample" is the sentence a practitioner remembers and the one that changes an experiment's budget. Translating an accuracy gap into data is a general device. It makes the cost of a convention concrete, and it converts a modeling choice into a design decision that has an owner.
+
+The sixth move is the one that changes behavior rather than belief: give people something to do that costs almost nothing. The empirical selector does not ask anyone to abandon honesty. It keeps honesty as the default and switches only on clear evidence, so a cautious reader can adopt it without conceding the paper's main claim, and it requires one extra cross-validated fit. The asymmetric threshold is a technical choice, justified by the unreliability of cross-validation at low signal, and it is also a persuasive one. A recommendation that is cheap, reversible, and protective of the status quo where the status quo is right will be used by people who are not yet convinced, and using it is what eventually convinces them. The recommendation to keep the honest forest for inference and use the winner for scoring works the same way. It preserves everything the old convention was for.
+
+The seventh move is to mark the boundary of the claim. The paper says where honesty wins (the lowest signal-to-noise decile), states that its threshold is a convention rather than an optimum, and flags the one place its screening procedure reuses tuning data. Conceding territory is what makes the rest of the map believable. A paper that claimed adaptive estimation always wins would be easier to refute and would deserve to be.
+
+The last move is to make the claim checkable. The benchmark is public, the learners are standard open-source libraries, and the protocol is specified to the level of the binary-search tolerance. That is what made the replication above possible, and the replication is itself a lesson in which parts of a persuasive paper are robust. Rerun with a different but equally standard forest library, the paper's central claim, that defaulting to honesty costs data whenever heterogeneity is detectable, comes back stronger than the paper states it. Its two finer claims, that honesty wins in the lowest decile and that the selector beats always-adaptive, do not come back. A headline should rest on the claims that survive a change of implementation, and the cheapest way to learn which claims those are is to run a second implementation inside the paper, before a referee or a replicator does it for you. The paper's strategy also means the finer claims could fail without taking the argument down with them. Because the case was built from a mechanism, a public benchmark, and a conditional title, a replication that finds honesty helping less often than reported strengthens the recommendation to treat it as a tuning choice rather than weakening it.
+
+For a reader planning a paper of their own, the template reduces to a short list of questions to answer before writing. What does the field currently do, and can it be documented rather than asserted? What is the strongest argument for the current practice, and what question does it actually answer? What is the smallest model in which the alternative view can be proved? What evidence would a skeptic accept, and was any of it built by someone else? What does the result cost in units the audience budgets in? What is the least disruptive change in practice that captures most of the gain? Where is the old practice right? And could a stranger rerun the whole thing from the paper alone? A paper that has good answers to all eight has a chance of changing what people do. One that answers only the middle questions, however well, usually adds a result to the literature and leaves practice where it was.
 
 ### The R-Learner and Meta-Learners
 
