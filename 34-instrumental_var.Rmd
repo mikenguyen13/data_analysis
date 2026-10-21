@@ -2070,10 +2070,10 @@ All the mentioned tests (Stock Yogo, Cragg-Donald, Anderson canonical correlatio
     2.  [tF Procedure](#sec-tf-procedure) [@lee2022valid]:
         -   Combines t-statistics and F-statistics in a unified testing framework.
         -   Offers valid inference in presence of weak instruments.
-    3.  [Andrews-Kolesár (AK) Procedure](#sec-ak-approach) [@angrist2024one]:
-        -   Provides uniformly valid confidence intervals for $\beta$.
-        -   Allows for weak instruments and arbitrary heteroskedasticity.
-        -   Especially useful in overidentified settings.
+    3.  [Angrist-Kolesár (AK) Reappraisal](#sec-ak-approach) [@angrist2024one]:
+        -   Not a new test: shows conventional just-identified t-tests are reliable when endogeneity is moderate.
+        -   Recommends screening on the sign of the first stage rather than on the size of $F$.
+        -   Assumes every estimate is reported; under selection on significance the conclusions change [@stevenson2026humans].
     4.  Effective First-Stage $F$ [@montiel2013robust]:
         -   With more than one instrument and errors that are heteroskedastic, autocorrelated, or clustered, the conventional first-stage $F$ no longer maps onto the Stock-Yogo critical values, so comparing it to 10 is comparing it to nothing in particular.
         -   The effective $F$ restores that mapping, and its critical values are computed for the worst-case bias or size distortion the analyst is willing to tolerate.
@@ -2802,7 +2802,7 @@ Results:
 
 This screening approach:
 
--   Avoids the pitfalls of pre-testing based on first-stage F-statistics (which can exacerbate bias and distort inference).
+-   Avoids the pitfalls of pre-testing based on first-stage F-statistics (which can exacerbate bias and distort inference). This holds when every estimate is reported; once reporting is filtered on significance, an $F$ threshold reduces bias instead (Section \@ref(sec-ak-humans-in-loop)).
 
 -   Provides a "free lunch": bias reduction with no coverage cost.
 
@@ -2822,6 +2822,87 @@ Comparison with AR and tF Procedures is summarised in Table \@ref(tab:iv-ak-ar-t
 | tF Procedure      | Bias adjusted              | Near-nominal | Longer than AK (especially for moderate F) |
 
 Table: (\#tab:iv-ak-ar-tf) AK first-stage sign screening, the AR test, and the tF procedure compared on bias reduction, coverage, and confidence-interval length.
+
+#### When the Researcher Is in the Loop {#sec-ak-humans-in-loop}
+
+Every result in the AK analysis describes an estimator that is run once and reported whatever it says. @stevenson2026humans argue that this treats the researcher as a calculator, and that the conclusions change once the person running the regression is modeled as part of the procedure. Their central case is significance bias: a result is written up, submitted, or published only if it clears the conventional threshold. Under that filter, the distribution of reported IV estimates is not the sampling distribution AK study but a truncated version of it, and the truncation bites hardest on exactly the estimators that are noisy, which IV is relative to OLS.
+
+Three claims follow, and each cuts against a piece of the conventional reading of AK.
+
+1.  Strong first stages do not protect against selection. Because the IV standard error is large, a significant IV estimate is disproportionately one that drew far from the truth. In the authors' simulations, conditioning on significance produces substantial IV bias even at an expected first-stage $F$ of 200, well past both the rule of thumb of 10 and the $E(F) > 142.6$ bound of @lee2022valid. When the true effect is zero the conditional distribution of the IV estimate is bimodal, with the center carved out, and IV is frequently more biased than the OLS estimate it was meant to improve on.
+
+2.  Pretesting on the first-stage $F$ helps rather than hurts. AK, like @hall1996judging before them, warn that keeping only estimates whose observed first stage clears a threshold makes bias worse and distorts inference, and they recommend screening on the sign of the first stage alone. That is correct for a researcher who reports everything. When reporting is already filtered on significance, an additional filter on $F$ removes the draws where a weak realized first stage inflated the second-stage estimate, and median bias falls as the threshold rises. The authors note that the mean of the just-identified IV estimator does not exist, so they judge bias by the median.
+
+3.  Standard errors understate uncertainty. A reported standard error captures sampling variation for one specification. It does not capture variation across the specifications a different, equally reasonable researcher would have chosen, which is the dispersion that many-analyst studies measure directly. A nominal 95 percent interval therefore covers less than 95 percent of what the research process actually produces.
+
+A small simulation in the spirit of their continuous design makes the first two points concrete. The instrument, an omitted confounder $X$, and both structural errors are standard normal. $X$ enters both equations with the same coefficient, chosen so that the first-stage and structural errors have correlation $\rho = 0.15$, and the first-stage coefficient is set to hit a target $E(F)$. Each sample has 1,000 observations.
+
+```{r iv-humans-in-loop-sim}
+set.seed(2026)
+n_obs <- 1000
+n_rep <- 4000
+rho   <- 0.15
+gam   <- sqrt(rho / (1 - rho))  # confounder loading giving cor(errors) = rho
+
+sim_iv_ols <- function(EF, beta) {
+    pi <- sqrt((EF - 1) * (gam^2 + 1) / n_obs)
+    out <- matrix(NA_real_, n_rep, 5,
+                  dimnames = list(NULL, c("b_iv", "t_iv", "b_ols", "t_ols", "F")))
+    for (r in seq_len(n_rep)) {
+        z <- rnorm(n_obs); x <- rnorm(n_obs)
+        d <- pi * z + gam * x + rnorm(n_obs)
+        y <- beta * d + gam * x + rnorm(n_obs)
+        szd <- sum(z * d); szz <- sum(z^2); sdd <- sum(d^2)
+        b_iv   <- sum(z * y) / szd
+        se_iv  <- sqrt(sum((y - b_iv * d)^2) / (n_obs - 1) * szz) / abs(szd)
+        b_ols  <- sum(d * y) / sdd
+        se_ols <- sqrt(sum((y - b_ols * d)^2) / (n_obs - 1) / sdd)
+        pihat  <- szd / szz
+        se_pi  <- sqrt(sum((d - pihat * z)^2) / (n_obs - 1) / szz)
+        out[r, ] <- c(b_iv, b_iv / se_iv, b_ols, b_ols / se_ols, (pihat / se_pi)^2)
+    }
+    as.data.frame(out)
+}
+
+grid <- expand.grid(EF = c(20, 80, 200), beta = c(0, 0.1))
+sims <- Map(sim_iv_ols, grid$EF, grid$beta)
+
+hitl_tab <- do.call(rbind, Map(function(s, EF, beta) {
+    sig_iv  <- abs(s$t_iv)  > 1.96
+    sig_ols <- abs(s$t_ols) > 1.96
+    data.frame(
+        `E(F)` = EF, beta = beta,
+        `IV, all`          = median(abs(s$b_iv - beta)),
+        `IV, significant`  = median(abs(s$b_iv[sig_iv] - beta)),
+        `OLS, significant` = median(abs(s$b_ols[sig_ols] - beta)),
+        `Share IV significant` = mean(sig_iv),
+        check.names = FALSE
+    )
+}, sims, grid$EF, grid$beta))
+
+knitr::kable(hitl_tab, digits = 3,
+             caption = "Median absolute bias of IV and OLS with and without a significance filter ($\\rho = 0.15$, $n = 1000$).")
+```
+
+Read across a row. Without the filter, IV is close to unbiased and improves steadily with instrument strength, which is the AK picture. With the filter, the IV error grows between two and a half and three and a half times at $E(F) = 20$ and remains larger than the OLS error at $E(F) = 80$ for both values of $\beta$. When the true effect is zero, the significant IV estimates are still further from the truth than OLS at $E(F) = 200$. OLS is nearly unaffected by the filter because its confounding bias makes almost every OLS estimate significant, so conditioning removes almost nothing. Only at $E(F) = 200$ with a true effect of 0.1, where about a third of IV estimates are significant on their merits, does the filtered IV estimate beat OLS.
+
+Now add a threshold on the realized first-stage $F$ on top of the significance filter, holding $E(F) = 20$ and $\beta = 0.1$.
+
+```{r iv-humans-in-loop-threshold}
+s20 <- sims[[which(grid$EF == 20 & grid$beta == 0.1)]]
+thresholds <- c(0, 10, 20, 30)
+thr_tab <- do.call(rbind, lapply(thresholds, function(c0) {
+    keep <- s20$F > c0 & abs(s20$t_iv) > 1.96
+    data.frame(`F threshold` = c0,
+               `Median absolute bias` = median(abs(s20$b_iv[keep] - 0.1)),
+               `Reported estimates` = sum(keep),
+               check.names = FALSE)
+}))
+knitr::kable(thr_tab, digits = 3,
+             caption = "Significant IV estimates screened on the realized first-stage F ($E(F) = 20$, $\\beta = 0.1$).")
+```
+
+Raising the threshold lowers the bias of what survives, the reverse of the warning against pretesting, though the surviving set shrinks quickly. The two results are not in conflict with AK as mathematics. They answer a different question. AK characterize the estimator; @stevenson2026humans characterize the estimator as filtered by the people who use it. For a reader of a published IV estimate, the second question is usually the relevant one, and it argues for reporting the realized first-stage $F$ prominently, preferring weak-instrument robust intervals such as AR and tF, and discounting significant just-identified IV estimates that are large relative to the corresponding OLS estimate. Section \@ref(sec-publication-bias-phacking) treats the selection mechanism itself and the tools for detecting it in a literature.
 
 ------------------------------------------------------------------------
 
