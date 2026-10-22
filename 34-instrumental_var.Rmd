@@ -3504,6 +3504,96 @@ Steps to Estimate Proportional LATE:
 
 @lee2009training proposed a bounding approach for intensive-margin effects, assuming that compliers always have positive outcomes regardless of treatment (i.e., intensive-margin effect). These bounds help estimate treatment effects without relying on log transformations. However, this requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.
 
+### Who the Compliers Are {#sec-complier-profiling}
+
+A LATE is an average over compliers, so an IV estimate is only interpretable once the reader knows who the compliers are. Compliers cannot be identified one by one, since each unit reveals only one of its two potential treatment states, but their average characteristics can be. For a predetermined covariate $X$, and under independence and monotonicity [@abadie2003semiparametric; @imbens1997estimating],
+
+$$
+E[X \mid \text{complier}] = \frac{E[XD \mid Z = 1] - E[XD \mid Z = 0]}{E[D \mid Z = 1] - E[D \mid Z = 0]},
+$$
+
+which is the 2SLS coefficient from regressing $XD$ on $D$ with $Z$ as the instrument. Always-takers are described by $E[X \mid D = 1, Z = 0]$ and never-takers by $E[X \mid D = 0, Z = 1]$. @marbach2020profiling extend this to the profile of noncompliers when assignment is not random, and recommend reporting all three profiles as standard practice.
+
+#### Profiling Compliers From Data on the Treated Only
+
+The formula above needs $X$ for everyone, treated or not. Often the richest covariates exist only for the treated. Court records describe the people who file for bankruptcy, hospital records describe the people who are admitted, and loan files describe the people who borrow. @lee2026bankruptcy faces exactly this. The Federal Judicial Center records chapter, assets, liabilities, income, and prior filings for every filer, but for no one else. The credit panel, which covers everyone, delivers the first stage.
+
+The two sources are enough. Among the treated at $Z = 1$, a share $s$ are compliers and the rest are always-takers, while the treated at $Z = 0$ are all always-takers. Writing $\mu_C$ and $\mu_A$ for the complier and always-taker means of $X$,
+
+$$
+E[X \mid D = 1, Z = 1] = s\,\mu_C + (1 - s)\,\mu_A, \qquad
+E[X \mid D = 1, Z = 0] = \mu_A, \qquad
+s = 1 - \frac{P(D = 1 \mid Z = 0)}{P(D = 1 \mid Z = 1)}.
+$$
+
+Solving,
+
+$$
+\mu_C = \mu_A + \frac{E[X \mid D = 1, Z = 1] - E[X \mid D = 1, Z = 0]}{s}.
+$$
+
+The numerator is the coefficient from regressing $X$ on $Z$ in the treated sample. The denominator is the proportional first stage, the percentage increase in the number treated, which can come from a different data set. With a continuous instrument the same algebra holds locally. Differentiating the treated-sample mean gives
+
+$$
+\frac{\partial E[X \mid D = 1, Z = z]}{\partial z} = \left(\mu_{C}(z) - E[X \mid D = 1, Z = z]\right) \frac{\partial \log P(D = 1 \mid Z = z)}{\partial z},
+$$
+
+so the mean among units brought in at the margin is the treated mean plus the ratio of the treated-sample slope $\beta_X$ to the proportional first stage $\beta_{\log p}$.
+
+Lee regresses filer characteristics on ad exposure among filers and reports the implied shares among ad-induced filers: 89.5 percent first-time filers against 84.5 percent of all filers, and an 87.6 percent discharge rate against 78.7 percent. These follow from the formula above. The reported slopes, 0.002 for first-time filing and 0.003 for discharge per 1,000 ads, are rounded, and both pairs of numbers are reproduced by a proportional first stage between 3 and 4 percent per 1,000 ads, the same order as the paper's 2.9 percent filing response.
+
+Two cautions apply. The first concerns precision. Whether compliers differ from the average treated unit is tested by the $t$-statistic on $\beta_X$, and dividing by $s$ changes the units but not the evidence. The standard error on the complier mean is the standard error of $\beta_X$ divided by $s$, so a slope estimated to $\pm 0.001$ with $s$ near 0.03 pins the complier share down only to about $\pm 3$ percentage points.
+
+The second concerns what $X$ is. The derivation assumes the instrument changes who is treated, not the characteristics of the always-takers. That holds for predetermined traits such as prior filings or age. It fails for choices made after the instrument, such as hiring a lawyer, choosing a chapter, or being discharged, because advertising can change those choices for people who would have filed anyway. For such variables the shift in the treated mean mixes a change in who files with a change in how existing filers behave, and dividing by a small $s$ magnifies the second. Lee acknowledges both forces. The simulation shows how far the second can move the answer.
+
+```{r iv-complier-profile-treated-only}
+set.seed(1977)
+n    <- 4e6
+z    <- rbinom(n, 1, 0.5)                 # high versus low ad exposure
+type <- sample(c("always", "complier", "never"), n, replace = TRUE,
+               prob = c(0.020, 0.005, 0.975))
+d    <- as.integer(type == "always" | (type == "complier" & z == 1))
+
+# Predetermined trait: first-time filer status
+first_time <- rbinom(n, 1, c(always = 0.84, complier = 0.93, never = 0.80)[type])
+# Post-instrument choice, observed only for filers: hiring a lawyer.
+# Ads also nudge always-takers toward a lawyer (+2 points).
+lawyer <- rbinom(n, 1, ifelse(type == "never", 0,
+                 c(always = 0.90, complier = 0.97, never = 0)[type] +
+                   0.02 * (type == "always") * z))
+
+# Full-data complier mean (needs X for everyone)
+complier_mean_full <- function(x) {
+  (mean(x[z == 1] * d[z == 1]) - mean(x[z == 0] * d[z == 0])) /
+    (mean(d[z == 1]) - mean(d[z == 0]))
+}
+
+# Treated-only complier mean: X from the filer records, s from the aggregate first stage
+s <- 1 - mean(d[z == 0]) / mean(d[z == 1])
+filers <- data.frame(first_time, lawyer, z)[d == 1, ]
+complier_mean_treated <- function(var) {
+  fit  <- lm(reformulate("z", var), data = filers)
+  mu_a <- mean(filers[[var]][filers$z == 0])
+  c(estimate = mu_a + coef(fit)[["z"]] / s,
+    se       = sqrt(vcov(fit)["z", "z"]) / s)
+}
+
+data.frame(
+  variable          = c("first_time (predetermined)", "lawyer (post-instrument)"),
+  truth             = c(0.93, 0.97),
+  all_filers        = c(mean(filers$first_time), mean(filers$lawyer)),
+  full_data_formula = c(complier_mean_full(first_time), NA),
+  treated_only      = c(complier_mean_treated("first_time")[["estimate"]],
+                        complier_mean_treated("lawyer")[["estimate"]]),
+  treated_only_se   = c(complier_mean_treated("first_time")[["se"]],
+                        complier_mean_treated("lawyer")[["se"]]),
+  complier_share_of_treated = s
+) |> knitr::kable(digits = 3)
+```
+
+For the predetermined trait, the treated-only formula recovers the complier share as well as the full-data formula does, using nothing but the filer records and one aggregate number. For the lawyer choice, a two point nudge to always-takers is divided by a complier share of about `r round(s, 2)` and turns into an implied complier rate above one. An implied share outside $[0, 1]$ is a clear sign that the variable is not predetermined. A contamination that leaves the answer inside the range is just as wrong and gives no warning.
+
+
 ------------------------------------------------------------------------
 
 ## Testing Assumptions
@@ -4437,6 +4527,58 @@ A workable order of operations when two instruments disagree:
 
 ------------------------------------------------------------------------
 
+### A Range Check on the Estimate {#sec-late-range-check}
+
+The simplest validity check uses no test statistic at all. When the outcome is bounded, the assumptions that deliver a LATE also bound it. For a binary outcome, independence, exclusion, and monotonicity identify each complier potential-outcome mean separately [@imbens1997estimating; @abadie2002instrumental],
+
+$$
+E[Y_1 \mid C] = \frac{E[YD \mid Z = 1] - E[YD \mid Z = 0]}{\pi_C}, \qquad
+E[Y_0 \mid C] = \frac{E[Y(1 - D) \mid Z = 0] - E[Y(1 - D) \mid Z = 1]}{\pi_C},
+$$
+
+with $\pi_C = E[D \mid Z = 1] - E[D \mid Z = 0]$ the complier share. Both must lie in $[0, 1]$. It follows that the LATE lies in $[-1, 1]$ and, equivalently, that the reduced form can be no larger in absolute value than the first stage: each complier can move a binary outcome by at most one, and no one else can move it at all. These are the binary-outcome case of the instrumental inequalities discussed in Section \@ref(sec-instruments-disagree). The same reasoning applies to any bounded outcome. A share must give complier means in $[0, 1]$, a count must give nonnegative complier means, and an outcome on $[a, b]$ must give a LATE inside $[a - b, b - a]$.
+
+When the estimate is outside the range, the size of the excess is informative. The reduced form is $\rho = \pi_C \cdot \text{LATE} + \gamma$, where $\gamma$ is any direct effect of the instrument on the outcome. With a binary outcome $|\pi_C \cdot \text{LATE}| \le \pi_C$, so a reduced form above the first stage requires a direct effect of at least $|\rho| - \pi_C$. The range check therefore turns an impossible estimate into a lower bound on the exclusion violation, on the same scale as the [sensitivity analysis](#sec-plausibly-exogenous) above.
+
+@lee2026bankruptcy reports exactly such an estimate. Instrumenting bankruptcy filing with exposure to bankruptcy lawyer ads among households at high risk of filing, the first stage is 0.009 per 1,000 ads (standard error 0.002, $F = 14.3$), and the second-stage coefficient for having a prime credit score three years later is 1.740 (0.435). A binary outcome cannot rise by 174 percentage points for each complier. The implied reduced form is about $1.74 \times 0.009 \approx 0.016$, almost twice the 0.009 complier share, so if the point estimates were exact at least 0.007 of the reduced form would have to come from households whose filing did not change. That is the channel the paper itself names when it doubts the exclusion restriction: households who see the ads, look into bankruptcy, and then renegotiate or consolidate their debts without filing.
+
+Sampling error is the other explanation, and it cannot be dismissed. The conventional 95 percent interval, $1.74 \pm 1.96 \times 0.435$, runs from about 0.89 to 2.59 and so reaches back inside the feasible range, and with a first-stage $F$ of 14 that interval is too narrow anyway (Section \@ref(sec-tf-procedure)). The range check does not say which explanation is right. It says that the IV coefficient is not a credible estimate of the effect of filing on compliers, which is why the paper rests its conclusions on the reduced form. The coefficient for delinquency in the same table, $-0.74$, is inside the range and passes this check, though that is not evidence that its exclusion restriction holds.
+
+The simulation below builds a design with a small complier share and a modest direct effect of the instrument on a binary outcome. The function `late_range_check()` reports the Wald estimate, the two implied complier means, and the minimum direct effect implied by the excess.
+
+```{r iv-late-range-check}
+late_range_check <- function(y, d, z) {
+  pi_c <- mean(d[z == 1]) - mean(d[z == 0])
+  rho  <- mean(y[z == 1]) - mean(y[z == 0])
+  c(first_stage = pi_c,
+    reduced_form = rho,
+    wald = rho / pi_c,
+    complier_mean_y1 = (mean((y * d)[z == 1]) - mean((y * d)[z == 0])) / pi_c,
+    complier_mean_y0 = (mean((y * (1 - d))[z == 0]) - mean((y * (1 - d))[z == 1])) / pi_c,
+    min_direct_effect = max(0, abs(rho) - pi_c))
+}
+
+simulate_range <- function(n, direct) {
+  z    <- rbinom(n, 1, 0.5)
+  type <- sample(c("always", "complier", "never"), n, replace = TRUE,
+                 prob = c(0.05, 0.01, 0.94))
+  d    <- as.integer(type == "always" | (type == "complier" & z == 1))
+  # Filing raises the chance of a prime score by 30 points; the instrument
+  # also raises it directly for everyone by `direct` (debt renegotiation).
+  p    <- 0.35 + 0.30 * d + direct * z
+  y    <- rbinom(n, 1, p)
+  late_range_check(y, d, z)
+}
+
+set.seed(34)
+rbind(
+  `valid instrument`              = simulate_range(4e6, direct = 0),
+  `direct effect of 0.015`        = simulate_range(4e6, direct = 0.015)
+) |> round(3)
+```
+
+With a valid instrument the Wald estimate is close to the true 0.30 and both complier means sit inside $[0, 1]$. A direct effect of 1.5 percentage points, small enough to escape notice in a balance table, is divided by a complier share of 0.01 and turns into a LATE of almost 1.8 and a complier mean without treatment below zero. The minimum direct effect the check reports is a lower bound, here about half of the true direct effect, because the check only sees the part of the violation that pushes the estimate outside the feasible range.
+
 ### Evidence on the Exclusion Restriction {#sec-exclusion-evidence}
 
 The exclusion restriction cannot be tested, but that is not the same as saying nothing can be shown. What an analyst can do is assemble evidence that would be unlikely to look this way if the restriction failed in the ways most plausible for this design. @imbens2014instrumental frames the task exactly that way, as the accumulation of partial evidence rather than the search for a single decisive test. Table \@ref(tab:iv-exclusion-evidence) collects the pieces, what each can establish, and what it cannot.
@@ -4448,6 +4590,7 @@ The exclusion restriction cannot be tested, but that is not the same as saying n
 | No-first-stage samples [@kippersluis2018beyond] | A direct estimate of the reduced form where no indirect channel exists, which is an estimate of $\gamma$ itself | That the direct effect is the same in the rest of the sample |
 | Placebo and negative-control outcomes [@lipsitch2010negative] | That the instrument does not move outcomes it has no business moving | That it fails to move the one outcome that matters through a back channel |
 | Instrumental inequalities [@balke1997bounds; @kitagawa2015test; @huber2015testing; @mourifie2017testing] | Statistical rejection of validity plus monotonicity, available even when just identified | Validity when the test fails to reject, and it maintains monotonicity |
+| Range check on a bounded outcome [@imbens1997estimating; @abadie2002instrumental] | That the estimate is impossible under the maintained assumptions, and a lower bound on the direct effect that would explain it | Anything when the estimate is inside the range, and on its own it cannot separate a violation from sampling noise |
 | Overidentification tests [@sargan1958estimation; @hansen1982large] | That two strong instruments identify the same parameter | Which instrument is invalid, or whether the rejection is heterogeneity [@parente2012cautionary; @kiviet2020testing] |
 | Monotonicity tests in examiner designs [@frandsen2023judging] | Joint rejection of exclusion and monotonicity in leniency designs | Which of the two failed |
 | Sensitivity analysis [@conley2012plausibly; @nevo2012identification; @cinelli2025omitted] | How large a violation the conclusion survives, on an interpretable scale | That the actual violation is smaller than that |

@@ -80,9 +80,9 @@ Beyond these canonical types, applied work has pushed RD into settings the origi
 -   [Multiple Scores](#sec-multi-score-regression-discontinuity-design) (Multiple Running Variables):
     -   Use case: Treatment depends on more than one score (e.g., income and age).
     -   Approach: Involves multivariate threshold rules or interaction effects.
--   Geographic RD (Spatial RD):
+-   [Geographic RD and border-pair designs](#sec-geographic-border-designs):
     -   Definition: The cutoff is defined in space, such as administrative borders or policy boundaries.
-    -   Example: A tax policy that applies only to businesses within a specific jurisdiction.
+    -   Example: A tax policy that applies only to businesses within a specific jurisdiction, or television advertising that changes at the edge of a media market.
 -   Dynamic Treatments:
     -   Definition: Treatment effects may **evolve over time** after the initial intervention.
     -   Consideration: Requires longitudinal data and appropriate modeling of lagged effects.
@@ -1629,6 +1629,275 @@ $$
     -   Implement fake cutoffs and re-estimate $\tau(x_1, x_2)$.
 4.  **Varying Bandwidths**
     -   Re-estimate using different bandwidths for robustness.
+
+## Geographic Boundaries and Border-Pair Designs {#sec-geographic-border-designs}
+
+Many treatments change at a line on a map. A school attendance zone, a state minimum wage, a tax jurisdiction, a colonial labor draft, and the reach of a television market all switch abruptly at a boundary while the people, land, and economy on the two sides change gradually. Two research designs exploit this, and they rest on different assumptions.
+
+The first is the boundary RD. Each unit's running variable is its signed distance to the boundary, and the estimand is the jump in the outcome at distance zero. @black1999better compares house prices on the two sides of elementary school attendance boundaries within the same neighborhood, and @dell2010persistent estimates the long-run effect of the Peruvian mining *mita* from households just inside and just outside its historical catchment. @keele2015geographic show that a boundary is really a [multi-score RD](#sec-multi-score-regression-discontinuity-design) with latitude and longitude as the two scores. Collapsing them to a single distance throws away where along the boundary a unit sits, so the cleaner estimand is a set of boundary-point effects, each comparing units close to the same point on the line.
+
+The second is the border-pair design. Adjacent units on opposite sides are grouped into pairs, and pair-by-period fixed effects absorb every shock the two sides share. @holmes1998effect uses state borders to study right-to-work laws and manufacturing. @dube2010minimum compare all contiguous county pairs that straddle a state border to estimate minimum wage effects. @shapiro2018positive moves the idea to advertising, using the borders of Nielsen Designated Market Areas (DMAs), the geographic units in which local television time is sold. This design needs no running variable and no bandwidth, and it accommodates a continuous treatment intensity (dollars of minimum wage, thousands of ads) rather than a binary switch. What it gives up is the local argument at a point. The border band has width, so the design is only as good as the continuity of confounders across that band.
+
+### Identification in a Border-Pair Design
+
+Let $b$ index borders, $m$ the market on one side, and $t$ time. A border-unit $(b, m)$ collects the units on side $m$ of border $b$. With treatment intensity $A_{mt}$ set at the market level, the estimating equation is
+
+$$
+Y_{bmt} = \alpha_{bt} + \tau A_{mt} + X_{bmt}'\beta + \varepsilon_{bmt},
+$$
+
+where $\alpha_{bt}$ is a border-by-period fixed effect. Because $\alpha_{bt}$ is common to both sides, $\tau$ is identified only from the difference between the two sides of the same border in the same period. The identifying assumption is
+
+$$
+E\left[\varepsilon_{bmt} - \varepsilon_{bm't} \mid A_{mt} - A_{m't}, X\right] = 0,
+$$
+
+that is, the side that receives more treatment would not have had systematically different outcomes without it. Market-level choices are allowed to be endogenous to conditions in the market as a whole. What is ruled out is that the cross-border gap in treatment tracks a cross-border gap in the outcome's other determinants.
+
+Four threats recur.
+
+1.  Compound treatment. A boundary rarely carries only one policy. State borders carry tax codes, court systems, and bankruptcy exemptions, and DMA borders carry every industry's local advertising, not only the industry of interest. @keele2015geographic call this the compound treatment problem. The remedies are to restrict to boundaries that carry only the treatment (DMA borders inside a single state) or to control directly for the bundled treatments.
+2.  Sorting. If households or firms choose their side of the line in response to the treatment, the sides stop being comparable. Sorting is less plausible when the treatment is something people rarely know about when they move, such as which media market a county belongs to, and more plausible for school zones or tax rates.
+3.  Spillovers. Commuting, shopping, and broadcast signals cross boundaries. Spillovers bias $\tau$ toward zero because the less treated side is partly treated.
+4.  Band width. Even with no sorting and no spillovers, a border-unit is a band, not a line. If confounders have a steep spatial gradient, the side that sits closer to a high-confounder core differs from its neighbor, and pair fixed effects remove only part of the bias. Balance tests on predetermined local variables are the diagnostic.
+
+Inference needs care because the treatment varies at the market-by-period level while the sample is organized by border. One market contributes to every border it touches, and a county touching two other markets appears in two border-units. Clustering only by border treats these duplicated observations and shared market shocks as independent. @dube2010minimum cluster two ways, by state and by border segment. The analog for media markets is to cluster by border and by market.
+
+### Worked Example: Bankruptcy Lawyer Advertising at DMA Borders
+
+@lee2026bankruptcy asks whether television advertising by bankruptcy law firms helps or harms financially distressed households. The question has real policy stakes. Bankruptcy lawyers are paid per case regardless of outcome, legal advertising was banned in the United States until 1977, and professional rules still restrict solicitation, all on the theory that lawyers induce filings that do not serve the client. Against that, a long literature documents that most households who would gain from bankruptcy do not file, which suggests the opposite problem.
+
+The data merge Kantar records of every local television ad aired in the top 101 DMAs (2013 to 2019) with the FRBNY Consumer Credit Panel/Equifax, a 5 percent random sample of U.S. credit files, and with Federal Judicial Center records of every bankruptcy case. Local television is about 89 percent of bankruptcy law firms' advertising spending, so the DMA is the relevant unit of treatment.
+
+The paper first shows why a naive comparison fails. Ads and filings share the same seasonality, and in the first months of COVID-19 law firms raised advertising to record levels in anticipation of a wave of distress that forbearance policy then prevented. Ad budgets respond to expected demand. The design answer follows @shapiro2018positive. Ad budgets are set for the DMA as a whole, which in practice means for its central city, while DMA border counties sit on the outskirts far from any city. On each side of a border the residents see their own DMA's ads, and federal rules prevent cable and satellite operators from carrying broadcast signals across DMA lines. The 732 border counties form 131 border pairs.
+
+The evidence is built in layers that each answer a specific objection.
+
+1.  Maps. DMA-level filing rates track DMA advertising closely, which is the endogeneity. Restricting to border counties, the filing rates on the two sides of each border become similar even though the advertising on the two sides still differs sharply.
+2.  Balance. Across eight quantiles of advertising, border counties show smooth filing rates, Chapter 7 shares, discharge rates, unemployment, income, house price growth, and household debt to income, and these covariates do not predict which side of a border gets more ads.
+3.  The baseline estimate. With border-by-year fixed effects and county controls, 1,000 additional ads per year raise the filing rate by 0.007 percentage points, about 2.9 percent of the mean.
+4.  Bundled treatments. Ads by other industries also jump at DMA borders. Adding doctors, investment managers, mortgage lenders, personal injury lawyers, paycheck services, retirement planners, and auto lenders as controls leaves the bankruptcy ad coefficient unchanged, and none of the other industries matters.
+5.  Bundled law. Restricting to DMA borders inside a single state removes differences in exemptions and courts. The estimate is unchanged.
+6.  Dynamics. Only the current year's ads matter, consistent with ads working on households already close to filing.
+7.  Magnitude. Scaled up to an average DMA, the estimate implies about \$240 of fee revenue per ad against about \$100 of airtime cost, which is a plausible margin for a profit-maximizing advertiser. A causal estimate that implied firms were losing money on every ad, or earning a thousand-fold return, would be a warning.
+
+The paper then turns to household outcomes. Because filers are rare, it builds the population at risk from credit records: a linear probability model of filing on credit score, delinquency, tradelines, and their lags, with households in the top 0.25 percent of predicted risk who do not file serving as the comparison for filers. More advertising is associated with a higher chance of a prime credit score four years later, less delinquency, more credit, and more auto loans.
+
+Two features of this second stage are worth reading closely, because they show how a design can weaken as a paper moves from its first result to its later ones. First, the household regressions use county and year fixed effects rather than border-by-year fixed effects, so they are identified from changes in a DMA's advertising over time within a county, not from the cross-border contrast that justified the filing result. The simulation below shows how much that can matter. Second, the paper reports an IV estimate that uses ad exposure as an instrument for filing, while stating plainly that the exclusion restriction is doubtful because ads can change behavior without a filing. The IV estimate for the binary prime-score outcome is 1.74, which no valid instrument can produce. Section \@ref(sec-late-range-check) works through what that number reveals. The paper also profiles the filers that ads bring in, using only data on filers, and that idea is developed in Section \@ref(sec-complier-profiling).
+
+Finally, the paper tests the alternative story directly. If ads worked by persuasion or encouraged strategic default, the extra filers would include more frivolous cases and higher debt relative to income. Ad-induced filers are instead more likely to be first-time filers, more likely to be represented and discharged, have lower debt to income, and are no more likely to be dismissed for abuse. Text from 58,335 client reviews adds a mechanism check: phrases that admit under-information or stigma ("did not know", "ashamed") are common, and they load positively on the review rating.
+
+### Simulation: When Border Pairs Remove the Bias and When They Do Not
+
+The proprietary credit and advertising data cannot be shared, so the simulation reproduces the structure of the design. A grid of counties is tiled into 25 media markets, each the set of counties nearest a city center, so every border is an equidistant line between two cities. Household distress has a regional part, a smooth spatial field with a slow cycle, and an urban part, a shock to each city's economy that fades within a few counties of downtown. Law firms budget ads from distress measured at the city center, so ads are endogenous at the market level. A second industry's ads respond to the same city conditions but have no effect on filings. The true effect of 1,000 ads on the filing rate is 0.007, the value in @lee2026bankruptcy.
+
+```{r rd-border-sim-setup, message=FALSE, warning=FALSE}
+library(data.table)
+library(fixest)
+library(ggplot2)
+
+# Counties on a G x G grid, tiled into k x k media markets. Each market is the
+# set of counties nearest a jittered city center, so borders are equidistant
+# lines between cities. Border-units are the counties of market m that touch
+# market m', one unit per side of each border.
+make_geography <- function(G = 60, k = 5) {
+  cty <- CJ(gx = 1:G, gy = 1:G)
+  cty[, county := .I]
+  sp <- G / k
+  ctr <- CJ(i = 1:k, j = 1:k)
+  ctr[, `:=`(cx = (i - 0.5) * sp + runif(.N, -1.5, 1.5),
+             cy = (j - 0.5) * sp + runif(.N, -1.5, 1.5),
+             dma = .I)]
+  d2 <- outer(cty$gx, ctr$cx, "-")^2 + outer(cty$gy, ctr$cy, "-")^2
+  cty[, dma := max.col(-d2)]
+  nb <- rbind(
+    cty[, .(county, gx = gx + 1, gy)], cty[, .(county, gx = gx - 1, gy)],
+    cty[, .(county, gx, gy = gy + 1)], cty[, .(county, gx, gy = gy - 1)]
+  )
+  nb <- merge(nb, cty[, .(gx, gy, nb_dma = dma)], by = c("gx", "gy"))
+  nb <- merge(nb[, .(county, nb_dma)], cty[, .(county, dma)], by = "county")
+  units <- unique(nb[dma != nb_dma, .(county, dma, nb_dma)])
+  units[, border := paste(pmin(dma, nb_dma), pmax(dma, nb_dma), sep = "-")]
+  list(cty = cty, ctr = ctr, units = units[, .(county, dma, border)])
+}
+
+# Distress = regional field (static bumps of spatial scale `width` plus a
+# traveling cycle of wavelength `wave`) + an urban shock that decays with
+# distance from the city center on scale `core`. Ads load on distress measured
+# at the city center. `court` is a market-year shock to filings that is
+# unrelated to ads; it matters only for inference.
+simulate_panel <- function(geo, years = 2013:2019, tau = 0.007,
+                           width = 20, wave = 80, core = 1.5) {
+  cty <- copy(geo$cty); ctr <- copy(geo$ctr)
+  G <- max(cty$gx)
+  bumps <- data.table(bx = runif(12, 0, G), by = runif(12, 0, G), h = rnorm(12))
+  field <- function(x, y) {
+    rowSums(sapply(seq_len(nrow(bumps)), function(b)
+      bumps$h[b] / sqrt(nrow(bumps)) * 2 *
+        exp(-((x - bumps$bx[b])^2 + (y - bumps$by[b])^2) / (2 * width^2))))
+  }
+  theta <- runif(1, 0, pi)
+  cycle <- function(x, y, t) {
+    sin(2 * pi * (x * cos(theta) + y * sin(theta)) / wave + 0.9 * (t - 2013))
+  }
+  cty[, static := field(gx, gy)]
+  ctr[, `:=`(static = field(cx, cy), city_level = rnorm(.N))]
+  dma_yr <- CJ(dma = ctr$dma, year = years)[ctr, on = "dma"]
+  dma_yr[, city_shock := city_level + rnorm(.N, 0, 0.7)]
+  dma_yr[, city_distress := static + cycle(cx, cy, year) + city_shock]
+  dma_yr[, `:=`(
+    ads       = pmax(0, 1.6 + 1.2 * city_distress + rnorm(.N)),  # thousands
+    other_ads = pmax(0, 2.0 + 1.0 * city_distress + rnorm(.N)),  # no effect
+    court     = rnorm(.N, 0, 0.012)
+  )]
+  pan <- CJ(county = cty$county, year = years)[cty, on = "county"]
+  pan <- dma_yr[, .(dma, year, cx, cy, city_shock, ads, other_ads, court)][
+    pan, on = c("dma", "year")]
+  pan[, distress := static + cycle(gx, gy, year) +
+        city_shock * exp(-((gx - cx)^2 + (gy - cy)^2) / (2 * core^2))]
+  pan[, `:=`(
+    filing = 0.24 + tau * ads + 0.03 * distress + court + rnorm(.N, 0, 0.01),
+    unemp  = 5 + 0.8 * distress + rnorm(.N, 0, 0.3)  # observed proxy for distress
+  )]
+  pan[, c("cx", "cy", "city_shock") := NULL]
+  pan[]
+}
+
+# One row per side of each border per year, averaging that side's border counties.
+border_units <- function(pan, units) {
+  bu <- merge(units, pan[, .(county, year, filing, unemp, ads, other_ads)],
+              by = "county", allow.cartesian = TRUE)
+  bu[, .(filing = mean(filing), unemp = mean(unemp),
+         ads = ads[1], other_ads = other_ads[1]),
+     by = .(border, dma, year)]
+}
+
+set.seed(2026)
+geo <- make_geography()
+pan <- simulate_panel(geo)
+bu  <- border_units(pan, geo$units)
+c(counties = nrow(geo$cty), border_counties = uniqueN(geo$units$county),
+  borders = uniqueN(geo$units$border), border_units = uniqueN(bu[, .(border, dma)]))
+```
+
+Figure \@ref(fig:rd-border-sim-map) reproduces the logic of Lee's spatial evidence. Advertising is set market by market, and across markets it lines up with filing rates. Inside the border corridors, filing rates on the two sides of each line are much closer than the advertising gap between the two markets would suggest.
+
+```{r rd-border-sim-map, fig.width=9, fig.height=4.6, fig.cap="Simulated media markets in 2013. Left: bankruptcy lawyer ads by market (thousands per year). Right: filing rate per 100 residents in border counties only, with interior counties left blank. Black lines are market borders.", fig.alt="Two square maps of a 60 by 60 county grid divided into 25 irregular media markets by black border lines. The left map shades each market by its ad volume. The right map shades only the counties along the borders by filing rate, and the shading changes little across most border lines."}
+library(patchwork)
+m13 <- pan[year == 2013]
+m13[, is_border := county %in% geo$units$county]
+
+# Border segments between rook neighbors in different markets
+rt <- merge(m13[, .(gx, gy, dma)], m13[, .(gx = gx - 1, gy, dma_r = dma)], by = c("gx", "gy"))
+up <- merge(m13[, .(gx, gy, dma)], m13[, .(gx, gy = gy - 1, dma_u = dma)], by = c("gx", "gy"))
+segs <- rbind(
+  rt[dma != dma_r, .(x = gx + 0.5, xend = gx + 0.5, y = gy - 0.5, yend = gy + 0.5)],
+  up[dma != dma_u, .(x = gx - 0.5, xend = gx + 0.5, y = gy + 0.5, yend = gy + 0.5)]
+)
+base_map <- function(fill_var, title, legend) {
+  ggplot(m13, aes(gx, gy)) +
+    geom_tile(aes(fill = .data[[fill_var]])) +
+    geom_segment(data = segs, aes(x = x, y = y, xend = xend, yend = yend),
+                 inherit.aes = FALSE, linewidth = 0.4) +
+    scale_fill_viridis_c(name = legend, na.value = "grey95", option = "magma",
+                         direction = -1) +
+    coord_equal(expand = FALSE) +
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal(base_size = 11) +
+    theme(axis.text = element_blank(), panel.grid = element_blank())
+}
+m13[, filing_border := fifelse(is_border, filing, NA_real_)]
+base_map("ads", "Ads by market", "Ads (000s)") +
+  base_map("filing_border", "Filing rate, border counties", "Filings\nper 100")
+```
+
+Table \@ref(tab:rd-border-sim-onedraw) estimates the ad effect three ways on this one draw. The market comparison uses every county with year fixed effects, which is the correlation Lee shows to be confounded. The border-county panel restricts to border counties and uses county and year fixed effects, which is the structure of Lee's household-level regressions. The border-pair estimator uses border-units with border-by-year fixed effects, which is Lee's filing regression.
+
+```{r rd-border-sim-onedraw}
+bc <- pan[county %in% geo$units$county]
+fits <- list(
+  `Market comparison (year FE)`        = feols(filing ~ ads | year, pan, cluster = ~dma),
+  `Border counties (county + year FE)` = feols(filing ~ ads | county + year, bc, cluster = ~dma),
+  `Border pairs (border x year FE)`    = feols(filing ~ ads | border^year, bu, cluster = ~border + dma)
+)
+placebo_alone <- feols(filing ~ other_ads | border^year, bu, cluster = ~border + dma)
+placebo_joint <- feols(filing ~ ads + other_ads | border^year, bu, cluster = ~border + dma)
+balance_mkt   <- feols(unemp ~ ads | year, pan, cluster = ~dma)
+balance_pair  <- feols(unemp ~ ads | border^year, bu, cluster = ~border + dma)
+
+tab <- data.table(
+  Estimator = c(names(fits), "Other-industry ads alone, border pairs",
+                "Other-industry ads, jointly with bankruptcy ads",
+                "Balance: unemployment on ads, market comparison",
+                "Balance: unemployment on ads, border pairs"),
+  Estimate  = c(sapply(fits, function(f) coef(f)[["ads"]]),
+                coef(placebo_alone)[["other_ads"]], coef(placebo_joint)[["other_ads"]],
+                coef(balance_mkt)[["ads"]], coef(balance_pair)[["ads"]]),
+  SE        = c(sapply(fits, function(f) se(f)[["ads"]]),
+                se(placebo_alone)[["other_ads"]], se(placebo_joint)[["other_ads"]],
+                se(balance_mkt)[["ads"]], se(balance_pair)[["ads"]])
+)
+knitr::kable(tab, digits = 4, caption = "One simulated draw. The true effect of 1,000 ads on the filing rate is 0.007 and the true effect of other-industry ads is zero. Standard errors are clustered by market, or by border and market for border-unit regressions.", label = "rd-border-sim-onedraw")
+
+se_pair <- c(border = se(summary(fits[[3]], cluster = ~border))[["ads"]],
+             border_and_market = se(fits[[3]])[["ads"]])
+round(se_pair, 5)
+```
+
+```{r rd-border-sim-mc}
+estimate_all <- function(pan, units) {
+  bc <- pan[county %in% units$county]
+  bu <- border_units(pan, units)
+  c(market      = coef(feols(filing ~ ads | year, pan))[["ads"]],
+    border_cty  = coef(feols(filing ~ ads | county + year, bc))[["ads"]],
+    border_pair = coef(feols(filing ~ ads | border^year, bu))[["ads"]],
+    placebo_alone = coef(feols(filing ~ other_ads | border^year, bu))[["other_ads"]],
+    placebo_joint = coef(feols(filing ~ ads + other_ads | border^year, bu))[["other_ads"]],
+    balance_pair  = coef(feols(unemp ~ ads | border^year, bu))[["ads"]])
+}
+
+set.seed(27)
+mc <- t(replicate(60, {
+  g <- make_geography(); estimate_all(simulate_panel(g), g$units)
+}))
+mc_tab <- data.table(
+  Estimator = c("Market comparison", "Border counties, county + year FE",
+                "Border pairs, border x year FE",
+                "Placebo ads alone (truth 0)", "Placebo ads jointly (truth 0)"),
+  Mean = colMeans(mc)[1:5], SD = apply(mc, 2, sd)[1:5]
+)
+knitr::kable(mc_tab, digits = 4, caption = "Sixty simulated geographies. The true ad effect is 0.007.", label = "rd-border-sim-mc")
+
+# Steeper regional confounding: shrink the spatial scale of the regional field
+sweep <- rbindlist(lapply(c(5, 10, 20), function(w) {
+  r <- t(replicate(30, {
+    g <- make_geography(); estimate_all(simulate_panel(g, width = w, wave = 4 * w), g$units)
+  }))
+  data.table(`Regional field scale (counties)` = w,
+             `Border-pair estimate` = mean(r[, "border_pair"]),
+             `Balance coefficient (unemployment on ads)` = mean(r[, "balance_pair"]))
+}))
+knitr::kable(sweep, digits = 4, caption = "Border-pair estimate and border balance as the regional confounder becomes steeper. The true effect is 0.007.", label = "rd-border-sim-sweep")
+```
+
+Four lessons come out of the simulation.
+
+1.  The market comparison overstates the effect by a factor of about `r round(mean(mc[, "market"]) / 0.007, 1)`, because ad budgets follow city distress and city distress spills into the counties around it.
+2.  Restricting to border counties is not enough. With county and year fixed effects, the border-county panel averages `r round(mean(mc[, "border_cty"]), 4)`, still about `r round(mean(mc[, "border_cty"]) / 0.007, 1)` times the truth, because the regional cycle moves a market's city and its outskirts together over time and county fixed effects remove only the level. This is the structure of the household-level regressions in @lee2026bankruptcy, so their identification is weaker than that of the paper's filing result. Border-by-year fixed effects average `r round(mean(mc[, "border_pair"]), 4)`.
+3.  A placebo treatment that co-moves with the real one inherits its effect. Other-industry ads respond to the same city conditions, so on their own they appear to raise filings (`r round(mean(mc[, "placebo_alone"]), 4)` on average) even inside border pairs. Entered jointly with bankruptcy ads, as in the final column of Lee's placebo table, their coefficient is `r round(mean(mc[, "placebo_joint"]), 4)`. A placebo that shows nothing when entered alone is the stronger evidence, and a placebo that shows something alone must be entered jointly before it is read as a failure.
+4.  Pair fixed effects do not remove confounding with a steep spatial gradient. As the regional field shrinks to a scale of a few counties, the border band no longer looks the same on both sides, the border-pair estimate drifts up, and the balance coefficient of an observed distress proxy on ads rises with it. Balance on predetermined local variables is the diagnostic that would catch this, which is why Lee reports it.
+
+On inference, this draw's border-pair standard error is `r round(se_pair[["border"]], 5)` when clustered by border only and `r round(se_pair[["border_and_market"]], 5)` when clustered by border and market. The market-year shock to filings hits every border that market touches, so border-only clustering understates the uncertainty. The gap is modest here because that shock is a small part of the variation in filings, and it grows as the share of outcome variation common to a market grows. With 25 markets two-way clustering is itself approximate, which is one reason real applications need many markets.
+
+### Practical Checklist for Border Designs
+
+1.  Name what else changes at the boundary and either restrict to boundaries without it or control for it.
+2.  Show the spatial picture: outcomes against treatment in all units, then in border units only.
+3.  Report balance on predetermined local variables across the boundary and across treatment intensity.
+4.  Use boundary-by-period fixed effects in every regression that claims the border identification, not only the first one.
+5.  Enter placebo treatments jointly with the real one when they are correlated with it.
+6.  Cluster at the level the treatment varies, and account for units that appear in several pairs.
+7.  Translate the estimate into an economic magnitude the treated party would recognize, such as revenue per ad or jobs per dollar of minimum wage, and check that it is believable.
 
 ## Free Discontinuity Regression {#sec-free-discontinuity-regression}
 
