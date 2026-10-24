@@ -679,3 +679,302 @@ Table \@ref(tab:judge-shopping-estimates) carries the main lesson. Conventional 
 
 The lesson is not confined to bankruptcy. Any examiner design in which assignment follows a rule rather than a random number generator, such as a rotation, a wheel, a shift schedule, or caseload balancing, can be predictable to the parties who know the rule, and the round-robin assignment of sales leads and service tickets in the marketing applications above is a rule of exactly this kind. Three habits guard against it. Document the assignment protocol from court rules, agency manuals, or routing logic, rather than inferring randomness from a balance table. Identify the parties with both the incentive and the knowledge to game the protocol, and test whether leniency varies with them within assignment cells and whether the protocol itself makes the next assignment predictable. When it does, report estimates that control for those parties, a recentered instrument if the protocol and docket allow it, and a bounded specification alongside the conventional 2SLS. @chyn2025examiner give a practitioner's treatment of the identification conditions and their tests in examiner designs, and the exclusion and monotonicity tests of @frandsen2023judging complement the random assignment checks developed here.
 
+#### Timing IV: Decision Speed Meets an Aggregate Shock {#sec-examiner-timing-iv}
+
+Every design so far uses the decision-maker's leniency, that is, *whether* the decision goes one way or the other. A second property of decision-makers is just as quasi-randomly assigned and far less exploited: *when* they decide. If decisions arrive after a multi-year queue, and processing speed differs across randomly assigned examiners, then the calendar date on which an applicant hears the news is random with respect to anything the applicant can control. Cross that random date with an aggregate shock that nobody could forecast at filing, and the result is an instrument for exposure to the shock. @bias2026great use this construction to answer a question that has resisted credible estimation: are firms permanently shaped, or imprinted, by the macroeconomic conditions at their birth?
+
+##### The Identification Problem with Birth Conditions
+
+The obvious comparison, firms founded in the Great Recession against firms founded at other times, mixes three things. The first is the causal effect of being born in a downturn, which is the object of interest. The second is selection on quality: if funding is scarce in a recession, only strong ideas get off the ground, which flatters recession cohorts, while job losers starting firms out of necessity pull quality the other way. The third is sorting on gains [@heckman2001micro]: founders whose prospects are most sensitive to the cycle can wait out the recession, so the firms that are born in it are disproportionately those that expected to be harmed least. The naive difference can therefore be biased in either direction, and its sign is not even guaranteed.
+
+The labor literature on "unlucky cohorts" faces the same problem for workers and solves it by using conditions at a predetermined entry date, such as the unemployment rate in the graduation year, rather than the actual date of entry [@oreopoulos2012short; @schwandt2019unlucky]. @hacamo2022forced carry this idea to entrepreneurship: graduates who leave college in high unemployment become founders of firms that are more likely to survive, innovate, and raise venture capital. These are intention-to-treat estimates. Graduation conditions invite a person into a recession labor market, and the person can decline by staying in school or taking a safe job. On the macro side, @sedlacek2017growth show with census cohort data that firms born in different aggregate conditions grow at persistently different rates, but cohort composition and cohort treatment are not separated there. What is missing in all three is an assignment mechanism that randomizes when a firm is born.
+
+##### Double Randomization at the Patent Office
+
+@bias2026great restrict attention to innovative startups founded to commercialize a patentable invention, for which the examiner's first office action on the merits is often the signal that triggers launch [@farre2020patent]. Three institutional features of the US Patent and Trademark Office make the timing of that signal quasi-random. Applications are assigned to examiners within an art unit (a narrow technology group) in a way that is unrelated to applicant characteristics [@lemley2012examiner]. Examiners differ persistently in how fast they review [@hegde2022quick]. And the backlog means the decision arrives years after filing. Combine these with the stochastic arrival of the Great Recession and a startup's patent news lands inside or outside the recession by luck.
+
+A stylized example shows why examiner speed does not confound the comparison, even though @hegde2022quick find that slow reviews themselves harm startups. Suppose examiners take one, two, or three years and the recession hits in year $t$:
+
+| Application year | Slow examiner (3 years) | Average examiner (2 years) | Fast examiner (1 year) |
+|------------------|-------------------------|----------------------------|------------------------|
+| $t-3$            | recession               | expansion                  | expansion              |
+| $t-2$            | expansion               | recession                  | expansion              |
+| $t-1$            | expansion               | expansion                  | recession              |
+
+Within a single application year, assignment to the recession is correlated with speed. Across application years, every speed type is assigned to the recession once, so speed is not monotone in treatment, and with stable speed distributions and application volumes a direct effect of speed averages out of the pooled comparison. Conditioning on art unit by application year fixed effects keeps the comparison within the cells where assignment is random, and controlling for examiner speed directly is a cheap robustness check.
+
+##### Three Indicators and Four Estimands
+
+Let $D_i = 1$ if startup $i$ is born in the recession, $Z_{1i} = 1$ if its first action actually arrives in the recession, and $Z_{2i}$ the *predicted* version of $Z_{1i}$. The prediction uses only the filing date, the administrative lag until the application is docketed with an examiner, and the examiner's historic average review speed $\bar{s}_j$:
+
+$$
+\hat{t}_i = t^{\text{app}}_i + t^{\text{docket}}_i + \bar{s}_{j(i)}, \qquad
+Z_{2i} = \mathbb{1}\{\text{Dec 2007} \le \hat{t}_i \le \text{Jun 2009}\}.
+$$
+
+The distinction between $Z_1$ and $Z_2$ matters because examiners need not process their queue in strict date order. If they move some applications forward once the recession arrives, and the ones they move differ in quality, the actual timing $Z_1$ is no longer random even though the assignment of examiners was. In @bias2026great, applications handled in strict date order come from systematically stronger inventors, so examiners appear to have pulled weaker applications forward in the recession. The predicted timing $Z_2$ is immune to this because it is a function of the assignment alone.
+
+With art unit by application year fixed effects $\alpha_{a(i)y(i)}$, the four estimates are
+
+1.  Naive OLS of $Y_i$ on $D_i$, which carries selection and sorting.
+2.  The intention-to-treat effect of actual timing, $Y_i$ on $Z_{1i}$, causal only if examiners keep date order.
+3.  The *bias-corrected* intention-to-treat effect, $Y_i$ on $Z_{1i}$ instrumented by $Z_{2i}$. It requires only that $Z_2$ be as good as randomly assigned, it has the sign of the effect on compliers, and it is a conservative lower bound on that effect because it averages over firms that ignore the invitation.
+4.  The local average treatment effect, $Y_i$ on $D_i$ instrumented by $Z_{2i}$, which additionally requires a first stage, monotonicity, and the exclusion restriction [@angrist2009mostly].
+
+Patent news can only shift the birth of a startup that is waiting for it; for a firm founded years before or after its first action, the timing of the news is irrelevant. @bias2026great therefore restrict the baseline sample to the 3,870 startups born within a three-year window centered on the first-action year, where the news is most likely to shape launch timing and where the noisy predicted timing $Z_2$ still carries a usable signal. Non-compliance runs both ways: never-takers receive the news in the recession and wait for the recovery, and always-takers start in the recession without it.
+
+##### What the Paper Finds
+
+After purging selection and sorting, startups born in the Great Recession do better in the long run: they are more likely to survive seven years, and they grow employment and sales faster. Growth differences among survivors are smaller, so much of the gain is that recession entry keeps more marginal startups alive. The effect is specific to startups: young innovative firms that were already operating when their patent news arrived show no lasting effect.
+
+The mechanism is not the absence of the usual procyclical forces. Startups whose birth coincides with falling local house prices, a familiar collateral channel, are more likely to die, and higher local unemployment at birth is associated with worse rather than better outcomes, which argues against the idea that recessions push better founders into entrepreneurship. These forces are outweighed by labor mobility. When incumbents stop hiring, recession startups keep their founding inventors: one year after the patent news, a founding inventor is 22.4 percentage points more likely to still be there. Retention is followed by more follow-on patents and by patent portfolios that are larger and more cited. The imprint of a recession on these firms is positive, which runs opposite to the long-term scarring found for workers who enter the labor market in a downturn [@oreopoulos2012short; @schwandt2019unlucky].
+
+One threat specific to this design concerns who enters the sample at all. Outcomes exist only for inventions that become startups, and recession-timed patent news raises the probability that an invention is commercialized by 1.5 percentage points. Conditioning on launch could then select different inventions in the two arms even though the news itself is random. @bias2026great bound this with the trimming procedure of @lee2009training; the lower bounds remain positive for all three outcomes.
+
+##### Testing the Assumptions
+
+Three diagnostics accompany the estimates, and each transfers to other timing designs.
+
+-   *No first stage, no reduced form* [@angrist2010multiple]. In a sample where the instrument cannot move treatment, such as startups that were operating long before their patent news, the reduced form of $Y$ on $Z_2$ must be zero. A nonzero reduced form there means $Z_2$ reaches outcomes by some route other than birth timing, for instance if a recession-dated patent changed how investors read the firm.
+-   *Monotonicity by subgroup* [@dobbie2018effects]. With no defiers, the first stage must be nonnegative in every subsample defined by pre-assignment characteristics (team size, prior patents, pro se filing). The judge-style joint test of @frandsen2023judging does not apply: there, monotonicity restricts the observable behavior of the decision-maker, whereas here it restricts the unobservable behavior of the assignee, as in a randomized trial with imperfect take-up.
+-   *Profiling compliers* [@marbach2020profiling]. The shares of compliers, always-takers, and never-takers follow from the first stage, and their mean characteristics follow from weighted moments. If compliers resemble the full sample, the local estimate speaks to the broader population.
+
+##### A Worked Simulation
+
+A simulation comes first because it is the only place where the truth is known, so it shows which estimator recovers which estimand; the real data follow in the next subsection. Every number this chunk prints is simulation output. Sixty art units each have twelve examiners whose review times range from under one year to four and a half years. Startups file from 2002 to 2009 and are assigned to examiners at random within the art unit. During the recession, examiners pull half of the weak applications due in the following year forward into it. Half the startups are waiting on their patent news to launch; among them, always-takers are weaker on average (forced entrepreneurs), never-takers have small gains from a recession birth (sorting), and compliers are born when the news arrives. The outcome is seven-year survival, and examiner speed has its own small negative direct effect.
+
+```{r grb-timing-sim, message=FALSE, warning=FALSE}
+library(dplyr)
+library(fixest)
+setFixest_notes(FALSE)
+
+grb_rec <- c(2007 + 11/12, 2009.5)           # NBER dates: Dec 2007 to Jun 2009
+grb_in_rec <- function(t) as.integer(t >= grb_rec[1] & t < grb_rec[2])
+
+grb_simulate <- function(n_au = 60, n_exam = 12, per_cell = 30,
+                         direct = 0, seed = 2007) {
+    set.seed(seed)
+    ex <- expand.grid(exam = 1:n_exam, au = 1:n_au)
+    ex$speed <- runif(nrow(ex), 0.8, 4.5)        # examiner's historic review time, years
+
+    firms <- expand.grid(k = 1:per_cell, ay = 2002:2009, au = 1:n_au) |>
+        mutate(exam   = sample.int(n_exam, n(), replace = TRUE),  # random within art unit
+               t_app  = ay + runif(n()),
+               docket = runif(n(), 0.1, 0.4),
+               q      = rnorm(n()),                               # idea and team quality
+               team   = rbinom(n(), 1, plogis(q)),                # observable proxies of q
+               pro_se = rbinom(n(), 1, plogis(-1 - q))) |>
+        left_join(ex, by = c("au", "exam")) |>
+        mutate(t_pred = t_app + docket + speed,                   # predicted decision date
+               Z2     = grb_in_rec(t_pred),
+               t_act  = t_pred + rnorm(n(), 0, 0.2))
+
+    # Examiners depart from date order in the recession: half of the weak
+    # applications due in the year after it are pulled forward into it.
+    pull <- with(firms, q < -0.5 & t_act >= grb_rec[2] & t_act < grb_rec[2] + 1 &
+                        runif(nrow(firms)) < 0.5)
+    firms$t_act[pull] <- runif(sum(pull), grb_rec[1], grb_rec[2])
+    firms$Z1 <- grb_in_rec(firms$t_act)
+
+    firms |>
+        mutate(
+            responsive = rbinom(n(), 1, 0.5),   # launch waits on the patent news
+            tau  = 0.12 + 0.10 * rnorm(n()),     # effect of a recession birth on survival
+            type = case_when(
+                runif(n()) < plogis(-1.8 - 0.8 * q)           ~ "always",   # forced entrepreneurs
+                runif(n()) < plogis(-0.3 - 15 * (tau - 0.12)) ~ "never",    # sort on low gains
+                TRUE                                           ~ "complier"),
+            D = case_when(
+                responsive == 0  ~ rbinom(n(), 1, 0.17),  # born years before the news
+                type == "always" ~ 1L,
+                type == "never"  ~ 0L,
+                TRUE             ~ Z1),
+            p0 = pmin(pmax(0.62 + 0.12 * q - 0.02 * (speed - 2.6) + 0.03 * (au %% 5), 0.02), 0.98),
+            p1 = pmin(pmax(p0 + tau, 0.02), 0.98),
+            Y  = rbinom(n(), 1, pmin(ifelse(D == 1, p1, p0) + direct * Z2, 1))  # 7-year survival
+        )
+}
+
+grb <- grb_simulate()
+grb_resp <- filter(grb, responsive == 1)
+table(`Actual timing Z1` = grb_resp$Z1, `Predicted timing Z2` = grb_resp$Z2)
+```
+
+The cross-tabulation shows the two timing indicators agree for most startups. The off-diagonal cells are noise in review times plus the weak applications pulled forward, and the second group is what makes $Z_1$ endogenous.
+
+```{r grb-timing-estimates}
+grb_fe <- "au^ay"
+grb_est <- function(d) {
+    r <- filter(d, responsive == 1)
+    b <- function(fml, term) coef(feols(as.formula(fml), r))[[term]]
+    fs_D  <- b(paste("D ~ Z2 |", grb_fe), "Z2")
+    fs_Z1 <- b(paste("Z1 ~ Z2 |", grb_fe), "Z2")
+    late  <- with(filter(r, type == "complier"), mean(p1 - p0))
+    c(`Naive OLS: Y on D`                  = b(paste("Y ~ D |", grb_fe), "D"),
+      `ITT: Y on actual timing Z1`         = b(paste("Y ~ Z1 |", grb_fe), "Z1"),
+      `Bias-corrected ITT: Z1 by Z2`       = b(paste("Y ~ 1 |", grb_fe, "| Z1 ~ Z2"), "fit_Z1"),
+      `LATE: D by Z2`                      = b(paste("Y ~ 1 |", grb_fe, "| D ~ Z2"), "fit_D"),
+      `LATE: D by Z2, examiner speed control` = b(paste("Y ~ speed |", grb_fe, "| D ~ Z2"), "fit_D"),
+      `True bias-corrected ITT`            = late * fs_D / fs_Z1,
+      `True LATE (compliers)`              = late)
+}
+
+grb_mc <- sapply(1:50, function(s) grb_est(grb_simulate(seed = 2007 + s)))
+grb_fs <- fitstat(feols(as.formula(paste("Y ~ 1 |", grb_fe, "| D ~ Z2")), grb_resp), "ivf1")[[1]]$stat
+
+knitr::kable(data.frame(
+    Estimator = rownames(grb_mc),
+    `Mean over 50 draws` = rowMeans(grb_mc),
+    `SD over 50 draws` = apply(grb_mc, 1, sd),
+    check.names = FALSE, row.names = NULL
+), digits = 3,
+caption = "Effect of a recession birth on seven-year survival among startups whose launch waits on patent news, with art unit by application year fixed effects. The last two rows are the true values of the two causal estimands.")
+```
+
+Table \@ref(tab:grb-timing-estimates) separates the pieces. The naive comparison is less than half the true effect on compliers, because the forced entrepreneurs who choose a recession birth are weaker and the firms that would gain most are the ones that comply. The intention-to-treat estimate on actual timing is lower still, because the examiners' queue-jumping loads weak applications into the recession. Instrumenting actual timing with predicted timing recovers the true bias-corrected intention-to-treat effect, which sits well below the effect on compliers, as a lower bound should. The local average treatment effect is centered on the truth, with a first-stage $F$ of about `r round(grb_fs)` in the first draw, and controlling for examiner speed changes nothing, which is the cancellation argument of the stylized table at work. The price of the larger estimand is precision: its standard deviation across draws is roughly double that of the intention-to-treat effect.
+
+```{r grb-timing-diagnostics}
+# (1) No first stage, no reduced form: startups born long before their patent news
+grb_als <- function(d) {
+    n <- filter(d, responsive == 0)
+    c(`First stage, D on Z2`  = coef(feols(D ~ Z2 | au^ay, n))[["Z2"]],
+      `Reduced form, Y on Z2` = coef(feols(Y ~ Z2 | au^ay, n, cluster = ~au))[["Z2"]],
+      `Reduced form SE`       = se(feols(Y ~ Z2 | au^ay, n, cluster = ~au))[["Z2"]])
+}
+knitr::kable(rbind(`Valid instrument` = grb_als(grb),
+                   `Direct effect of Z2 = 0.05` = grb_als(grb_simulate(direct = 0.05))),
+             digits = 3, caption = "No-first-stage sample: the reduced form flags a direct effect of the instrument.")
+
+# (2) Monotonicity: the first stage must be nonnegative in every subgroup
+grb_sub <- list(`Team` = grb_resp$team == 1, `Solo inventor` = grb_resp$team == 0,
+                `Pro se` = grb_resp$pro_se == 1, `Attorney` = grb_resp$pro_se == 0)
+sapply(grb_sub, function(s) coef(feols(D ~ Z2 | au^ay, grb_resp[s, ]))[["Z2"]])
+
+# (3) Compliance shares and complier profile (Z2 is random unconditionally here)
+grb_profile <- with(grb_resp, c(
+    `Always-taker share`  = mean(D[Z2 == 0]),
+    `Never-taker share`   = 1 - mean(D[Z2 == 1]),
+    `Complier share`      = mean(D[Z2 == 1]) - mean(D[Z2 == 0]),
+    `Mean quality, all`   = mean(q),
+    `Mean quality, always-takers` = mean(q[D == 1 & Z2 == 0]),
+    `Mean quality, never-takers`  = mean(q[D == 0 & Z2 == 1]),
+    `Mean quality, compliers` =
+        (mean(q * D * Z2) / mean(Z2) - mean(q * D * (1 - Z2)) / mean(1 - Z2)) /
+        (mean(D[Z2 == 1]) - mean(D[Z2 == 0]))))
+round(grb_profile, 3)
+```
+
+The diagnostics behave as they should. Among startups that were already operating, predicted timing does not move birth timing, and its reduced form is indistinguishable from zero until a direct effect is planted, at which point the test detects it. The first stage is positive and of similar size in every subgroup, as monotonicity requires. Always-takers are markedly weaker than the average startup, which is the forced-entrepreneur selection that biases the naive comparison, and the compliers' mean quality is estimated from observable moments alone, without identifying any individual complier. Quality is latent here; in practice one profiles observed proxies such as team size, prior patents, and attorney use.
+
+##### Replication with the Authors' Data
+
+The replication package of @bias2026great is public under a CC BY 4.0 licence (Mendeley Data, doi:10.17632/kj65wmpbft.2). It is 10.7 GB because it rebuilds the sample from raw patent and establishment files, but every main table is estimated from one analysis file of 6,538 innovative startups. The file `data/bias_ljungqvist_2026_startups.csv.gz` bundled with this book is a column subset of that file: the assignment and treatment indicators, the fixed-effect identifiers, a few founding-team characteristics, examiner review speed, and the survival and growth outcomes derived by the authors from NETS, with all firm, patent, and examiner identifiers removed. The outcomes are survival to year $k$ after birth and cumulative growth in employment and sales over $k$ years, measured with the bounded growth rate standard in firm dynamics [@haltiwanger2013who], $(x_t - x_0)/[\tfrac{1}{2}(x_t + x_0)]$, so that a firm that exits contributes $-2$.
+
+The code ports the authors' Stata specifications (`reghdfe` and `ivreghdfe`) to `fixest`: art unit by application year and headquarter state fixed effects, standard errors clustered by art unit, and the baseline sample of startups founded within one year of their first-action year. Like `reghdfe`, `fixest` drops singleton fixed-effect cells, which here removes about a fifth of the sample because many art unit by application year cells hold a single startup.
+
+```{r grb-real-data}
+grb_d <- read.csv("data/bias_ljungqvist_2026_startups.csv.gz")
+grb_b <- filter(grb_d, SAMPLE_BASELINE == 1)
+
+grb_out <- c(`Survival`          = "AYEAR%d_survive_emp",
+             `Employment growth` = "AGROWTH%d_empd",
+             `Sales growth`      = "AGROWTH%d_salesd")
+grb_fx <- "ind_year + state_fe"
+
+grb_fit <- function(y, rhs, data = grb_b) {
+    f <- if (grepl("~", rhs)) paste(y, "~ 1 |", grb_fx, "|", rhs) else paste(y, "~", rhs, "|", grb_fx)
+    feols(as.formula(f), data, cluster = ~gau, fixef.rm = "singletons")
+}
+grb_cell <- function(m, term) {
+    p <- pvalue(m)[[term]]
+    sprintf("%.3f%s (%.3f)", coef(m)[[term]],
+            ifelse(p < 0.01, "***", ifelse(p < 0.05, "**", ifelse(p < 0.1, "*", ""))), se(m)[[term]])
+}
+
+grb_specs <- list(`Naive OLS: Y on D`             = c("D", "D"),
+                  `ITT: Y on Z1`                  = c("Z1", "Z1"),
+                  `Bias-corrected ITT: Z1 by Z2`  = c("Z1 ~ Z2", "fit_Z1"),
+                  `LATE: D by Z2`                 = c("D ~ Z2", "fit_D"))
+grb_tab <- do.call(rbind, lapply(names(grb_out), function(o) do.call(rbind, lapply(names(grb_specs), function(s) {
+    data.frame(Outcome = o, Estimator = s,
+               t(sapply(c(1, 3, 5, 7), function(k)
+                   grb_cell(grb_fit(sprintf(grb_out[[o]], k), grb_specs[[s]][1]), grb_specs[[s]][2]))))
+}))))
+names(grb_tab)[3:6] <- paste("Year", c(1, 3, 5, 7))
+
+grb_fs1 <- grb_fit("Z1", "Z2")
+grb_fsD <- grb_fit("D", "Z2")
+knitr::kable(grb_tab, row.names = FALSE,
+             caption = sprintf("Effects of a Great Recession birth on innovative startups, data of Bias and Ljungqvist (2026). Art unit by application year and state fixed effects; standard errors clustered by art unit in parentheses; * p < 0.1, ** p < 0.05, *** p < 0.01. N = %d after removing singletons.", nobs(grb_fs1)))
+```
+
+```{r grb-real-first-stages}
+knitr::kable(data.frame(
+    Regression = c("Z1 on Z2 (for the bias-corrected ITT)", "D on Z2 (for the LATE)"),
+    Coefficient = c(coef(grb_fs1)[["Z2"]], coef(grb_fsD)[["Z2"]]),
+    SE = c(se(grb_fs1)[["Z2"]], se(grb_fsD)[["Z2"]]),
+    `F statistic` = c(wald(grb_fs1, "Z2", print = FALSE)$stat, wald(grb_fsD, "Z2", print = FALSE)$stat),
+    check.names = FALSE), digits = 3,
+    caption = "First stages of the predicted recession timing Z2.")
+
+# Scalars quoted in the text
+grb_txt <- c(F1 = wald(grb_fs1, "Z2", print = FALSE)$stat,
+             FD = wald(grb_fsD, "Z2", print = FALSE)$stat,
+             fsD = coef(grb_fsD)[["Z2"]],
+             itt7 = coef(grb_fit("AYEAR7_survive_emp", "Z1 ~ Z2"))[["fit_Z1"]],
+             late7 = coef(grb_fit("AYEAR7_survive_emp", "D ~ Z2"))[["fit_D"]])
+```
+
+Table \@ref(tab:grb-real-data) reproduces, on real data, the ordering the simulation predicted. Predicted timing is a strong instrument for actual timing, with an $F$ statistic of about `r round(grb_txt[["F1"]])`, and a weaker but adequate one for birth timing, with about `r round(grb_txt[["FD"]])`. The coefficient of `r sprintf("%.2f", grb_txt[["fsD"]])` in the second regression is the share of compliers: roughly one startup in five starts operations when its patent news says to. The naive comparison and the intention-to-treat effect of actual timing are positive but small; on survival neither exceeds five percentage points at any horizon. Once actual timing is instrumented, the seven-year survival effect is about `r sprintf("%.2f", grb_txt[["itt7"]])`, several times the naive estimate, and the effect on compliers is about `r sprintf("%.2f", grb_txt[["late7"]])`. The pattern is the one the design was built to undo: recession-born startups look no better than others in a raw comparison because the firms that choose a recession birth, and the applications examiners pull into the recession, are weaker.
+
+The effects grow with the horizon, which is what an imprinting story predicts and what a short panel would miss. Employment and sales growth move with survival because exits enter the growth measure as $-2$; the authors' estimates conditional on survival are smaller, which locates much of the growth effect in lower mortality. Every coefficient and standard error in Table \@ref(tab:grb-real-data) and in the first stages matches Tables 2, 3, and 6 of the published article to the third decimal. The only difference is the second first-stage $F$, `r sprintf("%.2f", grb_txt[["FD"]])` here against 38.1 in print, because the article reports the Kleibergen and Paap statistic while `wald()` applies a slightly different small-sample correction.
+
+```{r grb-real-diagnostics}
+# Examiner speed as a control: the bias-corrected ITT on 7-year survival
+grb_speed <- feols(AYEAR7_survive_emp ~ mean_lag_dock_fa | ind_year + state_fe | Z1 ~ Z2,
+                   grb_b, cluster = ~gau, fixef.rm = "singletons")
+
+# No reduced form where birth timing was not triggered by the news
+grb_rf <- function(data) sapply(grb_out, function(o) {
+    m <- feols(as.formula(paste(sprintf(o, 7), "~ Z2 | ind3_year + state_fe")), data,
+               cluster = ~gau, fixef.rm = "singletons")
+    grb_cell(m, "Z2")
+})
+knitr::kable(rbind(
+    `Born more than two years from first action` = grb_rf(filter(grb_d, innovative_startup <= 1)),
+    `Baseline sample, not born in the recession (D = 0)` = grb_rf(filter(grb_b, D == 0))),
+    caption = "Reduced form of seven-year outcomes on predicted timing Z2 in samples where Z2 should not matter. Art unit group by application year and state fixed effects.")
+
+# Monotonicity: first stage of D on Z2 by founding-team characteristics
+grb_groups <- c(`Single inventor` = "single_inventor", `Pro se applicant` = "pro_se_applicant",
+                `Inventor's first patent` = "first_patent_min",
+                `Breakthrough first patent` = "fa_break_p90_rrfsim01_appl")
+knitr::kable(do.call(rbind, lapply(names(grb_groups), function(g) {
+    v <- grb_groups[[g]]
+    data.frame(Characteristic = g, Value = c("No", "Yes"),
+               t(sapply(0:1, function(k) {
+                   s <- grb_b[!is.na(grb_b[[v]]) & grb_b[[v]] == k, ]
+                   c(N = nrow(s), `First stage, no FE` = grb_cell(feols(D ~ Z2, s, cluster = ~gau), "Z2"))
+               })), check.names = FALSE)
+})), row.names = FALSE, caption = "First stage of D on Z2 within subgroups.")
+
+c(`Speed-controlled bias-corrected ITT, 7-year survival` = coef(grb_speed)[["fit_Z1"]],
+  `Complier share among the treated` = mean(grb_b$Z2) * coef(grb_fsD)[["Z2"]] / mean(grb_b$D),
+  `Complier share among the untreated` = (1 - mean(grb_b$Z2)) * coef(grb_fsD)[["Z2"]] / (1 - mean(grb_b$D)))
+```
+
+The diagnostics support the design without proving it. Controlling for the examiner's historic review speed leaves the seven-year survival estimate unchanged, so the result is not a review-delay effect in disguise. In the two samples where predicted timing should not matter, because the startups were founded well away from their patent news or were not born in the recession at all, its reduced-form effects on seven-year outcomes are statistically indistinguishable from zero. The first sample needs care in reading: there birth timing is still mechanically related to $Z_2$ through the calendar, so the test rests on the claim that the news did not cause those births, which is why the sample is defined by distance between founding and first action. The first stage is positive and significant in every subgroup, as monotonicity requires, although it is smaller for startups whose first patent was already a breakthrough; the specifications without fixed effects are shown because the fixed effects consume most of the small subgroups through singletons. Breakthrough status follows the text-based measure of @kelly2021measuring. Finally, compliers make up a modestly smaller share of the startups born in the recession than of those born outside it, so recession births contain proportionally more always-takers, the self-selected group whose presence biases the naive comparison.
+
+##### Reusing the Design
+
+The construction is not specific to patents or to the Great Recession. It needs four ingredients:
+
+1.  A queue long enough that applicants cannot foresee the conditions at the end of it.
+2.  Assignment to processors who differ persistently in speed, as good as random within known cells.
+3.  An aggregate shock whose timing is unpredictable at filing.
+4.  A decision that plausibly triggers the action whose timing you study, so that a first stage exists.
+
+With those in hand, the outcome can be anything measured after birth. Within the patent setting, @bias2026great already move from survival and growth to follow-on innovation and inventor retention, and the same assignment could be used for financing structure, founding team composition, pricing and go-to-market strategy, exporting, or acquisition as an exit. The shock need not be a recession: a venture capital boom or bust, an interest rate shift, or a local demand shock dated against the predicted decision would each give a distinct imprinting question. Other administrative queues share the structure, for example trademark examination ahead of a brand launch, regulatory product approvals, or grant and loan reviews, although each requires its own evidence on random assignment and on stable processing speeds. The recurring threats are the ones the patent setting forced into view: processors who reorder their queue once the shock is known (use predicted rather than actual timing), a direct effect of speed itself (show speed is not monotone in treatment and control for it), a sample restricted to responsive units on a criterion that could itself respond to the instrument (check that the restricted share does not vary with $Z_2$), and measurement error in birth dates (which the instrument also corrects).
+
+The design matters outside academic work too. In litigation over regulatory delay, a claimant often argues that a late approval pushed its launch into a downturn and destroyed value. The timing design supplies the counterfactual that argument needs, namely how otherwise similar firms fared when their decision arrived on the other side of the shock, and the evidence above is a caution that the sign of a bad-timing effect cannot be assumed. For an agency choosing whether to accelerate reviews, the same logic implies that faster processing changes not only how soon firms start but which macroeconomic conditions they are born into.
+
