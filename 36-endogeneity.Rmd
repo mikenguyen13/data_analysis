@@ -818,6 +818,296 @@ cat("Frequentist 95% CI for r:",
     "\n")
 ```
 
+### How Large Is Measurement Error in Practice? {#sec-measuring-measurement-error}
+
+The derivations above say that attenuation scales with the reliability ratio $\lambda$, but they say nothing about how small $\lambda$ is in the regressions economists actually run. Validation studies answer that question one variable at a time. @erickson2000measurement estimate that only about half of the variation in Tobin's $q$ reflects marginal $q$, so investment regressions on $q$ understate the true sensitivity by roughly a factor of two. @pancost2026measuring answer it for a whole literature. They exploit a by-product of [instrumental variables](#sec-instrumental-variables) that most applied work ignores: a valid instrument removes measurement error from the regressor at the same time as it removes omitted variable bias and simultaneity, so the gap between an OLS estimate and its IV counterpart carries information about how well the regressor measures the construct it stands for.
+
+Their sample is 2,848 OLS and IV pairs from 391 papers published between 2010 and 2020 in the *American Economic Review*, *Econometrica*, the *Journal of Political Economy*, the *Quarterly Journal of Economics*, the *Review of Economic Studies*, the *Journal of Finance*, the *Journal of Financial Economics*, and the *Review of Financial Studies*. The headline is that measurement error shrinks reported OLS coefficients by a factor of two to four, and that this survives corrections for weak instruments, publication bias, instrument invalidity, and heterogeneous effects.
+
+#### Measurement Error Interacts With Omitted Variables {#sec-me-ovb-interaction}
+
+Let the outcome depend on a construct $\xi$ that the researcher observes only through a proxy $x$:
+
+$$
+y = \beta \xi + u, \qquad x = \xi + \eta .
+$$
+
+Nothing is assumed about $\eta$: it may be classical noise, it may be correlated with $\xi$ or $u$, or it may reflect a construct mismatch such as a binary indicator standing in for a continuous concept. The OLS slope of $y$ on $x$ converges to
+
+$$
+\beta_{OLS} = \lambda \beta + \delta, \qquad
+\lambda \equiv \frac{\text{cov}(x, \xi)}{\text{var}(x)}, \qquad
+\delta \equiv \frac{\text{cov}(x, u)}{\text{var}(x)} .
+$$
+
+Here $\lambda$ is the coefficient from a hypothetical regression of the true construct on the proxy. Under classical error it equals the reliability ratio of Section \@ref(sec-classical-measurement-error), and $\lambda = 1$ means the proxy is perfect. The term $\delta$ is the omitted variable bias. A valid instrument recovers $\beta$ itself, so $\beta_{IV} = \beta$.
+
+Writing the two biases together has two consequences that the separate treatments above hide.
+
+1.  IV can exceed OLS even when the omitted variable bias is positive. OLS falls below IV whenever $\delta < (1 - \lambda)\beta$. With $\lambda = 0.265$, the baseline estimate of @pancost2026measuring, an upward omitted variable bias as large as 73 percent of the true effect still leaves OLS below IV. This is a candidate explanation for a long-standing puzzle. @card2001estimating documented that IV returns to schooling usually exceed OLS returns although ability bias should push the other way, @jiang2017have found the same pattern in corporate finance, and @lal2024much found it across 67 replicated political science studies. In the Pancost and Schaller sample, among pairs where the authors themselves expect IV to be smaller than OLS, IV is larger in absolute value 76 percent of the time, and the mean ratio $|\hat\beta_{IV}/\hat\beta_{OLS}|$ exceeds eight.
+2.  Attenuation no longer means "biased toward zero." OLS has the wrong sign whenever $\delta < -\lambda\beta$. With $\lambda = 0.265$, a downward omitted variable bias of about a quarter of the true effect is enough to flip the sign. Once measurement error is severe, the OLS coefficient is mostly a reading of the omitted variable bias.
+
+#### The Meta-OLS Estimator {#sec-meta-ols-proxy-quality}
+
+Suppose we collect $J$ published pairs $(\hat\beta_{OLS,j}, \hat\beta_{IV,j})$ together with the IV standard errors $\sigma_{IV,j}$. If the true effects $\beta_j$ vary across regressions, the omitted variable biases $\delta_j$ are uncorrelated with the $\beta_j$, proxy quality $\lambda_j$ is independent of both, and there is no simultaneity, then a regression of OLS estimates on IV estimates,
+
+$$
+\hat\beta_{OLS,j} = a + b\, \hat\beta_{IV,j} + v_j ,
+$$
+
+has a slope that converges to $\bar\lambda \rho^2$, where $\bar\lambda = E[\lambda_j]$ and
+
+$$
+\rho^2 \equiv 1 - \frac{E[\sigma_{IV,j}^2]}{\text{var}(\hat\beta_{IV,j})} .
+$$
+
+The factor $\rho^2$ is itself a reliability ratio: the reported IV estimates are noisy measures of the $\beta_j$, so the meta-regression has its own errors-in-variables problem, and $\rho^2$ is the share of the cross-study variance in $\hat\beta_{IV,j}$ that is signal rather than sampling noise. The estimator is therefore
+
+$$
+\hat{\bar\lambda} = \frac{\hat b}{\hat\rho^2} .
+$$
+
+Identification comes from the slope, not the level. The omitted variable biases move the intercept, and the cross-study spread in true effects supplies the variation. Without measurement error the cloud of points lies parallel to the 45 degree line; with it, the cloud is flatter.
+
+When the underlying regressions also suffer from simultaneity, $\delta_j$ depends on $\beta_j$ and the meta-OLS slope is biased. @pancost2026measuring then multiply each OLS estimate by its first-stage coefficient and instrument the reduced-form coefficient with the IV estimate. On the 582 pairs from 67 papers that report first stages, this meta-IV estimator gives $\bar\lambda$ between 0.42 and 0.43.
+
+#### Simulation: Recovering Proxy Quality From OLS and IV Pairs {#sec-measuring-me-simulation}
+
+The simulation below builds a literature of 1,000 studies. True effects vary across studies, omitted variable bias is positive on average (so theory would predict IV below OLS), proxy quality averages 0.30, and IV standard errors are drawn from a skewed distribution like the ones published papers report.
+
+```{r measme-sim}
+set.seed(2026)
+
+sim_literature <- function(J = 1000, lambda_mean = 0.30) {
+    beta   <- rnorm(J, mean = 0.20, sd = 0.30)          # true effects
+    delta  <- rnorm(J, mean = 0.03, sd = 0.08)          # omitted variable bias
+    lambda <- rbeta(J, 3, 3 * (1 - lambda_mean) / lambda_mean)
+    se_iv  <- exp(rnorm(J, log(0.10), 0.6))
+    se_ols <- se_iv / 4
+    data.frame(
+        b_ols  = lambda * beta + delta + se_ols * rnorm(J),
+        b_iv   = beta + se_iv * rnorm(J),
+        se_iv  = se_iv,
+        se_ols = se_ols
+    )
+}
+
+meta_ols <- function(b_ols, b_iv, se_iv) {
+    b    <- cov(b_ols, b_iv) / var(b_iv)
+    rho2 <- 1 - mean(se_iv^2) / var(b_iv)
+    c(slope = b, rho2 = rho2, lambda = b / rho2)
+}
+
+lit <- sim_literature()
+round(meta_ols(lit$b_ols, lit$b_iv, lit$se_iv), 3)
+
+same_sign <- sign(lit$b_ols) == sign(lit$b_iv)
+c(share_iv_larger = mean(abs(lit$b_iv[same_sign]) > abs(lit$b_ols[same_sign])),
+  share_sign_flip = mean(!same_sign))
+```
+
+The naive meta-slope understates proxy quality because the IV estimates are noisy; dividing by $\hat\rho^2$ undoes that. The literature also reproduces the puzzle: although omitted variable bias pushes OLS up, most IV estimates are larger than their OLS partners. Repeating the exercise shows that the corrected estimator is centred on the truth while the naive slope is not.
+
+```{r measme-mc}
+set.seed(11)
+mc <- t(replicate(300, {
+    d <- sim_literature()
+    meta_ols(d$b_ols, d$b_iv, d$se_iv)
+}))
+
+knitr::kable(
+    data.frame(
+        Estimator = c("Naive meta-OLS slope", "Corrected (slope / rho squared)"),
+        Mean      = colMeans(mc[, c("slope", "lambda")]),
+        SD        = apply(mc[, c("slope", "lambda")], 2, sd)
+    ),
+    digits = 3, row.names = FALSE,
+    caption = "Monte Carlo distribution of the meta-OLS estimator over 300 simulated literatures of 1,000 studies each. True average proxy quality is 0.30."
+)
+```
+
+#### Replicating the Published Estimates {#sec-measuring-me-replication}
+
+The hand-collected dataset is not posted with the article, so a full rerun is not possible. Four pieces can be checked from what the paper prints.
+
+The first is the baseline arithmetic. On the 1,040 normalized pairs from 139 papers (each coefficient multiplied by $\hat\sigma_x / \hat\sigma_y$ so that units are comparable), the meta-OLS slope is 0.201 and $\hat\rho^2 = 0.759$, so $\hat{\bar\lambda} = 0.201 / 0.759 = 0.265$.
+
+The second is the bound for instrument invalidity. If instruments violate the exclusion restriction, the IV estimates contain their own error, and the meta-OLS estimate becomes a lower bound. Following the classic forward and reverse regression argument, the upper bound is the inverse of the reverse meta-regression slope after correcting both sides for sampling noise:
+
+$$
+\frac{\hat b}{\hat\rho^2} \;\le\; \bar\lambda \;\le\; \frac{\hat p^2\, \text{var}(\hat\beta_{OLS})}{\hat b\, \text{var}(\hat\beta_{IV})},
+\qquad \hat p^2 = 1 - \frac{E[\sigma^2_{OLS,j}]}{\text{var}(\hat\beta_{OLS,j})} .
+$$
+
+The chunk below recomputes both bounds from the summary statistics printed in the paper's invalidity table.
+
+```{r measme-bounds}
+ps_tab14 <- data.frame(
+    Sample        = c("All pairs", "One per paper", "Finance", "Economics"),
+    lambda_lower  = c(0.265, 0.447, 0.323, 0.242),
+    rho2          = c(0.759, 0.788, 0.792, 0.743),
+    p2            = c(0.836, 0.882, 0.851, 0.826),
+    var_iv        = c(0.370, 0.425, 0.298, 0.389),
+    var_ols       = c(0.046, 0.085, 0.038, 0.048),
+    printed_upper = c(0.523, 0.499, 0.427, 0.569)
+)
+
+ps_tab14 <- within(ps_tab14, {
+    slope       <- lambda_lower * rho2
+    recomputed_upper <- p2 * var_ols / (slope * var_iv)
+})
+
+knitr::kable(
+    ps_tab14[, c("Sample", "lambda_lower", "printed_upper", "recomputed_upper")],
+    digits = 3, row.names = FALSE,
+    col.names = c("Sample", "Lower bound", "Upper bound (printed)", "Upper bound (recomputed)"),
+    caption = "Invalidity bounds on average proxy quality, recomputed from the summary statistics in Pancost and Schaller (2026)."
+)
+```
+
+The recomputed upper bounds match the printed ones to within the rounding of the three-digit inputs. Even at the upper bound, average proxy quality is below 0.6.
+
+The third piece is the structural model of publication bias. Studies draw a true effect $\beta_j \sim N(\mu_\beta, \sigma_\beta^2)$ and an omitted variable bias $\delta_j \sim N(\mu_\delta, \sigma_\delta^2)$, OLS converges to $\lambda\beta_j + \delta_j$, standard errors are jointly lognormal, and an insignificant IV estimate is published only with probability $\bar p$. The authors estimate $\bar p$ from the pairwise statistic of @andrews2019identification and the remaining parameters by indirect inference. The chunk below takes their reported parameter values, simulates a large literature, keeps only the "published" studies, and compares the resulting moments with the data moments the model was fitted to.
+
+```{r measme-pubbias}
+set.seed(49)
+J  <- 1e6
+pb <- list(pbar = 0.0769, lambda = 0.513, mu_b = 0.109, sd_b = 0.29,
+           mu_d = -0.0177, sd_d = 0.0925, mu_iv = -1.63, sd_iv = 0.951,
+           mu_ols = -3.03, sd_ols = 0.959, rho = 0.613)
+
+beta   <- rnorm(J, pb$mu_b, pb$sd_b)
+delta  <- rnorm(J, pb$mu_d, pb$sd_d)
+z1     <- rnorm(J)
+z2     <- pb$rho * z1 + sqrt(1 - pb$rho^2) * rnorm(J)
+se_iv  <- exp(pb$mu_iv + pb$sd_iv * z1)
+se_ols <- exp(pb$mu_ols + pb$sd_ols * z2)
+b_iv   <- beta + se_iv * rnorm(J)
+b_ols  <- pb$lambda * beta + delta + se_ols * rnorm(J)
+pub    <- abs(b_iv / se_iv) >= 1.96 | runif(J) < pb$pbar
+
+moments <- function(k) c(
+    cov(b_ols[k], b_iv[k]) / var(b_iv[k]),
+    mean(b_iv[k]), sd(b_iv[k]), mean(b_ols[k]), sd(b_ols[k]),
+    mean(se_iv[k]), sd(se_iv[k]), mean(se_ols[k]), sd(se_ols[k]),
+    cor(se_iv[k], se_ols[k])
+)
+
+knitr::kable(
+    data.frame(
+        Moment = c("Meta-OLS slope", "Mean IV estimate", "SD IV estimate",
+                   "Mean OLS estimate", "SD OLS estimate", "Mean IV std. error",
+                   "SD IV std. error", "Mean OLS std. error", "SD OLS std. error",
+                   "Corr. of std. errors"),
+        Data      = c(0.201, 0.181, 0.608, 0.0636, 0.216, 0.183, 0.236, 0.054, 0.0686, 0.573),
+        Simulated = moments(pub)
+    ),
+    digits = 3, row.names = FALSE,
+    caption = "Moments of the published literature implied by the structural publication-bias model at the parameter values reported by Pancost and Schaller (2026), against the data moments."
+)
+```
+
+The simulated published literature matches the meta-OLS slope and the dispersion moments closely. The mean IV estimate comes out about 10 percent high and the correlation of standard errors about 0.07 low, gaps that may reflect the 1 percent winsorization the authors apply to the data and that this simulation does not reproduce. The fit is close enough to confirm that the reported parameters describe the model the authors estimated. The more instructive step is to apply the naive meta-OLS estimator to the simulated literature twice, once to every study and once to the published studies only.
+
+```{r measme-pubbias-naive}
+knitr::kable(
+    rbind(
+        "All studies"            = meta_ols(b_ols, b_iv, se_iv),
+        "Published studies only" = meta_ols(b_ols[pub], b_iv[pub], se_iv[pub])
+    ),
+    digits = 3,
+    col.names = c("Meta-OLS slope", "rho squared", "Implied lambda"),
+    caption = "The meta-OLS estimator with and without selective publication. The true average proxy quality in the simulation is 0.513."
+)
+```
+
+On the full literature the estimator returns about 0.52, close to the true 0.513. On the published subset it returns about 0.26, with $\hat\rho^2$ near 0.76, almost exactly the 0.265 and 0.759 the authors obtain from the real data. Selection on significance discards the noisiest IV estimates, which raises $\hat\rho^2$ more than it raises the slope. So the baseline estimate of 0.265 and the publication-bias-corrected estimate of 0.513 are the two ends of the "two to four times" range in the abstract, and even the upper end says that measurement error halves the typical published coefficient.
+
+The fourth piece is an application to a classic table. The paper reports that applying the meta-OLS estimator to the 21 OLS and IV pairs in Table II of @card2001estimating gives $\bar\lambda = 0.51$, and 0.39 after dropping the two Ichino and Winter-Ebmer estimates. The chunk below transcribes that table, using the first IV estimate where Card reports two.
+
+```{r measme-card}
+card_tab2 <- read.table(header = TRUE, text = "
+study          ols    iv     se_iv
+AK_1920s       0.070  0.101  0.033
+AK_1930s       0.063  0.060  0.030
+AK_1940s       0.052  0.078  0.030
+SS_1930s       0.063  0.098  0.015
+SS_1940s       0.052  0.088  0.018
+KR_no_test     0.080  0.091  0.033
+KR_test        0.063  0.094  0.042
+Card_1995      0.073  0.132  0.049
+CU_exclude     0.085  0.110  0.024
+CU_include     0.083  0.098  0.035
+HW             0.061  0.153  0.015
+IWE_Austria    0.518  0.947  0.343
+IWE_Germany    0.289  0.590  0.844
+LC_1971        0.070  0.164  0.053
+LC_1981        0.062  0.076  0.022
+MP_SLLS        0.028  0.036  0.021
+MP_IS          0.222  0.245  0.082
+Maluccio_nosel 0.073  0.145  0.041
+Maluccio_sel   0.063  0.113  0.033
+Duflo_hourly   0.078  0.064  0.025
+Duflo_monthly  0.057  0.064  0.017
+")
+
+no_iwe <- !grepl("IWE", card_tab2$study)
+years  <- !grepl("IWE|MP_IS|KR_", card_tab2$study)
+
+knitr::kable(
+    rbind(
+        "All 21 pairs"                = with(card_tab2, meta_ols(ols, iv, se_iv)),
+        "Without Ichino-Winter-Ebmer" = with(card_tab2[no_iwe, ], meta_ols(ols, iv, se_iv)),
+        "Years of schooling only"     = with(card_tab2[years, ], meta_ols(ols, iv, se_iv))
+    ),
+    digits = 3,
+    col.names = c("Meta-OLS slope", "rho squared", "Implied lambda"),
+    caption = "Meta-OLS estimator applied to the returns-to-schooling studies in Card (2001, Table II)."
+)
+```
+
+This piece does not replicate cleanly, and it is worth seeing why. The uncorrected slope on all 21 pairs is 0.514, numerically the paper's 51 percent, but dropping the Ichino and Winter-Ebmer rows raises the slope instead of lowering it to 0.39, and the paper does not say which IV it used for the three rows with two. The sampling correction is also unusable here: one German IV estimate has a standard error of 0.844, so with only 21 studies it dominates $E[\sigma^2_{IV}]$ and pushes $\hat\rho^2$ toward zero. The table also mixes units (years, college credit equivalents, a high school dummy, a college dummy), which is exactly the problem the paper's normalization by $\hat\sigma_x/\hat\sigma_y$ addresses but Card's table does not allow. Restricting to the 16 regressions measured in years of schooling gives $\hat{\bar\lambda}$ near 0.68 with a standard error around 0.33. The lesson is practical: the estimator is built for hundreds of comparable pairs, and with a few dozen the noise correction is fragile.
+
+#### A How-To for Your Own OLS and IV Pairs {#sec-measuring-me-howto}
+
+The same logic works inside a single research program, for example a set of specifications that instrument the same proxy across samples, outcomes, or instruments. The function below returns the meta-OLS estimate, a delta-method standard error that is cluster-robust at whatever level you supply (paper, sample, or instrument), and the invalidity upper bound when OLS standard errors are available. Put coefficients in comparable units first, for instance by scaling each by $\hat\sigma_x/\hat\sigma_y$.
+
+```{r measme-howto}
+proxy_quality <- function(b_ols, b_iv, se_iv, se_ols = NULL, cluster = seq_along(b_iv)) {
+    fit  <- lm(b_ols ~ b_iv)
+    X    <- model.matrix(fit)
+    e    <- resid(fit)
+    bread <- solve(crossprod(X))
+    meat  <- Reduce(`+`, lapply(split(seq_along(e), cluster), function(i) {
+        s <- crossprod(X[i, , drop = FALSE], e[i])
+        s %*% t(s)
+    }))
+    G      <- length(unique(cluster))
+    V      <- G / (G - 1) * bread %*% meat %*% bread
+    slope  <- unname(coef(fit)[2])
+    rho2   <- 1 - mean(se_iv^2) / var(b_iv)
+    out <- c(lambda = slope / rho2, se = sqrt(V[2, 2]) / rho2, slope = slope, rho2 = rho2)
+    if (!is.null(se_ols)) {
+        p2  <- 1 - mean(se_ols^2) / var(b_ols)
+        out <- c(out, upper_bound = p2 * var(b_ols) / (slope * var(b_iv)))
+    }
+    out
+}
+
+round(with(lit, proxy_quality(b_ols, b_iv, se_iv, se_ols)), 3)
+```
+
+Read the output as a range. The meta-OLS estimate is the right number if instruments are valid; the upper bound is the right number if instrument invalidity is the only other problem. A value of $\hat\rho^2$ below about 0.3 is a warning that the IV estimates are too noisy, relative to their spread, for the correction to be stable.
+
+#### Where This Matters in Practice {#sec-measuring-me-practice}
+
+-   Reading an IV estimate that is larger than OLS. A large IV to OLS ratio is often taken as a sign of a weak or invalid instrument, or of a complier effect that differs from the average. Those explanations remain possible, but measurement error produces the same pattern on its own. Given an OLS estimate, an IV estimate, and a range for the omitted variable bias, the implied proxy quality is $\lambda = (\hat\beta_{OLS} - \delta) / \hat\beta_{IV}$. If the implied $\lambda$ is in the 0.2 to 0.5 range that the cross-literature evidence suggests is typical, measurement error is a sufficient explanation and the instrument need not be blamed for the gap.
+-   Expert work in antitrust and damages. Many regressions in litigation use proxies for the construct that matters legally: concentration indices for market power, list prices for transaction prices, survey scores for consumer confusion, a bank account dummy for access to finance. @pancost2026measuring find average proxy quality of 0.24 for ratio variables, 0.38 for first differences, and 0.17 for binary regressors, and binary proxies of continuous constructs are the worst because the construct mismatch is itself non-classical error. An expert who presents an OLS pass-through or elasticity built on such a proxy should expect a court or opposing expert to ask how much of the gap to the economic quantity is attenuation, and should be ready with a reliability argument, a repeated measure, or an instrument.
+-   Investing in measurement. Because the typical published coefficient is attenuated by a factor of two or more, improving the regressor can reduce bias as much as finding a natural experiment. Repeated measurements, [higher-moment estimators](#sec-higher-moment-iv) (Section \@ref(sec-higher-moment-iv)), validation subsamples, and text-based measures that track the construct more closely are all ways to raise $\lambda$ without an instrument.
+-   Meta-analysis and calibration. Elasticities and pass-through rates averaged from OLS studies inherit the attenuation of every study in the average. When a policy model is calibrated to such numbers, the meta-OLS estimate gives a rough multiplier for how far the pooled OLS figure is likely to sit below the causal one.
+
+Three caveats keep the estimate in its place. It is an average over a literature, not a correction factor for any single regression. It leans on valid instruments and on the IV estimand being the effect of interest, which is why the invalidity bound and the authors' heterogeneity analysis matter. And because selective publication interacts with the noise correction, the [publication bias](#sec-publication-bias) (Section \@ref(sec-publication-bias)) in the literature you pool is part of the estimate, as the simulation above shows.
+
 ### Measurement Error in Machine-Learning-Generated Regressors {#sec-ml-generated-regressors}
 
 A fast-growing empirical practice combines supervised machine learning with regression in a two-phase workflow. In the first phase, a model is trained on a labeled sample to predict a variable of interest from features. In the second phase, the model's predictions are used as an independent variable in a regression to draw a causal or descriptive inference. Researchers reach for this design whenever the variable they care about is expensive to observe but cheap to predict. @cengiz2022seeing train a boosted tree to predict which workers are affected by minimum-wage changes and then estimate the effect of those changes on labor-market outcomes. @moreno2014doing mine sentiment from user-generated text and study its effect on purchasing. @zhang2022makes use deep learning to score the quality of Airbnb listing photographs and then estimate how image quality drives demand. In each case a predicted variable stands in for one that was never directly measured at scale.
