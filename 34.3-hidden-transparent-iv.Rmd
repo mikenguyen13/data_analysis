@@ -1,0 +1,330 @@
+### Hidden and Transparent Instruments {#sec-hidden-transparent-iv}
+
+Most discussions of instrumental variables ask two questions about an instrument. Is it relevant? Does it satisfy the exclusion restriction? A third question matters whenever the outcome is a price set by someone who forms beliefs: **does the price setter observe the instrument?** @aryal2022signaling show that the answer changes the estimand. The same exogenous shock to schooling identifies the private return to education when employers cannot see it. It identifies the social return when employers can see it. The gap between the two is the signaling value of education.
+
+The idea travels well beyond labor economics. Any market where a receiver prices an observable action of a sender, while the sender's quality stays partly hidden, has the same structure. Advertising, prices, credit ratings, certifications, exchange labels, and institution names all fit. This section develops the framework, derives what each type of instrument identifies, shows how to recover the signaling share and the speed of learning, and simulates the full estimation pipeline in R. It closes with a template for applying the design in marketing and finance, together with the threats that referees will raise.
+
+#### The Problem: Two Returns, One Regression
+
+Two theories explain why earnings rise with schooling. In the human capital model, schooling raises productivity [@becker1962investment]. In the signaling model, schooling reveals ability that existed before schooling [@spence1973job]. Both predict a positive wage gradient. The distinction matters for policy. Signaling is privately rational but socially wasteful, because resources spent on a signal do not create output.
+
+Define two causal quantities:
+
+-   The **private return** $\delta^{W|S}_t$: the causal effect of one more year of schooling on log wages at experience $t$.
+-   The **social return** $\delta^{\psi|S}_t$: the causal effect of one more year of schooling on log productivity at experience $t$.
+
+The **signaling value** is the difference, $\delta^{W|S}_t - \delta^{\psi|S}_t$.
+
+Employer learning offers a way in. Employers who cannot see ability at first infer it from schooling. As output accumulates, they learn ability directly. The inference from schooling then fades [@farber1996learning; @altonji2001employer; @lange2007speed]. The private return therefore converges to the social return with experience. Earlier work identified bounds on signaling from this logic. It required a proxy for ability and strong assumptions. @aryal2022signaling ask a different question: what does a standard IV estimate identify inside the learning model? The answer hinges on what employers know about the instrument.
+
+#### Model {#sec-hidden-transparent-model}
+
+Let worker $i$ with experience $t$ have log productivity
+
+\begin{equation}
+\psi_{it} = \lambda_t \left( \beta S_i + A_i + \varepsilon_{it} \right) + H(t),
+(\#eq:ht-productivity)
+\end{equation}
+
+where $S_i$ is schooling, $A_i$ is ability unobserved by employers and researchers, $\varepsilon_{it}$ is transient noise, $H(t)$ is a common experience profile, and $\lambda_t$ is the return to skill at experience $t$ with the normalization $\lambda_0 = 1$. When $\lambda_t = 1$ for all $t$, the returns to skill are **experience invariant**.
+
+The social return follows directly:
+
+\begin{equation}
+\delta^{\psi|S}_t = \lambda_t \beta.
+$$
+
+Markets are competitive. The wage equals expected productivity given the employers' information $\mathcal{E}_{it}$, which contains schooling and the history of output signals $\xi_{i\tau} = A_i + \varepsilon_{i\tau}$ for $\tau < t$. Under joint normality of $(S_i, A_i)$ and normal noise, the conditional mean of ability at entry is linear in schooling,
+
+$$
+\mathbb{E}[A_i \mid S_i] = \phi \, S_i,
+$$
+
+and the posterior after $t$ signals is a weighted average
+
+$$
+\mathbb{E}[A_i \mid \mathcal{E}_{it}] = \theta_t \, \phi S_i + (1 - \theta_t) \, \bar{\xi}_i^{\,t},
+\qquad
+\theta_t = \frac{1 - \kappa}{1 + (t - 1)\kappa},
+\qquad
+\kappa = \frac{\sigma_0^2}{\sigma_0^2 + \sigma_\varepsilon^2},
+(\#eq:ht-posterior)
+\end{equation}
+
+where $\sigma_0^2 = \operatorname{Var}(A \mid S)$ and $\bar{\xi}_i^{\,t}$ is the mean of past signals. The weight $\theta_t$ starts at $\theta_0 = 1$ and declines to zero. The parameter $\kappa$ is the **speed of learning**. A high signal to noise ratio gives $\kappa$ near one and fast learning.
+
+Log wages are
+
+\begin{equation}
+\ln W_{it} = \lambda_t \left( \beta + \theta_t \phi \right) S_i + \lambda_t (1 - \theta_t) \left( A_i + \bar{\varepsilon}_i^{\,t} \right) + \tilde{H}(t),
+$$
+
+so the private return is
+
+$$
+\delta^{W|S}_t
+= \underbrace{\lambda_t \beta}_{\text{social return}}
++ \underbrace{\theta_t \, \lambda_t \, \phi}_{\text{signaling value}}.
+(\#eq:ht-wedge)
+\end{equation}
+
+Two features of equation \@ref(eq:ht-wedge) drive everything that follows. The signaling term is positive whenever schooling predicts ability, which is the condition @spence1973job requires. It vanishes as $t \to \infty$ because $\theta_t \to 0$. Employers eventually learn everything, so the private and social returns converge.
+
+#### What an Instrument Identifies {#sec-hidden-transparent-identification}
+
+Let $D_i \in \{0, 1\}$ be a binary instrument. It satisfies the usual conditions:
+
+1.  **Exogeneity.** $D_i$ is independent of the productivity components not caused by schooling, $\lambda_t(A_i + \varepsilon_{it})$.
+2.  **Relevance.** $\mathbb{E}[S_i \mid D_i = 1] \ne \mathbb{E}[S_i \mid D_i = 0]$.
+
+The Wald estimator at experience $t$ is
+
+\begin{equation}
+b_t^{IV} = \frac{\mathbb{E}[\ln W_{it} \mid D_i = 1] - \mathbb{E}[\ln W_{it} \mid D_i = 0]}{\mathbb{E}[S_i \mid D_i = 1] - \mathbb{E}[S_i \mid D_i = 0]}.
+(\#eq:ht-wald)
+\end{equation}
+
+Its probability limit depends on one more assumption about employer information.
+
+**Hidden instrument.** Employers do not observe $D_i$. Wages depend on $D_i$ only through $(S_i, \bar{\xi}_i^{\,t})$. An employer who sees a worker with extra schooling cannot tell whether the extra schooling came from the instrument or from high ability. The employer therefore reads the extra schooling as news about ability:
+
+\begin{equation}
+\operatorname{plim} b_t^{IV,h} = \lambda_t \left( \beta + \theta_t \phi \right) = \delta^{W|S}_t.
+(\#eq:ht-hidden)
+\end{equation}
+
+A hidden instrument identifies the **private return** at every experience level.
+
+**Transparent instrument.** Employers observe $D_i$ and price it. They know the economy's structure, so they know that $D_i$ shifts schooling without shifting ability. Average wages conditional on the instrument equal average productivity conditional on the instrument:
+
+\begin{equation}
+\operatorname{plim} b_t^{IV,t} = \lambda_t \beta = \delta^{\psi|S}_t.
+(\#eq:ht-transparent)
+\end{equation}
+
+A transparent instrument identifies the **social return** at every experience level. Note what this implies. A transparent instrument violates the exclusion restriction for wages, because employers use it directly when setting pay. It still satisfies the exclusion restriction for productivity. That is why it recovers the productivity effect.
+
+**Long run.** For large $t$ both instruments converge to the social return, because the employer's knowledge of the instrument becomes irrelevant once ability is revealed.
+
+::: {.rmdnote}
+The core message: *what the price setter knows about the instrument determines what the instrument identifies.* Before interpreting any IV estimate where the outcome is a price, wage, yield, or valuation set under uncertainty, state whether the instrument is hidden or transparent to that price setter.
+:::
+
+@aryal2022signaling classify instruments from the returns to schooling literature along this axis. Draft lottery numbers interacted with birth year, family background interactions, and field experiments that randomize incentives are plausibly hidden. Local tuition, local labor market conditions, distance to college, and national changes to the school leaving age are plausibly transparent. Many instruments sit in between, which motivates the partially transparent case below.
+
+#### Recovering the Signaling Value and the Speed of Learning
+
+**Experience invariant returns to skill ($\lambda_t = 1$).** A hidden instrument alone is enough. Write $b_0 = \beta + \phi$ for the private return at entry and $b_\infty = \beta$ for the social return. Equation \@ref(eq:ht-hidden) becomes
+
+\begin{equation}
+\operatorname{plim} b_t^{IV,h} = \theta_t(\kappa) \, b_0 + \left(1 - \theta_t(\kappa)\right) b_\infty.
+(\#eq:ht-nlls)
+\end{equation}
+
+Estimate $b_t^{IV,h}$ separately for each $t = 0, \dots, T$. Then fit $(b_0, b_\infty, \kappa)$ by nonlinear least squares. Three experience levels suffice for identification. More levels add precision. The signaling value at $t$ is $\theta_t \phi = \theta_t (b_0 - b_\infty)$.
+
+**Experience varying returns to skill.** A single instrument fails. The decline in the hidden IV estimates could reflect learning, a falling $\lambda_t$, or both. Adding a transparent instrument separates the two:
+
+1.  Estimate $b_t^{IV,t}$ from the transparent instrument for each $t$. Recover $\hat{\lambda}_t = b_t^{IV,t} / b_0^{IV,t}$.
+2.  Divide the hidden estimates by $\hat{\lambda}_t$. The ratio follows equation \@ref(eq:ht-nlls).
+3.  Fit $(b_0, b_\infty, \kappa)$ by nonlinear least squares, either sequentially or jointly with step 1.
+
+Two instruments are rarely available for the same population. The two arms usually come from different samples. Combining them requires a **homogeneity assumption**: the experience profile $\lambda_t$ is the same in both samples. The level of the social return $\beta$ may differ across samples. Only its shape over experience must match.
+
+**Summary measures.** The signaling share over a career is best reported in present value terms, since signaling returns arrive early. Two common summaries are the internal rate of return that equates discounted earnings streams with and without an extra year of schooling, and the ratio of discounted signaling gains to discounted private gains.
+
+#### Extensions
+
+**Partially transparent instruments.** Suppose the instrument is transparent to a fraction $\rho$ of employers and hidden from the rest, with $\rho$ unknown. The IV estimand becomes a mixture of the private and social returns. With experience invariant returns, the partially transparent instrument gives a lower bound on the private return and on the signaling value. It still point identifies the speed of learning, because the mixture converges to the social return at the same rate. When the share of informed price setters can be *measured*, for example from media coverage of the shock in each market, the mixture weight becomes data. The bounds then tighten.
+
+**Heterogeneous returns.** In the potential outcomes framework with binary schooling and monotonicity, a hidden instrument identifies the average private return among compliers. A transparent instrument identifies the average social return among compliers [@imbens1994identification]. The signaling share is then a complier quantity. It describes the workers moved by the instrument and may not describe the population.
+
+**Exclusion violations that cancel.** Suppose the instrument also raises ability directly, for instance through better school quality. If the effect is additive, the private and social estimates carry the same bias term. The signaling value, which is their difference, is unaffected. This is a useful robustness property of the difference estimator.
+
+#### Evidence from Norway
+
+@aryal2022signaling use the staggered rollout of Norway's compulsory schooling reform, which raised minimum schooling from seven to nine years between 1960 and 1975. Municipalities adopted the reform in different years. The authors split workers by the municipality where they grew up. Reform timing in the largest municipality of each local labor market was widely known to employers, so the instrument is treated as transparent for workers from those central municipalities. Timing in the many small noncentral municipalities varied widely and was costly to track, so the instrument is treated as hidden for workers from those places.
+
+The hidden IV estimates start near 20 percent at labor market entry, fall sharply within five years, and settle near 5.5 percent after about fifteen years. The transparent IV estimates stay roughly flat near 9 percent across experience, so constant social returns cannot be rejected. The speed of learning is about 0.5, which implies that employers place roughly 16 percent weight on schooling based beliefs after five years. The private internal rate of return is 7.9 percent. About 70 percent of it reflects productivity and about 30 percent reflects signaling.
+
+#### Simulation: The Full Pipeline in R
+
+The simulation below generates two samples from the model above (see [the model setup](#sec-hidden-transparent-model)). One sample is exposed to a hidden instrument. The other is exposed to a transparent instrument. Returns to skill vary mildly with experience, so both arms are needed. The code estimates experience specific 2SLS coefficients with `fixest`, recovers $\hat{\lambda}_t$ from the transparent arm, and fits the learning curve by nonlinear least squares with `stats::nls`.
+
+```{r ht-simulate}
+library(data.table)
+library(fixest)
+library(ggplot2)
+
+set.seed(2022)
+
+# True parameters
+beta_h <- 0.055 # social return in the hidden sample
+beta_t <- 0.085 # social return in the transparent sample (levels may differ)
+kappa  <- 0.50  # speed of employer learning
+sd_A   <- 0.40  # standard deviation of ability
+pi_D   <- 0.60  # first stage: extra years of schooling caused by the instrument
+gamma  <- 1.125 # years of schooling per standard deviation of ability
+sd_v   <- 2.00  # other schooling noise
+sd_eps <- sd_A * sqrt((1 - kappa) / kappa) # noise that delivers the chosen kappa
+T_max  <- 20
+lambda <- 1 + 0.15 * sin(seq(0, pi, length.out = T_max + 1)) # experience varying skill returns
+theta  <- function(t, k) (1 - k) / (1 + (t - 1) * k)
+
+# Slope employers use to read ability from schooling at entry (population projection)
+phi_emp <- (gamma * sd_A) / (pi_D^2 * 0.25 + gamma^2 + sd_v^2)
+
+simulate_sample <- function(n, beta, transparent) {
+  D <- rbinom(n, 1, 0.5)
+  A <- rnorm(n, 0, sd_A)
+  S <- 12 + pi_D * D + gamma * A / sd_A + rnorm(n, 0, sd_v)
+  # Employer prior on ability at entry
+  prior <- if (transparent) {
+    # Employers see D and know it moves S without moving A, so they net it out
+    fitted(lm(A ~ I(S - pi_D * D)))
+  } else {
+    fitted(lm(A ~ S))
+  }
+  eps <- matrix(rnorm(n * T_max, 0, sd_eps), n, T_max)
+  rbindlist(lapply(0:T_max, function(t) {
+    xi_bar <- if (t == 0) 0 else A + rowMeans(eps[, seq_len(t), drop = FALSE])
+    th <- theta(t, kappa)
+    logw <- lambda[t + 1] * (beta * S + th * prior + (1 - th) * xi_bar) + rnorm(n, 0, 0.05)
+    data.table(t = t, D = D, S = S, logw = logw)
+  }))
+}
+
+hidden_dt      <- simulate_sample(40000, beta_h, transparent = FALSE)
+transparent_dt <- simulate_sample(40000, beta_t, transparent = TRUE)
+```
+
+The schooling equation makes ability predict schooling, so the population projection of ability on schooling has a positive slope. That slope is what employers use to price schooling at entry. The transparent employer nets out the instrument before forming beliefs.
+
+Next, estimate a separate 2SLS regression at each experience level. The `split` argument of `fixest::feols` runs one regression per value of $t$.
+
+```{r ht-estimate}
+iv_by_t <- function(dt) {
+  fits <- feols(logw ~ 1 | S ~ D, data = dt, split = ~t, vcov = "hetero")
+  rbindlist(lapply(seq_along(fits), function(j) {
+    ct <- coeftable(fits[[j]])["fit_S", ]
+    data.table(t = j - 1, est = ct[["Estimate"]], se = ct[["Std. Error"]])
+  }))
+}
+
+est_h <- iv_by_t(hidden_dt)[, arm := "Hidden IV"]
+est_t <- iv_by_t(transparent_dt)[, arm := "Transparent IV"]
+
+# First stage strength in each arm
+fitstat(feols(S ~ D, data = hidden_dt[t == 0]), "f")
+fitstat(feols(S ~ D, data = transparent_dt[t == 0]), "f")
+```
+
+Step 1 recovers the experience profile of skill returns from the transparent arm. Step 2 removes it from the hidden arm and fits the learning curve.
+
+```{r ht-nlls}
+est_t[, lambda_hat := est / est[t == 0]]
+est_h <- merge(est_h, est_t[, .(t, lambda_hat)], by = "t")
+est_h[, adj := est / lambda_hat]
+
+fit_learning <- nls(
+  adj ~ ((1 - k) / (1 + (t - 1) * k)) * b0 + (1 - (1 - k) / (1 + (t - 1) * k)) * binf,
+  data = est_h,
+  start = list(b0 = 0.15, binf = 0.05, k = 0.3),
+  lower = c(-1, -1, 0.001), upper = c(2, 2, 0.999),
+  algorithm = "port"
+)
+coef(fit_learning)
+```
+
+Compare the estimates with the truth: $b_0 = \beta_h + \phi$, $b_\infty = \beta_h = 0.055$, and $\kappa = 0.5$. Here $\phi$ is the slope employers use at entry, which the code computes as `phi_emp` from the simulated schooling equation.
+
+```{r ht-truth-check}
+c(true_b0 = beta_h + phi_emp, true_binf = beta_h, true_kappa = kappa)
+```
+
+Finally, plot both arms against the model implied private and social returns. The shaded gap is the signaling value.
+
+```{r ht-plot, fig.width = 7, fig.height = 4.5}
+cf <- coef(fit_learning)
+curve_dt <- data.table(t = 0:T_max)
+curve_dt[, `:=`(
+  private = lambda[t + 1] * (theta(t, cf[["k"]]) * cf[["b0"]] + (1 - theta(t, cf[["k"]])) * cf[["binf"]]),
+  social  = lambda[t + 1] * cf[["binf"]]
+)]
+
+ggplot() +
+  geom_ribbon(data = curve_dt, aes(t, ymin = social, ymax = private),
+              fill = "grey80", alpha = 0.7) +
+  geom_line(data = curve_dt, aes(t, private), linewidth = 0.8) +
+  geom_line(data = curve_dt, aes(t, social), linewidth = 0.8, linetype = 2) +
+  geom_pointrange(data = rbind(est_h[, .(t, est, se, arm)], est_t[, .(t, est, se, arm)]),
+                  aes(t, est, ymin = est - 1.645 * se, ymax = est + 1.645 * se, shape = arm),
+                  size = 0.25, position = position_dodge(width = 0.4)) +
+  labs(x = "Years of experience", y = "Return to one more year of schooling",
+       shape = NULL,
+       title = "Hidden and transparent IV estimates across experience",
+       subtitle = "Lines refer to the hidden sample. Solid: private return. Dashed: social return. Shaded: signaling value.") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+A present value summary converts the experience profile into a single signaling share.
+
+```{r ht-pdv}
+r <- 0.023
+disc <- (1 + r)^-(0:T_max)
+pdv_private <- sum(disc * curve_dt$private)
+pdv_social  <- sum(disc * curve_dt$social)
+c(signaling_share = 1 - pdv_social / pdv_private)
+```
+
+#### Reading the Results
+
+Three patterns identify the mechanism. The hidden arm starts high and falls toward a floor. The transparent arm shows no such decline once $\lambda_t$ is accounted for. The floor of the hidden arm, scaled by $\hat{\lambda}_t$, matches the social return. If both arms decline together, the decline reflects skill returns that change with experience. If neither declines, either employers learn very fast or schooling carries little signal.
+
+A practical diagnostic follows from @aryal2022signaling. Test whether the transparent IV estimates are constant across experience with a joint test of $\hat{\lambda}_t = 1$. Failure to reject supports the simpler experience invariant model, which needs only the hidden arm.
+
+#### A Template Beyond Labor Markets {#sec-hidden-transparent-template}
+
+The design applies whenever six ingredients are present. Table \@ref(tab:ht-template) maps each ingredient from the original application to its general form.
+
+| Ingredient | Returns to schooling | General requirement |
+|------------------------|------------------------|------------------------|
+| Observable action | Years of schooling | An action $X$ the receiver observes |
+| Hidden quality | Ability | A trait correlated with $X$ and revealed slowly |
+| Price on expectations | Wage | An outcome set by competing receivers on beliefs |
+| Learning clock | Work experience | Time or interactions that reveal quality |
+| Exogenous shifter | Reform timing | A standard instrument for $X$ |
+| Visibility split | Central versus noncentral birthplace | The shifter is visible to receivers in one sample and invisible in the other |
+
+Table: (\#tab:ht-template) Ingredients of a hidden and transparent instrument design
+
+The last row is the binding constraint in practice. Receivers rarely observe instruments, so most instruments are hidden by default. Credible transparent arms usually come from shocks that are *announced to the receivers themselves*: a labeled surcharge, a published methodology change, a rule printed on the product, or a policy covered heavily in the receivers' own media.
+
+Table \@ref(tab:ht-applications) lists candidate settings in marketing and finance. Each row names the action, the hidden and transparent shifters, the learning clock, and the closest existing work. The existing work column matters, because several of these settings already have a well cited paper on one arm.
+
+| Setting | Action $X$ | Price | Hidden shifter | Transparent shifter | Learning clock | Closest work |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| Advertising as a quality signal | Ad intensity | Sales or willingness to pay | Ad cost shocks consumers never see, such as political ad crowd out [@moshary2021political] | Disclosed subsidized or cooperative campaigns | Customer tenure, repeat purchase | @nelson1974advertising, @milgrom1986price, @ackerberg2003advertising |
+| Price as a quality signal | Posted price | Demand | Input cost shocks absorbed silently | Cost shocks passed through as labeled surcharges, or jurisdictions that mandate or ban fee disclosure | Repeat purchase | @milgrom1986price |
+| Credit ratings | Rating | Yield spread | Rating changes from agency side frictions | Announced scale recalibrations | Time since issuance | @cornaggia2018credit |
+| Exchange labels | Warning or margin ineligibility status | Return, liquidity | Mechanical triggers investors do not track | Rule changes covered in investor media | Subsequent earnings releases | Open |
+| Institution names | Name of the issuing institution | Applications, wages | Renamings unknown to distant employers | Renamings covered in local press | Graduate experience | @eble2025signals |
+| Certification marks | Grade or label displayed | Revenue | Criteria changes consumers do not see | Mandated display rules | Repeat visits | @jin2003effect |
+
+Table: (\#tab:ht-applications) Candidate hidden and transparent designs in marketing and finance
+
+Two adaptations recur. First, the "social return" analog is the direct effect of the action on what the receiver ultimately values. For a rating or a label, the direct effect may be close to zero, apart from regulatory or liquidity channels. A hidden shifter then measures almost pure inference. Second, the learning clock must be observed at the receiver level. Card transaction panels give customer tenure. Bond and equity panels give time since the event. Without a learning clock, the decomposition collapses to a comparison of two LATEs at a single point in time.
+
+A subtle threat arises in advertising. The direct informative effect of an ad also fades as consumers gain experience, so $\lambda_t$ varies with the clock. A hidden arm alone then cannot separate signaling from fading information. One remedy compares experience goods with search goods. @nelson1974advertising predicts that the signaling channel operates only for experience goods, so search goods provide an internal benchmark for the shape of $\lambda_t$.
+
+#### Threats and Checklist
+
+1.  **Justify visibility directly.** The hidden and transparent labels are assumptions about the receivers' information sets. Support them with evidence: media coverage counts, disclosure documents, search volume, or survey data on what receivers knew. When visibility is uncertain, report the partially transparent bounds.
+2.  **Defend homogeneity across samples.** The two arms usually come from different populations. Show that the experience profile of returns is similar on observables, and allow the level of the social return to differ.
+3.  **Report first stages by arm and by experience.** Unbalanced panels change composition across $t$. Show that first stage coefficients are stable.
+4.  **Watch general equilibrium effects.** Large interventions shift the joint distribution of actions and quality in the market, which changes how receivers price the action. The design fits best when the shifter affects a small share of the market.
+5.  **State the market structure.** The derivation assumes competition among receivers and symmetric learning. Monopsony markdowns that are proportional to expected productivity cancel in log specifications. Markdowns that vary with the action do not cancel.
+6.  **Use a balanced window.** Restrict cohorts or experience ranges so that composition does not drift, and show that the learning curve survives.
+
+The approach turns a familiar tool into a measurement device for information. A hidden instrument measures what the market *thinks* the action reveals. A transparent instrument measures what the action *does*. The difference prices the information content of the action itself.
