@@ -1,0 +1,423 @@
+# Adaptive Experiments and Bandits {#sec-adaptive-experiments}
+
+The randomized experiments in Chapter \@ref(sec-experimental-design) fix the assignment mechanism before the first unit arrives. Every unit faces the same probability of each arm, the analysis treats the realized assignment as a draw from that known design, and the difference in means is unbiased because nothing about the design depends on the outcomes. The sequential selection procedure in Section \@ref(sec-sequential-selection) relaxes one part of this, letting the total sample size respond to the accumulating variance estimate, but it deliberately keeps the allocation fixed at $1/K$ and closes with a demonstration that adaptive allocation, not adaptive stopping, is what biases arm estimates.
+
+This chapter takes up the designs that adapt the allocation itself. A multi-armed bandit, a response-adaptive clinical trial, an exploration sampling design for policy choice, and a contextual recommender that updates its policy every night all share one feature: the probability that the next unit receives arm $k$ depends on the outcomes already observed. That feature can buy a great deal. Fewer patients receive an inferior therapy, less advertising budget is spent on a losing creative, and the experiment concentrates its sample where the decision is still in doubt. It also changes what the data can tell us afterwards. Sample means become biased, conventional confidence intervals can lose their coverage, and data logged by an adaptive system become a peculiar kind of observational data whose propensity score is known only if someone wrote it down.
+
+The emphasis here is causal and experimental. The algorithms themselves, including epsilon-greedy, upper confidence bounds, Thompson sampling, and their contextual extensions, are developed at length in the companion book *Advanced Data Analysis*, in the chapters on [multi-armed bandits](https://advanced-data-analysis.netlify.app/063-multi-armed-bandits.html) and [contextual bandits](https://advanced-data-analysis.netlify.app/070-contextual-bandits.html). This chapter treats them as assignment mechanisms and asks the questions an experimenter must answer: what is the estimand, what does the design identify, how should it be analyzed, and when is the adaptivity worth its cost. It follows the chapter on interference (Chapter \@ref(sec-interference-spillover)), and several of the threats raised there return in adaptive form.
+
+## Fixed-Sample Tests Versus Adaptive Designs {#sec-adaptive-vs-fixed}
+
+### The Assignment Mechanism as the Object of Design
+
+Units $t = 1, \dots, T$ arrive in sequence. Each has potential outcomes $Y_t(1), \dots, Y_t(K)$, and the experimenter assigns an arm $A_t$. Write $H_{t-1}$ for the history of assignments and outcomes observed before unit $t$, and $X_t$ for covariates seen at the moment of assignment. The design is summarized by the assignment probabilities
+
+$$
+e_t(k) = \Pr\left(A_t = k \mid H_{t-1}, X_t\right), \qquad k = 1, \dots, K .
+$$
+
+A conventional A/B test sets $e_t(k)$ to a constant such as $1/K$. An adaptive design lets $e_t(k)$ move with $H_{t-1}$. Two facts carry through the rest of the chapter. First, an adaptive design is still a randomized experiment. Conditional on the history, assignment is random with probabilities the experimenter chose, so the sequential analogue of unconfoundedness holds by construction,
+
+$$
+A_t \perp \left\{Y_t(1), \dots, Y_t(K)\right\} \mid H_{t-1}, X_t ,
+$$
+
+and the propensity score is known exactly, as it is in the inverse probability weighting designs of Section \@ref(sec-inverse-probability-weighting). Second, the marginal probability that a unit receives arm $k$ is no longer the same for all units, and it is correlated with the outcomes of earlier units on that arm. The first fact is why valid inference remains possible. The second is why the familiar estimators stop working.
+
+### Two Objectives That Pull Apart
+
+The arms have means $\mu_k = E[Y_t(k)]$ and the best has mean $\mu^\ast = \max_k \mu_k$. Two quantities summarize what a design achieves. The cumulative regret
+
+$$
+\text{Regret}(T) = \sum_{t=1}^{T} \left(\mu^\ast - \mu_{A_t}\right)
+$$
+
+is the outcome forgone during the experiment by not always assigning the best arm. It is the opportunity cost that clinicians, advertisers, and program officers feel directly. The estimation error, by contrast, concerns what is learned. For a contrast $\mu_k - \mu_j$ estimated from $N_k$ and $N_j$ units, the variance is of order $\sigma^2 (1/N_k + 1/N_j)$.
+
+Equal allocation minimizes the variance of every pairwise contrast for a given budget, and in exchange its regret grows linearly in $T$, at rate $\mu^\ast - \bar{\mu}$ where $\bar{\mu}$ is the average arm mean. A good bandit algorithm does the opposite. @lai1985asymptotically showed that any algorithm whose regret is uniformly small must still sample each inferior arm about $\log T$ times, divided by an information distance between that arm and the best, and that this rate is achievable. Logarithmic regret therefore means that inferior arms receive a vanishing share of the sample, and contrasts involving them are estimated with a precision that grows only like $\sqrt{\log T}$ instead of $\sqrt{T}$. @simchilevi2025multi formalize the tension as a multi-objective problem and characterize the designs on the Pareto frontier, where neither regret nor the error in estimating the average treatment effect can be improved without worsening the other.
+
+### When Adaptivity Pays
+
+The conditions under which an adaptive design earns its added complexity can be read from that trade-off.
+
+-   **The outcomes inside the experiment matter.** In a trial where each participant is a patient, or a campaign where each impression costs money, regret is real welfare. When the value of the experiment lies almost entirely in the decision taken after it ends, as in the product launches considered in Section \@ref(sec-sequential-selection), in-experiment regret is a minor term and the precision of the launch decision dominates.
+
+-   **There are many arms and the gaps are large.** With two arms and a small effect, an adaptive design has little to exploit and much to lose in precision. With ten arms of which several are clearly poor, dropping the poor arms early frees most of the sample for the arms still in contention.
+
+-   **Outcomes arrive quickly relative to the assignment cadence.** An algorithm can only adapt to outcomes it has seen. If conversion is measured after thirty days and the experiment runs for six weeks, there is almost nothing to adapt to.
+
+-   **The environment is stable.** Adaptive allocation shifts the arm mix over calendar time. If the outcome itself drifts over calendar time, the two become confounded, a point developed in Section \@ref(sec-adaptive-checklist).
+
+-   **The required output is a decision, not an effect size.** When the stakeholder needs a defensible estimate of how much better the winner is, with a confidence interval, the analysis burden of adaptive data is substantial, and a fixed design with adaptive stopping is often the better tool.
+
+## Adaptive Designs for Different Goals {#sec-adaptive-goals}
+
+"Bandit" is used loosely for any design that shifts traffic toward promising arms. The designs differ in what they optimize, and choosing the wrong objective is a more common failure than choosing the wrong algorithm.
+
+### Regret Minimization
+
+The classic bandit objective is to minimize cumulative regret. Thompson sampling, proposed by @thompson1933likelihood for exactly the clinical setting that motivates much of this chapter, assigns each arm with the posterior probability that it is the best,
+
+$$
+e_t(k) = \Pr\left(\mu_k = \max_j \mu_j \mid H_{t-1}\right),
+$$
+
+which is typically implemented by drawing once from each arm's posterior and assigning the arm with the largest draw. Its appeal for experimenters is that the assignment is randomized, with an explicit and computable propensity, whereas deterministic index rules such as upper confidence bounds assign with probability zero or one and leave nothing to weight by. @russo2018tutorial give a thorough treatment and @lattimore2020bandit develop the theory of regret for the whole family. The companion [multi-armed bandits](https://advanced-data-analysis.netlify.app/063-multi-armed-bandits.html) chapter implements these algorithms.
+
+### Best-Arm Identification
+
+If the experiment exists to pick a winner, in-experiment regret is beside the point. Best-arm identification asks for a design that identifies $\arg\max_k \mu_k$ with probability at least $1 - \alpha$ using as few samples as possible (the fixed-confidence setting), or that maximizes the probability of a correct choice for a given budget (the fixed-budget setting). @kaufmann2016complexity derive lower bounds on the sample complexity of both settings and show that the two need not coincide. The algorithms that do well here explore more evenly than regret minimizers. @russo2020simple proposes top-two variants of Thompson sampling, which with some probability assign the arm that is the posterior's second choice rather than its first, and proves that the posterior probability placed on a wrong arm then vanishes at an exponential rate that is optimal, or close to optimal, among all allocation rules. The sequential selection rule in Section \@ref(sec-sequential-selection) sits in this same family, with the difference that it never alters the allocation.
+
+### Policy Choice
+
+@kasy2021adaptive frame the experimental objective in welfare terms. After the experiment, a policymaker implements the arm with the highest posterior mean, and the loss is the policy regret $\mu^\ast - \mu_{\hat{k}}$ of that choice. In-experiment outcomes do not enter. Their exploration sampling design modifies Thompson sampling by assigning arm $k$ in each wave with share
+
+$$
+q_{t}(k) = S_t \, p_{t}(k) \left(1 - p_{t}(k)\right),
+$$
+
+where $p_t(k)$ is the posterior probability that arm $k$ is optimal and $S_t$ normalizes the shares. The factor $1 - p_t(k)$ withdraws traffic from an arm once it is almost surely the best, because additional samples there no longer change the decision, and redirects it to the arms whose status is still uncertain. They prove an asymptotic optimality result for this rule, show welfare gains in calibrated simulations over both non-adaptive designs and standard bandits, and apply it to choosing among six recruitment strategies for an agricultural extension program in India. @caria2024adaptive extend the approach to targeted assignment in a field experiment on job search assistance for Syrian refugees and Jordanian job seekers, using a tempered variant of Thompson sampling that balances precise estimation of treatment effects against participants' welfare.
+
+An earlier strand in econometrics adapts the allocation for precision rather than welfare. @hahn2011adaptive use a first stage to estimate conditional outcome variances and then choose the second-stage propensity score, as a function of covariates, to minimize the variance of the average treatment effect estimator. This is Neyman allocation made adaptive, and it is a reminder that adaptivity can serve estimation as well as exploitation.
+
+### Response-Adaptive Randomization in Clinical Trials
+
+Medicine has the longest experience with adaptive allocation, and the most careful debate about it. Response-adaptive randomization skews allocation toward the arm that appears to be working, with the ethical aim of treating more trial participants with the better therapy. @villar2015multi show that bandit-optimal designs can deliver large gains in patient benefit, and that these gains come with a loss of statistical power and with bias in the conventional estimates. @robertson2023response review the arguments on both sides, separate the criticisms that hold in general from those that apply only to particular designs, and give practical guidance on when response-adaptive randomization is defensible. Time trends in the patient population are one of the concerns they examine, because a trend can bias comparisons when allocation changes over time. @pallmann2018adaptive survey the broader family of adaptive clinical designs, including group-sequential stopping, sample size re-estimation, and arm dropping, with an emphasis on pre-specification and transparent reporting.
+
+In the social sciences, @offerwestort2021adaptive introduce adaptive designs to political science and propose a control-augmented algorithm. When the scientific target is the largest effect relative to control, a pure bandit starves the control arm and leaves the comparison imprecise. Their design allocates more to the leading arm, as Thompson sampling does, and also more to the control arm as the set of plausible winners narrows.
+
+### Sequential Testing and Always-Valid Inference
+
+Adapting when to stop is a different problem from adapting whom to treat. A fixed-allocation experiment monitored continuously, with the analyst free to stop the first time a result looks significant, inflates the false positive rate unless the test is designed for optional stopping. Classical group-sequential boundaries [@pocock1977group; @obrien1979multiple] solve this for a small number of planned looks. Always-valid p-values and confidence sequences extend it to continuous monitoring [@johari2022always; @howard2021time], and @ramdas2023game develop the general theory through test martingales and e-values. Section \@ref(sec-sequential-selection) discusses why this solves the peeking problem without solving the planning problem.
+
+The two kinds of adaptivity interact. Under adaptive allocation, a confidence sequence for an arm mean cannot be built from the arm's sample mean alone, because that mean is biased. It must be built from the weighted scores introduced in Section \@ref(sec-adaptive-inference). @waudbysmith2024anytime construct confidence sequences of this kind for policy values estimated from contextual bandit data, valid uniformly over time, so that an adaptive experiment can be monitored and stopped at any moment without losing coverage.
+
+## Inference After Adaptive Data Collection {#sec-adaptive-inference}
+
+### Why the Sample Mean Is Biased
+
+The naive estimate of $\mu_k$ is the arm's sample mean, $\bar{Y}_k = \sum_t 1\{A_t = k\} Y_t / N_k$, with $N_k = \sum_t 1\{A_t = k\}$. Under a fixed design $N_k$ is fixed or independent of outcomes, and $\bar{Y}_k$ is unbiased. Under an adaptive design $N_k$ is random and depends on the outcomes already observed on arm $k$. An arm that draws an unlucky run early sees its posterior fall, receives less traffic, and keeps its unlucky sample largely undiluted. An arm that draws a lucky run receives more traffic, and the later draws pull its mean back toward the truth. The errors that get corrected are the optimistic ones, and the pessimistic ones are frozen in. @nie2018adaptively show that for algorithms of this optimistic kind, including Thompson sampling and upper confidence bounds, the sample mean of each arm is biased downward, and they propose a correction based on selective inference. @shin2021bias show that the sign is not universal. Adaptive sampling toward high values biases means downward, but adaptive stopping and adaptive choice of which arm to report can bias them upward, which is the winner's curse familiar from fixed designs.
+
+The bias is not the only problem. Because the number of draws $N_k$ is itself random and correlated with the data, the standardized sample mean need not be asymptotically normal. @zhang2020inference show that ordinary least squares estimates from bandit data fail to be asymptotically normal when there is no unique best arm, which is precisely the null hypothesis an experimenter most often wants to test, and that Wald tests can then over-reject and intervals under-cover. @kuang2024weak study the regime that matters for most experiments, where arm differences are small relative to noise, and show that the sample paths of a broad class of randomized adaptive designs, Thompson sampling among them, converge to the solution of a stochastic differential equation rather than to anything resembling a fixed design.
+
+### Inverse Propensity Weighting With Logged Probabilities
+
+The remedy starts from the fact that the propensities $e_t(k)$ are known. The inverse propensity weighted estimate of $\mu_k$ is
+
+$$
+\hat{\mu}_k^{\text{IPW}} = \frac{1}{T} \sum_{t=1}^{T} \frac{1\{A_t = k\}}{e_t(k)} Y_t .
+$$
+
+Conditional on the history, assignment is independent of the potential outcomes, so
+
+$$
+E\left[\frac{1\{A_t = k\}}{e_t(k)} Y_t \,\middle|\, H_{t-1}\right] = \frac{e_t(k)}{e_t(k)} \, E\left[Y_t(k)\right] = \mu_k ,
+$$
+
+and each summand minus $\mu_k$ is a martingale difference. The estimator is exactly unbiased, whatever rule generated the propensities, provided each $e_t(k)$ is strictly positive. It is the Horvitz-Thompson estimator [@horvitz1952generalization] applied to a sequential design. A useful by-product is that if the arm means drift over time, the same argument shows that $\hat{\mu}_k^{\text{IPW}}$ is unbiased for the time-averaged mean $T^{-1}\sum_t E[Y_t(k)]$, whereas the sample mean weights the periods in proportion to how often arm $k$ happened to be assigned in each.
+
+The price is variance. Each term is scaled by $1/e_t(k)$, so periods in which an arm was rarely assigned contribute large, noisy terms, and the variance grows with $\sum_t 1/e_t(k)$. This is why a minimum exploration floor, a lower bound on every $e_t(k)$, is as much a requirement of the analysis as of the algorithm.
+
+### Augmented IPW and Adaptive Weights
+
+Augmentation reduces that variance without giving up unbiasedness. Let $\hat{m}_{t-1}(k)$ be any estimate of $\mu_k$, or of $E[Y_t(k) \mid X_t]$ in the contextual case, that uses only data observed before unit $t$. The augmented inverse propensity weighted score [@robins1994estimation] is
+
+$$
+\hat{\Gamma}_t(k) = \hat{m}_{t-1}(k) + \frac{1\{A_t = k\}}{e_t(k)} \left(Y_t - \hat{m}_{t-1}(k)\right) .
+$$
+
+Because $\hat{m}_{t-1}(k)$ is fixed given the history, the same conditioning argument gives $E[\hat{\Gamma}_t(k) \mid H_{t-1}] = \mu_k$, so the average of the scores is unbiased however poor the outcome model is. A good outcome model shrinks the residual that the inverse weight multiplies, and with it the variance.
+
+Unbiasedness does not deliver valid confidence intervals on its own. The conditional variance of each score is driven by $1/e_t(k)$. When an arm's propensity decays over the experiment, or wanders depending on which arm happened to look good early, the sum of these conditional variances does not settle down to a fixed quantity, and the martingale central limit theorem that would deliver normality does not apply. @hadad2021confidence note that the problem can arise even when propensities are bounded below, for example when several arms are tied and the algorithm commits to one of them at random. They resolve this by averaging the scores with adaptive weights $h_t(k)$ that are themselves determined by the history,
+
+$$
+\hat{\mu}_k^{h} = \frac{\sum_{t} h_t(k) \, \hat{\Gamma}_t(k)}{\sum_{t} h_t(k)}, \qquad
+\hat{V}_k^{h} = \frac{\sum_{t} h_t(k)^2 \left(\hat{\Gamma}_t(k) - \hat{\mu}_k^{h}\right)^2}{\left(\sum_{t} h_t(k)\right)^2} .
+$$
+
+Their variance-stabilizing weights are chosen so that the sum of the terms $h_t(k)^2 / e_t(k)$, a proxy for the conditional variance, is fixed in advance rather than left to chance. The simplest member of the family, which they call constant allocation, sets $h_t(k) = \sqrt{e_t(k)/T}$, so that every observation contributes the same amount to that proxy. Provided the propensities do not decay faster than a polynomial rate in $t$, these weights restore asymptotic normality of $(\hat{\mu}_k^{h} - \mu_k)/\sqrt{\hat{V}_k^{h}}$, and with it valid Wald intervals and tests for arm values and for differences between arms. The weights downweight the periods in which an arm was rarely assigned, which is exactly where the uniform estimator is noisiest. Because the normalization by $\sum_t h_t(k)$ is random, the weighted estimator is consistent rather than exactly unbiased in finite samples, a trade the simulation below makes visible.
+
+These ideas have been extended in several directions. @zhan2021off develop adaptively weighted doubly robust estimators for policy values from contextual bandit data. @bibaut2021post propose a contextual adaptive doubly robust estimator whose stabilization uses adaptive estimates of the conditional standard deviation. @zhang2021statistical give adaptively weighted M-estimators that cover targets such as the parameters of a logistic regression for binary rewards. @cook2024semiparametric show that an adaptive AIPW estimator of the average treatment effect attains the semiparametric efficiency bound under weaker conditions than earlier work and pair it with anytime-valid confidence sequences.
+
+### Batched Designs
+
+Most production systems do not update after every unit. They update a policy at the end of each hour, day, or wave, and assign the next batch under fixed probabilities. Batching is good for analysis as well as engineering. @perchet2016batched show that a small number of batches is enough to achieve near-optimal regret, so little is lost by updating rarely. @zhang2020inference exploit the batch structure for inference: within a batch the propensities are fixed, so the batch-level estimate is a conventional fixed-design estimate, and the batch-wise statistics can be combined into a test that is asymptotically normal even when the arms are tied. Batching also makes the logging problem simple, because the full propensity vector is constant within a batch and can be recorded once per batch.
+
+### Log the Propensities
+
+Every estimator in this section needs $e_t(k)$ for the arm actually assigned, and the doubly robust estimators of Section \@ref(sec-off-policy-evaluation) need the whole vector. An adaptive system that records only the chosen arm has produced observational data with a confounder, the history, that is known to have driven assignment but whose effect can no longer be undone. Reconstructing propensities afterwards from the algorithm's code and the replayed history is fragile, especially for Thompson sampling, where the probability of the realized assignment is an integral over the posterior that the system never computed explicitly. The minimum logging record for each unit is the unit identifier, the decision timestamp, the policy version or batch, the covariates as observed at decision time, the full vector of assignment probabilities, the arm assigned, and the outcome with the time it was measured. When the probabilities are estimated by Monte Carlo draws from the posterior, the system should either record the estimate it used and then randomize with exactly those probabilities, as the simulation below does, or compute them accurately enough that the difference does not matter.
+
+### Simulation: Thompson Sampling and Corrected Estimators
+
+The simulation runs a batched Thompson sampling experiment with three arms whose means are evenly spaced, a control, a middle arm, and a best arm. At the start of each batch it computes the posterior probability that each arm is best, mixes those probabilities with a uniform exploration floor, logs them, and then randomizes the batch with exactly the logged probabilities. The first batch is a balanced random permutation, so every arm starts with data and every unit in it has assignment probability $1/K$. The outcome model used for augmentation is simply the running sample mean of each arm from earlier batches, which is a poor and biased model, and which illustrates that the augmented estimators do not need a good one to be unbiased.
+
+```{r adapt-ts-sim, message=FALSE, warning=FALSE}
+# One batched Thompson sampling experiment with Gaussian outcomes and a
+# flat-prior Gaussian posterior with known sigma. Returns the log a careful
+# system would keep: arm, outcome, the full vector of assignment
+# probabilities, and the outcome model fitted on earlier batches only.
+run_ts <- function(mu, sigma = 1, n_batch = 100, batch_size = 20,
+                   floor = 0.01, draws = 2000) {
+    K <- length(mu)
+    n_tot <- n_batch * batch_size
+    arm <- integer(n_tot)
+    y <- numeric(n_tot)
+    prop <- matrix(NA_real_, n_tot, K)
+    mhat <- matrix(0, n_tot, K)
+    s <- numeric(K)
+    n <- numeric(K)
+    for (b in seq_len(n_batch)) {
+        idx <- (b - 1) * batch_size + seq_len(batch_size)
+        if (b == 1) {
+            p <- rep(1 / K, K)
+            m_prev <- rep(0, K)
+        } else {
+            m_prev <- s / n
+            post <- matrix(rnorm(draws * K, rep(m_prev, each = draws),
+                                 rep(sigma / sqrt(n), each = draws)), draws, K)
+            p <- tabulate(max.col(post), K) / draws  # Pr(arm k is best)
+            p <- floor + (1 - K * floor) * p          # exploration floor
+        }
+        a <- if (b == 1) {
+            sample(rep_len(seq_len(K), batch_size))  # balanced first batch
+        } else {
+            sample.int(K, batch_size, replace = TRUE, prob = p)
+        }
+        yy <- rnorm(batch_size, mu[a], sigma)
+        arm[idx] <- a
+        y[idx] <- yy
+        prop[idx, ] <- rep(p, each = batch_size)
+        mhat[idx, ] <- rep(m_prev, each = batch_size)
+        s <- s + vapply(seq_len(K), function(k) sum(yy[a == k]), 0)
+        n <- n + tabulate(a, K)
+    }
+    list(arm = arm, y = y, prop = prop, mhat = mhat)
+}
+
+# Four estimates of each arm mean from one log, with standard errors.
+estimate_arms <- function(log) {
+    K <- ncol(log$prop)
+    nT <- length(log$y)
+    out <- vector("list", K)
+    for (k in seq_len(K)) {
+        hit <- log$arm == k
+        e <- log$prop[, k]
+        yk <- log$y[hit]
+        ipw_i <- hit * log$y / e
+        g <- log$mhat[, k] + hit / e * (log$y - log$mhat[, k])  # AIPW scores
+        h <- sqrt(e)                                            # stabilizing weights
+        aw <- sum(h * g) / sum(h)
+        out[[k]] <- data.frame(
+            arm = k,
+            estimator = c("Naive arm mean", "IPW",
+                          "AIPW, uniform weights", "AIPW, adaptive weights"),
+            est = c(mean(yk), mean(ipw_i), mean(g), aw),
+            se = c(sd(yk) / sqrt(length(yk)), sd(ipw_i) / sqrt(nT),
+                   sd(g) / sqrt(nT), sqrt(sum(h^2 * (g - aw)^2)) / sum(h)),
+            n_arm = sum(hit))
+    }
+    do.call(rbind, out)
+}
+
+mu_true <- c(0, 0.1, 0.2)   # control, middle arm, best arm
+n_batch_ts <- 100
+batch_size_ts <- 20
+floor_ts <- 0.01
+R_ts <- 1000
+set.seed(2026)
+ts_res <- do.call(rbind, lapply(seq_len(R_ts), function(r) {
+    d <- estimate_arms(run_ts(mu_true, n_batch = n_batch_ts,
+                              batch_size = batch_size_ts, floor = floor_ts))
+    d$rep <- r
+    d
+}))
+ts_res$truth <- mu_true[ts_res$arm]
+ts_res$err <- ts_res$est - ts_res$truth
+ts_res$cover <- abs(ts_res$err) <= qnorm(0.975) * ts_res$se
+
+# Average traffic each arm received
+arm_share <- tapply(ts_res$n_arm, ts_res$arm, mean) / (n_batch_ts * batch_size_ts)
+round(arm_share, 3)
+```
+
+The last line reports the average share of the sample each arm received. Thompson sampling did its job, sending `r round(100 * arm_share[3])` percent of the traffic to the best arm and leaving `r round(100 * arm_share[1])` percent for the control. Table \@ref(tab:adapt-ts-table) summarizes the four estimators across replications, for each arm mean and for the lift of the best arm over control, which is the number a product team would report.
+
+```{r adapt-ts-table, message=FALSE, warning=FALSE}
+est_levels <- c("Naive arm mean", "IPW", "AIPW, uniform weights",
+                "AIPW, adaptive weights")
+arm_labels <- c("Control arm", "Middle arm", "Best arm")
+
+summarise_err <- function(err) {
+    c(bias = mean(err), mcse = sd(err) / sqrt(length(err)),
+      rmse = sqrt(mean(err^2)))
+}
+
+arm_tab <- do.call(rbind, lapply(split(ts_res, list(ts_res$arm, ts_res$estimator)),
+    function(d) data.frame(Estimand = arm_labels[d$arm[1]],
+                           Estimator = d$estimator[1],
+                           t(summarise_err(d$err)),
+                           coverage = mean(d$cover))))
+
+# Lift of best arm over control, replication by replication
+wide <- reshape(ts_res[, c("rep", "estimator", "arm", "est")],
+                idvar = c("rep", "estimator"), timevar = "arm",
+                direction = "wide")
+wide$lift_err <- (wide$est.3 - wide$est.1) - (mu_true[3] - mu_true[1])
+lift_tab <- do.call(rbind, lapply(split(wide, wide$estimator), function(d)
+    data.frame(Estimand = "Lift, best vs control", Estimator = d$estimator[1],
+               t(summarise_err(d$lift_err)), coverage = NA)))
+
+ts_tab <- rbind(arm_tab, lift_tab)
+ts_tab$Estimand <- factor(ts_tab$Estimand,
+                          levels = c(arm_labels, "Lift, best vs control"))
+ts_tab$Estimator <- factor(ts_tab$Estimator, levels = est_levels)
+ts_tab <- ts_tab[order(ts_tab$Estimand, ts_tab$Estimator), ]
+rownames(ts_tab) <- NULL
+
+knitr::kable(
+    transform(ts_tab, bias = round(bias, 4), mcse = round(mcse, 4),
+              rmse = round(rmse, 4), coverage = round(coverage, 3)),
+    col.names = c("Estimand", "Estimator", "Bias", "Monte Carlo SE",
+                  "RMSE", "95% CI coverage"),
+    caption = "Bias, RMSE, and interval coverage of four estimators after batched Thompson sampling")
+
+# Quantities quoted in the text
+naive_rows <- subset(ts_tab, Estimator == "Naive arm mean")
+naive_ctrl_bias <- naive_rows$bias[naive_rows$Estimand == "Control arm"]
+naive_lift_bias <- naive_rows$bias[naive_rows$Estimand == "Lift, best vs control"]
+sd_naive_ctrl <- sd(ts_res$err[ts_res$arm == 1 & ts_res$estimator == "Naive arm mean"])
+ipw_max_abs_z <- with(subset(ts_tab, Estimator %in% est_levels[2:3]),
+                      max(abs(bias / mcse)))
+```
+
+```{r adapt-ts-fig, message=FALSE, warning=FALSE, fig.width=7, fig.height=6.5, fig.cap="Mean estimation error of four estimators across replications of a batched Thompson sampling experiment. Bars are 95 percent Monte Carlo intervals. The naive arm mean is biased downward on the arms the algorithm abandons, which inflates the estimated lift of the winner. IPW and uniformly weighted AIPW, which weight by the logged assignment probabilities, remove the bias, and adaptively weighted AIPW reduces it."}
+library(ggplot2)
+
+ggplot(ts_tab, aes(x = Estimator, y = bias, colour = Estimator)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+    geom_pointrange(aes(ymin = bias - 1.96 * mcse, ymax = bias + 1.96 * mcse)) +
+    facet_wrap(~ Estimand, nrow = 2) +
+    scale_colour_brewer(palette = "Dark2", guide = "none") +
+    scale_x_discrete(labels = c("Naive", "IPW", "AIPW\nuniform", "AIPW\nadaptive")) +
+    labs(x = NULL, y = "Mean of estimate minus truth",
+         title = "Bias after batched Thompson sampling",
+         subtitle = "Naive arm means versus estimators that use the logged probabilities") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(size = 8))
+```
+
+Three lessons come out of Table \@ref(tab:adapt-ts-table) and Figure \@ref(fig:adapt-ts-fig).
+
+First, the naive arm mean is biased downward on every arm, most heavily on the arms the algorithm abandons. On the control arm the bias is `r round(naive_ctrl_bias, 3)`, which is `r round(abs(naive_ctrl_bias) / sd_naive_ctrl, 2)` of the estimator's own sampling standard deviation. That is the frozen pessimism described above. Because the best arm is sampled heavily, its bias is small, and so the estimated lift of the best arm over control is inflated by `r round(naive_lift_bias, 3)` on average, against a true lift of `r mu_true[3] - mu_true[1]`. A team that ships the winner of a bandit test and reports the naive lift will overstate what it shipped.
+
+Second, IPW and the uniformly weighted AIPW estimator are unbiased, using nothing but the logged probabilities. The argument above guarantees exact unbiasedness, and the table agrees up to simulation noise. The largest of their eight estimated biases is `r round(ipw_max_abs_z, 1)` Monte Carlo standard errors from zero, an ordinary deviation among eight correlated comparisons, and every one of them is an order of magnitude smaller than the naive bias on the starved arms. The augmentation uses a deliberately crude, biased outcome model and still introduces no bias. The cost appears in the RMSE column. On the control arm, which the algorithm starved most, IPW and uniformly weighted AIPW have a larger RMSE than the naive mean despite having no bias, because the inverse weights are large exactly where the arm was rarely assigned. Unbiasedness is bought with variance, and the exploration floor is what keeps that variance finite.
+
+Third, the adaptively weighted AIPW estimator sits between the two. Its weights favor the periods in which an arm was assigned often, which lowers its variance on the starved arms, and its random normalization leaves a small finite-sample bias, visibly smaller than the naive one. Its purpose is not unbiasedness but a studentized statistic that is approximately normal, which is what makes the interval valid as the propensities decay. In this design the floor keeps every propensity at or above `r floor_ts`, and the coverage of the nominal 95 percent intervals ranges from `r round(min(ts_tab$coverage, na.rm = TRUE), 3)` to `r round(max(ts_tab$coverage, na.rm = TRUE), 3)` across estimators and arms. The coverage column should not be read as a general result. @hadad2021confidence document designs with decaying propensities in which the naive and uniformly weighted intervals under-cover and the adaptively weighted interval does not, and @zhang2020inference document the failure of normality that occurs when arms are tied.
+
+## Off-Policy Evaluation of Logged Decisions {#sec-off-policy-evaluation}
+
+The same logic answers a question that arises whenever a firm has been running a personalization system: what would have happened under a different policy? A policy $\pi$ maps covariates to a distribution over arms, $\pi(k \mid x)$. Its value is
+
+$$
+V(\pi) = E\left[\sum_{k} \pi(k \mid X) \, \mu(X, k)\right], \qquad \mu(x, k) = E\left[Y(k) \mid X = x\right].
+$$
+
+The logs record, for each decision, the covariates $X_t$, the logging probabilities $e_t(k) = \Pr(A_t = k \mid X_t, H_{t-1})$, the action $A_t$, and the outcome $Y_t$. Evaluating a new policy from these logs, without deploying it, is off-policy evaluation. It is a causal inference problem in which the logging policy plays the role of the treatment assignment mechanism, the target policy defines the counterfactual of interest, and overlap means that the logging policy put positive probability on every action the target policy might take.
+
+There are three standard estimators. The direct method fits an outcome model $\hat{\mu}(x, k)$ and averages $\sum_k \pi(k \mid X_t)\hat{\mu}(X_t, k)$ over the logged covariates. It is only as good as the outcome model, and with skewed logging it extrapolates into regions of covariate space where one action was rarely taken. Inverse propensity scoring reweights logged outcomes,
+
+$$
+\hat{V}^{\text{IPS}}(\pi) = \frac{1}{T}\sum_{t} \frac{\pi(A_t \mid X_t)}{e_t(A_t)} \, Y_t ,
+$$
+
+which is unbiased when the propensities are correct and is the estimator behind replay evaluation of news recommendation [@li2010contextual; @li2011unbiased] and the counterfactual analysis of ad placement at Bing [@bottou2013counterfactual]. The doubly robust estimator combines them,
+
+$$
+\hat{V}^{\text{DR}}(\pi) = \frac{1}{T}\sum_{t} \left[\sum_{k} \pi(k \mid X_t)\hat{\mu}(X_t, k) + \frac{\pi(A_t \mid X_t)}{e_t(A_t)}\left(Y_t - \hat{\mu}(X_t, A_t)\right)\right],
+$$
+
+and is consistent if either the propensities or the outcome model is correct [@dudik2014doubly]. In logged experimental data the propensities are known, so the doubly robust estimator is unbiased by design and the outcome model serves only to reduce variance. This is the same AIPW construction as in Section \@ref(sec-adaptive-inference) and in the observational settings of Section \@ref(sec-inverse-probability-weighting). Learning a new policy, rather than evaluating a given one, maximizes such an estimate over a policy class, which connects this section to the policy learning methods of @athey2021policy and to the targeting problems in Chapter \@ref(sec-uplift-modeling).
+
+The simulation below logs decisions from a policy that treats units with high $X$ more often, then evaluates a simple threshold rule. The outcome model is a linear regression with an interaction, which misses the curvature of the true baseline outcome. It is cross-fitted on two folds, so that each observation's prediction comes from a model fitted on the other half.
+
+```{r adapt-ope, message=FALSE, warning=FALSE}
+# Truth: baseline mu0(x) = 0.5 x^2, effect tau(x) = 0.8 x - 0.2.
+# Logging policy: Pr(A = 1 | x) = 0.1 + 0.8 * plogis(2 x), always in [0.1, 0.9].
+# Target policy: treat if x > 0.
+mu0 <- function(x) 0.5 * x^2
+tau <- function(x) 0.8 * x - 0.2
+e_log <- function(x) 0.1 + 0.8 * plogis(2 * x)
+pi_target <- function(x) as.numeric(x > 0)
+
+# V(pi) = E[mu0(X)] + E[tau(X) 1{X > 0}] for X ~ N(0, 1)
+v_true <- 0.5 + 0.8 * dnorm(0) - 0.2 * 0.5
+
+ope_once <- function(n = 2000) {
+    x <- rnorm(n)
+    e1 <- e_log(x)
+    a <- rbinom(n, 1, e1)
+    y <- mu0(x) + a * tau(x) + rnorm(n)
+    pa <- ifelse(a == 1, e1, 1 - e1)      # logged probability of the action taken
+    pt <- pi_target(x)
+    match_t <- ifelse(a == 1, pt, 1 - pt) # target probability of the action taken
+    # cross-fitted linear outcome model with an interaction (misses x^2)
+    fold <- sample(rep(1:2, length.out = n))
+    m1 <- m0 <- numeric(n)
+    for (f in 1:2) {
+        fit <- lm(y ~ x * a, data = data.frame(y, x, a)[fold != f, ])
+        m1[fold == f] <- predict(fit, data.frame(x = x[fold == f], a = 1))
+        m0[fold == f] <- predict(fit, data.frame(x = x[fold == f], a = 0))
+    }
+    m_pi <- pt * m1 + (1 - pt) * m0
+    m_a <- ifelse(a == 1, m1, m0)
+    c(`Direct method` = mean(m_pi),
+      `IPS` = mean(match_t / pa * y),
+      `Doubly robust` = mean(m_pi + match_t / pa * (y - m_a)),
+      `Naive logged mean` = mean(y))
+}
+
+set.seed(11)
+ope_res <- t(replicate(1000, ope_once()))
+ope_tab <- data.frame(
+    Estimator = colnames(ope_res),
+    Mean = round(colMeans(ope_res), 4),
+    Bias = round(colMeans(ope_res) - v_true, 4),
+    SD = round(apply(ope_res, 2, sd), 4),
+    RMSE = round(sqrt(colMeans((ope_res - v_true)^2)), 4),
+    row.names = NULL)
+knitr::kable(ope_tab, caption = "Off-policy evaluation of a threshold rule from logged decisions")
+```
+
+The value of the target rule is `r round(v_true, 4)`. In Table \@ref(tab:adapt-ope), the average logged outcome estimates the value of the logging policy, not the target, and is the wrong answer to the question asked. The direct method inherits the misspecification of the outcome model. IPS and the doubly robust estimator are both centered on the truth because the logging probabilities are known, and the doubly robust estimator is the less variable of the two because the outcome model, wrong as it is, absorbs part of the variation in $Y$. The variance advantage of the doubly robust estimator grows as the outcome model improves, while its unbiasedness never depended on the model. The same estimators remain valid when the logging policy was itself adaptive, provided the logged probabilities are those that applied at each decision, although inference then needs the adaptive weighting of Section \@ref(sec-adaptive-inference) [@zhan2021off; @bibaut2021post] or a time-uniform method [@waudbysmith2024anytime].
+
+## Practical Checklist {#sec-adaptive-checklist}
+
+Adaptive designs fail more often through process than through statistics. The following points are worth settling before the first unit is assigned.
+
+-   **Pre-register the design and the analysis.** State the objective (regret, best-arm identification, policy choice, or estimation), the algorithm and its prior, the batch schedule, the exploration floor, the stopping rule, the primary estimand, and the estimator that will be reported. Without this, an adaptive experiment offers many forking paths, since the analyst can choose after the fact among naive, weighted, and model-based estimates. @pallmann2018adaptive give reporting guidance for clinical adaptive designs that transfers well to other fields.
+
+-   **Separate the decision metric from guardrail metrics.** The bandit optimizes a single reward. Revenue, retention, complaint rates, latency, and fairness across subgroups still need to be monitored, and a breach should pause or override the algorithm. Guardrails also need valid inference under adaptive allocation, so the logged propensities matter for them too.
+
+-   **Enforce a minimum exploration floor.** Every arm should keep an assignment probability above a stated minimum throughout. The floor bounds the inverse weights and therefore the variance of every corrected estimator, guarantees overlap for later off-policy evaluation, and keeps a stale arm able to recover if the environment changes. The cost in regret is small and predictable.
+
+-   **Plan for delayed outcomes.** If the outcome of interest is measured weeks after assignment, the algorithm will adapt to whatever is observed early, which is often a short-term proxy. Either update only on matured outcomes, batching accordingly, or adapt on a surrogate whose relationship to the long-run outcome has been validated, and be explicit that the design is optimizing the surrogate. Section \@ref(sec-long-term-treatments) discusses the estimation of long-term effects from short experiments.
+
+-   **Guard against drift and time trends.** Because allocation changes over calendar time, any trend in the outcome is confounded with the arm mix in the naive comparison. Day-of-week cycles, novelty effects, and seasonal demand are typical culprits. Inverse propensity weighting with the logged probabilities protects the time-averaged estimand, and blocking assignment within time periods or keeping a fixed share of traffic on uniform randomization provides a clean comparison against which drift can be checked [@robertson2023response].
+
+-   **Check for interference.** Shifting traffic among arms changes the environment that other units face. In marketplaces, a winning pricing or ranking policy can change prices, inventories, and competitor behavior once it receives most of the traffic, so the effect measured at a small allocation is not the effect at full rollout [@wager2021experimenting]. Repeated exposure of the same user to different arms over time creates carryover. The designs in Chapter \@ref(sec-interference-spillover) and the cluster randomization of Section \@ref(sec-cluster-randomization) apply here, with the added constraint that the randomization unit must be the unit at which the algorithm adapts.
+
+-   **Log everything needed for reanalysis.** At minimum, record the full propensity vector, the policy version, the decision-time covariates, and outcome timestamps for every decision. Run an A/A version of the pipeline before launch, with identical arms, and confirm that the weighted estimators recover a zero contrast and that the logged probabilities match the realized assignment frequencies.
+
+-   **Report the right estimate.** Report effect sizes from estimators that account for the adaptive design, with intervals from a method valid under it. If a naive estimate is shown, label it as such and explain the direction of its bias.
+
+## State of the Art {#sec-adaptive-state-of-the-art}
+
+Research since 2020 has moved adaptive experimentation from a collection of algorithms toward a coherent framework for design and inference.
+
+**Inference under adaptivity.** @hadad2021confidence established that adaptively weighted AIPW scores yield asymptotically normal estimates and valid intervals for arm values and contrasts when propensities decay, and @zhan2021off and @bibaut2021post extended this to contextual bandits. @zhang2020inference showed that batching restores normality even when arms are tied, and @zhang2021statistical generalized adaptive weighting to M-estimators. @cook2024semiparametric showed that adaptive AIPW can be semiparametrically efficient and combined it with anytime-valid confidence sequences, and @waudbysmith2024anytime provided confidence sequences for off-policy values that hold uniformly over time. On the bias of naive estimates, @shin2021bias clarified when sample means in bandits are biased up or down.
+
+**Design objectives.** @kasy2021adaptive replaced in-sample regret with policy regret and showed that exploration sampling improves the post-experiment decision. @russo2020simple gave simple Bayesian algorithms for best-arm identification. @simchilevi2025multi characterized the Pareto frontier between regret and the precision of treatment effect estimates and proposed designs that can be tuned along it, including for batched settings typical of clinical trials. @kuang2024weak developed diffusion limits for sequentially randomized experiments when effects are small relative to noise, which is the regime of most online experiments, and used them to study the regret of Thompson sampling and related designs.
+
+**Field applications and practice.** @offerwestort2021adaptive brought adaptive designs to political science with a control-augmented algorithm aimed at the largest effect relative to control. @caria2024adaptive ran an adaptive and targeted field experiment on job search assistance for refugees, demonstrating how welfare considerations and estimation goals can be traded off in a real deployment. In medicine, @robertson2023response took stock of the long debate over response-adaptive randomization and set out when it is and is not appropriate. The anytime-valid inference literature, unified by @ramdas2023game, now supplies the tools needed to monitor such experiments continuously without sacrificing error control.
+
+Three threads connect these developments to the rest of this book. The corrected estimators are the AIPW estimators of observational causal inference, with the important difference that the propensity score is known rather than estimated. The design trade-offs are the same ones that drive the sequential selection rule in Section \@ref(sec-sequential-selection), which chooses to adapt only the stopping time precisely to avoid the inference problems documented here. And the threats to validity, from drift to interference, are the threats catalogued elsewhere in the experimental chapters, made more acute by the fact that the design itself moves over time.
