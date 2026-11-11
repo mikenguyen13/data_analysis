@@ -89,6 +89,210 @@ First, if your design randomizes $X$ within levels of a naturally occurring $W$,
 
 Second, if your design is a genuine two-factor experiment in which both $X$ and $W$ are randomized, then the interaction *is* a legitimate causal contrast, because the factorial design assigns the cell. In that case the mediated-moderation question is well posed, and the identity $\tilde c_3 - c_3' = a_3 b_1$ decomposes a causal interaction into a mediated and an unmediated part. This is the same structure that the [factorial difference-in-differences](#sec-factorial-did) section treats in a panel setting, and it is why factorial experiments are worth more than the sum of two single-factor experiments. Outside that case the framing does not survive contact with the potential-outcomes notation.
 
+## Mediator, Moderator, or Both? {#sec-cpa-role}
+
+Everything so far has taken the roles as given: $X$ is the treatment, $M$ the mediator, $W$ the moderator. In practice the role of a variable is often the contested part of a paper. Is customer trust a moderator of a loyalty program's effect, or the channel through which the program works? Is perceived risk a moderator of a price promotion, or a mediator? Reviewers ask for "evidence" of the role, and authors respond with the regression whose result they already know. This section asks what evidence for a role can actually look like.
+
+### A Short History of "Both" {#sec-cpa-role-history}
+
+@james1984mediators were among the first to argue that a variable can be both a mediator and a moderator, in nonadditive models where the mediator interacts with the cause. @baron1986moderator, one of the most cited methods papers in the social sciences, separated the two functions conceptually: a moderator affects the direction or strength of a relation, a mediator accounts for it. Their operational criteria, however, put no requirement on when a moderator is measured and did not require it to be independent of the treatment; @kraemer2008how point out that without such eligibility rules the same data can support calling one variable a mediator of a second and the second a moderator of the first. A good deal of the confusion in applied work, including the folk rule that a mediator which interacts with treatment "is both," descends from that gap.
+
+The MacArthur framework [@kraemer2002mediators; @kraemer2008how] closed it by making the roles depend on timing and on the treatment's effect. Write the outcome model as $Y = \beta_0 + \beta_1 T + \beta_2 Z + \beta_3 T Z$ and the third-variable model as $Z = \gamma_0 + \gamma_1 T$, with a binary treatment coded $\pm \tfrac12$.
+
+| Role | Timing | Relation to treatment | Outcome model |
+|:-----|:-------|:----------------------|:--------------|
+| Moderator | $Z$ precedes $T$ | Uncorrelated with $T$ ($\gamma_1 = 0$) | $\beta_3 \neq 0$ |
+| Mediator | $T$ precedes $Z$ | Affected by $T$ ($\gamma_1 \neq 0$) | $\beta_2 \neq 0$ or $\beta_3 \neq 0$ |
+
+Table: (\#tab:cpa-macarthur) The MacArthur operational definitions of moderators and mediators in a randomized trial, following @kraemer2008how.
+
+Two consequences follow. First, an interaction between treatment and a variable that the treatment moves is evidence of *mediation*, not of moderation. The four-way decomposition of the mediation chapter (Section \@ref(sec-med-fourway)) formalizes this: when the exposure and the mediator interact, the interaction splits into a reference interaction and a mediated interaction, both of which are parts of how the treatment works, not statements about who it works for [@vanderweele2014unification]. Second, the same *variable* cannot be both, but the same *construct* can. Baseline social support can moderate a therapy's effect while the change in social support during therapy mediates it; baseline brand trust can moderate a loyalty program while the program's effect on trust mediates its effect on spending. The two roles then belong to two measurements taken at two times, and the question "is trust a moderator or a mediator" dissolves into two separate, answerable questions.
+
+The distinction between effect modification and interaction (Section \@ref(sec-cpa-counterfactual)) completes the picture. A moderator in the MacArthur sense is an effect modifier: a pre-treatment characteristic across which the effect varies, with no claim that changing it would change anything.
+
+### What the Data Can and Cannot Say {#sec-cpa-role-evidence}
+
+Because the roles are defined by arrows, a role is a causal claim, and the question is which arrows the data can see. The single arrow that separates a moderator from a mediator is the one from $X$ to $Z$.
+
+In observational data, the dependence between $X$ and $Z$ can arise from $X \to Z$ (a candidate mediator), from $Z \to X$ (a confounder, which may also moderate), or from a common cause. Conditional independence cannot orient a chain against a fork, so the mediator and confounder readings are observationally equivalent (Section \@ref(sec-dag-equivalence)). Methods based on higher moments can orient the edge, but only under non-Gaussianity and no-confounding assumptions that real data often fail, and the published third-variable classifiers do not include moderation at all (Section \@ref(sec-dag-third-variable-roles)).
+
+In a randomized experiment the arrow from $X$ to $Z$ becomes testable, and this is the most useful fact in this section. If $Z$ is measured after treatment, the MacArthur moderator criterion has a testable implication: the treatment must not have moved $Z$. Under randomization, the sharp null hypothesis that $Z_i(1) = Z_i(0)$ for every unit can be tested exactly with a randomization test, using any statistic. Two refinements matter. A test on the mean of $Z$ misses treatment effects on $Z$ that cancel out, for example a message that raises perceived risk for some respondents and lowers it for others, so the statistic should be sensitive to the whole distribution. And failing to reject is not evidence that the treatment left $Z$ alone; that claim requires an equivalence test, which reverses the burden of proof exactly as it does for balance and placebo checks (Section \@ref(sec-placebo-etd-framework); @hartman2018equivalence). What no experiment on $X$ alone can deliver is the second half of the mediator claim, the effect of $Z$ on $Y$, which needs sequential ignorability or a design that manipulates $Z$ (Chapter \@ref(sec-mechanism-designs)).
+
+### Moderators Measured After Treatment {#sec-cpa-posttreatment-moderators}
+
+The practical stakes are set by how often moderators are measured after treatment. @montgomery2018conditioning coded every experimental article published in the *American Political Science Review*, the *American Journal of Political Science*, and the *Journal of Politics* from 2012 to 2014, 75 articles in all. Nearly half, 35 of the 75, conditioned on a post-treatment variable: by controlling for it or interacting it with treatment, by dropping cases on a post-treatment criterion such as a failed manipulation check or attention screener, or by subsetting on it. In nine articles the variable conditioned on was one the article itself analyzed as an outcome of the treatment.
+
+The mechanism is selection. Randomization balances the treated and control groups on everything, measured or not. Conditioning on a variable that the treatment affects compares treated and control units that have the same value of that variable, which, because treatment moved it, are different kinds of people. The resulting bias depends on unobservables and can have either sign; it is not removed by a nonsignificant test of the treatment's effect on the conditioning variable, because that test has power against only some departures and is not evidence for the null.
+
+#### Replication: A Judicial Nominee Experiment
+
+@montgomery2018conditioning illustrate the bias with an original survey experiment, and their replication archive makes it reproducible. Respondents (N = 1,234 recruited online in 2017) read about a state supreme court justice; the treatment group also learned that she had been named as a possible Supreme Court nominee by President Trump. The outcome is support for retaining her on a four-point scale. After treatment, respondents placed the justice and themselves on a seven-point ideology scale, and the distance between the two is the kind of variable an analyst might treat as a moderator.
+
+```{r cpa-judges-replication, message=FALSE, warning=FALSE}
+judges <- read.delim("data/montgomery_posttreatment/AJPS_judges.tab")
+
+est <- function(f, d) {
+    m <- lm(f, data = d)
+    round(c(Estimate = coef(m)[["treatment"]], confint(m)["treatment", ]), 3)
+}
+knitr::kable(rbind(
+    "Unconditional ATE"                     = est(eidretain ~ treatment, judges),
+    "Controlling for ideological distance"  = est(eidretain ~ treatment + distideol, judges),
+    "Subset: close to the justice (dist <= 1)" =
+        est(eidretain ~ treatment, subset(judges, distideol <= 1)),
+    "Subset: far from the justice (dist > 1)"  =
+        est(eidretain ~ treatment, subset(judges, distideol > 1))),
+    caption = "Effect of the nominee cue on support for retention, with and without conditioning on a post-treatment variable. Replicates Montgomery, Nyhan, and Torres (2018).")
+```
+
+The unconditional effect is $-0.214$ with a confidence interval well away from zero. Controlling for ideological distance shrinks it to $-0.057$ and makes it insignificant, and the two subsets have opposite signs, $+0.257$ among respondents who feel close to the justice and $-0.460$ among those who feel far from her. All four numbers match the published ones. Read as moderation, the subsets say the cue polarized respondents by ideological proximity. The design says something else: the cue changed where respondents placed the justice.
+
+The `causalverse` package implements the tests of this section. `shift_test()` is the randomization test of the sharp null that treatment left $Z$ unchanged for every respondent. Its statistic combines the difference in means, the log ratio of variances, and the Kolmogorov-Smirnov distance, calibrated jointly against the same permutations, so it also detects treatments that move $Z$ in opposite directions for different respondents; it handles missing values and the ties of a seven-point scale.
+
+```{r cpa-judges-role-test, message=FALSE, warning=FALSE}
+library(causalverse)
+
+candidates <- c(`Perceived ideology of the justice` = "eidideology",
+                `Ideological distance`             = "distideol",
+                `Respondent's own ideology`        = "respideol")
+role_tests <- t(sapply(candidates, function(v) {
+    st <- shift_test(judges[[v]], judges$treatment, B = 1999, seed = 181)
+    eq <- equivalence_shift(judges[[v]], judges$treatment, margin = 0.2)
+    c(`Control mean` = st$desc$mean0, `Treated mean` = st$desc$mean1,
+      `Randomization p` = st$p.value, `Shift (SD)` = eq$estimate,
+      `90% CI low` = eq$conf.int[1], `90% CI high` = eq$conf.int[2])
+}))
+knitr::kable(round(role_tests, 3), caption = "Did the treatment move the candidate moderator? Randomization tests of the sharp null of no effect for any respondent, and equivalence intervals for the standardized shift.")
+```
+
+The treatment moved the perceived ideology of the justice by well over a scale point, and with it the ideological distance, so distance fails the first MacArthur criterion and cannot be read as a moderator; it is a mediator candidate at best. The respondent's own ideology, measured after treatment as well, shows no detectable movement, and here the equivalence interval does the work that a nonsignificant test cannot: it lies inside $\pm 0.2$ standard deviations, so self-placement passes the gate with a stated margin rather than by default. `role_test()` runs the whole gated sequence for one candidate and reports each step.
+
+```{r cpa-judges-role-verdicts, message=FALSE, warning=FALSE}
+role_test(judges, treat = "treatment", outcome = "eidretain",
+          z_post = "distideol", margin = 0.2, B = 1999, seed = 183)
+role_test(judges, treat = "treatment", outcome = "eidretain",
+          z_post = "respideol", margin = 0.2, B = 1999, seed = 184)
+```
+
+The two verdicts tell the story the subsets garbled. Ideological distance has a large and significant interaction with treatment, the kind of coefficient that gets reported as moderation, but the gate never lets it be read that way, because the treatment moved distance; it is a mediator candidate, with the usual caveat that its path to the outcome is not randomized. The respondent's own ideology passes both checks: the randomization test does not reject, the shift is certified to be smaller than a fifth of a standard deviation, and the interaction, about 0.23 points of the retention scale per step of the ideology scale, can be read as effect modification. The polarization a reader might have taken from the distance subsets is real, but it runs through who the respondent is, not through where the cue moved the judge.
+
+#### Priming Bias Versus Post-Treatment Bias
+
+If measuring the moderator afterward is dangerous, the obvious remedy is to measure it before. The objection is priming: asking about racial attitudes, partisanship, or land insecurity before the treatment may change how respondents react to it, which changes the treatment effect being studied [@klar2020studying]. @blackwell2025priming formalize the trade-off. They compare a pre-test design, a post-test design, and a design that randomizes the placement of the moderator question, and derive sharp nonparametric bounds on the treatment-by-moderator interaction under each. With randomization alone the bounds are wide; three substantive assumptions narrow them: that priming moves outcomes in a known direction, that treatment can move the moderator in only one direction, and that the moderator is stable under control. Each is indexed by a sensitivity parameter: $\theta$, the share of respondents primed by the pre-test, and $\gamma$, the share whose moderator is moved by the treatment in the post-test.
+
+Their application is a survey experiment in Kenya in which respondents heard a political appeal that either did or did not invoke land grievances, and the moderator is whether the respondent is land insecure. The moderator was measured before treatment for a random half of the sample and after treatment for the other half, and the data ship with the `prepost` package.
+
+```{r cpa-prepost-replication, message=FALSE, warning=FALSE}
+library(prepost)
+data(land_experiment)
+pre  <- subset(land_experiment, prepost == 0)
+post <- subset(land_experiment, prepost == 1)
+
+naive <- sapply(list(`Pre-test arm` = pre, `Post-test arm` = post,
+                     `Pooled` = land_experiment), function(d)
+    coef(summary(lm(support ~ treat_comb * land_insecure, data = d)))[
+        "treat_comb:land_insecure", c("Estimate", "Std. Error", "Pr(>|t|)")])
+knitr::kable(t(round(naive, 3)), caption = "Naive regression interaction between the land appeal and land insecurity, by where the moderator was measured.")
+
+# The bootstrap over a grid of gamma values takes several minutes, so the result
+# is cached; delete the file to recompute.
+sens_file <- "data/blackwell_land_post_sens.rds"
+if (file.exists(sens_file)) {
+    sens <- readRDS(sens_file)
+} else {
+    set.seed(182)
+    # causalverse::role_bounds() wraps prepost::post_sens() and prepost::pre_sens()
+    sens <- role_bounds(post, treat = "treat_comb", outcome = "support",
+                        moderator = "land_insecure", design = "post",
+                        sensitivity = TRUE, g_max = 0.2, sims = 500)
+    saveRDS(sens, sens_file)
+}
+show_rows <- sapply(c(min(sens$gamma), 0.07, 0.12), function(g) which.min(abs(sens$gamma - g)))
+knitr::kable(round(sens[show_rows, ], 2), caption = "Post-test bounds on the interaction as a function of gamma, the share of respondents whose moderator the treatment moved.")
+```
+
+The naive interaction is large and positive in both arms, and significant only in the post-test arm and the pooled sample. The bounds show how little that number is worth once the post-test measurement is taken seriously. At the smallest $\gamma$ consistent with the data, about 0.02, the bounds exclude zero but the confidence interval does not. The lower bound reaches zero once 6 to 7 percent of respondents could have had their land-insecurity answer moved by the appeal (the published analysis, on a coarser grid, reports 7 percent), and at $\gamma \approx 0.12$ the bounds span roughly $[-1.02, 1.14]$, which matches the published interval and is uninformative. Note also what the first-stage evidence says: the share reporting land insecurity in the post-test arm is a little higher among treated respondents, and with under 200 respondents a test of that difference has almost no power, which is why a nonsignificant check could never have certified the moderator.
+
+How large is priming bias in practice? Two large studies suggest it is usually small. @albertson2023moderator randomized whether a racial resentment battery came before or after a classic welfare question-wording experiment ($N = 1{,}590$) and found no detectable difference in the interaction, with the caveat that the study cannot rule out differences of the size that would matter. @sheagley2025measuring re-measured moderators immediately before the experiment for a random half of respondents in seven two-wave panels, against a measure taken in an earlier wave for everyone, and found no evidence that measuring the moderator changes the treatment effect. Their design compares two pre-treatment placements, so it speaks to priming rather than to post-treatment bias. The working rule that follows is to measure moderators before treatment, preferably in an earlier wave or an earlier session, and when that is impossible, to report bounds rather than the naive interaction.
+
+### A Gated Procedure, and What It Buys {#sec-cpa-role-procedure}
+
+The pieces above can be assembled into a decision rule for a randomized experiment that returns one of five verdicts for a candidate third variable: moderator, mediator, both, neither, or undetermined. The components are all published; the assembly and the simulations below are this book's.
+
+1. **Does treatment move $Z$?** Run the distributional randomization test of the sharp null $Z_i(1) = Z_i(0)$. If $Z$ was also measured at baseline, test the post-treatment measure after residualizing it on the baseline measure, which is still exact under the sharp null and far more powerful.
+2. **If it rejects,** $Z$ is post-treatment in the sense that matters. It cannot be a moderator. Test the $Z$ to $Y$ path (conditional on baseline $Z$ when available) and call $Z$ a mediator candidate, with the sensitivity analysis of the mediation chapter attached.
+3. **If it does not reject,** require an equivalence test with a pre-registered margin before treating $Z$ as unaffected. If equivalence fails, the verdict is undetermined.
+4. **Moderation** is tested on the baseline measure whenever one exists, because effect modification by a pre-treatment variable needs no gate at all. Only in a post-only design is the moderation test gated behind steps 1 and 3.
+
+The simulation compares this procedure with the naive rule that reads a significant $X \times Z_{\text{post}}$ interaction as moderation, in six worlds with $n = 400$ and $Z$ measured with error. Two worlds carry the lesson. In the *cancelling* world, treatment pushes $Z$ up for some units and down for others, the units it pushes up also benefit more from treatment, and baseline $Z$ modifies nothing: there is no moderator. In the *curved mediator* world, $Z$ mediates and its effect on $Y$ is convex, which, as the section on functional form warned [@simonsohn2024interacting], makes the effect of $X$ depend on where a unit starts, so baseline $Z$ is a genuine effect modifier and the truth is "both."
+
+The worlds are generated by `simulate_role_data()`, which returns a randomized treatment, a baseline and a post-treatment measure of $Z$ (each with measurement error), and an outcome, together with the true role. `role_simulation()` applies the three rules to repeated draws from each world.
+
+```{r cpa-role-sim-example}
+head(simulate_role_data("cancelling", n = 400, seed = 1), 3)
+```
+
+```{r cpa-role-sim, message=FALSE}
+# 1,000 replications per world take several minutes on a multicore machine,
+# so the result is cached; delete the file to recompute.
+sim_file <- "data/role_simulation_experiment.rds"
+if (file.exists(sim_file)) {
+    sims <- readRDS(sim_file)
+} else {
+    sims <- role_simulation(n = 400, reps = 1000, B = 499, margin = 0.25,
+                            cores = max(1, parallel::detectCores() - 2), seed = 2026)
+    saveRDS(sims, sim_file)
+}
+s <- summary(sims)
+worlds <- c(neither = "Neither", moderator = "Moderator", mediator = "Mediator",
+            curved_mediator = "Curved mediator (truth: both)",
+            cancelling = "Cancelling effects on Z (no moderator)", both = "Both")
+rules <- c(naive = "Naive", post_only = "Gated, post only", pre_post = "Gated, pre and post")
+cells <- with(s, sprintf("%.0f / %.0f / %.0f", pct_correct, pct_moderator, pct_undetermined))
+out <- matrix(cells[match(outer(names(worlds), names(rules), paste),
+                          paste(s$world, s$rule))],
+              nrow = length(worlds), dimnames = list(unname(worlds), unname(rules)))
+knitr::kable(out, caption = "Percent of 1,000 replications in which each rule returns the correct verdict / calls Z a moderator / returns undetermined. n = 400, Z measured with error.")
+```
+
+Three findings stand out. The naive rule calls $Z$ a moderator in roughly 42 percent of samples from the cancelling world, where there is no moderator, and it reduces the curved mediator and the "both" world to "moderator," missing the mechanism entirely. A post-only design with the gate cuts the false moderator claims in the cancelling world by more than half and never mistakes a mediator for a moderator, but it pays twice: it cannot see moderation by a variable the treatment has moved, and its equivalence step leaves about a third of genuine moderators and genuine nulls undetermined at this sample size. Measuring $Z$ at baseline as well as afterward removes nearly all of these problems at once: false moderator claims in the cancelling world disappear, "both" is recovered in about 95 percent of samples, and the undetermined verdict essentially vanishes because moderation is tested on the baseline measure without a gate. The curved mediator is the hard case even for the pre/post design, which finds the mediation every time but detects the curvature-induced moderation only about half the time at $n = 400$.
+
+The cost of the equivalence gate in a post-only design can be computed in closed form. With $n/2$ units per arm, the standardized difference in means has a standard error of about $2/\sqrt n$, and a two one-sided tests procedure at the 5 percent level declares equivalence when the 90 percent interval lies inside the margin.
+
+```{r cpa-role-equivalence-cost}
+grid <- expand.grid(n = c(200, 400, 800, 1600, 3200), margin = c(0.1, 0.2, 0.25, 0.3))
+se <- 2 / sqrt(grid$n)
+grid$p_equiv <- pmax(0, 2 * pnorm((grid$margin - qnorm(0.95) * se) / se) - 1)
+knitr::kable(round(xtabs(p_equiv ~ n + margin, grid), 2),
+             caption = "Probability that a post-only design certifies a truly unaffected moderator as unaffected, by total sample size (rows) and equivalence margin in standard deviations (columns).")
+```
+
+A margin of a fifth of a standard deviation needs about 800 respondents to certify an untouched moderator three times in four; a tenth of a standard deviation needs several thousand. That arithmetic is a second argument, alongside bias, for measuring moderators before treatment.
+
+### Auditing a Literature for Post-Treatment Moderators {#sec-cpa-role-audit}
+
+The audit of @montgomery2018conditioning is itself replicable from their coding file, which is the template for auditing any other literature.
+
+```{r cpa-montgomery-audit}
+papers <- read.delim("data/montgomery_posttreatment/final_coding_papers.tab")
+audit <- table(papers$Final_coding)
+knitr::kable(data.frame(Practice = names(audit), Articles = as.vector(audit),
+                        Percent = round(100 * as.vector(audit) / nrow(papers), 1)),
+             caption = "Post-treatment conditioning in 75 experimental articles, APSR, AJPS, and JOP, 2012 to 2014. Replicates Table 1 of Montgomery, Nyhan, and Torres (2018).")
+```
+
+The coding scheme has five fields per article, and each transfers directly to marketing, management, and information systems experiments:
+
+1. Whether any regression controls for, or interacts treatment with, a variable measured after treatment (`CONTROL_POST`).
+2. Whether cases are dropped or the sample is subset on a post-treatment criterion, and which one: attrition, a manipulation or attention check, another post-treatment criterion, or an explicit subset (`DROP_CASES`, `Specific`).
+3. Whether the conditioning variable is one the article itself analyzes as an outcome of the treatment (`CONDITION_DV`), the clearest case because the article documents the first-stage effect.
+4. Whether a mediation analysis is reported, and of which kind (`Mediation`).
+5. The overall verdict, with "unclear" reserved for articles that do not report when variables were measured.
+
+A business-school audit would add two fields that matter more there than in political science: whether the claimed moderator is a construct the manipulation plausibly targets (involvement, perceived risk, construal level, trust), and whether the paper reports any test, with any power, that the manipulation left the moderator alone. Where data are posted, the reanalysis protocol is the one used above: re-estimate without conditioning, run the randomization test on the moderator, and report the post-test bounds of @blackwell2025priming. In information systems, @tafti2020beyond make the related argument that covariates in randomized experiments, including those used to study heterogeneity, should be chosen with an explicit causal graph that separates pre-treatment from post-treatment variables.
+
+Outside academia the same failure is common and expensive. Platform A/B tests are routinely sliced by engagement measured after exposure ("among users who opened the email, the new subject line lowered conversion"), which conditions on a variable the treatment moved. In litigation, damages experts sometimes estimate a conduct effect only among customers who remained after the conduct began. In both settings the remedy is the one this section recommends: define segments on pre-exposure characteristics, and when that is impossible, test whether exposure moved the segmenting variable and bound the comparison rather than report it.
+
 ## Probing Is Not Testing {#sec-cpa-probing}
 
 The dominant reporting convention in applied conditional process analysis is to estimate the conditional indirect effect at a small number of moderator values, conventionally the mean and one standard deviation on either side, bootstrap a confidence interval at each, and declare moderated mediation when the intervals differ in whether they contain zero. Sometimes the values are chosen instead by the Johnson-Neyman procedure, which at least locates the boundary of significance rather than imposing three arbitrary points.

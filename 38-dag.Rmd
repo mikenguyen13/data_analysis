@@ -479,7 +479,7 @@ Causal discovery involves algorithmically identifying causal relationships from 
 
 > See [@eberhardt2024discovering] for a comprehensive discussion of the assumptions and limitations of discovery algorithms in practice.
 
-In applied work, causal discovery is best treated as a hypothesis-generation tool rather than a substitute for substantive theory: the algorithms recover a graph that is consistent with the conditional-independence structure of the data, but several DAGs typically share that structure, and only domain knowledge can distinguish between them.
+In applied work, causal discovery is best treated as a hypothesis-generation tool rather than a substitute for substantive theory: the algorithms recover a graph that is consistent with the conditional-independence structure of the data, but several DAGs typically share that structure. Conditional independence alone cannot distinguish them; either domain knowledge or additional distributional assumptions, developed in Section \@ref(sec-dag-equivalence) onward, must do that work.
 
 ### Structure Learning with bnlearn
 
@@ -512,6 +512,242 @@ dag_constrained <- hc(learning.test, whitelist = data.frame(from = "A", to = "B"
 ```
 
 Domain knowledge enters `bnlearn` the same way it enters `dagitty`, through whitelisted arcs that must appear and blacklisted arcs that must not, which is the practical bridge between the algorithmic output and the substantive DAG the analyst is prepared to defend.
+
+### What Conditional Independence Can and Cannot Orient {#sec-dag-equivalence}
+
+The question that motivates most applied interest in discovery is a narrow one. A researcher has a treatment $X$, an outcome $Y$, and a third variable $Z$, and wants to know whether $Z$ is a mediator ($X \to Z \to Y$), a confounder ($X \leftarrow Z \to Y$), or a collider ($X \to Z \leftarrow Y$). The three structures are the chain, fork, and collider of Section \@ref(sec-directed-acyclic-graphs), and they answer the question of whether $Z$ belongs in the adjustment set in three different ways.
+
+Conditional independence can separate exactly one of the three from the other two. The chain and the fork both imply that $X$ and $Y$ are dependent marginally and independent given $Z$. A third structure, the reversed chain $X \leftarrow Z \leftarrow Y$, implies the same thing. Graphs that imply the same set of conditional independencies are **Markov equivalent**, and the classical result is that two DAGs are Markov equivalent if and only if they have the same skeleton and the same v-structures, that is, the same unshielded colliders [@andersson1997characterization; @spirtes2000causation]. The collider is the only v-structure among the three, and it implies the opposite pattern: $X$ and $Y$ independent marginally, dependent once $Z$ is conditioned on. So a constraint-based algorithm such as PC can orient a collider but must leave the chain and the fork undirected.
+
+The simulation below draws 2,000 observations from each structure and runs PC with a Gaussian conditional-independence test.
+
+```{r dag-equivalence-demo, message=FALSE, warning=FALSE}
+library(pcalg)
+
+set.seed(38)
+n <- 2000
+skewed <- function(n) (rchisq(n, 3) - 3) / sqrt(6)   # mean 0, variance 1, skewed
+
+gen <- function(type, e = skewed) {
+    a <- e(n); b <- e(n); c <- e(n)
+    switch(type,
+        chain    = { X <- a; Z <- 0.7 * X + b; Y <- 0.7 * Z + c },
+        fork     = { Z <- a; X <- 0.7 * Z + b; Y <- 0.7 * Z + c },
+        collider = { X <- a; Y <- c; Z <- 0.7 * X + 0.7 * Y + b })
+    data.frame(X, Z, Y)
+}
+
+# Report the edges of a 3 x 3 adjacency matrix; m[i, j] = 1 means i -> j
+edges <- function(m, v) {
+    out <- character(0)
+    for (i in 1:2) for (j in (i + 1):3) {
+        if (m[i, j] && m[j, i]) out <- c(out, paste(v[i], "--", v[j]))
+        else if (m[i, j])       out <- c(out, paste(v[i], "->", v[j]))
+        else if (m[j, i])       out <- c(out, paste(v[j], "->", v[i]))
+    }
+    paste(out, collapse = ",  ")
+}
+pc_edges <- function(d) {
+    fit <- pc(list(C = cor(d), n = nrow(d)), indepTest = gaussCItest,
+              alpha = 0.01, labels = names(d))
+    edges(as(fit@graph, "matrix"), names(d))
+}
+# pcalg::lingam returns B with B[i, j] != 0 meaning j -> i
+lingam_edges <- function(d) {
+    B <- lingam(as.matrix(d))$Bpruned
+    edges(t(abs(B) > 0.1), names(d))
+}
+
+discovery <- t(sapply(c("chain", "fork", "collider"), function(type) {
+    d_skew  <- gen(type)
+    d_gauss <- gen(type, rnorm)
+    c(PC = pc_edges(d_skew),
+      `LiNGAM, skewed errors` = lingam_edges(d_skew),
+      `LiNGAM, Gaussian errors` = lingam_edges(d_gauss))
+}))
+knitr::kable(discovery, caption = "What each method recovers from 2,000 draws of three-variable structures. A double dash is an edge left unoriented.")
+```
+
+The first column is the identification limit made visible. PC finds the right skeleton for every structure and orients the collider correctly, but the chain and the fork come back as the same undirected graph, because nothing in their conditional-independence structure distinguishes them. A researcher who hoped to learn from PC whether $Z$ mediates or confounds the effect of $X$ learns nothing; the data are equally consistent with both answers. The remaining two columns show what it takes to do better.
+
+### Breaking the Tie With Non-Gaussianity: LiNGAM {#sec-dag-lingam}
+
+The equivalence class is the limit of what conditional independence can deliver, not the limit of what the joint distribution contains. @shimizu2006linear showed that if the structural equations are linear, the graph is acyclic, there are no unobserved common causes, and the disturbances are independent and non-Gaussian, then the full DAG is identified, not just its equivalence class. The model is called LiNGAM, for linear non-Gaussian acyclic model, and the original estimator uses independent component analysis to recover the mixing matrix.
+
+The intuition is easiest to see for two variables. If $Y = bX + e$ with $X$ and $e$ independent, then regressing $Y$ on $X$ leaves a residual that is independent of $X$. Regressing $X$ on $Y$ also leaves a residual that is uncorrelated with $Y$, because least squares guarantees that, but with non-Gaussian variables it is not *independent* of $Y$: the reverse residual is a mixture of $X$ and $e$, and the Darmois-Skitovich theorem says two linear combinations of independent non-Gaussian variables can be independent only in degenerate cases. Independence of the residual from the regressor is therefore a fingerprint of the causal direction. With Gaussian variables, uncorrelated means independent, the fingerprint disappears in both directions, and the method has nothing to work with. DirectLiNGAM turns this residual-independence logic into a sequential algorithm that finds the most exogenous variable, regresses it out, and repeats, with no tuning parameters and guaranteed convergence [@shimizu2011directlingam]. The `pcalg` package [@kalisch2012causal] implements the ICA version as `lingam()`, and the `lingamr` package implements DirectLiNGAM with bootstrap edge probabilities.
+
+The second and third columns of the table above show both halves of the argument. With skewed disturbances LiNGAM orients the chain as a chain and the fork as a fork, which PC could not do. With Gaussian disturbances and the same coefficients it gets the chain wrong: it returns a fork, an arbitrary member of the equivalence class, because no member is distinguishable from any other.
+
+Nonlinearity is a second route out of the equivalence class. In an additive noise model $Y = f(X) + e$ with $e$ independent of $X$, a nonlinear $f$ generically makes the reverse model $X = g(Y) + \tilde e$ impossible to fit with independent noise, so the direction is identified even when the noise is Gaussian [@hoyer2008nonlinear]. @peters2014causal extend the result to multivariate graphs and give the RESIT algorithm, which regresses each candidate effect on its candidate parents with a flexible learner and tests the residuals for independence with HSIC [@pfister2018kernel].
+
+The theory is clean; the empirical record is sobering. @mooij2016distinguishing assembled a benchmark of 100 real cause-effect pairs whose direction is known from domain knowledge, from climate, biology, economics, and engineering. The best additive noise method identified the correct direction in about 63 percent of pairs, with an uncertainty of roughly ten percentage points; the benchmark also evaluates information-geometric alternatives [@janzing2012information]. That is better than a coin flip and much worse than the simulations suggest. The reasons are the assumptions: real variables are often close to Gaussian, discretized, measured with error, or confounded, and each of these erodes the asymmetry the methods exploit.
+
+### Direction Dependence Analysis {#sec-dag-dda}
+
+Quantitative psychology developed the same ideas under the name **direction dependence analysis** (DDA), packaged as a confirmatory test of a directional theory rather than an exploratory search [@wiedermann2015direction; @wiedermann2018direction]. DDA compares a target model ($X \to Y$) with its reverse ($Y \to X$) on three families of evidence, all of which rest on the non-Gaussianity assumptions of LiNGAM:
+
+1. **Observed distributions.** Under the target model, the outcome is a convolution of a non-Gaussian cause and an error, so it should be closer to Gaussian than the cause, and higher-order correlations such as $\mathrm{cor}(X^2, Y) - \mathrm{cor}(X, Y^2)$ should have a known sign.
+2. **Residual distributions.** The residual of the correctly specified model should be closer to Gaussian than the residual of the reverse model.
+3. **Independence.** The residual of the correct model should be independent of its predictor; the residual of the reverse model should not. When both residuals are dependent on their predictors, DDA reads it as evidence of unobserved confounding.
+
+The framework has been extended to the mediator-outcome path in randomized intervention studies, where the treatment is randomized but the direction between a cross-sectionally measured mediator and outcome is not [@wiedermann2019testing]; to models with interaction terms, where the causal direction is evaluated conditional on a moderator [@li2020conditional]; and to the third-variable problem of this section, with a two-step HSIC procedure that labels $Z$ a mediator, confounder, or collider [@shi2026one]. A book-length treatment is @wiedermann2025direction.
+
+The critiques are as important as the methods. @thoemmes2015empirical evaluated DDA tests on real data sets with a known causal ordering and found that tests that perform well in simulations perform poorly on real data; @thoemmes2020assumptions argues that the distributional assumptions on the errors are strong and rarely checkable, and constructs an example in which DDA reaches the wrong conclusion. @wiedermann2020sensitivity respond with sensitivity analyses and distribution-free extensions. The fair summary is that DDA is a principled way to extract directional evidence from higher moments when a theory makes a directional claim, and that its conclusions are only as good as the non-Gaussianity and no-confounding assumptions behind them.
+
+The `dda` package implements all three components. Applied to the chain from the simulation above, the independence component looks like this:
+
+```{r dag-dda-demo, message=FALSE, warning=FALSE}
+library(dda)
+set.seed(381)
+d_chain <- gen("chain")
+
+# Target model X -> Z against the reverse Z -> X; HSIC tests whether each
+# model's residual is independent of its predictor.
+dda.indep(Z ~ X, pred = "X", data = d_chain, B = 200)
+```
+
+The target model's residual is independent of $X$, and the reverse model's residual is strongly dependent on $Z$, which is the pattern DDA requires before it endorses $X \to Z$.
+
+### Classifying a Third Variable, and What Moderation Does to It {#sec-dag-third-variable-roles}
+
+The third-variable classifier is where discovery meets the mediator-versus-moderator question of Section \@ref(sec-cpa-role). Its logic is two direction decisions. First orient the $X$ and $Z$ edge marginally. Then orient the $Z$ and $Y$ edge conditional on $X$. Mediator, confounder, and collider correspond to three of the four combinations.
+
+None of the published classifiers include a fourth role: a moderator, a $Z$ that changes the size of the effect of $X$ on $Y$. That omission matters, because a moderator puts a product term $XZ$ into the outcome equation, and a regression that omits the product leaves a residual whose variance depends on $Z$. A residual-independence test reads that heteroskedasticity as dependence, in *both* directions, which is exactly the pattern these methods interpret as "undetermined" or "confounded."
+
+The simulation below, written for this book, makes the point. It re-implements the two-step HSIC logic in the spirit of @shi2026one, without using their code, and runs it on six structures with skewed errors and $n = 500$: the three additive structures, a pure moderator independent of $X$, a confounder that also moderates, and a mediator whose effect on $Y$ interacts with $X$. It then runs an interaction-aware version that lets each candidate regression in the second step include the product of its predictor with $X$, and appends a moderation label when that product is significant.
+
+```{r dag-role-sim-code, eval=FALSE}
+library(sandwich)
+
+hsic_p <- function(x, y, B = 100) {          # permutation HSIC, Gaussian kernels
+    n <- length(x)
+    kern <- function(v) {
+        D <- as.matrix(dist(v)); s <- median(D[D > 0]); exp(-D^2 / (2 * s^2))
+    }
+    K <- kern(x); L <- kern(y); H <- diag(n) - 1 / n; Kc <- H %*% K %*% H
+    stat <- sum(Kc * L)
+    perm <- replicate(B, { p <- sample.int(n); sum(Kc * L[p, p]) })
+    (1 + sum(perm >= stat)) / (B + 1)
+}
+# Orient (A, B) given covariate W; interact = TRUE adds the predictor-by-W product
+direction <- function(A, B, W = NULL, interact = FALSE, alpha = 0.05) {
+    if (is.null(W))  { fB <- lm(B ~ A);     fA <- lm(A ~ B) }
+    else if (!interact) { fB <- lm(B ~ A + W); fA <- lm(A ~ B + W) }
+    else             { fB <- lm(B ~ A * W); fA <- lm(A ~ B * W) }
+    p1 <- hsic_p(A, resid(fB)); p2 <- hsic_p(B, resid(fA))
+    pc <- summary(fB)$coefficients["A", 4]
+    if (p1 >= alpha && p2 < alpha) "A->B" else if (p1 < alpha && p2 >= alpha) "B->A" else
+        if (p1 >= alpha && p2 >= alpha && pc >= alpha) "none" else "undecided"
+}
+role <- function(xz, zy) {
+    if (xz == "A->B" && zy == "A->B") "mediator" else
+    if (xz == "B->A" && zy == "A->B") "confounder" else
+    if (xz == "A->B" && zy == "B->A") "collider" else
+    if (xz == "none" && zy == "A->B") "independent cause" else "undetermined"
+}
+src <- function(n) (rchisq(n, 4) - 4) / sqrt(8)
+
+one_rep <- function(scen, n = 500, d = 0.4) {
+    s1 <- src(n); s2 <- src(n); s3 <- src(n)
+    switch(scen,
+        mediator   = { X <- s1; Z <- 0.6 * X + s2; Y <- 0.3 * X + 0.6 * Z + s3 },
+        confounder = { Z <- s1; X <- 0.6 * Z + s2; Y <- 0.3 * X + 0.6 * Z + s3 },
+        collider   = { X <- s1; Y <- 0.5 * X + s3; Z <- 0.5 * X + 0.6 * Y + s2 },
+        pure_moderator = { X <- s1; Z <- s2; Y <- 0.3 * X + 0.3 * Z + d * X * Z + s3 },
+        confounding_moderator = { Z <- s1; X <- 0.6 * Z + s2
+                                  Y <- 0.3 * X + 0.6 * Z + d * X * Z + s3 },
+        mediator_xm_interaction = { X <- s1; Z <- 0.6 * X + s2
+                                    Y <- 0.3 * X + 0.6 * Z + d * X * Z + s3 })
+    xz <- direction(X, Z)
+    additive <- role(xz, direction(Z, Y, W = X))
+    base <- role(xz, direction(Z, Y, W = X, interact = TRUE))
+    fit <- lm(Y ~ Z * X); V <- vcovHC(fit, type = "HC2")
+    mod <- 2 * pnorm(-abs(coef(fit)["Z:X"] / sqrt(V["Z:X", "Z:X"]))) < 0.05
+    aware <- if (base == "undetermined") base else paste0(base, if (mod) " + moderation" else "")
+    c(additive = additive, aware = aware)
+}
+# 300 replications per structure, run in parallel; results saved to
+# data/role_pilot_discovery.rds
+```
+
+```{r dag-role-sim-results, echo=FALSE}
+role_disc <- readRDS("data/role_pilot_discovery.rds")
+truth <- c(mediator = "Mediator", confounder = "Confounder", collider = "Collider",
+           pure_moderator = "Moderator, independent of X",
+           confounding_moderator = "Confounder that also moderates",
+           mediator_xm_interaction = "Mediator interacting with X")
+correct <- c(mediator = "mediator", confounder = "confounder", collider = "collider",
+             pure_moderator = "independent cause + moderation",
+             confounding_moderator = "confounder + moderation",
+             mediator_xm_interaction = "mediator + moderation")
+correct_additive <- c(mediator = "mediator", confounder = "confounder", collider = "collider",
+                      pure_moderator = "independent cause",
+                      confounding_moderator = "confounder",
+                      mediator_xm_interaction = "mediator")
+summ <- do.call(rbind, lapply(names(truth), function(s) {
+    a <- role_disc$verdict[role_disc$scenario == s & role_disc$rule == "additive"]
+    w <- role_disc$verdict[role_disc$scenario == s & role_disc$rule == "aware"]
+    data.frame(
+        `True structure` = truth[[s]],
+        `Additive: structure right` = round(100 * mean(a == correct_additive[[s]])),
+        `Additive: undetermined` = round(100 * mean(a == "undetermined")),
+        `Interaction-aware: fully right` = round(100 * mean(w == correct[[s]])),
+        `Interaction-aware: undetermined` = round(100 * mean(w == "undetermined")),
+        check.names = FALSE)
+}))
+knitr::kable(summ, caption = "Percent of 300 replications classified correctly by an additive DDA-style classifier and by its interaction-aware extension. For the additive classifier, a moderator scenario counts as right if the structural role is right, ignoring moderation, which it cannot label.")
+```
+
+The additive classifier recovers the three structures it was designed for about nine times in ten, which matches the published simulation evidence. The moment a product term enters the outcome equation it stops working: for a confounder that also moderates and for a mediator that interacts with treatment it returns "undetermined" in essentially every replication. It does not mislabel the variable, which is the safe failure, but it says nothing about the most common structure in applied work, where the variable that confounds a treatment also changes the size of its effect. The interaction-aware version recovers both the structural role and the moderation in more than nine replications in ten for those structures, at the cost of a small rate of spurious moderation labels when there is none. The extension is this book's, not a published method, and inherits every assumption of DDA; its purpose here is to show where the published classifiers stop and why.
+
+### Real Data: Pairs With a Known Direction {#sec-dag-known-direction}
+
+Simulations are built to satisfy the assumptions. The honest test is real data in which the direction is known from timing. The pairs below have that property: an eruption of the Old Faithful geyser comes before the wait for the next one, age and potential experience come before current wages, and completed schooling comes before wages measured in the 1970s survey extract of young men distributed with the `ivmodel` package.
+
+```{r dag-known-direction, message=FALSE, warning=FALSE}
+library(MASS); library(AER); library(ivmodel)
+data(geyser, package = "MASS")
+data(CPS1985, package = "AER")
+data(card.data, package = "ivmodel")
+
+g <- nrow(geyser)   # waiting[t] is the wait *before* eruption t
+pairs <- list(
+    "Geyser: eruption length -> next wait" =
+        data.frame(x = geyser$duration[-g], y = geyser$waiting[-1]),
+    "CPS 1985: age -> log wage"        = data.frame(x = CPS1985$age, y = log(CPS1985$wage)),
+    "CPS 1985: experience -> log wage" = data.frame(x = CPS1985$experience, y = log(CPS1985$wage)),
+    "NLSYM: schooling -> log wage"     = data.frame(x = card.data$educ, y = card.data$lwage),
+    "NLSYM: age -> log wage"           = data.frame(x = card.data$age, y = card.data$lwage))
+
+skew <- function(v) mean((v - mean(v))^3) / sd(v)^3
+set.seed(382)
+known <- do.call(rbind, lapply(names(pairs), function(nm) {
+    d <- na.omit(pairs[[nm]])
+    B <- lingam(as.matrix(d))$Bpruned          # B[2, 1] != 0 means x -> y
+    ind <- dda.indep(y ~ x, pred = "x", data = d, B = 100)
+    data.frame(Pair = nm, n = nrow(d),
+               `Skew x` = round(skew(d$x), 2), `Skew y` = round(skew(d$y), 2),
+               `LiNGAM direction` = ifelse(abs(B[2, 1]) > abs(B[1, 2]), "right", "wrong"),
+               `HSIC p, true model` = signif(ind$hsic.yx$p.value, 2),
+               `HSIC p, reverse model` = signif(ind$hsic.xy$p.value, 2),
+               check.names = FALSE)
+}))
+knitr::kable(known, caption = "LiNGAM and DDA independence tests on real pairs whose causal direction is known from timing.")
+```
+
+The result is the benchmark finding of @mooij2016distinguishing in miniature. LiNGAM orients the geyser pair correctly and gets every wage pair backwards. The DDA independence test rejects independence for the residuals of *both* models in every pair, which in DDA's own terms is the signature of confounding or misspecification rather than a directional verdict; the true model's residual is merely less dependent in three of the five pairs. None of this is surprising once the assumptions are checked. The skewness of log wages is close to zero, schooling is an integer with a heap at twelve years, and wages and schooling share unobserved causes such as ability and family background, which is the reason the IV literature exists. The lesson for the third-variable question is direct: on typical business and economics data, a higher-moment method can supplement a design but cannot replace one.
+
+### Applications in Business and Economics {#sec-dag-discovery-applications}
+
+The most mature use of non-Gaussian identification in economics is not in cross sections but in structural vector autoregressions. A reduced-form VAR identifies the covariance of the innovations, and the traditional route to structural shocks imposes a recursive ordering. If the structural shocks are independent and non-Gaussian, the contemporaneous structure is identified without imposing an ordering. @moneta2013causal introduce this VAR-LiNGAM approach to economists and apply it to firm growth and to monetary policy; @lanne2017identification and @gourieroux2017statistical develop maximum likelihood and ICA-based inference for non-Gaussian SVARs. @coad2017growth use SVAR-LiNGAM on firm-level data to argue that the typical firm's growth runs from employment to sales to profits to assets, while profit growth leads in high-growth firms, a causal ordering that a recursive VAR would have to assume.
+
+Constraint-based discovery has a longer business-school history. @lee1997discovery introduced the TETRAD framework to MIS research and argued that factor-analytic structural equation models routinely hide violations of the causal assumptions they impose. @zheng2010toward develop a Bayesian network method for structural models with latent constructs in information systems research. @haigh2004causality apply PC to the innovations of an error-correction model of grain and barge freight prices to determine which markets lead price discovery. Most recently, @eberhardt2025discovering formulate discovery as an integer optimization problem that admits latent confounders and cycles, and use it to ask which causal pathways would invalidate the classic returns-to-schooling instruments, which turns discovery into a falsification device for an IV design rather than a substitute for one.
+
+In marketing, the same identifying idea arrives through the instrument-free endogeneity corrections of Section \@ref(sec-copula-correction). The Gaussian copula approach identifies an endogenous regressor's effect from its non-normality; @haschka2026correcting replace the copula with an ICA-based correction, which is LiNGAM's identifying assumption applied to omitted-variable bias. The link is worth making explicit, because the failure modes are shared: near-Gaussian regressors, discreteness, and confounding by more than one latent factor undermine both.
+
+We found no application of LiNGAM or DDA to a mediator, moderator, or confounder classification problem in a marketing, management, or information systems journal at the level of the UTD24. For readers who want a single introduction written for economists, @huber2024introduction is a good starting point, and @glymour2019review surveys the constraint-based, score-based, and functional-causal-model families together.
+
+In consulting and expert work, the defensible use of discovery mirrors the advice of this chapter's workflow. A discovered graph is a hypothesis about which variables belong in the adjustment set, to be confronted with the institutional facts and with the testable implications of Step 3 below. A discovered direction is never, by itself, evidence that a variable is a mediator rather than a confounder; the simulations and the known-direction pairs above show how easily that inference fails when the assumptions do.
 
 ### Simulating from a Structural Causal Model with simcausal
 
