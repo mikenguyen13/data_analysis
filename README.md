@@ -181,6 +181,24 @@ The PDF route requires a working LaTeX installation with LuaLaTeX. On Windows, [
 
 The repo uses [renv](https://rstudio.github.io/renv/) for package version pinning. After cloning, run `renv::restore()` to recreate the package environment used by the book.
 
+## Deploying the online edition
+
+The online edition is the bs4_book HTML in `_book/`, published to Posit Connect Cloud. After rendering, run the pre-deploy step from the repo root, then deploy `_book/`:
+
+```r
+bookdown::render_book("index.Rmd", output_format = "bookdown::bs4_book")
+source("gen_sitemap_posit.R")   # sitemap.xml, robots.txt, llms.txt, redirect stubs -> _book/
+rsconnect::deployApp(appDir = "_book", appId = "019b4ef3-ffbb-c7d8-9465-334d7a28631e",
+                     account = "mike", server = "connect.posit.cloud", contentCategory = "site")
+```
+
+**Do not skip `gen_sitemap_posit.R`.** Besides the sitemap, it copies the redirect stubs in [`redirects/`](redirects/) into `_book/`. The book moved from bookdown.org to Posit Connect Cloud in May 2026, and many chapter filenames changed. Each stub is a small HTML page (meta refresh, canonical link and `location.replace`) that sends an old bookdown.org filename to its new page or section. Without them, the old URLs that search engines still rank return 404, which is what cut traffic by about three quarters before the stubs went live.
+
+- `redirects/redirect_map.json` is the source of truth: old filename -> `to` (new page, optionally `#section`), plus how it was matched and the old title.
+- `redirects/stubs/*.html` are generated from the map and committed. After editing the map, regenerate them with `Rscript redirects/build_redirects.R stubs`.
+- A stub never overwrites a page the render produced. If a chapter later reuses an old filename, the real page wins and the pre-deploy step prints a warning. It also warns when a stub points at a page missing from `_book/`.
+- Stubs are kept out of `sitemap.xml`.
+
 ## Repository layout
 
 ```
@@ -194,6 +212,8 @@ The repo uses [renv](https://rstudio.github.io/renv/) for package version pinnin
 ├── images/                 # figures and cover art
 ├── data/                   # datasets used in examples
 ├── renv/, renv.lock        # pinned package environment
+├── gen_sitemap_posit.R     # pre-deploy step (sitemap, site files, redirect stubs)
+├── redirects/              # old bookdown.org URL -> new page map and generated stubs
 └── _book/                  # rendered output (git-ignored)
 ```
 
