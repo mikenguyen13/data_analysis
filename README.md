@@ -183,14 +183,23 @@ The repo uses [renv](https://rstudio.github.io/renv/) for package version pinnin
 
 ## Deploying the online edition
 
-The online edition is the bs4_book HTML in `_book/`, published to Posit Connect Cloud. After rendering, run the pre-deploy step from the repo root, then deploy `_book/`:
+The online edition is the bs4_book HTML in `_book/`. The same files are published to two hosts:
+
+- **GitHub Pages** (`https://mikenguyen13.github.io/data_analysis/`, branch `gh-pages`) is the canonical copy that search engines index.
+- **Posit Connect Cloud** (`https://mike-data-analysis.share.connect.posit.cloud/`) keeps serving readers who arrive there, including every old bookdown.org link, which Posit redirects there.
+
+Google indexes almost nothing on `share.connect.posit.cloud`: in Nov 2026, Search Console showed 1 of 161 pages indexed. So every page carries `<link rel="canonical">` pointing at GitHub Pages. After rendering, run both pre-deploy steps from the repo root, then deploy `_book/` to both hosts:
 
 ```r
 bookdown::render_book("index.Rmd", output_format = "bookdown::bs4_book")
-source("gen_sitemap_posit.R")   # sitemap.xml, robots.txt, llms.txt, redirect stubs -> _book/
+source("gen_sitemap_posit.R")   # llms.txt, redirect stubs -> _book/
+system("Rscript redirects/set_canonical_host.R _book https://mikenguyen13.github.io/data_analysis/")
+#   canonical links, og:url, JSON-LD, sitemap.xml, robots.txt, .nojekyll
 rsconnect::deployApp(appDir = "_book", appId = "019b4ef3-ffbb-c7d8-9465-334d7a28631e",
                      account = "mike", server = "connect.posit.cloud", contentCategory = "site")
 ```
+
+Then publish the same `_book/` to GitHub Pages as a single-commit orphan `gh-pages` branch. Leave out `_book/rsconnect/`. The `.nojekyll` file must be included, or GitHub Pages drops `libs/` and the `*_files/` folders. A force-push is fine here: `gh-pages` holds only the built site, and nothing else depends on its history.
 
 **Do not skip `gen_sitemap_posit.R`.** Besides the sitemap, it copies the redirect stubs in [`redirects/`](redirects/) into `_book/`. The book moved from bookdown.org to Posit Connect Cloud in May 2026, and many chapter filenames changed. Each stub is a small HTML page (meta refresh, canonical link and `location.replace`) that sends an old bookdown.org filename to its new page or section. Without them, the old URLs that search engines still rank return 404, which is what cut traffic by about three quarters before the stubs went live.
 
