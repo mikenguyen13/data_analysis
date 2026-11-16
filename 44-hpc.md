@@ -1,0 +1,547 @@
+# High-Performance Computing {#sec-hpc}
+::: {.chapter-abstract}
+**Abstract.** Analyses that once fit comfortably on a laptop now routinely exceed it, whether through data volume, simulation scale, or the resampling that modern inference demands. This chapter covers high-performance computing for applied data analysis in R, treating it as an engineering discipline rather than a matter of requesting more cores. It reviews the parallel ecosystem: the parallel package, foreach, the future framework and its interchangeable backends, BiocParallel, snow, and sparklyr for Apache Spark. Amdahl's law supplies the ceiling, since speedup approaches a fixed limit set by the serial fraction however many workers are added, so profiling decides whether parallelizing is worth attempting. Practical guidance covers task granularity, resource estimation before submission, and testing on a subset first. Three failure modes then receive separate treatment, because they corrupt results rather than merely slowing them and none of them raises an error. Random number streams can overlap across workers, or vary with the worker count, breaking both independence and reproducibility. Memory is duplicated rather than shared under process-based backends. Tasks can fail silently, leaving an analysis to proceed over an unknown subset of its sample. A worked R workflow makes the recommendations concrete.
+
+**Keywords:** High-performance computing, Parallel computing, Distributed computing, Apache Spark, Profiling, Reproducibility
+:::
+
+Credibility, so far, has been a question of what an analysis may claim and who
+may see it. This chapter is about executing it. Computation earns a place in that
+discussion because scale introduces failures that return numbers rather than
+error messages: replicates that are not independent, results assembled from a
+subset nobody counted, and pipelines that cannot be run a second time.
+
+High-Performance Computing (HPC) refers to the use of advanced computational systems and techniques to solve complex, resource-intensive problems that are impractical or inefficient on standard computing platforms. In the realm of data analysis, HPC enables the handling of **large-scale data processing**, **computationally intensive simulations**, and **advanced statistical modeling**, particularly in fields like finance, marketing, bioinformatics, and engineering.
+
+By leveraging **parallel processing**, either through multi-core processors on a single machine or distributed nodes in a computing cluster, HPC environments dramatically reduce execution times and expand analytical capabilities.
+
+In the **R** programming ecosystem, several packages and frameworks facilitate parallel and distributed computing. These include:
+
+-   `parallel`: Built-in R package for basic parallel operations.
+-   `foreach` + `doParallel`: Enables parallel loops over independent tasks.
+-   `future`: Provides a unified API for parallelization with different backends.
+-   `BiocParallel`: Optimized for parallel evaluation in bioinformatics pipelines.
+-   `sparklyr`: Connects R to Apache Spark for big data processing.
+-   `snow`: For simpler parallel computing on Windows and Linux clusters.
+
+However, effective HPC implementation requires more than just code parallelization. **Testing, monitoring, estimating resource requirements, and iterative scaling** are all essential components to maximize efficiency and prevent costly mistakes.
+
+A chapter on computation may look out of place in a volume about whether results deserve to be believed. It is not. Scale introduces failure modes that have nothing to do with speed and everything to do with correctness, and they share the property of being silent. A parallel simulation whose workers draw from overlapping random streams produces replicates that are not independent, and it reports a standard error computed as though they were. A job that loses three of its two hundred tasks to a memory limit returns a result assembled from a hundred and ninety-seven, and unless the code was written to notice, nothing in the output says so. A pipeline that cannot be run again because it depended on the number of cores available that afternoon is not reproducible, whatever the analysis script says.
+
+None of these announce themselves. They produce numbers, the numbers look reasonable, and the analysis proceeds. The practices in this chapter are worth the trouble because they convert silent failures into loud ones.
+
+## What Parallelism Can and Cannot Buy
+
+Before choosing a backend it is worth knowing the ceiling. Any computation divides into a portion that can be run in parallel and a portion that cannot: reading the input, setting up, combining results, writing the output. If $p$ is the fraction of total runtime that parallelizes and $k$ is the number of workers, the best achievable speedup is
+
+$$
+S(k) \;=\; \frac{1}{(1 - p) + \dfrac{p}{k}},
+$$
+
+which is Amdahl's law. The consequence is unintuitive and worth internalizing. As $k$ grows without bound, $S$ does not. It approaches $1/(1-p)$, a ceiling fixed entirely by the serial fraction. A job that is 90% parallelizable can never run more than ten times faster no matter how large the cluster, and it reaches a speedup of about 4.7 at eight workers, at which point doubling the allocation to sixteen raises it only to 6.4. A job that is 50% parallelizable never beats a factor of two.
+
+Two practical conclusions follow. The first is that profiling is not optional preparation but the step that determines whether any of this is worth doing: an hour spent parallelizing a routine that accounts for 15% of runtime is an hour spent buying a maximum improvement of 18%. The second is that requesting more cores has sharply diminishing returns, and past a point it has negative ones, because the formula above ignores the cost of coordination. Real parallel overhead grows with $k$: workers must be started, data must be copied to them, and results must be collected. Where that cost grows faster than the work shrinks, adding workers makes the job slower. This is the usual explanation for a benchmark that improves from two cores to eight and then degrades at thirty-two.
+
+The corollary for task granularity is direct. Overhead is paid per task, so a loop of a million tasks each lasting a millisecond spends most of its life in dispatch. Chunking that same work into a few hundred tasks of a few seconds each pays the overhead a few hundred times instead of a million, and typically runs an order of magnitude faster with no change to the computation itself.
+
+## Reproducibility Under Parallel Execution
+
+The single most common way for a parallel analysis to be quietly wrong involves random numbers, and it is worth stating plainly because the failure produces no error.
+
+R's generator is a deterministic stream advanced by a seed. Calling `set.seed(123)` and then spawning workers does not give each worker its own stream. Depending on the backend it may give them all the *same* stream, in which case a simulation of ten thousand replicates across eight workers contains eight identical blocks of twelve hundred and fifty, and the variance across replicates is understated accordingly. Alternatively the workers may be seeded from the system clock or the process id, in which case the streams differ but the run is not reproducible, and no amount of re-running the script recovers the reported numbers.
+
+Neither failure raises a warning. Both produce output of the right shape and plausible magnitude.
+
+The fix is a generator designed for the purpose. L'Ecuyer's combined multiple-recursive generator can be partitioned into streams that are guaranteed not to overlap, and every parallel framework in R exposes it:
+
+- With the `parallel` package, set `RNGkind("L'Ecuyer-CMRG")`, then `set.seed()`, then `clusterSetRNGStream(cl, seed)`.
+- With `future` and `future.apply`, pass `future.seed = TRUE`, which handles stream assignment automatically. This is not the default, and code that omits it is exposed to the first failure above.
+- With `foreach`, use the `doRNG` backend rather than `doParallel` alone. A plain `%dopar%` loop drawing random numbers is not reproducible.
+
+There is a further subtlety that catches people who have done everything else correctly: results must not depend on the *number* of workers. If each task carries its own stream, splitting ten thousand tasks across four workers or across sixteen yields identical output, which is what reproducibility requires, since the person rerunning the analysis has a different machine. If instead each worker seeds once and its tasks share a stream, the assignment of draws to tasks changes with the worker count, and so does the answer. Verifying that a run with two workers matches a run with eight is a cheap and unusually informative test, and it belongs in the test suite of any simulation whose results will be published.
+
+## Memory, Failure, and Partial Results
+
+Two further properties of parallel execution deserve attention before the practices below.
+
+**Memory does not parallelize the way runtime does.** On Linux and macOS, forked workers share memory with the parent copy-on-write, so an object is duplicated only when a worker modifies it. On Windows, and in any `PSOCK` or multisession backend, each worker is a fresh R process that receives its own copy of everything it touches. Eight workers operating on a four-gigabyte object therefore need thirty-two gigabytes rather than four, and the job dies at the memory limit having consumed the allocation without producing anything. This is the most common reason a workflow that runs on a laptop fails on a cluster, and it is why memory needs estimating separately from runtime rather than being assumed to follow it.
+
+**A failed worker is not necessarily a failed job.** By default, `foreach` will abort the whole loop when one task raises an error, which is inconvenient but at least visible. Setting `.errorhandling = "pass"` or `"remove"` changes that: the loop completes, and the result silently contains error objects or is simply shorter than expected. Either behaviour can be the right choice for a long job over noisy inputs, where a handful of failures is expected and restarting from the beginning is unaffordable. Neither is safe unless the code afterwards checks how many results came back and what they are. The rule is to count: if two hundred tasks were dispatched, assert that two hundred results returned before using them, and record which ones did not. An analysis run over an unknown subset of its intended sample is not the analysis that gets described in the paper.
+
+## Best Practices for HPC in Data Analysis
+
+1.  **Test First on a Small Scale**
+
+Before scaling your analysis to full production, begin with **small-scale tests**. This ensures your code runs as expected, while also providing crucial information about resource usage.
+
+-   Start small: Run the analysis on a subset of your data (e.g., 1% or 10% of the total).
+-   Measure resource usage: 
+    -   Execution time (wall clock time vs. CPU time).
+    -   Memory footprint.
+    -   CPU and disk I/O utilization.
+-   Record the metrics: 
+    -   Create logs or structured reports for future reference.
+
+*Example*:\
+If you're modeling customer churn on a dataset of 10 million records, start with 100,000 and profile its behavior.
+
+2.  **Estimate Resource Requirements**
+
+Use insights from small-scale tests to extrapolate the resources needed for the full analysis.
+
+-   Estimate **CPU cores**, **memory**, and **execution time** requirements.
+-   Add an **overhead buffer**:
+    -   Parallel tasks introduce communication overhead and synchronization delays.
+    -   Real-world data can have higher complexity than test data.
+
+*Guideline*: If a small test consumes 1 GB of RAM and runs in 10 minutes on a single core, a 100x dataset may not scale linearly. Communication costs, disk I/O, and parallel inefficiencies could require a different scaling factor.
+
+3.  **Parallelize Strategically**
+
+Not all parts of your analysis benefit equally from parallelization. Identify and prioritize **computational bottlenecks**.
+
+-   Analyze your workflow:
+    -   Data ingestion: Can you parallelize reading large files or querying databases?
+    -   Transformations: Are data wrangling tasks parallelizable?
+    -   Modeling/Training: Can independent model fits or simulations be distributed?
+-   Balance granularity:
+    -   Overly fine-grained parallelization leads to high communication overhead.
+    -   Coarser tasks are generally more efficient in parallel environments.
+
+*Tip*: Use embarrassingly parallel strategies where possible, since these tasks require minimal communication between workers.
+
+4.  **Use Adequate Scheduling and Queue Systems**
+
+In HPC clusters, job scheduling systems manage resource allocation and prioritize workloads.
+
+Common systems include:
+
+-   **Slurm** (Simple Linux Utility for Resource Management)
+
+-   **PBS** (Portable Batch System)
+
+-   **LSF** (Load Sharing Facility)
+
+-   **SGE** (Sun Grid Engine)
+
+**Best practices**:
+
+-   Write job submission scripts specifying:
+
+    -   Wall time limits.
+
+    -   Memory and CPU requests.
+
+    -   Node allocation (if required).
+
+-   Monitor jobs:
+
+    -   Examine logs for resource utilization (memory, time, CPU load).
+
+    -   Use scheduler tools (e.g., `sacct` in Slurm) to assess historical performance.
+
+*Example Slurm job script*:
+
+```         
+#!/bin/bash
+#SBATCH --job-name=churn_model
+#SBATCH --output=churn_model_%j.out
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH --time=04:00:00
+
+module load R/4.2.0
+Rscript run_churn_model.R
+```
+
+5.  **Incremental Scaling**
+
+Resist the temptation to scale from small tests directly to massive production jobs.
+
+-   Iterate gradually:
+
+    -   Start with small jobs, progress to medium-sized runs, and only then scale to full production.
+
+-   Monitor I/O overhead:
+
+    -   Parallel jobs often stress shared storage systems.
+
+    -   Optimize data locality and prefetching if possible.
+
+*Tip*: Use **asynchronous job submission** (`batchtools::submitJobs()` or `future::future()`) to manage job batches efficiently.
+
+6.  **Documentation and Reporting**
+
+Good documentation facilitates reproducibility and future optimization.
+
+Maintain a structured report of each run, including:
+
+-   Input parameters: Dataset size, preprocessing steps, model parameters.
+
+-   Cluster specification: Number of nodes, CPUs per node, memory allocations.
+
+-   Execution logs: Total run time, CPU utilization, memory usage.
+
+-   Software environment: R version, package versions, job scheduler version.
+
+*Template for documentation*:
+
+Table \@ref(tab:hpc-job-record) is the template.
+
+| Parameter            | Value                     |
+|----------------------|---------------------------|
+| Dataset size         | 10 million records        |
+| Model type           | Random Forest (500 trees) |
+| Nodes used           | 4                         |
+| CPUs per node        | 8                         |
+| Memory per node      | 32 GB                     |
+| Wall time            | 2 hours                   |
+| Software environment | R 4.2.0, ranger 0.14.1    |
+| Scheduler            | Slurm 20.11.8             |
+
+Table: (\#tab:hpc-job-record) The record to keep for each job, so that the next run can be sized from measurement rather than guesswork.
+
+## Example Workflow in R
+
+Below is a conceptual R workflow demonstrating how to:
+
+1.  Load data and define a test subset.
+
+2.  Perform computations in parallel for the test subset using the `parallel` or `foreach` approach.
+
+3.  Measure resource usage (basic approach in R, with the cluster's job scheduler logs for deeper HPC environment metrics).
+
+4.  Extrapolate resource usage.
+
+5.  Submit a scaled-up job with new allocations.
+
+## Recommendations
+
+The six headings below are ordered the way a job should actually be developed,
+not by importance. Almost every wasted allocation on a shared cluster comes
+from inverting that order, by writing the full-scale job first and discovering
+its resource profile from the failure messages. The alternative is to treat the
+first small run as a measurement exercise whose output is not results but
+numbers describing the job itself, and to let each subsequent step be sized by
+what the previous one measured.
+
+1.  **Incremental Testing**
+
+-   Always begin with a small fraction of the data to validate your HPC pipeline and catch issues early.
+-   Collect critical metrics:
+    -   **Run time** (both wall clock time and CPU time).
+    -   **CPU utilization** (are all requested cores working efficiently?).
+    -   **Memory usage** (peak RAM consumption).
+-   Use tools such as `system.time()`, `profvis::profvis()`, or `Rprof()` in R to profile your code locally before scaling.
+
+2.  **Resource Allocation**
+
+-   Use test metrics to guide your resource requests (memory, cores, and wall time).
+-   Avoid:
+    -   Under-requesting: jobs may fail due to out-of-memory (OOM) errors or timeouts.
+    -   Over-requesting: results in longer queue times, resource underutilization, and potential policy violations on shared systems.
+-   Rule of thumb: 
+    -   Request slightly more memory than observed usage (e.g., 10-20% buffer).
+    -   Request wall time based on observed run time, plus an additional safety margin (e.g., 15-30%).
+
+3.  **Parallelization Strategy**
+
+    -   Identify tasks that can be embarrassingly parallel:
+        -   Monte Carlo simulations.
+        -   Bootstrap resampling.
+        -   Model fitting on independent data partitions.
+    -   Focus on minimizing communication overhead:
+        -   Send only essential data between processes.
+        -   Use shared-memory parallelism when possible to avoid data duplication.
+        -   For distributed nodes, serialize and compress data before transmission when feasible.
+
+4.  **Monitoring and Logging**
+
+    -   Use HPC job scheduler logs to track job performance:
+        -   Slurm: `sacct`, `scontrol show job`, or `seff`.
+        -   PBS/SGE: check standard output/error logs and resource summaries.
+    -   Capture R logs and console output:
+        -   Direct output to log files using `sink()` or by redirecting standard output in your job script.
+    -   Record:
+        -   Start and end times.
+        -   Memory and CPU metrics.
+        -   Warnings and error messages.
+
+5.  **Scaling**
+
+    -   For large-scale runs (e.g., 100x your initial test), do not jump from small-scale to full-scale directly.
+        -   Run intermediate-scale tests (e.g., 10x, 50x).
+        -   Confirm resource usage scales as expected.
+    -   Watch for non-linear effects:
+        -   Increased I/O overhead from parallel file reads/writes.
+        -   Communication overhead in distributed tasks.
+        -   Load balancing inefficiencies (stragglers can delay job completion).
+
+6.  **Future-Proofing**
+
+    -   HPC hardware and software evolve rapidly:
+        -   Faster networks (InfiniBand, RDMA).
+        -   Improved schedulers and resource managers.
+        -   Containerization (Docker, Singularity) for reproducible environments.
+    -   Regularly test and validate reproducibility after:
+        -   Software/package updates.
+        -   Hardware upgrades.
+        -   HPC policy changes (e.g., new quotas or job priorities).
+
+Two threads run through all six. The first is that the binding constraint moves
+as a job grows. At small scale the limit is almost always processor time, which
+is why the instinct to add cores is usually right at the start and usually
+wrong later. Past a certain size the limit shifts to memory, then to the file
+system, and finally to the communication between workers, and adding cores at
+that point makes the job slower rather than faster. The intermediate-scale runs
+recommended under **Scaling** exist to locate that crossover before it is
+discovered on a full run.
+
+The second thread is that none of this is observable without instrumentation.
+Run time, peak memory, and processor utilization are the three numbers that
+turn every later decision from a guess into an estimate, and they cost almost
+nothing to collect if the job is written to record them from the beginning.
+Utilization is the most informative and the most often ignored: a job holding
+sixteen cores at six percent utilization is not a fast job with spare capacity,
+it is a serial job that has taken fifteen cores out of circulation for
+everyone else. The scheduler will not report this as an error, so it is the
+analyst's responsibility to look.
+
+## Demonstration
+
+The demo below compares runtime and memory across the parallel back-ends (`parLapply`, `foreach`/`doParallel`, and `future_lapply`) for small and large workloads at one, two, and four cores. The total work is held fixed: the rows are split into as many blocks as there are cores, and each worker processes one block, so any gain over the single-core run is real speedup rather than extra work done in parallel. The workers are started before the clock runs, but sending each worker its block of data is timed, because that cost is part of every parallel job. Each configuration is timed three times and the median is kept.
+
+
+``` r
+library(parallel)       # base parallel
+library(doParallel)     # foreach backend
+library(foreach)        # parallel loops
+library(future)         # futures
+library(future.apply)   # apply with futures
+library(ggplot2)        # plotting results
+
+set.seed(42)
+
+n_small <- 1e4    # small dataset
+n_large <- 1e6    # large dataset
+
+generate_data <- function(n) {
+    data.frame(
+        id = 1:n,
+        x = rnorm(n, mean = 50, sd = 10),
+        y = rnorm(n, mean = 100, sd = 25)
+    )
+}
+
+data_small <- generate_data(n_small)
+data_large <- generate_data(n_large)
+
+clean_and_transform <- function(df) {
+    df$dist <- sqrt(df$x ^ 2 + df$y ^ 2)
+    return(df)
+}
+
+data_small_clean <- clean_and_transform(data_small)
+data_large_clean <- clean_and_transform(data_large)
+
+# Simulated workload: sum a column many times over
+heavy_computation <- function(df, reps = 500) {
+    replicate(reps, sum(df$dist))
+}
+
+# Split the rows into k blocks, one per worker, so that k workers share
+# the same total work that one core does alone
+split_rows <- function(df, k) {
+    split(df, cut(seq_len(nrow(df)), k, labels = FALSE))
+}
+
+# Time an expression three times, keep the median, and record the size
+# of what it returns
+measure_resources <- function(expr, approach_name, data_size, cores,
+                              times = 3) {
+    secs <- numeric(times)
+    for (t in seq_len(times)) {
+        start_time <- Sys.time()
+        result <- eval(expr)
+        secs[t] <- as.numeric(difftime(Sys.time(), start_time,
+                                       units = "secs"))
+    }
+    data.frame(
+        Approach = approach_name,
+        Data_Size = data_size,
+        Cores = cores,
+        Time_Sec = median(secs),
+        Memory_MB = round(as.numeric(object.size(result)) / 1e6, 2)
+    )
+}
+
+datasets <- list(data_small_clean, data_large_clean)
+cores_to_test <- c(2, 4)
+results <- data.frame()
+
+# Single core baseline: the whole job in one process
+for (df in datasets) {
+    results <- rbind(results, measure_resources(
+        quote(heavy_computation(df)), "SingleCore", nrow(df), 1
+    ))
+}
+
+# parLapply and foreach share one socket cluster per core count. Starting
+# the workers is left out of the timing, sending them the data is not.
+for (cores in cores_to_test) {
+    cl <- makeCluster(cores)
+    registerDoParallel(cl)
+    for (df in datasets) {
+        chunks <- split_rows(df, cores)
+        results <- rbind(
+            results,
+            measure_resources(
+                quote(parLapply(cl, chunks, heavy_computation)),
+                "parLapply", nrow(df), cores
+            ),
+            measure_resources(
+                quote(foreach(chunk = chunks,
+                              .export = "heavy_computation") %dopar%
+                          heavy_computation(chunk)),
+                "foreach_doParallel", nrow(df), cores
+            )
+        )
+    }
+    stopCluster(cl)
+}
+
+# future.apply on background R sessions, which run in parallel on
+# every platform, including Windows
+for (cores in cores_to_test) {
+    plan(multisession, workers = cores)
+    for (df in datasets) {
+        chunks <- split_rows(df, cores)
+        results <- rbind(results, measure_resources(
+            quote(future_lapply(chunks, heavy_computation)),
+            "future_lapply", nrow(df), cores
+        ))
+    }
+}
+plan(sequential)
+
+print(results)
+#>              Approach Data_Size Cores   Time_Sec Memory_MB
+#> 1          SingleCore     10000     1 0.01671886      0.00
+#> 2          SingleCore   1000000     1 1.46133804      0.00
+#> 3           parLapply     10000     2 0.01072288      0.01
+#> 4  foreach_doParallel     10000     2 0.02025604      0.01
+#> 5           parLapply   1000000     2 0.77526212      0.01
+#> 6  foreach_doParallel   1000000     2 0.78450990      0.01
+#> 7           parLapply     10000     4 0.00824213      0.02
+#> 8  foreach_doParallel     10000     4 0.01212001      0.02
+#> 9           parLapply   1000000     4 0.42543387      0.02
+#> 10 foreach_doParallel   1000000     4 0.41599703      0.02
+#> 11      future_lapply     10000     2 0.04569101      0.01
+#> 12      future_lapply   1000000     2 0.90226483      0.01
+#> 13      future_lapply     10000     4 0.05205798      0.02
+#> 14      future_lapply   1000000     4 0.65613604      0.02
+```
+
+Figure \@ref(fig:hpc-runtime-by-cores) and Figure \@ref(fig:hpc-memory-by-cores)
+are worth reading against the expectation most people bring to a first parallel
+benchmark, which is that time should fall in proportion to cores. On the large
+data it nearly does for two of the three back-ends. On the small data it does
+not, and the memory figure turns out to measure something other than memory.
+
+
+``` r
+# Readable labels for the back-ends and the two data sizes
+approach_labels <- c(SingleCore = "Single core", parLapply = "parLapply",
+                     foreach_doParallel = "foreach + doParallel",
+                     future_lapply = "future.apply")
+plot_results <- transform(
+    results,
+    Approach = factor(Approach, levels = names(approach_labels),
+                      labels = approach_labels),
+    Size = factor(paste(format(Data_Size, big.mark = ",",
+                               scientific = FALSE, trim = TRUE), "rows"),
+                  levels = c("10,000 rows", "1,000,000 rows"))
+)
+# Four well separated grey levels with outlines, so print needs no colour
+approach_fills <- c("white", "grey70", "grey40", "black")
+ggplot(plot_results,
+       aes(x = factor(Cores), y = Time_Sec, fill = Approach)) +
+    geom_col(position = "dodge", colour = "black", linewidth = 0.3) +
+    facet_wrap(~ Size, scales = "free") +
+    scale_fill_manual(values = approach_fills) +
+    labs(title = "Runtime by Cores, Approach, and Data Size",
+         x = "Number of Cores", y = "Time (Seconds)", fill = NULL) +
+    theme_minimal() +
+    theme(legend.position = "bottom") +
+    guides(fill = guide_legend(nrow = 2))
+```
+
+<div class="figure" style="text-align: center">
+<img src="44-hpc_files/figure-html/hpc-runtime-by-cores-1.png" alt="Grouped bar chart of runtime at 1, 2 and 4 cores in two panels, 10,000 and 1,000,000 rows, with back-ends shaded from white for single core to black for future.apply. On the large data runtime falls steadily as cores are added, least for future.apply. On the small data the gains are negligible and future.apply takes several times as long as single core." width="90%" />
+<p class="caption">(\#fig:hpc-runtime-by-cores)Runtime by core count, back-end, and data size, with the same total work split across the workers. On the million-row data parLapply and foreach nearly halve the runtime at two cores and cut it to roughly a third at four, while future.apply gains less. On the ten-thousand-row data every run takes a few hundredths of a second, and future.apply is slower than a single core.</p>
+</div>
+
+
+``` r
+ggplot(plot_results,
+       aes(x = factor(Cores), y = Memory_MB, fill = Approach)) +
+    geom_col(position = "dodge", colour = "black", linewidth = 0.3) +
+    facet_wrap(~ Size, scales = "free") +
+    scale_fill_manual(values = approach_fills) +
+    labs(title = "Memory Usage by Cores, Approach, and Data Size",
+         x = "Number of Cores", y = "Memory (MB)", fill = NULL) +
+    theme_minimal() +
+    theme(legend.position = "bottom") +
+    guides(fill = guide_legend(nrow = 2))
+```
+
+<div class="figure" style="text-align: center">
+<img src="44-hpc_files/figure-html/hpc-memory-by-cores-1.png" alt="Grouped bar chart of memory in megabytes at 1, 2 and 4 cores in two panels, 10,000 and 1,000,000 rows, with back-ends shaded from white to black. The single core bar is zero. The three parallel back-ends give identical bars of 0.01 megabytes at 2 cores and 0.02 at 4 cores in both panels." width="90%" />
+<p class="caption">(\#fig:hpc-memory-by-cores)Memory by core count, back-end, and data size, as measured by the size of the returned object. The bars are identical across back-ends and data sizes and double from 2 to 4 cores only because each worker returns one small result. This measures what the workers send back rather than what the job held in memory, which is a caution about the measurement rather than a finding about the back-ends.</p>
+</div>
+
+The two figures answer different questions, and each is easy to misread in its
+own way. What each panel shows is summarized below.
+
+-   **Runtime Plot**
+
+    -   Small Dataset: The whole job takes a few hundredths of a second, so the bars mostly show overhead. `parLapply` is slightly faster than one core, `foreach` roughly breaks even, and `future_lapply` is several times slower, because the future framework does more bookkeeping on every call than the job itself costs.
+
+    -   Large Dataset: `parLapply` and `foreach` nearly halve the runtime at 2 cores and cut it to roughly a third at 4. That is short of the ideal quarter, partly because sending each block of data to its worker is part of the timed job. `future_lapply` gains less, since its extra overhead per call is paid at every core count.
+
+-   **Memory Usage Plot**
+
+    -   Every parallel bar is 0.01 MB at 2 cores and 0.02 MB at 4 cores, whatever the back-end or data size, because you are measuring the size of the *returned result*, one small object per worker, not the in-memory size of the large dataset. The function `object.size(result)` is not capturing total RAM usage by the entire parallel job.
+
+The runtime panel shows the cost of handing work to the workers and collecting
+it back, which is paid whether or not there is enough work to justify it. On the
+small dataset that cost is most of the measurement, which is why extra cores buy
+almost nothing and can make the job slower. On the large dataset the same cost
+is small next to the computation, and the speedup approaches the core count.
+Parallelism is only worth its overhead once the work per worker is large
+relative to the cost of dispatching it, and the crossover is easily found by
+running the same benchmark at two sizes, as here. Starting the workers was kept
+out of the timing, and on a real job it is a further fixed cost of the same
+kind.
+
+The memory panel is a caution about the measurement rather than a result. The
+bars do not change with the back-end or with a hundredfold increase in data,
+and they grow with the core count only because there are more results to return.
+That does not mean the job was cheap in memory. It means the wrong thing was
+measured. Each worker in a process-based back-end is a separate R session
+holding its own copy of whatever it was sent, while the main session still holds
+the full data and its split blocks, so peak memory across the machine can be
+well above what a single-threaded run would use, and that peak is what an out-of-memory kill
+responds to. Measuring the returned object misses all of it. Peak resident
+memory has to come from outside the R session, from the scheduler accounting
+described under **Monitoring and Logging**, or on a workstation from the
+operating system's own process monitor.
+
+## Looking Ahead
+
+Getting the computation right delivers the estimate. It says nothing about the
+uncertainty attached to it. Chapter \@ref(sec-clustered-inference) takes up the
+standard error, the quantity that decides whether a number is a finding at all,
+and the audit literature on how often the published version of it has been too
+small.

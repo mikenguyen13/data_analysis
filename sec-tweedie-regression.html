@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 9 Tweedie Regression | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Many outcomes that we want to model are a mixture of an exact zero and a continuous positive amount. The total dollar amount a policyholder claims from an insurer in a year is zero for most...">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Chapter 9 Tweedie Regression | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://mikenguyen13.github.io/data_analysis/sec-tweedie-regression.html">
+<meta property="og:image" content="https://mikenguyen13.github.io/data_analysis/images/cover.jpg">
+<meta property="og:description" content="Many outcomes that we want to model are a mixture of an exact zero and a continuous positive amount. The total dollar amount a policyholder claims from an insurer in a year is zero for most...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 9 Tweedie Regression | A Guide on Data Analysis">
+<meta name="twitter:description" content="Many outcomes that we want to model are a mixture of an exact zero and a continuous positive amount. The total dollar amount a policyholder claims from an insurer in a year is zero for most...">
+<meta name="twitter:image" content="https://mikenguyen13.github.io/data_analysis/images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/viz-1.8.2/viz.js"></script><link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="libs/grViz-binding-1.0.11/grViz.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- ============================================================
+         Google Analytics (gtag.js) + SEO structured data.
+         Injected into <head> of every page via _output.yml in_header.
+         ============================================================ --><script async src="https://www.googletagmanager.com/gtag/js?id=G-DMNX2X65HQ"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><!-- schema.org structured data: helps Google treat the book as an
+         authoritative, citable work and can enable rich results. --><script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Book",
+      "name": "A Guide on Data Analysis",
+
+      "inLanguage": "en",
+      "bookFormat": "https://schema.org/EBook",
+      "description": "This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning.",
+      "author": { "@type": "Person", "name": "Mike Nguyen" },
+      "publisher": { "@type": "Person", "name": "Mike Nguyen" }
+    }
+    </script><!-- Search Console / Bing ownership verification.
+         Google: https://search.google.com/search-console -> add URL-prefix property
+         -> "HTML tag" -> paste the content value below and uncomment the line. --><!-- <meta name="google-site-verification" content="PASTE_GOOGLE_CODE"> --><!-- <meta name="msvalidate.01" content="PASTE_BING_CODE"> --><!-- Schema.org structured data for AI crawlers and search engines --><script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Book",
+          "@id": "https://mikenguyen13.github.io/data_analysis/#book",
+          "name": "A Guide on Data Analysis",
+          "alternateName": "Foundations of Data Analysis",
+          "author": {"@id": "https://mikenguyen.netlify.app/#person"},
+          "publisher": {"@type": "Organization", "name": "Springer Cham"},
+          "datePublished": "2025",
+          "inLanguage": "en",
+          "isbn": "978-3-032-01858-8",
+          "url": "https://mikenguyen13.github.io/data_analysis/",
+          "image": "https://bookdown.org/mike/data_analysis/images/cover.jpg",
+          "sameAs": [
+            "https://doi.org/10.1007/978-3-032-01858-8",
+            "https://link.springer.com/book/9783032018342",
+            "https://link.springer.com/book/9783032017185",
+            "https://link.springer.com/book/9783032018380",
+            "https://github.com/mikenguyen13/data_analysis"
+          ],
+          "description": "A book on data analysis, causal inference, and econometrics, written for readers with little to no prior background. Published by Springer Cham (2025) as a four-volume series.",
+          "about": [
+            "Data Analysis",
+            "Causal Inference",
+            "Econometrics",
+            "Difference-in-Differences",
+            "Regression Discontinuity",
+            "Synthetic Control",
+            "Instrumental Variables",
+            "Matching Methods",
+            "Directed Acyclic Graphs",
+            "Sensitivity Analysis",
+            "Linear Regression",
+            "Generalized Linear Models",
+            "R programming"
+          ],
+          "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "copyrightHolder": {"@id": "https://mikenguyen.netlify.app/#person"},
+          "copyrightYear": 2025,
+          "hasPart": [
+            {"@type": "Book", "name": "Foundations of Data Analysis", "volumeNumber": 1, "isbn": "978-3-032-01858-8", "url": "https://doi.org/10.1007/978-3-032-01858-8"},
+            {"@type": "Book", "name": "Regression Techniques for Data Analysis", "volumeNumber": 2, "isbn": "978-3-032-01834-2", "url": "https://link.springer.com/book/9783032018342"},
+            {"@type": "Book", "name": "Advanced Modeling and Data Challenges", "volumeNumber": 3, "isbn": "978-3-032-01718-5", "url": "https://link.springer.com/book/9783032017185"},
+            {"@type": "Book", "name": "Experimental Design", "volumeNumber": 4, "isbn": "978-3-032-01838-0", "url": "https://link.springer.com/book/9783032018380"}
+          ]
+        },
+        {
+          "@type": "Person",
+          "@id": "https://mikenguyen.netlify.app/#person",
+          "name": "Mike Nguyen",
+          "givenName": "Mike",
+          "familyName": "Nguyen",
+          "url": "https://mikenguyen.netlify.app",
+          "sameAs": [
+            "https://github.com/mikenguyen13",
+            "https://bookdown.org/mike/data_analysis/"
+          ]
+        }
+      ]
+    }
+    </script><!-- Styling for the per-chapter abstract and keyword blocks required by the
+         Springer manuscript guidelines. Delivered as a head include rather than
+         through the bs4_book `css:` option so that bookdown's own stylesheet
+         handling is left untouched. --><style>
+    .chapter-abstract {
+      border-left: 3px solid #b8c4d0;
+      background: #f7f9fb;
+      padding: 0.85rem 1.1rem;
+      margin: 1.25rem 0 1.75rem 0;
+      font-size: 0.94em;
+      line-height: 1.55;
+    }
+    .chapter-abstract p { margin-bottom: 0.6rem; }
+    .chapter-abstract p:last-child { margin-bottom: 0; }
+    </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+<link rel="canonical" href="https://mikenguyen13.github.io/data_analysis/sec-tweedie-regression.html">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-discrete-choice.html"><span class="header-section-number">8</span> Discrete Choice and Limited Dependent Variables</a></li>
+<li><a class="active" href="sec-tweedie-regression.html"><span class="header-section-number">9</span> Tweedie Regression</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">10</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">11</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">12</span> Nonparametric Regression</a></li>
+<li><a class="" href="sec-quantile-distributional.html"><span class="header-section-number">13</span> Quantile Regression and Distributional Methods</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">14</span> Data</a></li>
+<li><a class="" href="sec-time-series.html"><span class="header-section-number">15</span> Time Series Analysis</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">16</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">17</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">18</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">19</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">20</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">21</span> Marginal Effects</a></li>
+<li><a class="" href="sec-moderation.html"><span class="header-section-number">22</span> Moderation</a></li>
+<li><a class="" href="sec-conditional-process.html"><span class="header-section-number">23</span> Moderated Mediation and Conditional Process Analysis</a></li>
+<li><a class="" href="sec-mediation.html"><span class="header-section-number">24</span> Mediation</a></li>
+<li><a class="" href="sec-mechanism-designs.html"><span class="header-section-number">25</span> Designing for Mechanisms</a></li>
+<li><a class="" href="sec-decomposition.html"><span class="header-section-number">26</span> Decomposition Methods</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">27</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">28</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">29</span> Experimental Design</a></li>
+<li><a class="" href="sec-interference-spillover.html"><span class="header-section-number">30</span> Interference and Spillover Effects</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">31</span> Sampling</a></li>
+<li><a class="" href="sec-survey-reliability.html"><span class="header-section-number">32</span> Survey and Response Quality</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">33</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">34</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">35</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">36</span> Regression Discontinuity</a></li>
+<li><a class="" href="sec-temporal-discontinuity-designs.html"><span class="header-section-number">37</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">38</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">39</span> Difference-in-Differences</a></li>
+<li><a class="" href="sec-changes-in-changes.html"><span class="header-section-number">40</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">41</span> Synthetic Control</a></li>
+<li><a class="" href="sec-event-studies.html"><span class="header-section-number">42</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">43</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">44</span> Matching Methods</a></li>
+<li><a class="" href="sec-ml-causal.html"><span class="header-section-number">45</span> Machine Learning for Causal Inference</a></li>
+<li><a class="" href="sec-uplift-modeling.html"><span class="header-section-number">46</span> Uplift Modeling and Heterogeneous Treatment Effects</a></li>
+<li><a class="" href="sec-nlp-causal.html"><span class="header-section-number">47</span> Text as Data and NLP for Causal Inference</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="sec-endogeneity.html"><span class="header-section-number">48</span> Endogeneity</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">49</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-tweedie-regression" class="section level1" number="9">
+<h1>
+<span class="header-section-number">9</span> Tweedie Regression<a class="anchor" aria-label="anchor" href="#sec-tweedie-regression"><i class="fas fa-link"></i></a>
+</h1>
+<p>Many outcomes that we want to model are a mixture of an exact zero and a continuous positive amount. The total dollar amount a policyholder claims from an insurer in a year is zero for most customers and a positive, right skewed number for the rest. The rainfall at a weather station on a given day is zero unless it rains. The biomass of a species caught in a trawl is zero in most hauls and positive in the rest. The total spend of a customer in a month is zero for the inactive and positive for the active. Each of these is a continuous variable with a spike of probability mass at zero, and neither the Gaussian, the Gamma, nor the Poisson distribution can describe it. The Gaussian ignores the skew and the floor at zero, the Gamma has no mass at zero because it is strictly positive, and the Poisson is for counts rather than amounts. The distribution that fits this shape, and the regression model built on it, is the Tweedie.</p>
+<p>Tweedie regression is the member of the generalized linear model family whose variance is a power of the mean, <span class="math inline">\(\operatorname{Var}(Y) = \phi\,\mu^{p}\)</span>. For the power <span class="math inline">\(p\)</span> between one and two the Tweedie distribution is a compound Poisson sum of Gamma increments, which is exactly the random variable described by “a random number of positive amounts,” and it places a genuine point mass at zero while remaining continuous on the positive line. It is the workhorse of actuarial pricing, where the quantity of interest is the pure premium, the expected claim cost per policy, and it appears throughout climatology, ecology, and any setting where a continuous response is zero a meaningful fraction of the time. This chapter develops the distribution and its regression model from the exponential dispersion family, derives the compound Poisson representation, explains how the intractable density is evaluated and how the three parameters are estimated, and then works through the canonical insurance application on real data, checking its conclusions against the published analysis of the same dataset, before turning to modern extensions.</p>
+<div id="the-tweedie-family-within-generalized-linear-models" class="section level2" number="9.1">
+<h2>
+<span class="header-section-number">9.1</span> The Tweedie Family Within Generalized Linear Models<a class="anchor" aria-label="anchor" href="#the-tweedie-family-within-generalized-linear-models"><i class="fas fa-link"></i></a>
+</h2>
+<p>A generalized linear model assumes the response follows an exponential dispersion model, a density of the form
+<span class="math display">\[
+f(y; \theta, \phi) = a(y, \phi)\,\exp\!\left\{\frac{y\theta - \kappa(\theta)}{\phi}\right\},
+\]</span>
+where <span class="math inline">\(\theta\)</span> is the canonical parameter, <span class="math inline">\(\phi &gt; 0\)</span> is the dispersion, <span class="math inline">\(\kappa(\theta)\)</span> is the cumulant function, and <span class="math inline">\(a(y,\phi)\)</span> is a normalizing term that does not involve <span class="math inline">\(\theta\)</span>. The mean and variance follow from the cumulant function, <span class="math inline">\(\mu = \mathbb{E}[Y] = \kappa'(\theta)\)</span> and <span class="math inline">\(\operatorname{Var}(Y) = \phi\,\kappa''(\theta) = \phi\, V(\mu)\)</span>, where <span class="math inline">\(V(\mu) = \kappa''(\theta(\mu))\)</span> is the <strong>variance function</strong>. The variance function is what distinguishes one exponential dispersion model from another: it is constant for the Gaussian, equal to <span class="math inline">\(\mu\)</span> for the Poisson, and equal to <span class="math inline">\(\mu^2\)</span> for the Gamma.</p>
+<p><span class="citation">Tweedie (<a href="references.html#ref-tweedie1984index">1984</a>)</span> asked which exponential dispersion models have a variance function that is a pure power of the mean,
+<span class="math display">\[
+V(\mu) = \mu^{p},
+\]</span>
+and the answer, developed in full by <span class="citation">Jørgensen (<a href="references.html#ref-jorgensen1987exponential">1987</a>)</span> and <span class="citation">Jørgensen (<a href="references.html#ref-jorgensen1997theory">1997</a>)</span>, is the family that now bears his name. Every value of the <strong>power parameter</strong> (or index) <span class="math inline">\(p\)</span> outside the open interval <span class="math inline">\((0,1)\)</span> corresponds to a valid Tweedie exponential dispersion model, and the familiar distributions are special cases.</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Power <span class="math inline">\(p\)</span>
+</th>
+<th>Distribution</th>
+<th>Support</th>
+<th>Variance</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(p = 0\)</span></td>
+<td>Gaussian</td>
+<td>real line</td>
+<td>constant</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(0 &lt; p &lt; 1\)</span></td>
+<td>does not exist</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(p = 1\)</span></td>
+<td>Poisson (scaled)</td>
+<td>counts</td>
+<td><span class="math inline">\(\phi\mu\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(1 &lt; p &lt; 2\)</span></td>
+<td>compound Poisson–Gamma</td>
+<td><span class="math inline">\(\{0\}\cup(0,\infty)\)</span></td>
+<td><span class="math inline">\(\phi\mu^p\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(p = 2\)</span></td>
+<td>Gamma</td>
+<td><span class="math inline">\((0,\infty)\)</span></td>
+<td><span class="math inline">\(\phi\mu^2\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(2 &lt; p &lt; 3\)</span></td>
+<td>positive stable</td>
+<td><span class="math inline">\((0,\infty)\)</span></td>
+<td><span class="math inline">\(\phi\mu^p\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(p = 3\)</span></td>
+<td>inverse Gaussian</td>
+<td><span class="math inline">\((0,\infty)\)</span></td>
+<td><span class="math inline">\(\phi\mu^3\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(p &gt; 2\)</span></td>
+<td>positive stable</td>
+<td><span class="math inline">\((0,\infty)\)</span></td>
+<td><span class="math inline">\(\phi\mu^p\)</span></td>
+</tr>
+</tbody>
+</table></div>
+<p>The case that makes the Tweedie indispensable, and that has no analogue among the standard GLM distributions, is <span class="math inline">\(1 &lt; p &lt; 2\)</span>. There and only there the distribution is continuous on the positive reals yet assigns strictly positive probability to the single point zero. That is the law of a total of a random number of positive amounts, and it is what the rest of this chapter is mostly about. The reason no Tweedie model exists for <span class="math inline">\(0 &lt; p &lt; 1\)</span> is not a gap in anyone’s derivation; <span class="citation">Jørgensen (<a href="references.html#ref-jorgensen1997theory">1997</a>)</span> shows that no exponential dispersion model can have such a variance function, so the interval is genuinely empty.</p>
+<p>For <span class="math inline">\(p \neq 1, 2\)</span> the canonical parameter and cumulant function have the closed forms
+<span class="math display">\[
+\theta = \frac{\mu^{\,1-p}}{1-p}, \qquad \kappa(\theta) = \frac{\mu^{\,2-p}}{2-p},
+\]</span>
+which one can verify reproduce <span class="math inline">\(\mu = \kappa'(\theta)\)</span> and <span class="math inline">\(V(\mu) = \mu^p\)</span>. The mean is almost always linked to covariates through the logarithm, <span class="math inline">\(\log \mu_i = x_i^\top \beta\)</span>, because the responses are nonnegative and because the log link makes covariate effects multiplicative, which is exactly how actuaries and analysts want to read them: a coefficient becomes a relativity, a factor by which a rating cell multiplies the baseline.</p>
+</div>
+<div id="the-compound-poissongamma-model" class="section level2" number="9.2">
+<h2>
+<span class="header-section-number">9.2</span> The Compound Poisson–Gamma Model<a class="anchor" aria-label="anchor" href="#the-compound-poissongamma-model"><i class="fas fa-link"></i></a>
+</h2>
+<p>The interpretation of the Tweedie for <span class="math inline">\(1 &lt; p &lt; 2\)</span> is mechanical and exact. Let the number of events be Poisson and let each event contribute a Gamma amount,
+<span class="math display">\[
+N \sim \operatorname{Poisson}(\lambda), \qquad X_1, X_2, \dots \stackrel{\text{iid}}{\sim} \operatorname{Gamma}(\alpha, \gamma), \qquad Y = \sum_{i=1}^{N} X_i,
+\]</span>
+with <span class="math inline">\(N\)</span> independent of the <span class="math inline">\(X_i\)</span> and the convention that an empty sum is zero. In the insurance reading, <span class="math inline">\(N\)</span> is the number of claims a policy generates, each <span class="math inline">\(X_i\)</span> is the size of a claim, and <span class="math inline">\(Y\)</span> is the total cost. The total <span class="math inline">\(Y\)</span> is then exactly a Tweedie variable, and the point mass at zero is the probability of no events at all,
+<span class="math display">\[
+\Pr(Y = 0) = \Pr(N = 0) = e^{-\lambda},
+\]</span>
+which for the insurance data below will be around ninety three percent. Conditioning on <span class="math inline">\(N\)</span> and using the mean and variance of a Gamma gives
+<span class="math display">\[
+\mathbb{E}[Y] = \lambda\,\alpha\gamma = \mu, \qquad \operatorname{Var}(Y) = \lambda\,\alpha(\alpha+1)\gamma^2,
+\]</span>
+and a short calculation shows that this variance is precisely <span class="math inline">\(\phi\mu^p\)</span> once the compound Poisson parameters are matched to the Tweedie parameters through
+<span class="math display">\[
+\alpha = \frac{2-p}{p-1}, \qquad \lambda = \frac{\mu^{\,2-p}}{\phi\,(2-p)}, \qquad \gamma = \phi\,(p-1)\,\mu^{\,p-1}.
+\]</span>
+These identities are worth pausing on because they make the power parameter interpretable. The Gamma shape <span class="math inline">\(\alpha = (2-p)/(p-1)\)</span> is a decreasing function of <span class="math inline">\(p\)</span>: as <span class="math inline">\(p \to 1^{+}\)</span> the shape diverges, the claim sizes become nearly constant, and the model approaches a pure Poisson count scaled by a fixed amount; as <span class="math inline">\(p \to 2^{-}\)</span> the shape goes to zero, the claim sizes become extremely skewed, and the Poisson frequency <span class="math inline">\(\lambda\)</span> collapses toward one, so the model approaches a Gamma on a single positive amount. A value such as <span class="math inline">\(p = 1.5\)</span> sits in the middle, with moderate claim frequency and moderate skew. The power parameter is therefore not a nuisance; it encodes the relative contributions of frequency and severity to the variance of the total, and estimating it is part of fitting the model.</p>
+</div>
+<div id="the-density-and-why-it-must-be-approximated" class="section level2" number="9.3">
+<h2>
+<span class="header-section-number">9.3</span> The Density and Why It Must Be Approximated<a class="anchor" aria-label="anchor" href="#the-density-and-why-it-must-be-approximated"><i class="fas fa-link"></i></a>
+</h2>
+<p>The feature that makes the Tweedie powerful for <span class="math inline">\(1 &lt; p &lt; 2\)</span> also makes it computationally awkward: its density has no closed form. Writing the density as a mixture over the unobserved event count,
+<span class="math display">\[
+f(y; \mu, \phi, p) = \underbrace{e^{-\lambda}}_{\Pr(N=0)}\,\delta_{0}(y) \;+\; \sum_{n=1}^{\infty} \underbrace{\frac{e^{-\lambda}\lambda^{n}}{n!}}_{\Pr(N=n)}\, \underbrace{f_{\Gamma}(y; n\alpha, \gamma)}_{\text{sum of } n \text{ Gamma}},
+\]</span>
+shows the problem. For <span class="math inline">\(y = 0\)</span> the density is just the point mass <span class="math inline">\(e^{-\lambda}\)</span>, which is trivial, but for <span class="math inline">\(y &gt; 0\)</span> it is an infinite sum of Gamma densities weighted by Poisson probabilities, with no closed form. Two numerical strategies make it usable. <span class="citation">Dunn and Smyth (<a href="references.html#ref-dunn2005series">2005</a>)</span> evaluate the infinite series directly, truncating it where the terms become negligible and choosing the truncation adaptively so that the result is accurate across the parameter space. <span class="citation">Dunn and Smyth (<a href="references.html#ref-dunn2008evaluation">2008</a>)</span> instead compute the density by Fourier inversion of the characteristic function, which is more stable in the heavy tail where the series converges slowly. Both are implemented in the <code>tweedie</code> package, and the analyst rarely calls them directly; they sit underneath the likelihood evaluation that estimation requires. It is worth knowing they are there, however, because for very large responses both methods can fail numerically, a limitation that surfaces in the heavy tailed insurance data later in the chapter.</p>
+<p>The point mass and the continuous part are visible directly from the density function. Figure <a href="sec-tweedie-regression.html#fig:tweedie-density">9.1</a> evaluates the Tweedie density at a mean of two, dispersion one, and power <span class="math inline">\(1.6\)</span>, separating the spike of probability at zero from the smooth continuous density over the positive values.</p>
+<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tweedie</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fl">2</span>; <span class="va">phi</span> <span class="op">&lt;-</span> <span class="fl">1</span>; <span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">1.6</span></span>
+<span><span class="va">mass0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tweedie/man/Tweedie.html">dtweedie</a></span><span class="op">(</span><span class="fl">0</span>, mu <span class="op">=</span> <span class="va">mu</span>, phi <span class="op">=</span> <span class="va">phi</span>, power <span class="op">=</span> <span class="va">p</span><span class="op">)</span>   <span class="co"># P(Y = 0)</span></span>
+<span><span class="va">ygrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">12</span>, length.out <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<span><span class="va">dens</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tweedie/man/Tweedie.html">dtweedie</a></span><span class="op">(</span><span class="va">ygrid</span>, mu <span class="op">=</span> <span class="va">mu</span>, phi <span class="op">=</span> <span class="va">phi</span>, power <span class="op">=</span> <span class="va">p</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">ygrid</span>, d <span class="op">=</span> <span class="va">dens</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">d</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span><span class="op">(</span><span class="st">"segment"</span>, x <span class="op">=</span> <span class="fl">0</span>, xend <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="fl">0</span>, yend <span class="op">=</span> <span class="va">mass0</span>,</span>
+<span>           linewidth <span class="op">=</span> <span class="fl">1.2</span>, colour <span class="op">=</span> <span class="st">"firebrick"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span><span class="op">(</span><span class="st">"point"</span>, x <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="va">mass0</span>, colour <span class="op">=</span> <span class="st">"firebrick"</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x <span class="op">=</span> <span class="fl">0.5</span>, y <span class="op">=</span> <span class="va">mass0</span>, hjust <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>           label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"P(Y=0) = "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mass0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"firebrick"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"y"</span>, y <span class="op">=</span> <span class="st">"density / mass"</span>,</span>
+<span>       title <span class="op">=</span> <span class="st">"Tweedie density: point mass at zero plus continuous positive part"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:tweedie-density"></span>
+<img src="07.6-tweedie-regression_files/figure-html/tweedie-density-1.png" alt="The Tweedie density for a mean of two, dispersion one, and power 1.6. A point mass sits at zero (here about four percent of the probability) and a continuous, right skewed density covers the positive values. No standard GLM distribution has this shape." width="90%"><p class="caption">
+Figure 9.1: The Tweedie density for a mean of two, dispersion one, and power 1.6. A point mass sits at zero (here about four percent of the probability) and a continuous, right skewed density covers the positive values. No standard GLM distribution has this shape.
+</p>
+</div>
+<p>The variance function itself is the cleanest way to see where the Tweedie sits among its neighbors. Because <span class="math inline">\(\operatorname{Var}(Y) = \phi\,\mu^{p}\)</span>, the power <span class="math inline">\(p\)</span> controls how fast the variance grows with the mean, interpolating continuously between the constant variance of the Gaussian, the linear variance of the Poisson, and the quadratic variance of the Gamma. Figure <a href="sec-tweedie-regression.html#fig:tweedie-varfun">9.2</a> draws those curves together.</p>
+<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mu_seq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">5</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="va">vf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>`p=0 (Gaussian)` <span class="op">=</span> <span class="fl">0</span>, `p=1 (Poisson)` <span class="op">=</span> <span class="fl">1</span>, `p=1.5 (Tweedie)` <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>    `p=2 (Gamma)` <span class="op">=</span> <span class="fl">2</span>, `p=3 (inverse Gaussian)` <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>mu <span class="op">=</span> <span class="va">mu_seq</span>, V <span class="op">=</span> <span class="va">mu_seq</span><span class="op">^</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">vf</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"p=0 (Gaussian)"</span>, <span class="st">"p=1 (Poisson)"</span>, <span class="st">"p=1.5 (Tweedie)"</span>,</span>
+<span>                  <span class="st">"p=2 (Gamma)"</span>, <span class="st">"p=3 (inverse Gaussian)"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">mu_seq</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">vf</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">mu</span>, <span class="va">V</span>, colour <span class="op">=</span> <span class="va">power</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="fu">V</span><span class="op">(</span><span class="va">mu</span><span class="op">)</span> <span class="op">==</span> <span class="va">mu</span><span class="op">^</span><span class="va">p</span><span class="op">)</span>,</span>
+<span>       colour <span class="op">=</span> <span class="cn">NULL</span>, title <span class="op">=</span> <span class="st">"Tweedie variance functions"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:tweedie-varfun"></span>
+<img src="07.6-tweedie-regression_files/figure-html/tweedie-varfun-1.png" alt="The Tweedie variance function for several powers of the mean. The power parameter interpolates continuously between the Gaussian (constant variance), the Poisson (linear), the Gamma (quadratic), and the inverse Gaussian (cubic)." width="90%"><p class="caption">
+Figure 9.2: The Tweedie variance function for several powers of the mean. The power parameter interpolates continuously between the Gaussian (constant variance), the Poisson (linear), the Gamma (quadratic), and the inverse Gaussian (cubic).
+</p>
+</div>
+</div>
+<div id="estimation-mean-dispersion-and-power" class="section level2" number="9.4">
+<h2>
+<span class="header-section-number">9.4</span> Estimation: Mean, Dispersion, and Power<a class="anchor" aria-label="anchor" href="#estimation-mean-dispersion-and-power"><i class="fas fa-link"></i></a>
+</h2>
+<p>Fitting a Tweedie regression means estimating three things: the regression coefficients <span class="math inline">\(\beta\)</span> in <span class="math inline">\(\log\mu_i = x_i^\top\beta\)</span>, the dispersion <span class="math inline">\(\phi\)</span>, and the power <span class="math inline">\(p\)</span>. They are estimated in a nested way that exploits a convenient fact: <strong>for any fixed <span class="math inline">\(p\)</span>, the coefficients are estimated by ordinary GLM machinery</strong>, and only the power requires anything special.</p>
+<div id="the-mean-model-for-fixed-power" class="section level3" number="9.4.1">
+<h3>
+<span class="header-section-number">9.4.1</span> The Mean Model for Fixed Power<a class="anchor" aria-label="anchor" href="#the-mean-model-for-fixed-power"><i class="fas fa-link"></i></a>
+</h3>
+<p>Hold <span class="math inline">\(p\)</span> fixed. The Tweedie is then an ordinary exponential dispersion model with variance function <span class="math inline">\(V(\mu) = \mu^p\)</span>, and the coefficients are estimated by iteratively reweighted least squares, the same Fisher scoring algorithm that fits every GLM. The score equations for <span class="math inline">\(\beta\)</span> are
+<span class="math display">\[
+\sum_{i=1}^{n} \frac{y_i - \mu_i}{\phi\, V(\mu_i)}\,\frac{\partial \mu_i}{\partial \eta_i}\, x_i = 0, \qquad \eta_i = x_i^\top\beta,
+\]</span>
+which depend on the distribution only through the variance function <span class="math inline">\(V(\mu_i) = \mu_i^{p}\)</span> and not through the intractable density. Each IRLS iteration regresses a working response on the covariates with working weights
+<span class="math display">\[
+w_i = \frac{1}{V(\mu_i)}\left(\frac{\partial \mu_i}{\partial \eta_i}\right)^{2} = \frac{\mu_i^{2}}{\mu_i^{p}} = \mu_i^{2-p}
+\]</span>
+under the log link, and iterates to convergence. Because the score equations are exactly the quasi-likelihood estimating equations, the coefficient estimates are consistent as long as the mean model and the variance function are correct, even if the full Tweedie distribution is not literally true, which is one reason the model is so robust in practice. The deviance that IRLS minimizes is the sum of unit deviances
+<span class="math display">\[
+d(y, \mu) = 2\left[\frac{y\,(y^{1-p} - \mu^{1-p})}{1-p} - \frac{y^{2-p} - \mu^{2-p}}{2-p}\right], \qquad p \neq 1, 2,
+\]</span>
+with the obvious limits recovering the Poisson and Gamma deviances at the endpoints. In R the variance function and link are supplied by the <code>tweedie</code> family from the <code>statmod</code> package, after which <code>glm</code> fits the model exactly as it would a Poisson or Gamma.</p>
+</div>
+<div id="estimating-the-dispersion" class="section level3" number="9.4.2">
+<h3>
+<span class="header-section-number">9.4.2</span> Estimating the Dispersion<a class="anchor" aria-label="anchor" href="#estimating-the-dispersion"><i class="fas fa-link"></i></a>
+</h3>
+<p>Given the fitted means, the dispersion <span class="math inline">\(\phi\)</span> is estimated either by the mean Pearson statistic, <span class="math inline">\(\hat\phi = \frac{1}{n-k}\sum_i (y_i - \hat\mu_i)^2 / \hat\mu_i^{p}\)</span>, or by maximum likelihood, which requires the density and is therefore a little more work but is what the likelihood based comparisons below rely on. The Pearson estimate is the GLM default and is what <code>summary.glm</code> reports as the dispersion.</p>
+</div>
+<div id="estimating-the-power-by-profile-likelihood" class="section level3" number="9.4.3">
+<h3>
+<span class="header-section-number">9.4.3</span> Estimating the Power by Profile Likelihood<a class="anchor" aria-label="anchor" href="#estimating-the-power-by-profile-likelihood"><i class="fas fa-link"></i></a>
+</h3>
+<p>The power <span class="math inline">\(p\)</span> is the one parameter that the GLM cannot estimate on its own, because it indexes which distribution we are fitting rather than a parameter within a fixed distribution. It is estimated by <strong>profile likelihood</strong>: for each candidate <span class="math inline">\(p\)</span> on a grid, fit the GLM, estimate the dispersion, evaluate the full Tweedie log-likelihood at the fitted values using the density routines, and choose the <span class="math inline">\(p\)</span> that maximizes it. This is the one step that genuinely needs the intractable density, which is why the whole apparatus of <span class="citation">Dunn and Smyth (<a href="references.html#ref-dunn2005series">2005</a>)</span> and <span class="citation">Dunn and Smyth (<a href="references.html#ref-dunn2008evaluation">2008</a>)</span> exists. The profile is transparent enough to write directly: loop over <span class="math inline">\(p\)</span>, fit, and sum the log density. The simulation in the next section does exactly that and shows it recovers a known power.</p>
+</div>
+</div>
+<div id="a-simulation-that-recovers-the-truth" class="section level2" number="9.5">
+<h2>
+<span class="header-section-number">9.5</span> A Simulation That Recovers the Truth<a class="anchor" aria-label="anchor" href="#a-simulation-that-recovers-the-truth"><i class="fas fa-link"></i></a>
+</h2>
+<p>The cleanest way to confirm that the estimation works is to generate data from a known Tweedie model and recover its parameters. We draw a compound Poisson–Gamma response with a true power of <span class="math inline">\(1.6\)</span>, a log linear mean depending on one covariate, and a known dispersion, then profile the power by hand and fit the coefficients at the estimate.</p>
+<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">statmod</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tweedie</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2026</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">3000</span></span>
+<span><span class="va">x</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fl">1.5</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span>                 <span class="co"># true log-linear mean</span></span>
+<span><span class="va">y</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tweedie/man/Tweedie.html">rtweedie</a></span><span class="op">(</span><span class="va">n</span>, mu <span class="op">=</span> <span class="va">mu</span>, phi <span class="op">=</span> <span class="fl">2</span>, power <span class="op">=</span> <span class="fl">1.6</span><span class="op">)</span>   <span class="co"># true phi = 2, p = 1.6</span></span>
+<span></span>
+<span><span class="co"># Profile log-likelihood for the power: for each p, fit the GLM and sum the</span></span>
+<span><span class="co"># Tweedie log-density at the fitted mean and Pearson dispersion.</span></span>
+<span><span class="va">profile_power</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">p_grid</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">p_grid</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/statmod/man/tweedie.html">tweedie</a></span><span class="op">(</span>var.power <span class="op">=</span> <span class="va">p</span>, link.power <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tweedie/man/Tweedie.html">dtweedie</a></span><span class="op">(</span><span class="va">y</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
+<span>                     phi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">dispersion</span>, power <span class="op">=</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">p_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">1.3</span>, <span class="fl">1.9</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="va">logL</span>   <span class="op">&lt;-</span> <span class="fu">profile_power</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">p_grid</span><span class="op">)</span></span>
+<span><span class="va">p_hat</span>  <span class="op">&lt;-</span> <span class="va">p_grid</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="va">logL</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">p_grid</span>, logL <span class="op">=</span> <span class="va">logL</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">p</span>, <span class="va">logL</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">1.6</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">p_hat</span>, logL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">logL</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>             colour <span class="op">=</span> <span class="st">"firebrick"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"power p"</span>, y <span class="op">=</span> <span class="st">"profile log-likelihood"</span>,</span>
+<span>       title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Profiled power = "</span>, <span class="va">p_hat</span>, <span class="st">" (truth 1.6)"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:tweedie-sim"></span>
+<img src="07.6-tweedie-regression_files/figure-html/tweedie-sim-1.png" alt="Profile log-likelihood for the Tweedie power parameter on simulated data whose true power is 1.6 (dashed line). The profile peaks at the truth, confirming that the power is identified and recovered." width="90%"><p class="caption">
+Figure 9.3: Profile log-likelihood for the Tweedie power parameter on simulated data whose true power is 1.6 (dashed line). The profile peaks at the truth, confirming that the power is identified and recovered.
+</p>
+</div>
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/statmod/man/tweedie.html">tweedie</a></span><span class="op">(</span>var.power <span class="op">=</span> <span class="va">p_hat</span>, link.power <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    Parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept"</span>, <span class="st">"Slope (x)"</span>, <span class="st">"Dispersion phi"</span>, <span class="st">"Power p"</span><span class="op">)</span>,</span>
+<span>    Truth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">0.8</span>, <span class="fl">2.0</span>, <span class="fl">1.6</span><span class="op">)</span>,</span>
+<span>    Estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit_sim</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit_sim</span><span class="op">)</span><span class="op">$</span><span class="va">dispersion</span>, <span class="va">p_hat</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Tweedie regression recovers the data-generating parameters on simulated compound Poisson-Gamma data."</span>,</span>
+<span>  align <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"l"</span>, <span class="st">"r"</span>, <span class="st">"r"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tweedie-sim-coef">Table 9.1: </span>Tweedie regression recovers the data-generating parameters on simulated compound Poisson-Gamma data.</caption>
+<thead><tr class="header">
+<th align="left">Parameter</th>
+<th align="right">Truth</th>
+<th align="right">Estimate</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Intercept</td>
+<td align="right">1.5</td>
+<td align="right">1.506</td>
+</tr>
+<tr class="even">
+<td align="left">Slope (x)</td>
+<td align="right">0.8</td>
+<td align="right">0.839</td>
+</tr>
+<tr class="odd">
+<td align="left">Dispersion phi</td>
+<td align="right">2.0</td>
+<td align="right">1.967</td>
+</tr>
+<tr class="even">
+<td align="left">Power p</td>
+<td align="right">1.6</td>
+<td align="right">1.600</td>
+</tr>
+</tbody>
+</table></div>
+<p>The profile in Figure <a href="sec-tweedie-regression.html#fig:tweedie-sim">9.3</a> peaks at the true power, and the coefficients and dispersion in Table <a href="sec-tweedie-regression.html#tab:tweedie-sim-coef">9.1</a> land on their data generating values, confirming that the three part estimation scheme works as intended.</p>
+</div>
+<div id="real-data-application-insurance-pure-premium" class="section level2" number="9.6">
+<h2>
+<span class="header-section-number">9.6</span> Real-Data Application: Insurance Pure Premium<a class="anchor" aria-label="anchor" href="#real-data-application-insurance-pure-premium"><i class="fas fa-link"></i></a>
+</h2>
+<p>Modeling insurance claim costs is the application that drove the development of the Tweedie GLM by <span class="citation">Jørgensen and Souza (<a href="references.html#ref-jorgensen1994fitting">1994</a>)</span> and <span class="citation">Smyth and Jørgensen (<a href="references.html#ref-smyth2002fitting">2002</a>)</span>, and it remains the textbook use of the model. Those authors worked with their own proprietary portfolios, so rather than reproduce their exact numbers we apply the same method to a standard public benchmark, the <code>dataCar</code> portfolio distributed with the <code>insuranceData</code> package and analyzed at length in the insurance GLM textbook of <span class="citation"><span class="nocase">de Jong and Heller</span> (<a href="references.html#ref-dejong2008glm">2008</a>)</span>. It is a real Australian automobile insurance dataset of 67,856 one year policies. The response <code>claimcst0</code> is the total claim cost incurred by each policy, and the covariates are the usual rating factors: the vehicle value and body type, the vehicle age, the driver’s age band and gender, and the geographic area. Each policy is observed for a known fraction of a year, the <code>exposure</code>, which enters the model as a weight so that the estimated mean is a rate per unit exposure, the pure premium. Because <span class="citation"><span class="nocase">de Jong and Heller</span> (<a href="references.html#ref-dejong2008glm">2008</a>)</span> fit and interpret frequency and severity GLMs on exactly this data, their conclusions give us an external benchmark against which to check our own, which is the right way to read a replication: the test is whether the substantive findings agree, not merely whether the code runs.</p>
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">insuranceData</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">dataCar</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">prop_zero</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">dataCar</span><span class="op">$</span><span class="va">claimcst0</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">dataCar</span>, <span class="va">claimcst0</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">claimcst0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">50</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar</a></span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"annual claim cost (positive policies)"</span>, y <span class="op">=</span> <span class="st">"count"</span>,</span>
+<span>       title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Claim cost: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="va">prop_zero</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>                      <span class="st">"% of policies are exactly zero"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:tweedie-data"></span>
+<img src="07.6-tweedie-regression_files/figure-html/tweedie-data-1.png" alt="Distribution of annual claim cost in the dataCar portfolio. About 93 percent of policies cost zero (the bar at the origin), and the rest form a long right tail. This zero-inflated, continuous, right-skewed shape is the signature of a Tweedie response." width="90%"><p class="caption">
+Figure 9.4: Distribution of annual claim cost in the dataCar portfolio. About 93 percent of policies cost zero (the bar at the origin), and the rest form a long right tail. This zero-inflated, continuous, right-skewed shape is the signature of a Tweedie response.
+</p>
+</div>
+<p>Figure <a href="sec-tweedie-regression.html#fig:tweedie-data">9.4</a> shows that shape on the portfolio itself. The modeling target is the pure premium, the expected cost per unit of exposure, so we form the response as cost divided by exposure and weight each observation by its exposure, the standard actuarial construction of <span class="citation">Ohlsson and Johansson (<a href="references.html#ref-ohlsson2010nonlife">2010</a>)</span>. We first profile the power on a subsample, then fit the Tweedie GLM at the chosen power on the full portfolio.</p>
+<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">statmod</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tweedie</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="va">dataCar</span></span>
+<span><span class="va">d</span><span class="op">$</span><span class="va">agecat</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">agecat</span><span class="op">)</span></span>
+<span><span class="va">d</span><span class="op">$</span><span class="va">veh_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">veh_age</span><span class="op">)</span></span>
+<span><span class="va">d</span><span class="op">$</span><span class="va">pp</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">$</span><span class="va">claimcst0</span> <span class="op">/</span> <span class="va">d</span><span class="op">$</span><span class="va">exposure</span>          <span class="co"># pure premium response</span></span>
+<span><span class="va">form</span> <span class="op">&lt;-</span> <span class="va">pp</span> <span class="op">~</span> <span class="va">veh_body</span> <span class="op">+</span> <span class="va">veh_age</span> <span class="op">+</span> <span class="va">agecat</span> <span class="op">+</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">area</span></span>
+<span></span>
+<span><span class="co"># Profile the power on a subsample (the density evaluation is the costly step).</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">sub</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">12000</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="va">p_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">1.4</span>, <span class="fl">1.7</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="va">logL</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">p_grid</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">form</span>, data <span class="op">=</span> <span class="va">sub</span>, weights <span class="op">=</span> <span class="va">exposure</span>,</span>
+<span>           family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/statmod/man/tweedie.html">tweedie</a></span><span class="op">(</span>var.power <span class="op">=</span> <span class="va">p</span>, link.power <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tweedie/man/Tweedie.html">dtweedie</a></span><span class="op">(</span><span class="va">sub</span><span class="op">$</span><span class="va">pp</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span>,</span>
+<span>                   phi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">$</span><span class="va">dispersion</span>, power <span class="op">=</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">p_hat</span> <span class="op">&lt;-</span> <span class="va">p_grid</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="va">logL</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">p_hat</span></span>
+<span><span class="co">#&gt; [1] 1.7</span></span></code></pre></div>
+<p>The likelihood favors a power near <span class="math inline">\(1.7\)</span>, within the range of roughly <span class="math inline">\(1.5\)</span> to <span class="math inline">\(1.8\)</span> typically reported for automobile claim costs and consistent with a portfolio in which most policies have no claim and the positive costs are heavily skewed. The value sits a little above the estimate that the smooth <code>mgcv</code> fit returns later in the chapter, a reminder that the power estimate moves with the mean specification and the estimation method. With the power fixed, the coefficients are an ordinary GLM fit, and because of the log link each exponentiated coefficient is a multiplicative <strong>relativity</strong>, the factor by which a rating cell scales the baseline pure premium.</p>
+<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">form</span>, data <span class="op">=</span> <span class="va">d</span>, weights <span class="op">=</span> <span class="va">exposure</span>,</span>
+<span>           family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/statmod/man/tweedie.html">tweedie</a></span><span class="op">(</span>var.power <span class="op">=</span> <span class="va">p_hat</span>, link.power <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">co</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span>
+<span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">"agecat|genderM"</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">co</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    Factor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">co</span><span class="op">)</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span>,</span>
+<span>    Relativity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">co</span><span class="op">[</span><span class="va">keep</span>, <span class="st">"Estimate"</span><span class="op">]</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    `Std. Error (log)` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">co</span><span class="op">[</span><span class="va">keep</span>, <span class="st">"Std. Error"</span><span class="op">]</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    `p-value` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">co</span><span class="op">[</span><span class="va">keep</span>, <span class="st">"Pr(&gt;|t|)"</span><span class="op">]</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Pure-premium relativities for driver age band and gender from the Tweedie GLM on the dataCar portfolio (baseline: youngest age band, female). A relativity below one means cheaper than baseline. The standard error and p-value are on the log (coefficient) scale. The age-band effects are strongly significant; the gender effect is not."</span>,</span>
+<span>  align <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"l"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>, <span class="st">"r"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tweedie-real-fit">Table 9.2: </span>Pure-premium relativities for driver age band and gender from the Tweedie GLM on the dataCar portfolio (baseline: youngest age band, female). A relativity below one means cheaper than baseline. The standard error and p-value are on the log (coefficient) scale. The age-band effects are strongly significant; the gender effect is not.</caption>
+<thead><tr class="header">
+<th align="left">Factor</th>
+<th align="right">Relativity</th>
+<th align="right">Std. Error (log)</th>
+<th align="right">p-value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">agecat2</td>
+<td align="right">0.692</td>
+<td align="right">0.238</td>
+<td align="right">0.122</td>
+</tr>
+<tr class="even">
+<td align="left">agecat3</td>
+<td align="right">0.599</td>
+<td align="right">0.232</td>
+<td align="right">0.027</td>
+</tr>
+<tr class="odd">
+<td align="left">agecat4</td>
+<td align="right">0.590</td>
+<td align="right">0.231</td>
+<td align="right">0.022</td>
+</tr>
+<tr class="even">
+<td align="left">agecat5</td>
+<td align="right">0.430</td>
+<td align="right">0.251</td>
+<td align="right">0.001</td>
+</tr>
+<tr class="odd">
+<td align="left">agecat6</td>
+<td align="right">0.470</td>
+<td align="right">0.283</td>
+<td align="right">0.007</td>
+</tr>
+<tr class="even">
+<td align="left">genderM</td>
+<td align="right">1.151</td>
+<td align="right">0.127</td>
+<td align="right">0.266</td>
+</tr>
+</tbody>
+</table></div>
+<p>The relativities in Table <a href="sec-tweedie-regression.html#tab:tweedie-real-fit">9.2</a> tell a clear and, importantly, externally corroborated story. The age bands run from one, the youngest drivers, to six, the oldest, and the youngest band is the most expensive: every older band has a relativity below one, the cost of insuring a policy falling from the young baseline to roughly forty three percent for the second oldest band before ticking back up slightly for the very oldest, the mild U shape that actuaries expect when both inexperienced young drivers and the very old are riskier than those in between. Four of the five age coefficients are significant at conventional levels, so this pattern is real. The gender relativity is a different matter and is where reading the table honestly matters. The point estimate suggests male policies cost about fifteen percent more, but its p value is roughly <span class="math inline">\(0.27\)</span>, so the effect is not statistically distinguishable from zero once the other rating factors are controlled for. This is exactly what <span class="citation"><span class="nocase">de Jong and Heller</span> (<a href="references.html#ref-dejong2008glm">2008</a>)</span> find on the same data, that gender carries little signal for this portfolio, and it is a useful caution against reading a rate relativity off a point estimate without checking whether the data support it. Age belongs in the rating table; gender, on this evidence, does not.</p>
+<p>A first check on any pure premium model is whether it reproduces the total cost of the portfolio, since a model used to set prices must at least get the aggregate right. The Tweedie GLM with a log link has this calibration built in through its score equations, and Table <a href="sec-tweedie-regression.html#tab:tweedie-real-calib">9.3</a> confirms it on this portfolio.</p>
+<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">predicted_total</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">exposure</span><span class="op">)</span></span>
+<span><span class="va">actual_total</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">claimcst0</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    Quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Predicted total cost"</span>, <span class="st">"Actual total cost"</span>, <span class="st">"Ratio"</span><span class="op">)</span>,</span>
+<span>    Value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar</a></span><span class="op">(</span><span class="va">predicted_total</span><span class="op">)</span>, <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar</a></span><span class="op">(</span><span class="va">actual_total</span><span class="op">)</span>,</span>
+<span>              <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">predicted_total</span> <span class="op">/</span> <span class="va">actual_total</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"The Tweedie pure-premium model reproduces the aggregate claim cost of the portfolio almost exactly, a basic requirement for a pricing model."</span>,</span>
+<span>  align <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"l"</span>, <span class="st">"r"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tweedie-real-calib">Table 9.3: </span>The Tweedie pure-premium model reproduces the aggregate claim cost of the portfolio almost exactly, a basic requirement for a pricing model.</caption>
+<thead><tr class="header">
+<th align="left">Quantity</th>
+<th align="right">Value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Predicted total cost</td>
+<td align="right">$9,309,027</td>
+</tr>
+<tr class="even">
+<td align="left">Actual total cost</td>
+<td align="right">$9,314,604</td>
+</tr>
+<tr class="odd">
+<td align="left">Ratio</td>
+<td align="right">0.9994</td>
+</tr>
+</tbody>
+</table></div>
+<div id="comparison-with-the-two-part-frequencyseverity-model" class="section level3" number="9.6.1">
+<h3>
+<span class="header-section-number">9.6.1</span> Comparison With the Two-Part Frequency–Severity Model<a class="anchor" aria-label="anchor" href="#comparison-with-the-two-part-frequencyseverity-model"><i class="fas fa-link"></i></a>
+</h3>
+<p>The traditional actuarial alternative to the Tweedie splits the problem in two: a frequency model for the number of claims and a severity model for the average cost per claim, multiplied together to give the pure premium. The frequency is a Poisson (or negative binomial) GLM with an exposure offset, and the severity is a Gamma GLM fit on the policies that did claim. The Tweedie is, in a precise sense, the single distribution that fuses these two stages, which is why its power parameter encodes the frequency–severity split. Fitting both lets us compare them on the same portfolio.</p>
+<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Frequency: Poisson claim count with a log-exposure offset.</span></span>
+<span><span class="va">freq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">numclaims</span> <span class="op">~</span> <span class="va">veh_body</span> <span class="op">+</span> <span class="va">veh_age</span> <span class="op">+</span> <span class="va">agecat</span> <span class="op">+</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">area</span>,</span>
+<span>            offset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">exposure</span><span class="op">)</span>, family <span class="op">=</span> <span class="va">poisson</span>, data <span class="op">=</span> <span class="va">d</span><span class="op">)</span></span>
+<span><span class="co"># Severity: Gamma average cost per claim, on policies with at least one claim.</span></span>
+<span><span class="va">pos</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">d</span>, <span class="va">claimcst0</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">sev</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">claimcst0</span> <span class="op">/</span> <span class="va">numclaims</span> <span class="op">~</span> <span class="va">veh_body</span> <span class="op">+</span> <span class="va">veh_age</span> <span class="op">+</span> <span class="va">agecat</span> <span class="op">+</span> <span class="va">gender</span> <span class="op">+</span> <span class="va">area</span>,</span>
+<span>            weights <span class="op">=</span> <span class="va">numclaims</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">pos</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">twopart_total</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">freq</span>, type <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span> <span class="op">*</span></span>
+<span>                     <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">sev</span>, newdata <span class="op">=</span> <span class="va">d</span>, type <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    Model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Tweedie (single GLM)"</span>, <span class="st">"Frequency x Severity (two GLMs)"</span>, <span class="st">"Actual"</span><span class="op">)</span>,</span>
+<span>    `Predicted total cost` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar</a></span><span class="op">(</span><span class="va">predicted_total</span><span class="op">)</span>,</span>
+<span>                               <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar</a></span><span class="op">(</span><span class="va">twopart_total</span><span class="op">)</span>,</span>
+<span>                               <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar</a></span><span class="op">(</span><span class="va">actual_total</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  row.names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"The Tweedie GLM and the classical two-part frequency-severity model give very similar aggregate predictions. The Tweedie achieves this with a single model and a single set of coefficients rather than two."</span>,</span>
+<span>  align <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"l"</span>, <span class="st">"r"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tweedie-twopart">Table 9.4: </span>The Tweedie GLM and the classical two-part frequency-severity model give very similar aggregate predictions. The Tweedie achieves this with a single model and a single set of coefficients rather than two.</caption>
+<thead><tr class="header">
+<th align="left">Model</th>
+<th align="right">Predicted total cost</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Tweedie (single GLM)</td>
+<td align="right">$9,309,027</td>
+</tr>
+<tr class="even">
+<td align="left">Frequency x Severity (two GLMs)</td>
+<td align="right">$9,315,807</td>
+</tr>
+<tr class="odd">
+<td align="left">Actual</td>
+<td align="right">$9,314,604</td>
+</tr>
+</tbody>
+</table></div>
+<p>The two approaches in Table <a href="sec-tweedie-regression.html#tab:tweedie-twopart">9.4</a> land in the same place on the aggregate, which is reassuring, but the Tweedie does it with one model rather than two, one set of coefficients to interpret rather than two, and without the awkwardness of the severity model being undefined for the ninety three percent of policies that never claim. The cost is that the Tweedie blends frequency and severity effects into a single coefficient, so when an analyst specifically wants to know whether a factor drives how often people claim or how much they claim, the two part model remains more informative. The choice between them is a choice about what question is being asked, not about which is correct.</p>
+</div>
+</div>
+<div id="beyond-the-glm-smooth-regularized-and-boosted-tweedie-models" class="section level2" number="9.7">
+<h2>
+<span class="header-section-number">9.7</span> Beyond the GLM: Smooth, Regularized, and Boosted Tweedie Models<a class="anchor" aria-label="anchor" href="#beyond-the-glm-smooth-regularized-and-boosted-tweedie-models"><i class="fas fa-link"></i></a>
+</h2>
+<p>The Tweedie response is not tied to the linear predictor of a GLM; it is a likelihood that can sit on top of any modern regression engine, and the same actuarial and scientific problems that motivate it have driven its incorporation into flexible models.</p>
+<p>A <strong>Tweedie generalized additive model</strong> replaces linear terms with smooth functions, which is valuable when a rating factor such as vehicle value or driver age has a nonlinear effect on cost. The <code>mgcv</code> package fits these and, unlike the GLM workflow above, estimates the power parameter jointly with the smooths by restricted maximum likelihood, so the analyst does not profile it by hand.</p>
+<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">mgcv</span><span class="op">)</span></span>
+<span><span class="va">gam_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/gam.html">gam</a></span><span class="op">(</span><span class="va">pp</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/s.html">s</a></span><span class="op">(</span><span class="va">veh_value</span><span class="op">)</span> <span class="op">+</span> <span class="va">veh_body</span> <span class="op">+</span> <span class="va">agecat</span> <span class="op">+</span> <span class="va">gender</span>,</span>
+<span>               weights <span class="op">=</span> <span class="va">exposure</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/Tweedie.html">tw</a></span><span class="op">(</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">d</span>, method <span class="op">=</span> <span class="st">"REML"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"mgcv estimated Tweedie power p ="</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">gam_fit</span><span class="op">$</span><span class="va">family</span><span class="op">$</span><span class="fu">getTheta</span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; mgcv estimated Tweedie power p = 1.606</span></span></code></pre></div>
+<p>The REML estimate of the power, near <span class="math inline">\(1.6\)</span>, sits a little below the GLM profile estimate, a reminder that the power is estimated jointly with the rest of the model and shifts with the mean specification. For <strong>high-dimensional</strong> rating problems with many correlated factors, <span class="citation">Qian et al. (<a href="references.html#ref-qian2016tweedie">2016</a>)</span> develop a grouped elastic net for the Tweedie compound Poisson model, implemented in the <code>HDtweedie</code> package, which selects and shrinks coefficients while respecting the grouping of a categorical factor’s dummy variables. For the flexible, interaction-rich models that dominate contemporary insurance practice, the <strong>Tweedie deviance</strong> is available as a loss function in gradient boosting libraries, so a boosted-tree pure premium model is a direct nonparametric extension of the GLM. Both are shown for reference rather than run, since they require additional packages and tuning.</p>
+<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># High-dimensional grouped elastic net (Qian, Yang &amp; Zou 2016).</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">HDtweedie</span><span class="op">)</span></span>
+<span><span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu">cv.HDtweedie</span><span class="op">(</span>x <span class="op">=</span> <span class="va">X</span>, y <span class="op">=</span> <span class="va">y</span>, group <span class="op">=</span> <span class="va">grp</span>, p <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Gradient-boosted trees with the Tweedie deviance loss.</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dmlc/xgboost">xgboost</a></span><span class="op">)</span></span>
+<span><span class="va">bst</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/xgboost/man/xgb.train.html">xgboost</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">X</span>, label <span class="op">=</span> <span class="va">y</span>, nrounds <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>               objective <span class="op">=</span> <span class="st">"reg:tweedie"</span>,</span>
+<span>               tweedie_variance_power <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span></code></pre></div>
+<p>A fully Bayesian and mixed-model treatment is available as well: <span class="citation">Zhang (<a href="references.html#ref-zhang2013likelihood">2013</a>)</span> develops likelihood-based and Bayesian estimation for Tweedie compound Poisson linear mixed models in the <code>cplm</code> package, which adds random effects to the structure above, the natural tool when policies are grouped within regions, agents, or years.</p>
+</div>
+<div id="practical-guidance-and-pitfalls" class="section level2" number="9.8">
+<h2>
+<span class="header-section-number">9.8</span> Practical Guidance and Pitfalls<a class="anchor" aria-label="anchor" href="#practical-guidance-and-pitfalls"><i class="fas fa-link"></i></a>
+</h2>
+<p>A few points govern whether a Tweedie analysis goes smoothly.</p>
+<p>The power parameter should be estimated, not assumed, but it need not be estimated precisely. The fit and the coefficients are fairly insensitive to small changes in <span class="math inline">\(p\)</span> across the plausible range, so a profile on a coarse grid, or the REML estimate from <code>mgcv</code>, is usually enough. Fixing <span class="math inline">\(p\)</span> at a round value such as <span class="math inline">\(1.5\)</span> for a first pass is a reasonable habit, but the final model should report a profiled or jointly estimated power.</p>
+<p>The exposure belongs in the model as a weight on the pure premium response, not as a covariate. Treating exposure as a regressor confounds the amount of time at risk with the rating factors and produces uninterpretable coefficients. The construction used above, response equal to cost over exposure with weights equal to exposure, is the standard one and makes the fitted mean a rate.</p>
+<p>The numerical evaluation of the density can fail in the heavy tail. For very large responses, both the series and the inversion methods can return non-finite values, which is why the power profile above was restricted to a grid where the likelihood was computable and why the maximum sat at the edge of that grid rather than at a clean interior peak. When this happens, profiling on a subsample, trimming or capping a handful of extreme observations for the power estimation step only, or relying on the <code>mgcv</code> REML estimate are all reasonable responses; none of them affects the coefficient estimates, which never touch the density.</p>
+<p>Finally, the Tweedie is a model of a mean, and like every GLM it identifies an association that is causal only under the usual assumptions. Its value is that it gets the distributional shape of a zero-inflated continuous response right, which makes its standard errors and predictions trustworthy where a Gaussian or log-normal model would not be, but it does not by itself license a causal reading of the rating factors. For pricing that is exactly what is wanted, since the goal is an accurate conditional mean rather than a counterfactual; for an application where a factor is meant to be a treatment, the identification has to come from the design, as everywhere else in this book.</p>
+
+</div>
+</div>
+<div style="
+  background: #1a1a2e;
+  border-bottom: 3px solid #e8a020;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  font-family: sans-serif;
+">
+    <span style="font-size:1.1em;">📖</span>
+        <span style="font-size:0.82em; color:#e8e8e8; flex:1; min-width:200px;">
+            <strong style="color:#f5c842;">Free preview — limited per publisher guidelines.</strong>
+                Purchase the complete <em>A Guide on Data Analysis</em> series (Vols. 1–4) on Springer.
+            </span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <a href="https://tidd.ly/4oL3N2X" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 1</a>
+                        <a href="https://tidd.ly/47PJ7kB" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 2</a>
+                            <a href="https://tidd.ly/3JrB3xm" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 3</a>
+                                <a href="https://tidd.ly/4oFridQ" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 4</a>
+                                    </div>
+                                    </div>
+  <div class="chapter-nav">
+<div class="prev"><a href="sec-discrete-choice.html"><span class="header-section-number">8</span> Discrete Choice and Limited Dependent Variables</a></div>
+<div class="next"><a href="sec-linear-mixed-models.html"><span class="header-section-number">10</span> Linear Mixed Models</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-tweedie-regression"><span class="header-section-number">9</span> Tweedie Regression</a></li>
+<li><a class="nav-link" href="#the-tweedie-family-within-generalized-linear-models"><span class="header-section-number">9.1</span> The Tweedie Family Within Generalized Linear Models</a></li>
+<li><a class="nav-link" href="#the-compound-poissongamma-model"><span class="header-section-number">9.2</span> The Compound Poisson–Gamma Model</a></li>
+<li><a class="nav-link" href="#the-density-and-why-it-must-be-approximated"><span class="header-section-number">9.3</span> The Density and Why It Must Be Approximated</a></li>
+<li>
+<a class="nav-link" href="#estimation-mean-dispersion-and-power"><span class="header-section-number">9.4</span> Estimation: Mean, Dispersion, and Power</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#the-mean-model-for-fixed-power"><span class="header-section-number">9.4.1</span> The Mean Model for Fixed Power</a></li>
+<li><a class="nav-link" href="#estimating-the-dispersion"><span class="header-section-number">9.4.2</span> Estimating the Dispersion</a></li>
+<li><a class="nav-link" href="#estimating-the-power-by-profile-likelihood"><span class="header-section-number">9.4.3</span> Estimating the Power by Profile Likelihood</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#a-simulation-that-recovers-the-truth"><span class="header-section-number">9.5</span> A Simulation That Recovers the Truth</a></li>
+<li>
+<a class="nav-link" href="#real-data-application-insurance-pure-premium"><span class="header-section-number">9.6</span> Real-Data Application: Insurance Pure Premium</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#comparison-with-the-two-part-frequencyseverity-model"><span class="header-section-number">9.6.1</span> Comparison With the Two-Part Frequency–Severity Model</a></li></ul>
+</li>
+<li><a class="nav-link" href="#beyond-the-glm-smooth-regularized-and-boosted-tweedie-models"><span class="header-section-number">9.7</span> Beyond the GLM: Smooth, Regularized, and Boosted Tweedie Models</a></li>
+<li><a class="nav-link" href="#practical-guidance-and-pitfalls"><span class="header-section-number">9.8</span> Practical Guidance and Pitfalls</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/07.6-tweedie-regression.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/07.6-tweedie-regression.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2026-10-22.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

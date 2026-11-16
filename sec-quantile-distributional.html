@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 13 Quantile Regression and Distributional Methods | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="The previous chapter on nonparametric regression, Chapter 12, relaxed the functional form of the conditional mean \(E[Y \mid X]\), letting the data determine the shape of the regression curve....">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Chapter 13 Quantile Regression and Distributional Methods | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://mikenguyen13.github.io/data_analysis/sec-quantile-distributional.html">
+<meta property="og:image" content="https://mikenguyen13.github.io/data_analysis/images/cover.jpg">
+<meta property="og:description" content="The previous chapter on nonparametric regression, Chapter 12, relaxed the functional form of the conditional mean \(E[Y \mid X]\), letting the data determine the shape of the regression curve....">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 13 Quantile Regression and Distributional Methods | A Guide on Data Analysis">
+<meta name="twitter:description" content="The previous chapter on nonparametric regression, Chapter 12, relaxed the functional form of the conditional mean \(E[Y \mid X]\), letting the data determine the shape of the regression curve....">
+<meta name="twitter:image" content="https://mikenguyen13.github.io/data_analysis/images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/viz-1.8.2/viz.js"></script><link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="libs/grViz-binding-1.0.11/grViz.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- ============================================================
+         Google Analytics (gtag.js) + SEO structured data.
+         Injected into <head> of every page via _output.yml in_header.
+         ============================================================ --><script async src="https://www.googletagmanager.com/gtag/js?id=G-DMNX2X65HQ"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><!-- schema.org structured data: helps Google treat the book as an
+         authoritative, citable work and can enable rich results. --><script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Book",
+      "name": "A Guide on Data Analysis",
+
+      "inLanguage": "en",
+      "bookFormat": "https://schema.org/EBook",
+      "description": "This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning.",
+      "author": { "@type": "Person", "name": "Mike Nguyen" },
+      "publisher": { "@type": "Person", "name": "Mike Nguyen" }
+    }
+    </script><!-- Search Console / Bing ownership verification.
+         Google: https://search.google.com/search-console -> add URL-prefix property
+         -> "HTML tag" -> paste the content value below and uncomment the line. --><!-- <meta name="google-site-verification" content="PASTE_GOOGLE_CODE"> --><!-- <meta name="msvalidate.01" content="PASTE_BING_CODE"> --><!-- Schema.org structured data for AI crawlers and search engines --><script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Book",
+          "@id": "https://mikenguyen13.github.io/data_analysis/#book",
+          "name": "A Guide on Data Analysis",
+          "alternateName": "Foundations of Data Analysis",
+          "author": {"@id": "https://mikenguyen.netlify.app/#person"},
+          "publisher": {"@type": "Organization", "name": "Springer Cham"},
+          "datePublished": "2025",
+          "inLanguage": "en",
+          "isbn": "978-3-032-01858-8",
+          "url": "https://mikenguyen13.github.io/data_analysis/",
+          "image": "https://bookdown.org/mike/data_analysis/images/cover.jpg",
+          "sameAs": [
+            "https://doi.org/10.1007/978-3-032-01858-8",
+            "https://link.springer.com/book/9783032018342",
+            "https://link.springer.com/book/9783032017185",
+            "https://link.springer.com/book/9783032018380",
+            "https://github.com/mikenguyen13/data_analysis"
+          ],
+          "description": "A book on data analysis, causal inference, and econometrics, written for readers with little to no prior background. Published by Springer Cham (2025) as a four-volume series.",
+          "about": [
+            "Data Analysis",
+            "Causal Inference",
+            "Econometrics",
+            "Difference-in-Differences",
+            "Regression Discontinuity",
+            "Synthetic Control",
+            "Instrumental Variables",
+            "Matching Methods",
+            "Directed Acyclic Graphs",
+            "Sensitivity Analysis",
+            "Linear Regression",
+            "Generalized Linear Models",
+            "R programming"
+          ],
+          "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "copyrightHolder": {"@id": "https://mikenguyen.netlify.app/#person"},
+          "copyrightYear": 2025,
+          "hasPart": [
+            {"@type": "Book", "name": "Foundations of Data Analysis", "volumeNumber": 1, "isbn": "978-3-032-01858-8", "url": "https://doi.org/10.1007/978-3-032-01858-8"},
+            {"@type": "Book", "name": "Regression Techniques for Data Analysis", "volumeNumber": 2, "isbn": "978-3-032-01834-2", "url": "https://link.springer.com/book/9783032018342"},
+            {"@type": "Book", "name": "Advanced Modeling and Data Challenges", "volumeNumber": 3, "isbn": "978-3-032-01718-5", "url": "https://link.springer.com/book/9783032017185"},
+            {"@type": "Book", "name": "Experimental Design", "volumeNumber": 4, "isbn": "978-3-032-01838-0", "url": "https://link.springer.com/book/9783032018380"}
+          ]
+        },
+        {
+          "@type": "Person",
+          "@id": "https://mikenguyen.netlify.app/#person",
+          "name": "Mike Nguyen",
+          "givenName": "Mike",
+          "familyName": "Nguyen",
+          "url": "https://mikenguyen.netlify.app",
+          "sameAs": [
+            "https://github.com/mikenguyen13",
+            "https://bookdown.org/mike/data_analysis/"
+          ]
+        }
+      ]
+    }
+    </script><!-- Styling for the per-chapter abstract and keyword blocks required by the
+         Springer manuscript guidelines. Delivered as a head include rather than
+         through the bs4_book `css:` option so that bookdown's own stylesheet
+         handling is left untouched. --><style>
+    .chapter-abstract {
+      border-left: 3px solid #b8c4d0;
+      background: #f7f9fb;
+      padding: 0.85rem 1.1rem;
+      margin: 1.25rem 0 1.75rem 0;
+      font-size: 0.94em;
+      line-height: 1.55;
+    }
+    .chapter-abstract p { margin-bottom: 0.6rem; }
+    .chapter-abstract p:last-child { margin-bottom: 0; }
+    </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+<link rel="canonical" href="https://mikenguyen13.github.io/data_analysis/sec-quantile-distributional.html">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-discrete-choice.html"><span class="header-section-number">8</span> Discrete Choice and Limited Dependent Variables</a></li>
+<li><a class="" href="sec-tweedie-regression.html"><span class="header-section-number">9</span> Tweedie Regression</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">10</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">11</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">12</span> Nonparametric Regression</a></li>
+<li><a class="active" href="sec-quantile-distributional.html"><span class="header-section-number">13</span> Quantile Regression and Distributional Methods</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">14</span> Data</a></li>
+<li><a class="" href="sec-time-series.html"><span class="header-section-number">15</span> Time Series Analysis</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">16</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">17</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">18</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">19</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">20</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">21</span> Marginal Effects</a></li>
+<li><a class="" href="sec-moderation.html"><span class="header-section-number">22</span> Moderation</a></li>
+<li><a class="" href="sec-conditional-process.html"><span class="header-section-number">23</span> Moderated Mediation and Conditional Process Analysis</a></li>
+<li><a class="" href="sec-mediation.html"><span class="header-section-number">24</span> Mediation</a></li>
+<li><a class="" href="sec-mechanism-designs.html"><span class="header-section-number">25</span> Designing for Mechanisms</a></li>
+<li><a class="" href="sec-decomposition.html"><span class="header-section-number">26</span> Decomposition Methods</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">27</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">28</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">29</span> Experimental Design</a></li>
+<li><a class="" href="sec-interference-spillover.html"><span class="header-section-number">30</span> Interference and Spillover Effects</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">31</span> Sampling</a></li>
+<li><a class="" href="sec-survey-reliability.html"><span class="header-section-number">32</span> Survey and Response Quality</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">33</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">34</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">35</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">36</span> Regression Discontinuity</a></li>
+<li><a class="" href="sec-temporal-discontinuity-designs.html"><span class="header-section-number">37</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">38</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">39</span> Difference-in-Differences</a></li>
+<li><a class="" href="sec-changes-in-changes.html"><span class="header-section-number">40</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">41</span> Synthetic Control</a></li>
+<li><a class="" href="sec-event-studies.html"><span class="header-section-number">42</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">43</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">44</span> Matching Methods</a></li>
+<li><a class="" href="sec-ml-causal.html"><span class="header-section-number">45</span> Machine Learning for Causal Inference</a></li>
+<li><a class="" href="sec-uplift-modeling.html"><span class="header-section-number">46</span> Uplift Modeling and Heterogeneous Treatment Effects</a></li>
+<li><a class="" href="sec-nlp-causal.html"><span class="header-section-number">47</span> Text as Data and NLP for Causal Inference</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="sec-endogeneity.html"><span class="header-section-number">48</span> Endogeneity</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">49</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-quantile-distributional" class="section level1" number="13">
+<h1>
+<span class="header-section-number">13</span> Quantile Regression and Distributional Methods<a class="anchor" aria-label="anchor" href="#sec-quantile-distributional"><i class="fas fa-link"></i></a>
+</h1>
+<p>The previous chapter on nonparametric regression, Chapter <a href="sec-nonparametric-regression.html#sec-nonparametric-regression">12</a>, relaxed the functional form of the conditional mean <span class="math inline">\(E[Y \mid X]\)</span>, letting the data determine the shape of the regression curve. This chapter relaxes a different and more fundamental assumption, namely that the conditional mean is a sufficient summary of how covariates relate to an outcome. Many economic questions concern features of the response distribution that the mean simply cannot reveal, including spread, skewness, tail behavior, and inequality. Quantile regression and the broader family of distributional methods target the conditional quantile function <span class="math inline">\(Q_\tau(Y \mid X)\)</span> and, ultimately, the entire conditional distribution <span class="math inline">\(F_{Y \mid X}\)</span>. The two strands of relaxation meet in nonparametric quantile regression, which frees both the functional form and the distributional summary at once.</p>
+<p>We develop the material in stages. We begin with the population and sample definitions of quantiles, the check function that characterizes them as optimal predictors, and the least absolute deviations idea that this generalizes. We then move to conditional quantile functions and the linear quantile regression estimator of <span class="citation">Koenker and Bassett (<a href="references.html#ref-koenker1978regression">1978</a>)</span>, its asymptotic inference, and its robustness properties. We turn next to censored quantile regression following <span class="citation">Powell (<a href="references.html#ref-powell1986censored">1986</a>)</span>, then to quantile treatment effects and their sharp distinction from average treatment effects. Distribution regression provides a complementary route to the same distributional objects, and we close with stochastic dominance, which orders entire distributions rather than single summaries.</p>
+<div id="sec-qd-how-relate" class="section level2" number="13.1">
+<h2>
+<span class="header-section-number">13.1</span> How These Methods Relate<a class="anchor" aria-label="anchor" href="#sec-qd-how-relate"><i class="fas fa-link"></i></a>
+</h2>
+<p>It helps to fix the relationship between this chapter and the nonparametric regression material before diving in. Standard least squares assumes both a functional form for <span class="math inline">\(E[Y \mid X]\)</span>, usually linear in parameters, and that this conditional mean is the object worth estimating. Nonparametric regression keeps the focus on the conditional mean but discards the functional form, estimating <span class="math inline">\(E[Y \mid X = x]\)</span> flexibly through kernels, local polynomials, or splines. Quantile and distributional methods do the opposite by default. Linear quantile regression retains a parametric functional form, linear in covariates at each quantile level, but abandons the premise that a single central summary captures the relationship of interest. Instead it traces out <span class="math inline">\(Q_\tau(Y \mid X)\)</span> across a range of quantile levels <span class="math inline">\(\tau\)</span>, recovering how covariates shift the location, scale, and shape of the conditional distribution.</p>
+<p>The two ideas are orthogonal and therefore composable. Relaxing the functional form gives nonparametric mean regression. Relaxing the mean-summary assumption gives quantile regression. Relaxing both gives nonparametric quantile regression, in which <span class="math inline">\(Q_\tau(Y \mid X = x)\)</span> is estimated locally and flexibly in <span class="math inline">\(x\)</span> for each <span class="math inline">\(\tau\)</span>. The distributional viewpoint generalizes further still. Rather than estimating one quantile at a time, distribution regression estimates the whole conditional distribution function and inverts it, so that quantiles, expectiles, inequality measures, and tail probabilities all become readable functionals of a single estimated object.</p>
+</div>
+<div id="sec-qd-quantile-function" class="section level2" number="13.2">
+<h2>
+<span class="header-section-number">13.2</span> Quantiles and the Quantile Function<a class="anchor" aria-label="anchor" href="#sec-qd-quantile-function"><i class="fas fa-link"></i></a>
+</h2>
+<p>Summarizing a distribution by its mean discards information. If <span class="math inline">\(Y \sim N(\mu, \sigma^2)\)</span> then the mean alone hides the spread, and for asymmetric or heavy-tailed distributions it hides skewness and tail mass that often matter most for policy. Quantiles complement the mean by describing shape, dispersion, and tails directly.</p>
+<p>Let <span class="math inline">\(\tau \in (0,1)\)</span> denote the quantile index or level, sometimes called the quantile rank. For a random variable <span class="math inline">\(Y\)</span> with cumulative distribution function <span class="math inline">\(F_Y\)</span>, the <span class="math inline">\(\tau\)</span>-quantile <span class="math inline">\(Q_\tau(Y)\)</span> is the value below which a fraction <span class="math inline">\(\tau\)</span> of the mass lies, so that <span class="math inline">\(F_Y(Q_\tau(Y)) = \tau\)</span> when <span class="math inline">\(F_Y\)</span> is continuous and strictly increasing. To handle flat spots and jumps, the general definition uses the left-continuous generalized inverse,</p>
+<p><span class="math display">\[
+Q_\tau(Y) \equiv \inf\{ y : F_Y(y) \ge \tau \}.
+\]</span></p>
+<p>Viewing the quantile as a function of <span class="math inline">\(\tau\)</span> gives the quantile function <span class="math inline">\(Q_Y(\tau) \equiv \inf\{ y : F_Y(y) \ge \tau \}\)</span> for <span class="math inline">\(0 &lt; \tau &lt; 1\)</span>. Several structural facts follow. If <span class="math inline">\(F_Y\)</span> is invertible then <span class="math inline">\(Q_Y = F_Y^{-1}\)</span>. If <span class="math inline">\(F_Y\)</span> has a flat spot, meaning a region of zero density, then <span class="math inline">\(Q_Y\)</span> has a jump. If <span class="math inline">\(F_Y\)</span> has a jump, as happens when <span class="math inline">\(Y\)</span> is discrete, then <span class="math inline">\(Q_Y\)</span> has a corresponding flat spot. Cumulative distribution functions are right-continuous with left limits, whereas quantile functions are left-continuous with right limits. The <span class="math inline">\(\tau\)</span>-quantile and the <span class="math inline">\(100\tau\)</span>-th percentile are the same object, so <span class="math inline">\(Q_{0.5}(Y)\)</span> is the median and <span class="math inline">\(Q_{0.9}(Y) - Q_{0.1}(Y)\)</span> is the interdecile range, a robust measure of spread.</p>
+<p>Figure <a href="sec-quantile-distributional.html#fig:qd-quantile-function-demo">13.1</a> draws that function for a right-skewed sample.</p>
+<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Empirical CDF and quantile function of a right-skewed sample</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html">rlnorm</a></span><span class="op">(</span><span class="fl">500</span>, meanlog <span class="op">=</span> <span class="fl">0</span>, sdlog <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.99</span>, by <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="va">qf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">y</span>, probs <span class="op">=</span> <span class="va">tau</span>, type <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="va">tau</span>, q <span class="op">=</span> <span class="va">qf</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">tau</span>, <span class="va">q</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"steelblue"</span>, linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>        x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>,</span>
+<span>        y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">Q</span><span class="op">[</span><span class="va">tau</span><span class="op">]</span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        title <span class="op">=</span> <span class="st">"Empirical quantile function of a lognormal sample"</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:qd-quantile-function-demo"></span>
+<img src="10.05-quantile-distributional_files/figure-html/qd-quantile-function-demo-1.png" alt="Empirical quantile function of a lognormal sample of 500 draws. The curve rises slowly across the bulk of the distribution and then steeply as tau approaches one, which is what right skew looks like when the distribution is read through its quantiles rather than its density." width="90%"><p class="caption">
+Figure 13.1: Empirical quantile function of a lognormal sample of 500 draws. The curve rises slowly across the bulk of the distribution and then steeply as tau approaches one, which is what right skew looks like when the distribution is read through its quantiles rather than its density.
+</p>
+</div>
+</div>
+<div id="sec-qd-check-function" class="section level2" number="13.3">
+<h2>
+<span class="header-section-number">13.3</span> Quantiles as Optimal Predictors: The Check Function<a class="anchor" aria-label="anchor" href="#sec-qd-check-function"><i class="fas fa-link"></i></a>
+</h2>
+<p>Quantiles, like the mean, arise as optimal predictors under a loss function. A loss function <span class="math inline">\(L(y, g)\)</span> measures how costly it is to predict <span class="math inline">\(g\)</span> when the realized value is <span class="math inline">\(y\)</span>. The expected loss <span class="math inline">\(E[L(Y, g)]\)</span>, also called risk, averages over the distribution of <span class="math inline">\(Y\)</span>, and the optimal predictor minimizes risk,</p>
+<p><span class="math display">\[
+g_L^* \equiv \arg\min_g E[L(Y, g)].
+\]</span></p>
+<p>Under quadratic loss <span class="math inline">\(L_2(y, g) = (y - g)^2\)</span> the optimal predictor is the mean. The first-order condition is <span class="math inline">\(0 = \tfrac{d}{dg} E[(Y - g)^2] = -2\,E[Y - g^*]\)</span>, so <span class="math inline">\(g_2^* = E(Y)\)</span>, the value that minimizes mean squared prediction error. Replacing quadratic loss with absolute loss <span class="math inline">\(L_1(y, g) = |y - g|\)</span> yields the median, <span class="math inline">\(Q_{0.5}(Y) = \arg\min_g E[|Y - g|]\)</span>. The reason is intuitive. Absolute loss penalizes overprediction and underprediction symmetrically and linearly, and the median balances the probability mass on each side.</p>
+<p>A one-parameter family of asymmetric loss functions extends this from the median to every quantile. Given <span class="math inline">\(\tau \in (0,1)\)</span>, the check function, also called the tick or pinball function, is</p>
+<p><span class="math display">\[
+\rho_\tau(u) \equiv u\,(\tau - \mathbb{1}\{u &lt; 0\}) = \begin{cases} \tau\, u &amp; u \ge 0, \\ (\tau - 1)\, u &amp; u &lt; 0. \end{cases}
+\]</span></p>
+<p>It applies weight <span class="math inline">\(\tau\)</span> to positive residuals (underprediction, <span class="math inline">\(g &lt; y\)</span>) and weight <span class="math inline">\(1 - \tau\)</span> to negative residuals (overprediction, <span class="math inline">\(g &gt; y\)</span>). At <span class="math inline">\(\tau = 0.5\)</span> the two weights are equal and <span class="math inline">\(\rho_{0.5}(u) = |u|/2\)</span>, which differs from absolute loss only by the harmless constant factor of one half. More generally the <span class="math inline">\(\tau\)</span>-quantile is the optimal predictor under check-function loss,</p>
+<p><span class="math display">\[
+Q_\tau(Y) = \arg\min_g E[\rho_\tau(Y - g)].
+\]</span></p>
+<p>When <span class="math inline">\(\tau = 0.95\)</span> the loss penalizes underprediction far more heavily than overprediction, which pushes the optimal predictor up into the right tail, exactly where <span class="math inline">\(Q_{0.95}(Y)\)</span> sits. The check function thus encodes the asymmetric cost structure that makes a high quantile the rational forecast.</p>
+<p>Figure <a href="sec-quantile-distributional.html#fig:qd-check-function">13.2</a> plots the loss at three quantile levels.</p>
+<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">check_loss</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">u</span>, <span class="va">tau</span><span class="op">)</span> <span class="va">u</span> <span class="op">*</span> <span class="op">(</span><span class="va">tau</span> <span class="op">-</span> <span class="op">(</span><span class="va">u</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span></span>
+<span>    u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>, length.out <span class="op">=</span> <span class="fl">401</span><span class="op">)</span>,</span>
+<span>    tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">grid</span><span class="op">$</span><span class="va">loss</span> <span class="op">&lt;-</span> <span class="fu">check_loss</span><span class="op">(</span><span class="va">grid</span><span class="op">$</span><span class="va">u</span>, <span class="va">grid</span><span class="op">$</span><span class="va">tau</span><span class="op">)</span></span>
+<span><span class="va">grid</span><span class="op">$</span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">grid</span><span class="op">$</span><span class="va">tau</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tau=0.1"</span>, <span class="st">"tau=0.5"</span>, <span class="st">"tau=0.9"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">grid</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">u</span>, <span class="va">loss</span>, color <span class="op">=</span> <span class="va">tau</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>        x <span class="op">=</span> <span class="st">"residual u = y - g"</span>,</span>
+<span>        y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="va">tau</span><span class="op">]</span><span class="op">(</span><span class="va">u</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        color <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>        title <span class="op">=</span> <span class="st">"Check (pinball) loss for three quantile levels"</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:qd-check-function"></span>
+<img src="10.05-quantile-distributional_files/figure-html/qd-check-function-1.png" alt="Check, or pinball, loss as a function of the residual, at quantile levels 0.1, 0.5, and 0.9. The kink sits at zero and the two arms have slopes tau and tau minus one, so the level tau is exactly the asymmetry between the cost of underprediction and the cost of overprediction." width="90%"><p class="caption">
+Figure 13.2: Check, or pinball, loss as a function of the residual, at quantile levels 0.1, 0.5, and 0.9. The kink sits at zero and the two arms have slopes tau and tau minus one, so the level tau is exactly the asymmetry between the cost of underprediction and the cost of overprediction.
+</p>
+</div>
+</div>
+<div id="sec-qd-estimating" class="section level2" number="13.4">
+<h2>
+<span class="header-section-number">13.4</span> Estimating Unconditional Quantiles<a class="anchor" aria-label="anchor" href="#sec-qd-estimating"><i class="fas fa-link"></i></a>
+</h2>
+<p>Two equivalent routes lead from population quantiles to sample estimators, mirroring the two routes to the sample mean. The first is the plug-in or analogy principle. With independent and identically distributed data the empirical distribution function is</p>
+<p><span class="math display">\[
+\hat F_Y(y) = \frac{1}{n} \sum_{i=1}^n \mathbb{1}\{Y_i \le y\},
+\]</span></p>
+<p>the sample proportion of observations at or below <span class="math inline">\(y\)</span>. Plugging <span class="math inline">\(\hat F_Y\)</span> into the population definitions gives <span class="math inline">\(\hat E(Y) = \int y \, d\hat F_Y(y) = \bar Y_n\)</span> for the mean and the sample <span class="math inline">\(\tau\)</span>-quantile</p>
+<p><span class="math display">\[
+\hat Q_\tau(Y) = \inf\{ y : \hat F_Y(y) \ge \tau \}
+\]</span></p>
+<p>for the quantile. The second route replaces the population minimization problem by its sample analog. For the mean, <span class="math inline">\(\hat E(Y) = \arg\min_g \tfrac{1}{n}\sum_i (Y_i - g)^2\)</span> recovers least squares. For quantiles, the analogous program is</p>
+<p><span class="math display">\[
+\hat Q_\tau(Y) = \arg\min_g \frac{1}{n} \sum_{i=1}^n \rho_\tau(Y_i - g),
+\]</span></p>
+<p>a weighted least absolute deviations problem. The two routes deliver the same estimator. The minimization route is the one that generalizes cleanly to the conditional setting and underlies quantile regression.</p>
+<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># The check-function minimization recovers the sample quantile</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html">rgamma</a></span><span class="op">(</span><span class="fl">400</span>, shape <span class="op">=</span> <span class="fl">2</span>, rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fl">0.75</span></span>
+<span></span>
+<span><span class="va">risk</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">g</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="va">tau</span> <span class="op">-</span> <span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">g</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">g_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, length.out <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
+<span><span class="va">g_hat</span> <span class="op">&lt;-</span> <span class="va">g_grid</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">g_grid</span>, <span class="va">risk</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>minimizer <span class="op">=</span> <span class="va">g_hat</span>, sample_quantile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html">unname</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">tau</span>, type <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       minimizer sample_quantile </span></span>
+<span><span class="co">#&gt;        2.858087        2.858062</span></span></code></pre></div>
+<p>The minimizer of the empirical check-function risk and the order-statistic sample quantile agree up to the discreteness of the grid and the choice of quantile convention.</p>
+</div>
+<div id="sec-qd-conditional" class="section level2" number="13.5">
+<h2>
+<span class="header-section-number">13.5</span> Conditional Quantile Functions and Quantile Regression<a class="anchor" aria-label="anchor" href="#sec-qd-conditional"><i class="fas fa-link"></i></a>
+</h2>
+<p>The conditional expectation function <span class="math inline">\(E[Y \mid X]\)</span> is the best predictor of <span class="math inline">\(Y\)</span> given <span class="math inline">\(X\)</span> under squared loss only. Under a different loss the best predictor changes, and under check-function loss it becomes the conditional quantile function. The population conditional <span class="math inline">\(\tau\)</span>-quantile is</p>
+<p><span class="math display">\[
+Q_\tau(Y \mid X = x) = \arg\min_g E[\rho_\tau(Y - g) \mid X = x].
+\]</span></p>
+<p><span class="citation">Koenker and Bassett (<a href="references.html#ref-koenker1978regression">1978</a>)</span> introduced linear quantile regression by positing that the conditional quantile is linear in covariates, <span class="math inline">\(Q_\tau(Y \mid X = x) = x'\beta(\tau)\)</span>, and estimating the coefficient vector by minimizing the empirical check-function risk,</p>
+<p><span class="math display">\[
+\hat\beta(\tau) = \arg\min_{b} \frac{1}{n} \sum_{i=1}^n \rho_\tau(Y_i - X_i' b).
+\]</span></p>
+<p>The coefficient vector <span class="math inline">\(\beta(\tau)\)</span> is allowed to depend on <span class="math inline">\(\tau\)</span>, which is precisely what lets the method describe more than a central tendency. A covariate may shift the lower quantiles of the outcome in one direction and the upper quantiles in another, capturing effects on spread and shape that mean regression averages away. Setting <span class="math inline">\(\tau = 0.5\)</span> gives the conditional median regression, the least absolute deviations estimator, which is more robust to outliers in <span class="math inline">\(Y\)</span> than ordinary least squares. The estimator is the solution to a linear program and is computed efficiently even for large samples, as detailed in the comprehensive treatment of <span class="citation">Koenker (<a href="references.html#ref-koenker2005quantile">2005</a>)</span>. The exposition in <span class="citation">Koenker and Hallock (<a href="references.html#ref-koenker2001quantile">2001</a>)</span> gives an accessible introduction with worked applications.</p>
+<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Linear quantile regression with the quantreg package (Koenker &amp; Bassett)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.r-project.org">quantreg</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">600</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co"># Location-scale design: the spread of y grows with x, so quantile slopes differ</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="op">(</span><span class="fl">0.5</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">taus</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.9</span><span class="op">)</span></span>
+<span><span class="va">fit_qr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/quantreg/man/rq.html">rq</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, tau <span class="op">=</span> <span class="va">taus</span>, data <span class="op">=</span> <span class="va">dat</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit_qr</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit_ols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, data <span class="op">=</span> <span class="va">dat</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit_ols</span><span class="op">)</span></span></code></pre></div>
+<p>In a location-scale design where the conditional spread of <span class="math inline">\(Y\)</span> widens with <span class="math inline">\(X\)</span>, the estimated slope <span class="math inline">\(\hat\beta_1(\tau)\)</span> rises with <span class="math inline">\(\tau\)</span>. The upper quantiles fan out faster than the lower quantiles, and ordinary least squares reports only the single average slope, missing the heteroskedastic structure entirely. The plot below reproduces this phenomenon with a self-contained grid search so it runs without external packages.</p>
+<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Self-contained linear quantile regression by direct optimization</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">600</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="op">(</span><span class="fl">0.5</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rq_fit</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">tau</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">risk</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">b</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">r</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">-</span> <span class="op">(</span><span class="va">b</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">+</span> <span class="va">b</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">r</span> <span class="op">*</span> <span class="op">(</span><span class="va">tau</span> <span class="op">-</span> <span class="op">(</span><span class="va">r</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="va">risk</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span><span class="op">$</span><span class="va">par</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">taus</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span><span class="op">)</span></span>
+<span><span class="va">coefs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">taus</span>, <span class="kw">function</span><span class="op">(</span><span class="va">t</span><span class="op">)</span> <span class="fu">rq_fit</span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">t</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">coefs</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"tau="</span>, <span class="va">taus</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">coefs</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"intercept"</span>, <span class="st">"slope"</span><span class="op">)</span></span>
+<span><span class="va">coefs</span></span>
+<span><span class="co">#&gt;         intercept     slope</span></span>
+<span><span class="co">#&gt; tau=0.1 0.3515947 0.2471532</span></span>
+<span><span class="co">#&gt; tau=0.5 1.0957414 0.7685469</span></span>
+<span><span class="co">#&gt; tau=0.9 1.7596011 1.2880706</span></span></code></pre></div>
+<p>The slope estimate increases across <span class="math inline">\(\tau\)</span>, confirming that higher conditional quantiles respond more strongly to <span class="math inline">\(X\)</span> than lower ones, a signature of growing conditional dispersion.</p>
+</div>
+<div id="sec-qd-inference" class="section level2" number="13.6">
+<h2>
+<span class="header-section-number">13.6</span> Inference for Quantile Estimators<a class="anchor" aria-label="anchor" href="#sec-qd-inference"><i class="fas fa-link"></i></a>
+</h2>
+<p>For an unconditional sample quantile under independent and identically distributed sampling, the asymptotic distribution is</p>
+<p><span class="math display">\[
+\sqrt{n}\,\big(\hat Q_\tau(Y) - Q_\tau(Y)\big) \xrightarrow{d} N\!\left(0,\; \frac{\tau(1 - \tau)}{[f_Y(Q_\tau(Y))]^2}\right),
+\]</span></p>
+<p>where <span class="math inline">\(f_Y\)</span> is the density of <span class="math inline">\(Y\)</span> evaluated at the quantile. The density in the denominator is the sparsity term, and it makes plain that quantiles in regions of low density, the tails, are estimated less precisely. A consistent estimate <span class="math inline">\(\hat\sigma\)</span> of the asymptotic standard deviation yields the Wald interval <span class="math inline">\(\hat Q_\tau(Y) \pm 1.96\,\hat\sigma/\sqrt{n}\)</span> with asymptotically correct coverage.</p>
+<p>The same structure carries over to quantile regression coefficients, whose asymptotic variance involves a sparsity-weighted sandwich form. Estimating the sparsity nonparametrically is delicate in finite samples, so density estimation error contaminates the plug-in standard errors. Practitioners therefore often prefer resampling. The bootstrap and its variants, including the Bayesian bootstrap, sidestep direct density estimation, and inversion of rank-score tests provides distribution-free intervals that are robust to heteroskedasticity. <span class="citation">Koenker (<a href="references.html#ref-koenker2005quantile">2005</a>)</span> catalogs these alternatives and their relative merits.</p>
+<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Sparsity governs precision: tail quantiles are noisier than central ones</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">sim_se</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tau</span>, <span class="va">n</span> <span class="op">=</span> <span class="fl">400</span>, <span class="va">reps</span> <span class="op">=</span> <span class="fl">400</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">replicate</a></span><span class="op">(</span><span class="va">reps</span>, <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>, <span class="va">tau</span>, type <span class="op">=</span> <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">taus</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.95</span><span class="op">)</span></span>
+<span><span class="va">se</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">taus</span>, <span class="va">sim_se</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="va">taus</span>, monte_carlo_se <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">se</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    tau monte_carlo_se</span></span>
+<span><span class="co">#&gt; 1 0.05         0.1029</span></span>
+<span><span class="co">#&gt; 2 0.25         0.0664</span></span>
+<span><span class="co">#&gt; 3 0.50         0.0599</span></span>
+<span><span class="co">#&gt; 4 0.75         0.0693</span></span>
+<span><span class="co">#&gt; 5 0.95         0.1021</span></span></code></pre></div>
+<p>The simulated standard errors are smallest at the median and grow toward the tails, exactly as the sparsity term predicts.</p>
+</div>
+<div id="sec-qd-robustness" class="section level2" number="13.7">
+<h2>
+<span class="header-section-number">13.7</span> Robustness and Efficiency<a class="anchor" aria-label="anchor" href="#sec-qd-robustness"><i class="fas fa-link"></i></a>
+</h2>
+<p>The median is well defined for any distribution, including ones for which the mean does not exist. The Cauchy distribution has median zero but no finite mean, and any quantile-based summary remains meaningful there. The median also resists contamination. If <span class="math inline">\(Y_i = i\)</span> for <span class="math inline">\(i = 1, \dots, 98\)</span> and <span class="math inline">\(Y_{99} = J\)</span>, then as <span class="math inline">\(J \to \infty\)</span> the sample mean diverges while the sample median stays fixed at fifty. This breakdown robustness extends to conditional median regression, which tolerates outliers in the response far better than least squares.</p>
+<p>The robustness is one-sided, however. Quantile regression protects against outliers in <span class="math inline">\(Y\)</span> but not against high-leverage outliers in <span class="math inline">\(X\)</span>, since an extreme covariate value can still dominate the fit. Estimators designed for contamination in the design space, such as least median of squares or least trimmed squares, address that separate concern. There is also an efficiency dimension. When the data are heavy-tailed, the median can be more efficient than the mean, with a smaller sampling variance, whereas under Gaussian data the mean is the more efficient summary. The choice between mean and quantile targets is therefore both a question of which feature of the distribution is of interest and a question of robustness against the data-generating environment.</p>
+</div>
+<div id="sec-qd-censoring" class="section level2" number="13.8">
+<h2>
+<span class="header-section-number">13.8</span> Censored Quantile Regression<a class="anchor" aria-label="anchor" href="#sec-qd-censoring"><i class="fas fa-link"></i></a>
+</h2>
+<p>Quantiles are especially valuable when the outcome is censored, meaning the observed value is a known but noninvertible function of the true value, so the truth cannot always be recovered. Top-coding of earnings data is the canonical example. Let true earnings be <span class="math inline">\(Y^*\)</span> and let <span class="math inline">\(c\)</span> be a top-coding threshold. The observed outcome is</p>
+<p><span class="math display">\[
+Y = \begin{cases} Y^* &amp; \text{if } Y^* \le c, \\ c &amp; \text{if } Y^* &gt; c. \end{cases}
+\]</span></p>
+<p>Because <span class="math inline">\(P(Y = c) = P(Y^* \ge c)\)</span>, the observed distribution piles a mass point at <span class="math inline">\(c\)</span> even when <span class="math inline">\(Y^*\)</span> is continuous, and the observed distribution function jumps to one at <span class="math inline">\(c\)</span>,</p>
+<p><span class="math display">\[
+F_Y(y) = \begin{cases} F_{Y^*}(y) &amp; y &lt; c, \\ 1 &amp; y \ge c. \end{cases}
+\]</span></p>
+<p>The mean of <span class="math inline">\(Y^*\)</span> is not identified from the censored data because it depends on the unobserved upper tail, and imputation requires assumptions about that tail. Quantiles below the censoring point sidestep the problem entirely. Any quantile <span class="math inline">\(Q_\tau(Y^*)\)</span> with <span class="math inline">\(\tau\)</span> small enough that <span class="math inline">\(Q_\tau(Y^*) &lt; c\)</span> is identified, since the censoring leaves the lower part of the distribution untouched. Inequality measures built from such quantiles, for instance the ninety-ten interdecile range, inherit this identification and require no knowledge of the censored top.</p>
+<p><span class="citation">Powell (<a href="references.html#ref-powell1986censored">1986</a>)</span> turned this insight into an estimator. The key observation is that censoring commutes with monotone transformations, so the conditional quantile of the censored outcome is the censored conditional quantile of the latent outcome,</p>
+<p><span class="math display">\[
+Q_\tau(Y \mid X = x) = \min\{\, c,\; x'\beta(\tau) \,\},
+\]</span></p>
+<p>when the censoring point is a known constant <span class="math inline">\(c\)</span>. Powell’s censored least absolute deviations estimator minimizes the check-function risk applied to these censored fitted values,</p>
+<p><span class="math display">\[
+\hat\beta(\tau) = \arg\min_b \frac{1}{n} \sum_{i=1}^n \rho_\tau\big(Y_i - \min\{c, X_i' b\}\big).
+\]</span></p>
+<p>The method requires no distributional assumption on the errors, unlike the Tobit model, and it remains consistent under heteroskedasticity. Its objective is nonconvex, so computation uses iterative linear programming or related algorithms, but the payoff is a semiparametric treatment of censored data anchored in quantiles rather than in a fully specified likelihood.</p>
+<div class="sourceCode" id="cb150"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Top-coding distorts the upper tail but leaves lower quantiles intact</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">ystar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html">rlnorm</a></span><span class="op">(</span><span class="fl">2000</span>, meanlog <span class="op">=</span> <span class="fl">1</span>, sdlog <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span>
+<span><span class="va">c_top</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">ystar</span>, <span class="fl">0.85</span><span class="op">)</span></span>
+<span><span class="va">y_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">pmin</a></span><span class="op">(</span><span class="va">ystar</span>, <span class="va">c_top</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">taus</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.9</span>, <span class="fl">0.95</span><span class="op">)</span></span>
+<span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    tau <span class="op">=</span> <span class="va">taus</span>,</span>
+<span>    latent <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">ystar</span>, <span class="va">taus</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    observed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">y_obs</span>, <span class="va">taus</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">comparison</span></span>
+<span><span class="co">#&gt;      tau latent observed</span></span>
+<span><span class="co">#&gt; 25% 0.25   1.77     1.77</span></span>
+<span><span class="co">#&gt; 50% 0.50   2.82     2.82</span></span>
+<span><span class="co">#&gt; 75% 0.75   4.45     4.45</span></span>
+<span><span class="co">#&gt; 90% 0.90   7.01     5.76</span></span>
+<span><span class="co">#&gt; 95% 0.95   9.03     5.76</span></span></code></pre></div>
+<p>The latent and observed quantiles coincide below the eighty-fifth percentile and diverge above it, illustrating why questions phrased in terms of lower and central quantiles survive top-coding while mean-based questions do not.</p>
+</div>
+<div id="sec-qd-qte" class="section level2" number="13.9">
+<h2>
+<span class="header-section-number">13.9</span> Quantile Treatment Effects versus Average Treatment Effects<a class="anchor" aria-label="anchor" href="#sec-qd-qte"><i class="fas fa-link"></i></a>
+</h2>
+<p>The distinction between mean and quantile targets becomes sharpest in causal analysis. Let <span class="math inline">\(Y_1\)</span> and <span class="math inline">\(Y_0\)</span> be an individual’s treated and untreated potential outcomes, with individual treatment effect <span class="math inline">\(Y_1 - Y_0\)</span>. Because expectation is linear, the average treatment effect decomposes as <span class="math inline">\(E(Y_1 - Y_0) = E(Y_1) - E(Y_0)\)</span>, so the average effect equals the difference of average potential outcomes. Quantiles do not enjoy this linearity. In general</p>
+<p><span class="math display">\[
+Q_\tau(Y_1 - Y_0) \neq Q_\tau(Y_1) - Q_\tau(Y_0),
+\]</span></p>
+<p>and the two objects answer different questions. The quantile treatment effect, defined as the horizontal distance between the marginal outcome distributions,</p>
+<p><span class="math display">\[
+\text{QTE}(\tau) \equiv Q_\tau(Y_1) - Q_\tau(Y_0),
+\]</span></p>
+<p>compares the <span class="math inline">\(\tau\)</span>-quantile of the treated distribution to the <span class="math inline">\(\tau\)</span>-quantile of the control distribution. It does not describe the effect on any particular individual, because the person at the <span class="math inline">\(\tau\)</span>-quantile under treatment need not be the same person who would sit at the <span class="math inline">\(\tau\)</span>-quantile under control. The distribution of <span class="math inline">\(Y_1 - Y_0\)</span>, by contrast, requires the joint distribution of potential outcomes, which the data cannot reveal without rank-invariance or similar assumptions.</p>
+<p>A small numerical example makes the gap concrete. Suppose four equally likely types have potential outcomes as follows.</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="center"><span class="math inline">\(Y_0\)</span></th>
+<th align="center"><span class="math inline">\(Y_1\)</span></th>
+<th align="center"><span class="math inline">\(Y_1 - Y_0\)</span></th>
+<th align="center">Probability</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0.25</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">1</td>
+<td align="center">0.25</td>
+</tr>
+<tr class="odd">
+<td align="center">2</td>
+<td align="center">4</td>
+<td align="center">2</td>
+<td align="center">0.25</td>
+</tr>
+<tr class="even">
+<td align="center">3</td>
+<td align="center">0</td>
+<td align="center">-3</td>
+<td align="center">0.25</td>
+</tr>
+</tbody>
+</table></div>
+<p>Here <span class="math inline">\(E(Y_0) = 6/4\)</span>, <span class="math inline">\(E(Y_1) = 7/4\)</span>, and the average treatment effect is <span class="math inline">\(E(Y_1 - Y_0) = (1 + 1 + 2 - 3)/4 = 1/4\)</span>, which equals <span class="math inline">\(E(Y_1) - E(Y_0)\)</span>. At the quantile level <span class="math inline">\(\tau = 0.4\)</span>, the quantile treatment effect is <span class="math inline">\(Q_{0.4}(Y_1) - Q_{0.4}(Y_0) = 1 - 1 = 0\)</span>, the difference of marginal quantiles, whereas the quantile of the treatment effect distribution is <span class="math inline">\(Q_{0.4}(Y_1 - Y_0) = 1\)</span>. The two diverge because the fourth type, helped least and indeed harmed, scrambles the ranking, so positions in the treated distribution do not correspond to positions in the control distribution.</p>
+<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">y1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">y1</span> <span class="op">-</span> <span class="va">y0</span><span class="op">)</span> <span class="op">*</span> <span class="va">prob</span><span class="op">)</span></span>
+<span><span class="co"># Quantile of marginals at tau = 0.4 (type-1 / left-continuous convention)</span></span>
+<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">values</span>, <span class="va">p</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">ceiling</a></span><span class="op">(</span><span class="va">p</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">qte_04</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/quit.html">q</a></span><span class="op">(</span><span class="va">y1</span>, <span class="fl">0.4</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/quit.html">q</a></span><span class="op">(</span><span class="va">y0</span>, <span class="fl">0.4</span><span class="op">)</span></span>
+<span><span class="va">q_te_04</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/quit.html">q</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">-</span> <span class="va">y0</span>, <span class="fl">0.4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>ATE <span class="op">=</span> <span class="va">ate</span>, QTE_marginal_diff <span class="op">=</span> <span class="va">qte_04</span>, Q_of_TE <span class="op">=</span> <span class="va">q_te_04</span><span class="op">)</span></span>
+<span><span class="co">#&gt;               ATE QTE_marginal_diff           Q_of_TE </span></span>
+<span><span class="co">#&gt;              0.25              0.00              1.00</span></span></code></pre></div>
+<p>A structural way to see the same point writes the outcome as <span class="math inline">\(Y = \beta_0(U) + \beta_1(U) X\)</span>, where the latent rank variable <span class="math inline">\(U\)</span> indexes unobserved heterogeneity. Under monotonicity, independence of <span class="math inline">\(U\)</span> from <span class="math inline">\(X\)</span>, and the normalization <span class="math inline">\(U \sim \text{Unif}(0,1)\)</span>, the conditional quantile is linear, <span class="math inline">\(Q_\tau(Y \mid X = x) = \beta_0(\tau) + \beta_1(\tau) x\)</span>, and the quantile regression coefficient <span class="math inline">\(\beta_1(\tau)\)</span> has a structural reading as the effect on the <span class="math inline">\(\tau\)</span>-ranked individual. The independence assumption <span class="math inline">\(U \perp\!\!\!\perp X\)</span> is strong and usually implausible when treatment is chosen. <span class="citation">Chernozhukov and Hansen (<a href="references.html#ref-chernozhukov2005iv">2005</a>)</span> relax it with an instrumental variables model of quantile treatment effects, identifying structural quantile effects through an instrument that is independent of the rank variable while allowing the treatment to be endogenous. Their framework extends the linear quantile regression idea to settings with endogeneity, which is the quantile analog of two-stage least squares.</p>
+</div>
+<div id="sec-qd-distribution-regression" class="section level2" number="13.10">
+<h2>
+<span class="header-section-number">13.10</span> Distribution Regression and Unconditional Quantile Effects<a class="anchor" aria-label="anchor" href="#sec-qd-distribution-regression"><i class="fas fa-link"></i></a>
+</h2>
+<p>Quantile regression estimates one conditional quantile at a time. Distribution regression takes the complementary approach of estimating the entire conditional distribution function and then reading off whatever functional is desired. The idea is to model <span class="math inline">\(F_{Y \mid X}(y \mid x) = \Lambda(x'\beta(y))\)</span> for a grid of thresholds <span class="math inline">\(y\)</span>, where <span class="math inline">\(\Lambda\)</span> is a known link such as the logistic or probit. Each threshold defines a binary outcome <span class="math inline">\(\mathbb{1}\{Y \le y\}\)</span> regressed on covariates, and stacking the fitted conditional distribution functions across <span class="math inline">\(y\)</span> produces an estimate of the whole conditional distribution. Inverting it recovers conditional quantiles, so distribution regression and quantile regression target the same underlying object from opposite directions, one indexing by threshold and the other by rank. The distribution regression approach handles discrete and mixed outcomes gracefully and delivers counterfactual distributions for policy analysis, a program developed in <span class="citation">Chernozhukov et al. (<a href="references.html#ref-chernozhukov2013counterfactual">2013a</a>)</span>.</p>
+<p>A distinct but related question concerns the effect of a covariate on an unconditional, or marginal, quantile of the outcome rather than on a conditional quantile. The recentered influence function regression of <span class="citation">Firpo et al. (<a href="references.html#ref-firpo2009unconditional">2009</a>)</span> answers it. The method replaces the outcome by the recentered influence function of the unconditional quantile statistic and regresses that transformed variable on covariates, yielding the effect of a marginal shift in the covariate distribution on the unconditional quantile. This unconditional quantile partial effect is the natural target when the policy question is about the overall outcome distribution, for instance the effect of unionization on the ninetieth percentile of the wage distribution across the whole population, rather than about within-group conditional quantiles.</p>
+<div class="sourceCode" id="cb152"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Distribution regression: estimate F(y | x) by a grid of binary regressions,</span></span>
+<span><span class="co"># then invert to obtain conditional quantiles</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">21</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1500</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">+</span> <span class="fl">0.6</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="op">(</span><span class="fl">0.6</span> <span class="op">+</span> <span class="fl">0.3</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">y_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">y</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.95</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">x_eval</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span></span>
+<span><span class="co"># Fit logit of 1{Y &lt;= y_k} on x at each threshold, predict at x_eval</span></span>
+<span><span class="va">F_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">y_grid</span>, <span class="kw">function</span><span class="op">(</span><span class="va">yk</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">&lt;=</span> <span class="va">yk</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">binomial</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x_eval</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
+<span><span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Invert the estimated conditional CDF for a few target quantiles</span></span>
+<span><span class="va">invert</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tau</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">y_grid</span><span class="op">[</span><span class="va">F_hat</span> <span class="op">&gt;=</span> <span class="va">tau</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span><span class="op">)</span>,</span>
+<span>           cond_quantile_at_x3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span><span class="op">)</span>, <span class="va">invert</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    tau cond_quantile_at_x3</span></span>
+<span><span class="co">#&gt; 1 0.25            1.499666</span></span>
+<span><span class="co">#&gt; 2 0.50            2.390045</span></span>
+<span><span class="co">#&gt; 3 0.75            3.236182</span></span></code></pre></div>
+<p>The inverted distribution regression delivers conditional quantiles at the evaluation point, recovering the same distributional information that quantile regression would estimate directly.</p>
+</div>
+<div id="sec-qd-dominance" class="section level2" number="13.11">
+<h2>
+<span class="header-section-number">13.11</span> Stochastic Dominance<a class="anchor" aria-label="anchor" href="#sec-qd-dominance"><i class="fas fa-link"></i></a>
+</h2>
+<p>Quantile and distributional methods invite a question that the mean cannot pose, namely when one entire distribution is preferable to another. First-order stochastic dominance provides the answer. The variable <span class="math inline">\(Y_1\)</span> first-order stochastically dominates <span class="math inline">\(Y_2\)</span>, written <span class="math inline">\(Y_1 \succeq_{\text{FSD}} Y_2\)</span>, when expected utility is at least as high under <span class="math inline">\(Y_1\)</span> for every weakly increasing utility function,</p>
+<p><span class="math display">\[
+E[u(Y_1)] \ge E[u(Y_2)] \quad \text{for all weakly increasing } u.
+\]</span></p>
+<p>This abstract condition has two concrete and equivalent characterizations. In terms of distribution functions, <span class="math inline">\(Y_1\)</span> dominates <span class="math inline">\(Y_2\)</span> if and only if <span class="math inline">\(F_1(y) \le F_2(y)\)</span> for all <span class="math inline">\(y\)</span>, so the dominating distribution always lies weakly below the other. In terms of quantile functions the relationship flips, <span class="math inline">\(Q_1(\tau) \ge Q_2(\tau)\)</span> for all <span class="math inline">\(\tau\)</span>, so the dominating distribution has weakly larger quantiles at every rank. The two statements say the same thing because the quantile function is the inverse of the distribution function. A lower distribution function at every point means more mass at high values, which means larger quantiles, which means every increasing-utility decision maker prefers <span class="math inline">\(Y_1\)</span>.</p>
+<p>First-order dominance is a strong ordering that often fails when distribution functions cross. Second-order stochastic dominance, defined by comparing integrated distribution functions, ranks distributions for risk-averse decision makers with concave utility and is more frequently satisfied. Empirically, dominance is checked by comparing estimated distribution or quantile functions, and formal tests account for the sampling variability of the curves. The connection to this chapter is direct. Distribution regression and quantile regression estimate exactly the curves that stochastic dominance compares, so the distributional toolkit equips us not only to summarize a distribution but to rank competing distributions in a way that respects entire classes of preferences.</p>
+<p>Figure <a href="sec-quantile-distributional.html#fig:qd-dominance">13.3</a> shows the clean case.</p>
+<div class="sourceCode" id="cb153"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Visualizing first-order stochastic dominance via empirical CDFs</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">9</span><span class="op">)</span></span>
+<span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">2000</span>, mean <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">2000</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># a dominates b: same spread, higher location</span></span>
+<span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">a</span>, dist <span class="op">=</span> <span class="st">"Y1 (mean 1)"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">b</span>, dist <span class="op">=</span> <span class="st">"Y2 (mean 0)"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">y</span>, color <span class="op">=</span> <span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_ecdf.html">stat_ecdf</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>        x <span class="op">=</span> <span class="st">"y"</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/logical.html">F</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span>, color <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>        title <span class="op">=</span> <span class="st">"First-order stochastic dominance: F1 lies below F2"</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:qd-dominance"></span>
+<img src="10.05-quantile-distributional_files/figure-html/qd-dominance-1.png" alt="Empirical distribution functions of two normal samples with the same spread and different locations. The curve for the higher-mean variable lies everywhere below the other, which is first-order stochastic dominance: no crossing anywhere, so the ranking holds for every increasing utility function." width="90%"><p class="caption">
+Figure 13.3: Empirical distribution functions of two normal samples with the same spread and different locations. The curve for the higher-mean variable lies everywhere below the other, which is first-order stochastic dominance: no crossing anywhere, so the ranking holds for every increasing utility function.
+</p>
+</div>
+<p>The empirical distribution function of <span class="math inline">\(Y_1\)</span> lies everywhere below that of <span class="math inline">\(Y_2\)</span>, the graphical signature of first-order dominance, so every increasing-utility decision maker prefers <span class="math inline">\(Y_1\)</span>.</p>
+</div>
+<div id="sec-qd-frontier" class="section level2" number="13.12">
+<h2>
+<span class="header-section-number">13.12</span> Recent Developments: Distributional Machine Learning and Causal Frontiers<a class="anchor" aria-label="anchor" href="#sec-qd-frontier"><i class="fas fa-link"></i></a>
+</h2>
+<p>The classical apparatus above estimates linear conditional quantiles and distribution functions. Three strands of recent work extend it toward flexible function classes, valid finite-sample inference, and modern causal designs, and they define the current frontier.</p>
+<p>The first strand replaces the linear index with machine learning. Quantile regression forests grow a random forest and reuse its adaptive neighborhoods to estimate the entire conditional distribution rather than only the conditional mean, delivering conditional quantiles at any level without a parametric form <span class="citation">(<a href="references.html#ref-meinshausen2006quantile">Meinshausen 2006</a>)</span>. The generalized random forest of <span class="citation">Athey et al. (<a href="references.html#ref-athey2019generalized">2019</a>)</span> places this idea in a local moment framework that also yields heterogeneous treatment effects and instrumental quantile effects, and gradient boosting under the check loss provides a boosting counterpart. These methods shine when the conditional distribution depends on many covariates in unknown, interacting ways, the regime in which a linear quantile slope is too rigid. A separate and important advance attaches distribution-free guarantees to any such estimator: conformalized quantile regression calibrates the intervals produced by a fitted quantile model against a held-out set so that the resulting prediction bands attain exact finite-sample coverage regardless of whether the quantile model is correctly specified <span class="citation">(<a href="references.html#ref-romano2019conformalized">Romano et al. 2019</a>)</span>, marrying the adaptivity of quantile machine learning with the honesty of conformal inference.</p>
+<p>The second strand brings distributional targets into the high-dimensional and doubly robust causal toolkit. Program evaluation with high-dimensional controls delivers honest inference on local quantile treatment effects after selecting controls by regularization <span class="citation">(<a href="references.html#ref-belloni2017program">Belloni et al. 2017</a>)</span>, and the double machine learning framework of <span class="citation">Chernozhukov, Chetverikov, et al. (<a href="references.html#ref-chernozhukov2018double">2018</a>)</span> supplies the Neyman-orthogonal scores that make quantile and distributional causal parameters robust to first-order error in flexibly estimated nuisances. The sorted effects method reports the percentiles of the distribution of partial effects, with uniform inference, turning a single average effect into a full picture of who is affected and by how much <span class="citation">(<a href="references.html#ref-chernozhukov2018sorted">Chernozhukov, Fernández-Val, et al. 2018</a>)</span>, a distributional reading of heterogeneity that complements the quantile and distribution regressions of the previous sections.</p>
+<p>The third strand embeds distributions in modern causal designs. The changes-in-changes model identifies the entire counterfactual outcome distribution under a nonlinear difference-in-differences assumption, and hence quantile treatment effects, where the ordinary parallel-trends design would identify only a mean <span class="citation">(<a href="references.html#ref-athey2006identification">Athey and Imbens 2006</a>)</span>; panel extensions estimate quantile treatment effects on the treated under a distributional-stability condition <span class="citation">(<a href="references.html#ref-callaway2019quantile">Callaway and Li 2019</a>)</span>. Distributional synthetic controls reconstruct the treated unit’s entire counterfactual quantile function as a weighted barycenter of control quantile functions, extending the synthetic control idea from a single time series to a whole distribution <span class="citation">(<a href="references.html#ref-gunsilius2023distributional">Gunsilius 2023</a>)</span>. For high-dimensional panels, quantile factor models let latent factors shift the quantiles, not merely the mean, of every series, capturing common movements in tails and dispersion that a mean factor model misses <span class="citation">(<a href="references.html#ref-chen2021quantile">Chen et al. 2021</a>)</span>. Across all three strands the theme is constant: the object of interest is the conditional distribution, and the methodological progress is in estimating it flexibly, defensibly, and causally.</p>
+</div>
+<div id="sec-qd-business" class="section level2" number="13.13">
+<h2>
+<span class="header-section-number">13.13</span> Quantile and Distributional Methods in Business Research<a class="anchor" aria-label="anchor" href="#sec-qd-business"><i class="fas fa-link"></i></a>
+</h2>
+<p>These methods earn their place in empirical business research wherever the tails, the spread, or the shape of an outcome distribution carry the economic content, and the densest concentration of top-journal applications is in finance. The growth-at-risk program of <span class="citation">Adrian et al. (<a href="references.html#ref-adrian2019vulnerable">2019</a>)</span>, replicated below, regresses future GDP growth on financial conditions across quantiles and finds that the lower quantiles deteriorate sharply when financial conditions tighten while the upper quantiles barely move, so the downside of the macroeconomic outlook, not its center, is what financial stress threatens. The same regression-quantile logic underlies the leading measures of financial-market risk. The conditional autoregressive value-at-risk model estimates a firm’s value-at-risk directly as a dynamic conditional quantile of its returns <span class="citation">(<a href="references.html#ref-engle2004caviar">Engle and Manganelli 2004</a>)</span>; the CoVaR measure of systemic risk reads the value-at-risk of the financial system conditional on an individual institution being in distress off a quantile regression, converting a tail co-movement into a supervisory statistic <span class="citation">(<a href="references.html#ref-adrian2016covar">Adrian and Brunnermeier 2016</a>)</span>; and capital-shortfall measures such as SRISK quantify the recapitalization a firm would need in a systemic tail event <span class="citation">(<a href="references.html#ref-brownlees2017srisk">Brownlees and Engle 2017</a>)</span>. Because value-at-risk and expected shortfall are the regulatory language of market risk, joint regression models that estimate both simultaneously, exploiting their joint elicitability, are an active methodological frontier <span class="citation">(<a href="references.html#ref-patton2019dynamic">Patton et al. 2019</a>)</span>.</p>
+<p>Beyond finance, distributional methods are the natural tool wherever a policy or intervention is expected to reshape an outcome distribution rather than shift it uniformly. In public and labor economics, quantile treatment effects reveal heterogeneity that average effects conceal: distributional analysis of welfare-reform experiments shows effects concentrated in parts of the earnings distribution that the mean impact entirely misses <span class="citation">(<a href="references.html#ref-bitler2006mean">Bitler et al. 2006</a>)</span>, instrumental quantile methods recover the effect of training on the quantiles of trainee earnings for compliers <span class="citation">(<a href="references.html#ref-abadie2002instrumental">Abadie et al. 2002</a>)</span>, and bunching-and-distributional designs trace how minimum wages reshape the lower tail of the wage distribution <span class="citation">(<a href="references.html#ref-cengiz2019effect">Cengiz et al. 2019</a>)</span>. Unconditional quantile regression and its decompositions remain the workhorse for attributing changes in wage inequality to covariates and to returns <span class="citation">(<a href="references.html#ref-firpo2009unconditional">Firpo et al. 2009</a>)</span>. In marketing and operations the use of these tools is newer but growing: the debiased machine learning that powers distributional causal inference has been applied to decompose targeted-promotion effects in marketing <span class="citation">(<a href="references.html#ref-ellickson2023estimating">Ellickson et al. 2023</a>)</span>, and the feature-based newsvendor recognizes that the profit-maximizing order quantity is itself a conditional quantile of demand, so that a quantile objective, rather than a mean forecast, is the correct learning target for inventory decisions <span class="citation">(<a href="references.html#ref-ban2019big">Ban and Rudin 2019</a>)</span>. The common thread is that a manager who cares about stockouts, downside risk, worst-case service, or the bottom of a customer-value distribution is asking a quantile question, and these methods answer it directly.</p>
+</div>
+<div id="sec-qd-gar" class="section level2" number="13.14">
+<h2>
+<span class="header-section-number">13.14</span> Replication: Growth-at-Risk<a class="anchor" aria-label="anchor" href="#sec-qd-gar"><i class="fas fa-link"></i></a>
+</h2>
+<p>We replicate the central result of <span class="citation">Adrian et al. (<a href="references.html#ref-adrian2019vulnerable">2019</a>)</span> on current data. The exercise regresses annualized real GDP growth one quarter ahead on current growth and the Chicago Fed’s National Financial Conditions Index, separately at five quantiles, using quarterly series from FRED spanning 1973 to 2025. The coefficient on financial conditions across quantiles, in Table <a href="sec-quantile-distributional.html#tab:qd-gar-fit">13.1</a>, is the whole story.</p>
+<div class="sourceCode" id="cb154"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.r-project.org">quantreg</a></span><span class="op">)</span></span>
+<span><span class="va">gar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"data/gar/vulnerable_growth.csv"</span><span class="op">)</span></span>
+<span><span class="va">gar</span><span class="op">$</span><span class="va">date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">gar</span><span class="op">$</span><span class="va">date</span><span class="op">)</span></span>
+<span><span class="va">gar</span><span class="op">$</span><span class="va">y_next</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">gar</span><span class="op">$</span><span class="va">gdp_growth</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="cn">NA</span><span class="op">)</span>      <span class="co"># annualized real GDP growth, next quarter</span></span>
+<span><span class="va">gar</span> <span class="op">&lt;-</span> <span class="va">gar</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">gar</span><span class="op">)</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="va">taus</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.75</span>, <span class="fl">0.95</span><span class="op">)</span></span>
+<span><span class="va">qfits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">taus</span>, <span class="kw">function</span><span class="op">(</span><span class="va">t</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/pkg/quantreg/man/rq.html">rq</a></span><span class="op">(</span><span class="va">y_next</span> <span class="op">~</span> <span class="va">gdp_growth</span> <span class="op">+</span> <span class="va">nfci</span>, tau <span class="op">=</span> <span class="va">t</span>, data <span class="op">=</span> <span class="va">gar</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">nfci_coef</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">qfits</span>, <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[[</span><span class="st">"nfci"</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>Quantile <span class="op">=</span> <span class="va">taus</span>, `NFCI coefficient` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">nfci_coef</span>, <span class="fl">2</span><span class="op">)</span>, check.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Quantile regression of one-quarter-ahead annualized real GDP growth on the National Financial Conditions Index and current growth, 1973-2025. A one-unit tightening of financial conditions lowers the 5th percentile of future growth by far more than it lowers the median, and the 95th percentile is essentially unaffected."</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:qd-gar-fit">Table 13.1: </span>Quantile regression of one-quarter-ahead annualized real GDP growth on the National Financial Conditions Index and current growth, 1973-2025. A one-unit tightening of financial conditions lowers the 5th percentile of future growth by far more than it lowers the median, and the 95th percentile is essentially unaffected.</caption>
+<thead><tr class="header">
+<th align="right">Quantile</th>
+<th align="right">NFCI coefficient</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.05</td>
+<td align="right">-2.28</td>
+</tr>
+<tr class="even">
+<td align="right">0.25</td>
+<td align="right">-1.70</td>
+</tr>
+<tr class="odd">
+<td align="right">0.50</td>
+<td align="right">-0.88</td>
+</tr>
+<tr class="even">
+<td align="right">0.75</td>
+<td align="right">-0.64</td>
+</tr>
+<tr class="odd">
+<td align="right">0.95</td>
+<td align="right">0.35</td>
+</tr>
+</tbody>
+</table></div>
+<p>The asymmetry is the point. Tightening financial conditions by one index unit cuts the 5th percentile of next-quarter growth by roughly two annualized percentage points but moves the 95th percentile hardly at all, so financial stress acts almost entirely on the downside of the growth distribution. Reading the fitted 5th-percentile forecast over time gives the growth-at-risk series in Figure <a href="sec-quantile-distributional.html#fig:qd-gar-series">13.4</a>, the conditional worst case that supervisors watch.</p>
+<div class="sourceCode" id="cb155"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="va">gar</span><span class="op">$</span><span class="va">gar5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">qfits</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">gar</span><span class="op">)</span>         <span class="co"># fitted 5th-percentile = growth-at-risk</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">gar</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y_next</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"grey65"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">gar5</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"firebrick"</span>, linewidth <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="st">"Annualized real GDP growth, next quarter (%)"</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:qd-gar-series"></span>
+<img src="10.05-quantile-distributional_files/figure-html/qd-gar-series-1.png" alt="Realized one-quarter-ahead growth (grey) and the conditional 5th-percentile forecast, growth-at-risk (red). The downside forecast collapses precisely in the financial crises of 2008 and 2020, when the National Financial Conditions Index spiked." width="90%"><p class="caption">
+Figure 13.4: Realized one-quarter-ahead growth (grey) and the conditional 5th-percentile forecast, growth-at-risk (red). The downside forecast collapses precisely in the financial crises of 2008 and 2020, when the National Financial Conditions Index spiked.
+</p>
+</div>
+<p>To turn the five fitted quantiles into a full predictive density, <span class="citation">Adrian et al. (<a href="references.html#ref-adrian2019vulnerable">2019</a>)</span> fit a skewed-<span class="math inline">\(t\)</span> distribution that matches them, which smooths the quantile estimates into a density whose skewness varies with financial conditions. Comparing a calm quarter with a crisis quarter in Figure <a href="sec-quantile-distributional.html#fig:qd-gar-density">13.5</a> shows what the average forecast hides.</p>
+<div class="sourceCode" id="cb156"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://azzalini.stat.unipd.it/SN/">sn</a></span><span class="op">)</span></span>
+<span><span class="va">fit_skewt</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">qv</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">obj</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">v</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html">tryCatch</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/sn/man/dst.html">qst</a></span><span class="op">(</span><span class="va">taus</span>, xi <span class="op">=</span> <span class="va">p</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, omega <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="va">p</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, nu <span class="op">=</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html">is.finite</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fl">1e8</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">v</span> <span class="op">-</span> <span class="va">qv</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">qv</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/sn/man/sd.html">sd</a></span><span class="op">(</span><span class="va">qv</span><span class="op">)</span><span class="op">)</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>, <span class="va">obj</span>,</span>
+<span>        method <span class="op">=</span> <span class="st">"Nelder-Mead"</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>maxit <span class="op">=</span> <span class="fl">3000</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">par</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">16</span>, <span class="fl">12</span>, length.out <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<span><span class="va">dens</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"2005-10-01"</span>, <span class="st">"2008-10-01"</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">dt</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">i</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">gar</span><span class="op">$</span><span class="va">date</span> <span class="op">==</span> <span class="va">dt</span><span class="op">)</span></span>
+<span>  <span class="va">qv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">qfits</span>, <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">gar</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">p</span>  <span class="op">&lt;-</span> <span class="fu">fit_skewt</span><span class="op">(</span><span class="va">qv</span><span class="op">)</span></span>
+<span>  <span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>xi <span class="op">=</span> <span class="va">p</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, omega <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="va">p</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, nu <span class="op">=</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html">format</a></span><span class="op">(</span><span class="va">dt</span>, <span class="st">"%Y"</span><span class="op">)</span>, <span class="st">" Q4"</span><span class="op">)</span>,</span>
+<span>    y <span class="op">=</span> <span class="va">grid</span>,</span>
+<span>    density <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">dst</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">grid</span><span class="op">)</span>, <span class="va">pars</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    gar5 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">qst</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>, <span class="va">pars</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">dens</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">density</span>, color <span class="op">=</span> <span class="va">period</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_vline</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">gar5</span>, color <span class="op">=</span> <span class="va">period</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Annualized real GDP growth, next quarter (%)"</span>, y <span class="op">=</span> <span class="st">"Predictive density"</span>, color <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:qd-gar-density"></span>
+<img src="10.05-quantile-distributional_files/figure-html/qd-gar-density-1.png" alt="Conditional predictive density of next-quarter growth, fit as a skewed-t to the quantile-regression forecasts, in a calm quarter (2005 Q4) and a crisis quarter (2008 Q4). Financial stress shifts the whole distribution left and stretches its lower tail, driving growth-at-risk (dashed) sharply negative." width="90%"><p class="caption">
+Figure 13.5: Conditional predictive density of next-quarter growth, fit as a skewed-t to the quantile-regression forecasts, in a calm quarter (2005 Q4) and a crisis quarter (2008 Q4). Financial stress shifts the whole distribution left and stretches its lower tail, driving growth-at-risk (dashed) sharply negative.
+</p>
+</div>
+<p>The crisis-quarter density is not the calm-quarter density shifted bodily to the left; it is stretched and skewed, with a long lower tail that pulls growth-at-risk far below the median while the upper tail barely changes. This is the distributional content that a mean forecast, or even a symmetric interval around it, would erase, and it is the reason quantile regression became the standard tool for monitoring macro-financial risk.</p>
+</div>
+<div id="sec-qd-summary" class="section level2" number="13.15">
+<h2>
+<span class="header-section-number">13.15</span> Summary<a class="anchor" aria-label="anchor" href="#sec-qd-summary"><i class="fas fa-link"></i></a>
+</h2>
+<p>Quantile and distributional methods move econometric attention from the conditional mean to the conditional distribution. The check function characterizes quantiles as optimal predictors under asymmetric loss, and minimizing its empirical analog yields the quantile regression estimator of <span class="citation">Koenker and Bassett (<a href="references.html#ref-koenker1978regression">1978</a>)</span>. Allowing the coefficients to vary with the quantile level lets the method describe effects on spread, skewness, and tails that mean regression averages away. Censored quantile regression in the manner of <span class="citation">Powell (<a href="references.html#ref-powell1986censored">1986</a>)</span> exploits the fact that lower quantiles are identified even when the upper tail is top-coded. Quantile treatment effects compare entire outcome distributions and must not be confused with the distribution of individual treatment effects, and instrumental quantile methods extend the analysis to endogenous treatments. Distribution regression and recentered influence function regression estimate the whole conditional distribution and unconditional quantile effects respectively, and stochastic dominance uses these curves to rank distributions for broad classes of preferences. Together with the nonparametric mean regression of Chapter <a href="sec-nonparametric-regression.html#sec-nonparametric-regression">12</a>, and meeting it in nonparametric quantile regression, these tools complete a flexible account of how covariates shape not just the average outcome but the full distribution of outcomes.</p>
+<!--
+NEW BIB ENTRIES
+
+@article{koenker1978regression,
+  title     = {Regression Quantiles},
+  author    = {Koenker, Roger and Bassett, Gilbert},
+  year      = {1978},
+  journal   = {Econometrica},
+  volume    = {46},
+  number    = {1},
+  pages     = {33--50},
+  publisher = {The Econometric Society}
+}
+
+@article{koenker2001quantile,
+  title     = {Quantile Regression},
+  author    = {Koenker, Roger and Hallock, Kevin F.},
+  year      = {2001},
+  journal   = {Journal of Economic Perspectives},
+  volume    = {15},
+  number    = {4},
+  pages     = {143--156},
+  publisher = {American Economic Association}
+}
+
+@book{koenker2005quantile,
+  title     = {Quantile Regression},
+  author    = {Koenker, Roger},
+  year      = {2005},
+  publisher = {Cambridge University Press},
+  address   = {Cambridge},
+  series    = {Econometric Society Monographs}
+}
+
+@article{powell1986censored,
+  title     = {Censored Regression Quantiles},
+  author    = {Powell, James L.},
+  year      = {1986},
+  journal   = {Journal of Econometrics},
+  volume    = {32},
+  number    = {1},
+  pages     = {143--155},
+  publisher = {Elsevier}
+}
+
+@article{firpo2009unconditional,
+  title     = {Unconditional Quantile Regressions},
+  author    = {Firpo, Sergio and Fortin, Nicole M. and Lemieux, Thomas},
+  year      = {2009},
+  journal   = {Econometrica},
+  volume    = {77},
+  number    = {3},
+  pages     = {953--973},
+  publisher = {The Econometric Society}
+}
+
+@article{chernozhukov2013counterfactual,
+  title     = {Inference on Counterfactual Distributions},
+  author    = {Chernozhukov, Victor and Fern{\'a}ndez-Val, Iv{\'a}n and Melly, Blaise},
+  year      = {2013},
+  journal   = {Econometrica},
+  volume    = {81},
+  number    = {6},
+  pages     = {2205--2268},
+  publisher = {The Econometric Society}
+}
+-->
+
+</div>
+</div>
+
+
+
+<div class="chapter-nav">
+<div class="prev"><a href="sec-nonparametric-regression.html"><span class="header-section-number">12</span> Nonparametric Regression</a></div>
+<div class="next"><a href="data.html"><span class="header-section-number">14</span> Data</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-quantile-distributional"><span class="header-section-number">13</span> Quantile Regression and Distributional Methods</a></li>
+<li><a class="nav-link" href="#sec-qd-how-relate"><span class="header-section-number">13.1</span> How These Methods Relate</a></li>
+<li><a class="nav-link" href="#sec-qd-quantile-function"><span class="header-section-number">13.2</span> Quantiles and the Quantile Function</a></li>
+<li><a class="nav-link" href="#sec-qd-check-function"><span class="header-section-number">13.3</span> Quantiles as Optimal Predictors: The Check Function</a></li>
+<li><a class="nav-link" href="#sec-qd-estimating"><span class="header-section-number">13.4</span> Estimating Unconditional Quantiles</a></li>
+<li><a class="nav-link" href="#sec-qd-conditional"><span class="header-section-number">13.5</span> Conditional Quantile Functions and Quantile Regression</a></li>
+<li><a class="nav-link" href="#sec-qd-inference"><span class="header-section-number">13.6</span> Inference for Quantile Estimators</a></li>
+<li><a class="nav-link" href="#sec-qd-robustness"><span class="header-section-number">13.7</span> Robustness and Efficiency</a></li>
+<li><a class="nav-link" href="#sec-qd-censoring"><span class="header-section-number">13.8</span> Censored Quantile Regression</a></li>
+<li><a class="nav-link" href="#sec-qd-qte"><span class="header-section-number">13.9</span> Quantile Treatment Effects versus Average Treatment Effects</a></li>
+<li><a class="nav-link" href="#sec-qd-distribution-regression"><span class="header-section-number">13.10</span> Distribution Regression and Unconditional Quantile Effects</a></li>
+<li><a class="nav-link" href="#sec-qd-dominance"><span class="header-section-number">13.11</span> Stochastic Dominance</a></li>
+<li><a class="nav-link" href="#sec-qd-frontier"><span class="header-section-number">13.12</span> Recent Developments: Distributional Machine Learning and Causal Frontiers</a></li>
+<li><a class="nav-link" href="#sec-qd-business"><span class="header-section-number">13.13</span> Quantile and Distributional Methods in Business Research</a></li>
+<li><a class="nav-link" href="#sec-qd-gar"><span class="header-section-number">13.14</span> Replication: Growth-at-Risk</a></li>
+<li><a class="nav-link" href="#sec-qd-summary"><span class="header-section-number">13.15</span> Summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/10.05-quantile-distributional.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/10.05-quantile-distributional.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+</div>
+<div style="
+  background: #1a1a2e;
+  border-bottom: 3px solid #e8a020;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  font-family: sans-serif;
+">
+    <span style="font-size:1.1em;">📖</span>
+        <span style="font-size:0.82em; color:#e8e8e8; flex:1; min-width:200px;">
+            <strong style="color:#f5c842;">Free preview — limited per publisher guidelines.</strong>
+                Purchase the complete <em>A Guide on Data Analysis</em> series (Vols. 1–4) on Springer.
+            </span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <a href="https://tidd.ly/4oL3N2X" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 1</a>
+                        <a href="https://tidd.ly/47PJ7kB" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 2</a>
+                            <a href="https://tidd.ly/3JrB3xm" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 3</a>
+                                <a href="https://tidd.ly/4oFridQ" target="_blank" style="background:#e8a020;color:#1a1a2e;text-decoration:none;font-size:0.75em;font-weight:700;padding:4px 10px;border-radius:3px;">Vol. 4</a>
+                                    </div>
+                                    </div>
+  
+
+  
+
+</div>
+ <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2026-10-22.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
