@@ -1,9 +1,9 @@
 # Replication and Synthetic Data {#sec-replication}
 
 ::: {.chapter-abstract}
-**Abstract.** Replication is the mechanism by which an empirical claim becomes knowledge rather than assertion, yet the data it requires are often proprietary, confidential, or otherwise unavailable. This chapter sets out the replication standard, the requirement that data, code, and methodological detail be complete enough for an independent party to reproduce a study's findings, and examines both where that standard is hard to meet and where a legitimate exception applies. It reviews the repositories that host replication materials and the current state of replication practice across fields. The second half turns to synthetic data as a route to sharing without disclosure, covering its benefits, the limitation that a synthesizer reproduces only the structure it was told to model, and the practical difference between generating synthetic data with full access to the original and generating it under restricted access. A worked application constructs an original dataset, a restricted version of it, and a synthetic replacement built with synthpop, then compares what each preserves and what each destroys.
+**Abstract.** Replication is the mechanism by which an empirical claim becomes knowledge rather than assertion, yet the data it requires are often proprietary, confidential, or otherwise unavailable. This chapter sets out the replication standard, the requirement that data, code, and methodological detail be complete enough for an independent party to reproduce a study's findings, and examines both where that standard is hard to meet and where a legitimate exception applies. It reviews the repositories that host replication materials and the current state of replication practice across fields, then turns to the software environment underneath the code, showing how a change in R alone moves a seeded bootstrap estimate and comparing what lockfiles (renv), containers (Docker and rocker), and functional package management (Nix through rix) each pin. The second half turns to synthetic data as a route to sharing without disclosure, covering its benefits, the limitation that a synthesizer reproduces only the structure it was told to model, and the practical difference between generating synthetic data with full access to the original and generating it under restricted access. A worked application constructs an original dataset, a restricted version of it, and a synthetic replacement built with synthpop, then compares what each preserves and what each destroys.
 
-**Keywords:** Replication, Reproducibility, Synthetic data, Data sharing, Data confidentiality, Research transparency
+**Keywords:** Replication, Reproducibility, Computational environments, Software versioning, Synthetic data, Data sharing, Data confidentiality, Research transparency
 :::
 
 The previous chapter exhausted what a single study can say about its own
@@ -146,6 +146,347 @@ practical implication for the replication packages discussed above is that
 sharing the analysis script is not enough. Two analysts running the same script
 on the same raw file can still disagree, because the decisions that moved the
 estimate most were made before the script began.
+
+## Computational Environments {#sec-computational-environments}
+
+There is a second reason the same script on the same file can give a different
+answer, and it sits below the script rather than before it. An R analysis runs
+on R itself, on a few dozen packages, on the system libraries those packages
+link against, and on an operating system. Every one of those layers changes
+over time, and a replication package that ships data and code but says nothing
+about the layers underneath is a package that works on the author's machine in
+the month it was deposited. @peng2011reproducible argued that reproducibility,
+rerunning the original analysis on the original data, is the minimum standard
+for a computational claim when independent replication is not feasible. That
+standard turns out to be harder to meet than it sounds.
+
+The best large-scale evidence comes from the Harvard Dataverse, one of the
+repositories listed above. @trisovic2022large retrieved more than 2,000
+replication datasets containing over 9,000 R files deposited between 2010 and
+2020 and executed them in a clean environment. Seventy-four percent of the R
+files failed to complete without error. Automatic cleaning of common coding
+errors brought the failure rate down only to 56 percent. Those are files that
+authors deposited specifically so that someone else could run them.
+@hinsen2019dealing calls the underlying phenomenon software collapse: code does
+not decay, but the stack it stands on moves, and eventually the code no longer
+connects to anything. The longer the gap between deposit and rerun, the more of
+the stack has moved.
+
+### What Drifts, and How It Shows Up
+
+The layers fail in different ways, and the difference matters for which tool
+fixes which problem.
+
+1.  R itself. Changes to base R are rare and announced, but they do change
+    results. R 3.6.0 (2019) replaced the algorithm behind `sample()`, so every
+    resampling procedure seeded before that release draws different indices
+    after it. R 4.0.0 (2020) changed the default of `stringsAsFactors` from
+    `TRUE` to `FALSE`, which silently alters any downstream code that relied
+    on factor levels.
+2.  Packages. A package update can change a default (a clustering adjustment,
+    a convergence tolerance, the reference category), rename or remove a
+    function, or fix a bug the original estimate depended on. This is the most
+    common source of both outright failures and silent numerical drift.
+3.  System libraries. Packages that compile code link against libraries outside
+    R: BLAS and LAPACK for linear algebra, GDAL and PROJ for spatial work, a C++
+    compiler and its standard library. Swapping the reference BLAS for an
+    optimized one can change floating point results in the last digits, and an
+    upgraded GDAL can refuse to build an old version of `sf` at all.
+4.  The operating system. Mostly relevant through the previous layer, but also
+    through locale (sort order of strings), file path conventions, and line
+    endings.
+
+The first failure is the most instructive because it produces no error. The
+chunk below draws six numbers from the same seed under the sampler R used
+before version 3.6.0 and the one it has used since. Current versions of R still
+ship the old sampler for exactly this reason.
+
+```{r env-rng-sample-kind}
+# The same seed under the pre-3.6.0 sampler ("Rounding") and the
+# current one ("Rejection"). RNGkind() is restored on exit so later
+# chunks are unaffected.
+draw_under <- function(kind, n = 6) {
+  old <- RNGkind()
+  on.exit(RNGkind(old[1], old[2], old[3]))
+  suppressWarnings(set.seed(2019, sample.kind = kind))
+  sample(100, n)
+}
+
+rbind(
+  "R 3.5.x and earlier" = draw_under("Rounding"),
+  "R 3.6.0 and later"   = draw_under("Rejection")
+)
+```
+
+The indices differ, so anything computed from them differs too. The next chunk
+carries that through to a quantity a paper would actually report: a
+nonparametric bootstrap of the slope in a regression of fuel economy on vehicle
+weight, with the seed and the number of replications fixed and only the R
+version (through its sampler) allowed to change.
+
+```{r env-rng-bootstrap}
+boot_slope <- function(kind, B = 2000) {
+  old <- RNGkind()
+  on.exit(RNGkind(old[1], old[2], old[3]))
+  suppressWarnings(set.seed(2019, sample.kind = kind))
+  slopes <- replicate(B, {
+    i <- sample(nrow(mtcars), replace = TRUE)
+    coef(lm(mpg ~ wt, data = mtcars[i, ]))[["wt"]]
+  })
+  c(
+    se       = sd(slopes),
+    ci_lower = unname(quantile(slopes, 0.025)),
+    ci_upper = unname(quantile(slopes, 0.975))
+  )
+}
+
+boot_by_version <- rbind(
+  "R 3.5.x and earlier" = boot_slope("Rounding"),
+  "R 3.6.0 and later"   = boot_slope("Rejection")
+)
+round(boot_by_version, 4)
+```
+
+The bootstrap standard error moves from
+`r sprintf("%.3f", boot_by_version[1, "se"])` to
+`r sprintf("%.3f", boot_by_version[2, "se"])` and the upper end of the
+percentile interval from `r sprintf("%.2f", boot_by_version[1, "ci_upper"])` to
+`r sprintf("%.2f", boot_by_version[2, "ci_upper"])`. Neither number is wrong;
+both are valid draws of a Monte Carlo procedure. The problem is what happens
+when a referee, a replicator, or an opposing expert reruns the deposited script
+and gets the second row when the paper printed the first. Without a record of
+the environment, there is no way to tell a Monte Carlo difference from an error,
+and the conversation that follows is about the author's competence rather than
+the result. The difference here is small because the statistic is smooth; for a
+permutation p-value near a threshold, a cross-validated tuning parameter, or a
+random train and test split, the same mechanism can move a reported conclusion.
+
+### Recording the Environment
+
+The floor, which costs nothing and which every replication package should meet,
+is a record of what the analysis ran on. It does not let anyone restore the
+environment, but it turns a later discrepancy from a mystery into a diagnosis.
+
+```{r env-manifest}
+si <- sessionInfo()
+attached <- names(si$otherPkgs)
+or_unreported <- function(x) if (length(x) && nzchar(x)) basename(x) else "not reported"
+
+manifest <- data.frame(
+  component = c("R", "Platform", "Operating system", "BLAS library",
+                "LAPACK version", "RNG (generator / normal / sample)",
+                if (length(attached)) paste("Package", attached)),
+  value = c(si$R.version$version.string, si$platform, si$running,
+            or_unreported(si$BLAS), La_version(),
+            paste(RNGkind(), collapse = " / "),
+            vapply(attached, function(p) as.character(packageVersion(p)), ""))
+)
+knitr::kable(
+  manifest,
+  col.names = c("Component", "Value"),
+  row.names = FALSE,
+  caption = "Environment manifest for the session that rendered this chapter."
+)
+```
+
+In a real project the manifest goes into the replication package as a text file
+written by the last line of the master script, for example
+`writeLines(capture.output(sessionInfo()), "session_info.txt")`. Note what the
+table cannot say: the versions of packages that were installed but loaded only
+through `::`, the compiler, the GDAL build, and anything else outside R's own
+view of itself.
+
+### Four Ways to Pin an Environment
+
+Pinning means making the environment restorable rather than merely described.
+The tools differ mainly in how far down the stack they reach, and therefore in
+which of the four drift sources above they close off.
+
+Table: (\#tab:env-tools) What each approach pins. "Partly" means the layer is recorded or fixed at build time but can still drift on rebuild.
+
+| Approach | R packages | R version | System libraries | Native on Windows | Typical failure years later |
+|:---|:---|:---|:---|:---|:---|
+| renv lockfile | Yes | Recorded, not installed | No | Yes | Old package versions no longer compile against new system libraries |
+| Dated package snapshot | Yes, by date | No | No | Yes | Same as renv |
+| Container image (Docker, rocker) | Yes | Yes | Partly | Through a Linux virtual machine | Image is lost or the Dockerfile rebuilds to something different |
+| Nix through rix | Yes | Yes | Yes | Through WSL2 | A package was never built in the Nix collection |
+
+#### Project Libraries with renv
+
+`renv` [@ushey2025renv] gives each project its own package library and writes a
+lockfile, `renv.lock`, recording the exact version and source of every package
+the project uses. A collaborator or replicator who clones the project restores
+those versions with one call.
+
+```{r env-renv-workflow, eval = FALSE}
+# Once, at the start of the project: create a project library.
+renv::init()
+
+# Whenever the set of packages changes: record it.
+renv::snapshot()
+
+# On another machine, or years later: reinstall the recorded versions.
+renv::restore()
+```
+
+The lockfile is plain JSON and belongs in the replication package. An abridged
+example:
+
+```json
+{
+  "R": {
+    "Version": "4.4.3",
+    "Repositories": [{ "Name": "CRAN", "URL": "https://cloud.r-project.org" }]
+  },
+  "Packages": {
+    "fixest": {
+      "Package": "fixest",
+      "Version": "0.12.1",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    }
+  }
+}
+```
+
+renv is the right default for day-to-day work because it is light, it works on
+every operating system, and it changes nothing about how the analyst writes
+code. Its limits follow from the table. It records the R version but does not
+install it, and it knows nothing about system libraries. Restoring a five-year-old
+lockfile often means compiling five-year-old package sources against today's
+compilers and libraries, which is where the restore fails. Dated snapshot
+repositories, which serve CRAN as it stood on a given day, have the same
+reach and the same limit; they are convenient when the analyst never wrote a
+lockfile but knows roughly when the analysis was run.
+
+#### Containers with Docker and rocker
+
+A container image bundles an entire Linux user space: the operating system
+libraries, R, and the packages, frozen at build time. @boettiger2015introduction
+made the case for Docker in research, and the rocker project
+[@boettiger2017introduction] maintains images with a fixed R version. A minimal
+Dockerfile for an analysis looks like this:
+
+```dockerfile
+FROM rocker/r-ver:4.4.3
+RUN install2.r --error --skipinstalled fixest modelsummary data.table
+COPY . /project
+WORKDIR /project
+CMD ["Rscript", "run_all.R"]
+```
+
+The point that is most often missed is that the Dockerfile is a recipe, not the
+environment. `install2.r` and `apt-get install` fetch whatever is current when
+the image is built, so the same Dockerfile built two years apart can produce two
+different environments. @nust2020ten collect the rules for writing Dockerfiles
+that age well, and the most important is to pin every version explicitly. For
+the base image that means its content digest
+(`rocker/r-ver:4.4.3@sha256:...`) rather than a tag, which can be moved. The
+other habit is to archive the built image itself alongside the code, since the
+image, not the recipe, is the thing that was actually run. On shared clusters, where Docker's root daemon is usually not permitted,
+the same image runs under Apptainer (formerly Singularity), which is the route
+to containers in the high-performance computing setting of the next chapters
+(Chapter \@ref(sec-hpc)).
+
+#### Functional Package Management with Nix and rix
+
+Nix takes a different approach to the whole problem. It treats every package
+as the output of a pure function of its inputs: the source code, the compiler,
+the build script, and every dependency, recursively down to the C library. The
+build result is stored under a path that contains a hash of all of those
+inputs, so two different builds can never overwrite each other, and pinning a
+single revision of the Nix package collection (nixpkgs) fixes the entire
+dependency graph at once, including R itself and every system library beneath
+it [@dolstra2010nixos]. Guix applies the same model and has been used for the
+same purpose on research clusters [@courtes2015reproducible].
+
+Whether this delivers in practice is an empirical question, and it has been
+measured. @malka2025does rebuilt 709,816 packages from historical snapshots of
+nixpkgs sampled between 2017 and 2023. Over 99 percent could still be rebuilt
+from source, and between 69 and 91 percent were bitwise identical to the
+original build, with the rate rising over time. Rebuildability is the property a
+replicator needs; bitwise identity is the stronger property that lets anyone
+check that a published binary came from the stated source.
+
+The barrier to Nix has been its own configuration language. The `rix` package
+[@rodrigues2024rix] removes most of it by generating the Nix expression from an
+R call. Asking for an environment by date returns R, CRAN packages, and
+Bioconductor as they stood on that day:
+
+```{r env-rix, eval = FALSE}
+library(rix)
+
+rix(
+  date         = "2024-12-14",   # valid dates: rix::available_dates()
+  r_pkgs       = c("fixest", "modelsummary", "data.table"),
+  system_pkgs  = NULL,
+  git_pkgs     = NULL,
+  ide          = "none",
+  project_path = ".",
+  overwrite    = TRUE
+)
+```
+
+This writes a `default.nix` file, which is the environment definition and goes
+into the replication package next to the code. The environment is then built
+and entered from a terminal:
+
+```bash
+nix-build          # build everything default.nix describes
+nix-shell --pure   # enter it, with nothing from the host visible
+```
+
+`rix::with_nix()` runs a single R function inside such an environment and
+returns the result to the current session, which makes it possible to rerun an
+old analysis under the R and package versions it was written for and compare
+the two answers side by side. For a project that already has an renv lockfile,
+`rix::renv2nix()` translates it into a Nix expression, matching the R version
+and package versions approximately rather than exactly.
+
+Three caveats keep Nix from being the universal answer. It runs natively on
+Linux and macOS but needs WSL2 on Windows, which is why the Nix chunks in this
+chapter are shown but not executed. Not every CRAN package builds in the Nix
+collection, particularly ones with unusual system dependencies, and fixing one
+that does not means learning some of the Nix language after all. And the
+environment definition is only as durable as the package collection and binary
+caches it points to, though unlike a lost container image, a missing binary can
+be rebuilt from source.
+
+### Reconstructing an Environment After the Fact
+
+Everything above assumes the author pinned the environment. A replicator
+working with someone else's deposit usually inherits no lockfile, no image, and
+at best a date. `rang` [@chan2023rang] handles that case: given a list of
+packages and a date, it resolves the versions that were current on that day
+and generates a Docker-based description
+that rebuilds the environment. Its authors report successful reconstructions
+for R code as old as 2001. This is the right first move when a deposited script
+fails on a current installation, before concluding that the original analysis
+was wrong.
+
+### Choosing
+
+The choice depends on how long the result must survive and how adversarial the
+person rerunning it will be.
+
+-   For every project, write the session manifest and keep an renv lockfile
+    from the first day. The cost is close to zero and it resolves most
+    disputes that arise within a few years.
+-   When the result must be reproduced exactly by someone with an incentive to
+    find a discrepancy, which describes a journal's reproducibility check, a
+    regulatory submission, and above all expert witness work where opposing
+    counsel's expert reruns the analysis, pin the whole stack with a container
+    image or a Nix expression and archive it with the deposit.
+-   When the analysis has to survive a decade, prefer the approach whose
+    definition can be rebuilt from source, which today means Nix or Guix, and
+    keep a built container image as a second copy.
+
+None of this replaces careful handling of seeds and random number streams in
+parallel code, taken up in the high-performance computing chapter; a fully
+pinned environment still produces irreproducible
+output if workers share a stream. It removes one class of excuse, so that when
+a rerun disagrees with the paper, the disagreement says something about the
+analysis.
 
 ## Synthetic Data
 
