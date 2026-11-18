@@ -2983,6 +2983,7 @@ A weak instrument test: rule of thumb is $F > 10$ for a single instrument, with 
 
 -   Lasso IV / Post-Double Selection: Use regularization to build the first stage from a large instrument set, which recovers the optimal instrument without paying the many-IV bias of using all of them [@belloni2012sparse].
 -   Factor-Based Methods: Project instruments onto principal components.
+-   Machine-Learned Instruments: Learn a single instrument function from all the candidates on held-out folds, so the second stage uses one instrument however many candidates feed it (Section \@ref(sec-ml-instruments)).
 
 2.  Shrinkage Estimators
 
@@ -3001,6 +3002,494 @@ A weak instrument test: rule of thumb is $F > 10$ for a single instrument, with 
 2.  Always Check First-Stage Strength: Even if $R^2$ is high, individual instrument strength matters.
 3.  Report Robustness with Alternative Estimators: LIML or JIVE can serve as robustness checks.
 4.  Test for Overidentification: But interpret results cautiously when $L$ is large.
+
+------------------------------------------------------------------------
+
+### Machine-Learned Instruments {#sec-ml-instruments}
+
+The remedies above treat a weak first stage as a selection problem: keep the few good instruments, shrink the rest, or correct the bias that the many leave behind. @singh2026machine reframe it as a learning problem. If the candidate instruments $z$ are exogenous in the strong, conditional-mean sense, then every function $h(z)$ of them is also a valid instrument, and the econometrician's job is to find the function that makes the estimator most precise. That function is the optimal instrument of @amemiya1974nonlinear and @chamberlain1987asymptotic. It is generally unknown, it depends on the parameter being estimated, and it can be an arbitrarily complicated function of a high-dimensional $z$. Singh, Hosanagar, and Gandhi call the instruments that a learning algorithm produces for this purpose machine-learned instrumental variables (MLIV), and they show that cross-fitting makes them safe: the learned instrument is never fit on the observation it instruments, so the overfitting that drives 2SLS toward OLS with many instruments (Section \@ref(sec-many-instruments-bias)) cannot leak into the estimate.
+
+This section develops the method from the efficiency bound up, proves the two results that make it work, reproduces the paper's simulation evidence, and reruns its empirical application on public data. A note on sources. The published article appeared online in *Marketing Science* in October 2026 and its two empirical applications are political-cycle instruments for television advertising and the ready-to-eat cereal demand system. The theory, algorithms, and simulation designs below follow the authors' 2021 manuscript of the same paper. The colonial-origins application survives into the published version's online appendix, which prints the same estimates as the manuscript and calls the algorithm MLAOIV. Wherever we report our own reruns, we say so.
+
+#### What Makes a Transformation of an Instrument Valid {#sec-ml-instruments-validity}
+
+Write the model as a conditional moment restriction. A scalar residual $\rho(w_i; \theta)$, built from the data $w_i = (y_i, x_i, z_i)$ and a $K$-vector of parameters $\theta$, satisfies
+
+$$
+\mathbb{E}[\rho(w_i; \theta_0) \mid z_i] = 0 .
+(\#eq:mliv-cmr)
+$$
+
+For the linear model $y = x'\theta + \varepsilon$ the residual is $\rho = y - x'\theta$, and \@ref(eq:mliv-cmr) says $\mathbb{E}[\varepsilon \mid z] = 0$. Multiply by any function $h(z)$ and take expectations; the law of iterated expectations gives
+
+$$
+\mathbb{E}[\rho(w_i; \theta_0)\, h(z_i)] = \mathbb{E}\big[h(z_i)\, \mathbb{E}[\rho(w_i; \theta_0) \mid z_i]\big] = 0 \quad \text{for every } h .
+$$
+
+So each $h$ yields a just-identified GMM estimator, and they all estimate the same $\theta_0$. This step is the entire license for MLIV, and it is stronger than what many applied papers defend. An argument that $z$ is uncorrelated with $\varepsilon$, $\mathbb{E}[z \varepsilon] = 0$, licenses linear combinations of $z$ and nothing else. A learned instrument such as $\mathbb{1}\{z_1 > c\} z_2^2$ is valid only if $\varepsilon$ is mean independent of $z$, so a design that is credible "on average" can fail once a flexible learner hunts through the tails or interactions of $z$ for variation. MLIV improves relevance. It does nothing for the exclusion restriction (Section \@ref(sec-exogeneity-assumption)), and it asks more of it.
+
+#### The Optimal Instrument and the Efficiency Bound
+
+For a just-identified instrument $h(z)$ (a $K$-vector), standard GMM theory gives
+
+$$
+\sqrt{n}(\hat\theta_h - \theta_0) \xrightarrow{d} N\big(0, V(h)\big), \qquad
+V(h) = \mathbb{E}[h D]^{-1}\, \mathbb{E}[h\, \Omega\, h']\, \mathbb{E}[D' h']^{-1},
+$$
+
+with $D(z) = \mathbb{E}[\partial \rho(w;\theta_0)/\partial \theta' \mid z]$, a $1 \times K$ row, and $\Omega(z) = \mathbb{E}[\rho(w;\theta_0)^2 \mid z]$. @chamberlain1987asymptotic shows that no estimator based on \@ref(eq:mliv-cmr) can beat
+
+$$
+V^* = \Big(\mathbb{E}\big[D(z)'\, \Omega(z)^{-1} D(z)\big]\Big)^{-1},
+$$
+
+and that the instrument $h^*(z) = D(z)' / \Omega(z)$ attains it. The proof is two lines. Let $a = \mathbb{E}[hD]^{-1} h$ and $b = V^* h^*$. Then $\mathbb{E}[a\,\Omega\, b'] = \mathbb{E}[hD]^{-1}\mathbb{E}[h D] V^* = V^*$ and $\mathbb{E}[b\, \Omega\, b'] = V^*$, so
+
+$$
+V(h) - V^* = \mathbb{E}\big[(a - b)\, \Omega\, (a - b)'\big] \succeq 0 .
+(\#eq:mliv-bound-gap)
+$$
+
+The gap is a weighted mean square distance between the instrument you used and the optimal one, which is why a learning algorithm that gets close to $h^*$ in mean square gets close to the bound.
+
+Two special cases organize everything that follows. In the linear model, $\partial\rho/\partial\theta' = -x'$, so $D(z) = -\mathbb{E}[x \mid z]'$ and
+
+$$
+h^*(z) \propto \frac{\mathbb{E}[x \mid z]}{\sigma^2(z)}, \qquad \sigma^2(z) = \mathbb{E}[\varepsilon^2 \mid z] .
+$$
+
+Under conditional homoskedasticity the optimal instrument is just the best prediction of the endogenous regressors from the instruments (and the exogenous regressors, which are their own predictions). Building the instrument is then an ordinary supervised learning problem: predict $x$ from $z$ as well as possible. Under heteroskedasticity the prediction must be reweighted by $1/\sigma^2(z)$, and prediction accuracy alone no longer identifies the best instrument. In nonlinear models such as random-coefficients demand, $D(z)$ is the conditional expectation of the derivative of the structural error with respect to the nonlinear parameters, which depends on $\theta_0$ itself [@newey1990efficient; @reynaert2014improving]. That dependence is why the paper needs a more general algorithm than "predict $x$."
+
+#### Learning the Instrument: A Bilevel Criterion
+
+Parameterize a class of instrument functions $H(z; \phi)$: a lasso or ridge index, a spline basis, a forest, a neural network. The paper proposes choosing $\phi$ to minimize the estimated variance of the very estimator the instrument feeds:
+
+$$
+\min_{\phi}\; \operatorname{tr}\, \hat V_n\big(\hat\theta(\phi), \phi\big)
+\quad \text{s.t.} \quad
+\hat\theta(\phi) = \arg\min_\theta \Big[\tfrac1n \textstyle\sum_i \rho(w_i;\theta) H(z_i;\phi)\Big]' W_n \Big[\tfrac1n \textstyle\sum_i \rho(w_i;\theta) H(z_i;\phi)\Big],
+(\#eq:mliv-bilevel)
+$$
+
+where $\hat V_n$ is the sandwich $(\hat G' W \hat G)^{-1} \hat G' W \hat S W \hat G (\hat G' W \hat G)^{-1}$ evaluated at $(\hat\theta(\phi), \phi)$. The outer problem picks the instrument; the inner problem is the GMM estimation that the instrument induces. The two are coupled because the variance depends on residuals, and the residuals depend on the estimate. The paper solves \@ref(eq:mliv-bilevel) by gradient descent on $\phi$, with the total derivative
+
+$$
+\frac{d\, \operatorname{tr}\hat V}{d\phi} = \frac{\partial\, \operatorname{tr}\hat V}{\partial \phi} + \frac{\partial\, \operatorname{tr}\hat V}{\partial \theta}\, \frac{\partial \hat\theta}{\partial \phi},
+\qquad
+\frac{\partial \hat\theta}{\partial \phi} = -\big(\nabla_{\theta\theta} \hat Q\big)^{-1} \nabla_{\theta\phi} \hat Q
+$$
+
+from the implicit function theorem applied to the inner first-order condition. Re-solving the inner GMM problem after every outer step is expensive, so the paper's practical version takes a few "lazy" outer steps with $\theta$ held fixed, then updates $\theta$ with a few Gauss-Newton steps, $\theta_{j} = \theta_{j-1} + (F'WF)^{-1} F' W \hat f_n(\theta_{j-1})$ with $F = -\hat G_n$, and alternates. Early stopping on a validation split regularizes the outer problem, exactly as in neural network training.
+
+What does the criterion find? Inside a linear sieve the bilevel problem has a closed form that makes the answer transparent. Let $H(z;\Phi) = B(z)\Phi$ for a basis $B(z)$ of dimension $L$ (splines, polynomials, dummies) and an $L \times K$ coefficient matrix $\Phi$, and write $A = \mathbb{E}[\rho^2 B B']$ and $C = \mathbb{E}[B\, \partial\rho/\partial\theta']$. Then
+
+$$
+V(\Phi) = (\Phi' C)^{-1} \Phi' A \Phi\, (C'\Phi)^{-1},
+$$
+
+and the same argument as \@ref(eq:mliv-bound-gap) shows it is minimized at $\Phi^* = A^{-1} C$, with $V(\Phi^*) = (C' A^{-1} C)^{-1}$. That is the variance of efficient two-step GMM that uses all $L$ basis functions as instruments with weight matrix $A^{-1}$. So within a sieve the variance-minimizing instrument is the efficient GMM instrument [@newey1990efficient], and the alternation "estimate $\theta$, form residuals, set $\Phi = \hat A(\theta)^{-1}\hat C$" is the exact solution of the lazy update. The learning formulation earns its keep when the class is not linear in parameters, or when $L$ would be far too large for GMM with $L$ instruments, because the learned instrument always enters the second stage as $K$ instruments, however rich the class that produced it.
+
+#### Why the Instrument Must Be Learned Out of Sample
+
+Suppose we learn $\hat\phi$ on the full sample $\mathcal{D}$ and then estimate with $H(z_i;\hat\phi)$ on the same $\mathcal{D}$. The instrument now depends on every $x_j$ in the sample, including $x_i$, and $x_i$ contains the first-stage error $v_i$ that is correlated with $\varepsilon_i$. So $\mathbb{E}[\varepsilon_i H(z_i;\hat\phi(\mathcal{D}))] \neq 0$. In the limit of a learner flexible enough to interpolate, $H(z_i;\hat\phi) = x_i$ and the IV estimator is OLS, which is the many-instruments problem in its purest form. Lasso and ridge only slow this down.
+
+The MLIV recipe removes the dependence by cross-fitting:
+
+1.  Partition the sample into $K$ folds $\mathcal{D}_1, \dots, \mathcal{D}_K$.
+2.  For each fold $k$, learn $\hat\phi_k$ on the excluded data $\mathcal{D}_k^c$ only. Any tuning (penalty, depth, number of gradient steps, choice among learners) is done by cross-validation inside $\mathcal{D}_k^c$. In the published online appendix this inner loop is a nested cross-validation: $\mathcal{D}_k^c$ is split into sub-folds, every learner and hyperparameter combination in a pre-specified grid is scored by its average validation loss, and the winner is refit on all of $\mathcal{D}_k^c$.
+3.  Construct $\hat z_i = H(z_i; \hat\phi_{k(i)})$ for each $i \in \mathcal{D}_k$, where $k(i)$ is the fold containing $i$.
+4.  Estimate $\theta$ by GMM on the pooled sample with instruments $\hat z_i$.
+
+The validity of the constructed instrument now follows in one line [@singh2026machine, Lemma 6 of the manuscript]. For $i \in \mathcal{D}_k$, the learned parameters are a function of $\mathcal{D}_k^c$, which is independent of observation $i$, so
+
+$$
+\mathbb{E}\big[\rho(w_i;\theta_0)\, H(z_i; \hat\phi_k)\big]
+= \mathbb{E}\Big[H(z_i;\hat\phi_k)\; \mathbb{E}\big[\rho(w_i;\theta_0) \mid z_i, \mathcal{D}_k^c\big]\Big] = 0 .
+$$
+
+The leakage is not reduced; it is gone. The recipe has two familiar ancestors. With $K = 2$ and a linear first stage it is split-sample IV [@angrist1995split], and with $K = n$ it is the jackknife IV estimator [@angrist1999jackknife] of Section \@ref(sec-estimation), here with an arbitrary learner in place of OLS. What it adds is the reduction of all candidate instruments to $K$ learned ones. That matters because the leading finite-sample bias of 2SLS grows with the number of instruments $J$. In the approximation of @hahn2002new,
+
+$$
+\mathbb{E}[\hat\beta_{2SLS}] - \beta \approx \frac{J\, \sigma_{\varepsilon v}}{n\, R^2\, \operatorname{var}(x)} ,
+$$
+
+so a learned instrument with the same first-stage $R^2$ as $J$ selected instruments carries roughly $1/J$ of the bias.
+
+#### Asymptotic Theory
+
+The paper's theory builds on the cross-fitting arguments of @chernozhukov2018double and the GMM conditions of @newey1994large. The assumptions on the learner are mild:
+
+-   Assumption 1 (a mean-square limit exists). For some $\bar\phi$ and each fold, $\int \| h(z;\bar\phi) - h(z;\hat\phi_k) \|^2 dP_0 \xrightarrow{p} 0$.
+-   Assumption 2 (the limit is optimal). The same holds with $\bar\phi$ replaced by the optimal $\phi_0$, so the learner is mean-square consistent for $h^*$.
+
+Under Assumption 1, standard identification, continuity, dominance, and bounded fourth moments, $\hat\theta_{MLIV}$ is consistent (Theorem 1 of the manuscript), and under Assumptions 1 to 3 (the third is a Lipschitz condition that makes the Jacobian converge) it is asymptotically normal with the usual GMM sandwich, $\sqrt{n}(\hat\theta - \theta_0) \xrightarrow{d} N\big(0, (G'WG)^{-1}G'WSW G(G'WG)^{-1}\big)$ (Theorem 2), where $G$ and $S$ are evaluated at the limiting instrument. The plug-in sandwich is consistent for that variance (Theorem 3). If Assumption 2 also holds, the variance is $V^*$ and the estimator is semiparametrically efficient.
+
+The key step, Lemma 3 of the manuscript, is that learning the instrument has no first-order effect on the sample moment:
+
+$$
+\sqrt{n}\, \hat f(\theta_0) = \frac{1}{\sqrt n} \sum_{i=1}^n \rho(w_i;\theta_0)\, h(z_i;\phi_0) + o_p(1) .
+$$
+
+The proof is worth seeing because it shows why MLIV needs less than double machine learning does. Define $\Delta_i = \rho(w_i;\theta_0)\big[h(z_i;\hat\phi_k) - h(z_i;\phi_0)\big]$ for $i \in \mathcal{D}_k$. Conditional on $\mathcal{D}_k^c$ the $\Delta_i$ are independent with mean zero, so
+
+$$
+\mathbb{E}\Big[\Big(\tfrac{1}{\sqrt n}\textstyle\sum_{i\in\mathcal{D}_k} \Delta_i\Big)^2 \,\Big|\, \mathcal{D}_k^c\Big]
+= \frac{1}{n}\sum_{i \in \mathcal{D}_k} \mathbb{E}[\Delta_i^2 \mid \mathcal{D}_k^c]
+\le \frac1K \Big(\mathbb{E}[\rho^4]\Big)^{1/2} \Big(\int \big(h(z;\hat\phi_k) - h(z;\phi_0)\big)^4 dP_0\Big)^{1/2},
+$$
+
+which vanishes under mean-square consistency (with bounded instruments), and the conditional Markov inequality finishes the argument. No rate of convergence appears. In the partially linear IV model of @chernozhukov2018double (Section \@ref(sec-dml-ajr)), the learned nuisance functions enter the moment nonlinearly through the residualized outcome and treatment, the product of their estimation errors appears in the remainder, and each must converge faster than $n^{-1/4}$. Here the instrument enters linearly, multiplied by a residual that is conditionally mean zero, so the moment is insensitive to the instrument in every direction, not only locally: $\mathbb{E}[\rho(w;\theta_0)\, h(z)] = 0$ for all $h$. A slow or even inconsistent learner costs efficiency, never validity. Once exogenous controls are also partialled out with machine learning, the rate conditions return, and the right tool is the DML version.
+
+What the theory does not deliver is protection against weak identification. The numerator of $\hat\theta - \theta_0$ is mean zero by construction; the denominator, $\frac1n \sum_i \hat z_i x_i$, is small when the learned instrument is poor, and then the normal approximation fails exactly as it does for any weak instrument. A learned instrument is still a single instrument whose strength must be reported (the first-stage $F$ of $x$ on $\hat z$) and, when it is marginal, paired with weak-instrument-robust inference that treats $\hat z$ as given, such as the Anderson-Rubin test (Section \@ref(sec-anderson-rubin-approach)) or the tF adjustment (Section \@ref(sec-tf-procedure)). Both remain valid with a cross-fitted instrument because, conditional on the training folds, $\hat z$ is an exogenous instrument like any other.
+
+#### A Reusable Implementation
+
+The function below implements the linear MLIV recipe under the homoskedastic heuristic, with any learner supplied as a pair of fit and predict functions. Because a single random partition into folds is itself a source of variation, it repeats the cross-fitting over `n_splits` partitions and aggregates with the median rule of @chernozhukov2018double: the reported estimate is the median across splits, and the reported standard error adds the across-split dispersion to the within-split variance, $\hat\sigma^2 = \operatorname{med}_s\{\hat\sigma_s^2 + (\hat\theta_s - \hat\theta)^2\}$. It also reports the first-stage $F$ of each split's learned instrument, because a strong median estimate built on instruments that are weak in most splits is not a strong result.
+
+```{r mliv-function, message=FALSE, warning=FALSE}
+library(ivreg)
+
+# Cross-fitted machine-learned instrument (linear model, homoskedastic heuristic).
+# fit(df) returns a model trained to predict the endogenous variable; pred(m, df)
+# returns predictions. The learned instrument is always produced out of fold.
+mliv <- function(data, y, x, z, controls = character(0), fit, pred,
+                 K = 3, n_splits = 50, seed = 1) {
+  ctrl <- if (length(controls)) paste("+", paste(controls, collapse = " + ")) else ""
+  one_split <- function(s) {
+    set.seed(seed + s)
+    fold <- sample(rep(seq_len(K), length.out = nrow(data)))
+    zhat <- numeric(nrow(data))
+    for (k in seq_len(K)) {
+      m <- fit(data[fold != k, c(x, z, controls)])
+      zhat[fold == k] <- pred(m, data[fold == k, c(x, z, controls)])
+    }
+    d <- data; d$zhat_ <- zhat
+    iv <- ivreg(as.formula(paste(y, "~", x, ctrl, "| zhat_", ctrl)), data = d)
+    fs <- lm(as.formula(paste(x, "~ zhat_", ctrl)), data = d)
+    c(est = unname(coef(iv)[x]), se = unname(sqrt(vcov(iv)[x, x])),
+      F = unname(summary(fs)$coefficients["zhat_", "t value"]^2))
+  }
+  draws <- t(sapply(seq_len(n_splits), one_split))
+  med <- median(draws[, "est"])
+  list(estimate = med,
+       se = sqrt(median(draws[, "se"]^2 + (draws[, "est"] - med)^2)),
+       median_F = median(draws[, "F"]),
+       share_F_above_10 = mean(draws[, "F"] > 10),
+       draws = draws)
+}
+```
+
+#### Demonstration 1: Many Weak Instruments
+
+The paper's first linear design is the one where 2SLS is most clearly broken: $J = 500$ candidate instruments, each individually weak, with a strong signal only in their combination,
+
+$$
+y = -0.9 + 0.75\, x + \varepsilon, \qquad x = \pi\, \mathbf{1}' z + v, \qquad z \sim N(0, I_{500}), \qquad
+\begin{pmatrix}\varepsilon\\ v\end{pmatrix} \sim N\!\left(0, \begin{pmatrix}1 & \rho\\ \rho & 1\end{pmatrix}\right),
+$$
+
+with $n = 1{,}000$, $\pi \in \{0.05, 0.03\}$, and $\rho \in \{0.5, 0.3\}$. Each instrument explains about $\pi^2$ of the variance of $x$, a fraction of a percent, but together they explain $500\pi^2/(500\pi^2 + 1)$: 56 percent when $\pi = 0.05$ and 31 percent when $\pi = 0.03$. The sparsity that post-lasso instrument selection needs [@belloni2012sparse] is absent, and the manuscript reports that lasso selects no instrument in any replication. The MLIV learner is ridge regression, whose penalty is chosen by generalized cross-validation inside each training fold, with $K = 3$ folds. We compare it with OLS, 2SLS and LIML using all 500 instruments, and with the same ridge instrument learned on the full sample instead of out of fold. The Monte Carlo below runs 200 replications per design in parallel and caches the result.
+
+```{r mliv-weak-sim, message=FALSE, warning=FALSE}
+library(parallel)
+
+mliv_sim_file <- "data/mliv_many_weak_sim.rds"
+
+if (file.exists(mliv_sim_file)) {
+  mliv_sim <- readRDS(mliv_sim_file)
+} else {
+  sim_rep <- function(n, J, pi1, rho, K = 3) {
+    # ridge with the penalty chosen by generalized cross-validation, via a thin SVD
+    ridge <- function(Z, x, lambdas = 10^seq(-1, 4, length.out = 40)) {
+      mz <- colMeans(Z); mx <- mean(x)
+      s <- svd(sweep(Z, 2, mz)); uy <- crossprod(s$u, x - mx)
+      gcv <- sapply(lambdas, function(l) {
+        f <- s$d^2 / (s$d^2 + l)
+        rss <- sum((x - mx)^2) - sum(uy^2) + sum(((1 - f) * uy)^2)
+        rss / length(x) / (1 - sum(f) / length(x))^2
+      })
+      l <- lambdas[which.min(gcv)]
+      list(mz = mz, mx = mx, beta = drop(s$v %*% (s$d / (s$d^2 + l) * uy)))
+    }
+    ridge_pred <- function(m, Z) drop(sweep(Z, 2, m$mz) %*% m$beta) + m$mx
+    # just-identified IV slope and conventional SE with instrument h (and a constant)
+    iv1 <- function(h, x, y) {
+      b <- cov(h, y) / cov(h, x)
+      e <- (y - mean(y)) - b * (x - mean(x))
+      c(b, sqrt(sum(e^2) / (length(y) - 2) * sum((h - mean(h))^2)) /
+           abs(sum((h - mean(h)) * (x - mean(x)))))
+    }
+
+    z <- matrix(rnorm(n * J), n, J)
+    e <- rnorm(n); v <- rho * e + sqrt(1 - rho^2) * rnorm(n)
+    x <- drop(z %*% rep(pi1, J)) + v
+    y <- -0.9 + 0.75 * x + e
+
+    qz <- qr(cbind(1, z))
+    xhat <- qr.fitted(qz, x)
+    tsls <- cov(xhat, y) / cov(xhat, x)
+    # LIML: kappa is the smallest root of det(W'M_1 W - kappa W'M_Z W) = 0, W = (y, x)
+    W <- cbind(y, x)
+    M1W <- crossprod(scale(W, scale = FALSE)); MZW <- crossprod(qr.resid(qz, W))
+    kap <- min(Re(eigen(solve(MZW, M1W), only.values = TRUE)$values))
+    ex <- qr.resid(qz, x); ey <- qr.resid(qz, y)
+    liml <- (sum((x - mean(x)) * (y - mean(y))) - kap * sum(ex * ey)) /
+            (sum((x - mean(x))^2) - kap * sum(ex^2))
+
+    fold <- sample(rep(1:K, length.out = n)); h <- numeric(n)
+    for (k in 1:K) h[fold == k] <- ridge_pred(ridge(z[fold != k, ], x[fold != k]), z[fold == k, ])
+    cf <- iv1(h, x, y)
+    insample <- iv1(ridge_pred(ridge(z, x), z), x, y)[1]
+    fs_F <- summary(lm(x ~ h))$coefficients["h", "t value"]^2
+
+    c(ols = unname(coef(lm(y ~ x))[2]), tsls = tsls, liml = liml,
+      ridge_full_sample = insample, mliv = cf[1], mliv_se = cf[2], mliv_F = fs_F)
+  }
+
+  grid <- expand.grid(pi1 = c(0.05, 0.03), rho = c(0.5, 0.3), rep = 1:200)
+  cl <- makeCluster(max(1, min(14, detectCores() - 2)))
+  clusterSetRNGStream(cl, 20261102)
+  clusterExport(cl, "sim_rep", envir = environment())
+  draws <- parLapply(cl, split(grid, seq_len(nrow(grid))),
+                     function(g) sim_rep(1000, 500, g$pi1, g$rho))
+  stopCluster(cl)
+  mliv_sim <- cbind(grid, do.call(rbind, draws))
+  saveRDS(mliv_sim, mliv_sim_file)
+}
+```
+
+```{r mliv-weak-table, echo=FALSE}
+ests <- c("ols", "tsls", "liml", "ridge_full_sample", "mliv")
+sim_tab <- do.call(rbind, lapply(split(mliv_sim, list(mliv_sim$pi1, mliv_sim$rho)), function(d) {
+  data.frame(pi = d$pi1[1], rho = d$rho[1], statistic = c("Bias", "RMSE"),
+             rbind(sapply(ests, function(m) mean(d[[m]]) - 0.75),
+                   sapply(ests, function(m) sqrt(mean((d[[m]] - 0.75)^2)))),
+             check.names = FALSE)
+}))
+sim_tab <- sim_tab[order(-sim_tab$pi, -sim_tab$rho), ]
+# Slope results printed in Table 3 of the 2021 manuscript (n = 1,000)
+paper <- data.frame(pi = c(0.05, 0.05, 0.03, 0.03), rho = c(0.5, 0.3, 0.5, 0.3),
+                    paper_2sls_bias = c(0.135, 0.076, 0.255, 0.145),
+                    paper_mliv_bias = c(0.027, -0.014, -0.081, -0.082))
+sim_tab <- merge(sim_tab, paper, by = c("pi", "rho"), sort = FALSE)
+sim_tab[sim_tab$statistic == "RMSE", c("paper_2sls_bias", "paper_mliv_bias")] <- NA
+knitr::kable(sim_tab, digits = 3, row.names = FALSE,
+  col.names = c("$\\pi$", "$\\rho$", "", "OLS", "2SLS", "LIML", "Ridge, full sample",
+                "MLIV (cross-fit ridge)", "2SLS bias (paper)", "MLIV bias (paper)"),
+  caption = "Many weak instruments: bias and RMSE of the slope (true value 0.75), 200 replications per design, with the biases printed in the manuscript's Table 3 for comparison.")
+```
+
+```{r mliv-weak-calibration, include=FALSE}
+cal <- do.call(rbind, lapply(split(mliv_sim, list(mliv_sim$pi1, mliv_sim$rho)), function(d)
+  data.frame(pi = d$pi1[1], rho = d$rho[1], mc_sd = sd(d$mliv), mean_se = mean(d$mliv_se),
+             cover = mean(abs(d$mliv - 0.75) < 1.96 * d$mliv_se), med_F = median(d$mliv_F))))
+c_hi <- cal[cal$pi == 0.05 & cal$rho == 0.5, ]
+c_lo <- cal[cal$pi == 0.03 & cal$rho == 0.5, ]
+```
+
+Three things stand out, and all three match the manuscript qualitatively. First, 2SLS with all 500 instruments is pulled most of the way to OLS, and the pull is stronger when the first stage is weaker, just as the Bekker and Hahn-Hausman approximations predict: our 2SLS biases sit within about 0.01 of the printed ones in every design. Second, the cross-fitted ridge instrument removes essentially all of the bias, and its conventional standard error is honest: in the $\pi = 0.05$, $\rho = 0.5$ design the Monte Carlo standard deviation is `r sprintf("%.3f", c_hi$mc_sd)` against an average reported standard error of `r sprintf("%.3f", c_hi$mean_se)`, and the 95 percent interval covers in `r round(100 * c_hi$cover)` percent of replications. Third, the same ridge instrument learned on the full sample is almost as biased as 2SLS. Ridge is regularized, so it does not interpolate, but it still fits enough of $v_i$ into $\hat z_i$ to carry the endogeneity into the second stage. The cross-fit, not the learner, is what fixes the problem.
+
+The table also holds a result the manuscript does not report. LIML with all 500 instruments, which is consistent under the many-instrument asymptotics of @bekker1994alternative, is as unbiased as MLIV and somewhat more precise in every design. That is no accident: the instruments enter the first stage linearly and the errors are homoskedastic and Gaussian, which is the world LIML is built for, so collapsing the instruments into a learned index buys nothing over it. MLIV's advantage is specific to first stages that are not linear in the candidate instruments, or to error variances that move with them, and that is where the next demonstration goes. A fair benchmark for MLIV in applied work is therefore LIML on the raw instruments, not only 2SLS.
+
+The manuscript's own MLIV biases are larger than ours in the weak $\pi = 0.03$ designs, about $-0.08$, and its printed RMSE equals the absolute bias in several cells even where the reported standard error is several times larger, which cannot both hold. We therefore compare biases only. In our runs the learned instrument's median first-stage $F$ is `r round(c_hi$med_F)` when $\pi = 0.05$ and `r round(c_lo$med_F)` when $\pi = 0.03$, so the weaker design is still comfortably identified once the 500 instruments are collapsed into one, and its sampling variance is the main cost: the Monte Carlo standard deviation there is `r sprintf("%.3f", c_lo$mc_sd)`.
+
+#### Demonstration 2: A Misspecified First Stage and Heteroskedasticity
+
+The published version of the paper makes a pointed empirical claim: political-cycle instruments for advertising look weak (first-stage $F$ below 10 for most product categories) not because the variation is absent, but because the first stage is misspecified, and a learned first stage recovers the variation. The cleanest way to see the mechanism, and the role of the variance criterion \@ref(eq:mliv-bilevel), is a design in which a linear first stage is not merely weak but blind:
+
+$$
+y = 1 + 0.5\, x + \sigma(z)\, u, \qquad x = z^2 - \tfrac43 + v, \qquad z \sim U(-2, 2), \qquad \sigma(z) = e^{0.6 z}, \qquad \operatorname{corr}(u, v) = 0.6 .
+$$
+
+Because $z$ is symmetric and the first stage is even, $\operatorname{cov}(z, x) = 0$: the linear instrument has no relevance at all, though $z$ explains more than half the variance of $x$. The structural error is heteroskedastic, so the optimal instrument for the slope is not the prediction of $x$ but $\mathbb{E}[x \mid z]/\sigma^2(z)$. We compare four estimators on the same draws: 2SLS with $z$; MLIV with the homoskedastic heuristic, which learns the projection of $(1, x)$ on a natural spline basis in $z$ out of fold; MLIV with the variance-minimizing criterion, which solves the sieve version of \@ref(eq:mliv-bilevel) in each training fold by the alternation $\hat\Phi = \hat A(\hat\theta)^{-1} \hat C$; and the infeasible oracle that uses $(1, \mathbb{E}[x\mid z])/\sigma^2(z)$.
+
+```{r mliv-het-demo, message=FALSE, warning=FALSE}
+library(splines)
+
+het_gen <- function(n) {
+  z <- runif(n, -2, 2)
+  u <- rnorm(n); v <- 0.6 * u + 0.8 * rnorm(n)
+  x <- z^2 - 4 / 3 + v
+  data.frame(y = 1 + 0.5 * x + exp(0.6 * z) * u, x = x, z = z)
+}
+
+# just-identified IV with instrument matrix W and heteroskedasticity-robust SE
+iv_w <- function(W, X, y) {
+  WX_inv <- solve(crossprod(W, X))
+  th <- drop(WX_inv %*% crossprod(W, y))
+  e <- drop(y - X %*% th)
+  list(th = th, se = sqrt(diag(WX_inv %*% crossprod(W * e) %*% t(WX_inv))))
+}
+
+het_rep <- function(d, K = 3, df = 8, iters = 2) {
+  n <- nrow(d); X <- cbind(1, d$x)
+  B <- ns(d$z, df = df, intercept = TRUE)
+  fold <- sample(rep(1:K, length.out = n))
+  W_pred <- W_vmin <- matrix(0, n, 2)
+  for (k in 1:K) {
+    tr <- fold != k; te <- fold == k
+    Bt <- B[tr, ]; Xt <- X[tr, ]; yt <- d$y[tr]
+    # homoskedastic heuristic: predict (1, x) from the basis
+    Pi <- solve(crossprod(Bt), crossprod(Bt, Xt))
+    W_pred[te, ] <- B[te, ] %*% Pi
+    # variance-minimizing instrument: Phi = A(theta)^{-1} C, alternating with theta
+    th <- iv_w(Bt %*% Pi, Xt, yt)$th
+    for (it in seq_len(iters)) {
+      e <- drop(yt - Xt %*% th)
+      Phi <- solve(crossprod(Bt * e), crossprod(Bt, Xt))
+      th <- iv_w(Bt %*% Phi, Xt, yt)$th
+    }
+    W_vmin[te, ] <- B[te, ] %*% Phi
+  }
+  lin <- iv_w(cbind(1, d$z), X, d$y)
+  pred <- iv_w(W_pred, X, d$y)
+  vmin <- iv_w(W_vmin, X, d$y)
+  orc <- iv_w(cbind(1, d$z^2 - 4 / 3) / exp(1.2 * d$z), X, d$y)
+  c(linear_2sls = lin$th[2], mliv_predict = pred$th[2], mliv_varmin = vmin$th[2],
+    oracle = orc$th[2], se_predict = pred$se[2], se_varmin = vmin$se[2])
+}
+
+set.seed(11)
+het <- as.data.frame(t(replicate(500, het_rep(het_gen(1000)))))
+het_est <- c("linear_2sls", "mliv_predict", "mliv_varmin", "oracle")
+knitr::kable(
+  data.frame(estimator = c("2SLS, linear in z", "MLIV, predict x", "MLIV, minimize variance",
+                           "Oracle optimal instrument"),
+             bias = sapply(het_est, function(m) mean(het[[m]]) - 0.5),
+             mc_sd = sapply(het_est, function(m) sd(het[[m]])),
+             median_abs_error = sapply(het_est, function(m) median(abs(het[[m]] - 0.5)))),
+  digits = 3, row.names = FALSE,
+  caption = "Misspecified and heteroskedastic design: slope estimates (true value 0.5), 500 replications, n = 1,000.")
+```
+
+```{r mliv-het-plot, echo=FALSE, fig.cap="Sampling distributions of the slope under the two learned instruments and the oracle optimal instrument. The linear instrument is omitted because its estimates are spread over the real line.", fig.height=3.2}
+library(ggplot2)
+het_long <- data.frame(
+  estimator = factor(rep(c("MLIV, predict x", "MLIV, minimize variance", "Oracle"), each = nrow(het)),
+                     levels = c("MLIV, predict x", "MLIV, minimize variance", "Oracle")),
+  estimate = c(het$mliv_predict, het$mliv_varmin, het$oracle))
+ggplot(het_long, aes(estimate, colour = estimator)) +
+  geom_density(linewidth = 0.8) +
+  geom_vline(xintercept = 0.5, linetype = "dashed") +
+  labs(x = "Estimated slope", y = "Density", colour = NULL) +
+  theme_minimal() + theme(legend.position = "bottom")
+```
+
+```{r mliv-het-cover, include=FALSE}
+cov_pred <- mean(abs(het$mliv_predict - 0.5) < 1.96 * het$se_predict)
+cov_vmin <- mean(abs(het$mliv_varmin - 0.5) < 1.96 * het$se_varmin)
+sd_ratio <- sd(het$mliv_predict) / sd(het$mliv_varmin)
+```
+
+The linear instrument identifies nothing: its estimates have a Monte Carlo standard deviation of `r round(sd(het$linear_2sls))`, for a slope of 0.5. Any flexible first stage fixes the identification problem, and the cross-fitted spline projection is unbiased with an honest standard error (95 percent coverage `r round(100 * cov_pred)` percent). But it is not efficient. Predicting $x$ well is the right target only under homoskedasticity, and here the variance-minimizing instrument, which reweights by the inverse conditional variance it learns from the training residuals, is `r sprintf("%.1f", sd_ratio)` times more precise and indistinguishable from the oracle (coverage `r round(100 * cov_vmin)` percent). This is the practical content of the distinction between the paper's general criterion and its linear heuristic: when the error variance moves with the instruments, which is the rule in market-level data where big and small markets share a model, the instrument should be chosen for the estimator's precision, not for its prediction score.
+
+#### Replication: The Colonial Origins of Comparative Development
+
+The manuscript's empirical application revisits @acemoglu2001colonial, the institutions-and-growth regressions whose single instrument, log settler mortality, becomes weak once the neo-Europes are dropped or continent dummies are added. In the published article this application moves to the online appendix, with the same numbers. Log GDP per capita in 1995 is regressed on average protection against expropriation risk, instrumented by log settler mortality, across six specifications from AJR's Table 4. The MLIV first stage replaces log mortality with a learned function of it. The paper's nested cross-validation selects a random forest, so we use a random forest directly, with three-fold cross-fitting as in the paper. Unlike the paper, which reports one partition, we repeat the partition 200 times and report the distribution, because with 64 countries each fold has about 21.
+
+```{r mliv-ajr, message=FALSE, warning=FALSE}
+library(ranger)
+data(AJR, package = "hdm")
+
+ajr_specs <- list(
+  "(1) Base" = list(x = character(0), keep = rep(TRUE, 64)),
+  "(2) + latitude" = list(x = "Latitude", keep = rep(TRUE, 64)),
+  "(3) No neo-Europes" = list(x = character(0), keep = AJR$Neo == 0),
+  "(4) No neo-Europes + latitude" = list(x = "Latitude", keep = AJR$Neo == 0),
+  "(5) Continents" = list(x = c("Africa", "Asia", "Namer", "Samer"), keep = rep(TRUE, 64)),
+  "(6) Continents + latitude" = list(x = c("Latitude", "Africa", "Asia", "Namer", "Samer"),
+                                     keep = rep(TRUE, 64)))
+
+tsls_ajr <- function(d, controls) {
+  ctrl <- if (length(controls)) paste("+", paste(controls, collapse = " + ")) else ""
+  iv <- ivreg(as.formula(paste("GDP ~ Exprop", ctrl, "| logMort", ctrl)), data = d)
+  fs <- lm(as.formula(paste("Exprop ~ logMort", ctrl)), data = d)
+  c(est = unname(coef(iv)["Exprop"]), se = unname(sqrt(vcov(iv)["Exprop", "Exprop"])),
+    F = unname(summary(fs)$coefficients["logMort", "t value"]^2))
+}
+
+rf_fit <- function(df) ranger(Exprop ~ logMort, data = df, num.trees = 500,
+                              min.node.size = 5, seed = 1)
+rf_pred <- function(m, df) predict(m, df)$predictions
+
+ajr_file <- "data/mliv_ajr_splits.rds"
+if (file.exists(ajr_file)) {
+  ajr_mliv <- readRDS(ajr_file)
+} else {
+  ajr_mliv <- lapply(ajr_specs, function(s)
+    mliv(AJR[s$keep, ], y = "GDP", x = "Exprop", z = "logMort", controls = s$x,
+         fit = rf_fit, pred = rf_pred, K = 3, n_splits = 200, seed = 2026))
+  saveRDS(ajr_mliv, ajr_file)
+}
+ajr_tsls <- sapply(ajr_specs, function(s) tsls_ajr(AJR[s$keep, ], s$x))
+```
+
+```{r mliv-ajr-table, echo=FALSE}
+# Printed in AJR (2001) Table 4 and in the MLIV manuscript's Table 7 (same values in the published online appendix)
+printed <- data.frame(
+  ajr_est = c(0.944, 0.995, 1.281, 1.211, 0.982, 1.107),
+  ajr_F = c(22.946, 13.09, 8.646, 7.826, 6.233, 3.456),
+  paper_mliv = c(0.725, 0.683, 0.850, 0.776, 0.770, 0.787),
+  paper_mliv_F = c(28.681, 18.856, 11.575, 10.670, 12.285, 8.724))
+ajr_tab <- data.frame(
+  spec = names(ajr_specs),
+  printed_2sls = printed$ajr_est,
+  our_2sls = ajr_tsls["est", ], our_2sls_se = ajr_tsls["se", ], our_F = ajr_tsls["F", ],
+  paper_mliv = printed$paper_mliv, paper_mliv_F = printed$paper_mliv_F,
+  mliv_median = sapply(ajr_mliv, `[[`, "estimate"),
+  mliv_se = sapply(ajr_mliv, `[[`, "se"),
+  mliv_p05 = sapply(ajr_mliv, function(r) quantile(r$draws[, "est"], 0.05)),
+  mliv_p95 = sapply(ajr_mliv, function(r) quantile(r$draws[, "est"], 0.95)),
+  mliv_median_F = sapply(ajr_mliv, `[[`, "median_F"),
+  share_F10 = sapply(ajr_mliv, `[[`, "share_F_above_10"))
+knitr::kable(ajr_tab, digits = 2, row.names = FALSE,
+  col.names = c("Specification", "2SLS (AJR)", "2SLS (ours)", "SE", "F (ours)",
+                "MLIV (paper)", "F (paper)", "MLIV median", "SE", "5%", "95%",
+                "Median F", "Share F > 10"),
+  caption = "AJR Table 4 with log settler mortality and with a cross-fitted random forest instrument. 'Paper' columns are the 2021 manuscript's Table 7, reprinted unchanged in the published online appendix, from a single partition; our MLIV columns summarize 200 partitions.")
+```
+
+```{r mliv-ajr-plot, echo=FALSE, fig.cap="MLIV estimates of the effect of institutions across 200 random three-fold partitions, by specification. Solid line: 2SLS with log settler mortality. Dashed line: the single-partition MLIV estimate printed in the manuscript. The axis is truncated at -1 and 4.", fig.height=4.2}
+ajr_long <- do.call(rbind, lapply(names(ajr_mliv), function(s)
+  data.frame(spec = s, est = ajr_mliv[[s]]$draws[, "est"])))
+ajr_long$spec <- factor(ajr_long$spec, levels = names(ajr_specs))
+ref <- data.frame(spec = factor(names(ajr_specs), levels = names(ajr_specs)),
+                  tsls = ajr_tsls["est", ], paper = printed$paper_mliv)
+ggplot(ajr_long, aes(pmin(pmax(est, -1), 4))) +
+  geom_histogram(bins = 40, fill = "grey60") +
+  geom_vline(data = ref, aes(xintercept = tsls)) +
+  geom_vline(data = ref, aes(xintercept = paper), linetype = "dashed") +
+  facet_wrap(~spec, ncol = 2, scales = "free_y") +
+  labs(x = "MLIV estimate of the effect of institutions", y = "Partitions") +
+  theme_minimal()
+```
+
+```{r mliv-ajr-numbers, include=FALSE}
+f1_ours <- ajr_tsls["F", 1]; f1_ml <- ajr_mliv[[1]]$median_F
+f3_ours <- ajr_tsls["F", 3]; f3_ml <- ajr_mliv[[3]]$median_F
+n_below <- sum(printed$paper_mliv < sapply(ajr_mliv, function(r) quantile(r$draws[, "est"], 0.05)))
+```
+
+The 2SLS columns reproduce AJR's pattern from the extract of their data distributed with the `hdm` package, though not to the third decimal: the base estimate is `r sprintf("%.3f", ajr_tsls["est", 1])` against the printed 0.944, and every column shows a gap of similar size. The MLIV columns do not reproduce the manuscript. The manuscript's learned instrument is stronger than log mortality in every specification (first-stage $F$ of 28.7 against 22.9 in the base sample) and its estimates are lower and more stable, around 0.7 to 0.85. In our 200 partitions the cross-fitted forest instrument is weaker than log mortality, not stronger: a median $F$ of `r sprintf("%.1f", f1_ml)` against `r sprintf("%.1f", f1_ours)` in the base sample, and `r sprintf("%.1f", f3_ml)` against `r sprintf("%.1f", f3_ours)` without the neo-Europes, where it clears 10 in none of the 200 partitions. The estimates move a great deal with the partition, and in the weak specifications their 90 percent range runs from negative values to several times the 2SLS estimate. Nor is the manuscript's result a lucky draw from this distribution: its single-partition estimate lies below our 5th percentile in `r n_below` of the six specifications. Neither the manuscript nor the published appendix reports enough detail (the features given to the forest, its tuning grid, the partition, or how the first-stage $F$ of a cross-fitted instrument was computed) to locate the difference.
+
+The reason is not a coding detail but the economics of the method. MLIV gains when the learner can find structure in the instruments that a linear first stage misses: many weak instruments that only matter together, a nonlinearity, heteroskedasticity. AJR have one instrument whose relationship with expropriation risk is close to linear, so the forest has nothing to discover, and it pays two costs a linear first stage does not. It estimates a step function from about 43 countries per training fold, and each country's instrument comes from a model that never saw it. A linear first stage on log mortality is already very nearly the optimal instrument here, and no learner can improve on the optimal instrument. The general lesson is the one Section \@ref(sec-dml-robustness) draws for double machine learning in the same data: with 64 observations, any procedure that depends on a random partition has to be reported over many partitions, and a single partition is an anecdote.
+
+A second lesson concerns interpretation. If the effect of institutions differs across countries, a different instrument identifies a different weighted average of country effects (Section \@ref(sec-iv-heterogeneity)), so an MLIV estimate that differs from the 2SLS estimate need not mean that one is biased. MLIV's efficiency theory is for a model with a common $\theta_0$; under heterogeneity, the learned instrument also chooses the estimand.
+
+#### Using MLIV in Practice
+
+The workflow that makes an MLIV estimate defensible to a referee, or to opposing counsel, follows from the theory above.
+
+1.  Defend strong exogeneity. State why $\mathbb{E}[\varepsilon \mid z] = 0$, not only $\mathbb{E}[z\varepsilon] = 0$, since the learner will exploit nonlinear features of $z$. If only linear exogeneity is defensible, restrict the learner class to linear indices.
+2.  Pre-specify the learner library and the tuning protocol. Choose among learners by cross-validation inside each training fold, never by looking at the second-stage estimate. Searching over learners, seeds, and fold counts for a strong first stage or a significant coefficient is specification search with extra steps.
+3.  Cross-fit, always. The demonstration above shows that a regularized learner fit on the full sample keeps most of the bias of 2SLS.
+4.  Repeat the partition and report its distribution. Use the median estimate with the dispersion-adjusted standard error, and show the share of partitions in which the learned instrument is strong.
+5.  Report instrument strength for the learned instrument, and when it is marginal use weak-instrument-robust inference with the learned instrument held fixed.
+6.  Use the variance criterion when heteroskedasticity is plausible. The homoskedastic heuristic, predict $x$, is valid but can be far from efficient.
+7.  Compare with the conventional estimator. A large gap between MLIV and 2SLS on the raw instruments is information: under constant effects it signals first-stage misspecification or weak-instrument bias, and under heterogeneous effects it signals a change in the complier population.
+
+Where this matters most in industry and policy work is in the two settings the published paper studies. Demand estimation for merger review, pricing, and welfare analysis relies on instruments built from rivals' product characteristics or from cost shifters in other markets [@berry1995automobile; @nevo2001measuring], whose relevance for the nonlinear taste-heterogeneity parameters is notoriously weak [@reynaert2014improving]. And advertising-effectiveness studies lean on instruments, such as Hausman-type ad costs in other markets or the crowd-out of commercial advertising by political campaigns, that are many, individually weak, and related to ad spending in ways no one would write down as linear (compare the single-source design in Section \@ref(sec-single-source-tv-iv), which sidesteps instruments altogether). In both settings the candidate instruments are already accepted as exogenous by the literature, and the question is only how much of their variation the analyst manages to use. That is exactly the question MLIV answers, and the cross-fitting discipline is what makes the answer survive scrutiny.
+
 
 ------------------------------------------------------------------------
 
@@ -3466,7 +3955,7 @@ Reading the demonstration and the production figures together is the right frami
 
 ------------------------------------------------------------------------
 
-### Zero-Valued Outcomes
+### Zero-Valued Outcomes {#sec-iv-zero-outcomes}
 
 For outcomes that take zero values, log transformations can introduce interpretation issues. Specifically, the coefficient on a log-transformed outcome does not directly represent a percentage change [@chen2024logs]. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. In such cases, researchers use alternative methods:
 
@@ -3915,6 +4404,10 @@ A statistically significant reduced form estimate without a corresponding first 
 To test the validity of the exogeneity assumption, we can use a sanity test:
 
 -   Identify groups for which the effects of instruments on the treatment variable are small and not significantly different from 0. The reduced form estimate for these groups should also be 0. These "no-first-stage samples" provide evidence of whether the exogeneity assumption is violated.
+
+The same logic can be applied to the instrument rather than the sample. When the mechanism that makes an instrument relevant has a known boundary, a version of the instrument built just outside that boundary has no first stage by construction but shares most of the confounding. @han2026mobile instrument a restaurant's exposure on a recommendation app with the number of rivals inside the app's 400 metre search radius, interacted with the app's launch. Rivals 800 to 1,200 metres away can never enter the same candidate set, so their count, interacted with the launch, serves as a control that carries neighbourhood density without carrying the mechanism. The check is only as informative as the match between the outer ring's scale and the scale of the confounder one fears, a point the simulation in Section \@ref(sec-shift-share-recommender-launch) makes concrete.
+
+The same paper shows the limit of the more familiar response, adding fixed effects at finer geographic levels. When the instrument varies mainly between areas, area-by-time fixed effects absorb the identifying variation along with the confounder: in their data the first-stage $F$ falls from 316 to 15.5 and the estimate loses significance and changes sign. A collapse of this kind is not evidence against the instrument, and survival would not have been evidence for it. It shows that the instrument and the confounder live at the same level, and that the exclusion argument has to be made with something other than fixed effects.
 
 #### Overid Tests
 

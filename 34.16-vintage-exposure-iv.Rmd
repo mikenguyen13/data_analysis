@@ -1,0 +1,469 @@
+### Entry Timing Against a Common Path {#sec-vintage-exposure-iv}
+
+Many economic states are not chosen in one go. They are the product of a decision made once, at
+some entry date, and a common path that everyone experiences afterward. A homeowner chooses a
+purchase date and a down payment; the local price index does the rest, and together they fix
+home equity years later. A borrower locks a mortgage rate at origination; the market rate path
+then decides how far below market that rate sits. A worker graduates in some year; the business
+cycle decides what the labor market looks like at entry. In each case the state we care about is
+endogenous if we look at it directly, because the people with high equity, cheap mortgages, or
+lucky graduation years differ from everyone else. But the state is built from two pieces, and
+the research design can lean on whichever piece is closer to as-good-as-random.
+
+This section develops that idea through @liao2026whats, which asks whether home equity changes
+how much flood risk a homeowner is willing to carry uninsured. The paper is worth studying
+closely for two reasons. It uses two distinct designs, one aggregate and one micro, that borrow
+variation from the same housing cycle in different ways. And its micro design does something
+more ambitious than the usual instrument: it separates two causal channels that move together
+almost one for one, by exploiting the fact that the same shock to equity maps into very
+different changes in the quantity that matters, depending on when a household bought.
+
+#### Two Channels That Move Together
+
+Higher home equity could raise flood insurance demand for two reasons. The first is a wealth
+effect: richer households buy more insurance, a pattern documented for other lines of coverage
+even though textbook expected-utility models predict the opposite sign. The second is risk
+shifting. A homeowner with a mortgage holds something like a call option on the house. If a flood
+destroys the structure and the damage exceeds the owner's equity, the owner can walk away and
+hand the loss to the lender. Default then works as implicit insurance with a deductible equal to
+the owner's equity plus whatever default costs. The idea has a close relative in health
+insurance, where @mahoney2015bankruptcy shows that the option to file for bankruptcy crowds out
+demand for formal coverage, and in housing, where negative equity reduces homeowners' investment
+in their properties [@melzer2017mortgage] and changes their labor supply
+[@bernstein2021negative].
+
+The paper makes the risk-shifting channel measurable. Let $L$ be the flood loss as a share of the
+structure value $S$, with distribution $f(\ell)$ conditional on a flood, and let $E$ be home
+equity. A homeowner who defaults whenever losses exceed equity bears
+
+$$
+\text{EaR}(E, S) = \sum_{\ell} f(\ell)\, \min\big(\max(E, 0),\ \ell S\big),
+$$
+
+which the authors call equity-at-risk. EaR is the expected flood loss that actually lands on
+the homeowner. It is flat in $E$ when equity exceeds the structure value (the owner never wants
+to default, so bears every loss) and flat again when equity is negative (the owner bears nothing).
+In between it rises, but less than one for one. The whole design turns on that nonlinearity.
+
+A numerical illustration shows why. Take two identical houses, each with a structure worth
+\$150,000, and suppose local prices fall enough between 2007 and 2012 to erase \$60,000 of
+equity for every owner in the market. One owner bought early in the boom and holds \$180,000 of
+equity at the peak; after the bust she still has \$120,000 and still bears nearly all of any
+flood loss. The other bought at the peak with a small down payment and holds \$70,000; after the
+bust he has \$10,000, and a total loss would now cost him only that. Both lost the same wealth.
+Only the second lost most of his stake in the flood outcome. If insurance demand responds to EaR
+and not merely to wealth, the second owner should drop coverage and the first should not.
+
+```{r vint-kink-figure, fig.width = 7, fig.height = 4.2, fig.cap = "Equity-at-risk as a function of home equity for a \\$150,000 structure. Both owners lose \\$60,000 of equity in the bust. The early buyer stays on the flat upper segment and keeps almost all of her flood exposure; the peak buyer slides down the steep segment and sheds most of his."}
+library(ggplot2)
+
+# Conditional flood-loss distribution on a 1 percent grid of structure value.
+# Most claims are small relative to the structure; a thin tail reaches total loss.
+l_grid <- seq(0.01, 1, by = 0.01)
+f_l <- dbeta(l_grid, 0.5, 1.6)
+f_l <- f_l / sum(f_l)
+ear <- function(equity, structure) {
+  vapply(seq_along(equity), function(i)
+    sum(f_l * pmin(pmax(equity[i], 0), l_grid * structure[i])), numeric(1))
+}
+
+S <- 150
+curve_df <- data.frame(equity = seq(-40, 220, by = 1))
+curve_df$ear <- ear(curve_df$equity, rep(S, nrow(curve_df)))
+
+owners <- data.frame(
+  who    = rep(c("Early buyer", "Peak buyer"), each = 2),
+  when   = rep(c("2007", "2012"), 2),
+  equity = c(180, 120, 70, 10)
+)
+owners$ear <- ear(owners$equity, rep(S, 4))
+
+ggplot(curve_df, aes(equity, ear)) +
+  geom_line(linewidth = 0.8, colour = "grey30") +
+  geom_path(data = owners, aes(group = who, colour = who),
+            arrow = arrow(length = unit(0.18, "cm")), linewidth = 1) +
+  geom_point(data = owners, aes(colour = who), size = 2.4) +
+  scale_colour_manual(values = c("Early buyer" = "#2C7FB8", "Peak buyer" = "#D95F0E")) +
+  labs(x = "Home equity ($1,000)", y = "Equity-at-risk ($1,000)", colour = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+```{r vint-kink-numbers}
+data.frame(owner = c("Early buyer", "Peak buyer"),
+           change_in_equity = c(-60, -60),
+           change_in_EaR = round(c(owners$ear[2] - owners$ear[1],
+                                   owners$ear[4] - owners$ear[3]), 1)) |>
+  knitr::kable(caption = "The same wealth loss, very different losses of skin in the game (thousands of dollars).")
+```
+
+The identification problem now has a clean shape. Equity and EaR are both endogenous, since
+both depend on income, down payment, and where and when a household chose to buy. And even with
+a perfect instrument for equity, one instrument cannot separate two channels. What the authors
+need is variation in EaR holding the change in equity fixed, which is exactly what the figure
+displays.
+
+#### Design One: Structural Breaks in Local Price Paths
+
+The aggregate half of the paper estimates the total effect of home prices on flood insurance
+take-up across metropolitan areas, without yet separating channels. The endogeneity problem is
+familiar. Metropolitan areas where prices rose fastest may also have had rising incomes,
+population inflows, or new construction in floodplains, all of which move insurance demand
+directly.
+
+The instrument comes from the anatomy of the 2000s boom. @ferreira2023anatomy document that
+many metropolitan price series show a sharp, discrete acceleration at a specific quarter in the
+early 2000s, while others rise smoothly throughout. Fundamentals such as wages, employment, and
+construction costs do not break at those dates. @charles2018housing turn this into an instrument:
+fit a single trend break to each area's price series over 2001 to 2005 and take the change in
+slope, $B_m$, as the size of the boom. The argument for exogeneity is that a sudden break,
+unmatched by any break in fundamentals, reflects a shift in buyer expectations rather than a
+shift in the local economy. Areas without a real break still get an estimated break, but a tiny
+one, and they serve as the control group.
+
+Liao and Mulder use $B_m$ in two ways. An event study compares areas with large and small breaks
+in event time around each area's break date, estimated with the local projections
+difference-in-differences estimator of @dube2025local because break dates are staggered. Then a
+two-stage least squares model instruments log house prices with the break size interacted with
+event-time indicators,
+
+$$
+\ln \text{HPI}_{mt} = \sum_{k \ge 0} \pi_k\, \mathbb{1}\{t - \tau_m = k\}\, B_m + \mathbf{x}_{mt}'\gamma + \alpha_m + \delta_t + u_{mt},
+$$
+
+$$
+\text{asinh}(\text{NFIP}_{mt}) = \beta \ln \text{HPI}_{mt} + \mathbf{x}_{mt}'\gamma + \alpha_m + \delta_t + \varepsilon_{mt},
+$$
+
+so $\beta$ is a home price elasticity of the number of policies in force. The event-time
+interaction lets the instrument trace the whole hump of boom and bust rather than a single jump,
+which buys strength and lets the bust half of the cycle be checked against the boom half.
+
+The exclusion restriction is that break size affects insurance demand only through prices. The
+paper attacks the obvious violations one at a time. New construction during the boom could raise
+policy counts mechanically, so the main outcome is restricted to structures built before 2003.
+Mandatory purchase rules in designated floodplains could blur voluntary demand, so the key
+specifications use policies outside those zones. Coastal markets had both larger booms and more
+flood risk, so the models include property-level flood risk scores interacted with year. And if
+rising prices simply meant more expensive structures to insure, building coverage per policy
+should rise with the boom; it does not, which works as a placebo outcome. Intensive margins such
+as deductible choice and contents coverage are also flat over the cycle, which argues against a
+general change in risk preferences.
+
+The simulation below captures the logic and the main way it fails. Local fundamentals move both
+prices and insurance demand, so least squares is biased. The break instrument removes that bias,
+until boom size is allowed to correlate with an area's flood-risk trend.
+
+```{r vint-break-sim}
+library(fixest)
+set.seed(2026)
+
+sim_break <- function(n_msa = 300, risk_corr = 0) {
+  years <- 2000:2012
+  B   <- rexp(n_msa, 3)                          # break size, many near zero
+  tau <- sample(2003:2005, n_msa, replace = TRUE)
+  risk <- as.numeric(scale(rnorm(n_msa) + risk_corr * scale(B)))
+  d <- expand.grid(msa = 1:n_msa, year = years)
+  k <- d$year - tau[d$msa]
+  hump <- ifelse(k < 0, 0, ifelse(k <= 3, k / 3, pmax(1 - (k - 3) / 4, 0.2)))
+  fund <- unsplit(lapply(split(rnorm(nrow(d), 0, 0.03), d$msa), cumsum), d$msa)
+  d$lnhpi  <- 0.03 * (d$year - 2000) + 0.8 * B[d$msa] * hump + 0.6 * fund +
+              rnorm(nrow(d), 0, 0.01)
+  d$lnnfip <- 0.35 * d$lnhpi + 1.0 * fund + 0.02 * risk[d$msa] * (d$year - 2000) +
+              rnorm(n_msa)[d$msa] + rnorm(nrow(d), 0, 0.02)
+  d$kbin <- factor(ifelse(k < 0, "pre", pmin(k, 8)))
+  d$B <- B[d$msa]; d$risk <- risk[d$msa]
+
+  ols    <- feols(lnnfip ~ lnhpi | msa + year[risk], d)
+  iv_nor <- feols(lnnfip ~ 1 | msa + year | lnhpi ~ i(kbin, B, ref = "pre"), d)
+  iv_r   <- feols(lnnfip ~ 1 | msa + year[risk] | lnhpi ~ i(kbin, B, ref = "pre"), d)
+  c(ols = coef(ols)[["lnhpi"]],
+    iv_no_risk_trend = coef(iv_nor)[["fit_lnhpi"]],
+    iv_risk_by_year  = coef(iv_r)[["fit_lnhpi"]],
+    first_stage_F    = unname(fitstat(iv_r, "ivwald1")[[1]]$stat))
+}
+
+res_break <- t(sapply(c(0, 0.6), function(rc)
+  c(boom_risk_correlation = rc, round(rowMeans(replicate(100, sim_break(risk_corr = rc))), 3))))
+knitr::kable(res_break, row.names = FALSE,
+  caption = paste("Structural-break instrument, 100 simulated panels of 300 areas.",
+                  "True price elasticity of take-up is 0.35."))
+```
+
+In the first row, boom size is unrelated to flood risk. Least squares is pulled well above the
+truth because local fundamentals raise both prices and insurance demand, while both instrumental
+variables estimates sit near 0.35. In the second row, areas with bigger booms also have
+faster-rising flood risk. The instrument is as strong as before, with a first-stage $F$ in the
+thousands (the simulated boom profile is far cleaner than any real price index), yet without the risk-by-year control the estimate absorbs the risk trend and overshoots.
+Including the control restores it, but only because the confound was measured. This is why the
+paper's First Street risk scores matter so much: they turn the single most plausible exclusion
+violation into an observable that can be partialled out, and the remaining argument is about
+confounds that were not measured.
+
+The aggregate design also reveals a hint that the second design is built to test. When the
+authors split the bust period by construction year, the price elasticity is several times larger
+for homes built in 2003 to 2005 than for older homes. Those owners bought near the peak, so they
+had the least equity at the trough. An elasticity that depends on the level of equity, and not
+only its change, is what risk shifting predicts and what a pure wealth effect does not.
+
+#### Design Two: Same Shock, Different Stakes
+
+The micro design follows flood insurance policies in force in 2006 and asks which ones were
+renewed each year from 2007 to 2012. The obstacle is that the flood insurance records say
+nothing about mortgages: no purchase date, no price, no loan. The authors solve this with a
+sample restriction that makes the purchase date knowable. They keep only policies on homes that
+were built and first insured in the same year, between 2000 and 2005. A house built in 2003 and
+first insured in 2003 was almost certainly bought in 2003. That pins down the cohort.
+
+They then merge, by zip code and construction year, the average purchase price and loan-to-value
+ratio of new homes from deeds and mortgage records. Purchase price is rolled forward with the
+metropolitan price index, the loan balance is amortized on a standard thirty-year schedule, and
+the difference is equity in every year. EaR is computed from equity, the insured structure
+value, and an empirical distribution of flood losses built from historical claims by state. The
+estimating equation is
+
+$$
+\text{Renew}_{icmzt} = \beta_1\, \text{Equity}_{icmt} + \beta_2\, \text{EaR}_{icmt} + \alpha_{cmt} + \lambda_{zt} + \varepsilon_{it},
+$$
+
+where $c$ is the purchase cohort, $m$ the metropolitan area, and $z$ the zip code.
+
+The fixed effects are the design, so it is worth being precise about what each one removes.
+Cohort by area by year effects $\alpha_{cmt}$ absorb everything common to people who bought in
+the same market in the same year, including that cohort's exposure to the local price path,
+its general renewal trend, and any cohort-level selection into buying at the peak.
+Zip-by-year effects $\lambda_{zt}$ absorb everything local in time: neighborhood price changes,
+job losses, foreclosure waves, changes in lender behavior, and flood events. What remains is
+variation across zip codes within a cohort and market, in the gap between one cohort's equity
+path and another's. That is a triple difference: cohort by zip by year. Equity enters linearly
+to absorb the wealth channel. Because EaR is a kinked, nonlinear function of equity, it is not
+collinear with equity, and $\beta_2$ is identified from where on the kink each cell sits.
+
+The authors show the mechanism the design relies on directly, by regressing EaR on equity
+separately for each purchase cohort over 2007 to 2012. For early buyers the slope is close to
+zero: they had so much equity that the bust left their flood exposure intact. For 2005 buyers
+the slope is several times steeper. This plot is the analogue of a first stage. It shows that
+purchase timing changes how a common shock translates into the treatment of interest, and a
+reader can see it before any outcome data enter.
+
+Two features of the construction deserve attention. First, equity is assigned from zip-by-cohort
+averages, so individual households are measured with error. Because the assignment uses group
+means of predetermined terms rather than each household's realized loan, the error is closer to
+the grouped, Berkson type than to classical noise, and the authors interpret their coefficients
+as intent-to-treat effects of constructed exposure. That is the same logic as a simulated
+instrument (Section \@ref(sec-simulated-iv)): a formula applied to predetermined terms and a
+common path, purged of later individual choices such as cash-out refinancing. Second, the sample
+conditions on holding a policy in 2006, so it describes renewal among the already insured, not
+take-up by everyone.
+
+Substantively, the paper finds that lower EaR reduces renewal by much more than the same dollar
+change in total equity, and that the effect is concentrated among peak-of-boom buyers. The equity
+coefficient is positive but small, consistent with a modest wealth effect. Adding the original
+loan-to-value ratio and structure value as controls, and an indicator for negative equity to
+separate risk shifting from strategic default, leaves the EaR effect in place.
+
+#### What the Fixed Effects Buy, and What They Do Not
+
+A simulation makes the design concrete. Forty metropolitan areas with booms of different sizes
+each contain eight zip codes. Six cohorts buy between 2000 and 2005 at local prices, with
+loan-to-value ratios that vary across zip-cohort cells. Renewal from 2007 to 2012 depends on
+equity, on EaR, on zip affluence, and on a local bust shock that hits harder where the boom was
+bigger. The true effects are 0.01 percentage points per \$1,000 of equity and 0.10 per \$1,000
+of EaR.
+
+```{r vint-micro-sim}
+sim_vintage <- function(n_msa = 40, n_zip = 8, level_conf = 0, trend_conf = 0,
+                        beta_eq = 0.01, beta_ear = 0.10) {
+  cohorts <- 2000:2005; years <- 2007:2012
+  boom <- runif(n_msa, 0.02, 0.14)               # annual appreciation 2000 to 2006
+  hpi <- function(m, t) ifelse(t <= 2006, (1 + boom[m])^(t - 2000),
+                               (1 + boom[m])^6 * (1 - 0.75 * boom[m])^(t - 2006))
+  cells <- expand.grid(msa = 1:n_msa, zip = 1:n_zip, cohort = cohorts)
+  cells$zip_id <- interaction(cells$msa, cells$zip)
+  zip_price <- exp(rnorm(n_msa * n_zip, log(180), 0.25))[as.integer(cells$zip_id)]
+  cells$p0 <- zip_price * hpi(cells$msa, cells$cohort)
+  # v: buyer composition of a zip-cohort cell. Better-off buyers put more down.
+  cells$v <- rnorm(nrow(cells))
+  cells$ltv0 <- pmin(pmax(0.82 - 0.06 * cells$v + rnorm(nrow(cells), 0, 0.02), 0.5), 0.98)
+  cells$structure <- 0.45 * zip_price * runif(nrow(cells), 0.9, 1.1)
+
+  d <- merge(cells, data.frame(year = years))
+  value   <- d$p0 * hpi(d$msa, d$year) / hpi(d$msa, d$cohort)
+  balance <- d$ltv0 * d$p0 * (1 - 0.015 * (d$year - d$cohort))
+  d$equity <- value - balance
+  d$ear    <- ear(d$equity, d$structure)
+  bust <- (d$year - 2006) / 6
+  aff  <- rnorm(n_msa * n_zip)[as.integer(d$zip_id)]
+  d$renew <- 80 + 2 * aff + 0.002 * aff * d$p0 - 40 * boom[d$msa] * bust +
+    beta_eq * d$equity + beta_ear * d$ear +
+    level_conf * 3 * d$v +            # composition shifts renewal levels
+    trend_conf * 6 * d$v * bust +     # composition shifts renewal over the bust
+    rnorm(nrow(d), 0, 2)
+  d
+}
+
+est_vintage <- function(d) {
+  pooled   <- feols(renew ~ equity + ear | year, d)
+  baseline <- feols(renew ~ equity + ear | cohort^msa^year + zip_id^year, d)
+  cell_fe  <- feols(renew ~ equity + ear | cohort^msa^year + zip_id^year + zip_id^cohort, d)
+  ltv_ctl  <- feols(renew ~ equity + ear + i(year, ltv0, ref = 2007) |
+                      cohort^msa^year + zip_id^year + zip_id^cohort, d)
+  early <- d[d$cohort <= 2001, ]
+  early$ltv_x_bust <- early$ltv0 * (early$year - 2006)
+  placebo  <- feols(renew ~ ltv_x_bust | cohort^msa^year + zip_id^year + zip_id^cohort,
+                    early)
+  c(pooled = coef(pooled)[["ear"]], baseline = coef(baseline)[["ear"]],
+    plus_cell_fe = coef(cell_fe)[["ear"]], plus_ltv_by_year = coef(ltv_ctl)[["ear"]],
+    early_cohort_placebo = coef(placebo)[[1]])
+}
+
+set.seed(11)
+d1 <- sim_vintage()
+w <- reshape(d1[d1$year %in% c(2007, 2012), c("zip_id", "cohort", "year", "ear", "equity")],
+             idvar = c("zip_id", "cohort"), timevar = "year", direction = "wide")
+by_cohort <- aggregate(cbind(change_equity = equity.2012 - equity.2007,
+                             change_EaR = ear.2012 - ear.2007) ~ cohort, w, mean)
+by_cohort$EaR_on_equity_slope <- sapply(split(d1, d1$cohort), function(x)
+  coef(feols(ear ~ equity | msa^year, x))[["equity"]])
+knitr::kable(by_cohort, digits = 2,
+  caption = "Same bust, different stakes: average 2007 to 2012 changes by purchase cohort (thousands of dollars).")
+```
+
+The cohort table is the simulated counterpart of the paper's diagnostic. Every cohort loses
+roughly the same equity in the bust, and the early cohorts lose almost no EaR. The 2005 cohort
+loses a large share of it. The slope of EaR on equity rises with purchase year. That gradient is
+the identifying variation.
+
+```{r vint-micro-mc}
+scenarios <- list(clean = c(0, 0), composition_in_levels = c(1, 0),
+                  composition_in_trends = c(0, 1))
+res_vint <- t(sapply(scenarios, function(s)
+  round(rowMeans(replicate(40, est_vintage(sim_vintage(level_conf = s[1], trend_conf = s[2])))), 3)))
+knitr::kable(res_vint,
+  caption = paste("Estimated EaR effect (true value 0.10) across 40 simulated samples per row.",
+                  "The last column is the coefficient on initial loan-to-value times years",
+                  "into the bust among 2000 and 2001 buyers, which should be zero."))
+```
+
+Read the table one row at a time.
+
+In the clean world, pooled least squares with only year effects is biased because zip affluence
+and the local bust shock are correlated with both equity and EaR. The paper's baseline
+specification removes both and recovers 0.10. So does every richer specification, and the early
+cohort placebo is close to zero.
+
+In the second row, the kind of buyer who ends up in a given zip-cohort cell differs in ways that
+shift renewal permanently. Better-off buyers made larger down payments, so they have more EaR
+and also renew more for unrelated reasons. Neither cohort-by-area-by-year nor zip-by-year
+effects remove a zip-by-cohort level difference, and the baseline is biased. Adding zip-by-cohort
+effects fixes it, because identification then comes only from how each cell's EaR changes over
+the bust, and level differences in who bought where drop out.
+
+The third row is the threat that matters. Here the buyers who took high loan-to-value loans also
+become progressively less likely to renew as the bust deepens, for a reason unrelated to EaR:
+they are liquidity constrained, or their price expectations soured faster, or they were more
+likely to be laid off. This is a composition difference in trends. Zip-by-cohort effects cannot
+remove it, and here the estimate is badly wrong, because high loan-to-value cells are exactly the
+cells whose EaR fell most. Two tools help. The placebo looks only at the 2000 and 2001 buyers,
+whose EaR barely moved: if initial leverage still predicts falling renewal among people for
+whom leverage did not change flood exposure, leverage is acting through some other channel, and
+the placebo coefficient is far from zero. And controlling for initial loan-to-value interacted
+with year forces identification to come only from the curvature of EaR (the part that depends on
+structure values and the shape of the loss distribution, not on leverage itself), which recovers
+the truth in this simulation. In real data that control spends a great deal of variation, and the
+remaining identification rests on the loss distribution being correctly specified. The paper's
+robustness column adds loan-to-value and structure value as controls; the simulation suggests
+that interacting them with time is the version a referee would ask for.
+
+#### The Recipe
+
+Stripped of the flood setting, the paper's micro design has five ingredients, and each can be
+looked for elsewhere.
+
+1.  A predetermined entry date with recorded terms: a purchase, origination, grant, hire,
+    enrollment, or contract signing, along with the price, rate, or leverage fixed at that date.
+2.  A common path after entry that individual units cannot influence: a local price index, a
+    market interest rate, a share price, an exchange rate, or a business cycle.
+3.  A known mapping from entry terms and path to the state of interest, preferably with a kink,
+    a cap, or an option-like nonlinearity, so that the same path produces different changes in
+    the state for different vintages.
+4.  Fixed effects for the path (location by time) and for the vintage (cohort by location by
+    time), so that neither the shock nor selection into a vintage identifies the effect; only
+    their interaction does.
+5.  A competing channel that moves with the path in a simpler way, entered as a control (here,
+    total equity), so the nonlinear component can be read as a separate mechanism.
+
+The same structure appears in published work across household finance and labor economics.
+
+| Setting | Entry terms | Common path | Constructed state | Reference |
+|:---|:---|:---|:---|:---|
+| Flood insurance renewal | Purchase year, loan-to-value | Metropolitan price index | Equity-at-risk | @liao2026whats |
+| Labor supply | Purchase timing within zip code | Local price index | Negative equity | @bernstein2021negative |
+| Home improvement | Loan terms at purchase | Local price index | Debt overhang | @melzer2017mortgage |
+| Residential mobility | Origination rate | Market mortgage rate | Rate gap (lock-in) | @fonseca2024mortgage; @liebersohn2025household |
+| Early careers | Graduation year | Business cycle | Entry conditions | @oreopoulos2012short; @schwandt2019unlucky |
+
+The recipe also suggests designs that, as far as this book knows, are open. Subscription
+businesses that grandfather old prices create customer cohorts whose effective discount relative
+to the list price is fixed by sign-up date and moved by later price changes, which is a vintage
+design for price sensitivity of churn. Employee stock options granted on different dates are
+pushed in or out of the money by the same share price path, which separates the incentive effect
+of moneyness from the wealth effect of the share price. Firms that issued fixed-rate debt at
+different dates face the same rate path with different refinancing gains. In each case the
+first question is whether a mapping like EaR exists, with a region where the path does nothing to
+the state, because that region supplies the placebo.
+
+#### How It Relates to the Other Families
+
+Design one is a shift-share argument in disguise. The share is an area's break size and the shift
+is a common event-time profile, and the identification rests on the breaks being as good as
+randomly assigned with respect to unmeasured trends in insurance demand
+(Section \@ref(sec-shift-share-iv)). Design two is closer to a simulated instrument
+(Section \@ref(sec-simulated-iv)), because EaR is a formula evaluated on predetermined terms and
+a common path, deliberately ignoring what each household later did. Its reliance on curvature
+connects it to the regression kink design (Section \@ref(sec-regression-kink-design)), with the
+difference that the kink here sits at a different place for every cell. And the use of an
+aggregate shock that lands differently by timing is a cousin of the timing instrument in
+Section \@ref(sec-examiner-timing-iv).
+
+#### Practice
+
+1.  Name the path and the vintage separately, and show that the fixed effects absorb each one
+    alone. If the effect is still identified when either is dropped from the interaction, the
+    design is leaning on something else.
+2.  Plot the mapping by cohort before showing any outcomes. The cohort-specific slope of the
+    constructed state on the common shock is the first stage of this design, and it should be
+    flat for vintages where the mechanism cannot bind.
+3.  Use those flat vintages as a placebo. Entry terms that predict outcome trends where the
+    constructed state did not move are evidence of a competing channel.
+4.  Add zip-by-cohort (or unit) effects so that composition in levels drops out, and interact
+    initial terms with time so that composition in trends drops out too. Report how much
+    identifying variation is left after each step.
+5.  Report sensitivity to the parts of the mapping that are assumed rather than observed: the
+    amortization schedule, the loss distribution, the structure value. Identification from
+    curvature is only as good as the curve.
+6.  Cluster at the level at which the common path varies, here the metropolitan area, and say how
+    many clusters that leaves.
+7.  State the conditioning. A sample of renewing policyholders, or of firms that survived to the
+    shock, answers a narrower question than the population one.
+
+#### Applications
+
+The finding reshapes who bears flood risk. Highly leveraged owners in flood-exposed homes who
+stop insuring transfer part of their expected losses to lenders, and through securitization to
+the government-sponsored enterprises that buy those mortgages and, outside designated floodplains,
+neither price flood risk nor require coverage. For a mortgage investor or a regulator stress
+testing climate exposure, the implication is that uninsured flood losses are concentrated
+precisely in the high loan-to-value loans written near price peaks, and that a price decline
+raises that exposure twice: once through lower collateral values and again through lapsed
+insurance. For an insurer or the flood insurance program, renewal models that ignore borrower
+equity will over-predict retention after a housing downturn among the newest buyers.
+
+The method carries over to disputes and consulting work wherever a common shock hits a book of
+contracts signed at different dates. An expert asked whether a price change, a rate change, or a
+policy change caused customers to leave can often reconstruct each contract's exposure from its
+signing terms and the common path, then use vintage-by-time and location-by-time fixed effects to
+show the response follows the constructed exposure and not merely the shock. The placebo on
+vintages that the shock could not have affected is usually the most persuasive single exhibit,
+because it answers the opposing expert's natural reply that the affected customers were simply
+different.

@@ -221,6 +221,116 @@ knitr::kable(
 )
 ```
 
+#### Case Study: One Shock, a Tailored Share, and a Recommendation Algorithm {#sec-shift-share-recommender-launch}
+
+The trade application has hundreds of shocks. Many designs in marketing and information systems have exactly one, a launch or a policy date, and borrow all of their cross-sectional variation from a share chosen because it governs how hard the shock lands. These designs sit entirely on the share-exogeneity path, and @han2026mobile is a clean modern example of one.
+
+The setting is a mobile location-based recommendation service run by a large South Korean search engine (the paper calls it *SmartAround*). After a beta period it launched nationwide on 3 April 2019. The authors observe daily data on 16,720 restaurants in ten neighbourhoods (*dongs*) of Seoul, Busan, and Incheon, and follow each restaurant down a funnel: how often the algorithm shows it (exposure), how often users click into its listing (clicks), and how often they then call, save, or navigate to it (visit intentions). The question is how much algorithmic exposure moves engagement. Regressing clicks on exposure answers a different question, because the algorithm ranks partly on popularity among similar users, so restaurants that would have drawn clicks anyway are the ones it shows.
+
+The instrument exploits a fixed rule of the algorithm: it draws its candidate set from places within 400 metres of the user. A restaurant surrounded by many rivals shares that pool with more of them, so the launch raised its exposure by less. With $N_i$ the number of other restaurants within 400 metres, measured before the launch, the instrument is
+
+$$
+Z_{it} = \text{Post}_t \times N_i ,
+$$
+
+and the first stage is
+
+$$
+\log(\text{Exposure}_{it}) = \pi \, Z_{it} + \alpha_i + \lambda_{r(i)t} + \kappa_{c(i)t} + W_{it}'\gamma + v_{it},
+$$
+
+with restaurant fixed effects $\alpha_i$, region-by-day effects $\lambda_{r(i)t}$, cuisine-by-day effects $\kappa_{c(i)t}$, and controls for platform daily active users, particulate pollution, temperature, and rainfall. In the notation of this section this is a shift-share instrument with a single shift ($g_t = \text{Post}_t$) and a single share ($N_i$). A single shock rules out the many-shocks argument of @borusyak2022quasi, so validity rests on the share. The assumption is the one @goldsmith2020bartik state for the Mariel boatlift: had the launch not changed exposure, clicks at restaurants with many and few nearby rivals would have moved in parallel. The design is therefore a difference-in-differences with a continuous dose, used as an instrument, and its diagnostics are the event-study diagnostics of that design.
+
+The headline estimates come from a two-stage funnel. Instrumenting exposure with $Z_{it}$ gives an elasticity of clicks with respect to exposure of 0.078, with a Kleibergen-Paap first-stage $F$ of 316 on 3.7 million restaurant-days. A second link regresses visit intentions on the fitted clicks from the first and gives an elasticity of 0.053. The exclusion restriction in that link is close to holding by construction, because the visit-intention actions (call, save, navigate) sit on the restaurant's detail page and a user reaches that page by clicking. The effect of exposure is larger for geographically disadvantaged restaurants, but mainly at the click stage; conversion from clicks to visits is stronger for restaurants with richer reviews, photos, and menus. A credit-card subsample in Seoul shows a positive association between exposure and revenue.
+
+The paper's online appendix is a good template for how a single-shock share design should be defended, because each check targets a named threat:
+
+1.  *Is relevance switched on by the launch?* Exposure by competitor-density quartile is flat before 3 April and splits sharply after, with the sparsest quartile gaining most. Re-running the first stage on the pre-launch period with each of 43 placebo launch dates gives coefficients clustered around zero, and the true coefficient ($-0.000394$ per rival) falls far in the left tail of that distribution. This is the rotated-shock placebo from the diagnostics list above, applied to a single date.
+2.  *Does the instrument proxy for neighbourhood demand?* The authors control for rival counts in rings outside the 400 metre pool, interacted with Post. A ring from 800 to 1,200 metres cannot share a candidate set with the focal restaurant for any user, so it carries neighbourhood density without carrying the mechanism. The estimate is unchanged with the far ring (0.077 to 0.078) and falls to 0.062 to 0.071 with rings starting at 400 metres, which the authors read as partly absorbing the mechanism itself, since the 400 metre radius is centred on the user rather than the restaurant.
+3.  *Did dense areas simply adopt the app faster?* Neighbourhood daily active users do not respond differentially to density after the launch, and controlling for daily active users interacted with Post, or for telecom foot-traffic counts in Seoul, leaves the estimate near 0.07.
+4.  *Can fixed effects settle it?* No, and the paper says so. Adding neighbourhood-by-day fixed effects drops the first-stage $F$ to 15.5 and turns the estimate negative and insignificant ($-0.10$). The rival count varies mostly between neighbourhoods, so those fixed effects remove the identifying variation along with any neighbourhood confounder. When the instrument and the confounder live at the same geographic level, fixed effects cannot tell them apart, which is why the outer rings carry the argument.
+5.  *Monotonicity.* A larger pool can only dilute a restaurant's chance of being shown, and binned means of the post-launch exposure gain are positive at every level of density and decline with it.
+6.  *Observable imbalance.* Dichotomising the instrument at the median and matching high- and low-density restaurants on pre-launch exposure, reviews, photos, and listing features returns 0.078 with coarsened exact matching and 0.089 with 1:3 propensity-score matching.
+
+A careful reader should still press on three points. First, the pre-trend evidence is weaker than the summary suggests. In the densest quartile the pre-launch exposure coefficients are positive in seven of the eight weeks before the launch and significant in six, and a linear pre-trend test finds a significant differential slope for that quartile. The authors respond by dropping the quartile, which leaves the estimate at 0.076 with a first-stage $F$ of 45, and that robustness check deserves more weight than the event-study plot. Second, inference treats restaurants as the independent units, but the instrument is a spatial count that is mechanically shared by neighbours. With ten neighbourhoods, clustering at the neighbourhood level is itself unreliable, so spatial standard errors [@conley1999gmm] or randomization inference over launch dates applied to the second stage would be the natural complements. Third, the variables enter in logs and the median restaurant received 1.6 exposures a day before the launch, so many observations sit at or near zero and the elasticity reading carries the caveats of Section \@ref(sec-iv-zero-outcomes) [@chen2024logs].
+
+The data belong to the partner company, so the study cannot be replicated. The simulation below reproduces its geometry and asks the question that matters for the outer-ring check: when an unobserved post-launch demand shift is tied to how busy the surrounding district is, which of the paper's specifications recover the truth? Restaurants are scattered over ten neighbourhoods of varying density, exposure rises at launch by less where the 400 metre pool is crowded, the algorithm rewards a popularity term that also drives clicks, and the true elasticity is 0.08. In the confounded world, clicks also shift after the launch in proportion to the number of restaurants within one kilometre.
+
+```{r shift-share-recommender-sim, message=FALSE, warning=FALSE}
+library(fixest)
+
+set.seed(2026)
+
+# Ten 2 km x 2 km neighbourhoods on a 5 x 2 grid, each with its own restaurant density
+dens <- round(seq(30, 250, length.out = 10))   # restaurants per square km
+nbhd <- rep(1:10, times = dens * 4)
+x    <- (rep(0:4, times = 2) * 2)[nbhd] + runif(length(nbhd), 0, 2)
+y    <- (rep(0:1, each = 5) * 2)[nbhd] + runif(length(nbhd), 0, 2)
+n    <- length(nbhd)
+
+# Rival counts within the 400 m pool, in two outer rings, and within 1 km
+counts <- t(vapply(seq_len(n), function(i) {
+  d <- sqrt((x - x[i])^2 + (y - y[i])^2)
+  c(n400  = sum(d > 0 & d <= 0.4),
+    r4_10 = sum(d > 0.4 & d <= 1.0),
+    r8_12 = sum(d > 0.8 & d <= 1.2),
+    n1000 = sum(d > 0 & d <= 1.0))
+}, numeric(4)))
+
+# Two-period data in first differences: restaurant fixed effects and Post drop out
+simulate_launch <- function(phi, beta = 0.08) {
+  q     <- rnorm(n)                                 # popularity the algorithm rewards
+  eta   <- phi * as.numeric(scale(counts[, "n1000"]))  # busy-district demand shift
+  d_exp <- 1 - 0.006 * counts[, "n400"] + 0.5 * q + rnorm(n, sd = 0.5)
+  d_clk <- beta * d_exp + 0.3 * q + eta + rnorm(n, sd = 0.3)
+  data.frame(d_clk, d_exp, counts, nbhd = factor(nbhd))
+}
+
+launch_specs <- list(
+  "OLS"                           = d_clk ~ d_exp,
+  "2SLS"                          = d_clk ~ 1 | d_exp ~ n400,
+  "2SLS, 400 to 1,000 m ring"     = d_clk ~ r4_10 | d_exp ~ n400,
+  "2SLS, 800 to 1,200 m ring"     = d_clk ~ r8_12 | d_exp ~ n400,
+  "2SLS, neighbourhood x post FE" = d_clk ~ 1 | nbhd | d_exp ~ n400
+)
+
+one_draw <- function(phi) {
+  df <- simulate_launch(phi)
+  t(vapply(launch_specs, function(f) {
+    m <- feols(f, df)
+    c(est = unname(tail(coef(m)[grep("d_exp", names(coef(m)))], 1)),
+      F   = if (is.null(m$iv_first_stage)) NA_real_ else unname(fitstat(m, "ivf1")[[1]]$stat))
+  }, numeric(2)))
+}
+
+draws <- lapply(c(clean = 0, confounded = 0.05), function(phi)
+  simplify2array(replicate(100, one_draw(phi), simplify = FALSE)))
+```
+
+```{r shift-share-recommender-table, echo=FALSE}
+launch_tab <- data.frame(
+  Specification      = names(launch_specs),
+  `Clean: mean`      = rowMeans(draws$clean[, "est", ]),
+  `Clean: SD`        = apply(draws$clean[, "est", ], 1, sd),
+  `Confounded: mean` = rowMeans(draws$confounded[, "est", ]),
+  `Confounded: SD`   = apply(draws$confounded[, "est", ], 1, sd),
+  `First-stage F`    = rowMeans(draws$clean[, "F", ]),
+  check.names = FALSE
+)
+knitr::kable(
+  launch_tab,
+  digits = 3,
+  row.names = FALSE,
+  caption = "Launch-by-density instrument in 100 simulated markets with a true elasticity of 0.08. In the clean world there is no neighbourhood demand shift; in the confounded world clicks shift after the launch with the number of restaurants within 1 km. First-stage F is the mean across clean draws."
+)
+```
+
+Table \@ref(tab:shift-share-recommender-table) separates three lessons. In the clean world every 2SLS specification is centred on 0.08 while OLS is more than four times too large, and each added control or fixed effect costs precision because it soaks up some of the rival-count variation. In the confounded world the uncontrolled 2SLS estimate has the wrong sign, even though the demand shift is small: in the simulation the first stage moves exposure by only 0.006 log points per rival, so a modest correlation between rival counts and district demand is magnified when divided by it. A strong first-stage $F$ gives no warning.
+
+The rings are not interchangeable. The 400 to 1,000 metre ring is almost collinear with the one kilometre count that drives the confounder and removes most of the bias. The 800 to 1,200 metre ring, the one the paper treats as cleanly disconnected from the algorithm, is a weaker proxy and leaves the estimate negative. Neighbourhood-by-post fixed effects do least, because the confounder follows density across neighbourhood boundaries rather than stepping at them. Read back into the paper, a stable estimate under the far ring is weak evidence on its own; the near-ring result, which moved the estimate by 10 to 20 percent, is the more informative check, and its interpretation hinges on how much of the mechanism it also absorbs. The ring check is only as good as the match between the ring's scale and the scale of the confounder one fears.
+
+The construction travels well beyond restaurants. Any platform rule with a known boundary, such as a search radius, a cap on the number of listings shown, or a ranking cutoff, interacted with the date the rule took effect, produces a dose-by-timing instrument for visibility. The same structure shows up in disputes over platform ranking, where a seller claims lost sales from demotion or a regulator asks how much self-preferencing shifts demand, and an expert has to put a number on what visibility is worth. The rule also supplies the opposing expert's first question: what else changed at the scale of the rule's boundary? Answering it with a control set at that scale, and showing which scales the estimate is sensitive to, is the part of @han2026mobile worth copying.
+
 #### Extensions
 
 - *Heterogeneous effects.* Interact $D_{it}$ with baseline covariates to test for heterogeneity. Under first-stage monotonicity, SSIV identifies a convex average of unit-specific effects in the same sense as LATE [@goldsmith2020bartik].
