@@ -28,11 +28,15 @@ $$
 $$
 where the second term involves $\frac{1}{\sqrt{n}}\sum_i W_i \bigl(g_0(X_i) - \hat{g}(X_i)\bigr)$. Because every machine learning estimator regularizes, shrinking coefficients or limiting tree depth to control variance, the error $g_0 - \hat{g}$ converges to zero more slowly than the parametric rate $n^{-1/2}$. The bias term $b$ therefore diverges, and $\hat{\theta}$ is not even consistent at the rate needed for valid confidence intervals. This is the regularization bias, sometimes called the plug-in or first-order bias. It is not a small-sample nuisance; it is a structural consequence of using a biased, slowly converging nuisance estimator inside a causal functional that is sensitive to errors in that nuisance.
 
-Two ideas rescue us. The first is to construct the estimating equation so that it is insensitive, to first order, to errors in the nuisance functions. This is Neyman orthogonality. The second is to estimate the nuisance functions on data separate from the data used to form the final estimate, breaking the dependence that would otherwise reintroduce bias. This is cross-fitting. Together they are the heart of double machine learning.
+There is a second, distinct problem. If the same observations are used both to fit $\hat{g}$ and to evaluate the sample average that defines $\hat{\theta}$, the learner's error $\hat{g} - g_0$ is correlated with the very noise it is averaged against, because a flexible learner partly fits that noise. @ahrens2026introduction call this the overfitting bias, to separate it from the regularization bias. The two have different sources and need different remedies. Regularization bias comes from the learner's error and the moment condition's sensitivity to it, and it would be present even with an independent sample. Overfitting bias comes from reusing the data, and it would be present even with an unbiased learner.
+
+Two ideas rescue us, one for each bias. The first is to construct the estimating equation so that it is insensitive, to first order, to errors in the nuisance functions. This is Neyman orthogonality, and it removes the regularization bias. The second is to estimate the nuisance functions on data separate from the data used to form the final estimate, breaking the dependence that would otherwise reintroduce bias. This is cross-fitting, and it removes the overfitting bias. Together they are the heart of double machine learning, and Section \@ref(sec-dml-two-biases) shows in simulation what goes wrong when either is dropped.
 
 ## Double and Debiased Machine Learning {#sec-double-ml}
 
 The double or debiased machine learning (DML) framework of @chernozhukov2018double, published in The Econometrics Journal, provides a general recipe for estimating a low-dimensional causal parameter in the presence of high-dimensional nuisance functions estimated by arbitrary machine learning methods. It rests on two pillars, Neyman-orthogonal scores and cross-fitting, and it delivers estimators that are root-$n$ consistent and asymptotically normal even though the first-stage learners converge slowly and are biased by regularization. This section develops the framework in full: the orthogonality condition and a complete derivation of why the canonical scores satisfy it, the two cross-fitting algorithms and their asymptotic theory, the four workhorse models of the paper, and then two replications on the paper's own empirical applications, the effect of 401(k) eligibility on household financial assets and the effect of institutions on economic growth. Throughout we use the `DoubleML` package [@bach2024doubleml], the object-oriented R implementation maintained by the paper's authors and collaborators, with learners drawn from the `mlr3` ecosystem.
+
+The practitioner's companion to the original paper is the *Journal of Economic Literature* survey of @ahrens2026introduction, written by several of the same authors. It changes little in the theory, but it puts much more weight on the decisions an applied researcher actually makes: which learners to use, how many folds, how to read the variability across sample splits, and how to tell when a learner is quietly failing. Much of the second half of this section follows that survey. We replicate both of its simulations (Section \@ref(sec-dml-two-biases)), carry its learner-choice diagnostics over to the 401(k) data (Section \@ref(sec-dml-learner-choice)), summarize its difference-in-differences application (Section \@ref(sec-dml-did)), and condense its implementation guidance into a checklist (Section \@ref(sec-dml-checklist)).
 
 ### Neyman-Orthogonal Scores
 
@@ -92,7 +96,7 @@ The two are first-order equivalent, but DML2 is generally preferred and is the d
 $$
 \hat{\theta} = -\Biggl(\frac{1}{N} \sum_{k}\sum_{i \in I_k} \psi^a\bigl(Z_i; \hat{\eta}_k\bigr)\Biggr)^{-1} \frac{1}{N} \sum_{k}\sum_{i \in I_k} \psi^b\bigl(Z_i; \hat{\eta}_k\bigr).
 $$
-The number of folds $K$ is not a tuning parameter in the usual sense; theory holds for any fixed $K \ge 2$, and $K = 5$ is the practical default, with $K = 10$ sometimes preferred in moderate samples because each nuisance fit then uses more data. The replication below varies $K$ as a robustness check.
+The number of folds $K$ is not a tuning parameter in the usual sense; theory holds for any fixed $K \ge 2$, and $K = 5$ is the practical default, with $K = 10$ sometimes preferred in moderate samples because each nuisance fit then uses more data. @ahrens2026introduction lean further in that direction. Larger $K$ means each nuisance fit sees a larger share of the sample, so they suggest choosing as many folds as the computing budget allows, and more of them when the effective sample is small. Their difference-in-differences application uses $K = 15$ because some cohort-by-period cells hold only a few hundred households. The partition must also respect the dependence in the data. With clustered or panel data, whole clusters or units are assigned to folds, so that no fold's nuisance fit has seen another observation from the same cluster. The replication below varies $K$ as a robustness check.
 
 ### Asymptotic Normality and Valid Confidence Intervals
 
@@ -152,6 +156,26 @@ where $\mu_0(z, x) = \mathbb{E}[Y \mid Z = z, X = x]$, $r_0(z, x) = \mathbb{E}[D
 | IIVM | LATE | Instrument $Z$ | $\mathbb{E}[Y \mid Z, X]$, $\mathbb{E}[D \mid Z, X]$, $\mathbb{P}(Z = 1 \mid X)$ |
 
 Table: (\#tab:dml-four-models) The four canonical double machine learning models, their estimands, and the nuisance functions each requires.
+
+#### Orthogonal Scores Beyond the Four Models {#sec-dml-score-catalogue}
+
+The four models are the ones software packages implement first, but the framework is not limited to them. @ahrens2026introduction tabulate orthogonal scores for a wider set of targets. Three of them are worth seeing because each one shows a different side of the idea.
+
+*Linear IV with a learned instrument.* In $Y = \theta_0 D + \varepsilon$ with $\mathbb{E}[\varepsilon \mid Z] = 0$, the score
+$$
+\psi(\theta, \eta) = (Y - \theta D)\,\eta(Z), \qquad \eta_0(Z) = \mathbb{E}[D \mid Z],
+$$
+uses the first-stage regression as the instrument. It is orthogonal because perturbing $\eta$ in a direction $\Delta(Z)$ changes the moment by $\mathbb{E}[\varepsilon\,\Delta(Z)] = 0$, whatever $\Delta$ is. Under homoskedasticity $\eta_0$ is the optimal instrument. Any learner can estimate the first stage, and the many-instrument simulation in Section \@ref(sec-dml-two-biases) uses boosted trees.
+
+*Average structural derivative.* For a continuous treatment $D$, the target $\theta_0 = \mathbb{E}[\partial_d\, \ell_0(D, X)]$ with $\ell_0(d, x) = \mathbb{E}[Y \mid D = d, X = x]$ averages the slope of the outcome surface. The naive plug-in $\partial_d \hat{\ell}$ inherits the learner's error in the slope, which is typically worse than its error in the level. The orthogonal score adds a correction,
+$$
+\psi(\theta, \eta) = \partial_d\, \ell(D, X) + \alpha(D, X)\,\bigl(Y - \ell(D, X)\bigr) - \theta, \qquad \alpha_0(d, x) = -\,\partial_d \log f_0(d \mid x),
+$$
+where $f_0(d \mid x)$ is the conditional density of the treatment. The weight $\alpha_0$ plays the role that $1/e(X)$ plays for a binary treatment.
+
+*Why inverse probability weighting is not enough.* The IPW score for the ATE, $\alpha(W, X)\,Y - \theta$ with $\alpha_0 = W/e_0(X) - (1 - W)/(1 - e_0(X))$, identifies the right parameter but is not orthogonal. Perturbing the weight in a direction $\Delta_\alpha$ changes the moment by $\mathbb{E}[\mu_0(W, X)\,\Delta_\alpha(W, X)]$, which is generally nonzero, so every error in the propensity learner moves the estimate to first order. @ahrens2026introduction state plainly that IPW should not be combined with generic machine learning propensity scores. Adding the outcome-regression term turns IPW into the AIPW score, which is orthogonal, and its second-order remainder is the product $\mathbb{E}[\Delta_\alpha \Delta_\mu]$ of the two nuisance errors. AIPW is also the efficient influence function for the ATE [@hahn1998role].
+
+The pattern in all three examples is the same. Start from any identifying moment $\mathbb{E}[m(\theta_0, \gamma_0)] = 0$. Its first-order sensitivity to the nuisance $\gamma$ can be cancelled by adding a correction $\alpha(X)\,(Y - \gamma(X))$, where $\alpha_0$ is the Riesz representer of the derivative of the moment with respect to $\gamma$. The inverse propensity weight and the density-score weight above are both Riesz representers. Recognizing this is what lets the automatic debiased machine learning of @chernozhukov2022automatic estimate $\alpha_0$ directly, without ever deriving its closed form. The survey's appendix extends the catalogue to the ATT, the LATE, a flexible partially linear IV model whose optimal instrument is $\mathbb{E}[D \mid Z, X]$, and fixed-effects panel regression via first differences.
 
 The framework has an important precursor in the post-double-selection estimator of @belloni2014inference. There the nuisances are estimated by lasso regressions of $Y$ on $X$ and of $W$ on $X$, the union of the selected controls is taken, and $\theta_0$ is estimated by ordinary least squares of $Y$ on $W$ and the selected union. Selecting controls relevant to either equation is precisely what makes the procedure immune to the model-selection mistakes that break single-selection inference, and it is the special case of the PLR score with lasso nuisances. Double machine learning generalizes the insight from lasso to arbitrary learners and from the partially linear model to any orthogonal moment problem. The `hdm` package implements post-double-selection directly, and the 401(k) replication below uses it as a cross-check on the DML estimates.
 
@@ -344,7 +368,7 @@ ggplot(res_401k,
     theme_minimal()
 ```
 
-Table \@ref(tab:dml-401k-table) collects the estimates and Figure \@ref(fig:dml-401k-plot) plots them against zero. Three findings line up with the published results. First, eligibility raises net financial assets by roughly nine thousand dollars on the partially linear specification and about eight thousand dollars on the interactive (ATE) specification, and the gap between the two is informative: the IRM model reweights toward the covariate distribution of the whole population, so the difference reflects effect heterogeneity that the constant-effect PLR model averages differently. Second, the LATE of actual participation is larger, on the order of eleven to twelve thousand dollars, which is mechanical once one recalls that only about seven in ten eligible households participate: diluting the participation effect over all eligibles yields the intention-to-treat magnitude. Third, and most important for the methodological message, the estimates are stable across the three very different learners within each estimand. Orthogonality plus cross-fitting makes the causal estimate insensitive to the details of the first stage, which is visible here as the flat profile within each panel of the figure.
+Table \@ref(tab:dml-401k-table) collects the estimates and Figure \@ref(fig:dml-401k-plot) plots them against zero. Three findings line up with the published results. First, eligibility raises net financial assets by roughly nine thousand dollars on the partially linear specification and about eight thousand dollars on the interactive (ATE) specification, and the gap between the two is informative: the IRM model reweights toward the covariate distribution of the whole population, so the difference reflects effect heterogeneity that the constant-effect PLR model averages differently. Second, the LATE of actual participation is larger, on the order of eleven to twelve thousand dollars, which is mechanical once one recalls that only about seven in ten eligible households participate: diluting the participation effect over all eligibles yields the intention-to-treat magnitude. Third, and most important for the methodological message, the estimates are stable across the three very different learners within each estimand. Orthogonality plus cross-fitting makes the causal estimate insensitive to *small* errors in the first stage, which is visible here as the flat profile within each panel of the figure. That insensitivity is local, though. It does not protect against a learner that fits a nuisance function badly, and agreement among three well-tuned learners is evidence rather than a guarantee. Section \@ref(sec-dml-learner-choice) reruns this PLR estimate with eight learners, some of them deliberately poor, and shows how far a bad first stage can move it.
 
 As a cross-check, the post-double-selection estimator of @belloni2014inference, the lasso-specific precursor to double machine learning, gives a same-ballpark answer on the identical flexible dictionary.
 
@@ -436,6 +460,418 @@ The spread across partitions is small relative to the sampling uncertainty here,
 
 Taken together, the two replications illustrate the practical workflow this section has built up piece by piece: choose the model class by the estimand and the endogeneity structure, pick several dissimilar learners, give dictionary-based learners a rich feature expansion, cross-fit with five folds and repeat over partitions, trim propensities, and report the full grid so readers can see that the causal conclusion does not hinge on any single machine learning choice.
 
+### Two Biases, Two Remedies: Simulation Evidence {#sec-dml-two-biases}
+
+The argument at the start of the chapter separates two failures, regularization bias, which orthogonality fixes, and overfitting bias, which cross-fitting fixes. @ahrens2026introduction make the separation concrete with two simulations, one where cross-fitting is the missing ingredient and one where both ingredients can be switched on and off independently. We rerun both. Our versions use fewer replications than the published ones so that they finish in minutes, but the designs follow the paper and its replication code.
+
+#### Many Instruments: What Cross-Fitting Buys
+
+The first design is a linear IV model with many weak instruments, the setting in which two-stage least squares is known to be biased toward OLS. The model is
+$$
+Y = \theta_0 D + \varepsilon, \qquad D = Z'\pi_0 + \nu, \qquad \theta_0 = 0,
+$$
+with $n = 1000$ observations and $p = 200$ equicorrelated instruments, $Z \sim \mathcal{N}(0, 0.4 I_p + 0.6\,\iota\iota')$. Only the first six instruments matter, each with coefficient 0.1. The errors $(\varepsilon, \nu)$ are standard normal with correlation 0.6, so $D$ is endogenous and OLS is biased upward. Every estimator below uses the same orthogonal score from Section \@ref(sec-dml-score-catalogue), $(Y - \theta D)\,\hat{\eta}(Z)$, and they differ only in how the instrument $\hat{\eta}(Z)$ is built. The oracle uses the true $Z'\pi_0$. Two-stage least squares uses OLS fitted values from all 200 instruments, estimated and evaluated on the same sample. The boosted-trees estimator uses gradient-boosted fitted values, again in-sample. Split-sample IV in the spirit of @angrist1995split cross-fits the OLS first stage over five folds. DML cross-fits the boosted trees over five folds. The boosted trees have depth 4, learning rate 0.1, and early stopping on a 20 percent validation split, as in the paper.
+
+```{r dml-twobias-iv, message=FALSE, warning=FALSE, cache=TRUE}
+library(xgboost)
+library(parallel)
+
+iv_sim_rep <- function(r, n = 1000, p = 200, K = 5) {
+  set.seed(20250 + r)
+  # Equicorrelated instruments: Var(Z) = 0.4 I + 0.6 11'
+  Z <- sqrt(0.6) * rnorm(n) + sqrt(0.4) * matrix(rnorm(n * p), n, p)
+  pi0 <- c(rep(0.1, 6), rep(0, p - 6))
+  u1 <- rnorm(n); u2 <- rnorm(n)
+  eps <- u1
+  nu  <- 0.6 * u1 + sqrt(1 - 0.6^2) * u2
+  D <- drop(Z %*% pi0) + nu
+  Y <- 0 * D + eps
+
+  # One constructed instrument h(Z), orthogonal score (Y - theta D) h(Z)
+  iv <- function(h) {
+    th <- sum(h * Y) / sum(h * D)
+    psi <- (Y - th * D) * h
+    c(est = th, se = sqrt(mean(psi^2) / mean(h * D)^2 / n))
+  }
+  ols_pred <- function(Ztr, Dtr, Zte) drop(Zte %*% qr.solve(Ztr, Dtr))
+  boost_pred <- function(Ztr, Dtr, Zte) {
+    val <- sample(nrow(Ztr), round(0.2 * nrow(Ztr)))
+    fit <- xgb.train(
+      params = list(max_depth = 4, eta = 0.1, nthread = 1,
+                    objective = "reg:squarederror"),
+      data = xgb.DMatrix(Ztr[-val, ], label = Dtr[-val]),
+      nrounds = 1000, verbose = 0, early_stopping_rounds = 10,
+      watchlist = list(val = xgb.DMatrix(Ztr[val, ], label = Dtr[val])))
+    predict(fit, Zte)
+  }
+  crossfit <- function(pred_fn) {
+    folds <- sample(rep(seq_len(K), length.out = n))
+    h <- numeric(n)
+    for (k in seq_len(K)) {
+      te <- folds == k
+      h[te] <- pred_fn(Z[!te, ], D[!te], Z[te, ])
+    }
+    h
+  }
+  rbind(
+    "Oracle IV"                       = iv(drop(Z %*% pi0)),
+    "2SLS, all 200 instruments"       = iv(ols_pred(Z, D, Z)),
+    "Boosted trees, no cross-fitting" = iv(boost_pred(Z, D, Z)),
+    "Split-sample IV (cross-fitted OLS)" = iv(crossfit(ols_pred)),
+    "DML, boosted trees"              = iv(crossfit(boost_pred))
+  )
+}
+# Detach from the knitr environment so only the exported objects travel to workers
+environment(iv_sim_rep) <- globalenv()
+
+R_iv <- 300
+cl <- makeCluster(8)
+invisible(clusterEvalQ(cl, library(xgboost)))
+clusterExport(cl, envir = environment(), varlist = "iv_sim_rep")
+iv_draws <- parLapply(cl, seq_len(R_iv), iv_sim_rep)
+stopCluster(cl)
+
+iv_est <- sapply(iv_draws, function(m) m[, "est"])
+iv_se  <- sapply(iv_draws, function(m) m[, "se"])
+iv_res <- data.frame(
+  Estimator     = rownames(iv_est),
+  Bias          = rowMeans(iv_est),
+  `Median bias` = apply(iv_est, 1, median),
+  `Std. dev.`   = apply(iv_est, 1, sd),
+  Coverage      = rowMeans(abs(iv_est) <= 1.96 * iv_se),
+  check.names = FALSE, row.names = NULL
+)
+```
+
+```{r dml-twobias-iv-table, echo=FALSE}
+knitr::kable(iv_res, digits = 3,
+  caption = "Many-instrument IV simulation, 300 replications, true effect zero. Coverage is that of the nominal 95 percent Wald interval built from the score-based standard error. Design follows Ahrens et al. (2026).")
+```
+
+Table \@ref(tab:dml-twobias-iv-table) reproduces the pattern in the paper's 1,000-replication version, where two-stage least squares has a bias of 0.32 and the in-sample boosted trees a bias of 0.37, both with zero coverage, while DML with boosted trees has a bias of $-0.02$ and covers 95.9 percent of the time. The two in-sample estimators have small standard deviations and are centered in the wrong place. Their constructed instrument has absorbed part of $\nu$, and $\nu$ is correlated with $\varepsilon$, so the instrument is no longer excluded. This is overfitting bias in its purest form. The score is orthogonal in every row, so orthogonality alone cannot be what separates them. Cross-fitting removes the bias whether the first stage is OLS or boosting. The difference between the last two rows is about efficiency: the regularized learner builds a better instrument from 200 candidates than unregularized OLS does, so DML has a noticeably smaller spread than split-sample IV, in our run as in the paper.
+
+#### A 401(k)-Calibrated ATE: Orthogonality and Cross-Fitting Separately
+
+The second design crosses the two ingredients. It is calibrated to the 401(k) data used in Section \@ref(sec-dml-401k), so the covariate distribution, the degree of overlap, and the nonlinearity of the outcome surface are all realistic. Following the paper's replication code, we fit random forests to the observed data to obtain an eligibility propensity $\hat{r}(x)$ and outcome surfaces $\hat{\ell}(1, x)$ and $\hat{\ell}(0, x)$, together with arm-specific residual standard deviations. Each replication then keeps the observed covariates, draws eligibility $d_i \sim \text{Bernoulli}(\hat{r}(x_i))$, and draws $y_i = \hat{\ell}(d_i, x_i) + \sigma_{d_i}\,\epsilon_i$. The true ATE in this design is the average of $\hat{\ell}(1, x) - \hat{\ell}(0, x)$ over the sample. The covariate set is the one in the authors' code, which uses total wealth in place of education.
+
+Three scores are compared: regression adjustment, the average of $\hat{\ell}(1, X) - \hat{\ell}(0, X)$, which is not orthogonal; inverse probability weighting, also not orthogonal; and AIPW, which is orthogonal. Each is computed twice, once with cross-fitted nuisances and once with nuisances fitted and evaluated on the full sample. DML is the cross-fitted AIPW cell. As in the paper, the outcome forests have maximum depth 8, the propensity forest has maximum depth 4, and propensities are trimmed at 0.001. To keep the run short we use 300 trees, five folds stratified by treatment, and 200 replications, against the paper's 1,000 trees, ten folds, and 10,000 replications.
+
+```{r dml-twobias-ate, message=FALSE, warning=FALSE, cache=TRUE}
+library(ranger)
+library(parallel)
+
+data(pension, package = "hdm")
+cal_x <- c("age", "tw", "inc", "fsize", "db", "marr", "twoearn", "pira", "hown")
+cal_X <- pension[, cal_x]
+cal_d <- pension$e401
+cal_y <- pension$net_tfa
+
+# Calibrate the DGP: random forests on the observed data
+set.seed(20241105)
+rf_cal <- function(y, X) ranger(y = y, x = X, num.trees = 1000,
+                                min.node.size = 10, num.threads = 8)
+f1 <- rf_cal(cal_y[cal_d == 1], cal_X[cal_d == 1, ])
+f0 <- rf_cal(cal_y[cal_d == 0], cal_X[cal_d == 0, ])
+fr <- rf_cal(cal_d, cal_X)
+cal <- list(
+  X  = cal_X,
+  l1 = predict(f1, cal_X)$predictions,
+  l0 = predict(f0, cal_X)$predictions,
+  r  = predict(fr, cal_X)$predictions,
+  s1 = sd(cal_y[cal_d == 1] - predict(f1, cal_X[cal_d == 1, ])$predictions),
+  s0 = sd(cal_y[cal_d == 0] - predict(f0, cal_X[cal_d == 0, ])$predictions)
+)
+ate_true <- mean(cal$l1 - cal$l0)
+
+ate_sim_rep <- function(r, cal, K = 5, trees = 300, trim = 0.001) {
+  set.seed(7000 + r)
+  X <- cal$X; n <- nrow(X)
+  d <- as.numeric(runif(n) <= cal$r)
+  y <- ifelse(d == 1, cal$l1 + cal$s1 * rnorm(n), cal$l0 + cal$s0 * rnorm(n))
+
+  fit_l <- function(idx) ranger(y = y[idx], x = X[idx, ], num.trees = trees,
+                                max.depth = 8, num.threads = 1)
+  fit_r <- function(idx) ranger(y = d[idx], x = X[idx, ], num.trees = trees,
+                                max.depth = 4, num.threads = 1)
+  nuisances <- function(train, test) {
+    m1 <- fit_l(train[d[train] == 1]); m0 <- fit_l(train[d[train] == 0])
+    mr <- fit_r(train)
+    list(l1 = predict(m1, X[test, ])$predictions,
+         l0 = predict(m0, X[test, ])$predictions,
+         r  = pmin(pmax(predict(mr, X[test, ])$predictions, trim), 1 - trim))
+  }
+  # Cross-fitted nuisances, folds stratified by treatment
+  folds <- integer(n)
+  for (g in 0:1) folds[d == g] <- sample(rep(seq_len(K), length.out = sum(d == g)))
+  cf <- list(l1 = numeric(n), l0 = numeric(n), r = numeric(n))
+  for (k in seq_len(K)) {
+    te <- which(folds == k)
+    e <- nuisances(which(folds != k), te)
+    for (v in names(cf)) cf[[v]][te] <- e[[v]]
+  }
+  # No cross-fitting: fit and evaluate on the same observations
+  ns <- nuisances(seq_len(n), seq_len(n))
+
+  scores <- function(e) list(
+    AIPW = e$l1 - e$l0 + d * (y - e$l1) / e$r - (1 - d) * (y - e$l0) / (1 - e$r),
+    RA   = e$l1 - e$l0,
+    IPW  = d * y / e$r - (1 - d) * y / (1 - e$r))
+  out <- c(scores(cf), scores(ns))
+  names(out) <- paste0(names(out), rep(c(", cross-fit", ", no cross-fit"), each = 3))
+  t(sapply(out, function(psi) c(est = mean(psi), se = sd(psi) / sqrt(n))))
+}
+environment(ate_sim_rep) <- globalenv()
+
+R_ate <- 200
+cl <- makeCluster(8)
+invisible(clusterEvalQ(cl, library(ranger)))
+clusterExport(cl, envir = environment(), varlist = "ate_sim_rep")
+ate_draws <- parLapply(cl, seq_len(R_ate), ate_sim_rep, cal = cal)
+stopCluster(cl)
+
+ate_est <- sapply(ate_draws, function(m) m[, "est"])
+ate_se  <- sapply(ate_draws, function(m) m[, "se"])
+ate_sd  <- apply(ate_est, 1, sd)
+# Feasible coverage for the orthogonal scores; the non-orthogonal scores have
+# no valid plug-in standard error, so (as in the paper) they get the
+# simulation standard deviation, which flatters them
+ate_cover <- ifelse(grepl("^AIPW", rownames(ate_est)),
+                    rowMeans(abs(ate_est - ate_true) <= 1.96 * ate_se),
+                    rowMeans(abs(ate_est - ate_true) <= 1.96 * ate_sd))
+ate_res <- data.frame(
+  Estimator        = sub("^AIPW, cross-fit$", "AIPW, cross-fit (DML)", rownames(ate_est)),
+  Orthogonal       = ifelse(grepl("^AIPW", rownames(ate_est)), "yes", "no"),
+  Bias             = rowMeans(ate_est) - ate_true,
+  `Median bias`    = apply(ate_est, 1, median) - ate_true,
+  `Mean abs. dev.` = rowMeans(abs(ate_est - ate_true)),
+  `Std. dev.`      = ate_sd,
+  Coverage         = ate_cover,
+  check.names = FALSE, row.names = NULL
+)
+round(ate_true)
+```
+
+```{r dml-twobias-ate-table, echo=FALSE}
+knitr::kable(ate_res, digits = c(0, 0, 0, 0, 0, 0, 3),
+  format.args = list(big.mark = ","),
+  caption = "401(k)-calibrated ATE simulation, 200 replications. Bias and dispersion in dollars of net financial assets. Coverage for the AIPW rows uses the score-based standard error; for the non-orthogonal rows it uses the simulation standard deviation. Design follows Ahrens et al. (2026).")
+```
+
+The true ATE in our calibration is printed above the table and is close to the paper's figure of about $6,889. Table \@ref(tab:dml-twobias-ate-table) shows the same ordering as the paper's Table 3. In the paper, the cross-fitted AIPW has a bias of $47 and covers 94.5 percent of the time, while regression adjustment and IPW, with or without cross-fitting, have biases of $600 to $760 and coverage between 82 and 85 percent. That coverage is computed with the simulation standard deviation, so it is better than any feasible interval for those estimators would achieve. AIPW without cross-fitting sits in between, with a bias of $142 and coverage of 91 percent. Our smaller run puts the estimators in the same order. Regression adjustment and IPW are off by several hundred dollars whether or not they are cross-fitted, because cross-fitting cannot rescue a non-orthogonal score. The cross-fitted AIPW is essentially unbiased. AIPW without cross-fitting shows a positive bias that is small relative to its standard deviation but more than twice its own Monte Carlo standard error, which is the overfitting bias. In our 200 replications that bias is not large enough to pull its coverage below nominal, as it does in the paper's larger run. With forests limited to depth 8, the in-sample overfitting is mild, and the paper's 10,000 replications resolve it more sharply than ours can. Note also that regression adjustment has a standard deviation similar to DML's. A small spread is no evidence of a good estimator when the spread is around the wrong value.
+
+### Learner Choice Is a First-Order Decision {#sec-dml-learner-choice}
+
+DML theory says the estimate does not depend on the learner, provided each learner estimates its nuisance function well enough, at a rate faster than $n^{-1/4}$ in the PLR case. In applied work that proviso carries most of the weight. Nothing in the procedure warns when a learner is far from the truth: the estimator still returns a point estimate and a standard error that look entirely ordinary. @ahrens2026introduction show how much this matters with a reanalysis of @dube2020monopsony, who estimate the labor supply elasticity facing employers on Amazon Mechanical Turk. The outcome is the log time a task takes to be accepted, the treatment is the log reward, and the controls include high-dimensional text features of the task description. The survey runs twelve learners, from OLS and cross-validated lasso and ridge through random forests and gradient boosting to neural networks, on 258,352 tasks with fine-tuned DeBERTa embeddings of the task text. It assigns whole recruiters to three folds, repeats the cross-fitting five times with median aggregation, and clusters standard errors by recruiter. The point estimates on log reward range from $-3.9$ to $2.1$, so the different learners imply labor supply curves of opposite sign and wildly different size. The three boosting specifications imply elasticities of 0.040 to 0.061, with standard errors near 0.022, inside the range of 0.0299 to 0.198 that @dube2020monopsony report.
+
+The survey's point is that the disagreement was detectable before anyone looked at the coefficients. Cross-fitting produces out-of-sample predictions for every observation as a by-product, so every learner's out-of-sample $R^2$ for the outcome and treatment equations is available at no extra cost. Gradient boosting reaches about 85 percent for the outcome and 74 percent for the treatment. The neural networks reach less than 4 percent for the outcome and less than 22 percent for the treatment. They are effectively not partialling out the controls at all, and their coefficients are uninformative. The survey suggests two formal tools for this screening. The cross-validation with confidence (CVC) test of @lei2020cross keeps the set of learners whose cross-validated loss is not significantly worse than the best; at a threshold of 0.2 it keeps only two of the boosting specifications. Stacking forms the convex combination of learners that minimizes out-of-sample loss [@ahrens2025model]; it puts all of its weight on the three boosting specifications and gives an estimate of $-0.054$ with a standard error of 0.020. Stacking, the single best learner, and an equal-weighted average of the CVC-selected learners all agree to within a fraction of a standard error. With that diagnostic in hand, the $-3.9$ to $2.1$ range is no longer an embarrassment for the method. It is the predictable result of putting failed learners into the procedure.
+
+The MTurk data and the fine-tuning pipeline are too heavy to rerun here, but the diagnostic workflow carries over directly to the 401(k) PLR model of Section \@ref(sec-dml-401k). We run eight learners. Some are sensible: lasso and ridge on the flexible dictionary, and two random forests and an early-stopped boosting model on the raw covariates. Others are deliberately poor choices that a hurried analyst could still make: OLS on the raw covariates, which cannot capture the nonlinearity in income; boosting with deep trees, a high learning rate, and no early stopping, which overfits; and an untuned neural network fit to unscaled dollar outcomes. For each learner we cross-fit both nuisance functions over five folds, repeat over three partitions, and aggregate with the median rule of Section \@ref(sec-double-ml). From the same cross-fitted predictions we compute stacking weights by constrained least squares, with non-negative weights that sum to one. This is the short-stacking variant of @ahrens2025model, in which the weights are estimated once on the cross-fitted predictions rather than re-estimated inside each fold. We also run the CVC screen, using a pooled Gaussian multiplier bootstrap that is a simplified form of the fold-wise test in @lei2020cross. The `ddml` package [@ahrens2024ddml] implements stacking and short-stacking in R and Stata. The code below uses only the learners already loaded in this chapter.
+
+```{r dml-learners-fit, message=FALSE, warning=FALSE, cache=TRUE}
+library(ranger)
+library(glmnet)
+library(xgboost)
+library(nnet)
+library(quadprog)
+
+learner_study <- local({
+  data(pension, package = "hdm")
+  X <- as.matrix(pension[, c("age", "inc", "educ", "fsize", "marr",
+                             "twoearn", "db", "pira", "hown")])
+  Xf <- model.matrix(
+    ~ 0 + poly(age, 2, raw = TRUE) + poly(inc, 2, raw = TRUE) +
+      poly(educ, 2, raw = TRUE) + poly(fsize, 2, raw = TRUE) +
+      marr + twoearn + db + pira + hown +
+      inc:(marr + twoearn + db + pira + hown),
+    data = pension)
+  y <- pension$net_tfa
+  d <- pension$e401
+  n <- length(y)
+
+  # Each learner maps (train rows, test rows, target vector) to test predictions
+  learners <- list(
+    "OLS, raw controls" = function(tr, te, v)
+      drop(cbind(1, X[te, ]) %*% qr.solve(cbind(1, X[tr, ]), v[tr])),
+    "Lasso, flexible dictionary" = function(tr, te, v) {
+      f <- cv.glmnet(Xf[tr, ], v[tr], alpha = 1, nfolds = 5)
+      drop(predict(f, Xf[te, ], s = "lambda.min"))
+    },
+    "Ridge, flexible dictionary" = function(tr, te, v) {
+      f <- cv.glmnet(Xf[tr, ], v[tr], alpha = 0, nfolds = 5)
+      drop(predict(f, Xf[te, ], s = "lambda.min"))
+    },
+    "Random forest, node size 5" = function(tr, te, v)
+      predict(ranger(y = v[tr], x = X[tr, ], num.trees = 300,
+                     min.node.size = 5, num.threads = 4), X[te, ])$predictions,
+    "Random forest, node size 500" = function(tr, te, v)
+      predict(ranger(y = v[tr], x = X[tr, ], num.trees = 300,
+                     min.node.size = 500, num.threads = 4), X[te, ])$predictions,
+    "Boosting, early stopping" = function(tr, te, v) {
+      val <- sample(tr, round(0.2 * length(tr))); fit_i <- setdiff(tr, val)
+      f <- xgb.train(
+        params = list(max_depth = 4, eta = 0.05, nthread = 4,
+                      objective = "reg:squarederror"),
+        data = xgb.DMatrix(X[fit_i, ], label = v[fit_i]),
+        nrounds = 2000, verbose = 0, early_stopping_rounds = 20,
+        watchlist = list(val = xgb.DMatrix(X[val, ], label = v[val])))
+      predict(f, X[te, ])
+    },
+    "Boosting, deep and unregularized" = function(tr, te, v) {
+      f <- xgb.train(
+        params = list(max_depth = 10, eta = 0.3, nthread = 4,
+                      objective = "reg:squarederror"),
+        data = xgb.DMatrix(X[tr, ], label = v[tr]), nrounds = 1000, verbose = 0)
+      predict(f, X[te, ])
+    },
+    "Neural net, untuned" = function(tr, te, v) {
+      f <- nnet(X[tr, ], v[tr], size = 5, linout = TRUE, trace = FALSE, maxit = 200)
+      drop(predict(f, X[te, ]))
+    }
+  )
+
+  cross_fit_all <- function(seed, K = 5) {
+    set.seed(seed)
+    folds <- sample(rep(seq_len(K), length.out = n))
+    Py <- Pd <- matrix(NA_real_, n, length(learners),
+                       dimnames = list(NULL, names(learners)))
+    for (k in seq_len(K)) {
+      tr <- which(folds != k); te <- which(folds == k)
+      for (j in seq_along(learners)) {
+        Py[te, j] <- learners[[j]](tr, te, y)
+        Pd[te, j] <- learners[[j]](tr, te, d)
+      }
+    }
+    list(y = Py, d = Pd)
+  }
+
+  plr <- function(ry, rd) {
+    th <- sum(rd * ry) / sum(rd^2)
+    psi <- (ry - th * rd) * rd
+    c(est = th, se = sqrt(mean(psi^2) / mean(rd^2)^2 / n))
+  }
+  r2 <- function(v, pred) 1 - mean((v - pred)^2) / var(v)
+  # Short-stacking: non-negative weights summing to one, by constrained least squares
+  stack_weights <- function(v, P) {
+    k <- ncol(P); s <- sd(v)
+    sol <- solve.QP(crossprod(P / s) + diag(1e-8, k), crossprod(P / s, v / s),
+                    cbind(rep(1, k), diag(k)), c(1, rep(0, k)), meq = 1)$solution
+    pmax(sol, 0) / sum(pmax(sol, 0))
+  }
+  # CVC screen: keep learner m unless some rival has significantly lower loss
+  cvc_keep <- function(v, P, alpha = 0.2, B = 1000) {
+    L <- (v - P)^2
+    sapply(seq_len(ncol(P)), function(m) {
+      xi <- L[, m] - L[, -m, drop = FALSE]
+      mu <- colMeans(xi); s <- apply(xi, 2, sd)
+      t_obs <- max(sqrt(n) * mu / s)
+      xc <- sweep(sweep(xi, 2, mu), 2, s, "/")
+      t_boot <- replicate(B, max(colSums(rnorm(n) * xc) / sqrt(n)))
+      mean(t_boot >= t_obs) > alpha
+    })
+  }
+
+  S <- 3
+  reps <- lapply(seq_len(S), function(s) {
+    P <- cross_fit_all(100 + s)
+    per <- t(sapply(seq_along(learners), function(j)
+      c(plr(y - P$y[, j], d - P$d[, j]),
+        r2y = r2(y, P$y[, j]), r2d = r2(d, P$d[, j]))))
+    wy <- stack_weights(y, P$y); wd <- stack_weights(d, P$d)
+    ky <- cvc_keep(y, P$y); kd <- cvc_keep(d, P$d)
+    by <- which.max(per[, "r2y"]); bd <- which.max(per[, "r2d"])
+    meta <- rbind(
+      "Stacking"           = plr(y - P$y %*% wy, d - P$d %*% wd),
+      "Single best"        = plr(y - P$y[, by], d - P$d[, bd]),
+      "CVC, equal weights" = plr(y - rowMeans(P$y[, ky, drop = FALSE]),
+                                 d - rowMeans(P$d[, kd, drop = FALSE])))
+    list(per = per, meta = meta, wy = wy, wd = wd, ky = ky, kd = kd)
+  })
+
+  # Median aggregation across partitions, with the split-adjusted variance
+  med_agg <- function(est, se) {
+    m <- median(est)
+    c(est = m, se = sqrt(median(se^2 + (est - m)^2)))
+  }
+  agg <- function(field, rows) t(sapply(seq_len(rows), function(j)
+    med_agg(sapply(reps, function(r) r[[field]][j, "est"]),
+            sapply(reps, function(r) r[[field]][j, "se"]))))
+  avg <- function(f) rowMeans(sapply(reps, f))
+
+  list(
+    per = data.frame(
+      Learner = names(learners), agg("per", length(learners)),
+      r2y = avg(function(r) r$per[, "r2y"]), r2d = avg(function(r) r$per[, "r2d"]),
+      row.names = NULL),
+    weights = data.frame(
+      Learner = names(learners),
+      wy = avg(function(r) r$wy), wd = avg(function(r) r$wd),
+      ky = avg(function(r) r$ky), kd = avg(function(r) r$kd),
+      row.names = NULL),
+    meta = data.frame(Combination = rownames(reps[[1]]$meta), agg("meta", 3),
+                      row.names = NULL)
+  )
+})
+```
+
+```{r dml-learners-table, echo=FALSE}
+knitr::kable(
+  setNames(learner_study$per,
+           c("Learner", "Estimate", "SE", "R2 outcome", "R2 treatment")),
+  digits = c(0, 0, 0, 3, 3), format.args = list(big.mark = ","),
+  caption = "PLR estimates of the effect of 401(k) eligibility on net financial assets across eight nuisance learners, median-aggregated over three cross-fitting partitions, with each learner's cross-fitted out-of-sample R-squared for the outcome and treatment equations.")
+```
+
+Table \@ref(tab:dml-learners-table) is a small version of the survey's monopsony table. The five sensible learners agree closely, at around nine thousand dollars, as in Section \@ref(sec-dml-401k). The three poor ones do not. OLS on the raw covariates comes in about three thousand dollars lower, the unregularized deep boosting model falls between OLS and the cluster, and the untuned neural network nearly doubles the effect. Every one of these estimates comes with a standard error of about the same size, so the standard errors would never alert anyone. For two of the three, the $R^2$ columns would. The unregularized boosting model has an out-of-sample $R^2$ below zero in both equations, which means it predicts worse than the sample mean, and the neural network explains almost none of the variation in either. A learner whose cross-fitted $R^2$ falls far below that of its competitors has not partialled anything out, and its coefficient should not be reported as a robustness check. OLS is the harder case. Its $R^2$ is not an outlier: it is lower than the lasso's and ridge's, but in the outcome equation it beats the early-stopped boosting model. Yet its estimate is the furthest below the cluster. Eyeballing fit statistics catches catastrophic failures, but not a learner that fits the bulk of the data adequately while missing the particular nonlinearity, here in income, that confounds the treatment. That gap is what the formal combination tools fill.
+
+```{r dml-learners-weights, echo=FALSE}
+knitr::kable(
+  setNames(learner_study$weights,
+           c("Learner", "Stacking weight, outcome", "Stacking weight, treatment",
+             "CVC kept, outcome", "CVC kept, treatment")),
+  digits = 3,
+  caption = "Short-stacking weights (averaged over partitions) and the share of partitions in which the CVC screen at threshold 0.2 kept each learner, for the outcome and treatment equations.")
+```
+
+```{r dml-learners-meta, echo=FALSE}
+knitr::kable(
+  setNames(learner_study$meta, c("Combination", "Estimate", "SE")),
+  digits = 0, format.args = list(big.mark = ","),
+  caption = "PLR estimates from three ways of combining the eight learners, median-aggregated over three partitions.")
+```
+
+Tables \@ref(tab:dml-learners-weights) and \@ref(tab:dml-learners-meta) show the remedy. Stacking gives the three poor learners essentially no weight, OLS included, because the lasso on the flexible dictionary already contains everything OLS offers and more. It puts most of its weight on the lasso, ridge, and forests. The CVC screen drops all three poor learners as well. Each of the three data-driven combinations, stacking, the single best learner by $R^2$, and an equal-weighted average of the CVC survivors, lands in the cluster of sensible estimates. The practical rule from @ahrens2026introduction follows. Run a diverse set of candidate learners. Report their out-of-sample fit along with their estimates. Treat a learner that fails on fit as a failed learner rather than as evidence of fragility. Then let stacking or a screen like CVC choose among the rest, and report that choice.
+
+### DML for Staggered Difference-in-Differences {#sec-dml-did}
+
+The selection-on-observables and IV models above are cross-sectional, but the same machinery extends to panel designs. The extension that matters most in applied work is difference-in-differences with staggered adoption and covariates. The recent DiD literature replaces two-way fixed effects with estimates of group-time average treatment effects [@callaway2021difference; @sun2021estimating], and conditional parallel trends require a model for how pre-treatment covariates shift trends. Section \@ref(sec-did-covariates) discusses why that adjustment is delicate. DML lets the adjustment be fully flexible.
+
+For a cohort $g$ first treated in period $g$ and an outcome period $t$, let $\Delta Y = Y_t - Y_{g-1}$ be the change from the last pre-treatment period. Restrict attention to units in cohort $g$ (indicator $G$) or in a never-treated comparison group (indicator $C$). The target is $\theta^{(g,t)} = \mathbb{E}[Y_t(g) - Y_t(\infty) \mid G = 1]$. It is identified under parallel trends conditional on $X$ and no anticipation, and it has the orthogonal score
+$$
+\psi(\theta, \eta) = \frac{1}{\pi}\left[G - \frac{q(X)\,C}{1 - q(X)}\right]\bigl(\Delta Y - \ell(X)\bigr) - \frac{G}{\pi}\,\theta,
+$$
+with nuisances $q(X) = \mathbb{P}(G = 1 \mid X, G + C = 1)$, $\ell(X) = \mathbb{E}[\Delta Y \mid X, C = 1]$, and the cohort share $\pi = \mathbb{P}(G = 1 \mid G + C = 1)$. This is the doubly robust DiD score of @sant2020doubly, and @chang2020double shows that it is Neyman orthogonal and gives valid inference with cross-fitted machine learning nuisances. The structure is AIPW applied to the trend: $\ell$ predicts the comparison group's trend, and the propensity term reweights the comparison group to look like the treated cohort. Event-study coefficients are cohort-share-weighted averages of the $\theta^{(g,t)}$ at each event time.
+
+@ahrens2026introduction apply this score to the effect of a first hospital admission on out-of-pocket medical spending, the question studied by @dobkin2018economic and reanalyzed by @sun2021estimating. The data are a balanced panel of 656 households observed over waves 7 to 11 of the Health and Retirement Study. Parallel trends are assumed conditional on age, gender, race, and education, and a fully interacted set of these eight controls has 3,072 cells, more than there are households. That is the regime where a parametric propensity model must impose a functional form and a flexible learner can let the data choose. Nuisances are random forests, and the number of folds is raised to $K = 15$ because some cohort-period cells are small. Three findings from the application generalize.
+
+First, sample-split variability is real in small cells. The first-period effect for the wave-9 cohort rests on 176 treated and 228 untreated households, and across five random partitions the DML estimate ranges from about $3,204 to $3,486, a spread of roughly 30 percent of its standard error. The sign and significance do not change, but a single unreported split would have been arbitrary. The survey reports the median aggregate with the split-adjusted variance, the same rule used in Section \@ref(sec-dml-robustness).
+
+Second, flexible and parametric covariate adjustment can disagree substantively. For the same cohort one period later, DML gives $937 (standard error 434), while the parametric doubly robust estimator with linear covariates gives $2,534 (standard error 422). For the wave-10 cohort's earliest pre-period, the placebo estimate is $-1,492$ (2,223) under DML and $1,222$ (1,127) under the parametric estimator. Neither is significant, but they have opposite signs. Neither comparison shows which estimator is right. What it does show is that the linear covariate specification is doing real work, and the flexible estimate is the one that does not depend on it.
+
+Third, flexibility costs precision where the data are thin. At event time $-3$ only the wave-10 cohort contributes, with 163 treated and 65 never-treated households, and the DML estimate there is less precise than the parametric one. This is the familiar price of nonparametric adjustment, and it is the reason the survey's guidance ties the number of folds and the choice of learners to the effective sample size rather than to the headline $n$.
+
+### An Implementation Checklist {#sec-dml-checklist}
+
+@ahrens2026introduction close with guidance that is worth stating as a list, because each item corresponds to a decision that is otherwise made silently.
+
+1. **Define the target first.** DML is an estimation method, not an identification strategy. The parameter, the identifying assumptions, and therefore the score have to be fixed before any learner is chosen.
+2. **Use an orthogonal score.** For the ATE that means AIPW, not IPW or regression adjustment with machine learning nuisances (Section \@ref(sec-dml-score-catalogue)).
+3. **Cross-fit, with folds that respect the dependence structure.** Assign whole clusters or panel units to folds. Prefer more folds when computing allows and when the effective sample is small, and check sensitivity to $K$.
+4. **Repeat the cross-fitting.** Report the median aggregate with the split-adjusted standard error. Large variation across splits is itself a warning about finite-sample reliability.
+5. **Treat learner choice as first order.** Run a diverse set of candidates, parametric, regularized, tree-based, and neural. Report each learner's cross-fitted $R^2$, and combine learners by stacking or screen them with CVC rather than picking the most convenient one (Section \@ref(sec-dml-learner-choice)).
+6. **Report everything needed to reproduce the estimate.** That means the learners, their tuning, the folds, the number of repetitions, the trimming threshold, and the fit diagnostics.
+
+The survey is also candid about what remains unsettled. The rate conditions that justify DML are known to hold for the lasso under sparsity and for some forests and neural networks under restrictive assumptions. Off-the-shelf tuning defaults need not satisfy them, and in high dimensions random forests can converge more slowly than the theory requires [@chi2022asymptotic]. When a learner is too inflexible to capture a nuisance function, the residual confounding behaves like omitted variable bias, and the sensitivity analysis of @chernozhukov2026long bounds how large it would have to be to overturn a conclusion. Dependent data complicate both the fold construction and the asymptotic approximation. Each of these is a reason to run the diagnostics above, not a reason to avoid the method.
+
 ## Doubly Robust Estimation and Targeted Learning
 
 The double machine learning framework for the interactive model is closely tied to a longer tradition in biostatistics built around doubly robust estimators. Understanding that tradition clarifies why the AIPW score is orthogonal and motivates targeted maximum likelihood estimation.
@@ -485,7 +921,7 @@ sl_fit  # prints the learned ensemble weights
 
 ### Flexible Nuisance Learners
 
-Several learners recur as components of these ensembles and as standalone nuisance estimators. The Lasso of @tibshirani1996 performs variable selection and shrinkage, and its high-dimensional inference theory underpins the post-double-selection approach of @belloni2014inference and @belloni2014high, an early and influential instance of orthogonalized estimation that prefigures double machine learning. Random forests, introduced by @breiman2001random and based on the recursive partitioning of @breiman2017classification, provide flexible, low-tuning regression for both the outcome and the propensity score. Gradient boosting machines build additive ensembles of shallow trees and are common for propensity score estimation. Bayesian additive regression trees offer a flexible, regularized sum-of-trees prior with automatic uncertainty quantification and are widely used for the outcome surface in causal applications, including the endogeneity-aware formulation of @hill2021endogeneity. The unifying message is that any of these can serve as a nuisance learner, and the orthogonal-score plus cross-fitting machinery makes the downstream causal estimate robust to the particular choice.
+Several learners recur as components of these ensembles and as standalone nuisance estimators. The Lasso of @tibshirani1996 performs variable selection and shrinkage, and its high-dimensional inference theory underpins the post-double-selection approach of @belloni2014inference and @belloni2014high, an early and influential instance of orthogonalized estimation that prefigures double machine learning. Random forests, introduced by @breiman2001random and based on the recursive partitioning of @breiman2017classification, provide flexible, low-tuning regression for both the outcome and the propensity score. Gradient boosting machines build additive ensembles of shallow trees and are common for propensity score estimation. Bayesian additive regression trees offer a flexible, regularized sum-of-trees prior with automatic uncertainty quantification and are widely used for the outcome surface in causal applications, including the endogeneity-aware formulation of @hill2021endogeneity. The unifying message is that any of these can serve as a nuisance learner, and the orthogonal-score plus cross-fitting machinery makes the downstream causal estimate robust to modest errors in whichever one is chosen. It does not make the choice irrelevant. A learner that fails to approximate a nuisance function at all, because it is mistuned or unsuited to the data, can still move the estimate far from the truth. The diagnostics in Section \@ref(sec-dml-learner-choice) are designed to catch that failure.
 
 ## Deep Learning for Large-Scale Combinatorial Experiments
 
