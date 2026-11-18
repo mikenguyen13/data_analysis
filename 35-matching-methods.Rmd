@@ -1960,6 +1960,506 @@ This is exemplified by *representation learning for causal inference* approaches
 
 ------------------------------------------------------------------------
 
+### Matching on Learned Preference Embeddings {#sec-embedding-matching}
+
+The methods above compress covariates the analyst already has. A harder case arises when the confounder is not a column at all. On a platform, the reason one person buys, watches, or rates a product while another does not is mostly taste, and taste is never recorded. What the platform does record is a long history of earlier choices, and a recommender system exists precisely to turn that history into a low-dimensional description of each user's taste. @rossi2026quality turn this observation into a matching design: train a recommender on choices made before the treatment, treat the learned user vectors as covariates, and match on them. This section explains the logic, shows in a simulation what the learned vectors can and cannot absorb, and replicates the paper's main results on the public MovieLens data.
+
+#### The Selection Problem Behind a Quality Disclosure
+
+The application is the effect of an Academy Award nomination on how much people enjoy a film. A nomination is a quality disclosure: it raises expectations. If enjoyment depends on how the experience compares with what was expected, a film that was pleasant at expectation $e$ can disappoint at expectation $e' > e$, and ratings fall even though the film has not changed. The difficulty is that the nomination also changes who watches. Before it, a film's audience is its natural fans, people whose tastes match the film's genre, director, and style. After it, the film reaches people who watch because it was nominated, and their match to the film is on average worse. Both forces lower the average post-nomination rating, so a before and after comparison, or a difference in differences against films that were not nominated, measures their sum.
+
+Write user $i$'s rating of film $j$ as
+
+$$
+r_{ij} = \theta_j + \phi_{ij} + \lambda\,\big(\theta_j - E[\theta_j \mid s]\big) + \varepsilon_{ij},
+$$
+
+where $\theta_j$ is the film's quality, $\phi_{ij}$ is the user-film match, $s$ is the public signal, and $\lambda > 0$ is the weight on the gap between realised and expected quality. Moving the signal from $s$ to a nomination $s^+$ changes the average rating among those who choose to watch by
+
+$$
+\underbrace{-\lambda\big(E[\theta_j\mid s^+] - E[\theta_j\mid s]\big)}_{\text{disappointment}}
+\;+\;
+\underbrace{E[\phi_{ij}\mid \text{watch}, s^+] - E[\phi_{ij}\mid \text{watch}, s]}_{\text{selection on taste}}.
+$$
+
+The second term disappears if we compare users with the same $\phi_{ij}$. A recommender delivers an estimate of that match. In the biased matrix factorisation of @koren2009matrix,
+
+$$
+\hat r_{ij} = \mu + b_i + b_j + \mathbf q_j^\top \mathbf p_i ,
+$$
+
+each user carries a bias $b_i$ and a vector $\mathbf p_i$, each film a bias $b_j$ and a vector $\mathbf q_j$, and the model is fit by penalised least squares on observed ratings. Two users with the same $(b_i, \mathbf p_i)$ receive the same predicted rating for every film in the catalogue, so they are, as far as their history can reveal, the same kind of viewer.
+
+#### The Two-Step Design
+
+The design has two steps.
+
+1.  For each nomination year, train the recommender only on ratings posted before a cutoff that precedes the comparison window, here 40 days before the nomination announcement. Nothing from the window, before or after the nomination, enters the training data, so the learned vectors are pre-treatment covariates.
+2.  For each nominated film, compare users who rated it after the nomination (treated) with users who rated it before (controls), matching exactly on the film and on the learned user vectors, plus a few user traits measured at the time of the rating: average past rating, number of past ratings, stringency relative to other raters, and the share of the user's ratings that go to films of the same release year.
+
+The estimand is the average effect on the treated, that is, on post-nomination raters. Treatment is defined by the timing of a rating, not by the user, so the same person can be a control for one film and treated for another; this requires that rating one nominated film early does not change the user's response to another.
+
+Identification rests on conditional ignorability with learned covariates: given the film, the user vector, and the traits, whether a person rates before or after the nomination is unrelated to the potential rating. The vectors make this assumption far more plausible than any list of demographics could, because they are built from exactly the behaviour that taste drives. They cannot make it true for components of the match that the history does not reveal, such as a personal connection to a film's subject, and the simulation below makes that limit concrete.
+
+Three technical points matter in practice.
+
+-   **Rotation.** A matrix factorisation is identified only up to an invertible transformation: replacing $\mathbf p_i$ by $\mathbf R\mathbf p_i$ and $\mathbf q_j$ by $\mathbf R^{-\top}\mathbf q_j$ leaves every prediction unchanged. Coordinates from two training runs are therefore not comparable, and the same user's vector from two years, or two random seeds, can sit far apart. Matching is valid only within a run. Exact matching on the film guarantees this here, because each film belongs to one nomination year and one training run. A logit propensity score and a Mahalanobis distance are invariant to any linear transformation of the vectors within a run; a raw Euclidean distance is invariant to orthogonal rotations only.
+-   **Which score.** The direction in taste space that predicts liking a film is $\mathbf q_j$, and it differs across films. A single propensity model pooled across films forces the same direction on all of them. Matching within film on a film-specific score, or on the predicted rating $\hat r_{ij}$ itself, targets the relevant projection.
+-   **What a predicted-rating placebo shows.** Rerunning the matching with $\hat r_{ij}$ as the outcome is a natural check, and the paper reports a null. But $\hat r_{ij}$ is a deterministic function of $b_i$, $b_j$, and $\mathbf p_i$, the very quantities being matched, so a null is close to guaranteed whenever the matching balances its inputs. It is a balance diagnostic on a well-chosen summary of the covariates, not a test of the identifying assumption. A test that can fail is to apply the same procedure to films that received no nomination.
+
+#### Simulation: What the Embeddings Can and Cannot Absorb
+
+The simulation builds a small platform. There are 3,000 users with three latent taste dimensions and 300 catalogue films. Each user first rates 150 catalogue films, chosen with probability increasing in their match to the film; these ratings are the only data the recommender sees. Then 40 new films arrive and half are nominated. Before the nomination, a film's viewers are its fans: the chance of watching rises steeply with the match. After the nomination, a nominated film reaches a broad audience, so the chance of watching is nearly flat in the match. Ratings of nominated films after the nomination carry a disappointment effect of $-0.15$. In a second world, a user-film shock $\eta_{ij}$ that leaves no trace in the history raises both the chance of watching early and the rating, which is selection on a part of the match the embeddings cannot contain.
+
+The estimators are the naive post minus pre difference for nominated films, a difference in differences against non-nominated films with film fixed effects, and four versions of 1:1 nearest neighbour matching within film: a propensity score pooled across films, Mahalanobis distance on the learned vectors, a film-specific propensity score, and an oracle that matches on the true match $\phi_{ij}$. The last row is the predicted-rating placebo.
+
+```{r embed-match-sim, cache=TRUE, message=FALSE, warning=FALSE}
+library(recosystem)
+library(data.table)
+
+simulate_platform <- function(U = 3000, J = 300, K = 3, n_hist = 150, F = 40,
+                              delta = -0.15, hidden = 0, seed = 1) {
+  set.seed(seed)
+  P  <- matrix(rnorm(U * K), U, K)                      # user tastes
+  Q  <- matrix(rnorm((J + F) * K, sd = 1 / sqrt(K)), J + F, K)
+  bu <- rnorm(U, 0, 0.3); bj <- rnorm(J + F, 0, 0.3); mu <- 3.5
+
+  # History on catalogue films: n_hist draws per user without replacement,
+  # probability proportional to plogis(match) (Gumbel top-k trick)
+  fitJ <- P %*% t(Q[1:J, ])
+  key  <- log(plogis(fitJ)) - log(-log(matrix(runif(U * J), U, J)))
+  thr  <- apply(key, 1, function(k) sort(k, decreasing = TRUE)[n_hist])
+  idx  <- which(key >= thr, arr.ind = TRUE)
+  hist <- data.table(u = idx[, 1], j = idx[, 2])
+  hist[, r := mu + bu[u] + bj[j] + fitJ[cbind(u, j)] + rnorm(.N, 0, 0.7)]
+
+  # Focal season: fans watch early; nomination broadens the audience
+  foc <- CJ(u = seq_len(U), f = seq_len(F))
+  foc[, fit := rowSums(P[u, ] * Q[J + f, ])]
+  foc[, eta := hidden * rnorm(.N)]
+  foc[, nom := rep(c(TRUE, FALSE), length.out = F)[f]]
+  foc[, p_pre := plogis(-3 + 1.2 * fit + 2 * eta)]
+  foc[, p_post := fifelse(nom, plogis(-2.5 + 0.3 * fit), p_pre)]
+  foc[, period := fifelse(runif(.N) < p_pre, 0L,
+                          fifelse(runif(.N) < p_post, 1L, NA_integer_))]
+  foc <- foc[!is.na(period)]
+  foc[, r := mu + bu[u] + bj[J + f] + fit + eta + delta * (nom & period == 1) +
+            rnorm(.N, 0, 0.7)]
+  list(hist = hist, foc = foc)
+}
+
+# Biased matrix factorisation on the history only: shrunken baseline
+# mu + b_u + b_j, then LIBMF on the residual
+train_embeddings <- function(hist, dim = 6, lambda = 5, seed = 1) {
+  mu <- mean(hist$r)
+  h <- copy(hist)[, `:=`(bu = 0, bj = 0)]
+  for (it in 1:5) {
+    h[, bj := sum(r - mu - bu) / (.N + lambda), by = j]
+    h[, bu := sum(r - mu - bj) / (.N + lambda), by = u]
+  }
+  set.seed(seed)
+  rs <- Reco()
+  rs$train(data_memory(h$u, h$j, h$r - mu - h$bu - h$bj, index1 = TRUE),
+           opts = list(dim = dim, costp_l2 = 0.05, costq_l2 = 0.05, lrate = 0.05,
+                       niter = 30, nthread = 1, verbose = FALSE))
+  list(P = rs$output(out_memory(), out_nothing())$P, mu = mu,
+       bu = h[, .(bu = bu[1]), keyby = u]$bu)
+}
+
+# 1:1 nearest neighbour with replacement within film; ATT on post raters
+nn_att <- function(f, w, y, score) {
+  score <- as.matrix(score)
+  gaps <- unlist(lapply(split(seq_along(f), f), function(g) {
+    tr <- g[w[g] == 1]; co <- g[w[g] == 0]
+    if (!length(tr) || !length(co)) return(NULL)
+    A <- score[tr, , drop = FALSE]; B <- score[co, , drop = FALSE]
+    D <- outer(rowSums(A^2), rowSums(B^2), "+") - 2 * tcrossprod(A, B)
+    y[tr] - y[co][max.col(-D, ties.method = "first")]
+  }))
+  mean(gaps)
+}
+
+logit_score <- function(f, w, X, by_film = TRUE) {
+  if (!by_film) return(predict(glm(w ~ X, family = binomial())))
+  s <- numeric(length(w))
+  for (g in split(seq_along(f), f))
+    s[g] <- predict(glm(w[g] ~ X[g, ], family = binomial()))
+  s
+}
+
+one_rep <- function(seed, hidden) {
+  s   <- simulate_platform(seed = seed, hidden = hidden)
+  emb <- train_embeddings(s$hist, seed = seed)
+  nom <- s$foc[nom == TRUE]
+  X   <- cbind(emb$P[nom$u, ], emb$bu[nom$u])
+  rhat <- emb$mu + emb$bu[nom$u]       # a new film has no learned item vector yet
+  ps_film <- logit_score(nom$f, nom$period, X)
+  c(naive   = nom[, mean(r[period == 1]) - mean(r[period == 0])],
+    did     = unname(coef(lm(r ~ nom * period + factor(f), data = s$foc))["nomTRUE:period"]),
+    ps_pool = nn_att(nom$f, nom$period, nom$r, logit_score(nom$f, nom$period, X, FALSE)),
+    maha    = nn_att(nom$f, nom$period, nom$r, X %*% solve(chol(cov(X)))),
+    ps_film = nn_att(nom$f, nom$period, nom$r, ps_film),
+    oracle  = nn_att(nom$f, nom$period, nom$r, nom$fit),
+    placebo = nn_att(nom$f, nom$period, rhat, ps_film))
+}
+
+sim <- rbind(
+  data.table(world = "taste", t(sapply(1:10, one_rep, hidden = 0))),
+  data.table(world = "hidden", t(sapply(1:10, one_rep, hidden = 0.5))))
+```
+
+```{r embed-match-sim-table, echo=FALSE}
+lab <- c(naive = "Naive post minus pre", did = "Difference in differences",
+         ps_pool = "Matching: propensity score pooled across films",
+         maha = "Matching: Mahalanobis on embeddings",
+         ps_film = "Matching: film-specific propensity score",
+         oracle = "Matching: oracle on true match",
+         placebo = "Placebo: predicted rating as outcome (film-specific score)")
+sim_cell <- function(w) {
+  m <- sim[world == w, lapply(.SD, mean), .SDcols = names(lab)]
+  s <- sim[world == w, lapply(.SD, sd), .SDcols = names(lab)]
+  sprintf("%.3f (%.3f)", unlist(m), unlist(s))
+}
+knitr::kable(
+  data.frame(Estimator = unname(lab), `Taste-only selection` = sim_cell("taste"),
+             `Hidden match shock` = sim_cell("hidden"), check.names = FALSE),
+  caption = "Ten simulated platforms per world. Entries are the mean estimate across replications with the standard deviation in parentheses. The true effect on post-nomination raters is -0.15 in both worlds; the placebo target is 0.")
+```
+
+Four lessons come out of the table. First, both the naive comparison and the difference in differences are far more negative than $-0.15$: they add the drop in taste match among late viewers to the disappointment effect, and the comparison films cannot remove it because their audience did not change. Second, the learned vectors do contain the confounder. A propensity score fit within each film on the vectors recovers the true effect almost as well as the oracle that sees the true match. Third, how the vectors are used matters as much as having them. A single propensity model pooled across films points every film in the same direction of taste space and leaves most of the selection in place; Mahalanobis distance treats all directions as equally important and wastes its matching on the ones irrelevant to the film. Fourth, when selection also runs through a match component the history cannot reveal, every matching estimator is biased by the same amount as the oracle, yet the predicted-rating placebo is exactly as clean as before. A null on that placebo is reassurance about balance, not about ignorability.
+
+#### Replication: Oscar Nominations on MovieLens {#sec-embedding-matching-replication}
+
+@rossi2026quality use the MovieLens 25M release [@harper2015movielens], 25 million ratings of 62,423 films by 162,541 users between January 1995 and November 2019, and the nominations of the 1995 to 2019 ceremonies in the five headline categories (picture, director, lead actor, lead actress, and the two screenplay awards) plus animated feature. Both inputs are public, so the analysis can be rebuilt from scratch. The nominations come from the open `oscar_data` file maintained by David Lu, which carries IMDb identifiers that MovieLens also records. The MovieLens licence forbids redistributing the ratings, so the code below reads them from a local folder and the book stores only the aggregate estimates it produces.
+
+The sample follows Section 2 of the paper. Every film receives one reference nomination date: its own if nominated, otherwise the first announcement after its first MovieLens rating, and non-nominated films first rated more than two years after release are dropped. The analysis window is 40 days either side of the announcement, cut at the ceremony. The recommender is refit for each year on all ratings dated more than 40 days before that year's announcement, with 50 factors. The paper uses the SVD routine of the Python library `surprise`, which learns the biases and factors jointly by stochastic gradient descent; we use the equivalent two-stage version, shrunken user and film biases followed by LIBMF, through the `recosystem` package, on the residuals. Matching follows the paper's description: a logit propensity score on the 50 user factors, one-to-one nearest neighbour, exact on the film and, cumulatively from M2 to M5, on quintiles of the user's average past rating, number of past ratings, stringency over the last ten ratings, and share of past ratings given to films of the same release year. The paper does not state whether matches are drawn with or without replacement, so we report MatchIt's default, without, with the paper's 100-draw bootstrap, and in the extensions the with-replacement estimator, which has a valid analytic standard error. The full build takes about two hours on a 16-core desktop, almost all of it in the bootstrap, so the chapter loads the saved estimates.
+
+```{r embed-match-build-a, eval=FALSE}
+# Stage A: windows and difference in differences. `cache` holds ml-25m/ from
+# https://grouplens.org/datasets/movielens/25m/ and oscars.csv from
+# https://github.com/DLu/oscar_data
+library(data.table)
+library(fixest)
+cache <- "path/to/movielens"
+
+ratings <- fread(file.path(cache, "ml-25m/ratings.csv"))
+movies  <- fread(file.path(cache, "ml-25m/movies.csv"))
+links   <- fread(file.path(cache, "ml-25m/links.csv"))
+osc     <- fread(file.path(cache, "oscars.csv"), sep = "\t", quote = "")
+ratings[, date := as.IDate(as.POSIXct(timestamp, origin = "1970-01-01", tz = "UTC"))]
+movies[, prod_year := as.integer(sub(".*\\((\\d{4})\\)\\s*$", "\\1", trimws(title)))]
+
+dates <- data.table(
+  nom_year = 1995:2019,
+  nom_date = as.IDate(c("1995-02-14","1996-02-13","1997-02-11","1998-02-10","1999-02-09",
+                        "2000-02-15","2001-02-13","2002-02-12","2003-02-11","2004-01-27",
+                        "2005-01-25","2006-01-31","2007-01-23","2008-01-22","2009-01-22",
+                        "2010-02-02","2011-01-25","2012-01-24","2013-01-10","2014-01-16",
+                        "2015-01-15","2016-01-14","2017-01-24","2018-01-23","2019-01-22")),
+  cer_date = as.IDate(c("1995-03-27","1996-03-25","1997-03-24","1998-03-23","1999-03-21",
+                        "2000-03-26","2001-03-25","2002-03-24","2003-03-23","2004-02-29",
+                        "2005-02-27","2006-03-05","2007-02-25","2008-02-24","2009-02-22",
+                        "2010-03-07","2011-02-27","2012-02-26","2013-02-24","2014-03-02",
+                        "2015-02-22","2016-02-28","2017-02-26","2018-03-04","2019-02-24")))
+
+big <- c("BEST PICTURE", "DIRECTING", "ACTOR IN A LEADING ROLE", "ACTRESS IN A LEADING ROLE",
+         "WRITING (Original Screenplay)", "WRITING (Adapted Screenplay)", "ANIMATED FEATURE FILM")
+nomrows <- osc[Ceremony %between% c(67, 91) & CanonicalCategory %in% big]
+nomrows <- nomrows[, .(imdb = unlist(strsplit(FilmId, "|", fixed = TRUE)),
+                       win = Winner == "True"), by = .(Ceremony, CanonicalCategory, Film)]
+nomfilm <- nomrows[nzchar(imdb), .(n_nom = .N, won_any = any(win)),
+                   by = .(imdb, nom_year = Ceremony + 1928L)]
+nomfilm[, imdbId := as.integer(sub("^tt", "", imdb))]
+nomfilm <- merge(nomfilm, links[, .(movieId, imdbId)], by = "imdbId")
+nomfilm <- nomfilm[order(nom_year)][, .SD[1], by = movieId]
+
+# Reference nomination year: own nomination, else first announcement after first rating
+first <- ratings[, .(first_date = min(date)), by = movieId]
+first <- merge(first, movies[, .(movieId, prod_year, genres)], by = "movieId")
+first[, nom_year := dates$nom_year[findInterval(first_date, dates$nom_date) + 1L]]
+ref <- merge(first, nomfilm[, .(movieId, nom_year_n = nom_year, n_nom, won_any)],
+             by = "movieId", all.x = TRUE)
+ref[, nominated := !is.na(nom_year_n)]
+ref[nominated == TRUE, nom_year := nom_year_n]
+ref <- ref[!is.na(nom_year)]
+ref <- ref[nominated == TRUE | (!is.na(prod_year) & year(first_date) <= prod_year + 2)]
+ref <- merge(ref, dates, by = "nom_year")
+
+win <- merge(ratings, ref[, .(movieId, nom_year, nom_date, cer_date, nominated, n_nom,
+                              won_any, prod_year, genres)], by = "movieId")
+win[, rel := as.integer(date - nom_date)]
+win <- win[rel %between% c(-40, 40) & date < cer_date]
+win[, post := as.integer(rel >= 0)]
+win[, nominated := as.integer(nominated)]
+win[, bin := pmin(pmax(floor((rel + 2.5) / 5) * 5, -40), 40)]
+win[, genre1 := sub("\\|.*", "", genres)]
+
+did <- list(
+  feols(rating ~ nominated * post, win, cluster = ~movieId),
+  feols(rating ~ nominated * post | genre1 + prod_year, win, cluster = ~movieId),
+  feols(rating ~ nominated:post + post | movieId, win, cluster = ~movieId),
+  feols(rating ~ nominated:post | movieId + rel, win, cluster = ~movieId))
+```
+
+```{r embed-match-build-b, eval=FALSE}
+# Stage B: user traits at the time of each rating, then yearly embeddings
+library(recosystem)
+ratings <- merge(ratings, movies[, .(movieId, prod_year)], by = "movieId")
+ratings[, movie_mean := mean(rating), by = movieId]
+setorder(ratings, userId, timestamp, movieId)
+ratings[, n_prior := rowid(userId) - 1L]
+ratings[, avg_prior := (cumsum(rating) - rating) / n_prior, by = userId]
+ratings[, S := cumsum(movie_mean - rating), by = userId]
+ratings[, str10 := (shift(S, 1L, fill = 0) - shift(S, 11L, fill = 0)) / pmin(n_prior, 10L),
+        by = userId]
+ratings[, share_year := (rowid(userId, prod_year) - 1L) / n_prior]
+win <- merge(win, ratings[, .(userId, movieId, n_prior, avg_prior, str10, share_year)],
+             by = c("userId", "movieId"))
+
+fit_year <- function(train, dim = 50, lambda_i = 25, lambda_u = 10) {
+  mu <- mean(train$rating)
+  tr <- train[, .(userId, movieId, rating)][, `:=`(bu = 0, bi = 0)]
+  for (it in 1:5) {                                   # shrunken baseline biases
+    tr[, bi := sum(rating - mu - bu) / (.N + lambda_i), by = movieId]
+    tr[, bu := sum(rating - mu - bi) / (.N + lambda_u), by = userId]
+  }
+  rs <- Reco()
+  rs$train(data_memory(tr$userId, tr$movieId, tr$rating - mu - tr$bu - tr$bi, index1 = TRUE),
+           opts = list(dim = dim, costp_l2 = 0.02, costq_l2 = 0.02, lrate = 0.05,
+                       niter = 20, nthread = 16, verbose = FALSE))
+  M <- rs$output(out_memory(), out_memory())
+  list(mu = mu, P = M$P, Q = M$Q, bu = tr[, .(bu = bu[1]), keyby = userId],
+       bi = tr[, .(bi = bi[1]), keyby = movieId],
+       users = sort(unique(tr$userId)), items = sort(unique(tr$movieId)))
+}
+
+emb <- rbindlist(lapply(sort(unique(win$nom_year)), function(y) {
+  cutoff <- win[nom_year == y]$nom_date[1] - 40L      # nothing from the window
+  train <- ratings[date < cutoff]
+  if (nrow(train) < 1e5) return(NULL)
+  fy <- fit_year(train)
+  w <- win[nom_year == y & userId %in% fy$users]
+  w <- merge(w, fy$bu, by = "userId")
+  w <- merge(w, fy$bi, by = "movieId", all.x = TRUE)[is.na(bi), bi := 0]
+  known <- w$movieId %in% fy$items
+  pq <- numeric(nrow(w))
+  pq[known] <- rowSums(fy$P[w$userId[known], ] * fy$Q[w$movieId[known], ])
+  w[, `:=`(rhat = fy$mu + bu + bi + pq, item_known = known)]
+  E <- fy$P[w$userId, ]; colnames(E) <- sprintf("e%02d", 1:50)
+  cbind(w, as.data.table(E))
+}))
+```
+
+```{r embed-match-build-c, eval=FALSE}
+# Stage C: matching, the paper's bootstrap, and with-replacement AI estimates
+library(MatchIt)
+library(Matching)
+ecol <- sprintf("e%02d", 1:50)
+qcut <- function(x) cut(x, unique(quantile(x, 0:5 / 5)), include.lowest = TRUE, labels = FALSE)
+prep <- function(d) {
+  d <- copy(d)[is.finite(avg_prior) & is.finite(str10) & is.finite(share_year)]
+  d[, `:=`(q_avg = qcut(avg_prior), q_n = qcut(n_prior), q_str = qcut(str10),
+           q_share = qcut(share_year), movie = factor(movieId))]
+}
+specs <- list(M1 = ~ movie, M2 = ~ movie + q_avg, M3 = ~ movie + q_avg + q_n,
+              M4 = ~ movie + q_avg + q_n + q_str, M5 = ~ movie + q_avg + q_n + q_str + q_share)
+ps_formula <- reformulate(ecol, "post")
+
+match_att <- function(d, exact, distance = "glm") {
+  m <- matchit(ps_formula, data = d, method = "nearest", distance = distance,
+               exact = exact, replace = FALSE, ratio = 1, estimand = "ATT")
+  md <- match.data(m, data = d)
+  list(est = sapply(c(rating = "rating", rhat = "rhat"),
+                    function(y) coef(lm(md[[y]] ~ md$post, weights = md$weights))[2]),
+       n = nrow(md), m = m)
+}
+boot_se <- function(d, exact, B = 100, distance = "glm")  # the paper's SEs
+  apply(replicate(B, match_att(d[sample(.N, .N, TRUE)], exact, distance)$est), 1, sd)
+
+# Abadie-Imbens (2006) estimator: with replacement, analytic variance. Match()
+# returns the AI standard error only with ties = TRUE and the standard version;
+# with ties = FALSE or version = "fast" `se` is silently NULL and only the
+# conditional standard error `se.standard` remains.
+ai_att <- function(d, exact_vars, score, y = "rating") {
+  X <- cbind(score, as.matrix(d[, ..exact_vars]))
+  r <- Match(Y = d[[y]], Tr = d$post, X = X, exact = c(FALSE, rep(TRUE, length(exact_vars))),
+             estimand = "ATT", M = 1, replace = TRUE, ties = TRUE)
+  c(est = r$est[1], se_ai = r$se, se_naive = r$se.standard, n_treated = r$wnobs)
+}
+
+nom  <- prep(emb[nominated == 1])
+fits <- lapply(specs, function(s) match_att(nom, s))
+ses  <- lapply(specs, function(s) boot_se(nom, s))
+maha <- lapply(specs[c("M1", "M5")], function(s) match_att(nom, s, distance = "mahalanobis"))
+
+# Placebo films: non-nominated, dropping users who rated a nominated film that season
+non <- prep(emb[nominated == 0][!unique(emb[nominated == 1, .(userId, nom_year)]),
+                                on = .(userId, nom_year)])
+
+# With-replacement estimates on each sample, scored by a propensity score on the
+# factors or by the film-specific predicted rating
+x5 <- c("movieId", "q_avg", "q_n", "q_str", "q_share")
+ai <- lapply(list(Nominated = nom, `Not nominated` = non), function(d) {
+  ps <- predict(glm(ps_formula, data = d, family = binomial()))
+  list(M1 = ai_att(d, "movieId", ps), M1_rhat = ai_att(d, "movieId", ps, "rhat"),
+       M5 = ai_att(d, x5, ps), rhat_M1 = ai_att(d, "movieId", d$rhat),
+       rhat_M5 = ai_att(d, x5, d$rhat))
+})
+
+# Dynamics: actual minus predicted rating by five-day bin, film fixed effects
+emb[, gap := rating - rhat]
+dyn <- lapply(c(Nominated = 1, `Not nominated` = 0), function(k)
+  feols(gap ~ i(bin, ref = 0) | movieId, emb[nominated == k], cluster = ~movieId))
+```
+
+```{r embed-match-load, include=FALSE}
+em <- readRDS("data/embedding_matching_movielens.rds")
+f3 <- function(x) sprintf("%.3f", x)
+fse <- function(b, s) sprintf("%.3f (%.3f)", b, s)
+did_int <- sapply(em$stage_a$did, function(m) {
+  ct <- m$coef; r <- grep(":", rownames(ct)); fse(ct[r, 1], ct[r, 2])
+})
+gap0 <- em$stage_a$pre_gap[nominated == 1]$V1 - em$stage_a$pre_gap[nominated == 0]$V1
+```
+
+The first step reproduces the paper's difference in differences. The window holds `r format(em$stage_a$n_window, big.mark = ",")` ratings of `r format(em$stage_a$n_films, big.mark = ",")` films against 497,266 in the paper, and `r em$stage_a$n_nominated` nominated films are found in MovieLens against the paper's 427. Our nomination file lists 453 distinct films in these categories against the 428 the paper counts; we could not reconcile the difference, which amounts to about one film a year, and it leaves the window samples within a few percent of each other.
+
+```{r embed-match-did-table, echo=FALSE}
+did_nom <- sapply(em$stage_a$did[1:2], function(m) fse(m$coef["nominated", 1], m$coef["nominated", 2]))
+knitr::kable(
+  data.frame(
+    Row = c("Nominated", "Nominated x post (replication)", "Nominated x post (paper)",
+            "Fixed effects", "Observations"),
+    `(1)` = c(did_nom[1], did_int[1], "-0.034 (0.011)", "None", format(em$stage_a$did[[1]]$nobs, big.mark = ",")),
+    `(2)` = c(did_nom[2], did_int[2], "-0.037 (0.011)", "Genre, year", format(em$stage_a$did[[2]]$nobs, big.mark = ",")),
+    `(3)` = c("", did_int[3], "-0.019 (0.007)", "Film", format(em$stage_a$did[[3]]$nobs, big.mark = ",")),
+    `(4)` = c("", did_int[4], "-0.018 (0.007)", "Film, day", format(em$stage_a$did[[4]]$nobs, big.mark = ",")),
+    check.names = FALSE),
+  caption = "Difference in differences of ratings for nominated against non-nominated films, 40 days either side of the announcement. Standard errors clustered by film. Paper values are from its Table 3; its pre-nomination gap in column (1) is 0.590 (0.023).")
+```
+
+The replication is close to exact. Nominated films are rated about `r f3(gap0)` stars higher before the announcement, and after it their ratings fall by about 0.02 to 0.03 stars relative to other films, roughly five percent of that premium. As the simulation showed, this number mixes disappointment with the change in audience.
+
+The matching analysis restricts attention to nominated films and to users with at least one rating before the training cutoff, `r format(em$n_match_sample, big.mark = ",")` ratings by `r format(em$n_users, big.mark = ",")` users of `r em$n_films` films, against 63,849 ratings in the paper.
+
+```{r embed-match-main-table, echo=FALSE}
+mm <- em$main
+paper_est  <- c("-0.039 (0.007)", "-0.042 (0.008)", "-0.043 (0.007)", "-0.046 (0.007)", "-0.040 (0.010)", "-0.047 (0.015)")
+paper_rhat <- c("0.002 (0.003)", "0.002 (0.004)", "-0.003 (0.003)", "-0.003 (0.003)", "-0.003 (0.003)", "-0.001 (0.005)")
+paper_n    <- c(63849, 59937, 59914, 56098, 40395, 18218)
+knitr::kable(
+  data.frame(Specification = c("OLS, film fixed effects", "M1: embeddings", "M2: + average rating",
+                               "M3: + number of ratings", "M4: + stringency", "M5: + same-year share"),
+             Rating = fse(mm$est, mm$se), `Rating, paper` = paper_est,
+             `Predicted rating` = fse(mm$est_rhat, mm$se_rhat), `Predicted, paper` = paper_rhat,
+             N = format(mm$n, big.mark = ","), `N, paper` = format(paper_n, big.mark = ","),
+             check.names = FALSE),
+  caption = paste0("Effect of rating after the nomination on the rating of the same nominated film. M1 to M5 are one-to-one nearest neighbour matches without replacement on a propensity score of the 50 user factors, exact on the film and on cumulatively added quintiles of user traits; bootstrap standard errors (", em$B, " draws) as in the paper. The predicted-rating columns repeat the analysis with the recommender's prediction as the outcome."))
+```
+
+The headline replicates. Users who rate a nominated film after the announcement give it between `r f3(-max(mm[spec != "OLS"]$est))` and `r f3(-min(mm[spec != "OLS"]$est))` fewer stars than matched users who rated it before, against 0.040 to 0.047 in the paper, or about `r sprintf("%.0f", 100 * -mm[spec == "M2"]$est / gap0)` percent of the pre-nomination premium. Our M5 cells are smaller and noisier than the paper's, and the M5 estimate is correspondingly less precise.
+
+The predicted-rating columns do not replicate, and the reason is instructive. With matches drawn without replacement, the post-nomination raters have predicted ratings about `r f3(-mm[spec == "M1"]$est_rhat)` stars lower than their matches in M1 to M4. The recommender, which has never seen these ratings, already expects them to like the film less: some selection on taste survives the matching. Greedy one-to-one matching without replacement within a single film's small pool of earlier raters uses up the closest controls first, and the later treated units take whatever is left. The extensions show what happens when that constraint is removed.
+
+#### Extensions: Valid Standard Errors, a Better Score, and Placebo Films
+
+Three changes address the problems above. First, @abadie2008failure show that the bootstrap is not valid for nearest neighbour matching with a fixed number of matches, because resampling does not reproduce how often each control is reused, while the with-replacement estimator of @abadie2006large comes with an analytic variance that is. Second, matching with replacement lets every treated rating use its best control. Third, the simulation pointed to the film-specific prediction $\hat r_{ij}$ as the right one-dimensional score, because it is the projection of the user's tastes onto the film's own attribute vector. A software trap is worth flagging: `Matching::Match()` returns the Abadie-Imbens standard error only with `ties = TRUE` in its standard version. With `ties = FALSE` or `version = "fast"` the element `se` is silently `NULL`, and the only standard error left, `se.standard`, treats the matches as fixed. On our data that understates the M1 standard error by about a third.
+
+```{r embed-match-ext-table, echo=FALSE}
+ai <- em$ai_all
+g <- function(smp, sc, o = "rating", sp = "M1") ai[sample == smp & spec == sp & score == sc & outcome == o]
+mh <- em$maha[spec == "M1"]
+tab <- data.frame(
+  Estimator = c("Propensity score on factors, with replacement",
+                "Predicted rating within film, with replacement",
+                "Mahalanobis on 50 factors, without replacement"),
+  Rating = c(fse(g("Nominated", "ps")$est, g("Nominated", "ps")$se_ai),
+             fse(g("Nominated", "rhat")$est, g("Nominated", "rhat")$se_ai),
+             fse(mh$est, mh$se)),
+  `Conditional SE` = c(f3(g("Nominated", "ps")$se_naive), f3(g("Nominated", "rhat")$se_naive), ""),
+  `Predicted rating` = c(fse(g("Nominated", "ps", "rhat")$est, g("Nominated", "ps", "rhat")$se_ai),
+                         "0 by construction", fse(mh$est_rhat, mh$se_rhat)),
+  check.names = FALSE)
+knitr::kable(tab, caption = "Alternative M1 estimators (exact on film) for nominated films. The first two rows report Abadie-Imbens standard errors, with the conditional standard error that treats matches as fixed alongside; the Mahalanobis row reports the bootstrap. In the second row the matching score is the placebo outcome, so that placebo is zero by construction.")
+```
+
+Matching with replacement on the same propensity score restores balance on the prediction, which moves from `r f3(mm[spec == "M1"]$est_rhat)` to `r f3(g("Nominated", "ps", "rhat")$est)`, while the effect on actual ratings is `r f3(g("Nominated", "ps")$est)` with an Abadie-Imbens standard error of `r f3(g("Nominated", "ps")$se_ai)`. Matching within film directly on the recommender's prediction gives `r f3(g("Nominated", "rhat")$est)` (`r f3(g("Nominated", "rhat")$se_ai)`). Mahalanobis distance on all fifty factors is the worst performer, exactly as in the simulation: it leaves a predicted-rating gap of `r f3(mh$est_rhat)` and an inflated effect of `r f3(mh$est)`, because it spends its matching on directions of taste that have nothing to do with the film. We do not report Abadie-Imbens standard errors for M5. With hundreds of sparse exact cells per film, the estimated conditional variances become degenerate and the analytic standard error falls below the conditional one, which cannot be right.
+
+So far the replication supports the paper. The test that can fail is the one the paper reports in its appendix: run the same procedure on films that were never nominated. If matched later raters of those films also rate lower, something other than the nomination is at work.
+
+```{r embed-match-placebo-table, echo=FALSE}
+row_p <- function(sc, lab) {
+  a <- g("Nominated", sc); b <- g("Not nominated", sc)
+  data.frame(Score = lab, Nominated = fse(a$est, a$se_ai), `Not nominated` = fse(b$est, b$se_ai),
+             Difference = fse(a$est - b$est, sqrt(a$se_ai^2 + b$se_ai^2)),
+             `Predicted rating, not nominated` = if (sc == "ps") fse(g("Not nominated", "ps", "rhat")$est,
+               g("Not nominated", "ps", "rhat")$se_ai) else "0 by construction",
+             check.names = FALSE)
+}
+knitr::kable(rbind(row_p("ps", "Propensity score on factors"), row_p("rhat", "Predicted rating within film")),
+  caption = "M1 matching with replacement, exact on film, Abadie-Imbens standard errors. The placebo sample is non-nominated films in the same windows, excluding users who rated any nominated film that season. The difference column treats the two samples as independent.")
+```
+
+```{r embed-match-dynamics, echo=FALSE, fig.width=7, fig.height=3.6, fig.cap="Actual minus predicted rating by five-day bin around the nomination announcement, with film fixed effects and the bin of the announcement normalised to zero. Bars are 95 percent intervals clustered by film. The recommender is trained on ratings up to 40 days before the announcement."}
+library(ggplot2)
+ggplot(em$dyn, aes(bin, est)) +
+  geom_hline(yintercept = 0, colour = "grey60") +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_pointrange(aes(ymin = est - 1.96 * se, ymax = est + 1.96 * se), size = 0.25) +
+  facet_wrap(~ group) +
+  labs(x = "Days relative to the nomination announcement",
+       y = "Actual minus predicted rating") +
+  theme_minimal(base_size = 11)
+```
+
+The placebo films do not come back clean. With the propensity score, their matched later raters are `r f3(-g("Not nominated", "ps")$est)` stars lower, not significant on its own, but the recommender expected those raters to like the films `r f3(g("Not nominated", "ps", "rhat")$est)` stars more, so the shortfall against expectations is larger still. Matching on the prediction, which balances it by construction, gives `r f3(g("Not nominated", "rhat")$est)` (`r f3(g("Not nominated", "rhat")$se_ai)`), as large as for the nominated films. The figure shows why. For both groups, actual ratings fall relative to the recommender's predictions in the weeks before the announcement, when nothing has yet happened to either. Part of this is the model ageing after its training cutoff, and part is that a film's first raters are its most enthusiastic: these are drifts in time, and a comparison of earlier with later raters of the same film absorbs them whether or not the film was nominated. After the announcement the two paths separate. Non-nominated films stay flat near zero, while nominated films dip by a further four to five hundredths of a star between 20 and 35 days out, the pattern the paper reports, though with wide intervals. The paper's own figure shows a milder pre-announcement decline for nominated films and a flatter path for the others; in our build the pre-announcement drift is nearly as strong for non-nominated films.
+
+Matching on taste removes selection but not time, and the difference in differences removes time but not selection. The design that removes both is to match within each group and then difference the groups, as the chapter's discussion of [matching with DiD](#sec-matching-methods) recommends. Done that way, the nomination-specific effect is `r f3(g("Nominated", "ps")$est - g("Not nominated", "ps")$est)` with the propensity score and `r f3(g("Nominated", "rhat")$est - g("Not nominated", "rhat")$est)` with the prediction, both with standard errors around 0.015. The propensity-score version agrees with the plain difference in differences, `r did_int[4]`, which nets out time but not selection, and with the extra post-announcement dip in the figure. Our replication therefore reproduces the paper's headline numbers but not its placebo. On our build the part of the drop that can be attributed to the nomination is about 0.015 to 0.02 stars, some three percent of the nomination premium rather than seven, and the matched version of that estimate cannot be distinguished from zero; the rest of the drop also happens to films nobody nominated. Differences in construction could matter here, since the paper's code is not public and its film sample, its window for non-nominated films, and its software differ from ours in details we could not check. The lesson for the method does not depend on who is right: a matched before and after comparison on learned embeddings needs a placebo group and a difference across groups, because time is not in the embedding.
+
+```{r embed-match-het-table, echo=FALSE}
+het <- rbindlist(lapply(c("Nominated, fewer than 400 prior ratings", "Nominated, 400 or more prior ratings"),
+  function(s) data.table(Users = c("Nominated, fewer than 400 prior ratings" = "Fewer than 400 prior ratings", "Nominated, 400 or more prior ratings" = "400 or more prior ratings")[[s]],
+                         `Propensity score` = fse(g(s, "ps")$est, g(s, "ps")$se_ai),
+                         `Predicted rating` = fse(g(s, "rhat")$est, g(s, "rhat")$se_ai),
+                         `Treated ratings` = format(g(s, "ps")$n_treated, big.mark = ","))))
+knitr::kable(het, caption = "Heterogeneity by the number of ratings a user had posted before rating the nominated film. M1 matching with replacement, exact on film, Abadie-Imbens standard errors; the propensity score is refit within each group.")
+```
+
+The heterogeneity the paper stresses, a larger effect among less experienced users, appears in our build with the same sign, `r f3(g("Nominated, fewer than 400 prior ratings", "ps")$est)` against `r f3(g("Nominated, 400 or more prior ratings", "ps")$est)`, but the gap between the groups is well within sampling error.
+
+```{r embed-match-diag, echo=FALSE}
+cv <- em$diag$cv
+d3 <- em$diag$d3
+knitr::kable(
+  data.frame(Factors = cv$dim, `Holdout RMSE` = f3(cv$rmse), `Baseline only` = f3(cv$rmse_baseline),
+             check.names = FALSE),
+  caption = "Recommender accuracy on a 5 percent holdout of the ratings available before the 2019 cutoff. The baseline uses only the global mean and the user and film biases.")
+```
+
+The recommender itself behaves as it should. Fifty factors cut the holdout error from `r f3(cv$rmse_baseline[1])` for the biases alone to `r f3(cv$rmse[cv$dim == 50])`, close to the paper's cross-validated 0.778, and the gain beyond fifty is small. The factors also carry taste in the sense the design needs. Among pairs of users who rated one of the fifty most rated films, the average distance between their vectors rises steadily with how much they disagreed about it, from `r f3(d3$distA[1])` for identical ratings to `r f3(d3$distA[nrow(d3)])` for ratings four stars apart, which replicates the paper's Appendix D.3. The rotation problem is just as visible. Refitting the same data with a different random seed, the same user's two vectors are on average `r f3(em$diag$rot$same_user_cross_run)` apart, almost as far as two random users within one fit (`r f3(em$diag$rot$random_pair_within_run)`), yet the distances between pairs of users correlate at `r sprintf("%.2f", em$diag$rot$pair_dist_cor)` across the two fits. Distances within a fit are meaningful; coordinates across fits are not.
+
+#### Where the Design Travels
+
+The recipe applies wherever three conditions hold: an exposure whose timing splits a product's customers into earlier and later groups, a platform history rich enough to describe each customer's tastes before the exposure, and an outcome measured on the same scale for both groups. Certification badges on marketplaces (a "best seller" tag, a top-host label, a guide's star), recalls and safety warnings, media coverage of a product, and price or packaging changes all fit. In industrial organisation the design separates the composition effect of a quality disclosure (who buys) from its experience effect (how buyers feel), which matters for welfare because the first is reallocation and the second is a change in surplus. In litigation over a disclosure or a ranking change, a defendant may argue that post-event complaints or ratings fell because a different clientele arrived; the embedding match addresses exactly that argument with the platform's own data, and the placebo and difference step addresses the reply that ratings were falling anyway.
+
+The checklist that follows from the replication:
+
+1.  Train the recommender only on data that precede the comparison window, and refit it for each event period.
+2.  Match within the unit whose coordinates are comparable, one training run, and prefer a score aimed at the product in question, such as the predicted rating, over a propensity model pooled across products or a distance on all factors.
+3.  Match with replacement and report Abadie-Imbens standard errors, checking that the software actually computed them; do not bootstrap nearest neighbour matching.
+4.  Treat a null on the predicted-rating outcome as a balance check, not a falsification test.
+5.  Run the identical procedure on unexposed products and report the difference between exposed and unexposed, because the learned tastes contain nothing about time.
+
+```{r embed-match-cleanup, include=FALSE}
+# Drop this section's helpers so they cannot shadow functions later chapters use
+rm(list = intersect(ls(), c("simulate_platform", "train_embeddings", "nn_att", "logit_score",
+                            "one_rep", "sim", "lab", "sim_cell", "em", "f3", "fse", "did_int",
+                            "gap0", "did_nom", "mm", "paper_est", "paper_rhat", "paper_n",
+                            "ai", "g", "mh", "tab", "row_p", "het", "cv", "d3")))
+```
+
+------------------------------------------------------------------------
+
 ### Matching for Multiple Treatments
 
 In many applied settings, researchers face the challenge of estimating causal effects for **more than two treatment levels**. For example, a marketing campaign may have three variants (e.g., control, light exposure, heavy exposure), or a policy evaluation may involve multiple interventions. Standard binary treatment matching methods fall short in these cases, necessitating methodological extensions.
