@@ -609,7 +609,7 @@ wilcox.test(CAR, mu = 0)
 
 #### Generalized Sign Test
 
-A more advanced sign test, comparing the proportion of positive abnormal returns to historical norms, proposed by @cowan1992nonparametric.
+A more advanced sign test, comparing the proportion of positive abnormal returns to historical norms, proposed by @cowan1992nonparametric. Instead of assuming that half of all abnormal returns are positive, it uses each firm's own share of positive abnormal returns in the estimation window as the null proportion, which corrects the skewness that makes the plain sign test misspecified for daily returns. Section \@ref(sec-csr-materiality-replication) gives the formula and reproduces the statistic for every published cell of a recent replication from nothing but the authors' deposit.
 
 #### Corrado Rank Test
 
@@ -1169,6 +1169,321 @@ First, for M&A specifically, *announcement CAR is a poor proxy for expected valu
 Second, the result generalises to event studies in any setting where the focal event arrives bundled with substantial firm-specific information. Earnings announcements, regulatory rulings affecting a single firm, and major product launches all share the structural feature that the announcement-window CAR is dominated by news about the firm that happens to arrive on the event date. The cleaner the event (a regulatory decision affecting many firms simultaneously, a court ruling with timing exogenous to the firm), the closer CAR comes to measuring the event's effect; the muddier the event (a strategic firm choice with substantial coincident firm-specific news), the more the warning applies.
 
 Third, the result reinforces the case made elsewhere in the chapter that long-horizon and ex-post measures are not just a robustness check on short-window CAR but a substantively different object. The chapter's [long-run event-study section](#sec-buy-and-hold-abnormal-returns-bhar) and the productivity- and restructuring-based literature it references are the natural complement to the short-window machinery: when announcement returns and long-run outcomes diverge, that divergence is itself evidence, and the @bendavid2026missing result says the divergence is the rule rather than the exception in M&A. The historical survey in @andrade2001new, the modern critique in @bendavid2026missing, and the handbook treatment in @betton2008corporate together map out the territory.
+
+------------------------------------------------------------------------
+
+## Replicating a Published Event Study: Environmental CSR and Materiality {#sec-csr-materiality-replication}
+
+@flammer2013corporate is one of the most cited event studies in management. She hand-collected Wall Street Journal articles reporting environmental news about US-listed firms from 1980 to 2009, classified each as eco-friendly or eco-harmful (the issues run from emissions, oil spills, and hazardous waste to recycling and climate change), and found that investors reward the first and punish the second, with the reward shrinking and the punishment growing over the three decades. @kofford2026materiality reopen the study in three steps. A narrow replication rebuilds her 1980 to 2009 sample with her design. A quasi-replication extends the sample through 2019, a decade in which sustainability investing was institutionalized. An extension then splits every event by whether the environmental issue is financially material for the firm's industry under the SASB standards, the materiality map that @khan2016corporate showed separates sustainability investments that pay from those that do not.
+
+The section is built as a template for what a reader can do with a well-documented replication package when the underlying price data are licensed. The abnormal returns come from CRSP through Eventus, neither of which can be redistributed, so per-event CARs are not available to us. The authors' Dataverse deposit [@kofford2026materialitydata], released into the public domain under CC0, ships everything else: the 512 hand-coded events, their SASB materiality coding, the confounding-event flags, and the Eventus result listings behind most published table cells. Those listings carry, for every event, the market-model parameters estimated in the pre-event window, and for every cell, the count, mean CAR, positive-to-negative split, and test statistics. That turns out to be enough to verify the published inference, recover cells the deposit does not ship, and ask a question the published tables leave open: how much can a cell of 49 events tell us?
+
+### The Design and What the Deposit Contains
+
+The design is the textbook short-window event study from Section \@ref(sec-event-studies). The event date is the article's publication date, moved forward to the next trading day for the 26 articles that appeared on a day the market was closed. Normal returns come from a market model against the CRSP equally weighted index, fitted by OLS on 200 trading days ending 41 days before the event. The abnormal return is cumulated over the two-day window $(-1, 0)$, and significance is assessed with the original Patell Z (Section \@ref(patell-standardized-residual-psr)) and the generalized sign Z of @cowan1992nonparametric.
+
+The extract in `data/flammer_materiality/` is built from the deposit by `build.R` in the same folder. `events.csv` holds one row per event with its coding and the market-model parameters Eventus printed for it, and `eventus_cells.csv` holds one row per published cell and window.
+
+```{r csrmat-data, message=FALSE, warning=FALSE}
+library(tidyverse)
+
+csr_events <- read.csv("data/flammer_materiality/events.csv") %>%
+  mutate(evt_date = as.Date(evt_date),
+         decade   = paste0(floor(cyear / 10) * 10, "s"),
+         material = if_else(sasb_material == 1, "Material", "Immaterial"))
+csr_cells <- read.csv("data/flammer_materiality/eventus_cells.csv")
+
+csr_cell <- function(listing, win = "(-1,0)") {
+  r <- filter(csr_cells, .data$listing == !!listing, window == win)
+  stopifnot(nrow(r) == 1)
+  r
+}
+
+csr_events %>%
+  count(type, decade, material) %>%
+  pivot_wider(names_from = c(type, material), values_from = n,
+              names_glue = "{type}, {tolower(material)}") %>%
+  rename(Decade = decade) %>%
+  knitr::kable(caption = "Environmental news events in the Kofford, Lewis, and Melancon (2026) sample by decade, valence, and SASB materiality. The 1980 to 2009 rows are the narrow replication of Flammer (2013); the 2010s are the quasi-replication.")
+```
+
+Two features of the sample matter for everything that follows. First, `r sum(csr_events$sasb_material)` of the `r nrow(csr_events)` events are SASB material, so the immaterial cells are small: `r sum(csr_events$type == "eco-friendly" & csr_events$sasb_material == 0)` eco-friendly and `r sum(csr_events$type == "eco-harmful" & csr_events$sasb_material == 0)` eco-harmful events over forty years, and as few as four in a single decade. Second, the 2010s supply almost half the events, so any pooled 1980 to 2019 number leans heavily on the most recent decade.
+
+### The Published Abnormal Returns
+
+Table \@ref(tab:csrmat-headline) reads the headline numbers straight off the deposited listings.
+
+```{r csrmat-headline, echo=FALSE}
+csr_spec <- tribble(
+  ~spec,                             ~listing,                                              ~win,
+  "1980 to 2009 (narrow replication)", "Table 2 - %s (-1,0)",                                "(-1,0)",
+  "1980 to 2019 (quasi-replication)",  "Table 4 - %s (-1,0)",                                "(-1,0)",
+  "Excluding confounded events",       "Table 9 row 6 - Excluding Confounding Events - %s (-1,0)", "(-1,0)",
+  "Carhart four-factor benchmark",     "Table 9 row 4 - Four Factor - %s (-1,0)",            "(-1,0)",
+  "Window (-1, 1)",                    "Table 9 rows 7-9 - %s (Alternative Windows)",        "(-1,1)",
+  "Window (-1, 2)",                    "Table 9 rows 7-9 - %s (Alternative Windows)",        "(-1,2)",
+  "Window (-1, 3)",                    "Table 9 rows 7-9 - %s (Alternative Windows)",        "(-1,3)")
+
+csr_headline <- expand_grid(valence = c("Eco-friendly", "Eco-harmful"), csr_spec) %>%
+  rowwise() %>%
+  mutate(r = list(csr_cell(sprintf(listing, valence), win))) %>%
+  ungroup() %>%
+  unnest(r, names_sep = "_") %>%
+  transmute(Valence = valence, Specification = spec, N = r_n,
+            `Mean CAR (%)` = sprintf("%.2f", 100 * r_mean_car),
+            `+ : -` = paste0(r_n_pos, " : ", r_n_neg),
+            `Patell Z` = ifelse(is.na(r_patell_z), sprintf("%.3f*", r_stdcsect_z), sprintf("%.3f", r_patell_z)),
+            `Gen. sign Z` = sprintf("%.3f", r_gsign_z))
+
+knitr::kable(csr_headline, align = c("l", "l", "r", "r", "c", "r", "r"),
+  caption = "Market-model abnormal returns around environmental news, from the Eventus listings in the Kofford, Lewis, and Melancon (2026) deposit. The window is (-1, 0) unless stated. The starred four-factor statistic is the standardized cross-sectional Z, which Eventus reports in place of Patell's Z for that benchmark.")
+```
+
+```{r csrmat-headline-nums, include=FALSE}
+csr_t2f <- csr_cell("Table 2 - Eco-friendly (-1,0)")
+csr_t2h <- csr_cell("Table 2 - Eco-harmful (-1,0)")
+csr_t4f <- csr_cell("Table 4 - Eco-friendly (-1,0)")
+csr_t4h <- csr_cell("Table 4 - Eco-harmful (-1,0)")
+csr_w11f <- csr_cell("Table 9 rows 7-9 - Eco-friendly (Alternative Windows)", "(-1,1)")
+csr_f10 <- csr_cell("Table 5 - 2010s - Eco-friendly (-1,0)")
+pct <- function(x, d = 2) sprintf(paste0("%.", d, "f"), 100 * x)
+```
+
+The narrow replication confirms the pattern @flammer2013corporate reported, as the authors conclude: a `r pct(csr_t2f$mean_car)` percent two-day abnormal return for eco-friendly news (Patell Z = `r sprintf("%.2f", csr_t2f$patell_z)`) and `r pct(csr_t2h$mean_car)` percent for eco-harmful news (Patell Z = `r sprintf("%.2f", csr_t2h$patell_z)`). Adding the 2010s tells two different stories for the two valences. The penalty for eco-harmful news is large and stable across every specification in the table, including the four-factor benchmark, the exclusion of confounded events, and every wider window. The reward for eco-friendly news is not. The pooled 1980 to 2019 estimate falls to `r pct(csr_t4f$mean_car)` percent, because the 2010s eco-friendly events earn `r pct(csr_f10$mean_car)` percent on their own, and widening the window by a single day to $(-1, 1)$ cuts the Patell Z to `r sprintf("%.2f", csr_w11f$patell_z)`. A reader who stops at the $(-1, 0)$ row would miss that the positive reaction rests on one window and three decades.
+
+### Reproducing the Test Statistics from the Deposit
+
+The generalized sign test of @cowan1992nonparametric compares the number of positive event-window CARs, $w$, with the number expected from the share of positive abnormal returns each firm shows in its own estimation window:
+
+$$
+\hat{p} = \frac{1}{n}\sum_{i=1}^{n} \frac{1}{T_i}\sum_{t \in \text{est}} \mathbb{1}\{AR_{it} > 0\},
+\qquad
+Z_{GS} = \frac{w - n\hat{p}}{\sqrt{n\hat{p}(1-\hat{p})}}.
+$$
+
+Both ingredients are in the deposit. $w$ is the positive count in each cell listing, and each event's share of positive estimation-window residuals is in its parameter row. So we can rebuild every cell from the hand-coded event list (selecting events by valence, period, decade, materiality, and confound flag), average their $\hat{p}_i$, and recompute $Z_{GS}$ without touching a single return.
+
+```{r csrmat-gsign-check}
+csr_members <- function(listing) {
+  sel <- csr_events$type == if (grepl("Eco-friendly", listing)) "eco-friendly" else "eco-harmful"
+  if (grepl("^Table 2", listing)) sel <- sel & csr_events$replication == 1
+  dec <- str_extract(listing, "(19|20)\\d0s")
+  if (!is.na(dec)) sel <- sel & csr_events$decade == dec
+  if (grepl("SASB Material", listing))   sel <- sel & csr_events$sasb_material == 1
+  if (grepl("SASB Immaterial", listing)) sel <- sel & csr_events$sasb_material == 0
+  if (grepl("Confounding", listing))     sel <- sel & csr_events$confound == 0
+  sel
+}
+
+csr_check <- csr_cells %>%
+  filter(grepl("^Table [245789] ", listing), !grepl("Four Factor", listing)) %>%
+  rowwise() %>%
+  mutate(sel     = list(csr_members(listing)),
+         n_coded = sum(sel),
+         p_hat   = mean(csr_events$pct_resid_pos[sel]),
+         z_gs    = (n_pos - n * p_hat) / sqrt(n * p_hat * (1 - p_hat))) %>%
+  ungroup()
+
+c(cells_checked      = nrow(csr_check),
+  counts_match       = sum(csr_check$n_coded == csr_check$n),
+  max_abs_z_gap      = round(max(abs(csr_check$z_gs - csr_check$gsign_z)), 4))
+```
+
+Every one of the `r nrow(csr_check)` cell-window combinations in Tables 2, 4, 5, 7, 8, and 9 is reproduced: the event counts implied by the hand coding equal the counts Eventus processed, and the recomputed generalized sign Z agrees with the printed value to within `r sprintf("%.4f", max(abs(csr_check$z_gs - csr_check$gsign_z)))`, which is rounding: Eventus prints the statistic to three decimals and each firm's share of positive residuals to two. This is a stronger check than it looks. It confirms the event dates, the valence coding, the decade and materiality splits, and the confound exclusions all at once, because a single misassigned event shifts both $w$ and $\hat{p}$. What it cannot confirm is the CARs themselves, which need CRSP.
+
+### Recovering Cells the Deposit Does Not Ship
+
+The deposit's README is explicit that a few listings are missing: the eco-harmful halves of the material/immaterial split, three eco-harmful decade-by-materiality cells, and the 2010s eco-harmful decade cell. Because a mean CAR times its count is a sum, and sums add across disjoint cells, these can be recovered by subtraction. The age-tercile listings (Online Appendix Table C2 in the paper) partition every eco-harmful event by materiality, which gives the two materiality totals; the decade cells then follow by differencing.
+
+```{r csrmat-derive}
+csr_sum <- function(listings) sum(map_dbl(listings, ~ with(csr_cell(.x), n * mean_car)))
+c2 <- function(mat) paste0("Table C2 - Age T", 1:3, " - SASB ", mat, " - Eco-harmful (-1,0)")
+t8 <- function(mat, dec, v = "Eco-harmful") paste0("Table 8 - SASB ", mat, " - ", dec, " - ", v, " (-1,0)")
+t5 <- function(dec) paste0("Table 5 - ", dec, " - Eco-harmful (-1,0)")
+n_of <- function(mat, dec = NULL) sum(csr_events$type == "eco-harmful" & csr_events$material == mat &
+                                      (if (is.null(dec)) TRUE else csr_events$decade == dec))
+
+harm_mat_sum <- csr_sum(c2("Material"))
+harm_imm_sum <- csr_sum(c2("Immaterial"))
+harm_10s_sum <- with(csr_t4h, n * mean_car) - csr_sum(t5(c("1980s", "1990s", "2000s")))
+harm_mat_90s <- harm_mat_sum - csr_sum(t8("Material", c("1980s", "2000s", "2010s")))
+
+csr_derived <- tribble(
+  ~type,         ~material,    ~decade,  ~mean_car,
+  "eco-harmful", "Material",   "all",    harm_mat_sum / n_of("Material"),
+  "eco-harmful", "Immaterial", "all",    harm_imm_sum / n_of("Immaterial"),
+  "eco-harmful", "Material",   "1990s",  harm_mat_90s / n_of("Material", "1990s"),
+  "eco-harmful", "Immaterial", "1990s",  (csr_sum(t5("1990s")) - harm_mat_90s) / n_of("Immaterial", "1990s"),
+  "eco-harmful", "Immaterial", "2010s",  (harm_10s_sum - csr_sum(t8("Material", "2010s"))) / n_of("Immaterial", "2010s"))
+
+# consistency: the two materiality totals must add back to the published Table 4 mean
+c(implied_total = round(100 * (harm_mat_sum + harm_imm_sum) / csr_t4h$n, 3),
+  published     = 100 * csr_t4h$mean_car)
+```
+
+The listings print mean CARs to two decimals of a percent, so each derived mean carries a rounding error of at most a few thousandths of a percentage point, far below anything that matters here. The implied total matches the published Table 4 mean, which confirms that the age-tercile cells cover all `r csr_t4h$n` eco-harmful events.
+
+### Extension: How Much Can a Cell of 49 Events Tell Us?
+
+The extension's headline is that investor reactions concentrate in material events. The immaterial cells are small, so the obvious question is whether a null reaction in those cells is evidence of indifference or simply too little data. Answering it needs a standard error, and the deposit does not report cross-sectional dispersion of CARs. It does report each event's estimation-window residual standard deviation $s_i$, and under the null of no event effect and no change in volatility, a two-day market-model CAR has variance $2 s_i^2 (1 + 1/T)$, ignoring the small market-return term in the Patell correction $C_{it}$. With events on different dates, the null standard error of a cell's mean CAR is then
+
+$$
+SE_0(\overline{CAR}) = \frac{1}{n}\sqrt{\sum_{i=1}^{n} 2 s_i^2 \left(1 + \frac{1}{T}\right)}.
+$$
+
+Before trusting this yardstick, check it. The newer Eventus layout prints the portfolio time-series (CDA) t, whose implied standard error, $\overline{CAR}/t_{CDA}$, is computed from the time series of the cell's equally weighted portfolio residual and so allows for any cross-correlation that the formula above ignores.
+
+```{r csrmat-null-se}
+csr_T <- 200
+se_null <- function(s) sqrt(sum(2 * s^2 * (1 + 1 / csr_T))) / length(s)
+
+tibble(cell    = c("All eco-harmful", "Eco-friendly, unconfounded", "Eco-harmful, unconfounded"),
+       listing = c("Table 4 - Eco-harmful (-1,0)",
+                   "Table 9 row 6 - Excluding Confounding Events - Eco-friendly (-1,0)",
+                   "Table 9 row 6 - Excluding Confounding Events - Eco-harmful (-1,0)")) %>%
+  rowwise() %>%
+  mutate(se_from_cda = with(csr_cell(listing), mean_car / cda_t),
+         se_null     = se_null(csr_events$resid_sd[csr_members(listing)]),
+         ratio       = se_from_cda / se_null) %>%
+  ungroup() %>%
+  select(-listing) %>%
+  knitr::kable(digits = c(0, 5, 5, 2),
+    caption = "Null standard error of the mean (-1, 0) CAR built from per-event residual standard deviations, against the standard error implied by the Eventus portfolio time-series (CDA) t.")
+```
+
+The two agree to within a few percent, so the per-event residual standard deviations give a reliable picture of how noisy each cell is. Table \@ref(tab:csrmat-mde) applies the yardstick to the four valence-by-materiality cells.
+
+```{r csrmat-mde}
+csr_mi <- tribble(
+  ~type,          ~material,    ~mean_car,
+  "eco-friendly", "Material",   csr_cell("Table 7 - SASB Material - Eco-friendly (-1,0)")$mean_car,
+  "eco-friendly", "Immaterial", csr_cell("Table 7 - SASB Immaterial - Eco-friendly (-1,0)")$mean_car,
+  "eco-harmful",  "Material",   harm_mat_sum / n_of("Material"),
+  "eco-harmful",  "Immaterial", harm_imm_sum / n_of("Immaterial")) %>%
+  rowwise() %>%
+  mutate(sel  = list(csr_events$type == type & csr_events$material == material),
+         n    = sum(sel),
+         se0  = se_null(csr_events$resid_sd[sel]),
+         mde  = (qnorm(0.975) + qnorm(0.80)) * se0) %>%
+  ungroup() %>%
+  select(-sel)
+
+csr_contrast <- csr_mi %>%
+  group_by(type) %>%
+  summarise(diff = mean_car[material == "Material"] - mean_car[material == "Immaterial"],
+            se_diff = sqrt(sum(se0^2)), .groups = "drop") %>%
+  mutate(z_diff = diff / se_diff)
+
+csr_mi %>%
+  left_join(csr_contrast, by = "type") %>%
+  transmute(Valence = type, SASB = material, N = n,
+            `Mean CAR (%)` = round(100 * mean_car, 2),
+            `Null SE (%)`  = round(100 * se0, 2),
+            `MDE, 80% power (%)` = round(100 * mde, 2),
+            `Material minus immaterial, z` = ifelse(material == "Material", round(z_diff, 2), NA)) %>%
+  knitr::kable(caption = "Abnormal returns by valence and SASB materiality, with null standard errors and minimum detectable effects (two-sided 5 percent test, 80 percent power) built from per-event residual standard deviations. Eco-harmful means are derived by additivity from the age-tercile listings.")
+```
+
+```{r csrmat-mde-nums, include=FALSE}
+mi <- function(t, m, v) csr_mi[[v]][csr_mi$type == t & csr_mi$material == m]
+zc <- function(t) csr_contrast$z_diff[csr_contrast$type == t]
+```
+
+The answer differs by valence. For eco-friendly news the contrast is clear: material events earn `r pct(mi("eco-friendly", "Material", "mean_car"))` percent, immaterial events `r pct(mi("eco-friendly", "Immaterial", "mean_car"))` percent, and the difference is `r sprintf("%.1f", zc("eco-friendly"))` null standard errors. For eco-harmful news it is not. The `r mi("eco-harmful", "Immaterial", "n")` immaterial events average `r pct(mi("eco-harmful", "Immaterial", "mean_car"))` percent, but the cell's minimum detectable effect is `r pct(mi("eco-harmful", "Immaterial", "mde"))` percent, larger in magnitude than the `r pct(abs(mi("eco-harmful", "Material", "mean_car")))` percent penalty on material events, and the material-minus-immaterial contrast is only `r sprintf("%.1f", zc("eco-harmful"))` standard errors. A 95 percent interval around the immaterial mean runs from `r pct(mi("eco-harmful", "Immaterial", "mean_car") - 1.96 * mi("eco-harmful", "Immaterial", "se0"))` to `r pct(mi("eco-harmful", "Immaterial", "mean_car") + 1.96 * mi("eco-harmful", "Immaterial", "se0"))` percent and contains the material estimate. Because these standard errors assume no event-induced volatility, they are lower bounds, so the true contrasts are if anything weaker. The paper's own contrast is a Welch t-test on event-level CARs, which needs the CRSP data; the point here is what the deposit alone can establish, and it establishes the materiality gap for good news but leaves it open for bad news.
+
+Figure \@ref(fig:csrmat-decades) adds the time dimension, plotting every decade-by-materiality cell with its null 95 percent interval.
+
+```{r csrmat-decades, fig.cap="Mean (-1, 0) abnormal return by decade, SASB materiality, and valence, with 95 percent intervals from the null standard error. Hollow points are cells recovered by additivity because the deposit does not ship their listings.", fig.width=8, fig.height=4.5, message=FALSE, warning=FALSE}
+csr_decades <- expand_grid(type = c("eco-friendly", "eco-harmful"),
+                           material = c("Material", "Immaterial"),
+                           decade = c("1980s", "1990s", "2000s", "2010s")) %>%
+  rowwise() %>%
+  mutate(sel = list(csr_events$type == type & csr_events$material == material & csr_events$decade == decade),
+         n   = sum(sel),
+         se0 = se_null(csr_events$resid_sd[sel]),
+         listing = t8(material, decade, if (type == "eco-friendly") "Eco-friendly" else "Eco-harmful"),
+         source  = if (listing %in% csr_cells$listing) "Published" else "Derived") %>%
+  ungroup() %>%
+  select(-sel) %>%
+  left_join(filter(csr_cells, window == "(-1,0)") %>% select(listing, mean_car), by = "listing") %>%
+  rows_update(select(filter(csr_derived, decade != "all"), type, material, decade, mean_car),
+              by = c("type", "material", "decade"))
+
+ggplot(csr_decades, aes(decade, 100 * mean_car, colour = material, group = material)) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_line(position = position_dodge(width = 0.4), alpha = 0.5) +
+  geom_errorbar(aes(ymin = 100 * (mean_car - 1.96 * se0), ymax = 100 * (mean_car + 1.96 * se0)),
+                width = 0.15, position = position_dodge(width = 0.4)) +
+  geom_point(aes(shape = source), size = 2.8, stroke = 1.2, fill = "white",
+             position = position_dodge(width = 0.4)) +
+  scale_shape_manual(values = c(Published = 16, Derived = 21)) +
+  facet_wrap(~ type, labeller = as_labeller(c(`eco-friendly` = "Eco-friendly news",
+                                              `eco-harmful`  = "Eco-harmful news"))) +
+  labs(x = NULL, y = "Mean CAR(-1, 0), percent", colour = "SASB issue", shape = NULL) +
+  causalverse::ama_theme() +
+  theme(legend.position = "bottom")
+```
+
+Among material events the eco-friendly reward declines decade by decade until it disappears in the 2010s, while the eco-harmful penalty is larger after 2000 than before. The immaterial intervals are wide enough to contain most of what the material series does. A weighted regression of the cell means on a decade index, weighting each cell by its inverse null variance, puts numbers on the trends without needing event-level data.
+
+```{r csrmat-trend}
+csr_decades %>%
+  mutate(d = match(decade, c("1980s", "1990s", "2000s", "2010s")) - 1) %>%
+  group_by(type, material) %>%
+  group_modify(~ {
+    fit <- lm(mean_car ~ d, data = .x, weights = 1 / se0^2)
+    se  <- sqrt(vcov(fit)[2, 2]) / summary(fit)$sigma   # known-variance standard error
+    tibble(`Change per decade (pp)` = round(100 * coef(fit)[["d"]], 2),
+           SE = round(100 * se, 2), z = round(coef(fit)[["d"]] / se, 2))
+  }) %>%
+  ungroup() %>%
+  knitr::kable(caption = "Grouped-data trend in mean (-1, 0) CAR across decades, by valence and materiality: weighted least squares on the four decade cells with known null variances.")
+```
+
+The material eco-friendly decline is the one trend that the cell data pin down well. The material eco-harmful penalty grows by about a fifth of a percentage point per decade, but with four cells and the 1990s value derived, that slope is suggestive rather than decisive, and the immaterial slopes are uninformative. The paper's own decade test is a robust regression on event-level CARs; this grouped version is the most the deposit allows, and it agrees in direction.
+
+### Extension: Why the Choice of Test Statistic Matters Here
+
+The authors kept Eventus's original Patell Z, which the software itself flags as not recommended, because it is the statistic @flammer2013corporate reported and the published values reproduce only with it. That is the right choice for a narrow replication. It is worth knowing what it costs. As Section \@ref(sec-bmp-test) explains, Patell's Z assumes the event window is no more volatile than the estimation window. If news days are more volatile, as they usually are, Patell over-rejects, while the BMP statistic of @boehmer1991eventstudy rescales by the cross-sectional dispersion of the standardized CARs and does not. The simulation below draws placebo CARs with no true effect, using the actual residual standard deviations of two cells, and inflates event-window variance by a factor $k$.
+
+```{r csrmat-sim}
+set.seed(20261105)
+csr_sim <- function(s, k, delta = 0, R = 4000) {
+  n    <- length(s)
+  S    <- matrix(s, n, R)
+  shat <- S * sqrt(rchisq(n * R, csr_T - 2) / (csr_T - 2))          # estimated s_i
+  car  <- delta + sqrt(2 * k) * S * matrix(rnorm(n * R), n, R)      # two-day CAR
+  scar <- car / (shat * sqrt(2 * (1 + 1 / csr_T)))
+  patell <- colSums(scar) / sqrt(n * (csr_T - 2) / (csr_T - 4))
+  bmp    <- colMeans(scar) / (apply(scar, 2, sd) / sqrt(n))
+  cs_t   <- colMeans(car)  / (apply(car, 2, sd) / sqrt(n))
+  c(Patell = mean(abs(patell) > qnorm(0.975)),
+    BMP    = mean(abs(bmp)    > qt(0.975, n - 1)),
+    `Cross-sectional t` = mean(abs(cs_t) > qt(0.975, n - 1)))
+}
+
+s_imm  <- csr_events$resid_sd[csr_events$type == "eco-friendly" & csr_events$material == "Immaterial"]
+s_harm <- csr_events$resid_sd[csr_events$type == "eco-harmful"]
+
+csr_size <- expand_grid(cell = c("Immaterial eco-friendly (n = 62)", "All eco-harmful (n = 293)"),
+                        k = c(1, 1.5, 2, 3)) %>%
+  rowwise() %>%
+  mutate(res = list(csr_sim(if (grepl("62", cell)) s_imm else s_harm, k))) %>%
+  unnest_wider(res)
+
+knitr::kable(csr_size, digits = 3,
+  caption = "Rejection rates of a nominal 5 percent test under the null of no event effect, simulated with the actual residual standard deviations of two cells, when event-window variance is k times estimation-window variance (4,000 replications).")
+```
+
+```{r csrmat-power, include=FALSE}
+csr_pow <- map(c(1, 2), ~ csr_sim(s_imm, .x, delta = mi("eco-friendly", "Material", "mean_car")))
+```
+
+With no volatility increase all three tests hold their size. Once the event window is twice as volatile, Patell rejects a true null about `r round(100 * csr_size$Patell[csr_size$k == 2][1])` percent of the time, more than three times its nominal rate, while BMP and the cross-sectional t stay near 5 percent. The same simulation answers the power question directly: if immaterial eco-friendly events carried the same `r pct(mi("eco-friendly", "Material", "mean_car"))` percent reward as material ones, a BMP test on the 62 events would detect it about `r round(100 * csr_pow[[1]][["BMP"]])` percent of the time without a volatility increase and only about `r round(100 * csr_pow[[2]][["BMP"]])` percent of the time with a doubling. Reporting BMP next to Patell, and a power calculation next to every null cell, are the two additions that would make a replication like this one harder to misread.
+
+### Using the Result in Practice
+
+For a sustainability or investor-relations team, the result is a prioritization rule: environmental initiatives that address the issues SASB flags as material for the firm's industry (the standards are now maintained by the ISSB) are where the market's reward has been concentrated for forty years, though that reward has shrunk to nothing in the most recent decade, while the penalty for harmful news on material issues has, if anything, grown. For an analyst screening ESG news flow, the same map says where to expect price-relevant information. For an expert witness in securities litigation, where event studies are routinely offered as evidence of price impact, this section is a caution in both directions. A significant Patell Z on a small set of announcement days can be an artifact of event-day volatility, and an insignificant reaction in a cell of a few dozen events is not evidence that the news did not matter: with the residual volatility of these firms, a cell of 49 events cannot reliably detect a reaction smaller than about `r pct(mi("eco-harmful", "Immaterial", "mde"), 1)` percent. Computing the minimum detectable effect from the estimation-window residuals, as above, takes a few lines and should accompany any claim that investors did not react.
 
 ------------------------------------------------------------------------
 
