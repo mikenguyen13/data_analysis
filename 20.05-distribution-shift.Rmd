@@ -1,0 +1,635 @@
+# Prediction Under Distribution Shift {#sec-distribution-shift}
+
+```{r shift-setup, include=FALSE}
+library(data.table)
+library(ggplot2)
+```
+
+A prediction model is trained on one population and deployed on another. A credit score is built on borrowers from one market and applied in the next; a pricing model calibrated on last year's customers is used on this year's; a public agency fits an eligibility rule in one state and a neighboring state adopts it. The textbook guarantee for prediction, that out-of-sample error estimated on held-out data drawn from the training distribution tells you what to expect, says nothing about any of these cases. The data the model meets after deployment come from a different distribution, and the gap between the two is called distribution shift.
+
+Distribution shift is not one problem but several. If only the mix of covariates changes, so the target population has more older workers or fewer college graduates, a well-specified model of $Y$ given $X$ still applies and the remedy is a matter of reweighting or of making sure the model is flexible enough where the target places its mass. If instead the relationship between covariates and outcome changes, so that the same education and occupation carry a different income in the target, no reweighting of the source data can recover the target relationship. The two kinds of shift call for different interventions, and a method designed for one can be useless against the other.
+
+This chapter is built around @wang2026rethinking, published in *Management Science*, which makes that point empirically. The authors (Tianyu Wang, Jiashuo Liu, Peng Cui and Hongseok Namkoong) assemble a benchmark of natural shifts across eight tabular datasets, 172 source and target pairs and roughly 45 methods, including a long list of distributionally robust optimization (DRO) estimators, and ask what actually happens. Four findings stand out. Shifts in the conditional distribution of $Y$ given $X$ dominate their testbed, the opposite of the covariate-shift focus of much of the machine learning literature. The strong linear relation between in-distribution and out-of-distribution accuracy that has been documented for image classifiers breaks down when the conditional distribution shifts. Robust methods do not beat carefully tuned standard methods, and what drives performance is the choice of model class and how hyperparameters are selected, not the ambiguity set or its radius. Finally, a small amount of target data, used to diagnose the shift, can guide interventions that do help: adding a feature that was missing, or collecting labels in the region where the shift is concentrated.
+
+We develop the language for describing shifts, the performance decomposition the paper uses to measure them, and the DRO estimators it evaluates, and then replicate the core of the paper on the public American Community Survey data it uses. The replication reproduces the main findings closely, including the headline case study in which adding a single variable on English proficiency removes most of the accuracy loss from California to Puerto Rico. We then extend the analysis in two directions that matter for applied work: why covariate-shift corrections cannot help when the shift is in $Y \mid X$, and how much labeled target data is needed before it pays to retrain rather than reuse a source model.
+
+## A Language for Distribution Shift {#sec-shift-language}
+
+### Source, Target, and Regret
+
+Let $(X, Y)$ take values in $\mathcal{X} \times \mathcal{Y}$. Training data come from a source distribution $P$ and the model is deployed on a target distribution $Q$. A model $f$ in class $\mathcal{F}$ is fit on source data,
+$$
+f_P \in \arg\min_{f \in \mathcal{F}} \mathbb{E}_P\left[\ell(f(X), Y)\right],
+$$
+and evaluated on the target. With 0-1 loss, target accuracy splits into source accuracy and a performance gap,
+$$
+\underbrace{1 - \mathbb{E}_Q[\ell(f_P(X), Y)]}_{\text{target accuracy}} = \underbrace{1 - \mathbb{E}_P[\ell(f_P(X), Y)]}_{\text{source accuracy}} + \underbrace{\mathbb{E}_P[\ell(f_P(X), Y)] - \mathbb{E}_Q[\ell(f_P(X), Y)]}_{\text{performance gap}}.
+$$
+@wang2026rethinking argue that target accuracy, not the gap, is the quantity to report, because a model can have a small gap simply by being poor everywhere. To say how much worse the source model is than what the target data would allow, they use the relative regret
+$$
+\text{Regret}(P \to Q) = \frac{\mathbb{E}_Q[\ell(f_P(X), Y)]}{\min_{f \in \mathcal{F}} \mathbb{E}_Q[\ell(f(X), Y)]} - 1,
+$$
+the proportional excess error of the transported model over a model trained on the target itself.
+
+### Covariate Shift and Conditional Shift
+
+Factor each joint distribution into a marginal and a conditional, $P = P_X \, P_{Y \mid X}$ and $Q = Q_X \, Q_{Y \mid X}$. Two pure cases bracket everything else.
+
+Under covariate shift, or $X$-shift, $P_X \neq Q_X$ but $P_{Y \mid X} = Q_{Y \mid X}$. The best predictor $\mathbb{E}[Y \mid X]$ is the same in both populations; what changes is where in covariate space the target places its mass. If the model class contains the true conditional mean, ERM on the source is already consistent for the target. If it does not, the source fit trades off errors in regions the target cares little about, and the classical correction is to reweight the source loss by the density ratio $q_X(x) / p_X(x)$ [@shimodaira2000improving].
+
+Under conditional shift, or $Y \mid X$-shift, $P_{Y \mid X} \neq Q_{Y \mid X}$. The same covariate profile maps to a different outcome distribution. No reweighting of source observations can fix this, because every source observation carries the wrong conditional law. Only target labels, or additional variables that restore invariance, can.
+
+For an economist the second case has a familiar reading. Suppose there is a variable $C$ such that $Y \mid X, C$ is the same in both populations, but $C$ is not in the feature set and its distribution given $X$ differs. Then
+$$
+Q_{Y \mid X = x} = \int P_{Y \mid X = x, C = c} \, dQ_{C \mid X = x}(c) \neq \int P_{Y \mid X = x, C = c} \, dP_{C \mid X = x}(c) = P_{Y \mid X = x},
+$$
+so a $Y \mid X$-shift is, in many cases, an omitted variable whose distribution differs across populations. This is the same structure that governs external validity of treatment effects: experimental results transport across sites when the outcome model conditional on the right covariates is invariant [@hotz2005predicting], and the graphical conditions for transport formalize when such a set exists [@bareinboim2016causal]. The case study below finds an observable $C$, English proficiency, that does this job for the California to Puerto Rico shift.
+
+### Decomposing the Accuracy Drop {#sec-disde}
+
+To say that a shift is mostly in $X$ or mostly in $Y \mid X$ requires measuring how much of a model's accuracy drop each part explains. @cai2026diagnosing propose a decomposition (DISDE) that @wang2026rethinking use throughout. Define the conditional risk of the source model in each population, $R_\mu(x) = \mathbb{E}_\mu[\ell(f_P(X), Y) \mid X = x]$ for $\mu \in \{P, Q\}$. The difficulty is that $R_P$ and $R_Q$ can only be compared where both covariate distributions have support. DISDE introduces a shared covariate distribution
+$$
+s_X(x) \propto \frac{p_X(x)\, q_X(x)}{p_X(x) + q_X(x)},
+$$
+which is large only where both densities are large, and splits the drop into three terms:
+$$
+\mathbb{E}_Q[\ell] - \mathbb{E}_P[\ell] = \underbrace{\mathbb{E}_{S_X}[R_P(X)] - \mathbb{E}_P[R_P(X)]}_{\text{(I) } X\text{-shift}} + \underbrace{\mathbb{E}_{S_X}[R_Q(X) - R_P(X)]}_{\text{(II) } Y \mid X\text{-shift}} + \underbrace{\mathbb{E}_Q[R_Q(X)] - \mathbb{E}_{S_X}[R_Q(X)]}_{\text{(III) } X\text{-shift}}.
+$$
+Terms (I) and (III) move the covariate distribution while holding the conditional law fixed; term (II) holds the covariates fixed at $S_X$ and changes the conditional law. The $Y \mid X$ ratio is (II) divided by the total drop.
+
+Everything is estimable from samples of the two populations. Pool the source and target covariates, label each row by its origin, and fit a domain classifier $\pi(x) = \Pr(\text{row is from } Q \mid X = x)$. With $\alpha$ the target share of the pooled sample, the likelihood ratios to the shared distribution are
+$$
+\frac{s_X}{p_X}(x) \propto \frac{\pi(x)}{(1 - \alpha)\pi(x) + \alpha(1 - \pi(x))}, \qquad
+\frac{s_X}{q_X}(x) \propto \frac{1 - \pi(x)}{(1 - \alpha)\pi(x) + \alpha(1 - \pi(x))}.
+$$
+Reweighting source observations by the first ratio estimates $\mathbb{E}_{S_X}[R_P]$; reweighting target observations by the second estimates $\mathbb{E}_{S_X}[R_Q]$. The WhyShift package that accompanies the paper implements exactly this with a cross-fitted gradient boosting domain classifier, and the R function below is a direct translation. Because the denominator is the total drop, the ratio is informative only when the drop is material; the paper restricts attention to pairs with a drop above five percentage points.
+
+```{r shift-disde-fun}
+disde <- function(model_pred, XP, yP, XQ, yQ, K = 5, seed = 1, nthread = 4) {
+  set.seed(seed)
+  nP <- nrow(XP); nQ <- nrow(XQ)
+  fP <- sample(rep(1:K, length.out = nP)); fQ <- sample(rep(1:K, length.out = nQ))
+  piP <- numeric(nP); piQ <- numeric(nQ)
+  for (k in 1:K) {                       # cross-fitted domain classifier
+    Xtr <- rbind(XP[fP != k, ], XQ[fQ != k, ])
+    ttr <- c(rep(0, sum(fP != k)), rep(1, sum(fQ != k)))
+    m <- fit_xgb(Xtr, ttr, nrounds = 100, nthread = nthread)
+    piP[fP == k] <- predict(m, XP[fP == k, , drop = FALSE])
+    piQ[fQ == k] <- predict(m, XQ[fQ == k, , drop = FALSE])
+  }
+  a <- nQ / (nP + nQ)
+  wP <- piP / ((1 - a) * piP + a * (1 - piP)); wP <- wP / sum(wP)
+  wQ <- (1 - piQ) / ((1 - a) * piQ + a * (1 - piQ)); wQ <- wQ / sum(wQ)
+  cP <- as.numeric((model_pred(XP) > 0.5) == yP)   # correct on source
+  cQ <- as.numeric((model_pred(XQ) > 0.5) == yQ)   # correct on target
+  accP <- mean(cP); accQ <- mean(cQ)
+  sP <- sum(wP * cP); sQ <- sum(wQ * cQ)           # accuracies on S_X
+  data.frame(accP = accP, accQ = accQ, drop = accP - accQ,
+             x_part = (accP - sP) + (sQ - accQ), yx_part = sP - sQ,
+             yx_ratio = (sP - sQ) / (accP - accQ))
+}
+```
+
+## Distributionally Robust Optimization in Brief {#sec-dro-primer}
+
+DRO replaces the expected loss under the training distribution with the worst expected loss over a set of distributions near it,
+$$
+\min_{f \in \mathcal{F}} \; \sup_{Q \in \mathcal{P}} \; \mathbb{E}_Q[\ell(f(X), Y)], \qquad \mathcal{P} = \{Q : d(Q, \widehat{P}) \le \epsilon\},
+$$
+where $\widehat{P}$ is the empirical distribution, $d$ a discrepancy between distributions and $\epsilon$ the radius of the ambiguity set. The modeler encodes beliefs about which shifts matter through $d$ and $\epsilon$ [@rahimian2022frameworks]. Three families cover most of what the paper benchmarks.
+
+For $f$-divergence balls, $d(Q, P) = \mathbb{E}_P[\phi(dQ/dP)]$, the inner supremum has a one-dimensional dual [@bental2013robust]. With the Kullback-Leibler divergence the worst-case risk is
+$$
+\inf_{\lambda > 0} \; \lambda \epsilon + \lambda \log \mathbb{E}_{\widehat{P}}\left[e^{\ell(f(X), Y) / \lambda}\right],
+$$
+an exponential tilt toward high-loss observations. With the $\chi^2$ divergence the dual is
+$$
+\inf_{\eta \in \mathbb{R}} \; \sqrt{1 + 2\rho}\, \left(\mathbb{E}_{\widehat{P}}\left[(\ell(f(X), Y) - \eta)_+^2\right]\right)^{1/2} + \eta,
+$$
+which @duchi2021learning show controls the risk of every subpopulation of sufficient size. The conditional value-at-risk at level $\alpha$,
+$$
+\inf_{\eta} \; \eta + \frac{1}{\alpha} \mathbb{E}_{\widehat{P}}\left[(\ell(f(X), Y) - \eta)_+\right],
+$$
+is the average loss over the worst $\alpha$ fraction of the sample [@rockafellar2000optimization] and corresponds to the ambiguity set of all reweightings with density ratio at most $1/\alpha$.
+
+Wasserstein balls instead let the adversary move observations, at a cost given by a transport metric on $\mathcal{X} \times \mathcal{Y}$. For linear models they reduce to norm regularization of the coefficients [@mohajerin2018data; @blanchet2019robust]. Refinements restrict the adversary to shifts in a subset of covariates or to conditional shifts, such as the marginal DRO of @duchi2023distributionally, which protects against all subpopulations defined by a chosen set of variables.
+
+All three dual forms are smooth or nearly smooth in the model parameters once the auxiliary scalar is optimized jointly, so for a logistic model they can be fit with a generic quasi-Newton solver. The function below is the solver used in the replication. CVaR uses a softplus approximation to the positive part with a small temperature so that BFGS applies.
+
+```{r shift-dro-fun}
+logloss_i <- function(beta, X, s) {            # s in {-1, +1}
+  z <- -s * drop(X %*% beta)
+  pmax(z, 0) + log1p(exp(-abs(z)))
+}
+grad_i <- function(beta, X, s) -s * plogis(-s * drop(X %*% beta))
+
+fit_dro <- function(X, y, type = c("erm", "kl", "chi2", "cvar"), radius = 0,
+                    ridge = 1e-4, tau = 0.05) {
+  type <- match.arg(type)
+  s <- 2 * y - 1; p <- ncol(X); n <- nrow(X)
+  pen <- function(b) ridge * sum(b[-1]^2)
+  dpen <- function(b) c(0, 2 * ridge * b[-1])
+  if (type == "erm") {
+    f <- function(th) mean(logloss_i(th, X, s)) + pen(th)
+    g <- function(th) drop(crossprod(X, grad_i(th, X, s))) / n + dpen(th)
+  } else if (type == "kl") {                   # th = (beta, log lambda)
+    f <- function(th) {
+      b <- th[1:p]; lam <- exp(th[p + 1]); l <- logloss_i(b, X, s); m <- max(l / lam)
+      lam * radius + lam * (m + log(mean(exp(l / lam - m)))) + pen(b)
+    }
+    g <- function(th) {
+      b <- th[1:p]; lam <- exp(th[p + 1]); l <- logloss_i(b, X, s)
+      a <- l / lam; w <- exp(a - max(a)); w <- w / sum(w)
+      gb <- drop(crossprod(X, w * grad_i(b, X, s))) + dpen(b)
+      glam <- radius + (max(a) + log(mean(exp(a - max(a))))) - sum(w * a)
+      c(gb, glam * lam)
+    }
+  } else if (type == "chi2") {                 # th = (beta, eta)
+    C <- sqrt(1 + 2 * radius)
+    f <- function(th) {
+      b <- th[1:p]; r <- pmax(logloss_i(b, X, s) - th[p + 1], 0)
+      C * sqrt(mean(r^2)) + th[p + 1] + pen(b)
+    }
+    g <- function(th) {
+      b <- th[1:p]; r <- pmax(logloss_i(b, X, s) - th[p + 1], 0)
+      S <- sqrt(mean(r^2)) + 1e-12
+      c(C / S * drop(crossprod(X, r * grad_i(b, X, s))) / n + dpen(b),
+        1 - C * mean(r) / S)
+    }
+  } else {                                     # CVaR, alpha = radius in (0, 1]
+    sp <- function(u) tau * (pmax(u / tau, 0) + log1p(exp(-abs(u / tau))))
+    f <- function(th) {
+      b <- th[1:p]; th[p + 1] + mean(sp(logloss_i(b, X, s) - th[p + 1])) / radius + pen(b)
+    }
+    g <- function(th) {
+      b <- th[1:p]; q <- plogis((logloss_i(b, X, s) - th[p + 1]) / tau)
+      c(drop(crossprod(X, q * grad_i(b, X, s))) / (n * radius) + dpen(b),
+        1 - mean(q) / radius)
+    }
+  }
+  th0 <- c(rep(0, p), if (type == "erm") NULL else if (type == "kl") 0 else 0.3)
+  optim(th0, f, g, method = "BFGS", control = list(maxit = 500))$par[1:p]
+}
+pred_lin <- function(beta, X) plogis(drop(X %*% beta))
+```
+
+For tree ensembles there is no convex reformulation, and the paper's tree-based DRO variants are implemented through the loss reweighting that the dual implies. We do the same: fit a gradient boosting model, compute out-of-fold losses, solve the one-dimensional dual for the worst-case weights at a given radius (the exponential tilt for KL, the truncated linear weights $(\ell - \eta^\ast)_+$ for $\chi^2$), and refit with those weights.
+
+## The WhyShift Benchmark {#sec-whyshift-benchmark}
+
+The design of @wang2026rethinking is worth describing in some detail, because it is what makes their conclusions credible and because it is a template for evaluating any robust method.
+
+The benchmark contains ten settings built from eight tabular datasets: three prediction tasks from the American Community Survey public use microdata (income above \$50,000, same residence as a year ago, public health insurance coverage), taxi trip durations in New York and three Latin American cities, accident severity across US states, student answer correctness on the ASSISTments tutoring platform, institutional completion rates from the College Scorecard, and diabetes diagnoses from the Behavioral Risk Factor Surveillance System. Each setting fixes one source domain and one or more targets, chosen to span geographic shifts (California to the other states and Puerto Rico), temporal shifts (New York in 2010 to later years), demographic shifts (younger to older, white to other groups) and institutional shifts, for 172 source and target pairs in total.
+
+On each pair the authors run about 45 methods: basic ERM learners (logistic regression, linear and kernel support vector machines, multilayer perceptrons), tree ensembles (random forests, gradient boosting, LightGBM, XGBoost), DRO with linear, kernel, tree and neural network model classes under Wasserstein, KL, $\chi^2$, total variation and CVaR ambiguity sets, imbalanced-learning reweighting, and fairness-constrained learners. Every method is run over a hyperparameter grid, for a total of about 90,000 method configurations. The protocol mimics a realistic deployment: plenty of labeled source data, and 128 labeled target observations that are too few to train on but enough to select hyperparameters.
+
+The paper's findings, in the order we will check them, are:
+
+1. $Y \mid X$-shifts dominate. Among pairs with a material accuracy drop, most of the drop is attributed by DISDE to the conditional distribution.
+2. Accuracy on the line fails under $Y \mid X$-shift. Across configurations, source accuracy is a poor and sometimes negatively sloped predictor of target accuracy when the conditional shift is large, whereas the relation is tight when the shift is in $X$.
+3. Algorithm rankings fluctuate across pairs, and no method dominates.
+4. DRO does not improve on ERM, and DRO performance tracks its base model class. In a regression of target accuracy on design choices, the model class and the hyperparameter selection rule matter far more than the ambiguity set or its radius. The worst-case distributions DRO protects against are both harder to fit than real targets and poorly aligned with them.
+5. Shift-aware interventions help. Attributing the shift to features or regions, with a small target sample, leads to better ambiguity sets, to better targeted data collection, and to the discovery of a missing variable.
+
+## Replication on ACS Income {#sec-whyshift-replication}
+
+We replicate the paper's Setting 1, the ACS Income task with California as source, and its Setting 7, a demographic age shift within California. These are the settings behind the paper's main case studies, the data are public, and the task definition is precise enough to reproduce exactly.
+
+### Data and Features
+
+The task follows the folktables definition used by WhyShift. From the 2018 one-year ACS person files, keep respondents older than 16 with positive hours worked, personal income above \$100 and a positive person weight; the label is whether personal income exceeds \$50,000. For California this yields 195,665 workers, the same count the original task reports. We downloaded the person files for California, Puerto Rico and 33 other states spanning the income distribution, giving 34 geographic targets. The build step is shown but not run here; it reads each state zip file directly from the Census Bureau and keeps 13 columns.
+
+```{r shift-build-data, eval=FALSE}
+# Run once outside the book. 2018 ACS 1-year person files from
+# https://www2.census.gov/programs-surveys/acs/data/pums/2018/1-Year/csv_p<st>.zip
+cols <- c("ST", "AGEP", "COW", "SCHL", "MAR", "OCCP", "RELP", "WKHP", "SEX",
+          "RAC1P", "PINCP", "PWGTP", "ENG")
+read_state <- function(z) {
+  inner <- grep("\\.csv$", unzip(z, list = TRUE)$Name, value = TRUE)
+  tmp <- tempfile(); dir.create(tmp); unzip(z, files = inner, exdir = tmp)
+  d <- fread(file.path(tmp, inner), select = cols,
+             colClasses = list(character = "OCCP"))
+  d[, OCCP := as.integer(OCCP)]
+  d <- d[AGEP > 16 & PINCP > 100 & WKHP > 0 & PWGTP >= 1]   # folktables filter
+  d[, `:=`(state = toupper(substr(basename(z), 6, 7)), y = as.integer(PINCP > 50000))]
+}
+acs <- rbindlist(lapply(list.files("pums2018", "^csv_p..\\.zip$", full.names = TRUE),
+                        read_state))
+acs[, ENG := fifelse(is.na(ENG), 0L, as.integer(ENG))]   # 0 = speaks only English
+```
+
+The feature map reproduces the WhyShift encoding exactly: age, hours and sex, marital status, relationship to householder, race and class of worker as indicators, educational attainment as a level plus three threshold indicators, and occupation collapsed to 26 major groups and three broad tiers, 77 columns in all. The `eng` flag appends the ACS English-speaking ability code, which the original task omits and which plays a central role later.
+
+```{r shift-features}
+occ_vals <- c("MGR", "BUS", "FIN", "CMM", "ENG", "SCI", "CMS", "LGL", "EDU", "ENT",
+              "MED", "HLS", "PRT", "EAT", "CLN", "PRS", "SAL", "OFF", "FFF", "CON",
+              "EXT", "RPR", "PRD", "TRN", "MIL", "no")
+occ_lo <- c(0, 5, 8, 10, 13, 16, 20, 21, 22, 26, 30, 36, 37, 40, 42, 43, 47, 50,
+            60, 62, 68, 70, 77, 90, 98, 99)
+occ_hi <- c(4, 7, 9, 12, 15, 19, 20, 21, 25, 29, 35, 36, 39, 41, 42, 46, 49, 59,
+            61, 67, 69, 76, 89, 97, 98, 99)
+
+featurize <- function(d, eng = FALSE) {
+  occ2 <- d$OCCP %/% 100
+  X <- cbind(
+    SEX = d$SEX, AGEP = d$AGEP, WKHP = d$WKHP,
+    married = d$MAR == 1, widowed = d$MAR == 2, divorced = d$MAR == 3,
+    separated = d$MAR == 4, never = d$MAR == 5,
+    sapply(0:17, function(k) d$RELP == k),
+    sapply(1:9, function(k) d$RAC1P == k),
+    sapply(1:9, function(k) d$COW == k),
+    sapply(seq_along(occ_vals), function(k)
+      !is.na(occ2) & occ2 >= occ_lo[k] & occ2 <= occ_hi[k]),
+    SCHL = d$SCHL, bachelor = d$SCHL >= 21, hs = d$SCHL >= 17, postgrad = d$SCHL >= 22)
+  colnames(X)[9:70] <- c(paste0("relp_", 0:17), paste0("race_", 1:9),
+                         paste0("cow_", 1:9), paste0("occ_", occ_vals))
+  big <- function(v) rowSums(X[, paste0("occ_", v), drop = FALSE]) > 0
+  X <- cbind(X,
+    occ_large = big(c("MGR", "BUS", "FIN", "LGL", "EDU", "ENT")),
+    occ_semi = big(c("CMM", "ENG", "SCI", "CMS", "MED", "HLS", "PRS", "SAL", "OFF",
+                     "RPR", "PRD")),
+    occ_nonlarge = big(c("PRT", "EAT", "CLN", "FFF", "CON", "EXT", "TRN", "MIL", "no")))
+  if (eng) X <- cbind(X, ENG = d$ENG)
+  X[is.na(X)] <- 0
+  storage.mode(X) <- "double"
+  X
+}
+
+fit_xgb <- function(X, y, eta = 0.1, depth = 6, nrounds = 200, subsample = 1,
+                    w = NULL, nthread = 4) {
+  xgboost::xgb.train(
+    params = list(objective = "binary:logistic", eta = eta, max_depth = depth,
+                  subsample = subsample, tree_method = "hist", nthread = nthread),
+    data = xgboost::xgb.DMatrix(X, label = y, weight = w),
+    nrounds = nrounds, verbose = 0)
+}
+```
+
+### The Configuration Grid
+
+Our grid has `r nrow(unique(readRDS("data/whyshift_bench.rds")$res[, .(config)]))` configurations in ten methods, chosen to cover the paper's main categories with R implementations. Linear ERM is logistic regression, plus ridge and lasso paths of ten penalties each. Tree ensembles are a random forest over a 4 by 4 grid of `mtry` and minimum node size, and XGBoost over learning rates $\{0.03, 0.1, 0.3\}$, depths $\{2, 4, 6, 8\}$, row subsampling $\{0.7, 1\}$ and $\{50, 150, 400\}$ rounds. Linear DRO is the logistic loss under KL and $\chi^2$ balls with radii $\{0.01, 0.05, 0.1, 0.2, 0.5\}$ and CVaR at levels $\alpha \in \{0.9, 0.7, 0.5, 0.3, 0.1\}$, all fit with the solver above. Tree DRO is XGBoost refit on KL and $\chi^2$ worst-case weights at five radii. We do not run neural networks, kernel methods, Wasserstein DRO or the fairness learners; the paper's conclusions about those classes are taken as given.
+
+Every configuration is trained once on 20,000 California workers and scored on 20,000 held-out California workers (source accuracy), on 128 validation draws from each target, and on up to 10,000 further draws from each target (target accuracy). For each target we also compute DISDE with the default XGBoost model, and an oracle accuracy from XGBoost cross-fitted within the target. Setting 7 repeats the whole grid on a California source that is 80 percent workers aged 25 and over and a California target that is 80 percent younger workers. The full run takes about 18 minutes on 14 threads; the code lives with the cached data and the book loads the result table.
+
+```{r shift-load}
+bench <- readRDS("data/whyshift_bench.rds")
+res <- bench$res
+dis <- merge(as.data.table(bench$disde), bench$oracle, by = "target")
+dis[, regret := (1 - accQ) / (1 - oracle_acc) - 1]
+r2 <- res[, .(R2 = summary(lm(acc_tgt ~ acc_src))$r.squared,
+              slope = coef(lm(acc_tgt ~ acc_src))[2]), by = .(setting, target)]
+r2 <- merge(r2, dis[, .(target, yx_ratio, drop)], by = "target")
+big <- dis[target != "Older_to_younger" & drop > 0.05]
+e0_ratio <- with(readRDS("data/whyshift_cases.rds")$eng_case, yx_ratio[target == "PR" & !eng])
+cor_yx_r2 <- r2[target %in% big$target, cor(yx_ratio, R2)]
+```
+
+### Finding 1: Conditional Shifts Dominate
+
+Table \@ref(tab:shift-disde-table) reports the DISDE decomposition for the default XGBoost model on every California-to-state pair. California accuracy is `r sprintf("%.1f", 100 * dis$accP[1])` percent. The largest drop is to Puerto Rico, `r sprintf("%.1f", 100 * dis[target == "PR", drop])` points, of which `r sprintf("%.0f", 100 * dis[target == "PR", yx_ratio])` percent is attributed to the conditional distribution; the paper reports a $Y \mid X$ ratio of 85.4 percent for the same pair, and an independent draw of the training and evaluation samples, used in the case study below, gives `r sprintf("%.0f", 100 * e0_ratio)` percent. The decomposition is a sample statistic, and differences of ten points in the ratio between draws are within its sampling noise. Of the `r nrow(big)` pairs with a drop above five points, every one has more than half of the drop attributed to $Y \mid X$, and the median ratio is `r sprintf("%.0f", 100 * median(big$yx_ratio))` percent. The paper's figure for its full testbed is that 87 percent of pairs with a drop above eight points have a ratio above one half. The age shift within California is the mirror image: the decomposition attributes essentially nothing to $Y \mid X$ (the paper reports 0 percent), and accuracy rises, because younger workers rarely earn above \$50,000 and are easy to classify.
+
+```{r shift-disde-table, echo=FALSE}
+tab <- dis[order(-drop), .(Target = target,
+  `Source acc.` = 100 * accP, `Target acc.` = 100 * accQ, `Drop (pts)` = 100 * drop,
+  `Y|X ratio` = ifelse(abs(drop) > 0.02, sprintf("%.0f%%", 100 * yx_ratio), "n/a"),
+  `Oracle acc.` = 100 * oracle_acc, `Relative regret` = sprintf("%.0f%%", 100 * regret))]
+knitr::kable(tab, digits = 1, booktabs = TRUE,
+  caption = "DISDE decomposition of the XGBoost accuracy drop from the California source to each target, with the oracle accuracy of XGBoost fit on the target and the relative regret of the transported model. The Y|X ratio is suppressed for drops under two points, where it is the ratio of two small numbers.")
+```
+
+The relative regret column restates the same facts on the paper's preferred scale. Transporting the California model to Puerto Rico more than triples its error relative to a model trained on Puerto Rico (`r sprintf("%.0f", 100 * dis[target == "PR", regret])` percent excess error, against about 200 percent in the paper's Figure 1). The demographic benchmarks that dominate the fairness literature look benign by comparison: a model trained on white men in California and applied to non-white women in California has a relative regret of `r sprintf("%.0f", 100 * ((1 - bench$demo$acc_tgt) / (1 - bench$demo$oracle_acc) - 1))` percent, in line with the 10 to 20 percent the paper reports for its demographic splits. This is the paper's argument for why existing tabular benchmarks, built on demographic subgroups, mostly test covariate shift.
+
+```{r shift-yx-fig, echo=FALSE, fig.cap="Accuracy drop from California to each target state and the share of the drop that DISDE attributes to the conditional distribution of income given features. Every pair with a drop above five points has a majority Y given X share. Pairs with drops under two points are omitted because the ratio is unstable.", fig.width=7, fig.height=4}
+ggplot(dis[target != "Older_to_younger" & drop > 0.02],
+       aes(100 * drop, 100 * yx_ratio, label = target)) +
+  geom_hline(yintercept = 50, linetype = "dashed", colour = "grey50") +
+  geom_vline(xintercept = 5, linetype = "dotted", colour = "grey50") +
+  geom_text(size = 3) +
+  labs(x = "Accuracy drop, California to target (points)",
+       y = "Share of drop from Y | X shift (%)") +
+  theme_minimal()
+```
+
+### Finding 2: Accuracy on the Line Fails Under Conditional Shift
+
+If target accuracy were a stable linear function of source accuracy across models, a practitioner could pick the model with the best source validation score and expect it to be best in the target too. Figure \@ref(fig:shift-aotl-fig) plots target against source accuracy for every configuration in four pairs. For the age shift, which is a pure covariate shift, the configurations line up ($R^2$ = `r sprintf("%.2f", r2[target == "Older_to_younger", R2])`, against 0.73 in the paper). For Puerto Rico the cloud has no useful linear structure ($R^2$ = `r sprintf("%.2f", r2[target == "PR", R2])`) and the fitted slope is negative (`r sprintf("%.2f", r2[target == "PR", slope])`), exactly the downward-sloping fit line of the paper's Figure 3a, where $R^2$ is 0.16. Configurations that fit California better do worse in Puerto Rico.
+
+Part of the Puerto Rico pattern is a base-rate effect. Only about 11 percent of Puerto Rico workers clear \$50,000, so the few configurations that predict "no" almost everywhere (the heavily penalized ridge fits at the left of the panel) score poorly in California and very well in Puerto Rico. The finding survives removing them: among the `r nrow(res[target == "PR" & acc_src >= 0.78])` configurations with California accuracy of at least 78 percent, the Puerto Rico slope is `r sprintf("%.2f", coef(lm(acc_tgt ~ acc_src, res[target == "PR" & acc_src >= 0.78]))[2])` and the South Dakota slope `r sprintf("%.2f", coef(lm(acc_tgt ~ acc_src, res[target == "SD" & acc_src >= 0.78]))[2])`, while the Colorado slope stays at `r sprintf("%.2f", coef(lm(acc_tgt ~ acc_src, res[target == "CO" & acc_src >= 0.78]))[2])`. Among competitive models, better California accuracy does not buy better accuracy where the conditional law has moved.
+
+```{r shift-aotl-fig, echo=FALSE, fig.cap="Target accuracy against source accuracy across all configurations for four shift pairs. Each point is one configuration; colour marks the method family. Under the age shift (covariate shift) the points line up; under the Puerto Rico and South Dakota shifts (conditional shift) they do not, and for Puerto Rico the fitted line slopes down.", fig.width=8, fig.height=6.5}
+sel <- c("Older_to_younger", "PR", "SD", "CO")
+lab <- c(Older_to_younger = "CA age 25+ to under 25", PR = "CA to Puerto Rico",
+         SD = "CA to South Dakota", CO = "CA to Colorado")
+pd <- res[target %in% sel][, panel := factor(lab[target], levels = lab[sel])]
+r2l <- r2[target %in% sel][, panel := factor(lab[target], levels = lab[sel])]
+r2l[, txt := sprintf("R2 = %.2f\nY|X ratio = %.0f%%", R2, 100 * yx_ratio)]
+ggplot(pd, aes(100 * acc_src, 100 * acc_tgt)) +
+  geom_abline(linetype = "dashed", colour = "grey60") +
+  geom_point(aes(colour = family), alpha = 0.6, size = 1.3) +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", linewidth = 0.5,
+              formula = y ~ x) +
+  geom_text(data = r2l, aes(x = -Inf, y = Inf, label = txt), hjust = -0.05,
+            vjust = 1.2, size = 3) +
+  facet_wrap(~ panel, scales = "free") +
+  labs(x = "Source accuracy (%)", y = "Target accuracy (%)", colour = NULL) +
+  theme_minimal() + theme(legend.position = "bottom")
+```
+
+The pattern is systematic. Across the `r nrow(big)` pairs with a material drop, the correlation between the $Y \mid X$ ratio and the accuracy-on-the-line $R^2$ is `r sprintf("%.2f", cor_yx_r2)`. Table \@ref(tab:shift-r2-bins) groups all pairs with a drop above three points by $Y \mid X$ ratio, following the paper's Table 2. As in the paper the relation across bins is noisy and not monotone, but the bin with the largest conditional share has by far the lowest mean $R^2$ and the widest spread.
+
+```{r shift-r2-bins, echo=FALSE}
+rb <- r2[setting == "CA -> state" & drop > 0.03]
+rb[, bin := cut(yx_ratio, c(0, 0.65, 0.75, 0.85, 1), include.lowest = TRUE,
+                labels = c("below 65%", "65 to 75%", "75 to 85%", "above 85%"))]
+knitr::kable(rb[, .(Pairs = .N, `Mean R2` = mean(R2), `SD of R2` = sd(R2),
+                    `Min R2` = min(R2)), keyby = .(`Y|X ratio` = bin)],
+  digits = 2, booktabs = TRUE,
+  caption = "Accuracy-on-the-line R-squared across configurations, grouped by the share of the accuracy drop attributed to Y given X shift (pairs with a drop above three points).")
+```
+
+### Finding 3: No Method Dominates
+
+Following the paper's protocol, each method's configuration is chosen by its accuracy on the 128 target validation draws, and methods are then ranked by target accuracy within each of the 34 pairs. Table \@ref(tab:shift-rank-table) is the analogue of the paper's Table 3. Almost every method is best in at least one pair and every method is ranked last or next to last in some pair, the standard deviations of ranks are large relative to the gaps in mean ranks, and the mean target accuracies of the best methods sit within a few tenths of a point of each other. Our tree DRO variants are the clear exception at the bottom: reweighting toward hard examples makes boosted trees chase noise, a point we return to below.
+
+```{r shift-rank-table, echo=FALSE}
+best <- res[setting == "CA -> state", .SD[which.max(acc_val)], by = .(method, target)]
+best[, rank := frank(-acc_tgt, ties.method = "min"), by = target]
+srcsel <- res[setting == "CA -> state", .SD[which.max(acc_src)], by = .(method, target)]
+rk <- best[, .(Family = family[1], `Min rank` = min(rank), `Max rank` = max(rank),
+               `Mean rank` = mean(rank), `SD rank` = sd(rank),
+               `Mean acc.` = 100 * mean(acc_tgt), `SD acc.` = 100 * sd(acc_tgt)),
+           by = .(Method = method)]
+rk <- merge(rk, srcsel[, .(`Acc., source-selected` = 100 * mean(acc_tgt)),
+                       by = .(Method = method)], by = "Method")
+knitr::kable(rk[order(`Mean rank`)], digits = 2, booktabs = TRUE,
+  caption = "Ranking and target accuracy of each method across the 34 California-to-state pairs, with hyperparameters selected on 128 target observations. The last column selects hyperparameters on California validation accuracy instead.")
+```
+
+### Finding 4: DRO Tracks Its Base Learner
+
+The paper's most useful methodological move is to treat the benchmark itself as data and regress target accuracy on design choices. Because the design choices are assigned by the experimenter, independently across configurations, the regression does not suffer from the endogeneity of an observational one. We run the paper's two versions. In the best-configuration design, a unit is a method, target and selection rule, and the outcome is the target accuracy of the configuration chosen by that rule (128 target observations, or California validation accuracy). In the worst-domain design, a unit is a configuration, and the outcome is its worst accuracy across the 34 targets, so that DRO is judged on exactly the criterion it was built for. Regressors are the model class (linear, random forest, XGBoost), an indicator for the reweighted tree DRO variants, the ambiguity set (none, KL, $\chi^2$, CVaR), and the radius rescaled to $[0, 1]$ within each set. The worst-domain regression drops the `r sum(readRDS("data/whyshift_bench.rds")$res[setting == "CA -> state", .(s = acc_src[1]), by = config]$s <= 0.7)` configurations whose California accuracy is below 70 percent, which are heavily penalized fits that predict nearly a constant and would otherwise dominate any worst-case comparison.
+
+```{r shift-design-reg, message=FALSE}
+library(fixest)
+res[, class := fifelse(grepl("XGB", method), "XGBoost",
+                fifelse(method == "RF", "Random forest", "Linear"))]
+res[, tree_dro := as.integer(grepl("^XGB-", method))]
+res[, amb := fifelse(grepl("KL", method), "KL", fifelse(grepl("CHI2", method), "Chi-squared",
+              fifelse(grepl("CVAR", method), "CVaR", "None")))]
+res[, rad01 := 0]
+res[amb != "None", rad01 := (frank(if (.BY$amb == "CVaR") -radius else radius,
+                                   ties.method = "dense") - 1) / 4, by = .(amb, tree_dro)]
+res[, class := relevel(factor(class), "Linear")]
+res[, amb := relevel(factor(amb), "None")]
+cs <- res[setting == "CA -> state"]
+
+bc <- rbind(
+  cs[, .SD[which.max(acc_val)], by = .(method, target)][, rule := "Target (128 obs.)"],
+  cs[, .SD[which.max(acc_src)], by = .(method, target)][, rule := "Source"])
+bc[, sel_target := as.integer(rule != "Source")]
+m_best <- feols(100 * acc_tgt ~ class + tree_dro + amb + rad01 +
+                  sel_target | target, data = bc, cluster = ~target)
+wd <- cs[, .(worst = min(acc_tgt), src = acc_src[1]),
+         by = .(config, method, class, tree_dro, amb, rad01)]
+m_worst <- feols(100 * worst ~ class + tree_dro + amb + rad01,
+                 data = wd[src > 0.7], vcov = "hetero")
+etable(m_best, m_worst, headers = c("Best config", "Worst domain"), digits = 3,
+       dict = c(classXGBoost = "XGBoost", "classRandom forest" = "Random forest",
+                tree_dro = "Tree DRO (reweighted XGB)", ambKL = "KL ball",
+                "ambChi-squared" = "Chi-squared ball", ambCVaR = "CVaR",
+                rad01 = "Radius (0 to 1)", sel_target = "Select on target"))
+```
+
+The coefficients are in accuracy points. Three results line up with the paper's Table 4. First, the ambiguity set never matters much: no set is significant at conventional levels in either design, and the point estimates are a few tenths of a point. Second, the radius always hurts. Moving from the smallest to the largest radius costs close to a point of average accuracy and about a point of worst-state accuracy, so the best DRO configuration is the one closest to ERM; the paper's worst-domain radius coefficient is about one point as well. Third, and this is the paper's Finding 4, the largest effects in both designs are properties of the base learner, not of the robustness layer. Reweighting XGBoost toward its worst-case distribution costs more than a point in both designs, and in the worst-domain design plain tree ensembles are about a point worse than linear models, the same negative sign the paper reports for LightGBM and neural networks in its worst-domain columns. The worst state is Puerto Rico, where flexible fits to California transfer worst, which is the negative slope of Figure \@ref(fig:shift-aotl-fig) seen again.
+
+Two parts of the paper's table do not replicate here. The paper finds a premium of about a point for tree ensembles and networks in its best-configuration design; on ACS Income, once hyperparameters are tuned, the random forest and XGBoost are indistinguishable from logistic regression on average, consistent with the small Setting 1 coefficients in the paper's own table (around 1.5 points) and with the modest nonlinearity in this task. The paper also finds that selecting hyperparameters on target data improves accuracy by about half a point; here the target-selected and source-selected configurations are equally good. With 128 observations and accuracy near 77 percent, the standard error of a validation accuracy is about 3.7 points, far larger than the half-point differences among the top configurations of each method, so the selection is close to noise. A larger target validation sample, or a selection rule that averages across targets as the paper's average-case rule does, would be needed to see the gain.
+
+Why does DRO fail to help? The paper's Section 4.2 answers by examining the worst-case distributions themselves. In a KL or $\chi^2$ ball of useful radius, the adversary puts heavy weight on observations the model already gets wrong, which are disproportionately noisy labels near the decision boundary. Such distributions are harder to fit than any real target state, and they are not aligned with the directions in which real states differ from California. The robust solution pays for protection against shifts that do not occur, so the radius that maximizes target accuracy ends up near zero, and a flexible learner trained on the worst-case weights chases noise, which is what our tree DRO rows show.
+
+### Case Study: The Missing Variable Behind the Puerto Rico Shift {#sec-shift-eng-case}
+
+The paper's most striking result is a data-centric one. Having found that the California to Puerto Rico drop is almost entirely a conditional shift, the authors look at where in covariate space the conditional law changes (the region analysis below) and find college-educated workers in management, business, finance, legal, education and media occupations. Those occupations put a premium on communication, and the language of work differs: English dominates in California, Spanish in Puerto Rico. The ACS asks every respondent who speaks another language at home how well they speak English, but the folktables income task leaves that variable out. Adding it should restore an invariant conditional law if language is the omitted $C$ of Section \@ref(sec-shift-language).
+
+This chunk runs the experiment live on the public extract that ships with the book: 20,000 California workers to train, 20,000 held out, and all Puerto Rico and South Dakota workers as targets. It fits the default XGBoost model with and without the English-ability code and decomposes the accuracy drop each time.
+
+```{r shift-eng-live, cache=TRUE}
+ext <- readRDS("data/whyshift_acs_extract.rds")
+ca_tr <- ext[state == "CA"][1:20000]
+ca_te <- ext[state == "CA"][20001:40000]
+tg <- list(PR = ext[state == "PR"], SD = ext[state == "SD"])
+
+eng_live <- rbindlist(lapply(c(FALSE, TRUE), function(e) {
+  m <- fit_xgb(featurize(ca_tr, e), ca_tr$y)
+  rbindlist(lapply(tg, function(d)
+    disde(function(Z) predict(m, Z), featurize(ca_te, e), ca_te$y,
+          featurize(d, e), d$y)), idcol = "Target")[, ENG := e]
+}))
+knitr::kable(eng_live[, .(Target, `ENG feature` = ifelse(ENG, "yes", "no"),
+                          `CA acc.` = 100 * accP, `Target acc.` = 100 * accQ,
+                          `Drop` = 100 * drop, `X part` = 100 * x_part,
+                          `Y|X part` = 100 * yx_part)],
+             digits = 1, booktabs = TRUE,
+             caption = "XGBoost accuracy from California to Puerto Rico and South Dakota, without and with the English-speaking ability feature, and the DISDE decomposition of the drop (all in percentage points).")
+```
+
+```{r shift-eng-nums, include=FALSE}
+e0 <- eng_live[Target == "PR" & !ENG]; e1 <- eng_live[Target == "PR" & ENG]
+s0 <- eng_live[Target == "SD" & !ENG]; s1 <- eng_live[Target == "SD" & ENG]
+```
+
+Without the feature, Puerto Rico accuracy is `r sprintf("%.1f", 100 * e0$accQ)` percent against `r sprintf("%.1f", 100 * e0$accP)` in California, a drop of `r sprintf("%.1f", 100 * e0$drop)` points. With it, the drop shrinks to `r sprintf("%.1f", 100 * e1$drop)` points. The paper's Figure 10 reports a drop of 10.3 points falling to 2.1. The English variable is close to irrelevant within California, where almost everyone in the high-earning occupations speaks English well, so California accuracy barely moves; its value is entirely in restoring transportability. For South Dakota the same feature does nothing (a drop of `r sprintf("%.1f", 100 * s0$drop)` points without it and `r sprintf("%.1f", 100 * s1$drop)` with it), again as in the paper. The conditional shift to South Dakota has a different source, and a feature that fixes one target can be useless for another.
+
+A technical caution about the decomposition. Once the drop is small, the $Y \mid X$ share is a ratio of two small, noisy numbers, and the components can have opposite signs (here the estimated $X$ part for Puerto Rico turns negative once English ability is included, because the domain classifier now separates the two populations almost perfectly on that one variable and the shared distribution $S_X$ becomes thin). The decomposition is a diagnostic for material drops, not a precise accounting identity for small ones.
+
+The benchmark version of the experiment reruns the full grid with and without the feature. Figure \@ref(fig:shift-eng-grid) is the analogue of the paper's Figures 10f and 10g: with English ability, the entire cloud of configurations moves up for Puerto Rico, while for South Dakota it does not move.
+
+```{r shift-eng-grid, echo=FALSE, fig.cap="Target against source accuracy for every configuration, without and with the English-speaking ability feature. The feature lifts every method for Puerto Rico and none for South Dakota.", fig.width=8, fig.height=4}
+cases <- readRDS("data/whyshift_cases.rds")
+eg <- cases$eng_grid
+eg[, target := factor(target, levels = c("PR", "SD"),
+                      labels = c("CA to Puerto Rico", "CA to South Dakota"))]
+ggplot(eg, aes(100 * acc_src, 100 * acc_tgt, colour = setting, shape = setting)) +
+  geom_abline(linetype = "dashed", colour = "grey60") +
+  geom_point(alpha = 0.6, size = 1.4) +
+  facet_wrap(~ target) +
+  scale_colour_manual(values = c("without ENG" = "grey55", "with ENG" = "black")) +
+  labs(x = "Source accuracy (%)", y = "Target accuracy (%)", colour = NULL, shape = NULL) +
+  theme_minimal() + theme(legend.position = "bottom")
+```
+
+### Locating the Conditional Shift and Collecting Data Where It Lives {#sec-shift-region}
+
+How would an analyst find the English proficiency variable without already knowing it? The paper's Algorithm 1 locates the region of covariate space where the conditional law differs most. With source and target samples, it fits the DISDE domain classifier, builds conditional-outcome models $f_P$ and $f_Q$ on the shared distribution $S_X$ by weighting each sample with its likelihood ratio, and then fits a shallow regression tree $h(x)$ to $|f_P(x) - f_Q(x)|$ on the pooled, weighted data. The leaf with the largest predicted discrepancy is the region $\mathcal{R}$ where the shift lives. The tree is deliberately shallow so that the region is a readable rule.
+
+```{r shift-region-build, eval=FALSE}
+# Algorithm 1 (from the build script): XP, XQ are source and target features,
+# piP, piQ the cross-fitted domain-classifier probabilities, a the target share.
+wfun_P <- function(p) p / ((1 - a) * p + a * (1 - p))
+wfun_Q <- function(p) (1 - p) / ((1 - a) * p + a * (1 - p))
+fPm <- fit_xgb(XP, yP, w = wfun_P(piP), depth = 4)   # f_P on S_X
+fQm <- fit_xgb(XQ, yQ, w = wfun_Q(piQ), depth = 4)   # f_Q on S_X
+Xall <- rbind(XP, XQ)
+gap <- abs(predict(fPm, Xall) - predict(fQm, Xall))
+lam <- c(wfun_P(piP) / sum(wfun_P(piP)), wfun_Q(piQ) / sum(wfun_Q(piQ)))
+htree <- rpart::rpart(gap ~ ., data = data.frame(gap = gap, Xall), weights = lam,
+                      control = rpart::rpart.control(maxdepth = 3, cp = 0.002,
+                                                     minbucket = 300))
+```
+
+```{r shift-region-rule}
+tree <- cases$tree
+path <- rpart::path.rpart(tree, nodes = as.integer(rownames(tree$frame))[cases$best_leaf],
+                          print.it = FALSE)[[1]][-1]
+path
+```
+
+The region is full-time workers (more than 35 hours a week) with at least an associate degree (`SCHL` of 20 or more) who are older than 25. It contains `r cases$region_n` of the 5,000 Puerto Rico workers in the analysis pool, and its weighted mean discrepancy between the two conditional models is `r sprintf("%.2f", cases$region_gap[as.character(cases$best_leaf)])` on the probability scale, against `r sprintf("%.2f", min(cases$region_gap))` in the calmest leaf. The paper's tree for the same pair splits first on weekly hours at 34.5 and then on college education, the same two splits, before refining by occupation group and sex. In plain terms, the California model's mapping from education and full-time work to income above \$50,000 is what fails to travel. That is where an analyst would look for a missing variable, and it is the group in which the language of work matters most.
+
+The data-centric intervention follows directly. Suppose the budget allows 250 labeled target observations. Drawing them at random from Puerto Rico spreads the budget over workers for whom the California model is already adequate; drawing them from the region concentrates it where the conditional law differs. Figure \@ref(fig:shift-collect-fig) compares the two across five learners, each retrained on the 20,000 California workers plus the 250 new observations and evaluated on held-out Puerto Rico workers, over 20 replications.
+
+```{r shift-collect-fig, echo=FALSE, fig.cap="Puerto Rico test accuracy of five learners trained on California only, on California plus 250 random Puerto Rico observations, and on California plus 250 Puerto Rico observations from the region with the largest conditional shift. Bars are means over 20 replications; whiskers are two standard errors.", fig.width=7.5, fig.height=4}
+cl <- melt(cases$collect, id.vars = c("rep", "method"),
+           variable.name = "data", value.name = "acc")
+cl[, data := factor(data, levels = c("original", "random", "region"),
+                    labels = c("California only", "Add 250 random", "Add 250 from region"))]
+cs2 <- cl[, .(m = 100 * mean(acc), se = 100 * sd(acc) / sqrt(.N)), by = .(method, data)]
+ggplot(cs2, aes(method, m, fill = data)) +
+  geom_col(position = position_dodge(0.8), width = 0.75) +
+  geom_errorbar(aes(ymin = m - 2 * se, ymax = m + 2 * se),
+                position = position_dodge(0.8), width = 0.2) +
+  coord_cartesian(ylim = c(floor(min(cs2$m)) - 2, ceiling(max(cs2$m)) + 1)) +
+  scale_fill_grey(start = 0.75, end = 0.2) +
+  labs(x = NULL, y = "Puerto Rico accuracy (%)", fill = NULL) +
+  theme_minimal() + theme(legend.position = "bottom")
+```
+
+```{r shift-collect-nums, include=FALSE}
+cm <- cases$collect[, lapply(.SD, mean), by = method, .SDcols = c("original", "random", "region")]
+```
+
+Every learner gains from either kind of new data, and every learner gains more from data drawn in the region: the gain from 250 random observations ranges from `r sprintf("%.1f", 100 * min(cm$random - cm$original))` to `r sprintf("%.1f", 100 * max(cm$random - cm$original))` points, the gain from 250 region observations from `r sprintf("%.1f", 100 * min(cm$region - cm$original))` to `r sprintf("%.1f", 100 * max(cm$region - cm$original))` points. This is the paper's Figure 10e. The size of the effect is modest because 250 observations are swamped by 20,000 California observations in the pooled fit; the extension below shows that how the target data are used matters more than where they are collected.
+
+### What Replicates {#sec-shift-scorecard}
+
+Table \@ref(tab:shift-scorecard-tab) summarizes the replication against the paper's numbers for the same settings.
+
+```{r shift-scorecard-tab, echo=FALSE}
+sc <- data.table(
+  Claim = c("Y|X ratio, CA to Puerto Rico (XGBoost)",
+            "Relative regret, CA to Puerto Rico",
+            "Accuracy-on-the-line R2, CA to Puerto Rico (slope sign)",
+            "Accuracy-on-the-line R2, age shift",
+            "Y|X ratio, age shift",
+            "Drop to Puerto Rico without / with English ability (points)",
+            "English ability helps South Dakota",
+            "Ambiguity set and radius effects on target accuracy",
+            "Base learner drives DRO performance",
+            "Tree ensemble premium over linear (best config)",
+            "Gain from selecting hyperparameters on 128 target obs.",
+            "Region data beat random target data"),
+  Paper = c("85%", "about 200%", "0.16 (negative)", "0.73", "0%", "10.3 / 2.1", "No",
+            "Small, unstable; radius hurts worst domain", "Yes", "About 1 point",
+            "About 0.5 points", "Yes, all learners"),
+  Replication = c(
+    sprintf("%.0f%% and %.0f%% (two draws)", 100 * dis[target == "PR", yx_ratio], 100 * e0$yx_ratio),
+    sprintf("%.0f%%", 100 * dis[target == "PR", regret]),
+    sprintf("%.2f (%s)", r2[target == "PR", R2], ifelse(r2[target == "PR", slope] < 0, "negative", "positive")),
+    sprintf("%.2f", r2[target == "Older_to_younger", R2]),
+    sprintf("%.0f%%", 100 * dis[target == "Older_to_younger", yx_ratio]),
+    sprintf("%.1f / %.1f", 100 * e0$drop, 100 * e1$drop),
+    ifelse(s1$drop < s0$drop - 0.01, "Yes", "No"),
+    "Small, insignificant; radius hurts both designs", "Yes", "None on ACS Income",
+    "None", "Yes, all learners"),
+  Verdict = c("Replicates", "Replicates", "Replicates", "Replicates", "Replicates",
+              "Replicates", "Replicates", "Replicates", "Replicates",
+              "Does not replicate", "Does not replicate", "Replicates"))
+knitr::kable(sc, booktabs = TRUE,
+  caption = "Replication scorecard. Paper values are read from the text, Figures 1, 3 and 10, and Table 4 of the published article for the ACS Income settings.")
+```
+
+The two misses are informative rather than troubling. Both concern effects of half a point to a point that the paper estimates by pooling ten settings, several of which (taxi durations, accidents) are far more nonlinear than income classification, and one of them depends on a selection rule that pools across targets. The headline claims, which are about the type of shift and about what does and does not help against it, reproduce closely on the public data.
+
+## Extensions {#sec-shift-extensions}
+
+### Importance Weighting Cannot Fix a Conditional Shift
+
+The classical response to distribution shift is importance weighting: estimate $w(x) = q_X(x) / p_X(x)$ from unlabeled target covariates, which are usually cheap, and minimize the weighted source loss [@shimodaira2000improving]. It is the right tool for covariate shift and the wrong one for conditional shift, and the replication data let us see both at once. We estimate the density ratio with the same XGBoost domain classifier used by DISDE, clip the weights at 20 times their mean, and compare weighted to unweighted XGBoost for the California to Puerto Rico shift and for the age shift within California.
+
+```{r shift-iw-table, echo=FALSE}
+knitr::kable(cases$iw[, .(Shift = shift, `ERM acc.` = 100 * erm,
+                          `Importance-weighted acc.` = 100 * iw,
+                          `Effective sample size` = round(ess))],
+  digits = 1, booktabs = TRUE,
+  caption = "Target accuracy of XGBoost with and without importance weights estimated from unlabeled target covariates. The effective sample size is that of the 20,000 weighted source observations.")
+```
+
+Importance weighting does essentially nothing in either case. For Puerto Rico it cannot: the weights move California observations toward Puerto Rico's covariate profile, but each reweighted observation still carries California's conditional income distribution, which is the thing that is wrong. For the age shift it is not needed: XGBoost is flexible enough to fit $\mathbb{E}[Y \mid X]$ well everywhere the source has support, so reweighting only costs effective sample size (the weighted sample is worth about `r round(cases$iw$ess[2])` of the 20,000 observations) without reducing bias. Diagnosing the type of shift before choosing a correction avoids both mistakes.
+
+### How Much Target Data, and How to Use It
+
+The paper's protocol assumes 128 labeled target observations, used only for hyperparameter selection. In applied work the question is usually broader: given $n$ labeled target observations, should one keep the source model, recalibrate it, pool the data, or train on the target alone? Figure \@ref(fig:shift-curve-fig) answers it for Puerto Rico over target samples from 128 to 4,000, averaged over ten draws.
+
+```{r shift-curve-fig, echo=FALSE, fig.cap="Puerto Rico test accuracy as a function of the number of labeled Puerto Rico observations, for five ways of using them. Means over ten draws.", fig.width=7.5, fig.height=4.2}
+cv <- melt(cases$curve, id.vars = c("n_target", "rep"), variable.name = "strategy",
+           value.name = "acc")
+cvm <- cv[, .(acc = 100 * mean(acc)), by = .(n_target, strategy)]
+ggplot(cvm, aes(n_target, acc, linetype = strategy, shape = strategy)) +
+  geom_line() + geom_point() +
+  scale_x_log10(breaks = c(128, 250, 500, 1000, 2000, 4000)) +
+  labs(x = "Labeled Puerto Rico observations (log scale)",
+       y = "Puerto Rico accuracy (%)", linetype = NULL, shape = NULL) +
+  theme_minimal() + theme(legend.position = "bottom") +
+  guides(linetype = guide_legend(nrow = 2))
+```
+
+```{r shift-curve-nums, include=FALSE}
+cvw <- cases$curve[, lapply(.SD, mean), by = n_target, .SDcols = -"rep"]
+pr_base <- 1 - mean(ext[state == "PR"]$y)
+```
+
+The figure carries a lesson the paper does not stress. Only `r sprintf("%.1f", 100 * (1 - pr_base))` percent of Puerto Rico workers earn above \$50,000, so a rule that predicts "no" for everyone is right `r sprintf("%.1f", 100 * pr_base)` percent of the time, far better than the `r sprintf("%.1f", 100 * cvw$"Source only"[1])` percent of the California model. Much of the conditional shift is a shift in level: for the same profile, the probability of clearing \$50,000 is much lower in Puerto Rico. A two-parameter logistic recalibration of the California model's score, fit on just 128 Puerto Rico labels, reaches `r sprintf("%.1f", 100 * cvw$"Source model + target recalibration"[1])` percent, within a point of the target oracle; a model trained on the 128 labels alone does nearly as well because it mostly learns the base rate, and it overtakes recalibration once about a thousand labels are available. Pooling the target observations with 20,000 California observations without upweighting is the worst use of them, since the pooled fit is dominated by the source conditional law; upweighting the target rows to equal total weight helps a great deal but still trails the target-only model at every sample size we tried.
+
+Two implications follow. For practice, the cheapest response to a conditional shift is often to keep the source model's ranking and re-estimate its link to the target outcome, which needs very few labels. For evaluation, accuracy is a fragile metric when base rates differ across domains, because it rewards models for learning the target base rate rather than the target relationship. The paper's feasibility measure normalizes against random guessing, which is 50 percent accuracy; a fuller evaluation would also report a base-rate-free measure such as the area under the ROC curve, or calibration error, for each target.
+
+### Exercises
+
+1. Rerun the benchmark with Puerto Rico as the source and California as the target. Is the shift still mostly in $Y \mid X$? Does the accuracy-on-the-line slope change sign?
+2. Replace the XGBoost domain classifier in DISDE with a logistic regression. How much do the $Y \mid X$ ratios in Table \@ref(tab:shift-disde-table) move, and for which states? What does that say about the sensitivity of the decomposition to the classifier?
+3. Bootstrap the DISDE decomposition for California to South Dakota (resample both populations, refit the domain classifier) and report a confidence interval for the $Y \mid X$ ratio.
+4. Implement the marginal DRO of @duchi2023distributionally restricted to a single variable, and use the region analysis to choose that variable. Does targeting the ambiguity set improve Puerto Rico accuracy over KL-DRO on all features, as the paper's Section 5.1 finds for its settings?
+5. Add the 2018 ACS citizenship and nativity variables to the feature set. Do they substitute for English proficiency in the Puerto Rico shift?
+
+## Distribution Shift in Practice {#sec-shift-applications}
+
+### Where the Problem Shows Up
+
+Any model that is fit once and used across markets, periods or populations faces the questions in this chapter. A few settings recur.
+
+Credit scoring and underwriting. Lenders expanding into a new region or a new customer segment typically start with a scorecard developed elsewhere. The covariate mix is visibly different, which invites reweighting, but the more dangerous problem is a conditional shift: the same debt-to-income ratio means something different where incomes are more volatile, informal income is more common, or the collection environment differs. The ACS replication is a stylized version of exactly this problem, since the outcome is whether income clears a threshold, and the English proficiency case shows how a variable that is irrelevant in the source market can carry the shift in the target.
+
+Insurance pricing. State rate filings in the United States are made state by state, but pricing models are often developed on national or large-state books. A DISDE decomposition of the loss-ratio model across states separates states that merely have a different policyholder mix, which the existing rating variables already handle, from states where the conditional loss relationship differs, which calls for state-specific rating factors or new variables (weather exposure, repair-cost indices, litigation climate).
+
+Demand forecasting and pricing. A demand model trained on one set of stores, one season or one channel is routinely applied to new stores or a new channel. Assortment and price changes move $X$; changes in local competition, consumer composition or promotion response move $Y \mid X$. The finding that the source-validation leaderboard does not predict the target leaderboard under conditional shift is a warning against selecting the production model on pooled cross-validation alone.
+
+Public programs. Agencies screen applicants with risk or eligibility models that are often borrowed from another jurisdiction. @kleinberg2015prediction emphasize that many policy problems are prediction problems; the corollary from this chapter is that a prediction policy that travels across jurisdictions inherits whatever conditional shift separates them, and the populations hurt most are those where the omitted determinants differ most from the source.
+
+### Model Governance and Validation
+
+Model risk management frameworks in banking and insurance require ongoing monitoring of deployed models, and most monitoring in practice is covariate monitoring: population stability indices and characteristic analyses that compare the distribution of each input between development and current data. The evidence in this chapter says that this is the wrong primary signal. Covariate drift is easy to detect and often harmless for a flexible model; conditional drift is invisible to input monitoring and is what degrades accuracy. A defensible monitoring program therefore needs at least a small, continuously refreshed stream of labeled outcomes from the deployment population, a periodic DISDE-style decomposition of any accuracy change, and a pre-agreed response for each kind of shift (do nothing or reweight for $X$-shift; recalibrate, add variables or retrain for $Y \mid X$-shift).
+
+### Expert Testimony and Disputes
+
+Distribution shift arguments appear in litigation and regulatory proceedings whenever a model built on one population is used to make decisions about another: a credit or insurance model challenged as discriminatory against a group underrepresented in its development sample, a damages model calibrated on one market and applied to another, or an algorithmic hiring tool validated on one employer's workforce and sold to many. The framework here gives an expert a disciplined way to address the opposing side's claim that "the model was validated."
+
+A careful analysis has four parts. First, establish what the validation actually covered, which is almost always in-distribution performance. Second, measure the accuracy, calibration and error rates of the model in the population at issue and in the subgroups that matter, against the oracle benchmark of a model fit on that population, so that the relative regret is on the record rather than an abstract possibility. Third, decompose any gap with DISDE, because the remedy and the responsibility differ: an $X$-shift problem can often be fixed by retraining on more representative data, whereas a $Y \mid X$-shift means the model omits determinants that differ across groups, which is the substance of most disparate impact arguments. Fourth, show robustness of the conclusions to the choice of domain classifier and to sampling variability, for example by bootstrapping the decomposition. Every step is reproducible with the code in this chapter.
+
+## Practical Checklist {#sec-shift-checklist}
+
+1. Before deployment, obtain even a small labeled sample from the target population. The paper's protocol uses 128 observations, and the replication shows that this is enough to select hyperparameters and to recalibrate.
+2. Report target accuracy, not just the source-to-target gap, and benchmark it against an oracle fit on the target (relative regret).
+3. Decompose the accuracy drop into $X$ and $Y \mid X$ parts before choosing an intervention.
+4. Under $X$-shift, use a flexible model class first; reweighting by the density ratio is a second-order refinement whose effective sample size you should check.
+5. Under $Y \mid X$-shift, do not expect reweighting or generic DRO to help. Look for the region where the conditional law changes, ask what variable distinguishes that region, and collect labels or features there.
+6. Treat the choice of model class and the validation protocol as the primary design decisions; tune the DRO radius, if at all, on target data.
+7. Do not select among models by source validation accuracy when a conditional shift is present; the correlation between source and target accuracy can be weak or even negative.
+8. Monitor deployed models with labeled outcomes, not only with input drift statistics.
