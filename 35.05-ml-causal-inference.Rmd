@@ -397,7 +397,7 @@ rbind(
 )
 ```
 
-Both learners put the effect of institutions on log output near one, close to the two-stage least squares estimates in @acemoglu2001colonial, with confidence intervals that comfortably exclude zero. Two cautions are in order. With 64 observations the machine learning is doing modest work, and the exercise is best read as a demonstration that the framework nests and reproduces a canonical IV study rather than as an improvement on it. And the small sample makes the estimate more sensitive to the particular fold partition than in the 401(k) application, which is precisely the situation where the repeated cross-fitting of the next subsection matters.
+Both learners put the effect of institutions on log output near one, close to the two-stage least squares estimates in @acemoglu2001colonial, with confidence intervals that comfortably exclude zero. Two cautions are in order. With 64 observations the machine learning is doing modest work, and the exercise is best read as a demonstration that the framework nests and reproduces a canonical IV study rather than as an improvement on it. And the small sample makes the estimate more sensitive to the particular fold partition than in the 401(k) application, which is precisely the situation where the repeated cross-fitting of the next subsection matters. PLIV uses machine learning on the controls and keeps the instrument as it is. The complementary idea, learning the instrument itself, is the machine-learned instrument of Section \@ref(sec-ml-instruments), whose rerun on these same 64 countries shows how little a flexible learner can add to a single, nearly linear instrument.
 
 ### Robustness: Folds, Sample Splits, and Learner Choice {#sec-dml-robustness}
 
@@ -1734,7 +1734,25 @@ What replicates is the paper's main claim, and it replicates more strongly than 
 
 Two finer claims do not replicate. The first is the reversal at the weakest signal. In the lowest decile the adaptive forest is still the better one on `r round(100 * by_dec$share_AE[1])` percent of datasets, and the additional-data measure is `r sprintf("%+.2f", by_dec$extra_H[1])` rather than the paper's $-0.07$. On the `r nrow(low)` datasets with a ratio below three, the adaptive forest's mean advantage in $S^2$ is `r sprintf("%.3f", low_test$estimate)`, with a 95 percent interval from `r sprintf("%.3f", low_test$conf.int[1])` to `r sprintf("%.3f", low_test$conf.int[2])` and a $p$-value of `r sprintf("%.2f", low_test$p.value)`. That interval includes a small honest advantage, so this is a failure to confirm rather than a refutation, but there is no sign of the reversal. The second is the selector. In the paper the one-standard-error selector beats always-adaptive; here its regret, `r sprintf("%.4f", regret[1, "E[Regret]"])`, is about double that of always-adaptive, because the adaptive forest is wrong so rarely that a rule built to fall back on honesty mostly falls back in the wrong direction. The paper's threshold analysis predicts the shape of this but not its extent. Sweeping the threshold from 0 to 1.6, the selector's regret rises steadily from `r sprintf("%.4f", c_regret[1])`, essentially always-adaptive, to `r sprintf("%.4f", c_regret[length(c_regret)])`; the paper finds the selector ahead of always-adaptive up to a threshold of about 1.2, and in our run it is never ahead.
 
-The likely reason for both differences is the one documented departure we could not remove, the forest library. `grf` and `EconML` agree on the logic of honesty but not on its details: `grf` splits on gradient-based pseudo-outcomes rather than on the raw difference-in-means criterion, and by default it prunes honest leaves that receive no estimation-half observations, so each honest tree is shallower than its `EconML` counterpart at the same nominal leaf size. Both details make `grf`'s honest forest pay more for halving the splitting sample, which would widen the adaptive forest's lead everywhere and erase a small honest advantage at the bottom. We have not isolated which detail matters. The practical reading is clear, though. The claim that honesty is not a safe default, and that it costs data whenever heterogeneity is detectable, holds in both libraries. The claims about exactly where honesty wins, and about how much the selector's insurance is worth, depend on the implementation, and a user of `grf` should expect the adaptive forest to win more often than the paper's numbers suggest.
+The natural suspect for both differences is the one documented departure we could not remove, the forest library. `grf` and `EconML` agree on the logic of honesty but not on its details: `grf` splits on gradient-based pseudo-outcomes rather than on the raw difference-in-means criterion, by default it prunes honest leaves that receive no estimation-half observations, and with `stabilize.splits = TRUE`, also the default, it applies the minimum leaf size to the treated and the control units separately. The details that `grf` exposes can be tested. We reran the protocol on the 20 datasets of the lowest decile under each variant, holding the data splits, folds, and seeds fixed, so that the default configuration reproduces the run above exactly.
+
+```{r honesty-acic-grf-variants}
+# Low-SNR rerun with grf's honesty details varied; the honest variants are paired
+# with the default adaptive forest unless named otherwise
+gv <- readRDS("data/honesty_acic_lowsnr_grf_variants.rds")
+gs <- gv$summary
+gap_of <- function(a, h) gs[gs$A == a & gs$H == h, ]
+g_np <- gap_of("A_base", "H_noprune")
+g_f3 <- gap_of("A_base", "H_noprune_f0.3"); g_f7 <- gap_of("A_base", "H_noprune_f0.7")
+g_ns <- gap_of("A_nostab", "H_noprune_nostab")
+base_l <- gv$long[gv$long$H == "H_base", ]
+np_l <- gv$long[gv$long$H == "H_noprune", ]
+ns_l <- gv$long[gv$long$A == "A_nostab", ]
+keep_low <- (base_l$p_A < 0.05 | base_l$p_H < 0.05) & base_l$snr < 3
+dA_ns <- mean(ns_l$S2_A[keep_low] - base_l$S2_A[keep_low])
+```
+
+Leaf pruning is not the explanation. With `honesty.prune.leaves = FALSE` cross-validation picks the same leaf sizes, no dataset's honest $S^2$ moves by more than `r sprintf("%.4f", max(abs(np_l$S2_H - base_l$S2_H)))`, and the mean gap on the `r g_np$n` screened datasets below a ratio of three stays at `r sprintf("%.3f", g_np$gap)`. Empty estimation leaves are simply too rare at these leaf sizes to matter. Nor is the division of each tree's subsample between its two halves. Giving the splitting half 30 or 70 percent of the subsample instead of the even split lowers the honest forest's $S^2$ in both directions and widens the adaptive forest's lead, to `r sprintf("%.3f", g_f3$gap)` ($p$ = `r sprintf("%.4f", g_f3$p)`) and `r sprintf("%.3f", g_f7$gap)` ($p$ = `r sprintf("%.3f", g_f7$p)`), so the even split the paper uses is already the honest forest's best. The only setting that turns the sign is `stabilize.splits = FALSE` for both forests, which leaves a mean gap of `r sprintf("%.3f", g_ns$gap)` with an interval from `r sprintf("%.3f", g_ns$lo)` to `r sprintf("%.3f", g_ns$hi)`. It gets there by damaging the adaptive forest, whose $S^2$ falls by `r sprintf("%.3f", -dA_ns)` on average and collapses on individual datasets once leaves may hold a handful of units from one arm, not by improving the honest forest, which ends no better than under the defaults. The best honest forest `grf` can build therefore still trails the default adaptive forest at the weakest signal, and under every honest variant paired with that adaptive forest the selector's regret in this slice is no lower than always-adaptive's. What remains is the split criterion itself, which `grf` does not let a user change, and the leaf constraints `EconML` imposes in place of `grf`'s per-arm minimum. If the library explains the two failures, it does so there. The practical reading is clear, though. The claim that honesty is not a safe default, and that it costs data whenever heterogeneity is detectable, holds in both libraries. The claims about exactly where honesty wins, and about how much the selector's insurance is worth, depend on the implementation, and a user of `grf` should expect the adaptive forest to win more often than the paper's numbers suggest.
 
 #### Application: Does Honesty Matter for the Hillstrom Targeting Rule?
 
@@ -2131,6 +2149,308 @@ Identification rests on the usual selection-on-observables assumptions, reinterp
 
 Temporal causal forests then extend the causal forest in two ways identified by @turjeman2023data as improving root-mean-squared error and recovery of heterogeneous effects. First, the covariate vector $X_i$ is augmented to include the unit's time trend, so the forest groups units that are homogeneous in their activity trajectories, in effect estimating a counterfactual time path for each unit and ensuring that treated and control units share similar pre-event trends. Second, as a robustness analysis, the nuisance functions are estimated with the local linear forest of @friedberg2020local, which fits a local linear correction within each leaf and improves accuracy when the underlying surface is smooth; this refinement is feasible when cohort timelines are of equal length. The result is a method that recovers both the average effect of a public shock and its heterogeneity across individuals while respecting the temporal structure that rules out a conventional control group.
 
+## Overlap Failure under Algorithmic Assignment {#sec-overlap-algorithmic-assignment}
+
+Strong ignorability [@rosenbaum1983central] has two halves, and applied work usually worries only about the first. Unconfoundedness says that nothing outside $X_i$ drives both treatment and outcome. Overlap says that every unit could have landed in either arm, $0 < e(X_i) < 1$. In most observational studies the first is the hard part, because the assignment rule is unknown. On a digital platform the situation reverses. The platform delivers the treatment through its own algorithm, so it can log the inputs to that algorithm, or at least the propensity score the algorithm implies, and unconfoundedness holds by construction. What fails is overlap. An ad auction is close to deterministic: given the bids, many users are never going to see a given ad and a few are certain to. @rafieian2026ignorability shows that this second failure is enough to break the methods the advertising literature has tested against experiments [@gordon2019comparison; @gordon2023close], and proposes a remedy that borrows information across campaigns through matrix completion.
+
+The section is a natural continuation of the two halves of this chapter. Double machine learning and the CATE learners above all assume overlap; here we see what they deliver when it fails, and why no amount of flexibility in the nuisance models helps. The general discussion of the assumption, with the conventional remedies, is in Section \@ref(sec-overlap-positivity-assumption). The matrix completion machinery is the same nuclear-norm estimator used for panel data in Section \@ref(sec-matrix-completion-estimator), applied to a different matrix for a different reason.
+
+### Three Assignment Regions and What Is Identified {#sec-overlap-three-regions}
+
+Partition the population by the propensity score. In the probabilistic region, $0 < e(X_i) < 1$, a share $\pi_r$ of units with group average treatment effect $\tau_r$. In the deterministic no-assignment region, $e(X_i) = 0$, a share $\pi_0$ with effect $\tau_0$. In the deterministic assignment region, $e(X_i) = 1$, a share $\pi_1$ with effect $\tau_1$. The population ATE is
+
+$$
+\tau = \pi_r \tau_r + \pi_0 \tau_0 + \pi_1 \tau_1 .
+$$
+
+In the two deterministic regions the treatment is a function of the propensity score, so there is no residual variation left to compare, and $\tau_0$ and $\tau_1$ are not identified. This is not a small-sample problem. @rafieian2026ignorability proves that both the partialling-out form of double machine learning and inverse propensity weighting converge to $\tau_r$, not $\tau$, when the propensity is known and takes the values zero and one on parts of the population. The bias is
+
+$$
+\tau - \hat\tau \;\xrightarrow{p}\; \pi_0(\tau_0 - \tau_r) + \pi_1(\tau_1 - \tau_r),
+$$
+
+which can be any size. It vanishes only if the effect is the same in all three regions, which is the implicit justification for the trimming rules of @crump2009dealing and for the overlap weights of @li2018balancing. Both make the estimate well behaved by redefining the population it describes, and both are harmless only if the excluded units respond like the retained ones.
+
+Advertising is a setting where they do not. An advertiser's bid is a function of its own estimate of how much the ad will move a user, an imperfect signal of the true CATE. Low-CATE users are outbid by everyone and never see the ad; high-CATE users win almost every auction. The paper's second proposition makes the sign precise: if the CATE is negatively correlated with membership in the never-shown region, then $\tau_0 \le \tau$, and if it is positively correlated with membership in the always-shown region, $\tau_1 \ge \tau$. The overlap-satisfying slice of the data is selected on the treatment effect itself, so every estimator that is confined to it overstates the population ATE. @damour2021overlap make the complementary point that with many covariates, strict overlap is itself a strong assumption, so the problem is not peculiar to auctions.
+
+### How an Auction Produces Deterministic Assignment {#sec-overlap-auction-propensity}
+
+The paper micro-founds the propensity score. Suppose $A$ ads compete for a user's impressions, each auction draws $A_r$ of them at random (the stand-in for budget pacing and other availability limits), and the highest bid wins. Rank ad $a$'s bid for user $i$ from the bottom, $r = 1, \dots, A$. Ad $a$ wins one auction only if it is drawn and every other drawn ad ranks below it, which happens with probability $\binom{r-1}{A_r-1} / \binom{A}{A_r}$ when $r \ge A_r$ and zero otherwise. Over $T_i$ impressions,
+
+$$
+e_{ia} = 1 - \left(1 - \mathbb{1}(r \ge A_r)\frac{\binom{r-1}{A_r-1}}{\binom{A}{A_r}}\right)^{T_i}.
+$$
+
+Two features follow at once. The $A_r - 1$ lowest-ranked ads have a propensity of exactly zero, a share $(A_r - 1)/A$ of all user-ad pairs. And for every other ad, the propensity is tiny unless the bid ranks near the top.
+
+```{r overlap-auction-propensity, fig.cap="Propensity of exposure implied by an auction with $A = 100$ ads and $A_r = 10$ random bidders per impression, by the ad's bid rank for the user and the user's number of impressions $T_i$. The nine lowest-ranked ads can never win; most of the rest have a propensity close to zero.", fig.width=6, fig.height=3.8}
+win_prob <- function(r, A, Ar) ifelse(r >= Ar, choose(r - 1, Ar - 1) / choose(A, Ar), 0)
+A <- 100; Ar <- 10
+prop_by_rank <- expand.grid(rank = 1:A, impressions = c(1, 10, 50))
+prop_by_rank$e <- with(prop_by_rank, 1 - (1 - win_prob(rank, A, Ar))^impressions)
+
+ggplot2::ggplot(prop_by_rank,
+                ggplot2::aes(rank, e, linetype = factor(impressions))) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "Bid rank of the ad for this user (100 = highest)",
+                y = "Propensity of exposure", linetype = "Impressions") +
+  ggplot2::theme_minimal()
+```
+
+With 50 impressions, the propensity first exceeds 0.01 at rank `r min(prop_by_rank$rank[prop_by_rank$impressions == 50 & prop_by_rank$e > 0.01])` and 0.5 only at rank `r min(prop_by_rank$rank[prop_by_rank$impressions == 50 & prop_by_rank$e > 0.5])`. A causal learner sees the treated outcome for a low-bid ad only through a handful of lucky auctions, and for the bottom nine it never sees one.
+
+### Overlap Failure as a Missing-Data Problem {#sec-overlap-missing-data}
+
+Within a single campaign nothing can recover $\tau_0$ and $\tau_1$. The paper's move is to stop looking within campaigns. A platform runs many campaigns on the same users, and the CATE of one ad is informative about the CATE of another: a user moved by a smartwatch ad is likely to be moved by a fitness-app ad. Stack the campaigns into an $N \times J$ CATE matrix $\mathbf{T}$ with entries $\tau^{(j)}(X_i)$, and define a feasibility matrix $\mathbf{F}$ with $F_{ij} = \mathbb{1}\{0 < e^{(j)}(X_i) < 1\}$. Where $F_{ij} = 1$, any consistent CATE learner estimates the entry, because the platform's setting satisfies unconfoundedness. Where $F_{ij} = 0$, the entry is a question mark. Overlap failure has become a matrix completion problem.
+
+If $\mathbf{T}$ is low rank, the question marks can be filled in. The paper uses the SoftImpute algorithm of @mazumder2010spectral, which solves
+
+$$
+\min_{\mathbf{M}} \; \tfrac12 \left\| P_{\mathbf{F}}(\hat{\mathbf{T}} - \mathbf{M}) \right\|_F^2 + \lambda \|\mathbf{M}\|_* ,
+$$
+
+where $P_{\mathbf{F}}$ keeps the feasible entries and $\|\cdot\|_*$ is the nuclear norm, by iterating a singular value decomposition with soft thresholding. The procedure has four steps.
+
+1. Compute $\mathbf{F}$ from the platform's propensities.
+2. For each campaign $j$, estimate the CATE on the feasible units with any learner and write the estimates into the feasible cells.
+3. Complete the matrix, choosing $\lambda$ and the maximum rank by holding out a share of the feasible entries and minimizing prediction error on them.
+4. Average each completed column to obtain a bias-corrected ATE for that campaign, and use the completed CATEs for targeting.
+
+The hold-out step doubles as a test of the key assumption. If the validation error keeps falling as the allowed rank grows, the matrix is not low rank and the completion is not to be trusted. For uncertainty, the paper redraws each campaign's first-stage CATE parameters from their estimated sampling distribution, so a draw shifts a whole column at once, rebuilds the incomplete matrix, completes it again, and reads intervals off the replicates. Drawing entries independently would ignore that all the entries of a column come from one fitted model.
+
+Identification needs three assumptions. The CATE matrix is low rank, which holds exactly when each campaign's CATE is a linear combination of a few latent user factors, and approximately in the factorization models platforms already use for click prediction. The missingness pattern leaves enough feasible entries in every row and column: a user who is outside the probabilistic region for every campaign cannot be recovered. And the noise in the feasible entries is not systematically related to the missingness. The paper also stresses what the resampling interval does not cover: if the low-rank assumption is wrong, the interval is centered on the wrong value, exactly as an OLS interval is under omitted-variable bias.
+
+Table \@ref(tab:overlap-mc-vs-panel) sets the method beside the panel estimator of @athey2021matrix. The algebra is shared; the matrix, the source of missingness, and the assumption being relaxed are not.
+
+| | Panel matrix completion [@athey2021matrix] | CATE matrix completion [@rafieian2026ignorability] |
+|---|---|---|
+| Rows and columns | Units by time periods | Users by campaigns |
+| Entries | Untreated outcomes $Y_{it}(0)$ | Conditional treatment effects $\tau^{(j)}(X_i)$ |
+| Why entries are missing | Treated cells reveal only $Y_{it}(1)$ | Deterministic assignment leaves no comparison |
+| Assumption relaxed | Parallel trends | Overlap |
+| Low-rank structure | Interactive fixed effects | Shared latent responsiveness across campaigns |
+| Estimand | Effect on treated cells | ATE and CATE for every campaign, including never-shown users |
+
+Table: (\#tab:overlap-mc-vs-panel) Two uses of nuclear-norm matrix completion in causal inference.
+
+### Replication: The Calibrated Auction Simulation {#sec-overlap-mc-replication}
+
+The paper's empirical data come from a mobile in-app advertising network, 6.36 million impressions of 327 ads, and are proprietary, so we replicate its calibrated simulation (Section 4.3 and Online Appendix D.2), which is specified in enough detail to rebuild. There are $N = 50{,}000$ users with Gaussian covariates and $A = 100$ ads. The CATE matrix is $\mathbf{X}\mathbf{B}^\top$ with $\mathbf{B} = \mathbf{U}\mathbf{V}^\top$ of rank 10, plus a column-specific ATE. The ATEs are calibrated to the experiments of @gordon2023close: ten ads take each decile median of the upper-funnel RCT lifts in their Table 4, which run from $-0.005$ to $2.35$. Each advertiser bids a signal that correlates 0.5 with its true CATE for the user, users have between 1 and 50 impressions, and every impression is a second-price auction among ten randomly drawn ads. We run the auctions themselves rather than drawing exposure from the propensities, so each user sees exactly one ad per impression. Outcomes are a linear nuisance function of the covariates plus the treatment effect plus noise.
+
+The paper does not report four inputs, so we chose them: 50 covariates, a noise standard deviation of 1, standard deviations of 0.5 for all Gaussian primitives, and the first-stage learner. With 50 covariates the CATE spread implied by the paper's Double ML row (a CATE error of 3.2 for an estimator that assigns every user the same effect) is matched closely. For the first stage we use a linear R-learner [@nie2021quasi] with the platform's propensity, fit on the units whose propensity lies in $[0.01, 0.99]$, the paper's practically probabilistic region. Treating $[0.01, 0.99]$ rather than $(0, 1)$ as feasible matters because, as the figure above shows, a propensity of $10^{-4}$ is a zero for any estimator. The Double ML benchmark is the augmented inverse propensity weighting ATE of a causal forest [@athey2019generalized] fit on the same feasible units, which is what a careful analyst would report from one campaign. The code below generates the results; it takes about an hour and a half on an eight-core desktop, most of it in the causal forests, so the chapter loads its saved output.
+
+```{r overlap-mc-generate, eval=FALSE}
+library(grf)
+library(softImpute)
+
+gmz_upper <- c(-0.005, 0.007, 0.025, 0.081, 0.188, 0.347, 0.513, 0.768, 1.274, 2.349)
+
+simulate_market <- function(N = 50000, A = 100, D = 50, R = 10, Ar = 10, sd = 0.5,
+                            sigma = 1, rho_bid = 0.5, T_max = 50, seed = 1) {
+  set.seed(seed)
+  X <- matrix(rnorm(N * D, 0, sd), N, D)
+  B <- matrix(rnorm(A * R, 0, sd), A, R) %*% t(matrix(rnorm(D * R, 0, sd), D, R))
+  ate_target <- rep(gmz_upper, each = A / 10)[sample(A)]
+  tau <- sweep(X %*% t(B), 2, ate_target, "+")              # N x A, rank R + 1
+
+  bids <- rho_bid * scale(tau) + sqrt(1 - rho_bid^2) * matrix(rnorm(N * A), N, A)
+  rk <- t(apply(bids, 1, rank, ties.method = "first"))      # 1 = lowest bid
+  Ti <- sample.int(T_max, N, replace = TRUE)
+  p1 <- win_prob(rk, A, Ar); dim(p1) <- dim(rk)
+  e <- 1 - (1 - p1)^Ti                                      # Lemma 2
+
+  # Run every auction: the winner's rank among Ar drawn ads has CDF
+  # choose(r, Ar) / choose(A, Ar); map the rank back to the user's ad
+  cdf <- choose(Ar:A, Ar) / choose(A, Ar)
+  user <- rep.int(seq_len(N), Ti)
+  win_rank <- (Ar:A)[findInterval(runif(length(user)), c(0, cdf), left.open = TRUE)]
+  win_ad <- t(apply(rk, 1, order))[cbind(user, win_rank)]
+  W <- matrix(0L, N, A); W[cbind(user, win_ad)] <- 1L
+
+  G <- X %*% t(matrix(rnorm(A * D, 0, sd), A, D)) + 1
+  Y <- G + W * tau + matrix(rnorm(N * A, 0, sigma), N, A)
+  list(X = X, tau = tau, e = e, W = W, Y = Y, bids = bids)
+}
+
+# Linear R-learner with the known propensity, plus a robust covariance for the
+# column-wise resampling interval
+r_learner_linear <- function(X, y, w, e) {
+  m <- lm.fit(cbind(1, X), y)
+  Z <- (w - e) * cbind(1, X)
+  fit <- lm.fit(Z, m$residuals)
+  bread <- chol2inv(fit$qr$qr[seq_len(ncol(Z)), seq_len(ncol(Z))])
+  list(beta = fit$coefficients,
+       vcov = bread %*% crossprod(Z * fit$residuals) %*% bread)
+}
+
+# Algorithm 1: CATE on feasible cells, question marks elsewhere, then SoftImpute
+# with lambda and the maximum rank chosen on 10 percent held-out feasible cells
+complete_cv <- function(Tinc, rank.max = 30, n_lambda = 15) {
+  obs <- which(!is.na(Tinc)); val <- sample(obs, round(0.1 * length(obs)))
+  Ttr <- Tinc; Ttr[val] <- NA
+  val_err <- function(fit) sqrt(mean((impute(fit, row(Tinc)[val], col(Tinc)[val]) - Tinc[val])^2))
+  lams <- exp(seq(log(lambda0(Ttr)), log(lambda0(Ttr) / 1000), length.out = n_lambda))
+  warm <- NULL
+  err <- sapply(lams, function(l) {
+    warm <<- softImpute(Ttr, rank.max = rank.max, lambda = l, type = "als", warm.start = warm)
+    val_err(warm)
+  })
+  lam <- lams[which.min(err)]
+  ranks <- c(1:15, 20, 25, 30)
+  rc <- sapply(ranks, function(r) val_err(softImpute(Ttr, rank.max = r, lambda = lam, type = "als")))
+  r_best <- ranks[which.min(rc)]
+  fit <- softImpute(Tinc, rank.max = r_best, lambda = lam, type = "als", maxit = 300)
+  list(Tc = complete(Tinc, fit), fit = fit, lambda = lam, rank.max = r_best,
+       rank_curve = data.frame(rank = ranks, val_rmse = rc))
+}
+
+sim <- simulate_market()
+Fm <- sim$e >= 0.01 & sim$e <= 0.99
+X1 <- cbind(1, sim$X)
+betas <- lapply(seq_len(ncol(sim$tau)), function(a) {
+  ok <- Fm[, a]
+  r_learner_linear(sim$X[ok, ], sim$Y[ok, a], sim$W[ok, a], sim$e[ok, a])
+})
+T_hat <- sapply(betas, function(b) drop(X1 %*% b$beta))
+cv <- complete_cv(replace(T_hat, !Fm, NA))
+ate_alg <- colMeans(cv$Tc)
+
+# Double ML benchmark: AIPW from a causal forest on the feasible units of each ad
+dml <- sapply(seq_len(ncol(sim$tau)), function(a) {
+  ok <- Fm[, a]
+  cf <- causal_forest(sim$X[ok, ], sim$Y[ok, a], sim$W[ok, a], W.hat = sim$e[ok, a])
+  average_treatment_effect(cf)[["estimate"]]
+})
+```
+
+```{r overlap-mc-load}
+om <- readRDS("data/overlap_mc_sim_rank10.rds")
+om50 <- readRDS("data/overlap_mc_sim_rank50.rds")
+acc <- om$accuracy; tg <- om$targeting
+val_of <- function(d, learner, method, v) d[d$learner == learner & d$method == method, v]
+rc <- om$cv$lin$rank_curve
+```
+
+Start with the overlap violation itself, the paper's Figure 3. In our market `r round(100 * om$share_e_zero)` percent of user-ad pairs have a propensity of exactly zero, the $(A_r - 1)/A$ the formula predicts, and `r round(100 * om$share_e_below_01)` percent have a propensity below 0.01, against "over 50%" in the paper. The correlation between the propensity and the true CATE across all pairs is `r sprintf("%.2f", om$cor_e_tau)`, against the paper's 0.37. Table \@ref(tab:overlap-mc-regions) shows what this selection does to the effect each region carries.
+
+```{r overlap-mc-regions, echo=FALSE}
+rg <- om$region_cate
+knitr::kable(
+  data.frame(Region = c("Never shown, e = 0", "Practically never, 0 < e < 0.01",
+                        "Probabilistic, 0.01 <= e <= 0.99", "Practically always, e > 0.99"),
+             Share = sprintf("%.1f%%", 100 * rg$share),
+             `Mean CATE` = sprintf("%.3f", rg$cate), check.names = FALSE),
+  caption = sprintf("Share of user-ad pairs and their average true CATE by assignment region. The population ATE averaged over ads is %.3f; the feasible region alone averages %.3f.",
+                    mean(om$regions$ate), mean(om$regions$ate_feas)),
+  align = "lrr")
+```
+
+The feasible region carries an average effect about three times the population's, and the users the auctions exclude are the ones the ads barely move or harm. Any estimator confined to the feasible region inherits that gap, which is what Figure \@ref(fig:overlap-mc-ate-fig) shows ad by ad.
+
+```{r overlap-mc-ate-fig, echo=FALSE, fig.cap="True ATE, the Double ML estimate from the feasible units, and the matrix completion estimate with its 99 percent resampling interval for each of the 100 ads, ordered by true ATE (the paper's Figure 4). Double ML recovers the feasible-region effect, not the population effect.", fig.width=6.5, fig.height=4}
+rgn <- om$regions[order(om$regions$ate), ]
+rgn$pos <- seq_len(nrow(rgn))
+ggplot2::ggplot(rgn, ggplot2::aes(pos)) +
+  ggplot2::geom_point(ggplot2::aes(y = dml, shape = "Double ML"), size = 1.2) +
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = alg_lin_lo, ymax = alg_lin_hi), width = 0, alpha = 0.5) +
+  ggplot2::geom_point(ggplot2::aes(y = alg_lin, shape = "Matrix completion"), size = 1.2) +
+  ggplot2::geom_line(ggplot2::aes(y = ate, linetype = "True ATE")) +
+  ggplot2::scale_shape_manual(values = c("Double ML" = 4, "Matrix completion" = 16)) +
+  ggplot2::labs(x = "Ad, ordered by true ATE", y = "Average treatment effect",
+                shape = NULL, linetype = NULL) +
+  ggplot2::theme_minimal() + ggplot2::theme(legend.position = "bottom")
+```
+
+```{r overlap-mc-table1, echo=FALSE}
+t1 <- data.frame(
+  Method = c("Algorithm (cross-validated)", "Double ML", "Algorithm (rank 5)", "Algorithm (rank 20)"),
+  ATE = c(val_of(acc, "lin", "Algorithm", "rmse_ate"), val_of(acc, "forest", "Double ML", "rmse_ate"),
+          val_of(acc, "lin", "Algorithm (rank 5)", "rmse_ate"), val_of(acc, "lin", "Algorithm (rank 20)", "rmse_ate")),
+  ATE_paper = c(0.055, 1.316, 0.257, 0.069),
+  CATE = c(val_of(acc, "lin", "Algorithm", "rmse_cate"), val_of(acc, "forest", "Double ML", "rmse_cate"),
+           val_of(acc, "lin", "Algorithm (rank 5)", "rmse_cate"), val_of(acc, "lin", "Algorithm (rank 20)", "rmse_cate")),
+  CATE_paper = c(0.289, 3.176, 1.309, 0.361))
+knitr::kable(t1, digits = 3,
+  col.names = c("Method", "RMSE ATE", "Paper", "RMSE CATE", "Paper"),
+  caption = "Accuracy of the ATE and CATE estimates against the oracle values: our replication beside the paper's Table 1. The cross-validated rank is chosen on held-out feasible entries; the rank-5 and rank-20 rows fix the rank without tuning.")
+```
+
+```{r overlap-mc-table2, echo=FALSE}
+t2_rows <- list(c("lin", "Algorithm"), c("none", "Bids"), c("none", "Data (propensity)"),
+                c("lin", "Algorithm (rank 5)"), c("lin", "Algorithm (rank 20)"))
+t2 <- data.frame(
+  Method = c("Algorithm (cross-validated)", "Bids", "Data (propensity)", "Algorithm (rank 5)", "Algorithm (rank 20)"),
+  Gain = sapply(t2_rows, function(r) val_of(tg, r[1], r[2], "gain")),
+  Gain_paper = c(0.512, 0.268, 0.240, 0.489, 0.511),
+  OR = sapply(t2_rows, function(r) val_of(tg, r[1], r[2], "oracle_ratio")),
+  OR_paper = c(0.995, 0.521, 0.467, 0.950, 0.993))
+knitr::kable(t2, digits = 3,
+  col.names = c("Targeting rule", "Gain(0.1)", "Paper", "Oracle ratio", "Paper"),
+  caption = "Targeting the top 10 percent of users for each ad: average true CATE delivered, and its ratio to the oracle that knows the true CATE. Our replication beside the paper's Table 2. Bids targets the users each advertiser bids most for; Data targets the users the auction was most likely to show the ad.")
+```
+
+The replication holds on every headline number. In Table \@ref(tab:overlap-mc-table1) the cross-validated algorithm recovers the ATEs with an RMSE of `r sprintf("%.3f", t1$ATE[1])` against the paper's 0.055, while Double ML misses by `r sprintf("%.2f", t1$ATE[2])` against 1.32, and it misses in one direction: it overstates the ATE of `r sum(om$regions$dml > om$regions$ate)` of the 100 ads. The hold-out procedure picks a maximum rank of `r om$cv$lin$rank.max`, the true rank of 10 plus one for the column-specific ATE, without being told. Fixing the rank at 5 hurts much more than fixing it at 20, as in the paper, though both fixed-rank errors are about twice the paper's while our tuned error is smaller; underfitting a rank-11 matrix by six factors is costly, and overfitting it by nine is mildly so. The resampling intervals in Figure \@ref(fig:overlap-mc-ate-fig) contain the true ATE for `r sum(om$regions$ate >= om$regions$alg_lin_lo & om$regions$ate <= om$regions$alg_lin_hi)` of the 100 ads, somewhat fewer than the nominal 99, because the resampling draws first-stage coefficients but holds the penalty fixed, so it captures sampling noise and not the shrinkage the nuclear norm adds. Double ML, for its part, lands within `r sprintf("%.2f", sqrt(mean((om$regions$dml - om$regions$ate_feas)^2)))` (RMSE) of each ad's feasible-region ATE, which is Proposition 1 seen directly: it estimates $\tau_r$ precisely and $\tau$ not at all. For targeting, Table \@ref(tab:overlap-mc-table2), the completed matrix captures `r round(100 * t2$OR[1], 1)` percent of the oracle gain against the paper's 99.5, while following the bids or the auction's own allocation captures about half. The users the auctions never reach include many high-CATE users that advertisers' noisy signals rank too low, and the completed matrix finds them.
+
+Figure \@ref(fig:overlap-mc-rank-fig) is the validation check that the paper recommends as a test of the low-rank assumption. The error on held-out feasible entries falls steadily until rank 11, the true rank including the ATE column, and then rises slowly as the extra factors fit noise.
+
+```{r overlap-mc-rank-fig, echo=FALSE, fig.cap="Root mean squared error on held-out feasible entries by the maximum rank allowed in SoftImpute, at the cross-validated penalty. Solid line: true rank 10. Dashed line: true rank 50, the extension below.", fig.width=6, fig.height=3.6}
+rc_both <- rbind(cbind(om$cv$lin$rank_curve, truth = "True rank 10"),
+                 cbind(om50$cv$lin$rank_curve, truth = "True rank 50"))
+ggplot2::ggplot(rc_both, ggplot2::aes(rank, val_rmse, linetype = truth)) +
+  ggplot2::geom_line() + ggplot2::geom_point(size = 1) +
+  ggplot2::labs(x = "Maximum rank", y = "Hold-out RMSE", linetype = NULL) +
+  ggplot2::theme_minimal() + ggplot2::theme(legend.position = "bottom")
+```
+
+### Extension: What the Low-Rank Assumption Is Buying {#sec-overlap-mc-extension}
+
+The replication shows that matrix completion works in the paper's design. It does not show why, and the answer decides when the method is worth using. Three variations, all run by the code above with one argument changed, separate what the low-rank step contributes from what the first stage contributes. Table \@ref(tab:overlap-mc-extension) collects them.
+
+```{r overlap-mc-extension, echo=FALSE}
+ext_row <- function(d_acc, d_tg, learner, label, rank_chosen) {
+  data.frame(
+    Setting = label,
+    Feasible = val_of(d_acc, learner, "Algorithm", "rmse_cate_feasible"),
+    Alg_ATE = val_of(d_acc, learner, "Algorithm", "rmse_ate"),
+    Ext_ATE = val_of(d_acc, learner, "Extrapolate first stage", "rmse_ate"),
+    Alg_CATE = val_of(d_acc, learner, "Algorithm", "rmse_cate"),
+    Ext_CATE = val_of(d_acc, learner, "Extrapolate first stage", "rmse_cate"),
+    Alg_OR = val_of(d_tg, learner, "Algorithm", "oracle_ratio"),
+    Rank = rank_chosen)
+}
+ext <- rbind(
+  ext_row(acc, tg, "lin", "Linear first stage, true rank 10", om$cv$lin$rank.max),
+  ext_row(acc, tg, "forest", "Causal forest first stage, true rank 10", om$cv$forest$rank.max),
+  ext_row(om50$accuracy, om50$targeting, "lin", "Linear first stage, true rank 50", om50$cv$lin$rank.max))
+knitr::kable(ext, digits = 3, row.names = FALSE,
+  col.names = c("Setting", "CATE RMSE, feasible cells", "ATE: algorithm", "ATE: extrapolate",
+                "CATE: algorithm", "CATE: extrapolate", "Oracle ratio", "Chosen rank"),
+  caption = "What the completion step adds. Feasible cells: CATE error of the first stage where it was fit, before any completion. Algorithm: the completed matrix. Extrapolate: the first-stage model evaluated for every user, with no completion. ATE and CATE columns are RMSEs against the truth; the oracle ratio is for the completed matrix.")
+```
+
+```{r overlap-mc-feasible-count, include=FALSE}
+n_feas <- sapply(1:50, function(Tt) {
+  e <- 1 - (1 - win_prob(1:A, A, Ar))^Tt
+  sum(e >= 0.01 & e <= 0.99)
+})
+```
+
+First, does completion beat simply extrapolating the first stage? With the linear R-learner, the fitted coefficients for each ad can be applied to every user, feasible or not, with no matrix in sight. That extrapolation recovers the ATEs with an RMSE of `r sprintf("%.3f", val_of(acc, "lin", "Extrapolate first stage", "rmse_ate"))`, against `r sprintf("%.3f", val_of(acc, "lin", "Algorithm", "rmse_ate"))` for the completed matrix, and its CATE error is the same to two decimals. The reason is that the CATE in this design is linear in the covariates by construction, and exclusion runs through bid noise and auction draws rather than through a region of covariate space the feasible users never visit. A correctly specified conditional model fit on the feasible units is then already valid for everyone, and the low-rank structure across ads is a second, redundant restriction. The paper motivates the completion step by the fact that flexible learners do not extrapolate. That is the right motivation, and this row shows its converse: when the analyst knows the functional form, the functional form does the work.
+
+Second, what if the first stage is flexible? Swapping the linear R-learner for a causal forest on the same feasible units, with the platform's propensity supplied, gives a CATE error of `r sprintf("%.2f", val_of(acc, "forest", "Algorithm", "rmse_cate_feasible"))` on the feasible cells themselves, more than ten times the linear learner's. A forest fit on the feasible units of one ad cannot resolve a CATE that moves along all fifty covariate directions at once, so it shrinks toward the mean. Completion cannot repair that: the completed ATEs miss by `r sprintf("%.2f", val_of(acc, "forest", "Algorithm", "rmse_ate"))`, barely better than Double ML's `r sprintf("%.2f", val_of(acc, "forest", "Double ML", "rmse_ate"))`. The step imputes the missing cells from the estimated feasible cells, so its output can be no better than its input. The forest-based ranking still captures `r round(100 * val_of(tg, "forest", "Algorithm", "oracle_ratio"))` percent of the oracle targeting gain, well above the bids, because a shrunken CATE can still order users correctly. The rank diagnostic is less reassuring than it looks here. The hold-out error compares the completed matrix with the first stage's held-out estimates, not with the truth, so it cannot see first-stage bias; for the forest it declines gradually from rank 1 to rank 20 with no elbow, and the procedure settles on rank `r om$cv$forest$rank.max` for a matrix whose true rank is 11. A curve without an elbow is the warning sign.
+
+Third, what if the effect matrix is not low rank? Setting the rank of $\mathbf{B}$ to 50 makes the CATE matrix rank 51, as high as fifty covariates allow. The linear first stage is still accurate where it is fit (`r sprintf("%.3f", val_of(om50$accuracy, "lin", "Algorithm", "rmse_cate_feasible"))` on the feasible cells), and extrapolating it still works (ATE RMSE `r sprintf("%.3f", val_of(om50$accuracy, "lin", "Extrapolate first stage", "rmse_ate"))`). Completion does not: the ATE error rises to `r sprintf("%.2f", val_of(om50$accuracy, "lin", "Algorithm", "rmse_ate"))` and the CATE error to `r sprintf("%.2f", val_of(om50$accuracy, "lin", "Algorithm", "rmse_cate"))`, and the 99 percent intervals cover the true ATE for `r sum(om50$regions$ate >= om50$regions$alg_lin_lo & om50$regions$ate <= om50$regions$alg_lin_hi)` of the 100 ads. A simple count explains the failure. To place a user in a rank-$r$ factor space, the completion needs at least $r$ feasible ads in that user's row. In this market a user with one impression has `r min(n_feas)` feasible ads and a user with fifty has `r max(n_feas)`, so every user has enough for rank 11 and no user has enough for rank 51. The diagnostic flags this one: in Figure \@ref(fig:overlap-mc-rank-fig) the dashed curve is still falling at the largest rank tried, and the chosen rank sits at the cap. Even so, the completed ATEs remain far closer to the truth than any feasible-only estimator, whose error here is `r sprintf("%.2f", sqrt(mean((om50$regions$ate_feas - om50$regions$ate)^2)))`.
+
+Together the three rows give a usable rule. Matrix completion is worth its assumptions when the first stage is accurate on the feasible cells but cannot be trusted off them, which is the usual case for forests, boosted trees, and neural CATE learners in high dimension, and when the effect matrix has a rank well below the number of feasible campaigns per user. Before trusting the completed ATEs, check three things: the first stage's own accuracy on held-out feasible units, for instance with the R-loss [@nie2021quasi]; a rank curve with a clear minimum below the cap; and a chosen rank comfortably below the smallest number of feasible campaigns a typical user has. In the paper's field data the chosen rank was 22 with 69 ads, which passes the third check only if most users are feasible for well over 22 of them, a quantity worth reporting alongside the estimate.
+
+### Using the Method in Practice {#sec-overlap-mc-practice}
+
+The paper's own field exercise shows what a real implementation looks like, and it is worth reading for the design of the validation as much as for the result. The network runs a quasi-proportional auction, so whenever a focal ad and the platform's house ad (which never exhausts its budget) both enter an auction, the focal ad wins with a known probability strictly between zero and one. Those impressions give consistent CATE estimates for each ad against the house ad, here with an R-learner on XGBoost nuisances. To create a test with a known answer, the author takes a focal ad whose CATE is estimable everywhere, imposes a second-price-style deterministic allocation on it (about 61 percent of impressions become deterministic), completes the matrix using 68 other ads, and compares the completed column with the held-back estimates. The hold-out rank is 22 out of a possible 69, so the low-rank assumption survives in data that did not impose it. The reported ATE is $-0.0168$ against a benchmark of $-0.0163$, a click-through rate about 70 percent below the house ad's; Double ML on the feasible impressions returns $+0.0009$, the wrong sign; targeting on the completed CATEs captures 99 percent of the benchmark gain. Two further checks are instructive. Accuracy stabilizes once 35 to 40 other ads are in the matrix, which is a usable rule of thumb for how many related studies a platform needs. And 20 columns of pure noise added to the matrix raise the selected rank to 34 without harming the focal estimate, whereas a matrix built only from unrelated columns fails: the method borrows strength only where there is strength to borrow. We have not reproduced these numbers, since the data are not public.
+
+For a platform or advertiser the recipe is concrete. Log the propensity, or the inputs from which it can be rebuilt, for every campaign; without it the feasibility matrix cannot be formed and the whole approach collapses into an unconfoundedness problem again. Define each campaign's CATE against a common control, such as a house ad or a no-ad holdout, so the columns measure the same kind of contrast. Estimate each column only where the propensity is bounded away from zero and one, report the share of feasible cells, and plot the hold-out error by rank before trusting any imputed cell. Report the completed ATE beside the feasible-region estimate: the gap between them is the size of the selection on treatment effects, and it is often the most informative number in the analysis.
+
+The same structure appears wherever an algorithm allocates a treatment from a score that tracks the treatment effect. A lender's approval model never extends credit to some applicants and always to others, so the effect of credit on the never-approved is unidentified from one product, but the same applicants appear across several products and score cutoffs. A recommender exposes items by predicted engagement, a promotion engine targets coupons by predicted lift, and a dynamic-pricing system rarely shows a high price to a price-sensitive segment. In each case the platform knows its assignment rule, sees overlap fail exactly where the treatment matters most, and runs many related interventions on the same units. In litigation, the method speaks to a common dispute: a defendant's ad-effectiveness estimate built only from users the auction could reach is a population ATE only if the never-reached users would have responded the same way, and the decomposition $\tau = \pi_r\tau_r + \pi_0\tau_0 + \pi_1\tau_1$ makes it easy to show the court how much of the population that assumption covers. Where several campaigns are available, the completed estimate gives an alternative number with a stated assumption rather than an unstated one. Where they are not, and only one study exists, the honest answer is Lemma 1: the effect outside the probabilistic region is not identified, and any number reported for it comes from an assumption, not from the data.
+
 ## Practical Guidance and Pitfalls
 
 Several practical considerations govern whether these methods deliver on their promise.
@@ -2141,7 +2461,7 @@ The software ecosystem is mature, and there is little reason to hand-roll these 
 
 Orthogonality protects only against slow nuisance errors, not against violations of identification. If unconfoundedness fails because an important confounder is unobserved, no amount of flexible nuisance estimation will recover the causal effect. Machine learning strengthens the case for conditional ignorability by allowing a rich conditioning set, but it cannot test the assumption itself. The role of these methods is to remove functional-form and high-dimensionality concerns, leaving the identifying assumptions to be defended on substantive grounds.
 
-Overlap matters more, not less, with flexible models. Inverse propensity weights become unstable when estimated propensities approach zero or one, and flexible learners can produce extreme propensity estimates. Diagnosing the propensity distribution, trimming or stabilizing extreme weights, and preferring substitution estimators such as TMLE that are less sensitive to small denominators all help. Reporting the distribution of estimated propensity scores should be routine.
+Overlap matters more, not less, with flexible models. Inverse propensity weights become unstable when estimated propensities approach zero or one, and flexible learners can produce extreme propensity estimates. Diagnosing the propensity distribution, trimming or stabilizing extreme weights, and preferring substitution estimators such as TMLE that are less sensitive to small denominators all help. Reporting the distribution of estimated propensity scores should be routine. When the propensity is exactly zero or one for part of the population, as under algorithmic assignment, no estimator recovers the population effect from that study alone; Section \@ref(sec-overlap-algorithmic-assignment) shows what can be recovered by borrowing across related studies.
 
 Heterogeneity claims require discipline. A causal forest will always produce a varying $\tau(x)$, but the variation may be noise. The honest forest delivers pointwise standard errors, and calibration tests such as the best-linear-predictor test assess whether the estimated heterogeneity is real. Out-of-sample validation, for instance ranking units by predicted effect and checking that the realized effect ordering agrees, guards against overinterpreting spurious patterns. Honesty itself is a tuning choice rather than a safeguard: it regularizes, and when the heterogeneity is strong and the sample large enough to detect it, an adaptive forest predicts individual effects more accurately (Section \@ref(sec-honesty-tradeoff)).
 
