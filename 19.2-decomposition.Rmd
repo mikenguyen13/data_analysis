@@ -6,7 +6,7 @@ The distinction is worth stating up front. A mediation decomposition asks what a
 
 That said, decomposition is where a great deal of real mechanism evidence lives. When an applied paper reports that a coefficient falls by forty percent once industry controls are added, and concludes that industry composition explains forty percent of the effect, it is doing a decomposition badly. Doing it properly is the subject of Section \@ref(sec-decomp-gelbach), and it is probably the single most useful tool in this chapter for economists, finance researchers, and expert witnesses.
 
-The chapter covers the aggregate mean decomposition and its identification problems, the conditional decomposition of covariate contributions, distributional decompositions that go beyond the mean, Shapley methods that resolve the ordering ambiguity that afflicts all of them, variance decompositions in two-way fixed-effects models, and the components-of-variance design that asks how much of an outcome belongs to each level of a nested hierarchy.
+The chapter covers the aggregate mean decomposition and its identification problems, the conditional decomposition of covariate contributions, distributional decompositions that go beyond the mean, Shapley methods that resolve the ordering ambiguity that afflicts all of them, variance decompositions in two-way fixed-effects models, the components-of-variance design that asks how much of an outcome belongs to each level of a nested hierarchy, and variance-covariance decompositions on a network that ask how much of the comovement between groups comes from shocks to the units they share.
 
 ## The Kitagawa-Oaxaca-Blinder Decomposition {#sec-decomp-kob}
 
@@ -562,6 +562,430 @@ Write the "does not mean" paragraph before a referee writes it for you. Sample c
 
 The failure modes are the mirror image of this list. No chance baseline. Sequential sums of squares presented as a decomposition. Shares reported without design counts or without uncertainty. A sample whose composition determines the answer. The residual relabeled as a unit effect. And a mechanism asserted rather than offered, which is the one that draws the sharpest referee reports because it is the one that the design most clearly cannot support.
 
+## Variance-Covariance Decompositions on a Network {#sec-decomp-network}
+
+The components-of-variance design asks how much of a single outcome belongs to each level of a hierarchy. A closely related question asks how much of the *comovement* between groups comes from shocks to the units the groups share. Industries rise and fall together, and so do regions, product categories, stocks, and hospital systems. The conventional explanation is a common shock at a higher level, such as an oil price, a change in monetary policy, or a shift in aggregate demand. The alternative is granular. A shock to one unit that sits inside two groups moves both groups at once, and if such units are large, they can generate a great deal of comovement without any common shock at all.
+
+@ahern2026sectoral turn this alternative into an exact accounting framework for firms and industries, and test it on establishment-level data covering nearly all US firms from 1991 to 2019. The framework is worth learning in its own right, because nothing in the algebra is specific to firms and industries. It applies wherever units belong to several groups at once with observable weights, and it answers two questions that recur across applied work: how much of the variation in an aggregate is due to unit-specific shocks, and how much of the comovement between groups is due to their shared exposure to the same units.
+
+The idea rests on a duality. Firms in the same industry comove because they are exposed to the same industry shocks, which nobody disputes. Read the same affiliation network from the other side, and industries comove when they are exposed to the same firms' shocks. A firm-level shock can reach two industries directly only if the firm operates in both, so in this reading the units that carry comovement are multi-segment firms, that is, conglomerates. The framework delivers three results: a closed-form link between concentration and volatility, a generalization of the Herfindahl index to pairs of groups, and a decomposition of aggregate variance and of between-group covariance into unit, group, and unit-within-group components, with the covariance further split into the part generated inside spanning units and the part generated across distinct units.
+
+### The Accounting
+
+Let $s_{ij}$ be firm $i$'s sales in industry $j$, collected in an $n \times m$ matrix $S$ with firms in rows and industries in columns. Normalizing its columns gives market shares, $h_{ij} = s_{ij} / \sum_i s_{ij}$, collected in $H$. Normalizing its rows gives the share of firm $i$'s sales that comes from industry $j$, $f_{ij} = s_{ij} / \sum_j s_{ij}$, collected in $F$. Suppose the growth rate of each firm-segment is the sum of a firm shock and an industry shock,
+
+$$
+g_{ij} = \varepsilon_i + \eta_j .
+$$
+
+Industry growth is the market-share-weighted average of the industry's segments, and firm growth is the firm-share-weighted average of the firm's segments:
+
+$$
+g^{\text{ind}}_j = \eta_j + \sum_i h_{ij}\,\varepsilon_i ,
+\qquad
+g^{\text{firm}}_i = \varepsilon_i + \sum_j f_{ij}\,\eta_j ,
+\qquad\text{so}\qquad
+\begin{bmatrix} \vec g^{\,\text{ind}} \\ \vec g^{\,\text{firm}} \end{bmatrix}
+=
+\begin{bmatrix} I & H' \\ F & I \end{bmatrix}
+\begin{bmatrix} \vec\eta \\ \vec\varepsilon \end{bmatrix} .
+$$
+
+If the shocks have mean zero, are uncorrelated with each other, and have common variances $\sigma^2_\eta$ and $\sigma^2_\varepsilon$, the covariance matrix of all growth rates follows by direct multiplication:
+
+$$
+\mathrm{Cov}
+\begin{bmatrix} \vec g^{\,\text{ind}} \\ \vec g^{\,\text{firm}} \end{bmatrix}
+=
+\begin{bmatrix}
+\sigma^2_\eta I + \sigma^2_\varepsilon H'H & \sigma^2_\eta F' + \sigma^2_\varepsilon H' \\
+\sigma^2_\eta F + \sigma^2_\varepsilon H & \sigma^2_\varepsilon I + \sigma^2_\eta F F'
+\end{bmatrix} .
+$$
+
+The upper-left block carries the main result. Its $(j, k)$ entry is $\vec h_j \cdot \vec h_k = \sum_i h_{ij} h_{ik}$, the dot product of the two industries' market-share vectors. On the diagonal this is $\sum_i h_{ij}^2$, the Herfindahl-Hirschman index. Off the diagonal the paper calls it the **co-Herfindahl** index, or CoHHI. Therefore
+
+$$
+\mathrm{Var}\big(g^{\text{ind}}_j\big) = \sigma^2_\eta + \sigma^2_\varepsilon\, \mathrm{HHI}_j ,
+\qquad
+\mathrm{Cov}\big(g^{\text{ind}}_j,\, g^{\text{ind}}_k\big) = \sigma^2_\varepsilon\, \mathrm{CoHHI}_{jk} .
+$$
+
+Concentrated industries are more volatile because they are exposed to a few idiosyncratic shocks, and two industries in which the same firms hold similar market shares move together. Just as a variance is the covariance of a variable with itself, the HHI is the CoHHI of an industry with itself. The lower-right block is the dual. A firm's variance is its own shock variance plus the industry-shock variance scaled by the firm's concentration across industries, so diversified firms are less exposed to industry shocks, and two firms covary in proportion to how similarly their sales are spread across industries.
+
+Two limiting cases connect the framework to familiar results. With a single group, $m = 1$, the group is the whole economy, $H$ is the vector of firm sales shares, and the formula collapses to $\mathrm{Var}(g) = \sigma^2_\eta + \sigma^2_\varepsilon \sum_i h_i^2$. That is the granular hypothesis of @gabaix2011granular: idiosyncratic shocks do not wash out of an aggregate whose size distribution is concentrated. At the other extreme, with many groups but only single-segment firms, $H'H$ is diagonal, every between-group covariance is zero, and the only route to comovement left is correlation among the group shocks, which is the common-shock explanation. The conglomerate network sits between these cases. It is also distinct from the input-output network of @acemoglu2012network, in which shocks travel between industries through supply relationships, and the paper reports that the two networks are only weakly correlated.
+
+In graph terms, the paper stacks $H$ and $F'$ into the adjacency matrix of a directed bipartite graph, $A = \left[\begin{smallmatrix} 0 & F' \\ H & 0 \end{smallmatrix}\right]$, so that the growth vector above is $(I + A')\,\vec\nu$ with $\vec\nu = (\vec\eta, \vec\varepsilon)$. The co-concentration matrices are the graph's two projections. $A'A$ has diagonal blocks $H'H$ and $FF'$, the strength of shared in-links, which measures which nodes are hit by the same sources. $AA'$ has diagonal blocks $F'F$ and $HH'$, the strength of shared out-links, which measures which nodes hit the same destinations. Neither projection requires any assumption about how a conglomerate reallocates resources across its divisions, which is why the paper describes them as model-free.
+
+### Replication: The Two-Industry Example
+
+The paper illustrates the construction with three firms, $x$, $y$, and $z$, operating in two industries, $p$ and $q$. The sales matrix below reproduces the market shares and firm shares of its Figure 1.
+
+```{r decomp-net-toy}
+S_toy <- matrix(c(3, 3,
+                  0, 3,
+                  1, 4), nrow = 3, byrow = TRUE,
+                dimnames = list(firm = c("x", "y", "z"),
+                                industry = c("p", "q")))
+
+H_toy <- sweep(S_toy, 2, colSums(S_toy), "/")   # market shares: columns sum to 1
+F_toy <- sweep(S_toy, 1, rowSums(S_toy), "/")   # firm shares: rows sum to 1
+
+lapply(list(H              = H_toy,
+            F              = F_toy,
+            industry_CoHHI = crossprod(H_toy),    # H'H, HHI on the diagonal
+            firm_CoHHI     = tcrossprod(F_toy)),  # FF', firm HHI on the diagonal
+       round, 3)
+```
+
+Industry $p$ is more concentrated than $q$, with an HHI of 0.625 against 0.34, so with equal shock variances it is predicted to be the more volatile of the two. The CoHHI of 0.325 is the entire channel through which the two industries covary. Firm $x$ contributes $0.75 \times 0.30$, firm $z$ contributes $0.25 \times 0.40$, and firm $y$, which sells only in $q$, contributes nothing. On the firm side, $y$ and $z$ have a firm CoHHI of 0.8 because both earn most of their sales in $q$, so they share most of their exposure to industry shocks.
+
+### Replication: The Covariance Identity in a Simulated Economy
+
+The National Establishment Time Series and Compustat segment data the paper uses are proprietary, so the remainder of this section replicates its procedures on a simulated economy built to resemble the one it describes. Firm sizes are Pareto distributed, larger firms are more likely to operate in several industries, and the parameters place conglomerates at a small minority of firms but about half of all sales. The paper reports that firms operating in more than one four-digit SIC code receive 51 percent of sales in the average year.
+
+```{r decomp-net-economy}
+set.seed(2026)
+n <- 2000; m <- 40
+size <- (1 / runif(n))^(1 / 1.2)                  # Pareto firm sizes, tail index 1.2
+pop  <- rgamma(m, shape = 2)                       # some industries attract more firms
+k    <- 1 + rbinom(n, 3, plogis(-4.5 + 1.3 * log(size)))  # large firms span more industries
+
+seg <- do.call(rbind, lapply(seq_len(n), function(i) {
+    j  <- sample.int(m, k[i], prob = pop)
+    sh <- sort(rgamma(k[i], 3), decreasing = TRUE)
+    data.frame(firm = i, ind = j, s0 = size[i] * sh / sum(sh))
+}))
+seg$ind <- match(seg$ind, sort(unique(seg$ind))); m <- max(seg$ind)
+Ns <- nrow(seg)
+
+S  <- matrix(0, n, m); S[cbind(seg$firm, seg$ind)] <- seg$s0
+H  <- sweep(S, 2, colSums(S), "/")     # n x m market shares
+Fm <- sweep(S, 1, rowSums(S), "/")     # n x m firm shares
+CoHHI <- crossprod(H)                  # m x m, HHI on the diagonal
+ut <- upper.tri(CoHHI)
+
+firm_w <- rowSums(S) / sum(S)
+round(c(firms = n, industries = m, segments = Ns,
+        conglomerate_share_of_firms = mean(k > 1),
+        conglomerate_share_of_sales = sum(firm_w[k > 1]),
+        median_firms_per_industry   = median(colSums(S > 0)),
+        median_HHI                  = median(diag(CoHHI)),
+        share_of_pairs_with_CoHHI_above_0 = mean(CoHHI[ut] > 0)), 3)
+```
+
+The first check is the identity itself. Draw independent firm and industry shocks many times, aggregate them through $H$, and regress the resulting industry variances on HHI and the industry-pair covariances on CoHHI.
+
+```{r decomp-net-identity}
+set.seed(1)
+s_eta <- 0.04; s_eps <- 0.10; R <- 5000
+eta   <- matrix(rnorm(R * m, 0, s_eta), R, m)
+eps   <- matrix(rnorm(R * n, 0, s_eps), R, n)
+g_ind <- eta + eps %*% H                 # industry block of the growth equation
+V     <- cov(g_ind)
+
+f_var <- lm(diag(V) ~ diag(CoHHI))       # Var(g_j) on HHI_j
+f_cov <- lm(V[ut] ~ CoHHI[ut])           # Cov(g_j, g_k) on CoHHI_jk
+
+knitr::kable(
+    data.frame(regression  = rep(c("industry variance on HHI",
+                                   "industry-pair covariance on CoHHI"), each = 2),
+               coefficient = rep(c("intercept", "slope"), 2),
+               theory      = c("sigma_eta^2", "sigma_eps^2", "0", "sigma_eps^2"),
+               true_value  = c(s_eta^2, s_eps^2, 0, s_eps^2),
+               estimate    = c(coef(f_var), coef(f_cov))),
+    digits = 5, row.names = FALSE,
+    caption = paste("Concentration and volatility in a simulated economy with",
+                    "homoskedastic, independent firm and industry shocks. The",
+                    "intercept of industry variance on HHI recovers the",
+                    "industry-shock variance, and both slopes recover the",
+                    "firm-shock variance.")
+)
+```
+
+Both regressions recover the shock variances, and the covariance regression has the zero intercept the theory requires. This is the relationship the paper takes to the data in its time-series, cross-sectional, and panel tests, regressing industry-pair comovement on CoHHI with controls for input-output links, product-market similarity, and industry-pair and year fixed effects. Its headline estimate is that a one-standard-deviation increase in CoHHI corresponds to a 0.32-standard-deviation increase in the comovement of employment growth.
+
+### Heterogeneous Shocks and Out-of-Sample Covariances
+
+Common variances are convenient but not necessary. In the online appendix of @ahern2026sectoral every industry and every firm draws its own shock variance, $\eta_j \sim (0, \zeta_j^2)$ and $\varepsilon_i \sim (0, \xi_i^2)$. The diagonals of the covariance matrix then supply one equation per industry and one per firm,
+
+$$
+\mathrm{Var}\big(g^{\text{ind}}_j\big) = \zeta_j^2 + \sum_i h_{ij}^2\, \xi_i^2 ,
+\qquad
+\mathrm{Var}\big(g^{\text{firm}}_i\big) = \xi_i^2 + \sum_j f_{ij}^2\, \zeta_j^2 ,
+$$
+
+which is a linear system of $n + m$ equations in the $n + m$ unobserved shock variances. Solve it from observed variances, and the off-diagonal elements $\sum_i h_{ij} h_{ik}\, \xi_i^2$ give predicted industry covariances that never used an observed covariance as an input. Regressing observed covariances on these predictions is therefore an out-of-sample test of how much comovement the network can account for on its own. On 16,535 firms in 973 industries the paper estimates a slope of 5.03, with a standard error of 0.71, and an intercept of 0.00128.
+
+The system is exactly identified, which has two consequences that the paper discusses and that anyone applying the method will meet. Nothing prevents the solution from containing negative variances, and when it does, those are the only values that fit the data, so they signal a violation of the model's assumptions rather than a numerical accident. And identification can fail outright. An industry served by a single firm that operates nowhere else contributes the same equation twice, once as an industry and once as a firm, so its firm shock and its industry shock cannot be separated. This is the same problem as the connected set in the two-way wage model of Section \@ref(sec-decomp-variance), where worker and firm effects are identified only within groups linked by movers. Here the links are conglomerates.
+
+```{r decomp-net-hetero}
+set.seed(3)
+zeta2 <- (0.03 * exp(rnorm(m, 0, 0.4)))^2                  # industry shock variances
+xi2   <- (0.30 * size^-0.25 * exp(rnorm(n, 0, 0.3)))^2     # small firms are more volatile
+
+M <- rbind(cbind(diag(m), t(H^2)),     # industry j: zeta_j^2 + sum_i h_ij^2 xi_i^2
+           cbind(Fm^2,    diag(n)))    # firm i:     xi_i^2  + sum_j f_ij^2 zeta_j^2
+
+recover_shocks <- function(TT) {
+    eta    <- sweep(matrix(rnorm(TT * m), TT, m), 2, sqrt(zeta2), "*")
+    eps    <- sweep(matrix(rnorm(TT * n), TT, n), 2, sqrt(xi2),   "*")
+    g_ind  <- eta + eps %*% H
+    g_firm <- eps + eta %*% t(Fm)
+    sol    <- solve(M, c(apply(g_ind, 2, var), apply(g_firm, 2, var)))
+    xi2_hat  <- sol[-seq_len(m)]
+    implied  <- crossprod(H, H * xi2_hat)   # H' diag(xi^2) H, off-diagonals are predictions
+    observed <- cov(g_ind)
+    fit <- lm(observed[ut] ~ implied[ut])
+    c(years = TT,
+      negative_variance_solutions = sum(sol < 0),
+      cor_xi2_hat_with_truth = cor(xi2_hat, xi2),
+      slope_observed_on_implied = unname(coef(fit)[2]),
+      R2 = summary(fit)$r.squared)
+}
+
+knitr::kable(
+    t(sapply(c(29, 200, 2000), recover_shocks)), digits = 3,
+    caption = paste("Recovering heterogeneous shock variances from observed",
+                    "variances and predicting industry covariances out of sample.",
+                    "The model is exactly true in every row. The slope of observed",
+                    "on predicted covariance is close to one at every panel length,",
+                    "but with 29 years the pair-level fit is swamped by the sampling",
+                    "noise in the observed covariances.")
+)
+```
+
+The table shows where the difficulty lies. The paper's sample spans 29 years. With 29 years of growth rates, the recovered firm-shock variances are still strongly correlated with the truth and the slope of observed on predicted covariance is close to its true value of one, but the $R^2$ is close to zero, because a covariance estimated from 29 observations is mostly sampling noise, and a few of the solved variances are negative even though every true variance is positive. The fit improves steadily as the panel lengthens, although the model is exactly true throughout. A low $R^2$ in this regression is therefore not evidence against the network channel, and the slope is the informative quantity. A natural reading of the paper's slope of five is that the network-implied covariances understate observed comovement several-fold, as one would expect if correlated industry shocks, supply links, and common demand also move industries together, since the model sets all of these to zero.
+
+### Decomposing Aggregate Volatility
+
+Section 6 of @ahern2026sectoral moves from the model to a decomposition of the data, following the procedure that @digiovanni2014firms developed for French firms and their export destinations. Each firm-segment growth rate is split into three estimated parts,
+
+$$
+g_{ijt} = \delta_{jt} + \varepsilon_{it} + \zeta_{ijt} ,
+$$
+
+where $\delta_{jt}$ is the unweighted mean growth of all segments in industry $j$ in year $t$, $\varepsilon_{it}$ is the unweighted mean, across firm $i$'s segments, of growth net of the industry mean, and $\zeta_{ijt}$ is what remains. With sales weights fixed in a base year $\tau$, aggregate growth is an exact sum of three components,
+
+$$
+\gamma_t = \sum_j w_{j\tau}\, \delta_{jt} + \sum_i w_{i\tau}\, \varepsilon_{it} + \sum_{i, j} w_{ij\tau}\, \zeta_{ijt} ,
+$$
+
+where $w_{j\tau}$, $w_{i\tau}$, and $w_{ij\tau}$ are the industry's, the firm's, and the segment's shares of aggregate sales in year $\tau$. The variance of $\gamma_t$ over time splits into three variances and three covariances. Holding the weights fixed and asking how volatile the aggregate would be with that composition is the same device as the fundamental volatility of @carvalho2013great, and the paper repeats the calculation for every base year from 1991 to 2019 on the 250,000 largest firms in the establishment data. In the average year, firm-level shocks account for 45.6 percent of aggregate variance, industry-level shocks for 15.3 percent, segment-level shocks for 11.3 percent, and the cross-level covariances for the remainder.
+
+The simulation below adds a common macro factor to the industry shocks, so that industries also comove for the conventional reason, and lets sales evolve with realized growth so that the weights differ from one base year to the next. Because the true shocks are known, the decomposition can be run twice, once on the estimated components and once on the truth.
+
+```{r decomp-net-panel}
+set.seed(11)
+TT  <- 30
+lam <- runif(m, 0.5, 1.5)                                  # loadings on a macro factor
+eta <- outer(rnorm(TT, 0, 0.012), lam) +
+       matrix(rnorm(TT * m, 0, 0.03), TT, m)               # industry shocks, T x m
+eps <- matrix(rnorm(TT * n,  0, 0.09), TT, n)              # firm shocks,     T x n
+u   <- matrix(rnorm(TT * Ns, 0, 0.08), TT, Ns)             # segment shocks,  T x Ns
+G   <- eta[, seg$ind] + eps[, seg$firm] + u                # segment growth,  T x Ns
+
+sales <- rbind(seg$s0, sweep(exp(apply(G, 2, cumsum)), 2, seg$s0, "*"))
+W     <- sales[1:TT, ] / rowSums(sales[1:TT, ])            # row tau holds w_ij,tau
+
+# estimated shocks, following the definitions in the paper's appendix
+Mi <- matrix(0, Ns, m); Mi[cbind(seq_len(Ns), seg$ind)]  <- 1   # segment -> industry
+Mf <- matrix(0, Ns, n); Mf[cbind(seq_len(Ns), seg$firm)] <- 1   # segment -> firm
+D    <- sweep(G %*% Mi, 2, colSums(Mi), "/")   # delta_jt: unweighted industry mean
+R1   <- G - D[, seg$ind]
+E    <- sweep(R1 %*% Mf, 2, colSums(Mf), "/")  # eps_it: firm mean of growth net of industry
+Zeta <- R1 - E[, seg$firm]                     # zeta_ijt: the remainder
+
+w1 <- W[1, ]                                   # the accounting is exact
+stopifnot(isTRUE(all.equal(
+    c(D %*% crossprod(Mi, w1) + E %*% crossprod(Mf, w1) + Zeta %*% w1),
+    c(G %*% w1))))
+
+agg_shares <- function(w, Dm, Em, Zm) {
+    I  <- Dm %*% crossprod(Mi, w)              # sum_j  w_j  delta_jt
+    Fc <- Em %*% crossprod(Mf, w)              # sum_i  w_i  eps_it
+    Z  <- Zm %*% w                             # sum_ij w_ij zeta_ijt
+    c(industry = var(I), firm = var(Fc), segment = var(Z),
+      `industry x firm`    = 2 * cov(I, Fc),
+      `industry x segment` = 2 * cov(I, Z),
+      `firm x segment`     = 2 * cov(Fc, Z)) / as.vector(var(I + Fc + Z))
+}
+
+agg <- rbind(
+    `estimated components` = rowMeans(apply(W, 1, agg_shares, Dm = D,   Em = E,   Zm = Zeta)),
+    `true shocks`          = rowMeans(apply(W, 1, agg_shares, Dm = eta, Em = eps, Zm = u)),
+    `Ahern, Kong, and Yan (2026)` = c(15.3, 45.6, 11.3, NA, NA, NA) / 100)
+
+knitr::kable(
+    100 * agg, digits = 1,
+    caption = paste("Decomposition of aggregate growth variance, in percent,",
+                    "averaged over base years. The first two rows come from the",
+                    "simulated economy; the third reports the paper's averages, which",
+                    "do not split the cross-level covariances. Rows sum to 100",
+                    "where all six terms are reported.")
+)
+```
+
+Two features of the table matter for anyone using this decomposition. The first is that the accounting is exact: the three weighted components sum to aggregate growth in every year, and the six shares sum to one. The second is that the estimated components are not the true shocks, and the gap between them is systematic. The segment component is badly understated and the firm component overstated, for a mechanical reason. A single-segment firm's estimated firm shock is its one segment's growth net of the industry mean, so its estimated segment shock is identically zero and its true segment shock is booked as a firm shock. In an economy where most firms have one segment, the segment-level share is identified from conglomerates alone, and the firm-level share is best read as an upper bound on the role of shocks common to all of a firm's activities. The same contamination runs the other way in thinly populated industries, where the unweighted industry mean absorbs part of the shocks of the few firms in it.
+
+### Decomposing Industry Comovement
+
+The same three-way split applies to the covariance between two industries. With market shares fixed in year $\tau$, industry growth is $\gamma_{jt} = \delta_{jt} + \sum_i h_{ij\tau}\, \varepsilon_{it} + \sum_i h_{ij\tau}\, \zeta_{ijt}$, where the first term uses the fact that market shares sum to one. Therefore
+
+$$
+\mathrm{Cov}(\gamma_j, \gamma_k) =
+\underbrace{\mathrm{Cov}(\delta_j, \delta_k)}_{\text{industry}}
++ \underbrace{\mathrm{Cov}\Big(\textstyle\sum_i h_{ij}\varepsilon_i,\; \sum_i h_{ik}\varepsilon_i\Big)}_{\text{firm}}
++ \underbrace{\mathrm{Cov}\Big(\textstyle\sum_i h_{ij}\zeta_{ij},\; \sum_i h_{ik}\zeta_{ik}\Big)}_{\text{segment}}
++ \text{cross-level terms} .
+$$
+
+The paper sums each term over industry pairs and reports it as a share of total industry covariance. Firm-level shocks account for 34.5 percent, industry-level shocks for 17.1, segment-level shocks for 11.1, the covariance between firm-level and segment-level shocks for 20.8, and the covariance between industry-level and firm-level shocks for 18.5. Firm-level shocks are thus the largest single source of industry comovement as well as of aggregate volatility, which is the paper's central quantitative finding. The remaining cross term, between industry-level and segment-level shocks, is not reported separately and is implied to be about $-2$ percent.
+
+```{r decomp-net-cov}
+mshare <- function(w) w / as.vector(Mi %*% crossprod(Mi, w))   # segment's share of its industry
+
+cov_shares <- function(w) {
+    Hs <- Mi * mshare(w)                   # Ns x m market-share matrix in base year tau
+    Hf <- crossprod(Mf, Hs)                # n x m, the H of the theory
+    Dj <- D; Ej <- E %*% Hf; Zj <- Zeta %*% Hs    # gamma_j = Dj + Ej + Zj
+    s  <- function(A, B = A) { C <- cov(A, B); sum((C + t(C))[ut]) / 2 }  # sum over pairs j < k
+    c(industry = s(Dj), firm = s(Ej), segment = s(Zj),
+      `industry x firm`    = 2 * s(Dj, Ej),
+      `industry x segment` = 2 * s(Dj, Zj),
+      `firm x segment`     = 2 * s(Ej, Zj)) / s(Dj + Ej + Zj)
+}
+
+comov <- rbind(
+    simulation = rowMeans(apply(W, 1, cov_shares)),
+    `Ahern, Kong, and Yan (2026)` = c(17.1, 34.5, 11.1, 18.5, NA, 20.8) / 100)
+
+knitr::kable(
+    100 * comov, digits = 1,
+    caption = paste("Decomposition of the summed covariance of industry growth",
+                    "rates across all industry pairs, in percent, averaged over",
+                    "base years. Cross-level terms can be negative because the",
+                    "estimated components are mechanically correlated.")
+)
+```
+
+In the simulation the macro factor makes the industry component larger than in the paper, and the firm component lands close to the paper's estimate. Two terms are negative, and neither is a finding about the simulated economy, whose true shocks are independent across levels and positive in variance. Both are properties of the estimator. The industry mean contains the average firm shock of the industry, and the firm component is computed net of that mean, so the two estimated components are mechanically correlated. And because a firm's estimated segment shocks are deviations from that firm's own mean, they sum to zero across its segments: for a two-segment conglomerate the two estimated segment shocks are exact negatives of each other, which pushes the segment-level contribution to the covariance of the two industries below zero. Signs in a decomposition of estimated components should be interpreted with these constraints in mind.
+
+### Within-Firm and Across-Firm Comovement
+
+The covariance of two industries can be opened further. For a given pair $(j, k)$, write the $n \times n$ matrix whose $(a, b)$ entry is $\mathrm{Cov}(h_{aj} g_{aj},\, h_{bk} g_{bk})$. Its diagonal entries pair a firm's segment in $j$ with the same firm's segment in $k$. They are nonzero only for firms that operate in both industries, and their sum is the **within-firm**, or conglomerate, effect. The off-diagonal entries pair different firms, and their sum is the across-firm effect. Under homoskedastic independent shocks the within-firm part is exactly $\sigma^2_\varepsilon\, \mathrm{CoHHI}_{jk}$, which is the covariance identity again.
+
+How large should the within-firm share be? The paper's benchmark supposes that every entry of the matrix had the same covariance $\sigma$. The diagonal would then sum to $n\sigma$ and the whole matrix to $n^2\sigma$, so conglomerates would account for $1/n$ of industry covariance. The median industry in the paper has 3,983 firms, which gives a benchmark of 0.000251, against an estimated conglomerate share of 0.035. Even if within-firm covariances were assumed to be one hundred times as large as across-firm covariances, the estimated conglomerate effect exceeds the benchmark by 44 percent.
+
+That comparison generalizes into a single number worth reporting. If the within-firm entries are $\kappa$ times the across-firm entries, the expected within-firm share is $\kappa / (\kappa + n - 1)$. Setting this equal to the observed share $s$ and solving gives the break-even multiplier
+
+$$
+\kappa^* = \frac{s\,(n - 1)}{1 - s} ,
+$$
+
+the factor by which a firm's segments would have to comove more with each other than with other firms' segments for the observed share to be no larger than expected. It is more informative than a comparison with $1/n$, which is easy to beat. Because only firms present in both industries can have nonzero diagonal entries, the expected share under equal covariances is in fact below $1/n$, so the benchmark is conservative in the paper's favor, but it is also undemanding.
+
+```{r decomp-net-within}
+# all pairs of segments that belong to the same firm (necessarily in different industries)
+pairs <- do.call(rbind, lapply(split(seq_len(Ns), seg$firm), function(s)
+    if (length(s) > 1) t(combn(s, 2)) else NULL))
+
+within_total <- function(h, Gm = G) {
+    Gc <- sweep(Gm, 2, colMeans(Gm))
+    pc <- colSums(Gc[, pairs[, 1]] * Gc[, pairs[, 2]]) / (nrow(Gm) - 1)
+    c(within = sum(h[pairs[, 1]] * h[pairs[, 2]] * pc),   # diagonal of the firm-by-firm matrix
+      total  = sum(cov(Gm %*% (Mi * h))[ut]))              # all industry-pair covariance
+}
+
+wt     <- rowMeans(apply(W, 1, function(w) within_total(mshare(w))))
+share  <- unname(wt["within"] / wt["total"])
+n_med  <- median(colSums(Mi))
+k_star <- function(s, n) s * (n - 1) / (1 - s)
+
+knitr::kable(
+    data.frame(source = c("simulation", "Ahern, Kong, and Yan (2026)"),
+               firms_in_median_industry = c(n_med, 3983),
+               conglomerate_share       = c(share, 0.035),
+               benchmark_1_over_n       = c(1 / n_med, 1 / 3983),
+               break_even_multiplier    = c(k_star(share, n_med), k_star(0.035, 3983))),
+    digits = 4, row.names = FALSE,
+    caption = paste("Share of summed industry-pair covariance generated within",
+                    "conglomerates, the 1/n benchmark, and the break-even",
+                    "multiplier: how many times larger within-firm covariance",
+                    "would have to be than across-firm covariance to account for",
+                    "the observed share.")
+)
+```
+
+The paper's rounded figures imply a break-even multiplier of about 144: a conglomerate's segments would have to covary roughly 144 times as strongly as segments of unrelated firms for the observed conglomerate share to be unremarkable. In the simulation, with far fewer firms per industry, the multiplier is smaller, but the share is still several times its $1/n$ benchmark.
+
+### Separating Market Shares from Growth Rates
+
+A conglomerate effect requires two things at once. The conglomerate must hold similar market shares in both industries, which is what CoHHI measures, and its segments must actually grow together. The paper separates the two with synthetic samples. To remove the growth channel, it reassigns the observed growth rates at random across the segments in each industry-year while keeping every market share. To remove the market-share channel, it gives every segment in an industry the same market share while keeping every growth rate. With actual growth and equal shares, the conglomerate effect falls to 5.3 percent of its actual size; with actual shares and shuffled growth, to 14.5 percent. Neither channel alone produces much of the effect, so most of it comes from their interaction: industries linked by high CoHHI are also industries whose shared firms' segments grow together.
+
+```{r decomp-net-channels}
+shuffle_growth <- function() {      # permute growth across segments within each industry-year
+    Gs <- G
+    for (j in seq_len(m)) {
+        idx <- which(seg$ind == j)
+        if (length(idx) > 1)
+            Gs[, idx] <- t(apply(G[, idx, drop = FALSE], 1, sample))
+    }
+    Gs
+}
+
+set.seed(7)
+no_growth <- replicate(20, {
+    Gs <- shuffle_growth()
+    mean(apply(W, 1, function(w) within_total(mshare(w), Gs)["within"]))
+})
+no_share <- within_total(1 / as.vector(Mi %*% colSums(Mi)))["within"]
+
+knitr::kable(
+    data.frame(counterfactual = c("actual shares, actual growth",
+                                  "actual shares, shuffled growth (mean of 20)",
+                                  "  range across shuffles",
+                                  "equal shares, actual growth"),
+               simulation = c("100",
+                              sprintf("%.1f", 100 * mean(no_growth) / wt["within"]),
+                              sprintf("%.1f to %.1f",
+                                      100 * min(no_growth) / wt["within"],
+                                      100 * max(no_growth) / wt["within"]),
+                              sprintf("%.1f", 100 * no_share / wt["within"])),
+               paper = c("100", "14.5", "", "5.3")),
+    row.names = FALSE,
+    caption = paste("The conglomerate (within-firm) effect in synthetic samples",
+                    "that remove one channel at a time, as a percentage of the",
+                    "actual effect.")
+)
+```
+
+The simulation reproduces the qualitative pattern: each channel on its own accounts for only a small fraction of the conglomerate effect. A single random reassignment is one draw from a null distribution, so the table reports the mean and the range across twenty draws, and the same practice should be followed with real data.
+
+### The Template Beyond Conglomerates
+
+The framework needs three ingredients: units, groups, and a matrix of weights linking them, observed often enough to compute growth rates. Nothing else in the algebra refers to firms or industries, and the mapping to other settings is direct.
+
+For exporters and destination markets, which is the setting of @digiovanni2014firms, sales by firm and destination form $S$, and destinations comove when the same large exporters serve them. For banks and regions, lending by bank and region forms $S$, $H$ holds each bank's share of a region's credit, and CoHHI between two regions measures how much they depend on the same lenders, so the decomposition asks how much of the comovement in regional credit is bank-driven. For investors and securities, holdings form $S$, CoHHI between two stocks measures overlapping ownership, and investor flows play the role of unit shocks. In marketing, sales by chain and category, or by brand and retailer, form $S$, and the question becomes whether categories comove across markets because of common demand or because the same chains, with their own promotions and supply disruptions, dominate both. For suppliers and customers, customers comove when they buy from the same suppliers in similar proportions. For physicians and hospitals, or teachers and schools, group outcomes comove when the same individuals work in several of them.
+
+In every case the recipe is the one above. Build $S$ and normalize it to $H$ and $F$. Compute HHI and CoHHI, and check whether variance rises with HHI and covariance with CoHHI. Estimate unit, group, and unit-within-group shocks. Decompose aggregate variance and between-group covariance with fixed base-year weights, averaging over base years. Split the covariance into within-unit and across-unit parts and report the break-even multiplier. Then remove each channel in turn with synthetic samples.
+
+### What the Decomposition Does and Does Not Say
+
+The decomposition is an accounting identity with descriptive content, and the cautions that apply to the components-of-variance design apply here too, along with several of its own.
+
+It does not identify causal effects of the network. Firms choose which industries to enter and how much to sell in each, so CoHHI is an outcome of decisions that may themselves respond to anticipated comovement. @ahern2026sectoral address this outside the decomposition: they use lagged network measures, compare completed mergers with mergers that were announced but failed, and split changes in CoHHI into a component driven by entry, exit, and mergers and a component driven by organic growth, finding that both are related to comovement. The variance shares themselves carry no such protection.
+
+The components are estimated, not observed. Single-segment firms book their segment shocks as firm shocks, thin industries' means absorb firm shocks, and estimated components are mechanically correlated. These are properties of the estimator, so the most useful robustness check is the one carried out above: simulate an economy with your own design, meaning your own numbers of firms, industries, and segments per firm, with known shocks, and compare the decomposition of the estimated components with the decomposition of the truth.
+
+The shares depend on the weighting year. Report the average across base years and the range, not a single year.
+
+Time-series variances need long panels. Even when the model is exactly true, covariances estimated from three decades of annual data are noisy at the level of an industry pair, so conclusions should rest on slopes and on quantities aggregated over many pairs rather than on pair-level fit.
+
+The exactly identified system can return negative variances, and an industry served by a single undiversified firm leaves its firm and industry shocks unidentified. Report how often each occurs.
+
+The shares depend on how groups are defined. Coarser industry codes merge segments, which turns within-firm comovement across industries into within-industry variance. The paper checks its results with coarser industry definitions, and every application should report the sensitivity of the shares to the level of aggregation.
+
 ## Decompositions of Estimators {#sec-decomp-estimators}
 
 A final family of decompositions takes an *estimator* rather than a gap as its object, and asks what weighted average of underlying comparisons it computes. The best-known instance is @goodman2021difference's result that the two-way fixed-effects difference-in-differences estimator is a variance-weighted average of all possible two-group two-period comparisons, including comparisons that use already-treated units as controls and can therefore receive negative weight. The [staggered adoption](#sec-modern-estimators-for-staggered-adoption) section of the difference-in-differences chapter develops this at length.
@@ -586,6 +1010,8 @@ Correct variance decompositions for estimation error in the components, and do n
 
 Report a chance baseline for every components-of-variance estimate. Simulate the null under your own group counts and group sizes, report the resulting ceiling next to the estimate, and give the design counts at every level so a reader can judge whether the estimate could have cleared it.
 
+When groups share units, decompose their covariance as well as their variance. Report the within-unit share of between-group covariance with its break-even multiplier rather than against a $1/n$ benchmark alone, average the shares over base years, and simulate your own design with known shocks to see how far the estimated components drift from the truth.
+
 Never label the unexplained component "discrimination", "the treatment effect", or "the mechanism". It is the part of the gap that the included covariates and the assumed functional form do not account for, and it absorbs every specification error in the model.
 
 ### Where This Shows Up in Practice
@@ -594,7 +1020,7 @@ In labor economics and human resources analytics the decomposition is the standa
 
 In marketing and industrial organization the same arithmetic decomposes changes in market share, revenue, or customer lifetime value into price, mix, and volume components. The index-number problem is identical, and the standard practitioner habit of computing "price effect holding volume at last year" and "volume effect holding price at this year" is exactly the three-fold decomposition with the interaction term silently assigned. The Shapley approach resolves it, and for a two-factor or three-factor decomposition the computation is trivial.
 
-In finance the conditional decomposition is the right tool for the ubiquitous question of which control set kills an anomaly. A paper reporting that a return premium survives industry adjustment but not size adjustment is making a claim about covariate contributions, and @gelbach2016covariates converts it from a narrative about a specification table into an estimate with a standard error.
+In finance the conditional decomposition is the right tool for the ubiquitous question of which control set kills an anomaly. A paper reporting that a return premium survives industry adjustment but not size adjustment is making a claim about covariate contributions, and @gelbach2016covariates converts it from a narrative about a specification table into an estimate with a standard error. The network decomposition of @ahern2026sectoral belongs in the same toolkit. Whenever a portfolio, a loan book, or a set of industries is exposed to the same large firms, the co-Herfindahl index measures that shared exposure, and the within-firm share of covariance says how much of the diversification an investor or a regulator thought it had is illusory.
 
 In public health and epidemiology the disparity-decomposition literature is the most developed application, and it is also where the causal framing has been worked out most carefully. The @vanderweele2014causal treatment of race in regressions is required reading for anyone decomposing a gap defined by a non-manipulable characteristic, in any field.
 
@@ -615,3 +1041,5 @@ Shapley decomposition resolves the ordering ambiguity that afflicts all of these
 Variance decompositions in two-way fixed-effects models are biased when the effects are noisily estimated: with few movers, a simulation with zero true assortative matching produces a strongly negative estimated correlation and a doubled firm-effect variance. Leave-out estimation is the standard correction, and the lesson generalizes to every setting where a variance decomposition is built from estimated effects.
 
 The components-of-variance design asks how much of an outcome belongs to each level of a nested hierarchy, and it is the dominant answer to the "how much does X matter" question in strategy and international business. On course ratings the instructor carries fifteen percent of the variance and the department that instructor sits in carries four tenths of one percent, the mirror image of @mokhtar2026university's finding for academic spin-offs, which is the point: structure does not tell you which level matters. Sequential sums of squares are not a decomposition, since the department's apparent contribution is 0.8 percent entered first and exactly zero entered last. And a factor that does nothing still explains $(G-1)/(N-1)$ of the variance by that measure, which with two observations per group is half of it, so a chance baseline simulated under the paper's own design is not optional [@fitza2014use]. What the shares never supply is a mechanism, and the interpretive step from a small share to "the level's influence is absorbed by the level above it" is the move these papers live on and the one the design cannot verify.
+
+Variance-covariance decompositions on a network extend the components-of-variance logic from one outcome to the comovement between groups that share units. In the conglomerate network of @ahern2026sectoral, industry variance equals the industry-shock variance plus the firm-shock variance scaled by HHI, and industry covariance equals the firm-shock variance scaled by the co-Herfindahl index, so concentration is to volatility what co-concentration is to comovement. Following @digiovanni2014firms, the paper finds that firm-level shocks are the largest source of both aggregate volatility and industry comovement, that conglomerates account for far more comovement than a $1/n$ benchmark predicts, and that the effect requires market shares and growth rates to line up together. A simulation with known shocks reproduces the accounting exactly but shows that the estimated components are not the true ones: single-segment firms book their segment shocks as firm shocks, cross-level terms are mechanically correlated, and covariances from three decades of data are too noisy to judge pair by pair. The same recipe applies to any setting in which units are affiliated with several groups through observable weights.
