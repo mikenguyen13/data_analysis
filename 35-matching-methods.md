@@ -3703,3 +3703,38 @@ o_beta_rsq_viz(
 1.  **Explain‑away curve**: plots $\delta^*$ against a range of $R^2_{\max}$.
 2.  **Bootstrap histogram**: sampling distribution of $\delta^*$, with 90/95/99 % bands.
 3.  $\beta^*$ vs. $R^2_{\max}$: how the bias‑adjusted coefficient moves as you tighten or loosen the assumed upper bound on $R^2$.
+
+#### Breakdown Points and Endogenous Controls with `regsensitivity` {#sec-regsensitivity-breakdown}
+
+Oster's calculations above, like most coefficient-stability methods, assume the omitted variable is uncorrelated with the observed controls. @diegert2026assessing argue that this is often implausible and replace it with a sensitivity parameter $\bar c$ that bounds how much of the omitted variable the controls can explain: $\bar c = 0$ is the exogenous-controls case and $\bar c = 1$ (the default) lets the controls be arbitrarily endogenous. Their $\bar r_X$ bounds how strongly the omitted variable can drive the treatment, as a multiple of how strongly the observed controls do, and the breakdown point is the smallest $\bar r_X$ at which the conclusion (here, a positive effect) can fail.
+
+The CRAN package [`regsensitivity`](https://mikenguyen13.github.io/regsensitivity/) implements this analysis together with Oster's $\delta$ [@oster2019unobservable] and both breakdown points of @masten2022effect, so the $\delta^{\text{EA}}$ and $\delta^{\text{SC}}$ defined above each take one call. Using the `model_df` sample from above:
+
+``` r
+library(regsensitivity)
+
+form <- log_re78 ~ treat + age + educ + black + hispan + married +
+  nodegr + re74 + re75
+
+# DMP (2026): identified set for the effect of treat as rxbar grows,
+# with the controls allowed to be arbitrarily endogenous (cbar = 1)
+dmp_bounds <- regsen_bounds(form, data = model_df)
+plot(dmp_bounds)
+
+# DMP breakdown point for "effect > 0", in rxbar, as cbar runs from
+# exogenous controls (0) to arbitrarily endogenous controls (1)
+dmp_bp <- regsen_breakdown(form, data = model_df, cbar = seq(0, 1, 0.1))
+plot(dmp_bp)
+
+# Oster (2019) with Masten and Poirier (2026), at R2_max = 1.3 * R2_med:
+# explain-away delta (the number psacalc reports) and sign-change delta
+oster_ea <- regsen_breakdown(form, data = model_df, analysis = "oster",
+                             r2long = 1.3, r2long_type = "relative",
+                             beta = bnd_eq(0))
+oster_sc <- regsen_breakdown(form, data = model_df, analysis = "oster",
+                             r2long = 1.3, r2long_type = "relative")
+breakdown_point(oster_ea)
+breakdown_point(oster_sc)
+```
+
+By default every control serves as a benchmark for the omitted variable. Pass `compare =` the names of the benchmark controls to keep fixed effects and other nuisance controls in the regression without using them as the yardstick.
